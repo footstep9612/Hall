@@ -375,7 +375,6 @@ function removeXSS($str) {
     $str = preg_replace('/&#0{0,8}[0-9]{2,3};/is', '', $str);
     $str = preg_replace('/&#0{0,8}[0-9]{2,3};/is', '', $str);
 
-    $str = addslashes($str);
     //$str = preg_replace('/&lt;/i', '<', $str);
     //$str = preg_replace('/&gt;/i', '>', $str);
     // 非成对标签
