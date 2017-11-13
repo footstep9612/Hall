@@ -680,12 +680,14 @@ class GoodsModel extends PublicModel {
                             if ($exist) {
                                 $data['updated_by'] = $userInfo['id'];
                                 $data['updated_at'] = date('Y-m-d H:i:s', time());
+                                $data['deleted_flag'] = 'N';
                                 $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
                                 $res = $this->where($where)->save($data);
                             } else {
                                 $data['sku'] = trim($input['sku']);
                                 $data['created_by'] = $userInfo['id'];
                                 $data['created_at'] = date('Y-m-d H:i:s', time());
+                                $data['deleted_flag'] = 'N';
                                 $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
                                 if ($key == 'zh') {
                                     $data['show_name_loc'] = $input['en']['name'];
@@ -1175,6 +1177,7 @@ class GoodsModel extends PublicModel {
             return false;
         }
         if (!(isset($input['sku']))) {
+
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $lang = '';
@@ -1194,6 +1197,7 @@ class GoodsModel extends PublicModel {
                     }
                     $result = $showCatGoodsModel->field('sku')->where($where)->select();
                     if ($result) {
+
                         jsonReturn('', -101, '上架商品不能删除!');
                     }
                 }
@@ -1204,6 +1208,7 @@ class GoodsModel extends PublicModel {
                 }
                 $result = $showCatGoodsModel->field('sku')->where($where)->select();
                 if ($result) {
+
                     jsonReturn('', -101, '上架商品不能删除!');
                 }
             }
@@ -1256,6 +1261,7 @@ class GoodsModel extends PublicModel {
 
             return true;
         } catch (Exception $e) {
+
             Log::write($e->getMessage());
             $this->rollback();
             return false;
@@ -1269,10 +1275,12 @@ class GoodsModel extends PublicModel {
      */
     public function deleteSku($skus, $lang = '') {
         if (empty($skus)) {
+
             return false;
         }
         $results = array();
         try {
+
             if ($skus && is_array($skus)) {
                 foreach ($skus as $del) {
                     $where = [
@@ -1282,6 +1290,7 @@ class GoodsModel extends PublicModel {
                         $where["lang"] = $lang;
                     }
                     $skuInfo = $this->field('spu,deleted_flag')->where($where)->find();
+
                     if ($skuInfo && $skuInfo['deleted_flag'] != 'Y') {
                         $res = $this->where($where)->save(['deleted_flag' => 'Y']);
                         if ($res) {
@@ -1302,6 +1311,7 @@ class GoodsModel extends PublicModel {
                               return false;
                               } */
                         } else {
+
                             return false;
                         }
                     }
@@ -1330,24 +1340,30 @@ class GoodsModel extends PublicModel {
                             $presult = $pModel->where(['spu' => $productinfo['spu'], 'lang' => $productinfo['lang']])
                                     ->save(array('sku_count' => $sku_count));
                             if (!$presult) {
+
                                 return false;
                             }
                         }
                     } else {
+
                         return false;
                     }
                 }
             }
+
             if ($res) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
             } else {
+
                 $results['code'] = '-101';
                 $results['message'] = '失败!';
             }
 
             return $results;
         } catch (Exception $e) {
+
+            LOG::write($e->getMessage());
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;

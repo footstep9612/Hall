@@ -283,7 +283,7 @@ class GoodsController extends PublicController {
             return false;
         }
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->deleteSkuReal($this->put_data);
+        $result = $goodsModel->deleteSkuReal($this->put_data, $this->getLang());
 
         if ($result === true) {
             $esgoods_model = new EsGoodsModel();
@@ -620,14 +620,14 @@ class GoodsController extends PublicController {
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process);
         if ($localDir) {
-            if(is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0){
-                jsonReturn($localDir, ErrorMsg::SUCCESS , '导入失败');
+            if (is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0) {
+                jsonReturn($localDir, ErrorMsg::SUCCESS, '导入失败');
             }
-            $message = '成功'.$localDir['success'].'条';
-            if(isset($localDir['faild']) && $localDir['faild']>0){
-                $message = $message.',失败'.$localDir['faild'].'条。';
+            $message = '成功' . $localDir['success'] . '条';
+            if (isset($localDir['faild']) && $localDir['faild'] > 0) {
+                $message = $message . ',失败' . $localDir['faild'] . '条。';
             }
-            jsonReturn($localDir , ErrorMsg::SUCCESS , $message);
+            jsonReturn($localDir, ErrorMsg::SUCCESS, $message);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
