@@ -619,7 +619,7 @@ class GoodsModel extends PublicModel {
                             $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
                                 'lang' => $key,
                                 'spu' => $spu,
-                                'name' => $value['name'],
+                                'name' => addslashes($value['name']),
                                 'model' => $checkout['model'],
                                 'deleted_flag' => 'N',
                                 'status' => array('neq', 'DRAFT')
@@ -633,38 +633,38 @@ class GoodsModel extends PublicModel {
                         $data = [
                             'lang' => $key,
                             'spu' => $spu,
-                            'name' => $checkout['name'],
-                            'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
-                            'model' => !empty($checkout['model']) ? $checkout['model'] : '',
-                            'description' => !empty($checkout['description']) ? $checkout['description'] : '',
-                            'source' => !empty($checkout['source']) ? $checkout['source'] : '',
-                            'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
+                            'name' => addslashes($checkout['name']),
+                            'show_name' => isset($checkout['show_name']) ? addslashes($checkout['show_name']) : '',
+                            'model' => !empty($checkout['model']) ? addslashes($checkout['model']) : '',
+                            'description' => !empty($checkout['description']) ? addslashes($checkout['description']) : '',
+                            'source' => !empty($checkout['source']) ? addslashes($checkout['source']) : '',
+                            'source_detail' => !empty($checkout['source_detail']) ? addslashes($checkout['source_detail']) : '',
                             //固定商品  属性
-                            'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
-                            'min_pack_naked_qty' => (isset($attr['const_attr']['min_pack_naked_qty']) && !empty($attr['const_attr']['min_pack_naked_qty'])) ? $attr['const_attr']['min_pack_naked_qty'] : null,
-                            'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
-                            'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
-                            'min_order_qty' => (isset($attr['const_attr']['min_order_qty']) && !empty($attr['const_attr']['min_order_qty'])) ? $attr['const_attr']['min_order_qty'] : null,
-                            'purchase_price' => (isset($attr['const_attr']['purchase_price']) && !empty($attr['const_attr']['purchase_price'])) ? $attr['const_attr']['purchase_price'] : null,
-                            'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
-                            'nude_cargo_l_mm' => (isset($attr['const_attr']['nude_cargo_l_mm']) && !empty($attr['const_attr']['nude_cargo_l_mm'])) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
+                            'exw_days' => isset($attr['const_attr']['exw_days']) ? addslashes($attr['const_attr']['exw_days']) : null,
+                            'min_pack_naked_qty' => (isset($attr['const_attr']['min_pack_naked_qty']) && !empty($attr['const_attr']['min_pack_naked_qty'])) ? addslashes($attr['const_attr']['min_pack_naked_qty']) : null,
+                            'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? addslashes($attr['const_attr']['nude_cargo_unit']) : null,
+                            'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? addslashes($attr['const_attr']['min_pack_unit']) : null,
+                            'min_order_qty' => (isset($attr['const_attr']['min_order_qty']) && !empty($attr['const_attr']['min_order_qty'])) ? addslashes($attr['const_attr']['min_order_qty']) : null,
+                            'purchase_price' => (isset($attr['const_attr']['purchase_price']) && !empty($attr['const_attr']['purchase_price'])) ? addslashes($attr['const_attr']['purchase_price']) : null,
+                            'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? addslashes($attr['const_attr']['purchase_price_cur_bn']) : null,
+                            'nude_cargo_l_mm' => (isset($attr['const_attr']['nude_cargo_l_mm']) && !empty($attr['const_attr']['nude_cargo_l_mm'])) ? addslashes($attr['const_attr']['nude_cargo_l_mm']) : null,
                             //固定物流属性
-                            'nude_cargo_w_mm' => (isset($attr['const_attr']['nude_cargo_w_mm']) && !empty($attr['const_attr']['nude_cargo_w_mm'])) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
-                            'nude_cargo_h_mm' => (isset($attr['const_attr']['nude_cargo_h_mm']) && !empty($attr['const_attr']['nude_cargo_h_mm'])) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
-                            'min_pack_l_mm' => (isset($attr['const_attr']['min_pack_l_mm']) && !empty($attr['const_attr']['min_pack_l_mm'])) ? $attr['const_attr']['min_pack_l_mm'] : null,
-                            'min_pack_w_mm' => (isset($attr['const_attr']['min_pack_w_mm']) && !empty($attr['const_attr']['min_pack_w_mm'])) ? $attr['const_attr']['min_pack_w_mm'] : null,
-                            'min_pack_h_mm' => (isset($attr['const_attr']['min_pack_h_mm']) && !empty($attr['const_attr']['min_pack_h_mm'])) ? $attr['const_attr']['min_pack_h_mm'] : null,
-                            'net_weight_kg' => (isset($attr['const_attr']['net_weight_kg']) && !empty($attr['const_attr']['net_weight_kg'])) ? $attr['const_attr']['net_weight_kg'] : null,
-                            'gross_weight_kg' => (isset($attr['const_attr']['gross_weight_kg']) && !empty($attr['const_attr']['gross_weight_kg'])) ? $attr['const_attr']['gross_weight_kg'] : null,
-                            'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
-                            'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
+                            'nude_cargo_w_mm' => (isset($attr['const_attr']['nude_cargo_w_mm']) && !empty($attr['const_attr']['nude_cargo_w_mm'])) ? addslashes($attr['const_attr']['nude_cargo_w_mm']) : null,
+                            'nude_cargo_h_mm' => (isset($attr['const_attr']['nude_cargo_h_mm']) && !empty($attr['const_attr']['nude_cargo_h_mm'])) ? addslashes($attr['const_attr']['nude_cargo_h_mm']) : null,
+                            'min_pack_l_mm' => (isset($attr['const_attr']['min_pack_l_mm']) && !empty($attr['const_attr']['min_pack_l_mm'])) ? addslashes($attr['const_attr']['min_pack_l_mm']) : null,
+                            'min_pack_w_mm' => (isset($attr['const_attr']['min_pack_w_mm']) && !empty($attr['const_attr']['min_pack_w_mm'])) ? addslashes($attr['const_attr']['min_pack_w_mm']) : null,
+                            'min_pack_h_mm' => (isset($attr['const_attr']['min_pack_h_mm']) && !empty($attr['const_attr']['min_pack_h_mm'])) ? addslashes($attr['const_attr']['min_pack_h_mm']) : null,
+                            'net_weight_kg' => (isset($attr['const_attr']['net_weight_kg']) && !empty($attr['const_attr']['net_weight_kg'])) ? addslashes($attr['const_attr']['net_weight_kg']) : null,
+                            'gross_weight_kg' => (isset($attr['const_attr']['gross_weight_kg']) && !empty($attr['const_attr']['gross_weight_kg'])) ? addslashes($attr['const_attr']['gross_weight_kg']) : null,
+                            'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? addslashes($attr['const_attr']['compose_require_pack']) : '',
+                            'pack_type' => isset($attr['const_attr']['pack_type']) ? addslashes($attr['const_attr']['pack_type']) : '',
                             //固定申报要素属性
-                            'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
-                            'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
-                            'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
-                            'tax_rebates_pct' => (isset($attr['const_attr']['tax_rebates_pct']) && !empty($attr['const_attr']['tax_rebates_pct'])) ? $attr['const_attr']['tax_rebates_pct'] : null,
-                            'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
-                            'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
+                            'name_customs' => isset($attr['const_attr']['name_customs']) ? addslashes($attr['const_attr']['name_customs']) : '',
+                            'hs_code' => isset($attr['const_attr']['hs_code']) ? addslashes($attr['const_attr']['hs_code']) : '',
+                            'tx_unit' => isset($attr['const_attr']['tx_unit']) ? addslashes($attr['const_attr']['tx_unit']) : '',
+                            'tax_rebates_pct' => (isset($attr['const_attr']['tax_rebates_pct']) && !empty($attr['const_attr']['tax_rebates_pct'])) ? addslashes($attr['const_attr']['tax_rebates_pct']) : null,
+                            'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? addslashes($attr['const_attr']['regulatory_conds']) : '',
+                            'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? addslashes($attr['const_attr']['commodity_ori_place']) : '',
                         ];
 
                         //判断是新增还是编辑,如果有sku就是编辑,反之为新增
@@ -690,9 +690,9 @@ class GoodsModel extends PublicModel {
                                 $data['deleted_flag'] = 'N';
                                 $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
                                 if ($key == 'zh') {
-                                    $data['show_name_loc'] = $input['en']['name'];
+                                    $data['show_name_loc'] = addslashes($input['en']['name']);
                                 } else {
-                                    $data['show_name_loc'] = $input['zh']['name'];
+                                    $data['show_name_loc'] = addslashes($input['zh']['name']);
                                 }
                                 $res = $this->add($data);
                                 if ($res) {
@@ -722,9 +722,9 @@ class GoodsModel extends PublicModel {
                             $data['created_at'] = date('Y-m-d H:i:s', time());
                             $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
                             if ($key == 'zh') {
-                                $data['show_name_loc'] = $input['en']['name'];
+                                $data['show_name_loc'] = addslashes($input['en']['name']);
                             } else {
-                                $data['show_name_loc'] = $input['zh']['name'];
+                                $data['show_name_loc'] = addslashes($input['zh']['name']);
                             }
                             $res = $this->add($data);
                             if (!$res) {
@@ -1424,12 +1424,12 @@ class GoodsModel extends PublicModel {
                         continue;
                     }
                     if (isset($attr['flag']) && $attr['flag'] == 'Y' && isset($attr['attr_key']) && !empty($attr['attr_key'])) {    //固定属性
-                        $data['const_attr'][$attr['attr_key']] = trim($attr['attr_value']);
+                        $data['const_attr'][$attr['attr_key']] = addslashes(trim($attr['attr_value']));
                     } else {
                         if (in_array($key, array('goods_attrs', 'hs_attrs'))) {
-                            $data['ex_' . $key][$attr['attr_name']] = trim($attr['attr_value']);
+                            $data['ex_' . $key][$attr['attr_name']] = addslashes(trim($attr['attr_value']));
                         } else {
-                            $data[$key][$attr['attr_name']] = trim($attr['attr_value']);
+                            $data[$key][$attr['attr_name']] = addslashes(trim($attr['attr_value']));
                         }
                     }
                 }
