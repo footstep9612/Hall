@@ -382,7 +382,7 @@ class SuppliersController extends PublicController {
 	     
 	    if ($condition['agent_type'] == '') jsonReturn('', -101, '开发责任人类别不能为空!');
 	    
-	    if ($condition['org_id'] == '') jsonReturn('', -101, '开发责任人不能为空!');
+	    if ($condition['agent_id'] == '') jsonReturn('', -101, '开发责任人不能为空!');
 	
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
@@ -545,9 +545,9 @@ class SuppliersController extends PublicController {
 	
 	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
 	
-	    $data = $this->supplierCheckLogsModel->getList($condition);
+	    $data = $this->supplierCheckLogsModel->getJoinList($condition);
 	     
-	    $this->_handleList($this->supplierCheckLogsModel, $data, $condition);
+	    $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
 	}
     
 	/**
