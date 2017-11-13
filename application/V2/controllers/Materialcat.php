@@ -70,7 +70,7 @@ class MaterialcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $condition = $jsondata;
-        $redis_key = 'Material_cat_tree_' . $lang;
+        $redis_key = 'Material_cat_twotree_' . $lang;
         $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
             $arr = $this->_model->tree($jsondata);

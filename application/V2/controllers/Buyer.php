@@ -51,8 +51,6 @@ class BuyerController extends PublicController {
                 $datajson['message'] = '数据为空!';
             }
         }
-
-
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
@@ -64,6 +62,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
+        }
+        if (!empty($data['buyer_code'])) {
+            $where['buyer_code'] = $data['buyer_code'];
         }
         if (!empty($data['serial_no'])) {
             $where['serial_no'] = $data['serial_no'];
