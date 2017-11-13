@@ -121,6 +121,7 @@ class SuppliersController extends PublicController {
 	    $this->suppliersModel->startTrans();
 	    
 	    // 供应商基本信息
+	    unset($condition['employee_count']);
 	    $condition['updated_by'] = $this->user['id'];
 	    $condition['updated_at'] = $this->time;
 	    
@@ -262,25 +263,30 @@ class SuppliersController extends PublicController {
 	    $condition = $this->_trim($this->put_data);
 	    
 	    if ($condition['items'] == '') jsonReturn('', -101, '缺少items参数!');
+	    
+	    if ($condition['status'] == '') jsonReturn('', -101, '状态不能为空!');
 	        
         $flag = true;
         $data = [];
         
         foreach ($condition['items'] as $item) {
             $where['id'] = $item['id'];
+            
+            if ($item['id'] == '') jsonReturn('', -101, '缺少供应商联系人主键id参数!');
+            
             unset($item['id']);
             
-            if ($item['contact_name'] == '') jsonReturn('', -101, '联系人姓名不能为空!');
+            if ($condition['status'] != 'DRAFT' && $item['contact_name'] == '') jsonReturn('', -101, '联系人姓名不能为空!');
              
             if (strlen($item['contact_name']) > 40) jsonReturn('', -101, '您输入的联系人姓名过长!');
             
-            if ($item['phone'] == '') jsonReturn('', -101, '联系方式不能为空!');
+            if ($condition['status'] != 'DRAFT' && $item['phone'] == '') jsonReturn('', -101, '联系方式不能为空!');
              
             if (strlen($item['phone']) > 20) jsonReturn('', -101, '您输入的联系方式不正确!');
             
-            if ($item['email'] == '') jsonReturn('', -101, '邮箱不能为空!');
+            if ($condition['status'] != 'DRAFT' && $item['email'] == '') jsonReturn('', -101, '邮箱不能为空!');
              
-            if (!preg_match('/.+@[^\.]+\.com/i', $item['email'])) jsonReturn('', -101, '您输入的邮箱格式不正确!');
+            if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email'])) jsonReturn('', -101, '您输入的邮箱格式不正确!');
             
             if (strlen($item['email']) > 20) jsonReturn('', -101, '您输入的邮箱大于20字!');
             
@@ -289,6 +295,9 @@ class SuppliersController extends PublicController {
             if (strlen($item['station']) > 20) jsonReturn('', -101, '您输入的岗位大于20字!');
             
             if (strlen($item['remarks']) > 100) jsonReturn('', -101, '您输入的负责产品大于100字!');
+            
+            $item['updated_by'] = $this->user['id'];
+            $item['updated_at'] = $this->time;
             
             $res = $this->supplierContactModel->updateInfo($where, $item);
             
@@ -444,21 +453,28 @@ class SuppliersController extends PublicController {
 	    $condition = $this->_trim($this->put_data);
 	     
 	    if ($condition['items'] == '') jsonReturn('', -101, '缺少items参数!');
+	    
+	    if ($condition['status'] == '') jsonReturn('', -101, '状态不能为空!');
 	     
 	    $flag = true;
 	    $data = [];
 	
 	    foreach ($condition['items'] as $item) {
 	        $where['id'] = $item['id'];
+	        
+	        if ($item['id'] == '') jsonReturn('', -101, '缺少供应商资质主键id参数!');
+	        
 	        unset($item['id']);
 	         
 	        if (strlen($item['name']) > 50) jsonReturn('', -101, '您输入的资质名称长度超过限制!');
 	
-	        if ($item['code'] == '') jsonReturn('', -101, '资质编码不能为空!');
+	        if ($condition['status'] != 'DRAFT' && $item['code'] == '') jsonReturn('', -101, '资质编码不能为空!');
 	         
 	        if (strlen($item['code']) > 50) jsonReturn('', -101, '您输入的资质编码长度超过限制!');
 	
-	        if ($item['issue_date'] == '') jsonReturn('', -101, '发证日期不能为空!');
+	        if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '') jsonReturn('', -101, '发证日期不能为空!');
+	        
+	        if ($item['issue_date'] == '') unset($item['issue_date']);
 	
 	        if (strlen($item['issuing_authority']) > 50) jsonReturn('', -101, '您输入的发证机构长度超过限制!');
 	        
