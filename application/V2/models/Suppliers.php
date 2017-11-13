@@ -67,22 +67,22 @@ class SuppliersModel extends PublicModel {
             $where['a.status'] = $condition['status'];
         }
 
-        if (!empty($condition['start_check_time']) && !empty($condition['end_check_time'])) {
+        if (!empty($condition['check_start_time']) && !empty($condition['check_end_time'])) {
             $where['a.checked_at'] = [
-                ['egt', $condition['start_check_time']],
-                ['elt', $condition['end_check_time'] . ' 23:59:59']
+                ['egt', $condition['check_start_time']],
+                ['elt', $condition['check_end_time'] . ' 23:59:59']
             ];
         }
 
-        if (!empty($condition['start_create_time']) && !empty($condition['end_create_time'])) {
+        if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
             $where['a.created_at'] = [
-                ['egt', $condition['start_create_time']],
-                ['elt', $condition['end_create_time'] . ' 23:59:59']
+                ['egt', $condition['create_start_time']],
+                ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
         }
 
-        if (!empty($condition['org_id'])) {
-            $where['a.org_id'] = ['in', $condition['org_id']];
+        if (isset($condition['org_id'])) {
+            $where['a.org_id'] = ['in', $condition['org_id'] ? : '-1'];
         }
 
         return $where;
