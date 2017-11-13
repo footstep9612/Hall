@@ -67,48 +67,50 @@ class SuppliersController extends PublicController {
 	    $condition = $this->_trim($this->put_data);
 	    
 	    if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
-
-	    if ($condition['supplier_type'] == '') jsonReturn('', -101, '企业类型不能为空!');
 	    
-	    if ($condition['name'] == '') jsonReturn('', -101, '公司名称不能为空!');
+	    if ($condition['status'] == '') jsonReturn('', -101, '状态不能为空!');
+
+	    if ($condition['status'] != 'DRAFT' && $condition['supplier_type'] == '') jsonReturn('', -101, '企业类型不能为空!');
+	    
+	    if ($condition['status'] != 'DRAFT' && $condition['name'] == '') jsonReturn('', -101, '公司名称不能为空!');
 	    
 	    if (strlen($condition['name']) > 100 || strlen($condition['name_en']) > 100) jsonReturn('', -101, '您输入的公司名称超出长度!');
 	    
-	    if ($condition['country_bn'] == '') jsonReturn('', -101, '国家不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['country_bn'] == '') jsonReturn('', -101, '国家不能为空!');
 	    
-	    if ($condition['address'] == '') jsonReturn('', -101, '公司地址不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['address'] == '') jsonReturn('', -101, '公司地址不能为空!');
 	    
 	    if (strlen($condition['address']) > 100) jsonReturn('', -101, '您输入的公司地址大于100字!');
 	    
-	    if ($condition['social_credit_code'] == '') jsonReturn('', -101, '营业执照（统一社会信用代码）编码不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['social_credit_code'] == '') jsonReturn('', -101, '营业执照（统一社会信用代码）编码不能为空!');
 	    
 	    if (strlen($condition['social_credit_code']) > 20) jsonReturn('', -101, '您输入的营业执照（统一社会信用代码）编码有误!');
 	    
-	    if ($condition['reg_capital'] == '') jsonReturn('', -101, '注册资本不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['reg_capital'] == '') jsonReturn('', -101, '注册资本不能为空!');
 	    
 	    if (strlen($condition['reg_capital']) > 20) jsonReturn('', -101, '请输入正确的注册资本!');
 	    
 	    if (strlen($condition['profile']) > 500) jsonReturn('', -101, '您输入的企业简介大于500字!');
 	    
-	    if ($condition['bank_name'] == '') jsonReturn('', -101, '开户行名称不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['bank_name'] == '') jsonReturn('', -101, '开户行名称不能为空!');
 	    
 	    if (strlen($condition['bank_name']) > 60) jsonReturn('', -101, '您输入的开户行名称大于60字!');
 	    
-	    if ($condition['bank_account'] == '') jsonReturn('', -101, '开户账号不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['bank_account'] == '') jsonReturn('', -101, '开户账号不能为空!');
 	    
-	    if (!is_numeric($condition['bank_account'])) jsonReturn('', -101, '开户账号只能输入数字!');
+	    if ($condition['bank_account'] != '' && !is_numeric($condition['bank_account'])) jsonReturn('', -101, '开户账号只能输入数字!');
 	    
 	    if (strlen($condition['bank_account']) > 16) jsonReturn('', -101, '您输入的开户账号超过16位!');
 	    
 	    if (strlen($condition['bank_address']) > 100) jsonReturn('', -101, '开户地址最多输入100字!');
 	    
-	    if ($condition['org_id'] == '') jsonReturn('', -101, '所属事业部不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['org_id'] == '') jsonReturn('', -101, '所属事业部不能为空!');
 	    
-	    if ($condition['sign_agreement_flag'] == '') jsonReturn('', -101, '是否签订合作协议不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == '') jsonReturn('', -101, '是否签订合作协议不能为空!');
 	    
-	    if ($condition['sign_agreement_flag'] == 'Y' && $condition['sign_agreement_time'] == '') jsonReturn('', -101, '签订协议时间不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == 'Y' && $condition['sign_agreement_time'] == '') jsonReturn('', -101, '签订协议时间不能为空!');
 	    
-	    if ($condition['providing_sample_flag'] == '') jsonReturn('', -101, '是否提供样品不能为空!');
+	    if ($condition['status'] != 'DRAFT' && $condition['providing_sample_flag'] == '') jsonReturn('', -101, '是否提供样品不能为空!');
 	    
 	    if (strlen($condition['distribution_products']) > 200) jsonReturn('', -101, '您输入的铺货产品大于200字!');
 	    
@@ -503,7 +505,7 @@ class SuppliersController extends PublicController {
 	 * @author liujf
 	 * @time 2017-11-11
 	 */
-	public function submitSupplierCheckAction() {
+	/*public function submitSupplierCheckAction() {
 	    $condition = $this->put_data;
 	
 	    if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
@@ -513,7 +515,7 @@ class SuppliersController extends PublicController {
         $res = $this->suppliersModel->updateInfo($where, ['status' => 'CHECKING']);
         
         $this->jsonReturn($res);
-	}
+	}*/
 	
 	/**
 	 * @desc 获取供应商审核日志列表接口
