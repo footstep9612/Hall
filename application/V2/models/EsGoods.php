@@ -1502,7 +1502,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($updateParams);
             $productr_supplier_model = new ProductSupplierModel();
-            $suppliers = $productr_supplier_model->getsupplieridsbyspus($spus);
+            $suppliers = $productr_supplier_model->getsuppliersbyspus($spus);
             foreach ($products as $product) {
                 $data = [];
                 if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
