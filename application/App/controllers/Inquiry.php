@@ -16,6 +16,7 @@ class InquiryController extends PublicController
 
         $this->inquiryModel = new InquiryModel();
     }
+
     /**
      * 首页信息(统计，轮播，列表[最新3条数据])
      */

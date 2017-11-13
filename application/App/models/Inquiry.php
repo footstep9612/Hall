@@ -89,18 +89,32 @@ class InquiryModel extends PublicModel
     public function updateData($data = [])
     {
 
-        $data = $this->create($data);
-
         if (!empty($data['status'])) $data['inflow_time'] = $time;
         if (!empty($data['agent_id'])) $data['now_agent_id'] = $data['agent_id'];
 
         $data['updated_at'] = $this->getTime();
 
         try{
-            $id = $this->save($data);
+            $id = $this->save($this->create($data));
             if($id){
+
+                //处理附件
+                if (isset($data['attach_url']) && !empty($data['attach_url'])){
+
+                    $inquiryAttach = new InquiryAttachModel();
+                    $inquiryAttach->add($inquiryAttach->create([
+                        'inquiry_id' => $data['id'],
+                        'attach_group' => 'INQUIRY_SKU',
+                        'attach_name' => $data['attach_name'],
+                        'attach_url' => $data['attach_url'],
+                        'created_by' => $data['updated_by'],
+                        'created_at' => $this->getTime()
+                    ]));
+                }
+
                 $results['code'] = '1';
                 $results['message'] = '成功！';
+
             }else{
                 $results['code'] = '-101';
                 $results['message'] = '修改失败!';
