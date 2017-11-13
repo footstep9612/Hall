@@ -67,14 +67,14 @@ class ProductModel extends PublicModel {
 
         //name名称
         if (isset($input['name'])) {
-            $data['name'] = htmlspecialchars($input['name']);
+            $data['name'] = addslashes($input['name']);
         } elseif ($type == 'INSERT') {
             $data['name'] = '';
         }
 
         //展示名称
         if (isset($input['show_name'])) {
-            $data['show_name'] = htmlspecialchars($input['show_name']);
+            $data['show_name'] = addslashes($input['show_name']);
         } else {
             $data['show_name'] = '';
         }
@@ -187,14 +187,14 @@ class ProductModel extends PublicModel {
 
         //质保期
         if (isset($input['warranty'])) {
-            $data['warranty'] = $input['warranty'];
+            $data['warranty'] = addslashes($input['warranty']);
         } elseif ($type == 'INSERT') {
             $data['warranty'] = '';
         }
 
         //供应能力
         if (isset($input['supply_ability'])) {
-            $data['supply_ability'] = $input['supply_ability'];
+            $data['supply_ability'] = addslashes($input['supply_ability']);
         } elseif ($type == 'INSERT') {
             $data['supply_ability'] = '';
         }
@@ -321,7 +321,7 @@ class ProductModel extends PublicModel {
                                 }
                             }
                         }
-                        $data['status'] = $item['status'];
+                        $data['status'] = $item['status'] ? $item['status'] : $input['status'];
 
                         $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
                         if (isset($input['spu'])) {
@@ -939,7 +939,7 @@ class ProductModel extends PublicModel {
                     }
                     break;
             }
-            $param[$k] = htmlspecialchars(trim($param[$k]));
+            $param[$k] = addslashes(trim($param[$k]));
             continue;
         }
         return $param;
@@ -1113,7 +1113,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['name'] = trim($r[4]);    //名称
+                        $data_tmp['name'] = addslashes(trim($r[4]));    //名称
                         if (empty($data_tmp['name'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
@@ -1122,7 +1122,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['show_name'] = trim($r[5]);    //展示名称
+                        $data_tmp['show_name'] = addslashes(trim($r[5]));    //展示名称
                         //$r[6];    //产品组
                         if (empty($r[6])) {
                             $faild++;
@@ -1133,8 +1133,8 @@ class ProductModel extends PublicModel {
                             continue;
                         } else {
                             $bizline_model = new BizlineModel();
-                            $bizline = $bizline_model->field('id')->where(['name' => trim($r[6])])->find();
-                            if (!$bizline) {
+                            $bizline = $bizline_model->field('id')->where(['name' => addslashes(trim($r[6]))])->find();
+                            if(!$bizline){
                                 $faild++;
                                 $objPHPExcel->setActiveSheetIndex(0)
                                         ->setCellValue('N' . ( $key + 1 ), '操作失败[产品组不存在]');
@@ -1154,7 +1154,7 @@ class ProductModel extends PublicModel {
                             continue;
                         }
                         $condition_brand = array(
-                            'brand' => array('like', '%"name":"' . trim($r[7]) . '"%')
+                            'brand' => array('like', '%"name":"' . addslashes(trim($r[7])) . '"%')
                         );
                         $brand_id = $brandModel->field('id')->where($condition_brand)->find();
                         if (!$brand_id) {
@@ -1165,10 +1165,10 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');
+                        $brand_ary = array('name' => addslashes(trim($r[7])), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');
                         ksort($brand_ary);
                         $data_tmp['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                        $data_tmp['description'] = trim($r[8]);    //产品介绍
+                        $data_tmp['description'] = addslashes(trim($r[8]));    //产品介绍
                         if (empty($data_tmp['description'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
@@ -1178,7 +1178,7 @@ class ProductModel extends PublicModel {
                             continue;
                         }
                         // $data_tmp['advantages'] = $r[6];
-                        $data_tmp['tech_paras'] = trim($r[9]);    //技术参数
+                        $data_tmp['tech_paras'] = addslashes(trim($r[9]));    //技术参数
                         if (empty($data_tmp['tech_paras'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
@@ -1187,7 +1187,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['exe_standard'] = trim($r[10]);   //执行标准
+                        $data_tmp['exe_standard'] = addslashes(trim($r[10]));   //执行标准
                         if (empty($data_tmp['exe_standard'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
@@ -1196,7 +1196,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['warranty'] = trim($r[11]);    //质保期
+                        $data_tmp['warranty'] = addslashes(trim($r[11]));    //质保期
                         if (empty($data_tmp['warranty'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
@@ -1205,7 +1205,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['keywords'] = trim($r[12]);    //关键字
+                        $data_tmp['keywords'] = addslashes(trim($r[12]));    //关键字
                         if (empty($data_tmp['keywords'])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)
