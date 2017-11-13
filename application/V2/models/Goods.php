@@ -681,14 +681,14 @@ class GoodsModel extends PublicModel {
                                 $data['updated_by'] = $userInfo['id'];
                                 $data['updated_at'] = date('Y-m-d H:i:s', time());
                                 $data['deleted_flag'] = 'N';
-                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
+                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
                                 $res = $this->where($where)->save($data);
                             } else {
                                 $data['sku'] = trim($input['sku']);
                                 $data['created_by'] = $userInfo['id'];
                                 $data['created_at'] = date('Y-m-d H:i:s', time());
                                 $data['deleted_flag'] = 'N';
-                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
+                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
                                 if ($key == 'zh') {
                                     $data['show_name_loc'] = addslashes($input['en']['name']);
                                 } else {
@@ -720,7 +720,7 @@ class GoodsModel extends PublicModel {
                             //$data['qrcode'] = setupQrcode();                  //二维码字段
                             $data['created_by'] = $userInfo['id'];
                             $data['created_at'] = date('Y-m-d H:i:s', time());
-                            $data['status'] = isset($value['status']) ? strtoupper($value['status']) : self::STATUS_DRAFT;
+                            $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
                             if ($key == 'zh') {
                                 $data['show_name_loc'] = addslashes($input['en']['name']);
                             } else {

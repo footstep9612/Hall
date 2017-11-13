@@ -321,7 +321,7 @@ class ProductModel extends PublicModel {
                                 }
                             }
                         }
-                        $data['status'] = $item['status'];
+                        $data['status'] = $item['status'] ? $item['status'] : $input['status'];
 
                         $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $key))->find();
                         if (isset($input['spu'])) {
