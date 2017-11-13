@@ -1172,7 +1172,7 @@ class GoodsModel extends PublicModel {
      * sku真实删除-（BOSS后台）
      * @author klp
      */
-    public function deleteSkuReal($input) {
+    public function deleteSkuReal($input, $lang) {
         if (empty($input)) {
             return false;
         }
@@ -1212,7 +1212,7 @@ class GoodsModel extends PublicModel {
                     jsonReturn('', -101, '上架商品不能删除!');
                 }
             }
-            $res = $this->deleteSku($input['sku']);                 //sku删除
+            $res = $this->deleteSku($input['sku'], $lang);                 //sku删除
             if (!$res || $res['code'] != 1) {
 
                 $this->rollback();

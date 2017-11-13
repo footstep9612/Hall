@@ -283,7 +283,7 @@ class GoodsController extends PublicController {
             return false;
         }
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->deleteSkuReal($this->put_data, $this->getLang());
+        $result = $goodsModel->deleteSkuReal($this->put_data);
 
         if ($result === true) {
             $esgoods_model = new EsGoodsModel();
