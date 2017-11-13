@@ -12,7 +12,7 @@ class InquiryController extends PublicController
 
     public function init()
     {
-        parent::init();
+        //parent::init();
 
         $this->inquiryModel = new InquiryModel();
     }
@@ -65,6 +65,14 @@ class InquiryController extends PublicController
         $data['updated_by'] = $this->user['id'];
         $this->jsonReturn($this->inquiryModel->updateData($data));
 
+    }
+
+    /**
+     * 文件上传接口测试
+     */
+    public function uploadAction()
+    {
+        $this->display('upload');
     }
 
 }
