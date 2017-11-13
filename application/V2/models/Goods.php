@@ -2560,8 +2560,8 @@ class GoodsModel extends PublicModel {
         return false;
     }
 
-    /**
-     * sku导出
+    /****************************************
+     * 临时sku导出
      */
     public function exportAll($input = []) {
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
@@ -2842,6 +2842,101 @@ class GoodsModel extends PublicModel {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $dirName . '.zip 打包失败', Log::INFO);
             return false;
         }
+    }
+
+    /************************************
+     * 临时导入更新
+     * @param array $input
+     * @return array|bool
+     */
+    public function tmpImport($input = []){
+        set_time_limit(0);  # 设置执行时间最大值
+        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xls";
+        $localFile = ExcelHelperTrait::download2local($input['url']);
+        if (!file_exists($localFile)) {
+            jsonReturn('', ErrorMsg::FAILED, '导入文件未找到');
+        }
+
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        $objPHPExcel = $objReader->load($localFile);    //加载文件
+        $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //最后一列
+        $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);    //获取总列数
+        $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex); //由列数反转列名(0->'A')
+        if(trim($objPHPExcel->getSheet(0)->getCell($columns . 1)->getValue()) != '更新结果'){
+            $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '更新结果');
+        }
+        $objPHPExcel->getSheet(0)->getStyle($maxCol . '1')->getFont()->setBold(true);    //粗体
+        $title_ary = [];
+        for ($index = 0; $index < $columnsIndex; $index++) {
+            $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
+            $key = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . 1)->getValue())); //转码
+            if ($index == $columnsIndex - 1 && $key == '更新结果') {
+                $maxCol = $col_name;
+            }
+            $title_ary[$index] = $key;
+        }
+        /** 处理数据 */
+        $start_row = 2;    //从第三行开始取
+        $success = $faild = 0;
+        $gcpModel = new GoodsCostPriceModel();
+        $supplierModel = new SupplierModel();
+        do {
+            $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
+            if (flock($fp, LOCK_EX)) {
+                $col_value = 0;
+                $data_tmp = [];
+                for ($index = 0; $index < $columnsIndex; $index++) {
+                    $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
+                    $value = addslashes(trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue())); //转码
+                    if (!empty($value)) {
+                        $col_value++;
+                    }
+                    if(!in_array($title_ary[$index],array('更新结果','审核状态'))){
+                        $data_tmp[$title_ary[$index]] = $value;
+                    }
+                }
+
+                $supplierInfo = $supplierModel->field('id')->where(['name'=>$data_tmp['供应商'], 'deleted_flag'=>'N'])->find();
+                if(!$supplierInfo){
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '供应商不存在，请检查是否正确');
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    $start_row++;
+                    continue;
+                }
+
+                $data = [
+                    'price_validity' => $data_tmp['有效期'],    //价格有效期
+                    'price' => $data_tmp['价格'],    //最小采购单价
+                ];
+                $result = $gcpModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id'] ,'deleted_flag'=>'N'])->save($data);
+                if($result){
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新成功');
+                }else{
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新失败');
+                }
+                flock($fp, LOCK_UN);
+            }
+            fclose($fp);
+            $start_row++;
+        } while ($col_value > 0);
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($localFile);    //文件保存
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $data_fastDFS['tmp_name'] = $localFile;
+        $data_fastDFS['type'] = 'application/excel';
+        $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+        $fileId = postfile($data_fastDFS, $url);
+        if ($fileId) {
+            unlink($localFile);
+            return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
+        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
+        return false;
     }
 
 }

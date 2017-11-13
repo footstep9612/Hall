@@ -1134,7 +1134,15 @@ class ProductModel extends PublicModel {
                         } else {
                             $bizline_model = new BizlineModel();
                             $bizline = $bizline_model->field('id')->where(['name' => trim($r[6])])->find();
-                            $data_tmp['bizline_id'] = isset($bizline['id']) ? $bizline['id'] : 0;
+                            if(!$bizline){
+                                $faild++;
+                                $objPHPExcel->setActiveSheetIndex(0)
+                                    ->setCellValue('N' . ( $key + 1 ), '操作失败[产品组不存在]');
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                continue;
+                            }
+                            $data_tmp['bizline_id'] = isset($bizline['id']) ? $bizline['id'] : null;
                         }
                         //品牌
                         if (empty($r[7])) {

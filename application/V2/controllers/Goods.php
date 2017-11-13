@@ -585,16 +585,6 @@ class GoodsController extends PublicController {
         }
     }
 
-    public function exportallAction() {
-        $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->exportAll($this->put_data);
-        if ($localDir) {
-            jsonReturn($localDir);
-        } else {
-            jsonReturn('', ErrorMsg::FAILED);
-        }
-    }
-
     /**
      * 产品导出csv
      */
@@ -654,6 +644,33 @@ class GoodsController extends PublicController {
             $result['failds'] = $error;
             //$str = '成功导入'.$result['succes_lang'].'条，spu'.$result['sucess'].'个；'.$error;
             jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+
+    /********************************************
+     * 临时导出
+     */
+    public function exportallAction() {
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->exportAll($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /****************************************
+     * 临时导入
+     */
+    public function tmpimportAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->tmpImport($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
