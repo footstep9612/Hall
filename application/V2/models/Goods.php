@@ -1172,7 +1172,7 @@ class GoodsModel extends PublicModel {
      * sku真实删除-（BOSS后台）
      * @author klp
      */
-    public function deleteSkuReal($input, $lang) {
+    public function deleteSkuReal($input) {
         if (empty($input)) {
             return false;
         }
