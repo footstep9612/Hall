@@ -14,7 +14,7 @@ class SuppliersModel extends PublicModel {
     protected $joinTable1 = 'erui_sys.org b ON a.org_id = b.id';
     protected $joinTable2 = 'erui_dict.country c ON a.country_bn = c.bn ';
     protected $joinField = 'a.*, b.name AS org_name';
-    protected $joinField_ = 'a.*, c.name AS country_name';
+    protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name';
 
     public function __construct() {
         parent::__construct();
@@ -160,6 +160,7 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         return $this->alias('a')
+                            ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable2, 'LEFT')
                             ->field($this->joinField_)
                             ->where($where)

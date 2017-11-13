@@ -106,6 +106,8 @@ class SuppliersController extends PublicController {
 	    
 	    if ($condition['sign_agreement_flag'] == '') jsonReturn('', -101, '是否签订合作协议不能为空!');
 	    
+	    if ($condition['sign_agreement_flag'] == 'Y' && $condition['sign_agreement_time'] == '') jsonReturn('', -101, '签订协议时间不能为空!');
+	    
 	    if ($condition['providing_sample_flag'] == '') jsonReturn('', -101, '是否提供样品不能为空!');
 	    
 	    if (strlen($condition['distribution_products']) > 200) jsonReturn('', -101, '您输入的铺货产品大于200字!');
