@@ -67,14 +67,14 @@ class ProductModel extends PublicModel {
 
         //name名称
         if (isset($input['name'])) {
-            $data['name'] = addslashes($input['name']);
+            $data['name'] = $input['name'];
         } elseif ($type == 'INSERT') {
             $data['name'] = '';
         }
 
         //展示名称
         if (isset($input['show_name'])) {
-            $data['show_name'] = addslashes($input['show_name']);
+            $data['show_name'] = $input['show_name'];
         } else {
             $data['show_name'] = '';
         }

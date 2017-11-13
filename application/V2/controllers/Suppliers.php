@@ -155,12 +155,13 @@ class SuppliersController extends PublicController {
 	        'sign_agreement_flag' => $condition['sign_agreement_flag'],
 	        'providing_sample_flag' => $condition['providing_sample_flag'],
 	        'distribution_products' => $condition['distribution_products'],
-	        'est_time_arrival' => $condition['est_time_arrival'],
-	        'distribution_amount' => $condition['distribution_amount'],
 	        'stocking_place' => $condition['stocking_place'],
 	        'info_upload_flag' => $condition['info_upload_flag'],
 	        'photo_upload_flag' => $condition['photo_upload_flag']
 	    ];
+	    
+	    if ($condition['est_time_arrival'] != '') $extraData['est_time_arrival'] = $condition['est_time_arrival'];
+	    if ($condition['distribution_amount'] != '') $extraData['distribution_amount'] = $condition['distribution_amount'];
 	    
 	    if ($hasExtra) {
 	        $extraData['updated_by'] = $this->user['id'];
