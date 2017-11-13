@@ -65,7 +65,7 @@ class ProductSupplierController extends PublicController {
         $data = $productsupplier_model->getSpuandInquiryCountList($country_bn, $condition);
         if ($data) {
             $this->setvalue('product_count', $productsupplier_model->getproductCount($country_bn));
-
+            $this->setvalue('count', $productsupplier_model->getInquiryCountBySpuCount($country_bn));
             $this->jsonReturn($data);
         } elseif ($data === null) {
             $this->setCode(MSG::ERROR_EMPTY);

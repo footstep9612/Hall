@@ -70,6 +70,56 @@ class SupplierBrandModel extends PublicModel {
 
     /**
      * 根据条件获取供应商品牌列表
+     * @param mix $condition 搜索条件
+     * @return mix
+     * @author zyg
+     */
+    public function getBrands($brand_name, $supplier_id) {
+
+//    const STATUS_DRAFT = 'DRAFT'; //草稿
+//    const STATUS_APPROVING = 'APPROVING'; //审核；
+//    const STATUS_VALID = 'VALID'; //生效；
+//    const STATUS_DELETED = 'DELETED'; //DELETED-删除
+
+        $where = ['B.deleted_flag' => 'N',
+            'B.status' => BrandModel::STATUS_VALID
+        ];
+        $table = $this->getTableName();
+        if ($supplier_id) {
+            $where[] = 'B.id not in (select brand_id from ' . $table . ' where `status`=\'VALID\' AND supplier_id=\'' . $supplier_id . '\')';
+        }
+        if ($brand_name) {
+            $where['brand'] = ['like', '%"name":"%' . trim($brand_name) . '%'];
+        }
+
+        try {
+            $brandModel = new BrandModel();
+            $result = $brandModel->alias('B')
+                    ->field('B.brand,B.id')
+                    ->where($where)
+                    ->order('id desc')
+                    ->select();
+
+            $ret = null;
+            foreach ($result as $brandinfo) {
+                $brand = json_decode($brandinfo['brand'], true);
+                foreach ($brand as $brand_lang) {
+
+                    if ($brand_lang['lang'] === 'zh') {
+                        $ret[] = ['brand_name' => $brand_lang['name'], 'brand_id' => $brandinfo['id'],];
+                        break;
+                    }
+                }
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 根据条件获取供应商品牌列表
      * @param int $supplier_id 搜索条件
      * @return mix
      * @author zyg
@@ -80,7 +130,7 @@ class SupplierBrandModel extends PublicModel {
 
             $result = $this->alias('B')
                     ->field('B.brand_id,B.brand_zh')
-                    ->where(['supplier_id' => $supplier_id])
+                    ->where(['supplier_id' => $supplier_id, 'status' => 'VALID'])
                     ->select();
             return $result;
         } catch (Exception $ex) {
@@ -95,18 +145,13 @@ class SupplierBrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getSupplierCount($condition) {
+    public function getSupplierCount($condition = null) {
 
-        $where = $this->_getcondition($condition);
+
         try {
 
-            $result = $this->alias('B')
-                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
-                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
-                    ->where($where)
-                    ->group('B.supplier_id')
-                    ->select();
-            return count($result);
+            $supplier_model = new SupplierChainModel();
+            return $supplier_model->getCount();
         } catch (Exception $ex) {
             Log::write($ex->getMessage());
             return 0;
@@ -119,7 +164,7 @@ class SupplierBrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getBrandCount($condition) {
+    public function getBrandsCount($condition) {
 
         $where = $this->_getcondition($condition);
         try {
@@ -143,6 +188,28 @@ class SupplierBrandModel extends PublicModel {
      * @return mix
      * @author zyg
      */
+    public function getBrandCount($condition) {
+
+        $brand_model = new BrandModel();
+        return $brand_model->getCount(null);
+//        $where = $this->_getcondition($condition);
+//        try {
+//
+//            $result = $this->alias('B')
+//                    ->join('erui_supplier.supplier S on S.id=B.supplier_id', 'left')
+//                    ->field('S.name,B.brand_zh,B.brand_en,B.brand_es,B.brand_ru')
+//                    // ->where($where)
+//                    ->group('B.brand_id')
+//                    ->select();
+//            return count($result);
+    }
+
+    /**
+     * 根据条件获取品牌数量
+     * @param mix $condition 搜索条件
+     * @return mix
+     * @author zyg
+     */
     public function create_data($condition) {
 
         $brand_id = $condition['brand_id'];
@@ -156,12 +223,10 @@ class SupplierBrandModel extends PublicModel {
             $data['brand_id'] = $brand_id;
 
             foreach ($brandlang as $brand) {
-
                 if (isset($brand['lang']) && in_array($brand['lang'], ['en', 'es', 'zh', 'ru'])) {
                     $data['brand_' . $brand['lang']] = isset($brand['name']) ? $brand['name'] : '';
                 }
             }
-
             if ($supplier_brand) {
                 $data['updated_by'] = defined('UID') ? UID : 0;
                 $data['updated_at'] = date('Y-m-d H:i:s');
@@ -203,13 +268,18 @@ class SupplierBrandModel extends PublicModel {
         $brand_ids = $condition['brand_ids'];
         $supplier_id = $condition['supplier_id'];
         $this->startTrans();
-        $this->where(['brand_id' => ['in', $brand_ids], 'supplier_id' => $supplier_id])->save(['status' => 'DELETED']);
-
-        foreach ($brand_ids as $brand_id) {
-            $flag = $this->create_data(['brand_id' => $brand_id, 'supplier_id' => $supplier_id]);
-            if (!$flag) {
-                $this->rollback();
-                return false;
+        $where = ['supplier_id' => $supplier_id];
+        if ($brand_ids) {
+            $where['brand_id'] = ['notin', $brand_ids];
+        }
+        $this->where($where)->save(['status' => 'DELETED']);
+        if ($brand_ids) {
+            foreach ($brand_ids as $brand_id) {
+                $flag = $this->create_data(['brand_id' => $brand_id, 'supplier_id' => $supplier_id]);
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
+                }
             }
         }
         $this->commit();

@@ -30,11 +30,13 @@ class SupplierbrandController extends PublicController {
         $supplier_model = new SupplierBrandModel();
         $data = $supplier_model->getList($condition);
 
-        $suppliercount = $supplier_model->getSupplierCount($condition);
+        $suppliercount = $supplier_model->getSupplierCount();
         $brandcount = $supplier_model->getBrandCount($condition);
+        $count = $supplier_model->getBrandsCount($condition);
         if ($data) {
             $this->setvalue('supplier_count', $suppliercount);
             $this->setvalue('brand_count', $brandcount);
+            $this->setvalue('count', $count);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
         } elseif ($data === null) {
@@ -102,19 +104,19 @@ class SupplierbrandController extends PublicController {
             $brand_id = $condition['brand_id'];
         }
 
-
-        if (empty($condition['brand_ids']) && $is_batch) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('品牌ID不能为空!');
-            $this->jsonReturn();
-        } elseif ($condition['brand_ids'] && !is_array($condition['brand_ids']) && $is_batch) {
-
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('品牌ID组必须是整数数组!');
-            $this->jsonReturn();
-        } elseif ($condition['brand_ids'] && $is_batch) {
-            $brand_ids = $condition['brand_ids'];
-        }
+//
+//        if (empty($condition['brand_ids']) && $is_batch) {
+//            $this->setCode(MSG::ERROR_PARAM);
+//            $this->setMessage('品牌ID不能为空!');
+//            $this->jsonReturn();
+//        } elseif ($condition['brand_ids'] && !is_array($condition['brand_ids']) && $is_batch) {
+//
+//            $this->setCode(MSG::ERROR_PARAM);
+//            $this->setMessage('品牌ID组必须是整数数组!');
+//            $this->jsonReturn();
+//        } elseif ($condition['brand_ids'] && $is_batch) {
+//            $brand_ids = $condition['brand_ids'];
+//        }
         $supplier_model = new SupplierModel();
         $supplierinfo = $supplier_model->field('id')->where(['id' => $supplier_id, 'status' => ['in', [SupplierModel::STATUS_VALID, 'APPROVED']]])->find();
 
@@ -133,14 +135,14 @@ class SupplierbrandController extends PublicController {
                 $this->jsonReturn();
             }
         }
-        if ($brand_ids && $is_batch) {
-            $brandinfo = $brand_model->field('id')->where(['id' => ['in', $brand_ids], 'status' => SupplierModel::STATUS_VALID])->select();
-            if (!$brandinfo) {
-                $this->setCode(MSG::ERROR_PARAM);
-                $this->setMessage('品牌不存在!');
-                $this->jsonReturn();
-            }
-        }
+//        if ($brand_ids && $is_batch) {
+//            $brandinfo = $brand_model->field('id')->where(['id' => ['in', $brand_ids], 'status' => SupplierModel::STATUS_VALID])->select();
+//            if (!$brandinfo) {
+//                $this->setCode(MSG::ERROR_PARAM);
+//                $this->setMessage('品牌不存在!');
+//                $this->jsonReturn();
+//            }
+//        }
     }
 
     /**
@@ -194,6 +196,36 @@ class SupplierbrandController extends PublicController {
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn(null);
+        }
+    }
+
+    /**
+     * 批量更新新增供应商品牌
+     * @date    2017-11-5 10:02:57
+     * @author zyg
+     */
+    public function getBrandsAction() {
+        $brand_name = $this->getPut('brand_name');
+        $supplier_id = $this->getPut('supplier_id');
+        if (empty($supplier_id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商ID不能为空!');
+            $this->jsonReturn();
+        }
+        set_time_limit(0);
+        $supplier_model = new SupplierBrandModel();
+        $data = $supplier_model->getBrands($brand_name, $supplier_id);
+
+        if ($data) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn(null);

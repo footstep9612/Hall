@@ -123,12 +123,13 @@ class GoodsSupplierModel extends PublicModel {
         $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
         $results = array();
         try {
+            $product_supplier_model = new ProductSupplierModel();
+            $product_supplier_model->editSupplier($input, $spu, $admin);
             foreach ($input as $value) {
-
-
                 $data = $this->checkParam($value, $sku);
                 $data['deleted_flag'] = 'N';
                 $data['sku'] = $sku;
+                $data['spu'] = $spu;
                 $data['status'] = 'VALID';
                 $data['supplier_id'] = $data['supplier_id'];
                 if (isset($data['supplier_id']) && $data['supplier_id']) {
@@ -150,6 +151,8 @@ class GoodsSupplierModel extends PublicModel {
                         'id' => $goods_supplier['id'],
                     ];
                     $res = $this->where($where)->save($data);
+
+
                     if ($res) {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
@@ -160,9 +163,12 @@ class GoodsSupplierModel extends PublicModel {
                 } else {
 
                     $data['sku'] = $sku;
+                    $data['spu'] = $spu;
+
                     $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s');
                     $res = $this->add($data);
+
                     if ($res) {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
@@ -175,10 +181,35 @@ class GoodsSupplierModel extends PublicModel {
 
             return $results;
         } catch (Exception $e) {
+            Log::write(__CLASS__);
+            Log::write($e->getMessage());
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    public function deleteSupplier($skus) {
+        $goods_model = new GoodsModel();
+        foreach ($skus as $sku) {
+            $info = $goods_model->where(['sku' => $sku, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+            if (!$info) {
+                $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+                $Product_supplier_model = new ProductSupplierModel();
+                $Product_supplier_model->deleteSupplierBySku($sku);
+            }
+        }
+        return true;
+    }
+
+    public function deleteSupplierByspu($spu) {
+        $goods_model = new GoodsModel();
+        $info = $goods_model->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+        if (!$info) {
+            $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        }
+
+        return true;
     }
 
     /**

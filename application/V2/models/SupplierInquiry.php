@@ -61,6 +61,25 @@ class SupplierInquiryModel extends PublicModel {
     }
 
     /**
+     * 供应商数量
+     * @return mix
+     * @author zyg
+     */
+    public function getCount($condition) {
+
+        $where = [
+            'deleted_flag' => 'N',
+            'status' => ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']]
+        ];
+        $this->_getCondition($condition, $where);
+        $count = $this
+                // ->field('supplier_no,name as supplier_name,id as supplier_id')
+                ->where($where)
+                ->count();
+        return $count > 0 ? $count : 0;
+    }
+
+    /**
      * 供应商询单统计
      * @param mix $condition
      * @return mix
@@ -71,7 +90,9 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_ids = $this->getInquiryIdsSupplierId($supplier_id);
         $item['total'] = 0;
         foreach ($this->areas as $area) {
-            $item[$area] = 0;
+
+            $areabn = str_replace(' ', '-', trim($area));
+            $item[$areabn] = 0;
         }
 
         if (empty($inquiry_ids)) {
@@ -101,7 +122,8 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
 
         foreach ($areacounts as $areacount) {
-            $item[$areacount['area_bn']] = $areacount['area_count'];
+            $area_bn = str_replace(' ', '-', trim($areacount['area_bn']));
+            $item[$area_bn] = $areacount['area_count'];
             $item['total'] += $areacount['area_count'];
         }
     }

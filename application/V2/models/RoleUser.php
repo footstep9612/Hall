@@ -118,9 +118,12 @@ class RoleUserModel extends PublicModel {
             $this->where(['employee_id'=>$data['user_id']])->delete();
             if($data['role_ids']){
                 $role_arr = explode(',',$data['role_ids']);
+                $role_arr = array_merge(array_unique($role_arr));
                 $count = count($role_arr);
                 for($i=0;$i<$count;$i++){
-                    $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
+                    if($role_arr[$i]){
+                        $this -> create_data(['role_id'=>$role_arr[$i],'employee_id' =>$data['user_id'] ]);
+                    }
                 }
             }
         }

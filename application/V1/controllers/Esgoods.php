@@ -21,8 +21,96 @@ class EsgoodsController extends ShopMallController {
     //put your code here
     public function init() {
 
-        $this->es = new ESClient();
-        parent::init();
+        //  $this->es = new ESClient();
+        //   parent::init();
+    }
+
+    public function GoodsAttrAction() {
+        set_time_limit(0);
+        $goods_attr_model = new GoodsAttrModel();
+        $where = [
+                //  'deleted_flag' => 'N',
+                // 'status' => 'VALID',
+                //'spec_attrs is not null or ex_hs_attrs is not null',
+        ];
+        $count = $goods_attr_model
+                ->where($where)
+                ->count();
+
+
+        for ($i = 0; $i <= $count; $i += 1000) {
+
+            $goods_attrs = $goods_attr_model
+                    ->where($where)
+                    ->order('id asc')
+                    ->limit($i, 1000)
+                    ->select();
+
+            foreach ($goods_attrs as $goods_attr) {
+                if ($goods_attr['spec_attrs'] && !json_decode($goods_attr['spec_attrs'])) {
+
+                    $new_spec_attrs = [];
+                    $spec_attrs = str_replace('{', '', $goods_attr['spec_attrs']);
+                    $spec_attrs = str_replace('}', '', $spec_attrs);
+                    $spec_attrs = str_replace('\\"', '', $spec_attrs);
+                    $spec_attrs = str_replace('"', '', $spec_attrs);
+                    $spec_attrs = explode(',', $spec_attrs);
+
+                    foreach ($spec_attrs as $spec_attr) {
+                        $spec_attrinfo = explode(':', $spec_attr);
+                        $new_spec_attrs[$spec_attrinfo[0]] = $spec_attrinfo[1];
+                    }
+                    LOG::write('Update goods_attr set spec_attrs=\'' . json_encode($new_spec_attrs, 256)
+                            . '\' where sku=\'' . $goods_attr['sku'] . '\' and lang=\'' . $goods_attr['lang'] . '\';');
+                }
+                if ($goods_attr['ex_hs_attrs'] && !json_decode($goods_attr['ex_hs_attrs'])) {
+                    $new_spec_attrs = [];
+                    $ex_hs_attrs = str_replace('{', '', $goods_attr['ex_hs_attrs']);
+                    $ex_hs_attrs = str_replace('}', '', $ex_hs_attrs);
+                    $ex_hs_attrs = str_replace('\\"', '', $ex_hs_attrs);
+                    $ex_hs_attrs = str_replace('"', '', $ex_hs_attrs);
+                    $ex_hs_attrs = explode(',', $ex_hs_attrs);
+                    $new_ex_hs_attrs = [];
+                    foreach ($ex_hs_attrs as $ex_hs_attr) {
+                        $ex_hs_attrinfo = explode(':', $ex_hs_attr);
+                        $new_ex_hs_attrs[$ex_hs_attrinfo[0]] = $ex_hs_attrinfo[1];
+                    }
+                    LOG::write('Update goods_attr set ex_hs_attrs=\'' . json_encode($new_ex_hs_attrs, 256) . '\' where sku=\'' . $goods_attr['sku'] . '\' and lang=\'' . $goods_attr['lang'] . '\';');
+                }
+                if ($goods_attr['ex_goods_attrs'] && !json_decode($goods_attr['ex_goods_attrs'])) {
+
+                    $ex_goods_attrs = str_replace('{', '', $goods_attr['ex_goods_attrs']);
+                    $ex_goods_attrs = str_replace('}', '', $ex_goods_attrs);
+                    $ex_goods_attrs = str_replace('\\"', '', $ex_goods_attrs);
+                    $ex_goods_attrs = str_replace('"', '', $ex_goods_attrs);
+                    $ex_goods_attrs = explode(',', $ex_goods_attrs);
+                    $new_ex_goods_attrs = [];
+                    foreach ($ex_goods_attrs as $ex_goods_attr) {
+                        $ex_goods_attrinfo = explode(':', $ex_goods_attr);
+                        $new_ex_goods_attrs[$ex_goods_attrinfo[0]] = $ex_goods_attrinfo[1];
+                    }
+                    LOG::write('Update goods_attr set ex_goods_attrs=\'' . json_encode($new_ex_goods_attrs, 256) . '\' where sku=\'' . $goods_attr['sku'] . '\' and lang=\'' . $goods_attr['lang'] . '\';');
+                }
+                if ($goods_attr['other_attrs'] && !json_decode($goods_attr['other_attrs'])) {
+
+                    $other_attrs = str_replace('{', '', $goods_attr['other_attrs']);
+                    $other_attrs = str_replace('}', '', $other_attrs);
+                    $other_attrs = str_replace('\\"', '', $other_attrs);
+                    $other_attrs = str_replace('"', '', $other_attrs);
+                    $other_attrs = explode(',', $other_attrs);
+                    $new_other_attrs = [];
+                    foreach ($other_attrs as $other_attr) {
+                        $other_attri = explode(':', $other_attr);
+                        $new_other_attrs[$ex_hs_attrinfo[0]] = $ex_hs_attrinfo[1];
+                    }
+                    LOG::write('Update goods_attr set other_attrs=\'' . json_encode($new_other_attrs, 256) . '\' where sku=\'' . $goods_attr['sku'] . '\' and lang=\'' . $goods_attr['lang'] . '\';');
+                }
+//                if ($goods_attr['other_attrs'] && !json_decode($goods_attr['other_attrs'])) {
+//                    LOG::write($goods_attr['sku']);
+//                }
+            }
+        }
+        echo '成功!';
     }
 
     public function listAction() {

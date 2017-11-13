@@ -213,8 +213,6 @@ class ProductSupplierModel extends PublicModel {
         $results = array();
         try {
             foreach ($input as $value) {
-
-
                 $data = $this->checkParam($value, $spu);
                 $data['deleted_flag'] = 'N';
                 $data['spu'] = $spu;
@@ -264,10 +262,47 @@ class ProductSupplierModel extends PublicModel {
 
             return $results;
         } catch (Exception $e) {
+            Log::write(__CLASS__);
+            Log::write($e->getMessage());
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+
+    public function deleteSupplierBySku($sku) {
+        $goods_supplier_model = new GoodsSupplierModel();
+        $deling_supplier = $goods_supplier_model->field(['supplier_id,spu'])->where(['sku' => $sku])->find();
+
+        if ($deling_supplier) {
+            $spu = $deling_supplier['spu'];
+            $goods_suppliers = $goods_supplier_model->field(['supplier_id'])->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+
+            $goods_supplierids = [];
+            foreach ($goods_suppliers as $goods_supplier) {
+                $goods_supplierids[] = $goods_supplier['supplier_id'];
+            }
+            if ($goods_supplierids) {
+                $this->where(['spu' => $spu, 'supplier_id' => ['notin', $goods_supplierids]])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+            } else {
+                $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+            }
+        }
+        return true;
+    }
+
+    public function deleteSupplierBySpu($spu) {
+        $product_model = new ProductModel();
+        $info = $product_model->where(['spu' => $spu, 'deleted_flag' => 'N', 'status' => ['in', 'VALID', 'TEST', 'INVALID', 'CHECKING', 'DRAFT']])->find();
+        if (!$info) {
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $goods_supplier_model->deleteSupplierByspu($spu);
+            return $this->where(['spu' => $spu])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
+        }
+
+
+        return true;
     }
 
     /**
@@ -337,13 +372,6 @@ class ProductSupplierModel extends PublicModel {
                 return [];
             }
 
-            $supplier_ids = $this->alias('ps')
-                    ->field('ps.supplier_id')
-                    ->where(['ps.spu' => $spu,
-                        'ps.status' => 'VALID',
-                        'ps.deleted_flag' => 'N'
-                    ])
-                    ->select();
 
             $supplierids = [];
             if (!$supplier_ids) {
@@ -357,7 +385,7 @@ class ProductSupplierModel extends PublicModel {
 
             return $supplierids;
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS' . __CLASS__ . $spu . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
