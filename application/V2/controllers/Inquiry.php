@@ -334,7 +334,7 @@ class InquiryController extends PublicController {
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
                 'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub','erui']]),
-                'quote_id' => '',
+                'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
             ];
