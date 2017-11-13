@@ -32,8 +32,6 @@ class SuppliersController extends PublicController {
 	public function addSupplierRecordAction() {
 	    
 	    $this->suppliersModel->startTrans();
-	    $this->supplierContactModel->startTrans();
-	    $this->supplierQualificationModel->startTrans();
 	    
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
@@ -48,15 +46,11 @@ class SuppliersController extends PublicController {
 	    
 	    if ($res1 && $res2 && $res3) {
 	        $this->suppliersModel->commit();
-	        $this->supplierContactModel->commit();
-	        $this->supplierQualificationModel->commit();
 	        $res['supplier_id'] = $res1;
 	        $res['contact_id'] = $res2;
 	        $res['qualification_id'] = $res3;
 	    } else {
 	        $this->suppliersModel->rollback();
-	        $this->supplierContactModel->rollback();
-	        $this->supplierQualificationModel->rollback();
 	        $res = false;
 	    }
 	    
@@ -76,13 +70,15 @@ class SuppliersController extends PublicController {
 
 	    if ($condition['supplier_type'] == '') jsonReturn('', -101, '企业类型不能为空!');
 	    
-	    if ($condition['name'] == '') jsonReturn('', -101, '企业类型不能为空!');
+	    if ($condition['name'] == '') jsonReturn('', -101, '公司名称不能为空!');
 	    
 	    if (strlen($condition['name']) > 100 || strlen($condition['name_en']) > 100) jsonReturn('', -101, '您输入的公司名称超出长度!');
 	    
 	    if ($condition['country_bn'] == '') jsonReturn('', -101, '国家不能为空!');
 	    
-	    if (strlen($condition['addrss']) > 100) jsonReturn('', -101, '您输入的公司地址大于100字!');
+	    if ($condition['address'] == '') jsonReturn('', -101, '公司地址不能为空!');
+	    
+	    if (strlen($condition['address']) > 100) jsonReturn('', -101, '您输入的公司地址大于100字!');
 	    
 	    if ($condition['social_credit_code'] == '') jsonReturn('', -101, '营业执照（统一社会信用代码）编码不能为空!');
 	    
@@ -119,16 +115,16 @@ class SuppliersController extends PublicController {
 	    if (strlen($condition['stocking_place']) > 40) jsonReturn('', -101, '备货地点长度不超过40个字!');
 	    
 	    $this->suppliersModel->startTrans();
-	    $this->supplierBankInfoModel->startTrans();
-	    $this->supplierExtraInfoModel->startTrans();
 	    
 	    // 供应商基本信息
-	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $condition);
+	    $condition['updated_by'] = $this->user['id'];
+	    $condition['updated_at'] = $this->time;
 	    
+	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $condition);
 	    
 	    $where['supplier_id'] = $condition['id'];
 	    
-	    $hasBank = $this->supplierBankInfoModel->where($where)->find();
+	    $hasBank = $this->supplierBankInfoModel->field('id')->where($where)->find();
 	    
 	    // 供应商银行账户信息
 	    $brandData = [
@@ -138,14 +134,17 @@ class SuppliersController extends PublicController {
 	    ];
 	    
 	    if ($hasBank) {
+	        $brandData['updated_by'] = $this->user['id'];
+	        $brandData['updated_at'] = $this->time;
 	        $res2 = $this->supplierBankInfoModel->where($where)->save($brandData);
 	    } else {
+	        $brandData['supplier_id'] = $condition['id'];
 	        $brandData['created_by'] = $this->user['id'];
 	        $brandData['created_at'] = $this->time;
 	        $res2 = $this->supplierBankInfoModel->add($brandData);
 	    }
 	    
-	    $hasExtra = $this->supplierExtraInfoModel->where($where)->find();
+	    $hasExtra = $this->supplierExtraInfoModel->field('id')->where($where)->find();
 	    
 	    // 供应商其他信息
 	    $extraData = [
@@ -160,8 +159,11 @@ class SuppliersController extends PublicController {
 	    ];
 	    
 	    if ($hasExtra) {
+	        $extraData['updated_by'] = $this->user['id'];
+	        $extraData['updated_at'] = $this->time;
 	        $res3 = $this->supplierExtraInfoModel->updateInfo($where, $extraData);
 	    } else {
+	        $extraData['supplier_id'] = $condition['id'];
 	        $extraData['created_by'] = $this->user['id'];
 	        $extraData['created_at'] = $this->time;
 	        $res3 = $this->supplierExtraInfoModel->addRecord($extraData);
@@ -169,13 +171,9 @@ class SuppliersController extends PublicController {
 	     
 	    if ($res1 && $res2 && $res3) {
 	        $this->suppliersModel->commit();
-	        $this->supplierBankInfoModel->commit();
-	        $this->supplierExtraInfoModel->commit();
 	        $res = true;
 	    } else {
 	        $this->suppliersModel->rollback();
-	        $this->supplierBankInfoModel->rollback();
-	        $this->supplierExtraInfoModel->rollback();
 	        $res = false;
 	    }
 	     
