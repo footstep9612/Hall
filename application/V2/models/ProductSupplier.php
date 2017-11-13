@@ -372,13 +372,6 @@ class ProductSupplierModel extends PublicModel {
                 return [];
             }
 
-            $supplier_ids = $this->alias('ps')
-                    ->field('ps.supplier_id')
-                    ->where(['ps.spu' => $spu,
-                        'ps.status' => 'VALID',
-                        'ps.deleted_flag' => 'N'
-                    ])
-                    ->select();
 
             $supplierids = [];
             if (!$supplier_ids) {
@@ -392,7 +385,7 @@ class ProductSupplierModel extends PublicModel {
 
             return $supplierids;
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS' . __CLASS__ . $spu . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }

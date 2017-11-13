@@ -1465,6 +1465,8 @@ class EsGoodsModel extends Model {
             $es->update_document($this->dbName, $type, $data, $sku);
             if (isset($goods['spu']) && $goods['spu']) {
                 $product_model = new ProductModel();
+                $productr_supplier_model = new ProductSupplierModel();
+                $suppliers = $productr_supplier_model->getsupplieridsbyspu($goods['spu']);
                 $product = $product_model->field('sku_count')->where(['spu' => $goods['spu'], 'lang' => $lang])->find();
                 if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
                     $sku_count = intval($product['sku_count']);
@@ -1472,7 +1474,7 @@ class EsGoodsModel extends Model {
                     $sku_count = 0;
                 }
 
-                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => strval($sku_count)], $goods['spu']);
+                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => strval($sku_count), 'suppliers' => $suppliers], $goods['spu']);
             }
         } elseif (is_array($skus)) {
             $product_updateParams = $updateParams = [];
@@ -1500,7 +1502,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($updateParams);
             $productr_supplier_model = new ProductSupplierModel();
-            $suppliers = $productr_supplier_model->getsupplieridsbyspu($spus);
+            $suppliers = $productr_supplier_model->getsuppliersbyspus($spus);
             foreach ($products as $product) {
                 $data = [];
                 if (isset($product['sku_count']) && intval($product['sku_count']) > 0) {
@@ -1508,7 +1510,7 @@ class EsGoodsModel extends Model {
                 } else {
                     $sku_count = 0;
                 }
-                $data['suppliers'] = $suppliers[$product['spu']];
+                $data['suppliers'] = isset($suppliers[$product['spu']]) ? $suppliers[$product['spu']] : [];
                 $data['sku_count'] = strval($sku_count);
                 $product_updateParams['body'][] = ['update' => ['_id' => $product['spu']]];
                 $product_updateParams['body'][] = ['doc' => $data];
