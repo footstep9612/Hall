@@ -67,14 +67,14 @@ class ProductModel extends PublicModel {
 
         //name名称
         if (isset($input['name'])) {
-            $data['name'] = htmlspecialchars($input['name']);
+            $data['name'] = addslashes($input['name']);
         } elseif ($type == 'INSERT') {
             $data['name'] = '';
         }
 
         //展示名称
         if (isset($input['show_name'])) {
-            $data['show_name'] = htmlspecialchars($input['show_name']);
+            $data['show_name'] = addslashes($input['show_name']);
         } else {
             $data['show_name'] = '';
         }
@@ -187,14 +187,14 @@ class ProductModel extends PublicModel {
 
         //质保期
         if (isset($input['warranty'])) {
-            $data['warranty'] = $input['warranty'];
+            $data['warranty'] = addslashes($input['warranty']);
         } elseif ($type == 'INSERT') {
             $data['warranty'] = '';
         }
 
         //供应能力
         if (isset($input['supply_ability'])) {
-            $data['supply_ability'] = $input['supply_ability'];
+            $data['supply_ability'] = addslashes($input['supply_ability']);
         } elseif ($type == 'INSERT') {
             $data['supply_ability'] = '';
         }
