@@ -606,9 +606,9 @@ class GoodsController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $process = isset($this->put_data['process']) ? 1 : '';
-
+        $filename = $this->getPut('name');
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process);
+        $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process, $filename);
         if ($localDir) {
             if (is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0) {
                 jsonReturn($localDir, ErrorMsg::SUCCESS, '导入失败');
@@ -649,10 +649,10 @@ class GoodsController extends PublicController {
         }
     }
 
-
-    /********************************************
+    /*     * ******************************************
      * 临时导出
      */
+
     public function exportallAction() {
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->exportAll($this->put_data);
@@ -663,10 +663,11 @@ class GoodsController extends PublicController {
         }
     }
 
-    /****************************************
+    /*     * **************************************
      * 临时导入
      */
-    public function tmpimportAction(){
+
+    public function tmpimportAction() {
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->tmpImport($this->put_data);
         if ($localDir) {
