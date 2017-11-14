@@ -448,9 +448,9 @@ class SuppliersController extends PublicController {
 	
 	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
 	
-	    $data = $this->supplierAgentModel->getAgentList($condition);
+	    $data = $this->supplierAgentModel->getJoinList($condition);
 	     
-	    $this->_handleList($this->supplierAgentModel, $data, $condition);
+	    $this->_handleList($this->supplierAgentModel, $data, $condition, true);
 	}
 	
 	/**
