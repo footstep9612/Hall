@@ -46,7 +46,7 @@ class GroupModel extends PublicModel {
             $res = $this->field('org.id,org.sort,org.show_name,org_node,org.membership,'
                             . 'org.parent_id,org.org,org.name,org.remarks,org.created_by,'
                             . 'org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
-                    ->join('`erui_sys`.`org_member` om on om.org_id=org.id and', 'left')
+                    ->join('`erui_sys`.`org_member` om on om.org_id=org.id ', 'left')
                     ->join('`erui_sys`.`employee` em on em.id=`om`.`employee_id`  and `em`.deleted_flag=\'N\' and `em`.status=\'NORMAL\'', 'left')
                     ->where($data)
                     ->group('org.id')
