@@ -2193,7 +2193,7 @@ class GoodsModel extends PublicModel {
                             continue;
                         }
                         $data['purchase_price'] = $data_tmp['供应商供货价'];    //进货价格
-                        if (!empty($data['purchase_price']) && !is_numeric($data['purchase_price'])) {
+                        if (!empty($data['purchase_price']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data['purchase_price'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[供应商供货价有误]');
                             $start_row++;
@@ -2202,6 +2202,9 @@ class GoodsModel extends PublicModel {
                             continue;
                         } elseif ($data['purchase_price'] == '') {
                             $data['purchase_price'] = null;
+                        }else{
+                            $price_ary = explode('-',$data['purchase_price']);
+                            $data['purchase_price'] = $price_ary[0];
                         }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
                         if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
@@ -2449,6 +2452,7 @@ class GoodsModel extends PublicModel {
                                     'sku' => $input_sku,
                                     'supplier_id' => $supplierInfo['id'],
                                     'price' => $data['purchase_price'],
+                                    'max_price' => isset($price_ary[1]) ? $price_ary[1] : null,
                                     'price_unit' => $data['min_pack_unit'],
                                     'price_cur_bn' => $data['purchase_price_cur_bn'],
                                     'min_purchase_qty' => $data['min_order_qty'],
@@ -2854,7 +2858,7 @@ class GoodsModel extends PublicModel {
 
     public function tmpImport($input = []) {
         set_time_limit(0);  # 设置执行时间最大值
-        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xls";
+        //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xlsx";
         $localFile = ExcelHelperTrait::download2local($input['url']);
         if (!file_exists($localFile)) {
             jsonReturn('', ErrorMsg::FAILED, '导入文件未找到');
@@ -2880,10 +2884,12 @@ class GoodsModel extends PublicModel {
             $title_ary[$index] = $key;
         }
         /** 处理数据 */
-        $start_row = 2;    //从第三行开始取
+        $start_row = 2;    //从第2行开始取
         $success = $faild = 0;
         $gcpModel = new GoodsCostPriceModel();
         $supplierModel = new SupplierModel();
+        $gsupplierModel = new GoodsSupplierModel();
+        $userInfo = getLoinInfo();
         do {
             $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
             if (flock($fp, LOCK_EX)) {
@@ -2900,24 +2906,46 @@ class GoodsModel extends PublicModel {
                     }
                 }
 
-                $supplierInfo = $supplierModel->field('id')->where(['name' => $data_tmp['供应商'], 'deleted_flag' => 'N'])->find();
-                if (!$supplierInfo) {
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '供应商不存在，请检查是否正确');
+                $supplierInfo = $supplierModel->field('id')->where(['name'=>$data_tmp['供应商名称'], 'deleted_flag'=>'N'])->find();
+                if(!$supplierInfo){
+                    $faild++;
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '供应商不存在，请检查是否正确');
                     flock($fp, LOCK_UN);
                     fclose($fp);
                     $start_row++;
                     continue;
                 }
-
+                if(!preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
+                    $faild++;
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '价格有误');
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    $start_row++;
+                    continue;
+                }
+                $price_ary = explode('-', $data_tmp['价格']);
+                $priceValidity = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期'])).' 23:59:59';
                 $data = [
-                    'price_validity' => $data_tmp['有效期'], //价格有效期
-                    'price' => $data_tmp['价格'], //最小采购单价
+                    'price_validity' => $priceValidity,    //价格有效期
+                    'price' => $price_ary[0] ? $price_ary[0] : null,    //最小采购单价
+                    'max_price' => $price_ary[1] ? $price_ary[1] : null,
+                    'updated_by' => $userInfo['id'],
+                    'updated_at' => date('Y-m-d H:i:s',time())
                 ];
-                $result = $gcpModel->where(['sku' => $data_tmp['sku编码'], 'supplier_id' => $supplierInfo['id'], 'deleted_flag' => 'N'])->save($data);
-                if ($result) {
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '更新成功');
-                } else {
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '更新失败');
+                $result = $gcpModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id'] ,'deleted_flag'=>'N'])->save($data);
+
+                $data_pn = [
+                    'pn' => $data_tmp['PN'] ? $data_tmp['PN'] : null,
+                    'updated_by' => $userInfo['id'],
+                    'updated_at' => date('Y-m-d H:i:s',time())
+                ];
+                $result_pn = $gsupplierModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id']])->save($data_pn);
+                if($result && $result_pn){
+                    $success++;
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新成功');
+                }else{
+                    $faild++;
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新失败');
                 }
                 flock($fp, LOCK_UN);
             }
