@@ -9,6 +9,9 @@ class SupplierMaterialCatModel extends PublicModel {
 
     protected $dbName = 'erui_supplier';
     protected $tableName = 'supplier_material_cat';
+    protected $joinTable1 = 'erui_goods.material_cat b ON a.material_cat_no1 = b.cat_no AND b.lang = \'zh\'';
+    protected $joinTable2 = 'erui_goods.material_cat c ON a.material_cat_no2 = c.cat_no AND c.lang = \'zh\'';
+    protected $joinField = 'a.*, b.name AS material_cat_name1, c.name AS material_cat_name2';
 			    
     public function __construct() {
         parent::__construct();
@@ -37,6 +40,29 @@ class SupplierMaterialCatModel extends PublicModel {
          return $where;
      }
      
+     /**
+      * @desc 获取关联查询条件
+      *
+      * @param array $condition
+      * @return array
+      * @author liujf
+      * @time 2017-11-14
+      */
+     public function getJoinWhere($condition = []) {
+     
+         $where = [];
+     
+         if (!empty($condition['id'])) {
+             $where['a.id'] = $condition['id'];
+         }
+     
+        if (!empty($condition['supplier_id'])) {
+             $where['a.supplier_id'] = $condition['supplier_id'];
+         }
+     
+         return $where;
+     }
+     
 	/**
      * @desc 获取记录总数
  	 * 
@@ -52,6 +78,27 @@ class SupplierMaterialCatModel extends PublicModel {
     	$count = $this->where($where)->count('id');
     	
     	return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取关联记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-11-14
+     */
+    public function getJoinCount($condition = []) {
+    
+        $where = $this->getJoinWhere($condition);
+    
+        $count = $this->alias('a')
+                                 ->join($this->joinTable1, 'LEFT')
+                                 ->join($this->joinTable2, 'LEFT')
+                                 ->where($where)
+                                 ->count('a.id');
+    
+        return $count > 0 ? $count : 0;
     }
     
     /**
@@ -76,6 +123,31 @@ class SupplierMaterialCatModel extends PublicModel {
     	                   ->order('id DESC')
     	                   ->select();
     }   
+    
+    /**
+     * @desc 获取关联列表
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-14
+     */
+    public function getJoinList($condition = []) {
+    
+        $where = $this->getJoinWhere($condition);
+    
+        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        //$pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+    
+        return $this->alias('a')
+                            ->join($this->joinTable1, 'LEFT')
+                            ->join($this->joinTable2, 'LEFT')
+                            ->field($this->joinField)
+                            ->where($where)
+                            //->page($currentPage, $pageSize)
+                            ->order('a.id DESC')
+                            ->select();
+    }
     
 	/**
      * @desc 获取详情
