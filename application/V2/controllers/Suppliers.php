@@ -207,7 +207,7 @@ class SuppliersController extends PublicController {
 	public function getSupplierListAction() {
 	    $condition = $this->put_data;
 	    
-	    $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id']);
+	    $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
 	    
 	    $data = $this->suppliersModel->getJoinList($condition);
 	
