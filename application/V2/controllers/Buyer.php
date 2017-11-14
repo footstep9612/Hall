@@ -479,6 +479,13 @@ class BuyerController extends PublicController {
         }
         $array['created_by'] = $this->user['id'];
         $model = new BuyerAgentModel();
+        $inquiry_model = new InquiryModel();
+        $user_arr = explode(',',$array['user_ids']);
+        if($user_arr[0]){
+            $condition['buyer_id'] = $array['id'];
+            $condition['agent_id'] = $user_arr[0];
+            $inquiry_model->setBuyerAgentInfo($condition);
+        }
         $res = $model->create_data($array);
         if (!empty($res)) {
             $datajson['code'] = 1;
