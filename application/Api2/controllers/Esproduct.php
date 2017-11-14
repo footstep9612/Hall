@@ -25,7 +25,19 @@ class EsproductController extends PublicController {
         $this->es = new ESClient();
     }
 
+    public function DeletedAction() {
+
+        $file_id = 'images/330601/3306010000120000/IMAGES/1.jpg';
+
+        $fast = new FastDFSclient();
+        $flag = $fast->delete($file_id);
+
+        var_dump($flag);
+        die;
+    }
+
     public function listAction() {
+
         $model = new EsProductModel();
         $condition = $this->getPut();
         $ret = $model->getproducts($condition, null, $this->getLang());
