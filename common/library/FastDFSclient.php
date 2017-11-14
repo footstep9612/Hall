@@ -52,26 +52,4 @@ class FastDFSclient {
         }
     }
 
-    public function delete($file_id) {
-        $fdfs = new FastDFS();
-        list($group_name, $file_name) = $this->parseFileId($file_id, $group_name);
-        return $fdfs->storage_delete_file($group_name, $file_name);
-    }
-
-    /**
-     * 解析 FileId
-     *
-     * @param  string $file_id 文件的ID
-     * @return array
-     */
-    protected function parseFileId($file_id, $group_name = null) {
-        if (is_null($group_name)) {
-            $group_name = strstr($file_id, '/', true);
-            $file_name = strstr($file_id, '/');
-        } else {
-            $file_name = $file_id;
-        }
-        return [$group_name, $file_name];
-    }
-
 }

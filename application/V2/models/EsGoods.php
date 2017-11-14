@@ -326,8 +326,8 @@ class EsGoodsModel extends Model {
                         [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 5]]],
                         [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['show_name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 7]]],
+                        [ESClient::WILDCARD => ['show_name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 7]]],
             ]]];
         }
 
@@ -365,11 +365,13 @@ class EsGoodsModel extends Model {
 
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
-                $es->setsort('_score', 'desc');
+                $es->setsort('_score', 'desc')->setsort('created_at', 'desc')->setsort('sku', 'desc');
+            } else {
+                $es->setsort('created_at', 'desc')
+                        ->setsort('sku', 'desc');
             }
-            return [$es->setsort('created_at', 'desc')
-                        ->setsort('sku', 'desc')
-                        ->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+
+            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
