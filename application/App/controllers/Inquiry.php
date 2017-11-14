@@ -77,11 +77,13 @@ class InquiryController extends PublicController
     }
 
 
+    /**
+     * 询单列表
+     */
     public function listAction()
     {
         $condition = $this->put_data;
 
-        $inquiryModel = new InquiryModel();
         $quoteModel = new QuoteModel();
         $userModel = new UserModel();
         $countryModel = new CountryModel();
@@ -101,6 +103,9 @@ class InquiryController extends PublicController
 
         $condition['user_id'] = $this->user['id'];
 
+        //列表类型 list_type
+        $condition['list_type'] = 'inquiry';
+
         $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,agent_id,quote_id,now_agent_id,created_at,quote_status');
 
         foreach ($inquiryList as &$inquiry) {
@@ -119,15 +124,33 @@ class InquiryController extends PublicController
         if ($inquiryList) {
             $res['code'] = 1;
             $res['message'] = '成功!';
+            $res['count'] = $this->inquiryModel->getCount_($condition);
             $res['data'] = $inquiryList;
-            $res['count'] = $inquiryModel->getCount_($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage('暂无数据!');
             $this->jsonReturn();
         }
     }
 
+    public function detailAction()
+    {
+
+        $request = $this->validateRequestParams('id');
+
+        $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,from_country,from_port,to_country,to_port';
+        $inquiryDetail = $this->inquiryModel->getDetail($request,$inquiryFields);
+
+        $quote = new QuoteModel();
+        $quoteFields = 'id,serial_no,fund_occupation_rate,payment_period,gross_profit_rate,bank_interest,total_bank_fee,total_purchase,'.
+                       'total_logi_fee,total_exw_price,total_quote_price,package_mode,total_weight,package_volumn,period_of_validity,'.
+                       'payment_mode,trade_terms_bn,delivery_period,premium_rate,trans_mode_bn,dispatch_place,quote_remarks';
+
+        $quoteDetail = $quote->getGeneralInfo(['inquiry_id'=>$request['id']],$quoteFields);
+
+        $this->jsonReturn($quoteDetail);
+
+    }
 }
 

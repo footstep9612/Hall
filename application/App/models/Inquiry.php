@@ -157,6 +157,11 @@ class InquiryModel extends PublicModel
 
     }
 
+    public function getDetail($condition,$field="*")
+    {
+        return $this->where($condition)->field($field)->find();
+    }
+
     /**
      * @desc 获取列表
      *
