@@ -27,7 +27,9 @@ class EsproductController extends PublicController {
 
     public function DeletedAction() {
 
-        $file_id = 'images/330601/3306010000120000/IMAGES/1.jpg';
+
+        $file_id = $this->getPut('file_id');
+        // 'images/330601/3306010000120000/IMAGES/1.jpg';
 
         $fast = new FastDFSclient();
         $flag = $fast->delete($file_id);
