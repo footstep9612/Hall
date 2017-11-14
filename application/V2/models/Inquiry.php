@@ -98,6 +98,8 @@ class InquiryModel extends PublicModel {
         
         if (!empty($condition['status'])) {
             $where['status'] = $condition['status'];    //项目状态
+        }else if($condition['list_type'] == 'quote'){
+            $where['status'] = array('neq','DRAFT');
         }
         
         if (!empty($condition['country_bn'])) {
