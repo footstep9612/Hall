@@ -173,6 +173,7 @@ class SuppliersController extends PublicController {
 	        'photo_upload_flag' => $condition['photo_upload_flag']
 	    ];
 	    
+	    if ($condition['sign_agreement_time'] != '') $extraData['sign_agreement_time'] = $condition['sign_agreement_time'];
 	    if ($condition['est_time_arrival'] != '') $extraData['est_time_arrival'] = $condition['est_time_arrival'];
 	    if ($condition['distribution_amount'] != '') $extraData['distribution_amount'] = $condition['distribution_amount'];
 	    
