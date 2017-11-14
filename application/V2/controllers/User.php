@@ -67,6 +67,7 @@ class UserController extends PublicController {
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
+
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
