@@ -121,11 +121,23 @@ class SuppliersController extends PublicController {
 	    $this->suppliersModel->startTrans();
 	    
 	    // 供应商基本信息
-	    unset($condition['employee_count']);
-	    $condition['updated_by'] = $this->user['id'];
-	    $condition['updated_at'] = $this->time;
+	    $supplierData = [
+	        'status' => $condition['status'],
+	        'supplier_type' => $condition['supplier_type'],
+	        'name' => $condition['name'],
+	        'name_en' => $condition['name_en'],
+	        'country_bn' => $condition['country_bn'],
+	        'address' => $condition['address'],
+	        'social_credit_code' => $condition['social_credit_code'],
+	        'reg_capital' => $condition['reg_capital'],
+	        'logo' => $condition['logo'],
+	        'profile' => $condition['profile'],
+	        'org_id' => $condition['org_id'],
+	        'updated_by' => $this->user['id'],
+	        'updated_at' => $this->time
+	    ];
 	    
-	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $condition);
+	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $supplierData);
 	    
 	    $where['supplier_id'] = $condition['id'];
 	    
@@ -161,6 +173,7 @@ class SuppliersController extends PublicController {
 	        'photo_upload_flag' => $condition['photo_upload_flag']
 	    ];
 	    
+	    if ($condition['sign_agreement_time'] != '') $extraData['sign_agreement_time'] = $condition['sign_agreement_time'];
 	    if ($condition['est_time_arrival'] != '') $extraData['est_time_arrival'] = $condition['est_time_arrival'];
 	    if ($condition['distribution_amount'] != '') $extraData['distribution_amount'] = $condition['distribution_amount'];
 	    
@@ -195,7 +208,7 @@ class SuppliersController extends PublicController {
 	public function getSupplierListAction() {
 	    $condition = $this->put_data;
 	    
-	    $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id']);
+	    $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
 	    
 	    $data = $this->suppliersModel->getJoinList($condition);
 	
@@ -370,6 +383,22 @@ class SuppliersController extends PublicController {
 	}
 	
 	/**
+	 * @desc 获取供应商供货范围列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-11-14
+	 */
+	public function getSupplierSupplyListAction() {
+	    $condition = $this->put_data;
+	
+	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
+	
+	    $data = $this->supplierMaterialCatModel->getList($condition);
+	
+	    $this->_handleList($this->supplierMaterialCatModel, $data, $condition);
+	}
+	
+	/**
 	 * @desc 新增供应商开发负责人记录接口
 	 *
 	 * @author liujf
@@ -403,9 +432,25 @@ class SuppliersController extends PublicController {
 	
 	    if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商开发负责人主键id参数!');
 	
-	    $res = $this->supplierMaterialCatModel->delRecord(['id' => $condition['id']]);
+	    $res = $this->supplierAgentModel->delRecord(['id' => $condition['id']]);
 	
 	    $this->jsonReturn($res);
+	}
+	
+	/**
+	 * @desc 获取供应商开发负责人列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-11-14
+	 */
+	public function getSupplierAgentListAction() {
+	    $condition = $this->put_data;
+	
+	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
+	
+	    $data = $this->supplierAgentModel->getAgentList($condition);
+	     
+	    $this->_handleList($this->supplierAgentModel, $data, $condition);
 	}
 	
 	/**

@@ -27,7 +27,7 @@ class UserController extends PublicController {
         $where = [];
         if (!empty($data['username'])) {
             $username = trim($data['username']);
-            $where['username'] = ['like', '%' . $username . '%'];
+            $where['username'] = $username;
         }
         if (!empty($data['group_id'])) {
             $where['group_id'] = trim($data['group_id']);
@@ -57,7 +57,7 @@ class UserController extends PublicController {
         if (!empty($data['user_no'])) {
 
             $user_no = trim($data['user_no']);
-            $where['user_no'] = ['like', '%' . $user_no . '%'];
+            $where['user_no'] = $user_no;
         }
         if (!empty($data['bn'])) {
             $where['bn'] = trim($data['bn']);
@@ -67,6 +67,7 @@ class UserController extends PublicController {
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
+
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;

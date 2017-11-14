@@ -42,7 +42,7 @@ class QuoteModel extends PublicModel {
      * @param string $field    筛选字段
      * @return array
      */
-    public function getGeneralInfo(array $condition,$field){
+    public function getGeneralInfo(array $condition,$field="*"){
         return $this->where($condition)->field($field)->find();
     }
 

@@ -13,8 +13,10 @@ class SuppliersModel extends PublicModel {
     protected $tableName = 'supplier';
     protected $joinTable1 = 'erui_sys.org b ON a.org_id = b.id';
     protected $joinTable2 = 'erui_dict.country c ON a.country_bn = c.bn ';
+    protected $joinTable3 = 'erui_supplier.supplier_bank_info d ON a.id = d.supplier_id ';
+    protected $joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ';
     protected $joinField = 'a.*, b.name AS org_name';
-    protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name';
+    protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
 
     public function __construct() {
         parent::__construct();
@@ -162,6 +164,8 @@ class SuppliersModel extends PublicModel {
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
                             ->join($this->joinTable2, 'LEFT')
+                            ->join($this->joinTable3, 'LEFT')
+                            ->join($this->joinTable4, 'LEFT')
                             ->field($this->joinField_)
                             ->where($where)
                             ->find();
