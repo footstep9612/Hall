@@ -280,7 +280,8 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有国家简称!';
             return $results;
         }
-        $data['status'] = 'NOT_QUOTED';
+        $data['status'] = 'DRAFT';
+        $data['quote_status'] = 'NOT_QUOTED';
         $data['created_at'] = $this->getTime();
 
         try {
