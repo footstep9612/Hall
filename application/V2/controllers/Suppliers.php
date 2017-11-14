@@ -383,6 +383,22 @@ class SuppliersController extends PublicController {
 	}
 	
 	/**
+	 * @desc 获取供应商供货范围列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-11-14
+	 */
+	public function getSupplierSupplyListAction() {
+	    $condition = $this->put_data;
+	
+	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
+	
+	    $data = $this->supplierMaterialCatModel->getList($condition);
+	
+	    $this->_handleList($this->supplierMaterialCatModel, $data, $condition);
+	}
+	
+	/**
 	 * @desc 新增供应商开发负责人记录接口
 	 *
 	 * @author liujf
@@ -416,9 +432,25 @@ class SuppliersController extends PublicController {
 	
 	    if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商开发负责人主键id参数!');
 	
-	    $res = $this->supplierMaterialCatModel->delRecord(['id' => $condition['id']]);
+	    $res = $this->supplierAgentModel->delRecord(['id' => $condition['id']]);
 	
 	    $this->jsonReturn($res);
+	}
+	
+	/**
+	 * @desc 获取供应商开发负责人列表接口
+	 *
+	 * @author liujf
+	 * @time 2017-11-14
+	 */
+	public function getSupplierAgentListAction() {
+	    $condition = $this->put_data;
+	
+	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
+	
+	    $data = $this->supplierAgentModel->getAgentList($condition);
+	     
+	    $this->_handleList($this->supplierAgentModel, $data, $condition);
 	}
 	
 	/**
