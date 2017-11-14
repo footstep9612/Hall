@@ -690,4 +690,42 @@ class InquiryModel extends PublicModel {
     
         return $orgMember['employee_id'];
     }
+
+    /**
+     * 更新用户信息和询单经办人等信息
+     * @param  Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function setBuyerAgentInfo($condition = []) {
+        if(!empty($condition['buyer_id'])){
+            $where['buyer_id'] = $condition['buyer_id'];
+        }else{
+            $results['code'] = '-103';
+            $results['message'] = '没有客户ID!';
+            return $results;
+        }
+        $where['status'] = !empty($condition['status'])?$condition['status']:'DRAFT';
+
+        if(!empty($condition['agent_id'])){
+            $data['agent_id'] = $condition['agent_id'];
+            $data['now_agent_id'] = $condition['agent_id'];
+        }
+
+        try {
+            $id = $this->where($where)->save($data);
+            if($id){
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+            }else{
+                $results['code'] = '-101';
+                $results['message'] = '修改失败!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
 }
