@@ -37,7 +37,7 @@ class RoleModel extends PublicModel {
      */
     public function getlist($data, $limit, $order = 'id desc') {
         $field = 'role.id,role.name,role.name_en,role.remarks,role.created_by,'
-                . 'emby.name as created_name ,role.created_at,role.updated_at,'
+                . 'emby.name as created_name ,role_no,admin_show,role_group,role.created_at,role.updated_at,'
                 . 'role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id';
         if (!empty($limit)) {
             $res = $this->field($field)
@@ -128,6 +128,8 @@ class RoleModel extends PublicModel {
      */
     public function update_data($data, $where) {
         $arr = $this->create($data);
+        $arr['updated_at'] = date('Y-m-d H:i:s');
+        $arr['updated_by'] = defined('UID') ? UID : null;
         if (!empty($where) && isset($arr)) {
             $result = $this->where($where)->save($arr);
             if (false === $result) {

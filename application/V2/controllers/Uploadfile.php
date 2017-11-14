@@ -141,4 +141,17 @@ class UploadfileController extends PublicController {
         exit;
     }
 
+    /*
+     * 删除文件
+     */
+
+    public function deletedAction() {
+        $file_id = $this->getPut('file_id', '');
+        $fdfs = new FastDFS();
+        $tracker = $fdfs->tracker_get_connection();
+        $falg = $fdfs->storage_delete_file1($file_id);
+        $fdfs->tracker_close_all_connections();
+        var_dump($falg);
+    }
+
 }
