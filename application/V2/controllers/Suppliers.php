@@ -121,11 +121,23 @@ class SuppliersController extends PublicController {
 	    $this->suppliersModel->startTrans();
 	    
 	    // 供应商基本信息
-	    unset($condition['employee_count']);
-	    $condition['updated_by'] = $this->user['id'];
-	    $condition['updated_at'] = $this->time;
+	    $supplierData = [
+	        'status' => $condition['status'],
+	        'supplier_type' => $condition['supplier_type'],
+	        'name' => $condition['name'],
+	        'name_en' => $condition['name_en'],
+	        'country_bn' => $condition['country_bn'],
+	        'address' => $condition['address'],
+	        'social_credit_code' => $condition['social_credit_code'],
+	        'reg_capital' => $condition['reg_capital'],
+	        'logo' => $condition['logo'],
+	        'profile' => $condition['profile'],
+	        'org_id' => $condition['org_id'],
+	        'updated_by' => $this->user['id'],
+	        'updated_at' => $this->time
+	    ];
 	    
-	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $condition);
+	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $supplierData);
 	    
 	    $where['supplier_id'] = $condition['id'];
 	    
