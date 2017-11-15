@@ -33,6 +33,7 @@ class SuppliersController extends PublicController {
 	    
 	    $this->suppliersModel->startTrans();
 	    
+	    $condition['status'] = 'DRAFT';
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
 	    

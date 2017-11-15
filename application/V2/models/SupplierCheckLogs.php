@@ -9,8 +9,9 @@ class SupplierCheckLogsModel extends PublicModel {
 
     protected $dbName = 'erui_supplier';
     protected $tableName = 'supplier_check_log';
-    protected $joinTable = 'erui_sys.org b ON a.org_id = b.id';
-    protected $joinField = 'a.*, b.name AS org_name';
+    protected $joinTable1 = 'erui_sys.org b ON a.org_id = b.id';
+    protected $joinTable2 = 'erui_sys.employee c ON a.created_by = c.id AND c.deleted_flag = \'N\'';
+    protected $joinField = 'a.*, b.name AS org_name, c.name AS check_name';
 			    
     public function __construct() {
         parent::__construct();
@@ -92,7 +93,8 @@ class SupplierCheckLogsModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
          
         $count = $this->alias('a')
-                                 ->join($this->joinTable, 'LEFT')
+                                 ->join($this->joinTable1, 'LEFT')
+                                 ->join($this->joinTable2, 'LEFT')
                                  ->where($where)
                                  ->count('a.id');
          
@@ -138,7 +140,8 @@ class SupplierCheckLogsModel extends PublicModel {
         //$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     
         return $this->alias('a')
-                            ->join($this->joinTable, 'LEFT')
+                            ->join($this->joinTable1, 'LEFT')
+                            ->join($this->joinTable2, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
                             //->page($currentPage, $pageSize)
