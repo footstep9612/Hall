@@ -412,11 +412,30 @@ class SuppliersController extends PublicController {
 	    if ($condition['agent_type'] == '') jsonReturn('', -101, '开发责任人类别不能为空!');
 	    
 	    if ($condition['agent_id'] == '') jsonReturn('', -101, '开发责任人不能为空!');
-	
-	    $condition['created_by'] = $this->user['id'];
-	    $condition['created_at'] = $this->time;
-	
-	    $res = $this->supplierAgentModel->addRecord($condition);
+	    
+	    $hasAgent = false;
+	    
+	    // 判断开发人和责任人是否存在，如果存在就替换
+	    if ($condition['agent_type'] == 'DEVELOPER' || $condition['agent_type'] == 'PERSON_LIABLE') {
+	        $where = [
+	            'supplier_id' => $condition['supplier_id'],
+	            'agent_type' => $condition['agent_type']
+	         ];
+	        
+	        $hasAgent = $this->supplierAgentModel->field('id')->where($where)->find();
+	    }
+	    
+	    if ($hasAgent) {
+	        $condition['updated_by'] = $this->user['id'];
+	        $condition['updated_at'] = $this->time;
+	        
+	        $res = $this->supplierAgentModel->updateInfo(['id' => $hasAgent['id']], $condition);
+	    } else {
+	        $condition['created_by'] = $this->user['id'];
+	        $condition['created_at'] = $this->time;
+	        
+	        $res = $this->supplierAgentModel->addRecord($condition);
+	    }
 	
 	    $this->jsonReturn($res);
 	}
@@ -448,9 +467,27 @@ class SuppliersController extends PublicController {
 	
 	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
 	
-	    $data = $this->supplierAgentModel->getJoinList($condition);
+	    $supplierAgentList = $this->supplierAgentModel->getJoinList($condition);
+	    
+	    $data = [];
+	    
+	    foreach ($supplierAgentList as $supplierAgent) {
+	        switch ($supplierAgent['agent_type']) {
+	            // 开发人
+	            case 'DEVELOPER' :
+	                $data['developer'][] = $supplierAgent;
+	                break;
+	            // 责任人
+                case 'PERSON_LIABLE' :
+                    $data['person_liable'][] = $supplierAgent;
+                    break;
+                // 考察人
+                case 'INVESTIGATOR' :
+                    $data['investigator'][] = $supplierAgent;
+	        }
+	    }
 	     
-	    $this->_handleList($this->supplierAgentModel, $data, $condition, true);
+	    $this->jsonReturn($data);
 	}
 	
 	/**
