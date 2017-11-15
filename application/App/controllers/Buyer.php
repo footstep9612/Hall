@@ -131,10 +131,23 @@ class BuyerController extends PublicController {
 
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
+
         if (!empty($data)) {
+
+            $buyerList = [];
+            foreach ($data['data'] as $key=>$value){
+                $buyerList[$key] = [
+                    'id'         => $value['id'],
+                    'serial_no'  => $value['serial_no'],
+                    'buyer_no'   => $value['buyer_no'],
+                    'name'       => $value['name'],
+                    'country_name' => $value['country_name']
+                ];
+            }
+
             $datajson['code'] = 1;
             $datajson['count'] = $data['count'];
-            $datajson['data'] = $data['data'];
+            $datajson['data'] = $buyerList;
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
