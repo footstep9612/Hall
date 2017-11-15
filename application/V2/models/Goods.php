@@ -2895,6 +2895,9 @@ class GoodsModel extends PublicModel {
                 for ($index = 0; $index < $columnsIndex; $index++) {
                     $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                     $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue()); //转码
+                    if($objPHPExcel->getSheet(0)->getCellByColumnAndRow($col_name, $start_row)->getDataType()==PHPExcel_Cell_DataType::TYPE_NUMERIC){
+                        $value = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+                    }
                     if (!empty($value)) {
                         $col_value++;
                     }
@@ -2921,9 +2924,11 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
                 $price_ary = explode('-', $data_tmp['价格']);
-                $priceValidity = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期'])).' 23:59:59';
+                if(is_numeric($data_tmp['有效期'])){
+                    $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+                }
                 $data = [
-                    'price_validity' => $priceValidity,    //价格有效期
+                    'price_validity' => $data_tmp['有效期'],    //价格有效期
                     'price' => $price_ary[0] ? $price_ary[0] : null,    //最小采购单价
                     'max_price' => $price_ary[1] ? $price_ary[1] : null,
                     'updated_by' => $userInfo['id'],
@@ -2942,7 +2947,11 @@ class GoodsModel extends PublicModel {
                     $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新成功');
                 }else{
                     $faild++;
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新失败');
+                    $tit = 'price:';
+                    $tit.=$result ? 'ok' : 'no';
+                    $tit.= ' pn:';
+                    $tit.= $result_pn ? 'ok' : 'no';
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新失败'.$tit);
                 }
                 flock($fp, LOCK_UN);
             }
