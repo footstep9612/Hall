@@ -133,7 +133,7 @@ class ProductSupplierController extends PublicController {
             $data_supplier = null;
             $supplier_model = new SupplierModel();
             $suppliers = $supplier_model->field('id,name')
-                            ->where(['id' => ['in', $supplier_ids], 'status' => ['in', ['VALID', 'APPROVED']], 'deleted_flag' => 'N'])->select();
+                            ->where(['id' => ['in', $supplier_ids], 'status' => ['in', ['VALID', 'APPROVED', 'DRAFT', 'APPROVING']], 'deleted_flag' => 'N'])->select();
 
 
             $supplier_contact_model = new SupplierContactModel();
