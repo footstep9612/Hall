@@ -149,9 +149,13 @@ class EsGoodsModel extends Model {
             $name_arr = $condition[$names];
             $bool = [];
             foreach ($name_arr as $name) {
-                $bool[] = [$qurey_type => [$field => trim($name)]];
+                if (!empty($name)) {
+                    $bool[] = [$qurey_type => [$field => trim($name)]];
+                }
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+            if (!empty($bool)) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+            }
         }
     }
 
