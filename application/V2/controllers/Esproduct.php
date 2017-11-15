@@ -588,7 +588,7 @@ class EsproductController extends PublicController {
                     'id' => $not_analyzed,
                 ],
             ],
-            'cost_prices' => [
+            'costprices' => [
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'contact_first_name' => $not_analyzed,
