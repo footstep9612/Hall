@@ -470,8 +470,12 @@ class SupplierChainModel extends PublicModel {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
         } elseif ($info && $info['status'] === 'APPROVED') {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
+        } elseif ($info && $info['status'] === 'INVALID') {
+            jsonReturn($data, MSG::MSG_FAILED, '已拒绝的供应商不能审核!');
         } elseif ($info && $info['status'] !== 'APPROVING') {
             jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
+        } elseif ($info && $info['status'] !== 'DRAFT') {
+            jsonReturn($data, MSG::MSG_FAILED, '暂存状态的供应商不能审核!');
         } else {
             jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
         }
