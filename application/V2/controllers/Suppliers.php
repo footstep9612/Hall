@@ -138,7 +138,24 @@ class SuppliersController extends PublicController {
 	        'updated_at' => $this->time
 	    ];
 	    
-	    $res1 = $this->suppliersModel->updateInfo(['id' => $condition['id']], $supplierData);
+	    $supplierWhere['id'] = $condition['id'];
+	     
+	    if ($condition['status'] == 'APPROVED') {
+	        // 校验字段
+	        $checkFields = ['supplier_type', 'name', 'country_bn', 'address', 'social_credit_code', 'reg_capital'];
+	         
+	        $supplier = $this->suppliersModel->getDetail($supplierWhere);
+	         
+	        foreach ($supplier as $k => $v) {
+	            if (in_array($k, $checkFields) && $v != $condition[$k]) {
+	                $supplierData['status'] = 'APPROVING';
+	                $supplierData['erui_status'] = 'CHECKING';
+	                break;
+	            }
+	        }
+	    }
+	    
+	    $res1 = $this->suppliersModel->updateInfo($supplierWhere, $supplierData);
 	    
 	    $where['supplier_id'] = $condition['id'];
 	    
@@ -276,12 +293,18 @@ class SuppliersController extends PublicController {
 	public function batchUpdateSupplierContactInfoAction() {
 	    $condition = $this->_trim($this->put_data);
 	    
-	    if ($condition['items'] == '') jsonReturn('', -101, '缺少items参数!');
+	    if ($condition['supplier_id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
 	    
 	    if ($condition['status'] == '') jsonReturn('', -101, '状态不能为空!');
+	    
+	    if ($condition['items'] == '') jsonReturn('', -101, '缺少items参数!');
 	        
         $flag = true;
         $data = [];
+        $change= false;
+        
+        // 校验字段
+        $checkFields = ['contact_name', 'phone', 'email'];
         
         foreach ($condition['items'] as $item) {
             $where['id'] = $item['id'];
@@ -310,6 +333,18 @@ class SuppliersController extends PublicController {
             
             if (strlen($item['remarks']) > 100) jsonReturn('', -101, '您输入的负责产品大于100字!');
             
+            // 审核通过状态下校验必填字段是否修改
+            if ($condition['status'] == 'APPROVED') {
+                $supplierContact = $this->supplierContactModel->getDetail($where);
+            
+                foreach ($supplierContact as $k => $v) {
+                    if (in_array($k, $checkFields) && $v != $item[$k]) {
+                        $change = true;
+                        break;
+                    }
+                }
+            }
+            
             $item['updated_by'] = $this->user['id'];
             $item['updated_at'] = $this->time;
             
@@ -319,6 +354,15 @@ class SuppliersController extends PublicController {
                $data[] = $where['id'];
                $flag = false;
             }
+        }
+        
+        if ($change) {
+            $supplierData['status'] = 'APPROVING';
+            $supplierData['erui_status'] = 'CHECKING';
+            $supplierData['updated_by'] = $this->user['id'];
+            $supplierData['updated_at'] = $this->time;
+            
+            $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], $supplierData);
         }
 
         if ($flag) {
