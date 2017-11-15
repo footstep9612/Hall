@@ -278,5 +278,25 @@ class InquiryController extends PublicController
 
     }
 
+    /**
+     * 商品列表
+     */
+    public function skuAction()
+    {
+
+        $request = $this->validateRequestParams('id');
+
+        $inquiryItem = new InquiryItemModel();
+        $data = $inquiryItem->getItemWithQuote($request);
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功!',
+            'count'   => $inquiryItem->getCountItemWithQuote($request),
+            'data'    => $data
+        ]);
+
+    }
+
 }
 
