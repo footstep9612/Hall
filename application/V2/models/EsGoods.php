@@ -239,7 +239,6 @@ class EsGoodsModel extends Model {
             $this->_getQurey($condition, $body, ESClient::RANGE, 'price_validity', 'costprices.price_validity');
         }
 
-        print_r($body);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
