@@ -175,8 +175,10 @@ class UploadfileController extends PublicController {
         $fdfs = new FastDFS();
         $fdfs->tracker_get_connection();
         $data = $fdfs->get_file_info1($file_id);
+        var_dump($data);
+        die;
         $fdfs->tracker_close_all_connections();
-        if ($falg === true) {
+        if ($data === true) {
             $result = array(
                 'data' => $data,
                 "code" => '1',
