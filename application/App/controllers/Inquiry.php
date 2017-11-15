@@ -64,7 +64,54 @@ class InquiryController extends PublicController
 
         $data = $this->validateRequestParams();
         $data['updated_by'] = $this->user['id'];
+        $data['status'] = 'BIZ_DISPATCHING';
         $this->jsonReturn($this->inquiryModel->updateData($data));
+
+    }
+
+    public function editAction()
+    {
+
+        $request = $this->validateRequestParams('id');
+        $where = ['inquiry_id'=>$request['id']];
+
+        //驳回信息
+        $inquiryCheck = new InquiryCheckLogModel();
+        $checkInfo = $inquiryCheck->where($where)->order('created_at DESC')->field('created_at,created_by,op_note')->find();
+        $employeeModel = new EmployeeModel();
+        $checkInfo['rejecter'] = $employeeModel->where(['id'=>$checkInfo['created_by']])->getField('name');
+
+        //询单信息
+        $fields = "id,buyer_name,quote_deadline,quote_notes,trade_terms_bn,payment_mode,trans_mode_bn,to_country,to_port,destination";
+        $inquiryInfo = $this->inquiryModel->getDetail($request,$fields);
+
+        //附件信息
+        $inquiryAttach = new InquiryAttachModel();
+        $attachList = $inquiryAttach->where($where)->field('attach_name,attach_url')->select();
+
+        $response = [
+            'rejectInfo' => [
+                'reject_time' => $checkInfo['created_at'],
+                'reject_name' => $checkInfo['rejecter'],
+                'reject_note' => $checkInfo['op_note'],
+            ],
+            'basic' => [
+                'buyer_name'     => $inquiryInfo['buyer_name'],
+                'quote_deadline' => $inquiryInfo['quote_deadline'],
+                'quote_notes'    => $inquiryInfo['quote_notes'],
+            ],
+            'sku' => $attachList,
+            'logistics' => [
+                'trade_terms_bn' => $inquiryInfo['trade_terms_bn'],
+                'payment_mode'   => $inquiryInfo['payment_mode'],
+                'trans_mode_bn'  => $inquiryInfo['trans_mode_bn'],
+                'to_country'     => $inquiryInfo['to_country'],
+                'to_port'        => $inquiryInfo['to_port'],
+                'destination'    => $inquiryInfo['destination'],
+            ]
+        ];
+
+        $this->jsonReturn($response);
 
     }
 
@@ -108,7 +155,7 @@ class InquiryController extends PublicController
             $condition['list_type'] = 'inquiry';
         }
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,agent_id,quote_id,now_agent_id,created_at,quote_status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,agent_id,quote_id,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
             $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
