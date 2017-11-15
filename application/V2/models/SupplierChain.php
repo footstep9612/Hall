@@ -22,7 +22,7 @@ class SupplierChainModel extends PublicModel {
     const STATUS_VALID = 'APPROVED'; //有效,通过
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DRAFT = 'DRAFT'; //待报审；
-    const STATUS_CHECKING = 'APPLING'; //审核；
+    const STATUS_CHECKING = 'APPROVING'; //审核；
     const STATUS_DELETED = 'DELETED'; //删除；
     const ERUI_STATUS_VALID = 'VALID';          //有效
     const ERUI_STATUS_CHECKING = 'CHECKING';          //审核中
@@ -68,7 +68,7 @@ class SupplierChainModel extends PublicModel {
             }
         } else {
 
-            $where['status'] = 'DRAFT';
+            //  $where['status'] = 'DRAFT';
 
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
