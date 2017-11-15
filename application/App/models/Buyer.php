@@ -53,22 +53,21 @@ class BuyerModel extends PublicModel {
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (!empty($condition['country_bn'])) {
-            $where .= " OR `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            //$where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            $where .= ' And `buyer`.country_bn ="' . $condition['country_bn'] . '"';
         }
-        if (!empty($condition['area_bn'])) {
-            $where .= ' OR `buyer`.area_bn ="' . $condition['area_bn'] . '"';
-        }
+
         if (!empty($condition['name'])) {
-            $where .= " OR `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
         if (!empty($condition['buyer_no'])) {
-            $where .= ' OR buyer_no  ="' . $condition['buyer_no'] . '"';
+            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
         if (!empty($condition['serial_no'])) {
-            $where .= ' OR serial_no  ="' . $condition['serial_no'] . '"';
+            $where .= ' And serial_no  ="' . $condition['serial_no'] . '"';
         }
         if (!empty($condition['employee_name'])) {
-            $where .= " OR `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
+            $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
         if (!empty($condition['agent_id'])) {
             $where .= " AND `erui_buyer`.`buyer_agent`.`agent_id`  in (" . $condition['agent_id'] . ")";
@@ -77,16 +76,16 @@ class BuyerModel extends PublicModel {
             $where .= ' AND official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
-            $where .= ' OR `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['user_name'])) {
-            $where .= ' OR `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
+            $where .= ' And `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
         }
         if (!empty($condition['last_name'])) {
-            $where .= " OR `erui_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
+            $where .= " And `erui_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
         }
         if (!empty($condition['first_name'])) {
-            $where .= " OR `erui_buyer`.`buyer_account`.first_name like '%" . $condition['first_name'] . "%'";
+            $where .= " And `erui_buyer`.`buyer_account`.first_name like '%" . $condition['first_name'] . "%'";
         }
         if (!empty($condition['checked_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
