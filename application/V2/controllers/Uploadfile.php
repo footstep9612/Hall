@@ -148,10 +148,92 @@ class UploadfileController extends PublicController {
     public function deletedAction() {
         $file_id = $this->getPut('file_id', '');
         $fdfs = new FastDFS();
-        $tracker = $fdfs->tracker_get_connection();
+        $fdfs->tracker_get_connection();
         $falg = $fdfs->storage_delete_file1($file_id);
         $fdfs->tracker_close_all_connections();
-        var_dump($falg);
+        if ($falg === true) {
+            $result = array(
+                "code" => '1',
+                "message" => "成功!"
+            );
+        } else {
+            $result = array(
+                "code" => '-1',
+                "message" => "失败!"
+            );
+        }
+        echo json_encode($result);
+        exit;
+    }
+
+    /*
+     * 获取详情
+     */
+
+    public function GetFileInfoAction() {
+        $file_id = $this->getPut('file_id', '');
+        $fdfs = new FastDFS();
+        $fdfs->tracker_get_connection();
+        $data = $fdfs->get_file_info1($file_id);
+        $fdfs->tracker_close_all_connections();
+        if ($falg === true) {
+            $result = array(
+                'data' => $data,
+                "code" => '1',
+                "message" => "成功!"
+            );
+        } else {
+            $result = array(
+                "code" => '-1',
+                "message" => "失败!"
+            );
+        }
+        echo json_encode($result);
+        exit;
+    }
+
+    public function DownFIleToFIleAction() {
+
+        $file_id = $this->getPut('file_id', '');
+        $fdfs = new FastDFS();
+        $fdfs->tracker_get_connection();
+        $falg = $fdfs->storage_download_file_to_file1($file_id, MYPATH . DS . 'public' . DS . 'temp' . DS . date('YmdHis') . '.log');
+        $fdfs->tracker_close_all_connections();
+        if ($falg === true) {
+            $result = array(
+                "code" => '1',
+                "message" => "成功!"
+            );
+        } else {
+            $result = array(
+                "code" => '-1',
+                "message" => "失败!"
+            );
+        }
+        echo json_encode($result);
+        exit;
+    }
+
+    public function GetMetadataAction() {
+
+        $file_id = $this->getPut('file_id', '');
+        $fdfs = new FastDFS();
+        $fdfs->tracker_get_connection();
+        $falg = $fdfs->storage_get_metadata1($file_id);
+        $fdfs->tracker_close_all_connections();
+        if ($falg === true) {
+            $result = array(
+                "code" => '1',
+                "message" => "成功!"
+            );
+        } else {
+            $result = array(
+                "code" => '-1',
+                "message" => "失败!"
+            );
+        }
+        echo json_encode($result);
+        exit;
     }
 
 }
