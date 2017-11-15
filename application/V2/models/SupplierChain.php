@@ -42,11 +42,11 @@ class SupplierChainModel extends PublicModel {
     protected function _getcondition($condition = [], &$where = [], $is_Chain = true) {
         if ($is_Chain) {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'VALID']]
+                'status' => 'APPROVED'
             ];
         } else {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'VALID', 'INVALID', 'APPLING']]
+                'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING ']]
             ];
         }
         $this->_getValue($where, $condition, 'supplier_no');
@@ -67,15 +67,9 @@ class SupplierChainModel extends PublicModel {
                 }
             }
         } else {
-            if (!empty($condition['status']) && in_array($condition['status'], ['APPROVED', 'VALID'])) {
-                $where['status'] = ['in', ['APPROVED', 'VALID']];
-            } elseif (!empty($condition['status']) && in_array($condition['status'], ['APPLING', 'CHECKING'])) {
-                $where['status'] = ['in', ['APPLING', 'CHECKING']];
-            } elseif (!empty($condition['status']) && $condition['status'] === 'INVALID') {
-                $where['status'] = 'INVALID';
-            } elseif (!empty($condition['status']) && $condition['status'] === 'DRAFT') {
-                $where['status'] = 'DRAFT';
-            }
+
+            $where['status'] = 'DRAFT';
+
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
                 $employee_model = new EmployeeModel();
@@ -105,7 +99,7 @@ class SupplierChainModel extends PublicModel {
                 ->where($where)
                 ->order($order)
                 ->select();
-        $this->_setStatus($data);
+        //  $this->_setStatus($data);
         $this->_setCheckedName($data);
 
         return $data;
@@ -127,7 +121,7 @@ class SupplierChainModel extends PublicModel {
                 ->where($where)
                 ->order($order)
                 ->select();
-        $this->_setEruiStatus($data);
+        //   $this->_setEruiStatus($data);
         $this->_setEruiCheckedName($data);
         $this->_setOrgName($data);
         return $data;
@@ -474,7 +468,7 @@ class SupplierChainModel extends PublicModel {
             jsonReturn($data, MSG::MSG_FAILED, '已拒绝的供应商不能审核!');
         } elseif ($info && $info['status'] !== 'APPROVING') {
             jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
-        } elseif ($info && $info['status'] !== 'DRAFT') {
+        } elseif ($info && $info['status'] === 'DRAFT') {
             jsonReturn($data, MSG::MSG_FAILED, '暂存状态的供应商不能审核!');
         } else {
             jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
