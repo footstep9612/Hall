@@ -391,7 +391,7 @@ class SupplierChainModel extends PublicModel {
                 return FALSE;
             }
             $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = 'VALID';
+            $condition['status'] = 'APPROVED';
             $condition['erui_member_flag'] = $data['is_erui'];
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = $info['org_id'];
@@ -429,11 +429,11 @@ class SupplierChainModel extends PublicModel {
 
         $info = $this->field('status')->where($where)->find();
         if ($info['status'] == 'APPROVING') {
-            $data['status'] = ($status == 'VALID' ? 'VALID' : 'INVALID');
+            $data['status'] = ($status == 'APPROVED' ? 'APPROVED' : 'INVALID');
             $data['erui_status'] = 'CHECKING';
             $data['checked_at'] = date('Y-m-d H:i:s');
             $data['checked_by'] = defined('UID') ? UID : 0;
-            if ($info['org_id'] && $data['status'] == 'VALID') {
+            if ($info['org_id'] && $data['status'] == 'APPROVED') {
                 $org_model = new OrgModel();
                 $orgInfo = $org_model->field('membership,org_node,name')->where(['id' => $info['org_id'], 'deleted_flag' => 'N'])->find();
                 if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
@@ -448,7 +448,7 @@ class SupplierChainModel extends PublicModel {
                 return FALSE;
             }
             $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = $status == 'VALID' ? 'VALID' : 'INVALID';
+            $condition['status'] = $status == 'APPROVED' ? 'APPROVED' : 'INVALID';
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = $info['org_id'];
             if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
