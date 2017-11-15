@@ -428,7 +428,7 @@ class SupplierChainModel extends PublicModel {
         ];
 
         $info = $this->field('status')->where($where)->find();
-        if ($info['status'] == 'APPLING') {
+        if ($info['status'] == 'APPROVING') {
             $data['status'] = ($status == 'VALID' ? 'VALID' : 'INVALID');
             $data['erui_status'] = 'CHECKING';
             $data['checked_at'] = date('Y-m-d H:i:s');
@@ -470,7 +470,7 @@ class SupplierChainModel extends PublicModel {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
         } elseif ($info && $info['status'] === 'APPROVED') {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
-        } elseif ($info && $info['status'] !== 'APPLING') {
+        } elseif ($info && $info['status'] !== 'APPROVING') {
             jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
         } else {
             jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
