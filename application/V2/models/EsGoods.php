@@ -574,6 +574,9 @@ class EsGoodsModel extends Model {
                 $goods_attach_model = new GoodsAttachModel();
                 $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
+                $goods_cost_price_model = new GoodsCostPriceModel();
+                $costprices = $goods_cost_price_model->getCostPricesBySkus($skus);
+
                 $goods_attr_model = new GoodsAttrModel();
                 $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
@@ -588,7 +591,7 @@ class EsGoodsModel extends Model {
 //                $updateParams['index'] = $this->dbName;
 //                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
@@ -608,7 +611,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = []) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -648,6 +651,15 @@ class EsGoodsModel extends Model {
         } else {
             $body['show_cats'] = [];
         }
+        if (isset($costprices[$sku])) {
+
+            $cost_prices = $costprices[$sku];
+            rsort($cost_prices);
+            $body['costprices'] = $cost_prices;
+        } else {
+            $body['costprices'] = [];
+        }
+
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
 
         $body['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $body['brand'])));
@@ -1176,11 +1188,12 @@ class EsGoodsModel extends Model {
             $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
             $show_cat_goods_model = new ShowCatGoodsModel();
             $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
-
+            $goods_cost_price_model = new GoodsCostPriceModel();
+            $costprices = $goods_cost_price_model->getCostPricesBySkus($skus);
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
 
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
             }
 
             $es->refresh($this->dbName);
