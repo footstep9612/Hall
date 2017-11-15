@@ -224,11 +224,22 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
 
+
+
+
         $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
+        if (isset($condition['price_validity']) && $condition['price_validity'] === 'Y') {
+            $condition['price_validity_start'] = date('Y-m-d');
+
+            $condition['price_validity_end'] = date('Y-m-d', strtotime('+7 days'));
+            $this->_getQurey($condition, $body, ESClient::RANGE, 'price_validity', 'costprices.price_validity');
+        }
+
+        print_r($body);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
