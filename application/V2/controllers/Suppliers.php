@@ -335,6 +335,67 @@ class SuppliersController extends PublicController {
 	}
 	
 	/**
+	 * @desc 批量修改供应商联系人信息接口
+	 *
+	 * @author liujf
+	 * @time 2017-11-16
+	 */
+	public function batchUpdateSupplierContactInfoAction() {
+	    $condition = $this->_trim($this->put_data);
+	
+	    if ($condition['items'] == '') jsonReturn('', -101, '缺少items参数!');
+	
+	    $flag = true;
+	    $data = [];
+	
+	    foreach ($condition['items'] as $item) {
+	        $where['id'] = $item['id'];
+	         
+	        if ($item['id'] == '') jsonReturn('', -101, '缺少供应商联系人主键id参数!');
+	         
+	        unset($item['id']);
+	         
+	        if ($item['contact_name'] == '') jsonReturn('', -101, '联系人姓名不能为空!');
+	        
+	        if (strlen($item['contact_name']) > 40) jsonReturn('', -101, '您输入的联系人姓名过长!');
+	         
+	        if ($item['phone'] == '') jsonReturn('', -101, '联系方式不能为空!');
+	        
+	        if (strlen($item['phone']) > 20) jsonReturn('', -101, '您输入的联系方式不正确!');
+	         
+	        if ($item['email'] == '') jsonReturn('', -101, '邮箱不能为空!');
+	        
+	        if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email'])) jsonReturn('', -101, '您输入的邮箱格式不正确!');
+	         
+	        if (strlen($item['email']) > 20) jsonReturn('', -101, '您输入的邮箱大于20字!');
+	         
+	        if (strlen($item['title']) > 20) jsonReturn('', -101, '您输入的职位大于20字!');
+	         
+	        if (strlen($item['station']) > 20) jsonReturn('', -101, '您输入的岗位大于20字!');
+	         
+	        if (strlen($item['remarks']) > 100) jsonReturn('', -101, '您输入的负责产品大于100字!');
+	         
+	        $item['updated_by'] = $this->user['id'];
+	        $item['updated_at'] = $this->time;
+	         
+	        $res = $this->supplierContactModel->updateInfo($where, $item);
+	         
+	       if (!$res) {
+	            $data[] = $where['id'];
+	            if ($flag) $flag = false;
+	        }
+	    }
+	
+	    if ($flag) {
+	        $this->jsonReturn($flag);
+	    } else {
+	        $this->setCode('-101');
+	        $this->setMessage('失败!');
+	        parent::jsonReturn($data);
+	    }
+	}
+	
+	/**
 	 * @desc 获取供应商联系人列表接口
 	 * 
 	 * @author liujf
