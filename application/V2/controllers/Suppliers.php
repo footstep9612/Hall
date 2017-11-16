@@ -207,7 +207,7 @@ class SuppliersController extends PublicController {
 	    
 	    $res1 = $this->suppliersModel->updateInfo($supplierWhere, $supplierData);
 	    
-	    $where['supplier_id'] = $condition['id'];
+	    $where['supplier_id'] = $condition['supplier_id'];
 	    
 	    $hasBank = $this->supplierBankInfoModel->field('id')->where($where)->find();
 	    
@@ -223,7 +223,7 @@ class SuppliersController extends PublicController {
 	        $brandData['updated_at'] = $this->time;
 	        $res2 = $this->supplierBankInfoModel->where($where)->save($brandData);
 	    } else {
-	        $brandData['supplier_id'] = $condition['id'];
+	        $brandData['supplier_id'] = $condition['supplier_id'];
 	        $brandData['created_by'] = $this->user['id'];
 	        $brandData['created_at'] = $this->time;
 	        $res2 = $this->supplierBankInfoModel->add($brandData);
@@ -250,7 +250,7 @@ class SuppliersController extends PublicController {
 	        $extraData['updated_at'] = $this->time;
 	        $res3 = $this->supplierExtraInfoModel->updateInfo($where, $extraData);
 	    } else {
-	        $extraData['supplier_id'] = $condition['id'];
+	        $extraData['supplier_id'] = $condition['supplier_id'];
 	        $extraData['created_by'] = $this->user['id'];
 	        $extraData['created_at'] = $this->time;
 	        $res3 = $this->supplierExtraInfoModel->addRecord($extraData);
