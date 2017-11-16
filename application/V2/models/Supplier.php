@@ -327,7 +327,7 @@ class SupplierModel extends PublicModel {
         }
 
         $currentPage = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSiz ce'])?$condition['pageSize']:10;
+        $pagesize = !empty($condition['pageSizce'])?$condition['pageSize']:10;
         $num = $pagesize;
         $page = ($currentPage - 1) * $pagesize;
 
