@@ -264,13 +264,16 @@ class QuoteModel extends PublicModel {
 
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {
-                    $quoteItemLogiModel->save($quoteItemLogiModel->create([
-                        'inquiry_id' => $request['inquiry_id'],
-                        'quote_id' => $quoteInfo['id'],
-                        'quote_item_id' => $quoteItemId,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $user['id']
-                    ]));
+                    $logiId = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'quote_item_id' => $quoteItemId])->getField('id',true);
+                    if(!$logiId){
+                        $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                            'inquiry_id' => $request['inquiry_id'],
+                            'quote_id' => $quoteInfo['id'],
+                            'quote_item_id' => $quoteItemId,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'created_by' => $user['id']
+                        ]));
+                    }
                 }
             }
 
