@@ -44,15 +44,14 @@ class BuyerModel extends PublicModel {
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` ";
-        $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.deleted_flag='N' ";
+        $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` AND `erui_buyer`.`buyer_account`.deleted_flag='N' ";
         $str .= " left Join `erui_buyer`.`buyer_credit_log` on `erui_buyer`.`buyer_credit_log`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` ";
+        $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` AND em.deleted_flag='N' ";
         $str .= " left Join `erui_buyer`.`buyer_address` on `erui_buyer`.`buyer_address`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
-        $where = " WHERE buyer.deleted_flag = 'N' AND `erui_sys`.`employee`.deleted_flag='N' "
-                . " AND em.deleted_flag='N' AND `erui_buyer`.`buyer_account`.deleted_flag='N'";
+        $where = " WHERE buyer.deleted_flag = 'N'  ";
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
@@ -102,9 +101,9 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
         }
         if (!empty($condition['source'])) {
-            if($condition['source'] ==1 ){
+            if ($condition['source'] == 1) {
                 $where .= ' And `erui_buyer`.`buyer`.created_by  > 0';
-            }else if($condition['source']==2){
+            } else if ($condition['source'] == 2) {
                 $where .= ' And `erui_buyer`.`buyer`.created_by  is null';
             }
         }
