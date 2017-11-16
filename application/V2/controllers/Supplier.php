@@ -602,11 +602,11 @@ class SupplierController extends PublicController {
     public function getSkuSupplierListAction() {
         $data = $this->put_data;
 
-        if (empty($data['sku'])) {
+        /*if (empty($data['sku'])) {
             $datajson['code'] = -104;
             $datajson['message'] = 'SKU为空!';
             $this->jsonReturn($datajson);
-        }
+        }*/
 
         $model = new SupplierModel();
         $data = $model->getSkuSupplierList($data);
