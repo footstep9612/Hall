@@ -51,11 +51,16 @@ class SupplierChainModel extends PublicModel {
         }
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
-
+        if (!empty($condition['created_at_end'])) {
+            $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between');
         if ($is_Chain) {
             $this->_getValue($where, $condition, 'erui_status');
             $this->_getValue($where, $condition, 'is_erui', 'bool');
+            if (!empty($condition['erui_checked_at_end'])) {
+                $condition['erui_checked_at_end'] = date('Y-m-d H:i:s', strtotime($condition['erui_checked_at_end']) + 86399);
+            }
             $this->_getValue($where, $condition, 'erui_checked_at', 'between');
             if (!empty($condition['erui_checked_name'])) {
                 $employee_model = new EmployeeModel();
@@ -70,6 +75,9 @@ class SupplierChainModel extends PublicModel {
 
             //  $where['status'] = 'DRAFT';
             $this->_getValue($where, $condition, 'status');
+            if (!empty($condition['checked_at_end'])) {
+                $condition['checked_at_end'] = date('Y-m-d H:i:s', strtotime($condition['checked_at_end']) + 86399);
+            }
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
                 $employee_model = new EmployeeModel();

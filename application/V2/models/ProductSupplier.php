@@ -47,8 +47,12 @@ class ProductSupplierModel extends PublicModel {
         $where['pzh.status'] = ['in', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'DRAFT', 'INVALID']];
 
         //  $where['s.status'] = ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']];
-
+        if (!empty($condition['created_at_end'])) {
+            $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between', 'pzh.created_at');
+
+
         //$this->_getValue($where, $condition, 'supplier_name', 'like', 's.name');
     }
 
