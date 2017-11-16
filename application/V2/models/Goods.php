@@ -2179,6 +2179,19 @@ class GoodsModel extends PublicModel {
                             $price_ary = explode('-',$data['purchase_price']);
                             $data['purchase_price'] = $price_ary[0];
                         }
+                        if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
+                            if(is_numeric($data_tmp['有效期'])){
+                                $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+                            }
+                            if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期'])){
+                                $faild++;
+                                $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期有误]');
+                                $start_row++;
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                continue;
+                            }
+                        }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
                         if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
                             $faild++;
@@ -2407,6 +2420,7 @@ class GoodsModel extends PublicModel {
                                     'sku' => $input_sku,
                                     'supplier_id' => $supplierInfo['id'],
                                     'brand' => $supplierInfo['brand'],
+                                    'pn' => isset($data_tmp['PN']) ? $data_tmp['PN'] : null,
                                     'status' => 'VALID'
                                 );
                                 $where_supplier = array('sku' => $input_sku, 'supplier_id' => $supplierInfo['id']);
@@ -2430,6 +2444,7 @@ class GoodsModel extends PublicModel {
                                     'price_cur_bn' => $data['purchase_price_cur_bn'],
                                     'min_purchase_qty' => $data['min_order_qty'],
                                     'pricing_date' => date('Y-m-d H:i:s', time()),
+                                    'price_validity' => isset($data_tmp['有效期']) ? $data_tmp['有效期'] : null,
                                     'status' => 'VALID'
                                 );
                                 $select_gsp = $goodsCostPriceModel->field('id')->where($where_supplier)->find();
