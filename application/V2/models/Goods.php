@@ -560,13 +560,29 @@ class GoodsModel extends PublicModel {
         if (!isset($input['spu']) || empty($input['spu'])) {
             jsonReturn('', ErrorMsg::FAILED, 'SPU不能为空');
         }
+        $spu = $input['spu'];
 
-        if (empty($input['supplier_cost'])) {
-            jsonReturn('', ErrorMsg::FAILED, '供应商不能为空');
+        if (!isset($input['supplier_cost']) || empty($input['supplier_cost'])) {
+            jsonReturn('', ErrorMsg::FAILED, '请选择供应商');
         }
 
-        $spu = $input['spu'];
-        //不存在生成sku
+        //检测语言是否规范
+        if(isset($input['activename']) && !empty($input['activename']) && !in_array($input['activename'], ['zh','en','es','ru'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '语言有误');
+        }
+
+        $datas = [];
+        //取数据
+        if(!isset($input['activename']) || empty($input['activename'])){
+            foreach(['zh','en','es','ru'] as $lang){
+                if(isset($input[$lang])){
+                    $datas[$lang] = $input[$lang];
+                }
+            }
+        }else{
+            $datas[$input['activename']] = $input[$input['activename']];
+        }
+
         $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
         if (flock($fp, LOCK_EX)) {
             $sku = (!isset($input['sku']) || empty($input['sku']) || $input['sku'] === 'false' ) ? $this->setRealSku($spu) : trim($input['sku']);
@@ -574,246 +590,204 @@ class GoodsModel extends PublicModel {
             if (!$checkSku) {
                 flock($fp, LOCK_UN);
                 fclose($fp);
-                jsonReturn('', ErrorMsg::FAILED, '[sku]编码错误!');
+                jsonReturn('', ErrorMsg::FAILED, 'SKU编码有误!');
             }
 
             //获取当前用户信息
             $userInfo = getLoinInfo();
             $this->startTrans();
-            try {
+            //try {
                 $success = 0;
                 $spuModel = new ProductModel();
-                foreach ($input as $key => $value) {
-                    if (in_array($key, ['zh', 'en', 'ru', 'es'])) {
-                        //字段校验
-                        $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
-                        $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
-                        if (empty($value['name']) && empty($attr['spec_attrs'])) {    //这里主要以名称为主判断
-                            continue;
-                        }
-
-                        $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->find();
-                        if ($spuName) {
-                            if (empty($value['name'])) {
-                                $value['name'] = $spuName['name'];
-                            }
-                        } elseif (!empty($value['name'])) {
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            jsonReturn('', ErrorMsg::FAILED, '语言：' . $this->lang_ary[$key] . 'SPU不存在');
-                        }
-
-                        //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
-                        $status = $this->checkSkuStatus($input['status']);
-                        $input['status'] = $status;
-
-                        //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
-                        //校验sku名称/型号/扩展属性
-                        if ($input['status'] != 'DRAFT') {
-                            if (empty($attr['spec_attrs'])) {
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                jsonReturn('', ErrorMsg::FAILED, '扩展属性不能为空');
-                            }
-
-                            $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
-                                'lang' => $key,
-                                'spu' => $spu,
-                                'name' => $value['name'],
-                                'model' => $checkout['model'],
-                                'deleted_flag' => 'N',
-                                'status' => array('neq', 'DRAFT')
-                            );
-                            if (!empty($input['sku']) && $input['sku'] !== 'false') {
-                                $exist_condition['sku'] = array('neq', $input['sku']);
-                            }
-                            $this->_checkExit($exist_condition, $attr);
-                        }
-
-                        $data = [
-                            'lang' => $key,
-                            'spu' => $spu,
-                            'name' => $checkout['name'],
-                            'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
-                            'model' => !empty($checkout['model']) ? $checkout['model'] : '',
-                            'description' => !empty($checkout['description']) ? $checkout['description'] : '',
-                            'source' => !empty($checkout['source']) ? $checkout['source'] : '',
-                            'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
-                            //固定商品  属性
-                            'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
-                            'min_pack_naked_qty' => (isset($attr['const_attr']['min_pack_naked_qty']) && !empty($attr['const_attr']['min_pack_naked_qty'])) ? $attr['const_attr']['min_pack_naked_qty'] : null,
-                            'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
-                            'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
-                            'min_order_qty' => (isset($attr['const_attr']['min_order_qty']) && !empty($attr['const_attr']['min_order_qty'])) ? $attr['const_attr']['min_order_qty'] : null,
-                            'purchase_price' => (isset($attr['const_attr']['purchase_price']) && !empty($attr['const_attr']['purchase_price'])) ? $attr['const_attr']['purchase_price'] : null,
-                            'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
-                            'nude_cargo_l_mm' => (isset($attr['const_attr']['nude_cargo_l_mm']) && !empty($attr['const_attr']['nude_cargo_l_mm'])) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
-                            //固定物流属性
-                            'nude_cargo_w_mm' => (isset($attr['const_attr']['nude_cargo_w_mm']) && !empty($attr['const_attr']['nude_cargo_w_mm'])) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
-                            'nude_cargo_h_mm' => (isset($attr['const_attr']['nude_cargo_h_mm']) && !empty($attr['const_attr']['nude_cargo_h_mm'])) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
-                            'min_pack_l_mm' => (isset($attr['const_attr']['min_pack_l_mm']) && !empty($attr['const_attr']['min_pack_l_mm'])) ? $attr['const_attr']['min_pack_l_mm'] : null,
-                            'min_pack_w_mm' => (isset($attr['const_attr']['min_pack_w_mm']) && !empty($attr['const_attr']['min_pack_w_mm'])) ? $attr['const_attr']['min_pack_w_mm'] : null,
-                            'min_pack_h_mm' => (isset($attr['const_attr']['min_pack_h_mm']) && !empty($attr['const_attr']['min_pack_h_mm'])) ? $attr['const_attr']['min_pack_h_mm'] : null,
-                            'net_weight_kg' => (isset($attr['const_attr']['net_weight_kg']) && !empty($attr['const_attr']['net_weight_kg'])) ? $attr['const_attr']['net_weight_kg'] : null,
-                            'gross_weight_kg' => (isset($attr['const_attr']['gross_weight_kg']) && !empty($attr['const_attr']['gross_weight_kg'])) ? $attr['const_attr']['gross_weight_kg'] : null,
-                            'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
-                            'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
-                            //固定申报要素属性
-                            'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
-                            'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
-                            'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
-                            'tax_rebates_pct' => (isset($attr['const_attr']['tax_rebates_pct']) && !empty($attr['const_attr']['tax_rebates_pct'])) ? $attr['const_attr']['tax_rebates_pct'] : null,
-                            'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
-                            'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
-                        ];
-
-                        //判断是新增还是编辑,如果有sku就是编辑,反之为新增
-                        if (isset($input['sku']) && !empty($input['sku']) && $input['sku'] !== 'false') {             //------编辑
-                            $where = [
-                                'lang' => $key,
-                                'sku' => trim($input['sku'])
-                            ];
-                            /**
-                             * 修改时根据sku语言查询下，不存在则添加。
-                             */
-                            $exist = $this->field('id')->where($where)->find();
-                            if ($exist) {
-                                $data['updated_by'] = $userInfo['id'];
-                                $data['updated_at'] = date('Y-m-d H:i:s', time());
-                                $data['deleted_flag'] = 'N';
-                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
-                                $res = $this->where($where)->save($data);
-                            } else {
-                                $data['sku'] = trim($input['sku']);
-                                $data['created_by'] = $userInfo['id'];
-                                $data['created_at'] = date('Y-m-d H:i:s', time());
-                                $data['deleted_flag'] = 'N';
-                                $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
-                                if ($key == 'zh') {
-                                    $data['show_name_loc'] = $input['en']['name'];
-                                } else {
-                                    $data['show_name_loc'] = $input['zh']['name'];
-                                }
-                                $res = $this->add($data);
-                                if ($res) {
-                                    $pModel = new ProductModel();
-                                    $skucount = $this->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->count('id');
-                                    $sku_count = intval($skucount) ? intval($skucount) : 0;
-                                    $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
-                                            ->save(['sku_count' => $sku_count]);
-                                    if ($presult === false) {
-                                        $this->rollback();
-                                        flock($fp, LOCK_UN);
-                                        fclose($fp);
-                                        return false;
-                                    }
-                                }
-                            }
-                            if (!$res) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                        } else {    //------新增
-                            $data['sku'] = $sku;
-                            //$data['qrcode'] = setupQrcode();                  //二维码字段
-                            $data['created_by'] = $userInfo['id'];
-                            $data['created_at'] = date('Y-m-d H:i:s', time());
-                            $data['status'] = isset($value['status']) ? strtoupper($value['status']) : $input['status'];
-                            if ($key == 'zh') {
-                                $data['show_name_loc'] = $input['en']['name'];
-                            } else {
-                                $data['show_name_loc'] = $input['zh']['name'];
-                            }
-                            $res = $this->add($data);
-                            if (!$res) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                            $pModel = new ProductModel();
-                            $skucount = $this->where(['spu' => $spu, 'lang' => $key, 'deleted_flag' => 'N'])->count('id');
-                            $sku_count = intval($skucount) > 0 ? intval($skucount) : 0; //sku_count加一
-                            $presult = $pModel->where(['spu' => $spu, 'lang' => $key])
-                                    ->save(['sku_count' => $sku_count]);
-
-                            if ($presult === false) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                        }
-
-                        /**
-                         * 扩展属性
-                         */
-                        $gattr = new GoodsAttrModel();
-                        $attr_obj = array(
-                            'lang' => $key,
-                            'spu' => $spu,
-                            'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                            'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                            'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                            'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                            'status' => $gattr::STATUS_VALID,
-                            'deleted_flag' => 'N',
-                        );
-                        if (isset($input['sku']) && !empty($input['sku']) && $input['sku'] !== 'false') {
-                            $attr_obj['sku'] = trim($input['sku']);
-                            $attr_obj['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                        } else {
-                            $attr_obj['sku'] = $sku;
-                            $attr_obj['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                        }
-                        $resAttr = $gattr->editAttr($attr_obj);        //属性新增
-                        if (!$resAttr || $resAttr === false) {
-                            $this->rollback();
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            return false;
-                        }
-                        $success++;
-                    } elseif ($key == 'attachs') {
-                        if (is_array($value) && !empty($value)) {
-                            $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
-                            $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                            $gattach = new GoodsAttachModel();
-                            $resAttach = $gattach->editSkuAttach($value, $input['sku'], $input['user_id']);  //附件新增
-                            if (!$resAttach || $resAttach['code'] != 1) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                        }
-                    } elseif ($key == 'supplier_cost') {
-                        if (is_array($value) && !empty($value)) {
-                            $input['sku'] = (isset($input['sku']) && !empty($input['sku'])) && $input['sku'] !== 'false' ? $input['sku'] : $sku;
-                            $input['user_id'] = isset($userInfo['id']) ? $userInfo['id'] : null;
-                            $gcostprice = new GoodsCostPriceModel();
-                            $resCost = $gcostprice->editCostprice($value, $input['sku'], $input['user_id']);  //供应商/价格策略
-                            if (!$resCost || $resCost['code'] != 1) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                            $supplier_model = new GoodsSupplierModel();
-                            $res = $supplier_model->editSupplier($value, $input['sku'], $input['user_id'], $spu); //供应商
-                            if (!$res || $res['code'] != 1) {
-                                $this->rollback();
-                                flock($fp, LOCK_UN);
-                                fclose($fp);
-                                return false;
-                            }
-                        }
-                    } else {
+                foreach ($datas as $lang => $value) {
+                    //字段校验
+                    $checkout = $this->checkParam( $value , $this->field , $input[ 'supplier_cost' ] );
+                    $attr = $this->attrGetInit( $checkout[ 'attrs' ] );    //格式化属性
+                    if ( empty( $value[ 'name' ] ) && empty( $attr[ 'spec_attrs' ] ) ) {    //这里主要以名称为主判断
                         continue;
                     }
+
+                    $spuName = $spuModel->field( 'name' )->where( [ 'spu' => $spu , 'lang' => $lang , 'deleted_flag' => 'N' ] )->find();
+                    if ( $spuName ) {
+                        if ( empty( $value[ 'name' ] ) ) {
+                            $value[ 'name' ] = $spuName[ 'name' ];
+                        }
+                    } elseif ( !empty( $value[ 'name' ] ) ) {
+                        $this->rollback();
+                        flock( $fp , LOCK_UN );
+                        fclose( $fp );
+                        jsonReturn( '' , ErrorMsg::FAILED , $this->lang_ary[ $lang ] . 'SPU不存在' );
+                    }
+
+                    //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
+                    $status = $this->checkSkuStatus( isset( $value[ 'status' ] ) && !empty( $value[ 'status' ] ) ? $value[ 'status' ] : ( ( isset( $input[ 'status' ] ) && !empty( $input[ 'status' ] ) ) ? $input[ 'status' ] : 'DRAFT' ) );
+                    //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
+                    //校验sku名称/型号/扩展属性
+                    if ( $status != 'DRAFT' ) {
+                        if ( empty( $attr[ 'spec_attrs' ] ) ) {
+                            $this->rollback();
+                            flock( $fp , LOCK_UN );
+                            fclose( $fp );
+                            jsonReturn( '' , ErrorMsg::FAILED , '请输入扩展属性' );
+                        }
+
+                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
+                            'lang' => $lang ,
+                            'spu' => $spu ,
+                            'name' => $value[ 'name' ] ,
+                            'model' => $checkout[ 'model' ] ,
+                            'deleted_flag' => 'N' ,
+                            'status' => array( 'neq' , 'DRAFT' )
+                        );
+                        if ( !empty( $input[ 'sku' ] ) && $input[ 'sku' ] !== 'false' ) {
+                            $exist_condition[ 'sku' ] = array( 'neq' , $input[ 'sku' ] );
+                        }
+                        $this->_checkExit( $exist_condition , $attr );
+                    }
+
+                    $data = [
+                        'lang' => $lang ,
+                        'spu' => $spu ,
+                        'name' => $checkout[ 'name' ] ,
+                        'show_name' => isset( $checkout[ 'show_name' ] ) ? $checkout[ 'show_name' ] : '' ,
+                        'model' => !empty( $checkout[ 'model' ] ) ? $checkout[ 'model' ] : '' ,
+                        'description' => !empty( $checkout[ 'description' ] ) ? $checkout[ 'description' ] : '' ,
+                        'source' => !empty( $checkout[ 'source' ] ) ? $checkout[ 'source' ] : '' ,
+                        'source_detail' => !empty( $checkout[ 'source_detail' ] ) ? $checkout[ 'source_detail' ] : '' ,
+                        //固定商品  属性
+                        'exw_days' => isset( $attr[ 'const_attr' ][ 'exw_days' ] ) ? $attr[ 'const_attr' ][ 'exw_days' ] : null ,
+                        'min_pack_naked_qty' => ( isset( $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] : null ,
+                        'nude_cargo_unit' => isset( $attr[ 'const_attr' ][ 'nude_cargo_unit' ] ) ? $attr[ 'const_attr' ][ 'nude_cargo_unit' ] : null ,
+                        'min_pack_unit' => isset( $attr[ 'const_attr' ][ 'min_pack_unit' ] ) ? $attr[ 'const_attr' ][ 'min_pack_unit' ] : null ,
+                        'min_order_qty' => ( isset( $attr[ 'const_attr' ][ 'min_order_qty' ] ) && !empty( $attr[ 'const_attr' ][ 'min_order_qty' ] ) ) ? $attr[ 'const_attr' ][ 'min_order_qty' ] : null ,
+                        'purchase_price' => ( isset( $attr[ 'const_attr' ][ 'purchase_price' ] ) && !empty( $attr[ 'const_attr' ][ 'purchase_price' ] ) ) ? $attr[ 'const_attr' ][ 'purchase_price' ] : null ,
+                        'purchase_price_cur_bn' => isset( $attr[ 'const_attr' ][ 'purchase_price_cur_bn' ] ) ? $attr[ 'const_attr' ][ 'purchase_price_cur_bn' ] : null ,
+                        'nude_cargo_l_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] : null ,
+                        //固定物流属性
+                        'nude_cargo_w_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] : null ,
+                        'nude_cargo_h_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] : null ,
+                        'min_pack_l_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_l_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_l_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_l_mm' ] : null ,
+                        'min_pack_w_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_w_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_w_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_w_mm' ] : null ,
+                        'min_pack_h_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_h_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_h_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_h_mm' ] : null ,
+                        'net_weight_kg' => ( isset( $attr[ 'const_attr' ][ 'net_weight_kg' ] ) && !empty( $attr[ 'const_attr' ][ 'net_weight_kg' ] ) ) ? $attr[ 'const_attr' ][ 'net_weight_kg' ] : null ,
+                        'gross_weight_kg' => ( isset( $attr[ 'const_attr' ][ 'gross_weight_kg' ] ) && !empty( $attr[ 'const_attr' ][ 'gross_weight_kg' ] ) ) ? $attr[ 'const_attr' ][ 'gross_weight_kg' ] : null ,
+                        'compose_require_pack' => isset( $attr[ 'const_attr' ][ 'compose_require_pack' ] ) ? $attr[ 'const_attr' ][ 'compose_require_pack' ] : '' ,
+                        'pack_type' => isset( $attr[ 'const_attr' ][ 'pack_type' ] ) ? $attr[ 'const_attr' ][ 'pack_type' ] : '' ,
+                        //固定申报要素属性
+                        'name_customs' => isset( $attr[ 'const_attr' ][ 'name_customs' ] ) ? $attr[ 'const_attr' ][ 'name_customs' ] : '' ,
+                        'hs_code' => isset( $attr[ 'const_attr' ][ 'hs_code' ] ) ? $attr[ 'const_attr' ][ 'hs_code' ] : '' ,
+                        'tx_unit' => isset( $attr[ 'const_attr' ][ 'tx_unit' ] ) ? $attr[ 'const_attr' ][ 'tx_unit' ] : '' ,
+                        'tax_rebates_pct' => ( isset( $attr[ 'const_attr' ][ 'tax_rebates_pct' ] ) && !empty( $attr[ 'const_attr' ][ 'tax_rebates_pct' ] ) ) ? $attr[ 'const_attr' ][ 'tax_rebates_pct' ] : null ,
+                        'regulatory_conds' => isset( $attr[ 'const_attr' ][ 'regulatory_conds' ] ) ? $attr[ 'const_attr' ][ 'regulatory_conds' ] : '' ,
+                        'commodity_ori_place' => isset( $attr[ 'const_attr' ][ 'commodity_ori_place' ] ) ? $attr[ 'const_attr' ][ 'commodity_ori_place' ] : '' ,
+                    ];
+
+                    //存在修改，不存在新增
+                    $where = [
+                        'lang' => $lang ,
+                        'sku' => $sku
+                    ];
+                    $exist = $this->field( 'id' )->where( $where )->find();
+                    if ( $exist ) {
+                        $data[ 'updated_by' ] = $userInfo[ 'id' ];
+                        $data[ 'updated_at' ] = date( 'Y-m-d H:i:s' , time() );
+                        $data[ 'deleted_flag' ] = 'N';
+                        $data[ 'status' ] = $status;
+                        $res = $this->where( $where )->save( $data );
+                    } else {
+                        $data[ 'sku' ] = $sku;
+                        $data[ 'created_by' ] = $userInfo[ 'id' ];
+                        $data[ 'created_at' ] = date( 'Y-m-d H:i:s' , time() );
+                        $data[ 'deleted_flag' ] = 'N';
+                        $data[ 'status' ] = $status;
+                        if ( $lang == 'zh' ) {
+                            $data[ 'show_name_loc' ] = $datas[ 'en' ][ 'name' ];
+                        } else {
+                            $data[ 'show_name_loc' ] = $datas[ 'zh' ][ 'name' ];
+                        }
+                        $res = $this->add( $data );
+                        if ( $res ) {
+                            $pModel = new ProductModel();
+                            $skucount = $this->where( [ 'spu' => $spu , 'lang' => $lang , 'deleted_flag' => 'N' ] )->count( 'id' );
+                            $sku_count = intval( $skucount ) ? intval( $skucount ) : 0;
+                            $presult = $pModel->where( [ 'spu' => $spu , 'lang' => $lang ] )
+                                ->save( [ 'sku_count' => $sku_count ] );
+                            if ( $presult === false ) {
+                                $this->rollback();
+                                flock( $fp , LOCK_UN );
+                                fclose( $fp );
+                                return false;
+                            }
+                        }
+                    }
+                    if ( !$res ) {
+                        $this->rollback();
+                        flock( $fp , LOCK_UN );
+                        fclose( $fp );
+                        return false;
+                    }
+
+                    /**
+                     * 扩展属性
+                     */
+                    $gattr = new GoodsAttrModel();
+                    $attr_obj = array(
+                        'lang' => $lang ,
+                        'spu' => $spu ,
+                        'sku' => $sku ,
+                        'spec_attrs' => !empty( $attr[ 'spec_attrs' ] ) ? json_encode( $attr[ 'spec_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
+                        'other_attrs' => !empty( $attr[ 'other_attrs' ] ) ? json_encode( $attr[ 'other_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
+                        'ex_goods_attrs' => !empty( $attr[ 'ex_goods_attrs' ] ) ? json_encode( $attr[ 'ex_goods_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
+                        'ex_hs_attrs' => !empty( $attr[ 'ex_hs_attrs' ] ) ? json_encode( $attr[ 'ex_hs_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
+                        'status' => $gattr::STATUS_VALID ,
+                        'deleted_flag' => 'N' ,
+                    );
+                    $resAttr = $gattr->editAttr( $attr_obj );        //属性新增
+                    if ( !$resAttr || $resAttr === false ) {
+                        $this->rollback();
+                        flock( $fp , LOCK_UN );
+                        fclose( $fp );
+                        return false;
+                    }
+                    $success++;
                 }
+
+                $editer = isset($userInfo['id']) ? $userInfo['id'] : null;
+                //附件
+                $attachs = isset($input['attachs']) ? $input['attachs'] : [];
+                if (is_array($attachs) && !empty($attachs)) {
+
+                    $gattach = new GoodsAttachModel();
+                    $resAttach = $gattach->editSkuAttach($attachs, $sku, $editer);  //附件新增
+                    if (!$resAttach || $resAttach['code'] != 1) {
+                        $this->rollback();
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        return false;
+                    }
+                }
+
+                //供应商
+                $supplierCost = isset($input['supplier_cost']) ? $input['supplier_cost'] : [];
+                if (is_array($supplierCost) && !empty($supplierCost)) {
+                    $gcostprice = new GoodsCostPriceModel();
+                    $resCost = $gcostprice->editCostprice($supplierCost, $sku,$editer);  //供应商/价格策略
+                    if (!$resCost || $resCost['code'] != 1) {
+                        $this->rollback();
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        return false;
+                    }
+                    $supplier_model = new GoodsSupplierModel();
+                    $res = $supplier_model->editSupplier($supplierCost, $sku, $editer, $spu); //供应商
+                    if (!$res || $res['code'] != 1) {
+                        $this->rollback();
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        return false;
+                    }
+                }
+
                 if ($success) {
                     $this->commit();
                     flock($fp, LOCK_UN);
@@ -824,15 +798,14 @@ class GoodsModel extends PublicModel {
                     flock($fp, LOCK_UN);
                     fclose($fp);
                     jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
-                    //return false;
                 }
-            } catch (Exception $ex) {
+          /*  } catch (Exception $ex) {
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
                 $this->rollback();
                 flock($fp, LOCK_UN);
                 fclose($fp);
                 return false;
-            }
+            }*/
             flock($fp, LOCK_UN);
         }
         fclose($fp);
