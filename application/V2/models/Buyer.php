@@ -55,9 +55,7 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
-        if (!empty($condition['buyer_code'])) {
-            $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
-        }
+
         if (!empty($condition['area_bn'])) {
             $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
         }
@@ -127,6 +125,9 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['credit_checked_name'])) {
             $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
+        }
+        if (!empty($condition['buyer_code'])) {
+            $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
         }
         if (!empty($condition['line_of_credit_max'])) {
             $where .= ' And `erui_buyer`.`buyer`.line_of_credit  <="' . $condition['line_of_credit_max'] . '"';
