@@ -155,19 +155,21 @@ class InquiryController extends PublicController
             $condition['list_type'] = 'inquiry';
         }
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,agent_id,quote_id,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
             $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
             $inquiry['country_name'] = $country['name'];
-            $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
-            $inquiry['agent_name'] = $agent['name'];
-            $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            $inquiry['quote_name'] = $quoter['name'];
+            //$agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
+            //$inquiry['agent_name'] = $agent['name'];
+            //$quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
+            //$inquiry['quote_name'] = $quoter['name'];
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['now_agent_name'] = $nowAgent['name'];
-            $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
-            $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+            $inquiry['name'] = $nowAgent['name'];
+            //$quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
+            //$inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+            unset($inquiry['now_agent_id']);
+            unset($inquiry['country_bn']);
         }
 
         if ($inquiryList) {
