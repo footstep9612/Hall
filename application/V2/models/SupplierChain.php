@@ -69,7 +69,7 @@ class SupplierChainModel extends PublicModel {
         } else {
 
             //  $where['status'] = 'DRAFT';
-
+            $this->_getValue($where, $condition, 'status');
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
                 $employee_model = new EmployeeModel();
@@ -99,6 +99,8 @@ class SupplierChainModel extends PublicModel {
                 ->where($where)
                 ->order($order)
                 ->select();
+
+
         //  $this->_setStatus($data);
         $this->_setCheckedName($data);
 
