@@ -91,7 +91,7 @@ class QuoteItemLogiModel extends PublicModel {
                             ->field($this->joinField)
                             ->where($where)
                             //->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
+                            ->order('a.id')
                             ->select();
     }
     
