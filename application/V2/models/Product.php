@@ -285,31 +285,37 @@ class ProductModel extends PublicModel {
                     $this->checkParam($data, $this->field);     //字段校验
                     if ($lang == 'en') {
                         if (!empty($data['name']) && haveZh($data['name'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文名称中含有中文，请检查');
                         }
                         if (!empty($data['show_name']) && haveZh($data['show_name'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文展示名称中含有中文，请检查');
                         }
                         if (!empty($data['exe_standard']) && haveZh($data['exe_standard'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文执行标准中含有中文，请检查');
                         }
                         if (!empty($data['description']) && haveZh($data['description'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文详情介绍中含有中文，请检查');
                         }
                         if (!empty($data['tech_paras']) && haveZh($data['tech_paras'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文技术参数中含有中文，请检查');
                         }
                         if (!empty($data['warranty']) && haveZh($data['warranty'])) {
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', ErrorMsg::FAILED, '英文质保期中含有中文，请检查');
@@ -335,6 +341,7 @@ class ProductModel extends PublicModel {
                             foreach ($exist as $r) {
                                 $brand_exist = json_decode($r['brand'], true);
                                 if ($brand_ary['name'] == $brand_exist['name']) {
+                                    $this->rollback();
                                     flock($fp, LOCK_UN);
                                     fclose($fp);
                                     jsonReturn('', ErrorMsg::EXIST);
@@ -403,11 +410,13 @@ class ProductModel extends PublicModel {
                 } else {
                     if(!isset($input['activename']) || empty($input['activename'])){
                         if(isset($input['status']) && $input['status']!='DRAFT'){
+                            $this->rollback();
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             jsonReturn('', '1000', '请上传产品图');
                         }
                     }elseif(isset($datas[$input['activename']]['status']) && $datas[$input['activename']]['status'] != 'DRAFT'){
+                        $this->rollback();
                         flock($fp, LOCK_UN);
                         fclose($fp);
                         jsonReturn('', '1000', '请上传产品图');
