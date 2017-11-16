@@ -100,6 +100,13 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['created_by'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
         }
+        if (!empty($condition['source'])) {
+            if($condition['source'] ==1 ){
+                $where .= ' And `erui_buyer`.`buyer`.created_by  > 0';
+            }else if($condition['source']==2){
+                $where .= ' And `erui_buyer`.`buyer`.created_by  is null';
+            }
+        }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }

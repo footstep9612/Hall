@@ -87,6 +87,9 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $where['last_name'] = $data['last_name'];
         }
+        if (!empty($data['source'])) {
+            $where['source'] = $data['source'];
+        }
         if (!empty($data['checked_at_start'])) {
             $where['checked_at_start'] = $data['checked_at_start'];
         }
@@ -125,6 +128,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['line_of_credit_max'])) {
             $where['line_of_credit_max'] = $data['line_of_credit_max'];
+        }
+        if (!empty($data['credit_status'])) {
+            $where['credit_status'] = $data['credit_status'];
         }
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
