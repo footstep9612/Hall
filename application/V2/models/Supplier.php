@@ -320,7 +320,7 @@ class SupplierModel extends PublicModel {
     public function getSkuSupplierList($condition = []){
         $where = ' where deleted_flag="N" ';
         if(!empty($condition['name'])){
-            $where = 'and s.name like "%'.$condition['name'].'%"';
+            $where = 'and s.name like "'.$condition['name'].'%"';
         }
         if(!empty($condition['sec_ex_listed_on'])){
             $where = 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
@@ -345,7 +345,7 @@ class SupplierModel extends PublicModel {
         $sql .= ') t ON t.s_id = s.id '.$where;
         $sql_count = $sql;
 
-        $sql = $sql.' ORDER BY t.sku DESC,s.id DESC LIMIT ' . $page . ',' . $num;
+        $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
         try {
             $list = $this->query($sql_count);
             $data = $this->query($sql);
