@@ -318,7 +318,7 @@ class SupplierModel extends PublicModel {
      * @author zyg
      */
     public function getSkuSupplierList($condition = []){
-        $where = ' where deleted_flag="N" ';
+        $where = ' where s.deleted_flag="N" ';
         if(!empty($condition['name'])){
             $where = 'and s.name like "'.$condition['name'].'%"';
         }
@@ -331,21 +331,24 @@ class SupplierModel extends PublicModel {
         $num = $pagesize;
         $page = ($currentPage - 1) * $pagesize;
 
-
-        $sql = 'SELECT s.id as supplier_id,s.name,s.sec_ex_listed_on,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
-        $sql .= 'LEFT JOIN (SELECT gs.supplier_id as s_id,gs.sku,gs.brand,p.price as purchase_unit_price,p.price_cur_bn as purchase_price_cur_bn,p.price_validity as period_of_validity,';
-        $sql .= 'g.gross_weight_kg,g.pack_type as package_mode ';
-        $sql .= 'FROM erui_goods.goods_supplier gs ';
-        $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
-        $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
         if(!empty($condition['sku'])){
+            $sql = 'SELECT s.id as supplier_id,s.name,s.sec_ex_listed_on,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
+            $sql .= 'LEFT JOIN (SELECT gs.supplier_id as s_id,gs.sku,gs.brand,p.price as purchase_unit_price,p.price_cur_bn as purchase_price_cur_bn,p.price_validity as period_of_validity,';
+            $sql .= 'g.gross_weight_kg,g.pack_type as package_mode ';
+            $sql .= 'FROM erui_goods.goods_supplier gs ';
+            $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
+            $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
             $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+            $sql .= ') t ON t.s_id = s.id '.$where;
+            $sql_count = $sql;
+            $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
+        }else{
+            $sql = 'SELECT s.id as supplier_id,s.name,s.sec_ex_listed_on,s.sec_ex_listed_on FROM erui_supplier.supplier s ';
+            $sql .= $where;
+            $sql_count = $sql;
+            $sql = $sql.' ORDER BY s.id DESC LIMIT ' . $page . ',' . $num;
         }
 
-        $sql .= ') t ON t.s_id = s.id '.$where;
-        $sql_count = $sql;
-
-        $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
         try {
             $list = $this->query($sql_count);
             $data = $this->query($sql);
