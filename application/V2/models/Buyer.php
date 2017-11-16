@@ -51,7 +51,8 @@ class BuyerModel extends PublicModel {
         $str .= " left Join `erui_buyer`.`buyer_address` on `erui_buyer`.`buyer_address`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
-        $where = " WHERE 1 = 1";
+        $where = " WHERE buyer.deleted_flag = 'N' AND `erui_sys`.`employee`.deleted_flag='N' "
+                . " AND em.deleted_flag='N' AND `erui_buyer`.`buyer_account`.deleted_flag='N'";
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
