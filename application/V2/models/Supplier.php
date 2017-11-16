@@ -338,7 +338,7 @@ class SupplierModel extends PublicModel {
             $sql .= 'FROM erui_goods.goods_supplier gs ';
             $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
             $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
-            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY gs.supplier_id  ';
             $sql .= ') t ON t.s_id = s.id '.$where;
             $sql_count = $sql;
             $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
