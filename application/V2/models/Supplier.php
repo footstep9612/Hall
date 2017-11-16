@@ -320,10 +320,10 @@ class SupplierModel extends PublicModel {
     public function getSkuSupplierList($condition = []){
         $where = ' where s.deleted_flag="N" ';
         if(!empty($condition['name'])){
-            $where = 'and s.name like "'.$condition['name'].'%"';
+            $where .= 'and s.name like "'.$condition['name'].'%"';
         }
         if(!empty($condition['sec_ex_listed_on'])){
-            $where = 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
+            $where .= 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
         }
 
         $currentPage = !empty($condition['currentPage'])?$condition['currentPage']:1;
