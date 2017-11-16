@@ -219,6 +219,10 @@ class InquiryModel extends PublicModel
 
         $where['deleted_flag'] = 'N';
 
+        if (!empty($condition['quote_status'])) {
+            $where['quote_status'] = $condition['quote_status'];    //项目状态
+        }
+
         if (!empty($condition['status'])) {
             $where['status'] = $condition['status'];    //项目状态
         }

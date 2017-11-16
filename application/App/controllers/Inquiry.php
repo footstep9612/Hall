@@ -139,7 +139,6 @@ class InquiryController extends PublicController
     {
         $condition = $this->validateRequestParams();
 
-        $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
 
         $condition = array_merge($condition,$this->listAuth);
@@ -147,13 +146,45 @@ class InquiryController extends PublicController
         $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
-            //$country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            //$inquiry['country_name'] = $country['name'];
+
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['name'] = $nowAgent['name'];
 
             unset($inquiry['now_agent_id']);
-            unset($inquiry['country_bn']);
+
+        }
+
+        if ($inquiryList) {
+            $res['code'] = 1;
+            $res['message'] = '成功!';
+            $res['count'] = $this->inquiryModel->getCount_($condition);
+            $res['data'] = $inquiryList;
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('暂无数据!');
+            $this->jsonReturn();
+        }
+    }
+
+    public function downListAction()
+    {
+
+        $condition = $this->validateRequestParams();
+        $condition['quote_status'] = 'QUOTED';
+
+        $employeeModel = new EmployeeModel();
+
+        $condition = array_merge($condition,$this->listAuth);
+
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+
+        foreach ($inquiryList as &$inquiry) {
+
+            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
+            $inquiry['name'] = $nowAgent['name'];
+            unset($inquiry['now_agent_id']);
+
         }
 
         if ($inquiryList) {
