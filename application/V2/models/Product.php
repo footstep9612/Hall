@@ -272,6 +272,7 @@ class ProductModel extends PublicModel {
             try {
                 $userInfo = getLoinInfo(); //获取当前用户信息
                 foreach ($datas as $lang => $item) {
+                    $item['status'] = (isset($item['status']) && !empty($item['status'])) ? $item['status'] : ((isset($input['status']) && !empty($input['status'])) ? $input['status'] : 'DRAFT');
                     $data = $this->getData($item, isset($input['spu']) ? 'UPDATE' : 'INSERT', $lang);
                     if (empty($data) || empty($data['name'])) {
                         continue;
@@ -400,7 +401,13 @@ class ProductModel extends PublicModel {
                         }
                     }//end foreach
                 } else {
-                    if (isset($input['activename']) && !empty($input['activename']) && $datas[$input['activename']]['status'] != 'DRAFT') {
+                    if(!isset($input['activename']) || empty($input['activename'])){
+                        if(isset($input['status']) && $input['status']!='DRAFT'){
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            jsonReturn('', '1000', '请上传产品图');
+                        }
+                    }elseif(isset($datas[$input['activename']]['status']) && $datas[$input['activename']]['status'] != 'DRAFT'){
                         flock($fp, LOCK_UN);
                         fclose($fp);
                         jsonReturn('', '1000', '请上传产品图');
