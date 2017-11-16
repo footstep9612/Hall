@@ -415,7 +415,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             jsonReturn('', '1000', '请上传产品图');
                         }
-                    }elseif(isset($datas[$input['activename']]['status']) && $datas[$input['activename']]['status'] != 'DRAFT'){
+                    }elseif(isset($datas[$input['activename']]['status']) && !empty($datas[$input['activename']]['status']) && $datas[$input['activename']]['status'] != 'DRAFT'){
                         $this->rollback();
                         flock($fp, LOCK_UN);
                         fclose($fp);
