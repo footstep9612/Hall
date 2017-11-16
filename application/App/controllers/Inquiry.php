@@ -10,12 +10,23 @@ class InquiryController extends PublicController
 
     private $inquiryModel;
 
+    private $listAuth = [];
+
     public function init()
     {
         parent::init();
 
         $this->inquiryModel = new InquiryModel();
+
+        $this->listAuth = [
+            'role_no' => $this->user['role_no'],
+            'group_id' => $this->user['group_id'],
+            'user_id' => $this->user['id'],
+            'list_type' => 'inquiry'
+        ];
+
     }
+
 
     /**
      * 首页信息(统计，轮播，列表[最新3条数据])
@@ -28,17 +39,14 @@ class InquiryController extends PublicController
         $data = [];
 
         $data['statistics'] = [
-            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY'),
-            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL'),
-            'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED')
+            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY', $this->listAuth),
+            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL', $this->listAuth),
+            'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED', $this->listAuth)
         ];
 
-        $data['carousel'] = [
-            ['id'=>1,'buyer_code'=>'BC20171107'],
-            ['id'=>2,'buyer_code'=>'BC20171108']
-        ];
+        $data['carousel'] = $this->inquiryModel->getList_($this->listAuth,"id,buyer_code",['quote_status'=>'QUOTED']);
 
-        $data['list'] = $this->inquiryModel->getNewItems($this->user['id']);
+        $data['list'] = $this->inquiryModel->getNewItems($this->listAuth,"id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
 
         $this->jsonReturn($data);
     }
@@ -129,45 +137,21 @@ class InquiryController extends PublicController
      */
     public function listAction()
     {
-        $condition = $this->put_data;
+        $condition = $this->validateRequestParams();
 
-        $quoteModel = new QuoteModel();
-        $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
 
-        // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $agent = $userModel->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
+        $condition = array_merge($condition,$this->listAuth);
 
-        // 当前用户的所有角色编号
-        $condition['role_no'] = $this->user['role_no'];
-
-        // 当前用户的所有组织ID
-        $condition['group_id'] = $this->user['group_id'];
-
-        $condition['user_id'] = $this->user['id'];
-
-        //列表类型 list_type
-        if (!isset($condition['list_type'])){
-            $condition['list_type'] = 'inquiry';
-        }
-
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
-            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $inquiry['country_name'] = $country['name'];
-            //$agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
-            //$inquiry['agent_name'] = $agent['name'];
-            //$quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            //$inquiry['quote_name'] = $quoter['name'];
+            //$country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            //$inquiry['country_name'] = $country['name'];
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['name'] = $nowAgent['name'];
-            //$quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
-            //$inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+
             unset($inquiry['now_agent_id']);
             unset($inquiry['country_bn']);
         }
