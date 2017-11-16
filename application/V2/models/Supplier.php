@@ -318,12 +318,7 @@ class SupplierModel extends PublicModel {
      * @author zyg
      */
     public function getSkuSupplierList($condition = []){
-        if(empty($condition['sku'])){
-            $results['code'] = '-104';
-            $results['message'] = '没有SKU信息!';
-            return $results;die;
-        }
-        $where = ' where 1=1 ';
+        $where = ' where deleted_flag="N" ';
         if(!empty($condition['name'])){
             $where = 'and s.name like "%'.$condition['name'].'%"';
         }
@@ -343,11 +338,14 @@ class SupplierModel extends PublicModel {
         $sql .= 'FROM erui_goods.goods_supplier gs ';
         $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
         $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
-        $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+        if(!empty($condition['sku'])){
+            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+        }
+
         $sql .= ') t ON t.s_id = s.id '.$where;
         $sql_count = $sql;
 
-        $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
+        $sql = $sql.' ORDER BY t.sku DESC,s.id DESC LIMIT ' . $page . ',' . $num;
         try {
             $list = $this->query($sql_count);
             $data = $this->query($sql);
