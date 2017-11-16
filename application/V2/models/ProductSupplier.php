@@ -529,19 +529,21 @@ class ProductSupplierModel extends PublicModel {
             1 => 'tmp_table.spu is not null',
         ];
 
+
         if ($country_bn) {
             $where['i.country_bn'] = $country_bn;
         }
         $inquiry_model = new InquiryModel();
         $inquirys = $inquiry_model
                 ->alias('i')
+                ->field('tmp_table.spu')
                 ->join($tmp_table . '  on tmp_table.inquiry_id =i.id')
-                ->field('i.country_bn, count(i.id) as quote_num , tmp_table.spu,'
-                        . '(select name from ' . $product_table . ' as p where '
-                        . 'p.lang=\'zh\' and p.spu=tmp_table.spu and p.deleted_flag=\'N\' group by  p.spu) as product_name')
+                ->group('tmp_table.spu')
                 ->where($where)
-                ->count();
-        return $inquirys;
+                ->select();
+
+
+        return count($inquirys);
     }
 
     /**
@@ -589,6 +591,7 @@ class ProductSupplierModel extends PublicModel {
                 ->group('tmp_table.spu')
                 ->limit($starrow, $pagesize)
                 ->select();
+
         return $inquirys;
     }
 
