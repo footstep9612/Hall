@@ -193,6 +193,12 @@ class BuyerModel extends PublicModel {
                 $where .= " where customer_id = '" . $data['customer_id'] . "'";
             }
         }
+
+        if ($where) {
+            $where .= " and deleted_flag = 'N'";
+        } else {
+            $where .= " where deleted_flag = 'N'";
+        }
         if ($where) {
             $sql .= $where;
         }
