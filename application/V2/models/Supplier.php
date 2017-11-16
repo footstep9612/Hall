@@ -320,10 +320,10 @@ class SupplierModel extends PublicModel {
     public function getSkuSupplierList($condition = []){
         $where = ' where s.deleted_flag="N" ';
         if(!empty($condition['name'])){
-            $where = 'and s.name like "'.$condition['name'].'%"';
+            $where .= 'and s.name like "'.$condition['name'].'%"';
         }
         if(!empty($condition['sec_ex_listed_on'])){
-            $where = 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
+            $where .= 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
         }
 
         $currentPage = !empty($condition['currentPage'])?$condition['currentPage']:1;
@@ -338,7 +338,7 @@ class SupplierModel extends PublicModel {
             $sql .= 'FROM erui_goods.goods_supplier gs ';
             $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
             $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
-            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY sku ';
+            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY gs.supplier_id  ';
             $sql .= ') t ON t.s_id = s.id '.$where;
             $sql_count = $sql;
             $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
