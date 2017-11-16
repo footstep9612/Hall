@@ -22,6 +22,7 @@ class GoodsAttrModel extends PublicModel {
             if (empty($data['lang']) || empty($data['sku'])) {
                 return false;
             }
+            $userInfo = getLoinInfo();
             $condition = array(
                 'lang' => $data['lang'],
                 'sku' => $data['sku'],
@@ -30,9 +31,11 @@ class GoodsAttrModel extends PublicModel {
                 $result = $this->field('id')->where($condition)->find();
                 if ($result) {
                     $data['updated_at'] = date('Y-m-d H:i:s', time());
+                    $data['updated_by'] = $userInfo ? $userInfo['id'] : null;
                     $rel = $this->where(array('id' => $result['id']))->save($data);
                 } else {
                     $data['created_at'] = date('Y-m-d H:i:s', time());
+                    $data['created_by'] = $userInfo ? $userInfo['id'] : null;
                     $rel = $this->add($data);
                 }
 

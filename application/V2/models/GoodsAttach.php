@@ -294,7 +294,7 @@ class GoodsAttachModel extends PublicModel {
                 $where = array('sku' => $sku);
                 $resach = $this->field('sku')->where($where)->find();
                 if ($resach) {
-                    $resOut = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'N']);
+                    $resOut = $this->where($where)->save(['status' => self::STATUS_DELETED, 'deleted_flag' => 'Y']);
                     if (!$resOut) {
                         return false;
                     }
