@@ -76,6 +76,44 @@ class EsgoodsController extends PublicController {
     }
 
     /**
+     * Description of 列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+    public function listpricevalidityAction() {
+        $lang = $this->getPut('lang', 'zh');
+        $data = $this->getPut();
+
+
+        if (isset($data['price_validity_start']) && isset($data['price_validity_end'])) {
+            $data['price_validity_start'] = date('Y-m-d');
+            $data['price_validity_end'] = date('Y-m-d', strtotime('+7 days'));
+        }
+        $model = new EsGoodsModel();
+        $ret = $model->getgoods($data, null, $lang);
+
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->_getdata($data);
+
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+
+            $send['data'] = $list;
+            $this->setCode(MSG::MSG_SUCCESS);
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /**
      * Description of 回收站列表
      * @author  zhongyg
      * @date    2017-8-1 16:50:09

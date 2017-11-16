@@ -233,12 +233,12 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         if (isset($condition['price_validity']) && $condition['price_validity'] === 'Y') {
-            $condition['price_validity_start'] = date('Y-m-d');
-
-            $condition['price_validity_end'] = date('Y-m-d', strtotime('+7 days'));
-            $this->_getQurey($condition, $body, ESClient::RANGE, 'price_validity', 'costprices.price_validity');
+            $condition['pricevalidity_start'] = date('Y-m-d');
+            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('+7 days'));
+            $this->_getQurey($condition, $body, ESClient::RANGE, 'pricevalidity', 'costprices.price_validity');
+            unset($condition['pricevalidity_end'], $condition['pricevalidity_start']);
         }
-
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'price_validity', 'costprices.price_validity');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
