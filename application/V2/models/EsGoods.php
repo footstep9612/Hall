@@ -201,6 +201,26 @@ class EsGoodsModel extends Model {
         } else {
             $analyzer = 'ik';
         }
+
+        if (!empty($condition['product_name'])) {
+            $product_name = trim($condition['product_name']);
+            $product_model = new ProductModel();
+            $products = $product_model
+                    ->field(['spu'])
+                    ->where(['name' => ['like', '%' . $product_name . '%']])
+                    ->select();
+            $spus = [];
+            if ($products) {
+                foreach ($products as $product) {
+                    $spus[] = $product['spu'];
+                }
+            }
+            if ($spus) {
+                $condition['spus'] = $spus;
+            } else {
+                $condition['spus'] = ['null'];
+            }
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
