@@ -2837,14 +2837,15 @@ class GoodsModel extends PublicModel {
     }
 
     /************************************
-     * 临时导入更新
+     * 到期导入更新
+     * 只更新价格，有效期，pn码
      * @param array $input
      * @return array|bool
      */
-    public function tmpImport($input = []){
+    public function expireImport($url){
         set_time_limit(0);  # 设置执行时间最大值
         //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xlsx";
-        $localFile = ExcelHelperTrait::download2local($input['url']);
+        $localFile = ExcelHelperTrait::download2local($url);
         if (!file_exists($localFile)) {
             jsonReturn('', ErrorMsg::FAILED, '导入文件未找到');
         }
@@ -2903,6 +2904,7 @@ class GoodsModel extends PublicModel {
                     $start_row++;
                     continue;
                 }
+
                 if(!preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
                     $faild++;
                     $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '价格有误');
@@ -2912,9 +2914,23 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
                 $price_ary = explode('-', $data_tmp['价格']);
-                if(is_numeric($data_tmp['有效期'])){
-                    $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+
+                if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
+                    if(is_numeric($data_tmp['有效期'])){
+                        $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+                    }
+                    if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期'])){
+                        $faild++;
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期有误]');
+                        $start_row++;
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        continue;
+                    }
+                }else{
+                    $data_tmp['有效期'] = null;
                 }
+
                 $data = [
                     'price_validity' => $data_tmp['有效期'],    //价格有效期
                     'price' => $price_ary[0] ? $price_ary[0] : null,    //最小采购单价
@@ -2925,7 +2941,7 @@ class GoodsModel extends PublicModel {
                 $result = $gcpModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id'] ,'deleted_flag'=>'N'])->save($data);
 
                 $data_pn = [
-                    'pn' => $data_tmp['PN'] ? $data_tmp['PN'] : null,
+                    'pn' => isset($data_tmp['PN']) ? $data_tmp['PN'] : null,
                     'updated_by' => $userInfo['id'],
                     'updated_at' => date('Y-m-d H:i:s',time())
                 ];
@@ -2962,6 +2978,13 @@ class GoodsModel extends PublicModel {
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
+    }
+
+    /**
+     * 到期导出
+     */
+    public function expireExport($input = []){
+        
     }
 
 }
