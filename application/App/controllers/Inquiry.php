@@ -223,14 +223,21 @@ class InquiryController extends PublicController
 
         $logiDetail = $this->getQuoteLogiFeeDetail($condition);
 
+        $quoteItemModel = new QuoteItemModel();
+        $totalCount= $quoteItemModel->where($condition)->count('id');
+        $quotedCount = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功!',
             'data' => [
-                'inquiry'   => $inquiryDetail,
-                'quote'     => $quoteDetail,
-                'logistics' => $logiDetail
+                'inquiry'    => $inquiryDetail,
+                'statistics' => [
+                    'totalCount'  => $totalCount,
+                    'quotedCount' => $quotedCount
+                ],
+                'quote'      => $quoteDetail,
+                'logistics'  => $logiDetail
             ]
         ]);
 
