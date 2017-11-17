@@ -159,18 +159,18 @@ class QuoteModel extends PublicModel {
      * @param array $condition
      * @return array
      */
-    public function rejectToBiz(array $condition){
+    public function rejectToBiz($condition, $user){
 
         $this->startTrans();
         $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
-        $inquiryResult = $inquiry->where([
-            'id' => $condition['inquiry_id']
-        ])->save([
+        $inquiryResult = $inquiry->updateData([
+            'id' => $condition['inquiry_id'],
             'status' => self::INQUIRY_BIZ_DISPATCHING,
-            'quote_status' => self::QUOTE_NOT_QUOTED
+            'quote_status' => self::QUOTE_NOT_QUOTED,
+            'updated_by' => $user['id']
         ]);
 
         if ($quoteResult && $inquiryResult){
@@ -204,10 +204,12 @@ class QuoteModel extends PublicModel {
             $orgId[] = $org['id'];
         }
 
-        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
+        $inquiryResult = $inquiry->updateData([
+            'id' => $request['inquiry_id'],
             'status' => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id' => $orgId[0],
-            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg')
+            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg'),
+            'updated_by' => $user['id']
         ]);
 
         $this->startTrans();
@@ -235,7 +237,8 @@ class QuoteModel extends PublicModel {
 
                 //给物流报价单项形成记录
                 $quoteItemModel = new QuoteItemModel();
-                $quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
+                //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
+                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
 
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {
@@ -246,6 +249,33 @@ class QuoteModel extends PublicModel {
                         'created_at' => date('Y-m-d H:i:s'),
                         'created_by' => $user['id']
                     ]));
+                }
+            }else{
+                $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
+
+                $quoteLogiFeeModel->save($quoteLogiFeeModel->create([
+                    'quote_id' => $quoteInfo['id'],
+                    'inquiry_id' => $request['inquiry_id'],
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_by' => $user['id'],
+                    'premium_rate' => $quoteInfo['premium_rate']
+                ]));
+
+                $quoteItemModel = new QuoteItemModel();
+                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
+
+                $quoteItemLogiModel = new QuoteItemLogiModel();
+                foreach ($quoteItemIds as $quoteItemId) {
+                    $logiId = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'quote_item_id' => $quoteItemId])->getField('id',true);
+                    if(!$logiId){
+                        $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                            'inquiry_id' => $request['inquiry_id'],
+                            'quote_id' => $quoteInfo['id'],
+                            'quote_item_id' => $quoteItemId,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'created_by' => $user['id']
+                        ]));
+                    }
                 }
             }
 

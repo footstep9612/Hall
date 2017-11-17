@@ -139,12 +139,12 @@ class CountryModel extends PublicModel {
             'lang' => $lang,
             'status' => 'VALID'
         );
-        $result = $this->field('name,bn,region_bn,time_zone')->where($condition)->select();
+        $result = $this->where($condition)->select();
         if ($result) {
             $data = array();
             foreach ($result as $val) {
                 $sname = $val['name'];
-                $firstChar = $this->getFirstCharter($sname); //取出第一个汉字或者单词的首字母
+                $firstChar = $this->_getFirstCharter($sname); //取出第一个汉字或者单词的首字母
                 $data[$firstChar][] = $val; //以这个首字母作为key
             }
             ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
@@ -161,7 +161,7 @@ class CountryModel extends PublicModel {
      * @author klp
      */
     public function _getFirstCharter($str) {
-        if (emptyempty($str)) {
+        if (empty($str)) {
             return '';
         }
         $fchar = ord($str{0});

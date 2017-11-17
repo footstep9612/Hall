@@ -177,7 +177,7 @@ class GoodsController extends PublicController {
         foreach ($langs as $lang) {
             if (isset($input[$lang]) && $input[$lang]) {
                 $es_product_model->create_data($spu, $lang);
-            } elseif (empty($input)) {
+            } elseif (empty($input[$lang])) {
                 $es_product_model->create_data($spu, $lang);
             }
         }
@@ -193,7 +193,7 @@ class GoodsController extends PublicController {
         foreach ($langs as $lang) {
             if (isset($input[$lang]) && $input[$lang]) {
                 $flag = $es_product_model->create_data($sku, $lang);
-            } elseif (empty($input)) {
+            } elseif (empty($input[$lang])) {
                 $flag = $es_product_model->create_data($sku, $lang);
             }
         }
@@ -606,9 +606,9 @@ class GoodsController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
         $process = isset($this->put_data['process']) ? 1 : '';
-
+        $filename = $this->getPut('name');
         $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process);
+        $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process, $filename);
         if ($localDir) {
             if (is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0) {
                 jsonReturn($localDir, ErrorMsg::SUCCESS, '导入失败');
@@ -649,6 +649,7 @@ class GoodsController extends PublicController {
         }
     }
 
+
     /**
      * 到期提醒模板导出
      */
@@ -661,6 +662,7 @@ class GoodsController extends PublicController {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
+
 
     /**
      * 到期提醒导出

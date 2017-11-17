@@ -53,11 +53,10 @@ class BuyerModel extends PublicModel {
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (!empty($condition['country_bn'])) {
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            //$where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            $where .= ' And `buyer`.country_bn ="' . $condition['country_bn'] . '"';
         }
-        if (!empty($condition['area_bn'])) {
-            $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
-        }
+
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
@@ -71,10 +70,10 @@ class BuyerModel extends PublicModel {
             $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
         if (!empty($condition['agent_id'])) {
-            $where .= " And `erui_buyer`.`buyer_agent`.`agent_id`  in (" . $condition['agent_id'] . ")";
+            $where .= " AND `erui_buyer`.`buyer_agent`.`agent_id`  in (" . $condition['agent_id'] . ")";
         }
         if (!empty($condition['official_phone'])) {
-            $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
+            $where .= ' AND official_phone  = " ' . $condition['official_phone'] . '"';
         }
         if (!empty($condition['status'])) {
             $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
@@ -139,6 +138,7 @@ class BuyerModel extends PublicModel {
         //$count = $this->query($sql_count);
 
         $res['data'] = $this->query($sql);
+        //p($this->getLastSql());
         return $res;
     }
 

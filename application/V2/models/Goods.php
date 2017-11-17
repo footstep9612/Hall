@@ -1967,7 +1967,7 @@ class GoodsModel extends PublicModel {
      * @param string $process
      * @return array|bool
      */
-    public function import($spu = '', $url = '', $lang = '', $process = '') {
+    public function import($spu = '', $url = '', $lang = '', $process = '', $filename = '') {
         if (empty($spu) || empty($url) || empty($lang)) {
             return false;
         }
@@ -2542,19 +2542,21 @@ class GoodsModel extends PublicModel {
         $url = $server . '/V2/Uploadfile/upload';
         $data_fastDFS['tmp_name'] = $localFile;
         $data_fastDFS['type'] = 'application/excel';
-        $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+        $data_fastDFS['name'] = !empty($filename) ? $filename : pathinfo($localFile, PATHINFO_BASENAME);
         $fileId = postfile($data_fastDFS, $url);
         if ($fileId) {
             unlink($localFile);
+
             return array('success' => $success, 'faild' => $faild, 'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
     }
 
-    /****************************************
+    /*     * **************************************
      * 临时sku导出
      */
+
     public function exportAll($input = []) {
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
@@ -2836,6 +2838,7 @@ class GoodsModel extends PublicModel {
         }
     }
 
+
     /************************************
      * 到期导入更新
      * 只更新价格，有效期，pn码
@@ -2856,7 +2859,7 @@ class GoodsModel extends PublicModel {
         $columns = $objPHPExcel->getSheet(0)->getHighestColumn();    //最后一列
         $columnsIndex = PHPExcel_Cell::columnIndexFromString($columns);    //获取总列数
         $maxCol = PHPExcel_Cell::stringFromColumnIndex($columnsIndex); //由列数反转列名(0->'A')
-        if(trim($objPHPExcel->getSheet(0)->getCell($columns . 1)->getValue()) != '更新结果'){
+        if (trim($objPHPExcel->getSheet(0)->getCell($columns . 1)->getValue()) != '更新结果') {
             $objPHPExcel->getSheet(0)->setCellValue($maxCol . '1', '更新结果');
         }
         $objPHPExcel->getSheet(0)->getStyle($maxCol . '1')->getFont()->setBold(true);    //粗体
@@ -2890,7 +2893,7 @@ class GoodsModel extends PublicModel {
                     if (!empty($value)) {
                         $col_value++;
                     }
-                    if(!in_array($title_ary[$index],array('更新结果','审核状态'))){
+                    if (!in_array($title_ary[$index], array('更新结果', '审核状态'))) {
                         $data_tmp[$title_ary[$index]] = $value;
                     }
                 }

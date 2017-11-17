@@ -47,8 +47,12 @@ class ProductSupplierModel extends PublicModel {
         $where['pzh.status'] = ['in', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'DRAFT', 'INVALID']];
 
         //  $where['s.status'] = ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']];
-
+        if (!empty($condition['created_at_end'])) {
+            $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between', 'pzh.created_at');
+
+
         //$this->_getValue($where, $condition, 'supplier_name', 'like', 's.name');
     }
 
@@ -169,15 +173,26 @@ class ProductSupplierModel extends PublicModel {
             if (!$spus) {
                 return [];
             }
-            $product_attrs = $this->alias('ps')
-                    ->field('ps.spu,ps.supplier_id,ps.view_count,'
+
+            $goods_supplier_model = new GoodsSupplierModel();
+            $product_attrs = $goods_supplier_model->alias('ps')
+                    ->field('ps.spu,ps.supplier_id,'
                             . '(select name from  erui_supplier.supplier where id=ps.supplier_id ) as supplier_name')
                     ->where(['ps.spu' => ['in', $spus],
                         'ps.status' => 'VALID',
                         'ps.deleted_flag' => 'N'
                     ])
-//   ->group('ps.supplier_id,ps.spu')
+                    ->group('ps.supplier_id,ps.spu')
                     ->select();
+//            $product_attrs = $this->alias('ps')
+//                    ->field('ps.spu,ps.supplier_id,ps.view_count,'
+//                            . '(select name from  erui_supplier.supplier where id=ps.supplier_id ) as supplier_name')
+//                    ->where(['ps.spu' => ['in', $spus],
+//                        'ps.status' => 'VALID',
+//                        'ps.deleted_flag' => 'N'
+//                    ])
+////   ->group('ps.supplier_id,ps.spu')
+//                    ->select();
 
 
             if (!$product_attrs) {
@@ -189,7 +204,8 @@ class ProductSupplierModel extends PublicModel {
                 unset($item['spu']);
                 $ret[$spu][] = ['supplier_id' => $item['supplier_id'],
                     'supplier_name' => $item['supplier_name'],
-                    'view_count' => $item['view_count'],];
+                        //  'view_count' => $item['view_count'],
+                ];
             }
             return $ret;
         } catch (Exception $ex) {
@@ -371,14 +387,23 @@ class ProductSupplierModel extends PublicModel {
             if (!$spu) {
                 return [];
             }
-
+            $goods_supplier_model = new GoodsSupplierModel();
+            $product_attrs = $goods_supplier_model->alias('ps')
+                    ->field('ps.spu,ps.supplier_id,'
+                            . '(select name from  erui_supplier.supplier where id=ps.supplier_id ) as supplier_name')
+                    ->where(['ps.spu' => $spu,
+                        'ps.status' => 'VALID',
+                        'ps.deleted_flag' => 'N'
+                    ])
+                    ->group('ps.supplier_id,ps.spu')
+                    ->select();
 
             $supplierids = [];
-            if (!$supplier_ids) {
+            if (!$product_attrs) {
                 return [];
             } else {
 
-                foreach ($supplier_ids as $supplierid) {
+                foreach ($product_attrs as $supplierid) {
                     $supplierids[] = $supplierid['supplier_id'];
                 }
             }
@@ -508,19 +533,21 @@ class ProductSupplierModel extends PublicModel {
             1 => 'tmp_table.spu is not null',
         ];
 
+
         if ($country_bn) {
             $where['i.country_bn'] = $country_bn;
         }
         $inquiry_model = new InquiryModel();
         $inquirys = $inquiry_model
                 ->alias('i')
+                ->field('tmp_table.spu')
                 ->join($tmp_table . '  on tmp_table.inquiry_id =i.id')
-                ->field('i.country_bn, count(i.id) as quote_num , tmp_table.spu,'
-                        . '(select name from ' . $product_table . ' as p where '
-                        . 'p.lang=\'zh\' and p.spu=tmp_table.spu and p.deleted_flag=\'N\' group by  p.spu) as product_name')
+                ->group('tmp_table.spu')
                 ->where($where)
-                ->count();
-        return $inquirys;
+                ->select();
+
+
+        return count($inquirys);
     }
 
     /**
@@ -568,6 +595,7 @@ class ProductSupplierModel extends PublicModel {
                 ->group('tmp_table.spu')
                 ->limit($starrow, $pagesize)
                 ->select();
+
         return $inquirys;
     }
 

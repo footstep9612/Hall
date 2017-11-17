@@ -485,11 +485,11 @@ class EsproductController extends PublicController {
         foreach ($this->langs as $lang) {
             $goods_mapParam = ['goods_' . $lang => [
                     'properties' => $goods_properties,
-                    '_all' => ['enabled' => false]
+                    '_all' => ['enabled' => true]
             ]];
             $product_mapParam = ['product_' . $lang => [
                     'properties' => $product_properties,
-                    '_all' => ['enabled' => false]
+                    '_all' => ['enabled' => true]
             ]];
             logs(json_encode($product_mapParam));
             logs(json_encode($goods_mapParam));
@@ -588,6 +588,21 @@ class EsproductController extends PublicController {
                     'id' => $not_analyzed,
                 ],
             ],
+            'costprices' => [
+                'properties' => [
+                    'supplier_id' => $not_analyzed,
+                    'contact_first_name' => $not_analyzed,
+                    'contact_last_name' => $not_analyzed,
+                    'price' => $not_analyzed,
+                    'max_price' => $not_analyzed,
+                    'price_unit' => $not_analyzed,
+                    'price_cur_bn' => $not_analyzed,
+                    'min_purchase_qty' => $not_analyzed,
+                    'max_purchase_qty' => $not_analyzed,
+                    'pricing_date' => $not_analyzed,
+                    'price_validity' => $not_analyzed,
+                ],
+            ],
             'pack_type' => $ik_analyzed, //包装类型
             'name_customs' => $ik_analyzed, //报关名称
             'hs_code' => $ik_analyzed, //海关编码
@@ -624,6 +639,8 @@ class EsproductController extends PublicController {
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
+                    'brand' => ['type' => $type,],
+                    'pn' => $ik_analyzed,
                 ],
             ],
             'supplier_count' => $not_analyzed,
@@ -769,7 +786,7 @@ class EsproductController extends PublicController {
             'source' => $ik_analyzed, //数据来源
             'source_detail' => $ik_analyzed, //数据来源详情
             'sku_count' => $int_analyzed, //SKU数
-            'view_count' => $int_analyzed, //浏览数量
+            'view_count' => ['type' => $type], //浏览数量
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
                 'properties' => [
@@ -842,6 +859,7 @@ class EsproductController extends PublicController {
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
+                    'pn' => $ik_analyzed,
                 ],
             ],
             'supplier_count' => $not_analyzed,

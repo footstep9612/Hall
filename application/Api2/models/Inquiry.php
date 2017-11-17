@@ -246,7 +246,7 @@ class InquiryModel extends PublicModel {
             unset($data['est_delivery_date']);
         }
         if (!empty($condition['buyer_no'])) {
-            $data['buyer_no'] = $condition['buyer_no'];
+            $data['buyer_code'] = $condition['buyer_no'];
         } else {
             $results['code'] = '-103';
             $results['message'] = '没有采购商编号!';
@@ -281,6 +281,7 @@ class InquiryModel extends PublicModel {
             return $results;
         }
         $data['status'] = 'DRAFT';
+        $data['quote_status'] = 'NOT_QUOTED';
         $data['created_at'] = $this->getTime();
 
         try {

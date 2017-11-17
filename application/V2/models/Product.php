@@ -1658,7 +1658,7 @@ class ProductModel extends PublicModel {
             $fileId = postfile($data, $url);
             if ($fileId) {
                 unlink($dirName . '.zip');
-                return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
             return false;

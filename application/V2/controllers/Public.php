@@ -76,7 +76,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "role_no" => $userinfo['role_no'],
                         );
                         $this->_setUid($userinfo);
-                        redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
+                        // redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
@@ -588,55 +588,53 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //     */
 
 
-    public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode="86", $subType=1, $groupSending=0, $useType="询报价系统")
-    {
+    public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode = "86", $subType = 1, $groupSending = 0, $useType = "询报价系统") {
 
-        if (empty($receiver)){
-            $this->jsonReturn(['code'=>-104,'message'=>'收信人名字不能为空']);
+        if (empty($receiver)) {
+            $this->jsonReturn(['code' => -104, 'message' => '收信人名字不能为空']);
         }
 
-        if (empty($serial_no)){
-            $this->jsonReturn(['code'=>-104,'message'=>'询单流程编码不能为空']);
+        if (empty($serial_no)) {
+            $this->jsonReturn(['code' => -104, 'message' => '询单流程编码不能为空']);
         }
 
         $data = [
-            'useType'       => $useType,
-            'to'            => '["'.$to.'"]',
-            'areaCode'      => $areaCode,
-            'subType'       => $subType,
-            'groupSending'  => $groupSending,
+            'useType' => $useType,
+            'to' => '["' . $to . '"]',
+            'areaCode' => $areaCode,
+            'subType' => $subType,
+            'groupSending' => $groupSending,
         ];
 
-        if ($action=="SUBMIT"){
+        if ($action == "SUBMIT") {
             $data['tplId'] = '55047';
-            $data['tplParas'] = '["'.$receiver.'","'.$from.'","'.$serial_no.'"]';
-        }elseif ($action=="REJECT"){
+            $data['tplParas'] = '["' . $receiver . '","' . $from . '","' . $serial_no . '"]';
+        } elseif ($action == "REJECT") {
             $data['tplId'] = '55048';
-            $data['tplParas'] = '["'.$receiver.'","'.$serial_no.'","'.$from.'"]';
+            $data['tplParas'] = '["' . $receiver . '","' . $serial_no . '","' . $from . '"]';
         }
 
 
-        $response = json_decode(MailHelper::sendSms($data),true);
+        $response = json_decode(MailHelper::sendSms($data), true);
 
         //记录短信
-        if ($response['code'] == 200){
+        if ($response['code'] == 200) {
 
             $smsLog = new SmsLogModel();
             $smsLog->add($smsLog->create([
-                'serial_no' => $serial_no,
-                'sms_id'    => $response['message'],
-                'mobile'    => $to,
-                'receiver'    => $receiver,
-                'from'    => $from,
-                'action'    => $action,
-                'in_node'    => $in_node,
-                'out_node'    => $out_node,
-                'send_at'    => date('Y-m-d H:i:s')
+                        'serial_no' => $serial_no,
+                        'sms_id' => $response['message'],
+                        'mobile' => $to,
+                        'receiver' => $receiver,
+                        'from' => $from,
+                        'action' => $action,
+                        'in_node' => $in_node,
+                        'out_node' => $out_node,
+                        'send_at' => date('Y-m-d H:i:s')
             ]));
-
         }
 
         return;
-
     }
+
 }

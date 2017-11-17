@@ -30,10 +30,11 @@ class BizdivitionController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $inquiry = new InquiryModel();
-        $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('updated_by');
+        $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('agent_id');
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
             'status'       => 'DRAFT',
             'now_agent_id' => $now_agent_id,
+            'quote_id' => NULL,
             'updated_by'   => $this->user['id'],
             'updated_at'   => date('Y-m-d H:i:s')
         ]);

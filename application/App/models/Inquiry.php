@@ -43,45 +43,48 @@ class InquiryModel extends PublicModel
         parent::__construct();
     }
 
+    private $listFields = "id,serial_no,buyer_name,country_bn,now_agent_id,created_at,quote_status,status";
+
     /**
      * 获取统计数据
      * @param $type 类型
      * @return mixed
      */
-    public function getStatisticsByType($type)
+    public function getStatisticsByType($type,$auth)
     {
         switch ($type)
         {
             case 'TODAY' :
-                $where = "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
-                $data = $this->where($where)->count('id');
+                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
+                $data = count($this->getList_($auth,$this->listFields,$where));
                 break;
             case 'TOTAL' :
-                $data = $this->count('id');
+                $data = count($this->getList_($auth,$this->listFields));
                 break;
             case 'QUOTED' :
-                $data = $this->where(['quote_status'=>'QUOTED'])->count('id');
+                $data = $data = count($this->getList_($auth,$this->listFields,['quote_status'=>'QUOTED']));
                 break;
         }
         return $data;
     }
 
     /**
-     * 获取指定数的记录
-     * @param string $uid 用户
-     * @param int $limit 数量
+     * @param $auth
+     * @param $field
+     *
      * @return mixed
      */
-    public function getNewItems($uid, $limit=3)
+    public function getNewItems($auth,$field)
     {
-        $where = [];
-        return $this->alias('a')
-                    ->join("erui_sys.employee e ON a.now_agent_id=e.id","LEFT")
-                    ->where($where)
-                    ->field('a.id,a.buyer_name,a.created_at,a.serial_no,a.quote_status,e.name')
-                    ->limit($limit)
-                    ->order('a.created_at DESC')
-                    ->select();
+        $data = array_slice($this->getList_($auth,$field),0,3);
+
+        $employee = new EmployeeModel();
+        foreach ($data  as $key=>$value) {
+            $data[$key]['name'] = $employee->where(['id'=>$value['now_agent_id']])->getField('name');
+            unset($data[$key]['now_agent_id']);
+        }
+
+        return $data;
     }
 
     /**
@@ -95,6 +98,7 @@ class InquiryModel extends PublicModel
         $data = $this->create($condition);
         $time = $this->getTime();
         $data['quote_status'] = 'NOT_QUOTED';
+        $data['inquiry_source'] = 'APP';
         $data['inflow_time'] = $time;
         $data['created_at'] = $time;
 
@@ -128,17 +132,20 @@ class InquiryModel extends PublicModel
             if($id){
 
                 //处理附件
-                if (isset($data['attach_url']) && !empty($data['attach_url'])){
+                if (isset($data['attach_list']) && !empty($data['attach_list'])){
 
                     $inquiryAttach = new InquiryAttachModel();
-                    $inquiryAttach->add($inquiryAttach->create([
-                        'inquiry_id' => $data['id'],
-                        'attach_group' => 'INQUIRY_SKU',
-                        'attach_name' => $data['attach_name'],
-                        'attach_url' => $data['attach_url'],
-                        'created_by' => $data['updated_by'],
-                        'created_at' => $this->getTime()
-                    ]));
+
+                    foreach ($data['attach_list'] as $v) {
+                        $inquiryAttach->add($inquiryAttach->create([
+                            'inquiry_id' => $data['id'],
+                            'attach_group' => 'INQUIRY_SKU',
+                            'attach_name' => $v['attach_name'],
+                            'attach_url' => $v['attach_url'],
+                            'created_by' => $data['updated_by'],
+                            'created_at' => $this->getTime()
+                        ]));
+                    }
                 }
 
                 $results['code'] = '1';
@@ -157,6 +164,11 @@ class InquiryModel extends PublicModel
 
     }
 
+    public function getDetail($condition,$field="*")
+    {
+        return $this->where($condition)->field($field)->find();
+    }
+
     /**
      * @desc 获取列表
      *
@@ -166,7 +178,7 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList_($condition = [], $field = '*') {
+    public function getList_($condition = [], $field = '*',$where1=[]) {
 
         $where = $this->getWhere($condition);
 
@@ -175,6 +187,7 @@ class InquiryModel extends PublicModel
 
         return $this->field($field)
             ->where($where)
+            ->where($where1)
             ->page($currentPage, $pageSize)
             ->order('id DESC')
             ->select();
@@ -209,6 +222,10 @@ class InquiryModel extends PublicModel
 
         $where['deleted_flag'] = 'N';
 
+        if (!empty($condition['quote_status'])) {
+            $where['quote_status'] = $condition['quote_status'];    //项目状态
+        }
+
         if (!empty($condition['status'])) {
             $where['status'] = $condition['status'];    //项目状态
         }
@@ -222,7 +239,8 @@ class InquiryModel extends PublicModel
         }
 
         if (!empty($condition['buyer_name'])) {
-            $where['buyer_name'] = $condition['buyer_name'];  //客户名称
+            //$where['buyer_name'] = $condition['buyer_name'];  //客户名称
+            $where['buyer_name'] = ['like' , '%'.$condition['buyer_name'].'%'];
         }
 
         if (!empty($condition['agent_id'])) {

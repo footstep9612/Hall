@@ -22,119 +22,66 @@ class BuyerController extends PublicController {
      * */
 
     public function listAction() {
+
         $data = json_decode(file_get_contents("php://input"), true);
+
         $limit = [];
         $where = [];
-        if (!empty($data['name'])) {
-            $where['name'] = $data['name'];
-        }
-        if (!empty($data['country_bn'])) {
-            $pieces = explode(",", $data['country_bn']);
-            for ($i = 0; $i < count($pieces); $i++) {
-                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+
+
+        if (!empty($data['keyword'])) {
+
+            $keyword = trim($data['keyword']);
+
+            //国家
+            $Country = new CountryModel();
+            $isCountry = $Country->where(['name'=>$keyword])->find();
+            if ($isCountry){
+                $where['country_bn'] = $isCountry['bn'];
             }
-            $where['country_bn'] = rtrim($where['country_bn'], ",");
-        }
-        if (!empty($data['country_name'])) {
 
-            $country_name = trim($data['country_name']);
-            $country_model = new CountryModel();
-            $country_bns = $country_model->getBnByName($country_name);
-            if ($country_bns) {
-                foreach ($country_bns as $country_bn) {
-                    $where['country_bn'] = $where['country_bn'] . '\'' . $country_bn . '\',';
-                }
-                $where['country_bn'] = rtrim($where['country_bn'], ',');
-            } else {
-                $datajson['code'] = -104;
-                $datajson['data'] = "";
-                $datajson['message'] = '数据为空!';
+            //客户编码
+            $isBuyerNo = strstr($keyword,"C2");
+            if ($isBuyerNo){
+                $where['buyer_no'] = $keyword;
             }
+
+            if (!$isCountry && !$isBuyerNo){
+                $where['name'] = $keyword;
+            }
+
         }
 
-
-        if (!empty($data['area_bn'])) {
-            $where['area_bn'] = $data['area_bn'];
-        }
-        if (!empty($data['agent_id'])) {
-            $where['agent_id'] = $data['agent_id'];
-        }
-        if (!empty($data['buyer_no'])) {
-            $where['buyer_no'] = $data['buyer_no'];
-        }
-        if (!empty($data['serial_no'])) {
-            $where['serial_no'] = $data['serial_no'];
-        }
-        if (!empty($data['official_phone'])) {
-            $where['official_phone'] = $data['official_phone'];
-        }
-        if (!empty($data['status'])) {
-            $where['status'] = $data['status'];
-        }
-        if (!empty($data['employee_name'])) {
-            $where['employee_name'] = $data['employee_name'];
-        }
-        if (!empty($data['user_name'])) {
-            $where['user_name'] = $data['user_name'];
-        }
-        if (!empty($data['first_name'])) {
-            $where['first_name'] = $data['first_name'];
-        }
-        if (!empty($data['last_name'])) {
-            $where['last_name'] = $data['last_name'];
-        }
-        if (!empty($data['checked_at_start'])) {
-            $where['checked_at_start'] = $data['checked_at_start'];
-        }
-        if (!empty($data['checked_at_end'])) {
-            $where['checked_at_end'] = $data['checked_at_end'];
-        }
-        if (!empty($data['created_at_end'])) {
-            $where['created_at_end'] = $data['created_at_end'];
-        }
-        if (!empty($data['created_at_start'])) {
-            $where['created_at_start'] = $data['created_at_start'];
-        }
-        if (!empty($data['credit_checked_at_start'])) {
-            $where['credit_checked_at_start'] = $data['credit_checked_at_start'];
-        }
-        if (!empty($data['credit_checked_at_end'])) {
-            $where['credit_checked_at_end'] = $data['credit_checked_at_end'];
-        }
-        if (!empty($data['approved_at_start'])) {
-            $where['approved_at_start'] = $data['approved_at_start'];
-        }
-        if (!empty($data['approved_at_end'])) {
-            $where['approved_at_end'] = $data['approved_at_end'];
-        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
         if (!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
-        if (!empty($data['credit_checked_name'])) {
-            $where['credit_checked_name'] = $data['credit_checked_name'];
-        }
-        if (!empty($data['line_of_credit_min'])) {
-            $where['line_of_credit_min'] = $data['line_of_credit_min'];
-        }
-        if (!empty($data['line_of_credit_max'])) {
-            $where['line_of_credit_max'] = $data['line_of_credit_max'];
-        }
-        if (!empty($data['credit_status'])) {
-            $where['credit_status'] = $data['credit_status'];
-        }
+
         $model = new BuyerModel();
 
         $data = $model->getlist($where);
 
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
+
         if (!empty($data)) {
+
+            $buyerList = [];
+            foreach ($data['data'] as $key=>$value){
+                $buyerList[$key] = [
+                    'id'         => $value['id'],
+                    'serial_no'  => $value['serial_no'],
+                    'buyer_no'   => $value['buyer_no'],
+                    'name'       => $value['name'],
+                    'country_name' => $value['country_name']
+                ];
+            }
+
             $datajson['code'] = 1;
             $datajson['count'] = $data['count'];
-            $datajson['data'] = $data['data'];
+            $datajson['data'] = $buyerList;
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";

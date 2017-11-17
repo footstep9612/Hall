@@ -104,12 +104,15 @@ class BuyerAccountModel extends PublicModel {
         $model = new BuyerModel();
         $table = $model->getTableName();
         $buyeraddress_model = new BuyerAddressModel();
+        $buyeragent_model = new BuyerAgentModel();
 
         $buyeraddress_table = $buyeraddress_model->getTableName();
+        $buyeragent_table = $buyeragent_model->getTableName();
         if (!empty($data['buyer_id'])) {
             $row = $this->alias('b')
                     ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
                     ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
+                    ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
             if (!empty($row['buyer_level'])) {

@@ -22,7 +22,7 @@ class SupplierChainModel extends PublicModel {
     const STATUS_VALID = 'APPROVED'; //有效,通过
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DRAFT = 'DRAFT'; //待报审；
-    const STATUS_CHECKING = 'APPLING'; //审核；
+    const STATUS_CHECKING = 'APPROVING'; //审核；
     const STATUS_DELETED = 'DELETED'; //删除；
     const ERUI_STATUS_VALID = 'VALID';          //有效
     const ERUI_STATUS_CHECKING = 'CHECKING';          //审核中
@@ -42,20 +42,25 @@ class SupplierChainModel extends PublicModel {
     protected function _getcondition($condition = [], &$where = [], $is_Chain = true) {
         if ($is_Chain) {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'VALID']]
+                'status' => 'APPROVED'
             ];
         } else {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'VALID', 'INVALID', 'APPLING']]
+                'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING ']]
             ];
         }
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
-
+        if (!empty($condition['created_at_end'])) {
+            $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between');
         if ($is_Chain) {
             $this->_getValue($where, $condition, 'erui_status');
             $this->_getValue($where, $condition, 'is_erui', 'bool');
+            if (!empty($condition['erui_checked_at_end'])) {
+                $condition['erui_checked_at_end'] = date('Y-m-d H:i:s', strtotime($condition['erui_checked_at_end']) + 86399);
+            }
             $this->_getValue($where, $condition, 'erui_checked_at', 'between');
             if (!empty($condition['erui_checked_name'])) {
                 $employee_model = new EmployeeModel();
@@ -67,14 +72,11 @@ class SupplierChainModel extends PublicModel {
                 }
             }
         } else {
-            if (!empty($condition['status']) && in_array($condition['status'], ['APPROVED', 'VALID'])) {
-                $where['status'] = ['in', ['APPROVED', 'VALID']];
-            } elseif (!empty($condition['status']) && in_array($condition['status'], ['APPLING', 'CHECKING'])) {
-                $where['status'] = ['in', ['APPLING', 'CHECKING']];
-            } elseif (!empty($condition['status']) && $condition['status'] === 'INVALID') {
-                $where['status'] = 'INVALID';
-            } elseif (!empty($condition['status']) && $condition['status'] === 'DRAFT') {
-                $where['status'] = 'DRAFT';
+
+            //  $where['status'] = 'DRAFT';
+            $this->_getValue($where, $condition, 'status');
+            if (!empty($condition['checked_at_end'])) {
+                $condition['checked_at_end'] = date('Y-m-d H:i:s', strtotime($condition['checked_at_end']) + 86399);
             }
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
@@ -105,7 +107,9 @@ class SupplierChainModel extends PublicModel {
                 ->where($where)
                 ->order($order)
                 ->select();
-        $this->_setStatus($data);
+
+
+        //  $this->_setStatus($data);
         $this->_setCheckedName($data);
 
         return $data;
@@ -127,7 +131,7 @@ class SupplierChainModel extends PublicModel {
                 ->where($where)
                 ->order($order)
                 ->select();
-        $this->_setEruiStatus($data);
+        //   $this->_setEruiStatus($data);
         $this->_setEruiCheckedName($data);
         $this->_setOrgName($data);
         return $data;
@@ -391,7 +395,7 @@ class SupplierChainModel extends PublicModel {
                 return FALSE;
             }
             $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = 'VALID';
+            $condition['status'] = 'APPROVED';
             $condition['erui_member_flag'] = $data['is_erui'];
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = $info['org_id'];
@@ -428,12 +432,12 @@ class SupplierChainModel extends PublicModel {
         ];
 
         $info = $this->field('status')->where($where)->find();
-        if ($info['status'] == 'APPLING') {
-            $data['status'] = ($status == 'VALID' ? 'VALID' : 'INVALID');
+        if ($info['status'] == 'APPROVING') {
+            $data['status'] = ($status == 'APPROVED' ? 'APPROVED' : 'INVALID');
             $data['erui_status'] = 'CHECKING';
             $data['checked_at'] = date('Y-m-d H:i:s');
             $data['checked_by'] = defined('UID') ? UID : 0;
-            if ($info['org_id'] && $data['status'] == 'VALID') {
+            if ($info['org_id'] && $data['status'] == 'APPROVED') {
                 $org_model = new OrgModel();
                 $orgInfo = $org_model->field('membership,org_node,name')->where(['id' => $info['org_id'], 'deleted_flag' => 'N'])->find();
                 if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
@@ -448,7 +452,7 @@ class SupplierChainModel extends PublicModel {
                 return FALSE;
             }
             $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = $status == 'VALID' ? 'VALID' : 'INVALID';
+            $condition['status'] = $status == 'APPROVED' ? 'APPROVED' : 'INVALID';
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = $info['org_id'];
             if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
@@ -470,8 +474,12 @@ class SupplierChainModel extends PublicModel {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
         } elseif ($info && $info['status'] === 'APPROVED') {
             jsonReturn($data, MSG::MSG_FAILED, '供应商已审核通过!');
-        } elseif ($info && $info['status'] !== 'APPLING') {
+        } elseif ($info && $info['status'] === 'INVALID') {
+            jsonReturn($data, MSG::MSG_FAILED, '已拒绝的供应商不能审核!');
+        } elseif ($info && $info['status'] !== 'APPROVING') {
             jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
+        } elseif ($info && $info['status'] === 'DRAFT') {
+            jsonReturn($data, MSG::MSG_FAILED, '暂存状态的供应商不能审核!');
         } else {
             jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
         }
