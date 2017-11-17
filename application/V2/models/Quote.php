@@ -159,18 +159,18 @@ class QuoteModel extends PublicModel {
      * @param array $condition
      * @return array
      */
-    public function rejectToBiz(array $condition){
+    public function rejectToBiz($condition, $user){
 
         $this->startTrans();
         $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
-        $inquiryResult = $inquiry->where([
-            'id' => $condition['inquiry_id']
-        ])->save([
+        $inquiryResult = $inquiry->updateData([
+            'id' => $condition['inquiry_id'],
             'status' => self::INQUIRY_BIZ_DISPATCHING,
-            'quote_status' => self::QUOTE_NOT_QUOTED
+            'quote_status' => self::QUOTE_NOT_QUOTED,
+            'updated_by' => $user['id']
         ]);
 
         if ($quoteResult && $inquiryResult){
@@ -204,10 +204,12 @@ class QuoteModel extends PublicModel {
             $orgId[] = $org['id'];
         }
 
-        $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
+        $inquiryResult = $inquiry->updateData([
+            'id' => $request['inquiry_id'],
             'status' => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id' => $orgId[0],
-            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg')
+            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg'),
+            'updated_by' => $user['id']
         ]);
 
         $this->startTrans();

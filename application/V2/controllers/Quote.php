@@ -106,7 +106,7 @@ class QuoteController extends PublicController{
 
         $request   = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $response  = $result = $this->quoteModel->rejectToBiz($condition);
+        $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
         $this->jsonReturn($response);
 
     }
@@ -128,12 +128,14 @@ class QuoteController extends PublicController{
     public function rejectLogisticAction(){
 
         $request = $this->validateRequests('inquiry_id');
-        $condition['id'] = $request['inquiry_id'];
         $inquiryModel = new InquiryModel();
         $now_agent_id = $inquiryModel->where(['id'=>$request['inquiry_id']])->getField('logi_agent_id');
-        $inquiryModel->where($condition)->save(['now_agent_id'=>$now_agent_id]);
-
-        $result = $this->changeInquiryStatus($request['inquiry_id'],'LOGI_QUOTING');
+        $result = $inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
+            'now_agent_id'=>$now_agent_id,
+            'status' =>'LOGI_QUOTING',
+            'updated_by' => $this->user['id']
+        ]);
 
         $this->jsonReturn($result);
     }
@@ -150,10 +152,13 @@ class QuoteController extends PublicController{
         $inquiryModel = new InquiryModel();
         $check_org_id = $condition['check_org_id'];//$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
 
-        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+        $inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
             'quote_status' => 'QUOTED',
             'now_agent_id' => $check_org_id,
-            'check_org_id' => $check_org_id //事业部审核人
+            'check_org_id' => $check_org_id, //事业部审核人
+            'status' => 'BIZ_APPROVING',
+            'updated_by' => $this->user['id']
         ]);
 
         $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
@@ -215,9 +220,13 @@ class QuoteController extends PublicController{
         //更新当前办理人
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
-        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+        $response = $this->inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
+            'now_agent_id'=>$now_agent_id,
+            'status' => 'BIZ_APPROVING',
+            'updated_by' => $this->user['id']
+        ]);
 
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'BIZ_APPROVING');
         $this->jsonReturn($response);
 
     }
@@ -231,9 +240,13 @@ class QuoteController extends PublicController{
 
         //更新当前办理人
         $now_agent_id = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('agent_id');
-        $this->inquiryModel->where(['id'=>$request['inquiry_id']])->save(['now_agent_id'=>$now_agent_id]);
+        $response = $this->inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
+            'now_agent_id'=>$now_agent_id,
+            'status' => 'MARKET_CONFIRMING',
+            'updated_by' => $this->user['id']
+        ]);
 
-        $response = $this->changeInquiryStatus($request['inquiry_id'],'MARKET_CONFIRMING');
         $this->jsonReturn($response);
 
     }
@@ -343,10 +356,10 @@ class QuoteController extends PublicController{
 
     private function changeInquiryStatus($id,$status){
 
-        return $this->inquiryModel->where(['id'=>$id])->save([
-            'status'     => $status,
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
+        return $this->inquiryModel->updateStatus([
+            'id' => $id,
+            'status' => $status,
+            'updated_by' => $this->user['id']
         ]);
     }
 
