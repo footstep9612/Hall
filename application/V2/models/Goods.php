@@ -2989,7 +2989,7 @@ class GoodsModel extends PublicModel {
         if (redisHashExist('sku', 'expireTemp')) {
             return json_decode(redisHashGet('sku', 'expireTemp'), true);
         } else {
-            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/expireTemplate.xls";
+            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/expireTemplate.xlsx";
             if (file_exists($localDir)) {
                 //把导出的文件上传到文件服务器上
                 $server = Yaf_Application::app()->getConfig()->myhost;
