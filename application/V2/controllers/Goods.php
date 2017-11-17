@@ -177,7 +177,7 @@ class GoodsController extends PublicController {
         foreach ($langs as $lang) {
             if (isset($input[$lang]) && $input[$lang]) {
                 $es_product_model->create_data($spu, $lang);
-            } elseif (empty($input)) {
+            } elseif (empty($input[$lang])) {
                 $es_product_model->create_data($spu, $lang);
             }
         }
@@ -193,7 +193,7 @@ class GoodsController extends PublicController {
         foreach ($langs as $lang) {
             if (isset($input[$lang]) && $input[$lang]) {
                 $flag = $es_product_model->create_data($sku, $lang);
-            } elseif (empty($input)) {
+            } elseif (empty($input[$lang])) {
                 $flag = $es_product_model->create_data($sku, $lang);
             }
         }

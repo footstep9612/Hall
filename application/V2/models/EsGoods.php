@@ -149,9 +149,13 @@ class EsGoodsModel extends Model {
             $name_arr = $condition[$names];
             $bool = [];
             foreach ($name_arr as $name) {
-                $bool[] = [$qurey_type => [$field => trim($name)]];
+                if (!empty($name)) {
+                    $bool[] = [$qurey_type => [$field => trim($name)]];
+                }
             }
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+            if (!empty($bool)) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+            }
         }
     }
 
@@ -197,6 +201,26 @@ class EsGoodsModel extends Model {
         } else {
             $analyzer = 'ik';
         }
+
+        if (!empty($condition['product_name'])) {
+            $product_name = trim($condition['product_name']);
+            $product_model = new ProductModel();
+            $products = $product_model
+                    ->field(['spu'])
+                    ->where(['name' => ['like', '%' . $product_name . '%']])
+                    ->select();
+            $spus = [];
+            if ($products) {
+                foreach ($products as $product) {
+                    $spus[] = $product['spu'];
+                }
+            }
+            if ($spus) {
+                $condition['spus'] = $spus;
+            } else {
+                $condition['spus'] = ['null'];
+            }
+        }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
@@ -220,11 +244,21 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'bizline_id', 'bizline_id');
 
+
+
+
         $this->_getQurey($condition, $body, ESClient::TERM, 'image_count', 'image_count');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
+        if (isset($condition['price_validity']) && $condition['price_validity'] === 'Y') {
+            $condition['pricevalidity_start'] = date('Y-m-d');
+            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('+7 days'));
+            $this->_getQurey($condition, $body, ESClient::RANGE, 'pricevalidity', 'costprices.price_validity');
+            unset($condition['pricevalidity_end'], $condition['pricevalidity_start']);
+        }
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'price_validity', 'costprices.price_validity');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
@@ -574,6 +608,9 @@ class EsGoodsModel extends Model {
                 $goods_attach_model = new GoodsAttachModel();
                 $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
+                $goods_cost_price_model = new GoodsCostPriceModel();
+                $costprices = $goods_cost_price_model->getCostPricesBySkus($skus);
+
                 $goods_attr_model = new GoodsAttrModel();
                 $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
@@ -588,7 +625,7 @@ class EsGoodsModel extends Model {
 //                $updateParams['index'] = $this->dbName;
 //                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
@@ -608,7 +645,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = []) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -648,6 +685,15 @@ class EsGoodsModel extends Model {
         } else {
             $body['show_cats'] = [];
         }
+        if (isset($costprices[$sku])) {
+
+            $cost_prices = $costprices[$sku];
+            rsort($cost_prices);
+            $body['costprices'] = $cost_prices;
+        } else {
+            $body['costprices'] = [];
+        }
+
         $body['brand'] = $this->_getValue($product_attr, 'brand', [], 'string');
 
         $body['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $body['brand'])));
@@ -1176,11 +1222,12 @@ class EsGoodsModel extends Model {
             $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
             $show_cat_goods_model = new ShowCatGoodsModel();
             $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
-
+            $goods_cost_price_model = new GoodsCostPriceModel();
+            $costprices = $goods_cost_price_model->getCostPricesBySkus($skus);
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
 
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
             }
 
             $es->refresh($this->dbName);

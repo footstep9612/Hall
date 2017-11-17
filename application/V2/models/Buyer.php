@@ -44,20 +44,18 @@ class BuyerModel extends PublicModel {
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` ";
-        $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.deleted_flag='N' ";
+        $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` AND `erui_buyer`.`buyer_account`.deleted_flag='N' ";
         $str .= " left Join `erui_buyer`.`buyer_credit_log` on `erui_buyer`.`buyer_credit_log`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` ";
+        $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` AND em.deleted_flag='N' ";
         $str .= " left Join `erui_buyer`.`buyer_address` on `erui_buyer`.`buyer_address`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         $sql .= $str;
         $sql_count .= $str;
-        $where = " WHERE 1 = 1";
+        $where = " WHERE buyer.deleted_flag = 'N'  ";
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
         }
-        if (!empty($condition['buyer_code'])) {
-            $where .= ' And buyer_code  ="' . $condition['buyer_code'] . '"';
-        }
+
         if (!empty($condition['area_bn'])) {
             $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
         }
@@ -100,6 +98,13 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['created_by'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
         }
+        if (!empty($condition['source'])) {
+            if ($condition['source'] == 1) {
+                $where .= ' And `erui_buyer`.`buyer`.created_by  > 0';
+            } else if ($condition['source'] == 2) {
+                $where .= ' And `erui_buyer`.`buyer`.created_by  is null';
+            }
+        }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }
@@ -120,6 +125,9 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['credit_checked_name'])) {
             $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
+        }
+        if (!empty($condition['buyer_code'])) {
+            $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
         }
         if (!empty($condition['line_of_credit_max'])) {
             $where .= ' And `erui_buyer`.`buyer`.line_of_credit  <="' . $condition['line_of_credit_max'] . '"';
@@ -185,6 +193,12 @@ class BuyerModel extends PublicModel {
             } else {
                 $where .= " where customer_id = '" . $data['customer_id'] . "'";
             }
+        }
+
+        if ($where) {
+            $where .= " and deleted_flag = 'N'";
+        } else {
+            $where .= " where deleted_flag = 'N'";
         }
         if ($where) {
             $sql .= $where;

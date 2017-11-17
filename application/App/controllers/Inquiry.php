@@ -10,12 +10,23 @@ class InquiryController extends PublicController
 
     private $inquiryModel;
 
+    private $listAuth = [];
+
     public function init()
     {
         parent::init();
 
         $this->inquiryModel = new InquiryModel();
+
+        $this->listAuth = [
+            'role_no' => $this->user['role_no'],
+            'group_id' => $this->user['group_id'],
+            'user_id' => $this->user['id'],
+            'list_type' => 'inquiry'
+        ];
+
     }
+
 
     /**
      * 首页信息(统计，轮播，列表[最新3条数据])
@@ -28,17 +39,14 @@ class InquiryController extends PublicController
         $data = [];
 
         $data['statistics'] = [
-            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY'),
-            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL'),
-            'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED')
+            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY', $this->listAuth),
+            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL', $this->listAuth),
+            'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED', $this->listAuth)
         ];
 
-        $data['carousel'] = [
-            ['id'=>1,'buyer_code'=>'BC20171107'],
-            ['id'=>2,'buyer_code'=>'BC20171108']
-        ];
+        $data['carousel'] = $this->inquiryModel->getList_($this->listAuth,"id,buyer_code",['quote_status'=>'QUOTED']);
 
-        $data['list'] = $this->inquiryModel->getNewItems($this->user['id']);
+        $data['list'] = $this->inquiryModel->getNewItems($this->listAuth,"id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
 
         $this->jsonReturn($data);
     }
@@ -64,7 +72,54 @@ class InquiryController extends PublicController
 
         $data = $this->validateRequestParams();
         $data['updated_by'] = $this->user['id'];
+        $data['status'] = 'BIZ_DISPATCHING';
         $this->jsonReturn($this->inquiryModel->updateData($data));
+
+    }
+
+    public function editAction()
+    {
+
+        $request = $this->validateRequestParams('id');
+        $where = ['inquiry_id'=>$request['id']];
+
+        //驳回信息
+        $inquiryCheck = new InquiryCheckLogModel();
+        $checkInfo = $inquiryCheck->where($where)->order('created_at DESC')->field('created_at,created_by,op_note')->find();
+        $employeeModel = new EmployeeModel();
+        $checkInfo['rejecter'] = $employeeModel->where(['id'=>$checkInfo['created_by']])->getField('name');
+
+        //询单信息
+        $fields = "id,buyer_name,quote_deadline,quote_notes,trade_terms_bn,payment_mode,trans_mode_bn,to_country,to_port,destination";
+        $inquiryInfo = $this->inquiryModel->getDetail($request,$fields);
+
+        //附件信息
+        $inquiryAttach = new InquiryAttachModel();
+        $attachList = $inquiryAttach->where($where)->field('attach_name,attach_url')->select();
+
+        $response = [
+            'rejectInfo' => [
+                'reject_time' => $checkInfo['created_at'],
+                'reject_name' => $checkInfo['rejecter'],
+                'reject_note' => $checkInfo['op_note'],
+            ],
+            'basic' => [
+                'buyer_name'     => $inquiryInfo['buyer_name'],
+                'quote_deadline' => $inquiryInfo['quote_deadline'],
+                'quote_notes'    => $inquiryInfo['quote_notes'],
+            ],
+            'sku' => $attachList,
+            'logistics' => [
+                'trade_terms_bn' => $inquiryInfo['trade_terms_bn'],
+                'payment_mode'   => $inquiryInfo['payment_mode'],
+                'trans_mode_bn'  => $inquiryInfo['trans_mode_bn'],
+                'to_country'     => $inquiryInfo['to_country'],
+                'to_port'        => $inquiryInfo['to_port'],
+                'destination'    => $inquiryInfo['destination'],
+            ]
+        ];
+
+        $this->jsonReturn($response);
 
     }
 
@@ -82,45 +137,54 @@ class InquiryController extends PublicController
      */
     public function listAction()
     {
-        $condition = $this->put_data;
+        $condition = $this->validateRequestParams();
 
-        $quoteModel = new QuoteModel();
-        $userModel = new UserModel();
-        $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
 
-        // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $agent = $userModel->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
-        }
+        $condition = array_merge($condition,$this->listAuth);
 
-        // 当前用户的所有角色编号
-        $condition['role_no'] = $this->user['role_no'];
-
-        // 当前用户的所有组织ID
-        $condition['group_id'] = $this->user['group_id'];
-
-        $condition['user_id'] = $this->user['id'];
-
-        //列表类型 list_type
-        if (!isset($condition['list_type'])){
-            $condition['list_type'] = 'inquiry';
-        }
-
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,country_bn,agent_id,quote_id,now_agent_id,created_at,quote_status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
-            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $inquiry['country_name'] = $country['name'];
-            $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
-            $inquiry['agent_name'] = $agent['name'];
-            $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            $inquiry['quote_name'] = $quoter['name'];
+
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['now_agent_name'] = $nowAgent['name'];
-            $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
-            $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+            $inquiry['name'] = $nowAgent['name'];
+
+            unset($inquiry['now_agent_id']);
+
+        }
+
+        if ($inquiryList) {
+            $res['code'] = 1;
+            $res['message'] = '成功!';
+            $res['count'] = $this->inquiryModel->getCount_($condition);
+            $res['data'] = $inquiryList;
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('暂无数据!');
+            $this->jsonReturn();
+        }
+    }
+
+    public function downListAction()
+    {
+
+        $condition = $this->validateRequestParams();
+        $condition['quote_status'] = 'QUOTED';
+
+        $employeeModel = new EmployeeModel();
+
+        $condition = array_merge($condition,$this->listAuth);
+
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+
+        foreach ($inquiryList as &$inquiry) {
+
+            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
+            $inquiry['name'] = $nowAgent['name'];
+            unset($inquiry['now_agent_id']);
+
         }
 
         if ($inquiryList) {
@@ -275,6 +339,26 @@ class InquiryController extends PublicController
         ];
 
         return $logiDetail;
+
+    }
+
+    /**
+     * 商品列表
+     */
+    public function skuAction()
+    {
+
+        $request = $this->validateRequestParams('id');
+
+        $inquiryItem = new InquiryItemModel();
+        $data = $inquiryItem->getItemWithQuote($request);
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功!',
+            'count'   => $inquiryItem->getCountItemWithQuote($request),
+            'data'    => $data
+        ]);
 
     }
 

@@ -87,6 +87,9 @@ class BuyerController extends PublicController {
         if (!empty($data['last_name'])) {
             $where['last_name'] = $data['last_name'];
         }
+        if (!empty($data['source'])) {
+            $where['source'] = $data['source'];
+        }
         if (!empty($data['checked_at_start'])) {
             $where['checked_at_start'] = $data['checked_at_start'];
         }
@@ -125,6 +128,9 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['line_of_credit_max'])) {
             $where['line_of_credit_max'] = $data['line_of_credit_max'];
+        }
+        if (!empty($data['credit_status'])) {
+            $where['credit_status'] = $data['credit_status'];
         }
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
@@ -333,7 +339,7 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
-        $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "'")->find();
+        $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "' AND deleted_flag='N'")->find();
         if ($checkcrm) {
             jsonReturn('', -103, 'crm编码已经存在');
         }
@@ -355,18 +361,19 @@ class BuyerController extends PublicController {
         $arr['created_by'] = $this->user['id'];
         $login_email['email'] = $data['email'];
         $login_email['user_name'] = $data['email'];
-        $check_email = $buyer_account_model->Exist($login_email,'or');
+        $check_email = $buyer_account_model->Exist($login_email, 'or');
+
         if ($check_email) {
             jsonReturn('', -101, '公司邮箱已经存在!');
         }
         $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
-        $check_uname = $buyer_account_model->Exist($login_uname,'or');
+        $check_uname = $buyer_account_model->Exist($login_uname, 'or');
         if ($check_uname) {
             jsonReturn('', -102, '用户名已经存在!');
         }
         //验证公司名称是否存在
-        $checkcompany = $model->where("name='" . $data['name'] . "'")->find();
+        $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
         if ($checkcompany) {
             jsonReturn('', -103, '公司名称已经存在');
         }
@@ -479,6 +486,13 @@ class BuyerController extends PublicController {
         }
         $array['created_by'] = $this->user['id'];
         $model = new BuyerAgentModel();
+        $inquiry_model = new InquiryModel();
+        $user_arr = explode(',', $array['user_ids']);
+        if ($user_arr[0]) {
+            $condition['buyer_id'] = $array['id'];
+            $condition['agent_id'] = $user_arr[0];
+            $inquiry_model->setBuyerAgentInfo($condition);
+        }
         $res = $model->create_data($array);
         if (!empty($res)) {
             $datajson['code'] = 1;

@@ -69,7 +69,7 @@ class ProductSupplierController extends PublicController {
             $this->jsonReturn($data);
         } elseif ($data === null) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setvalue('count', 0);
+            $this->setvalue('count', $productsupplier_model->getInquiryCountBySpuCount($country_bn));
             $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
@@ -133,7 +133,7 @@ class ProductSupplierController extends PublicController {
             $data_supplier = null;
             $supplier_model = new SupplierModel();
             $suppliers = $supplier_model->field('id,name')
-                            ->where(['id' => ['in', $supplier_ids], 'status' => ['in', ['VALID', 'APPROVED']], 'deleted_flag' => 'N'])->select();
+                            ->where(['id' => ['in', $supplier_ids], 'status' => ['in', ['VALID', 'APPROVED', 'DRAFT', 'APPROVING']], 'deleted_flag' => 'N'])->select();
 
 
             $supplier_contact_model = new SupplierContactModel();

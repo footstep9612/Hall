@@ -233,4 +233,77 @@ class GoodsCostPriceModel extends PublicModel {
         }
     }
 
+    /* 根据SKUS数组获取SKU价格信息
+     * @author zyg 2017-10-12
+     * @param mix $skus // SPU
+     * @return mix
+     * @author  zhongyg
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getCostPricesBySkus($skus) {
+
+        try {
+            if (!$skus) {
+                return [];
+            }
+            $product_costprices = $this->field('sku,supplier_id,contact_first_name,contact_last_name,price,max_price,'
+                            . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
+                    ->where(['sku' => ['in', $skus],
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
+                    ->select();
+            if (!$product_costprices) {
+                return [];
+            }
+            $ret = [];
+            foreach ($product_costprices as $item) {
+                $sku = $item['sku'];
+                unset($item['sku']);
+                $ret[$sku][] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS:' . __CLASS__ . PHP_EOL . 'FUNCTION:' . __FUNCTION__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /* 根据SKU数组获取SKU价格信息
+     * @author zyg 2017-10-12
+     * @param mix $sku // SPU
+     * @return mix
+     * @author  zhongyg
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getCostPricesBySku($sku) {
+
+        try {
+            if (!$sku) {
+                return [];
+            }
+            $product_costprices = $this->field('supplier_id,contact_first_name,contact_last_name,price,max_price,'
+                            . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
+                    ->where(['sku' => $sku,
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
+                    ->select();
+            if (!$product_costprices) {
+                return [];
+            }
+
+            return $product_costprices;
+        } catch (Exception $ex) {
+            LOG::write('CLASS:' . __CLASS__ . PHP_EOL . 'FUNCTION:' . __FUNCTION__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }

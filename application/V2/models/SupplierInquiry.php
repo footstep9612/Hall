@@ -182,11 +182,9 @@ class SupplierInquiryModel extends PublicModel {
             $final_where['supplier_id'] = $supplier_id;
         }
         $inquiryids = $final_quote_item_model->field('inquiry_id')
-                        ->where(['supplier_id' => ['gt', 0],
-                            'deleted_flag' => 'N',
-                            'status' => 'VALID',
-                        ])->group('inquiry_id')->select();
+                        ->where($final_where)->group('inquiry_id')->select();
         $inquiry_ids = [];
+
 
         foreach ($inquiryids as $inquiryid) {
             $inquiry_ids[] = $inquiryid['inquiry_id'];
@@ -205,6 +203,7 @@ class SupplierInquiryModel extends PublicModel {
         $count = $inquiry_model
                 ->where($where)
                 ->count();
+
         return $count > 0 ? $count : 0;
     }
 

@@ -16,6 +16,8 @@ class SupplierAgentModel extends PublicModel {
     protected $tableName = 'supplier_agent';
     protected $dbName = 'erui_supplier'; //数据库名称
     protected $g_table = 'erui_supplier.supplier_agent';
+    protected $joinTable = 'erui_sys.employee b ON a.agent_id = b.id AND b.deleted_flag = \'N\'';
+    protected $joinField = 'a.*, b.name AS agent_name';
     public function __construct($str = '') {
         parent::__construct($str = '');
     }
@@ -89,6 +91,29 @@ class SupplierAgentModel extends PublicModel {
     }
     
     /**
+     * @desc 获取关联查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-14
+     */
+    public function getJoinWhere($condition = []) {
+         
+        $where = [];
+         
+        if (!empty($condition['id'])) {
+            $where['a.id'] = $condition['id'];
+        }
+         
+        if (!empty($condition['supplier_id'])) {
+            $where['a.supplier_id'] = $condition['supplier_id'];
+        }
+         
+        return $where;
+    }
+    
+    /**
      * @desc 获取记录总数
      *
      * @param array $condition
@@ -102,6 +127,26 @@ class SupplierAgentModel extends PublicModel {
          
         $count = $this->where($where)->count('id');
          
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取关联记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2017-11-14
+     */
+    public function getJoinCount($condition = []) {
+    
+        $where = $this->getJoinWhere($condition);
+    
+        $count = $this->alias('a')
+                                 ->join($this->joinTable, 'LEFT')
+                                 ->where($where)
+                                 ->count('a.id');
+    
         return $count > 0 ? $count : 0;
     }
     
@@ -125,6 +170,30 @@ class SupplierAgentModel extends PublicModel {
                             ->where($where)
                             //->page($currentPage, $pageSize)
                             ->order('id DESC')
+                            ->select();
+    }
+    
+    /**
+     * @desc 获取关联列表
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-14
+     */
+    public function getJoinList($condition = []) {
+    
+        $where = $this->getJoinWhere($condition);
+    
+        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        //$pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+    
+        return $this->alias('a')
+                            ->join($this->joinTable, 'LEFT')
+                            ->field($this->joinField)
+                            ->where($where)
+                            //->page($currentPage, $pageSize)
+                            ->order('a.id DESC')
                             ->select();
     }
     

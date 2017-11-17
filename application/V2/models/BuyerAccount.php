@@ -45,6 +45,7 @@ class BuyerAccountModel extends PublicModel {
                 $map['email'] = $data['email'];
                 $map['user_name'] = $data['user_name'];
             }
+            $map['deleted_flag'] = 'N';
             $row = $this->table('erui_buyer.buyer_account')->where($map)->select();
         } else {
             $row = $this->table('erui_buyer.buyer_account')->where($data)->select();
@@ -286,5 +287,5 @@ class BuyerAccountModel extends PublicModel {
             return [];
         }
     }
-    
+
 }

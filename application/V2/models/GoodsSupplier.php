@@ -39,7 +39,7 @@ class GoodsSupplierModel extends PublicModel {
             if (!$skus) {
                 return [];
             }
-            $product_attrs = $this->field('sku,supplier_id,brand,supply_ability,'
+            $product_attrs = $this->field('sku,supplier_id,brand,supply_ability,pn,'
                             . '(select name from  erui_supplier.supplier where id=supplier_id ) as supplier_name')
                     ->where(['sku' => ['in', $skus],
                         'status' => 'VALID',
@@ -83,7 +83,7 @@ class GoodsSupplierModel extends PublicModel {
             $goods_table = $goods_model->getTableName();
             $product_attrs = $this->alias('gs')
                     ->join($goods_table . ' as g on g.sku=gs.sku and g.lang=\'' . $lang . '\'', 'left')
-                    ->field('g.spu,gs.supplier_id,'
+                    ->field('g.spu,gs.supplier_id,gs.pn,'
                             . '(select name from  erui_supplier.supplier where id=gs.supplier_id ) as supplier_name')
                     ->where(['g.spu' => ['in', $spus],
                         'gs.status' => 'VALID',
