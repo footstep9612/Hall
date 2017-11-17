@@ -2897,6 +2897,9 @@ class GoodsModel extends PublicModel {
                         $data_tmp[$title_ary[$index]] = $value;
                     }
                 }
+                if($col_value == 0){
+                    continue;
+                }
 
                 $supplierInfo = $supplierModel->field('id')->where(['name'=>$data_tmp['供应商名称'], 'deleted_flag'=>'N'])->find();
                 if(!$supplierInfo){
@@ -3025,7 +3028,6 @@ class GoodsModel extends PublicModel {
                 'item' => '序号',
                 'sku' => '订货号',
                 'spu' => 'SPU编码',
-                'spu_showname' => 'SPU展示名称(中文)',
                 'brand' => '品牌(中文)',
                 'name' => '名称',
                 'model' => '型号',
@@ -3037,31 +3039,12 @@ class GoodsModel extends PublicModel {
                 'min_order_qty' => '最小订货数量',
                 'purchase_price' => '供应商供货价',
                 'price_validity' => '有效期',
-                'purchase_price_cur_bn' => '币种',
-                /*1 => '物流信息',
-                'nude_cargo_l_mm' => '裸货尺寸长(mm)',
-                'nude_cargo_w_mm' => '裸货尺寸宽(mm)',
-                'nude_cargo_h_mm' => '裸货尺寸高(mm)',
-                'min_pack_l_mm' => '最小包装后尺寸长(mm)',
-                'min_pack_w_mm' => '最小包装后尺寸宽(mm)',
-                'min_pack_h_mm' => '最小包装后尺寸高(mm)',
-                'net_weight_kg' => '净重(kg)',
-                'gross_weight_kg' => '毛重(kg)',
-                'compose_require_pack' => '仓储运输包装及其他要求',
-                'pack_type' => '包装类型',
-                2 => '申报要素',
-                'name_customs' => '中文品名(报关用)',
-                'hs_code' => '海关编码',
-                'tx_unit' => '成交单位',
-                'tax_rebates_pct' => '退税率(%)',
-                'regulatory_conds' => '监管条件',
-                'commodity_ori_place' => '境内货源地',*/
+                'purchase_price_cur_bn' => '币种'
             ],
             [
                 'item' => '',
                 'sku' => 'Item No.',
                 'spu' => 'SPU',
-                'spu_showname' => 'Spu show Name',
                 'brand' => 'Brand',
                 'name' => 'name',
                 'model' => 'Model',
@@ -3073,25 +3056,7 @@ class GoodsModel extends PublicModel {
                 'min_order_qty' => 'Minimum order quantity',
                 'purchase_price' => 'Supply price',
                 'price_validity' => 'Price validity',
-                'purchase_price_cur_bn' => 'Currency',
-                /*1 => '',
-                'nude_cargo_l_mm' => 'Length of nude cargo(mm)',
-                'nude_cargo_w_mm' => 'Width of nude cargo(mm)',
-                'nude_cargo_h_mm' => 'Height of nude cargo(mm)',
-                'min_pack_l_mm' => 'Minimum packing Length size (mm)',
-                'min_pack_w_mm' => 'Minimum packing Width size (mm)',
-                'min_pack_h_mm' => 'Minimum packing Height size (mm)',
-                'net_weight_kg' => 'Net Weight(kg)',
-                'gross_weight_kg' => 'Gross Weight(kg)',
-                'compose_require_pack' => 'Compose Require',
-                'pack_type' => 'Packing type',
-                2 => '',
-                'name_customs' => 'Name (customs)',
-                'hs_code' => 'HS CODE',
-                'tx_unit' => 'Transaction Unit',
-                'tax_rebates_pct' => 'Tax rebates(%)',
-                'regulatory_conds' => 'Regulatory conditions',
-                'commodity_ori_place' => 'Domestic supply of goods to',*/
+                'purchase_price_cur_bn' => 'Currency'
             ]
         ];
 
@@ -3111,10 +3076,15 @@ class GoodsModel extends PublicModel {
                     }
                     $r[$v['name']] = $v['value'];
                 }
+
+                $r['brand'] = $r['brand']['name'];//品牌
+                $r['supplier'] = $r['suppliers'][0]['supplier_name'];    //供应商
+                $r['purchase_price'] = empty($r['costprices'][0]['max_price']) ? $r['costprices'][0]['price'] : $r['costprices'][0]['price'].'-'.$r['costprices'][0]['max_price'];    //进货价
+                $r['price_validity'] = $r['suppliers'][0]['price_validity'];
                 $goods[] = $r;
             }
-            array_splice($data_title[0], 16, 0, $spec_ary);
-            array_splice($data_title[1], 16, 0, $spec_ary);
+            array_splice($data_title[0], 15, 0, $spec_ary);
+            array_splice($data_title[1], 15, 0, $spec_ary);
         }while(count($list)==$input['pagesize']);
         if(empty($goods)){
             jsonReturn('', ErrorMsg::FAILED , '无数据可导');
