@@ -3080,7 +3080,7 @@ class GoodsModel extends PublicModel {
                 $r['brand'] = $r['brand']['name'];//品牌
                 $r['supplier'] = $r['suppliers'][0]['supplier_name'];    //供应商
                 $r['purchase_price'] = empty($r['costprices'][0]['max_price']) ? $r['costprices'][0]['price'] : $r['costprices'][0]['price'].'-'.$r['costprices'][0]['max_price'];    //进货价
-                $r['price_validity'] = $r['suppliers'][0]['price_validity'];
+                $r['price_validity'] = $r['costprices'][0]['price_validity'];
                 $goods[] = $r;
             }
             array_splice($data_title[0], 15, 0, $spec_ary);
