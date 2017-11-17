@@ -132,17 +132,20 @@ class InquiryModel extends PublicModel
             if($id){
 
                 //处理附件
-                if (isset($data['attach_url']) && !empty($data['attach_url'])){
+                if (isset($data['attach_list']) && !empty($data['attach_list'])){
 
                     $inquiryAttach = new InquiryAttachModel();
-                    $inquiryAttach->add($inquiryAttach->create([
-                        'inquiry_id' => $data['id'],
-                        'attach_group' => 'INQUIRY_SKU',
-                        'attach_name' => $data['attach_name'],
-                        'attach_url' => $data['attach_url'],
-                        'created_by' => $data['updated_by'],
-                        'created_at' => $this->getTime()
-                    ]));
+
+                    foreach ($data['attach_list'] as $v) {
+                        $inquiryAttach->add($inquiryAttach->create([
+                            'inquiry_id' => $data['id'],
+                            'attach_group' => 'INQUIRY_SKU',
+                            'attach_name' => $v['attach_name'],
+                            'attach_url' => $v['attach_url'],
+                            'created_by' => $data['updated_by'],
+                            'created_at' => $this->getTime()
+                        ]));
+                    }
                 }
 
                 $results['code'] = '1';
