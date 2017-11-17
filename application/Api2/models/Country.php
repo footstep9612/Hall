@@ -139,7 +139,7 @@ class CountryModel extends PublicModel {
             'lang' => $lang,
             'status' => 'VALID'
         );
-        $result = $this->field('name,bn,region_bn,time_zone')->where($condition)->select();
+        $result = $this->where($condition)->select();
         if ($result) {
             $data = array();
             foreach ($result as $val) {

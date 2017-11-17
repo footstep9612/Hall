@@ -291,8 +291,17 @@ class DictController extends PublicController {
     public function listCountryAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : (browser_lang() ? browser_lang() : 'en');
+
+        if (redisHashExist('CountryList', $lang)) {
+            $result = json_decode(redisHashGet('CountryList', $lang), true);
+            jsonReturn($result);
+        }
+
         $countryModel = new CountryModel();
         $result = $countryModel->getInfoSort($lang);
+        if ($result) {
+            redisHashSet('CountryList', $lang, json_encode($result));
+        }
         if (!empty($result)) {
             $data = array(
                 'code' => '1',
