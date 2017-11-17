@@ -649,10 +649,55 @@ class GoodsController extends PublicController {
         }
     }
 
-    /*     * ******************************************
+
+    /**
+     * 到期提醒模板导出
+     */
+    public function expireTempAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->expireTemp();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+
+    /**
+     * 到期提醒导出
+     */
+    public function expireExportAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->expireExport($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 到期提醒导入
+     */
+    public function expireImportAction(){
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+
+        $goodsModel = new GoodsModel();
+        $result = $goodsModel->expireImport($this->put_data['xls']);
+        if($result){
+            jsonReturn($result, ErrorMsg::SUCCESS, '成功操作'.(isset($result['success']) ? $result['success'] : 0).'条，失败'.(isset($result['faild']) ? $result['faild'] : 0).'条');
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+
+    /********************************************
      * 临时导出
      */
-
     public function exportallAction() {
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->exportAll($this->put_data);
@@ -662,19 +707,4 @@ class GoodsController extends PublicController {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
-
-    /*     * **************************************
-     * 临时导入
-     */
-
-    public function tmpimportAction() {
-        $goodsModel = new GoodsModel();
-        $localDir = $goodsModel->tmpImport($this->put_data);
-        if ($localDir) {
-            jsonReturn($localDir);
-        } else {
-            jsonReturn('', ErrorMsg::FAILED);
-        }
-    }
-
 }

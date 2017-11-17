@@ -2838,16 +2838,17 @@ class GoodsModel extends PublicModel {
         }
     }
 
-    /*     * **********************************
-     * 临时导入更新
+
+    /************************************
+     * 到期导入更新
+     * 只更新价格，有效期，pn码
      * @param array $input
      * @return array|bool
      */
-
-    public function tmpImport($input = []) {
+    public function expireImport($url){
         set_time_limit(0);  # 设置执行时间最大值
         //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xlsx";
-        $localFile = ExcelHelperTrait::download2local($input['url']);
+        $localFile = ExcelHelperTrait::download2local($url);
         if (!file_exists($localFile)) {
             jsonReturn('', ErrorMsg::FAILED, '导入文件未找到');
         }
@@ -2906,6 +2907,7 @@ class GoodsModel extends PublicModel {
                     $start_row++;
                     continue;
                 }
+
                 if(!preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
                     $faild++;
                     $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '价格有误');
@@ -2915,9 +2917,23 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
                 $price_ary = explode('-', $data_tmp['价格']);
-                if(is_numeric($data_tmp['有效期'])){
-                    $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+
+                if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
+                    if(is_numeric($data_tmp['有效期'])){
+                        $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
+                    }
+                    if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期'])){
+                        $faild++;
+                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期有误]');
+                        $start_row++;
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        continue;
+                    }
+                }else{
+                    $data_tmp['有效期'] = null;
                 }
+
                 $data = [
                     'price_validity' => $data_tmp['有效期'],    //价格有效期
                     'price' => $price_ary[0] ? $price_ary[0] : null,    //最小采购单价
@@ -2928,7 +2944,7 @@ class GoodsModel extends PublicModel {
                 $result = $gcpModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id'] ,'deleted_flag'=>'N'])->save($data);
 
                 $data_pn = [
-                    'pn' => $data_tmp['PN'] ? $data_tmp['PN'] : null,
+                    'pn' => isset($data_tmp['PN']) ? $data_tmp['PN'] : null,
                     'updated_by' => $userInfo['id'],
                     'updated_at' => date('Y-m-d H:i:s',time())
                 ];
@@ -2965,6 +2981,303 @@ class GoodsModel extends PublicModel {
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localFile . ' 上传到FastDFS失败', Log::INFO);
         return false;
+    }
+
+    /**
+     * 过期模板导出
+     * @param array $input
+     * @return array|bool|mixed
+     */
+    public function expireTemp($input = []){
+        if (redisHashExist('sku', 'expireTemp')) {
+            return json_decode(redisHashGet('sku', 'expireTemp'), true);
+        } else {
+            $localDir = $_SERVER['DOCUMENT_ROOT'] . "/public/file/expireTemplate.xlsx";
+            if (file_exists($localDir)) {
+                //把导出的文件上传到文件服务器上
+                $server = Yaf_Application::app()->getConfig()->myhost;
+                $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+                $url = $server . '/V2/Uploadfile/upload';
+                $data['tmp_name'] = $localDir;
+                $data['type'] = 'application/excel';
+                $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+                $fileId = postfile($data, $url);
+                if ($fileId) {
+                    //unlink($localDir);    //清理本地空间
+                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=expireTemplate.xlsx', 'name' => $fileId['name']);
+                    redisHashSet('sku', 'expireTemp', json_encode($data));
+                    return $data;
+                }
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
+                return false;
+            }
+        }
+    }
+
+    /**
+     * 到期导出
+     */
+    public function expireExport($input = []){
+        set_time_limit(0);  # 设置执行时间最大值
+
+        $data_title = [
+            [
+                'item' => '序号',
+                'sku' => '订货号',
+                'spu' => 'SPU编码',
+                'spu_showname' => 'SPU展示名称(中文)',
+                'brand' => '品牌(中文)',
+                'name' => '名称',
+                'model' => '型号',
+                'supplier' => '供应商名称',
+                'exw_days' => '出货周期(天)',
+                'min_pack_naked_qty' => '最小包装内裸货商品数量',
+                'nude_cargo_unit' => '商品裸货单位',
+                'min_pack_unit' => '最小包装单位',
+                'min_order_qty' => '最小订货数量',
+                'purchase_price' => '供应商供货价',
+                'price_validity' => '有效期',
+                'purchase_price_cur_bn' => '币种',
+                /*1 => '物流信息',
+                'nude_cargo_l_mm' => '裸货尺寸长(mm)',
+                'nude_cargo_w_mm' => '裸货尺寸宽(mm)',
+                'nude_cargo_h_mm' => '裸货尺寸高(mm)',
+                'min_pack_l_mm' => '最小包装后尺寸长(mm)',
+                'min_pack_w_mm' => '最小包装后尺寸宽(mm)',
+                'min_pack_h_mm' => '最小包装后尺寸高(mm)',
+                'net_weight_kg' => '净重(kg)',
+                'gross_weight_kg' => '毛重(kg)',
+                'compose_require_pack' => '仓储运输包装及其他要求',
+                'pack_type' => '包装类型',
+                2 => '申报要素',
+                'name_customs' => '中文品名(报关用)',
+                'hs_code' => '海关编码',
+                'tx_unit' => '成交单位',
+                'tax_rebates_pct' => '退税率(%)',
+                'regulatory_conds' => '监管条件',
+                'commodity_ori_place' => '境内货源地',*/
+            ],
+            [
+                'item' => '',
+                'sku' => 'Item No.',
+                'spu' => 'SPU',
+                'spu_showname' => 'Spu show Name',
+                'brand' => 'Brand',
+                'name' => 'name',
+                'model' => 'Model',
+                'supplier' => 'Supplier',
+                'exw_days' => 'EXW(day)',
+                'min_pack_naked_qty' => 'Minimum packing Naked quantity',
+                'nude_cargo_unit' => 'Goods nude cargo units',
+                'min_pack_unit' => 'Minimum packing unit',
+                'min_order_qty' => 'Minimum order quantity',
+                'purchase_price' => 'Supply price',
+                'price_validity' => 'Price validity',
+                'purchase_price_cur_bn' => 'Currency',
+                /*1 => '',
+                'nude_cargo_l_mm' => 'Length of nude cargo(mm)',
+                'nude_cargo_w_mm' => 'Width of nude cargo(mm)',
+                'nude_cargo_h_mm' => 'Height of nude cargo(mm)',
+                'min_pack_l_mm' => 'Minimum packing Length size (mm)',
+                'min_pack_w_mm' => 'Minimum packing Width size (mm)',
+                'min_pack_h_mm' => 'Minimum packing Height size (mm)',
+                'net_weight_kg' => 'Net Weight(kg)',
+                'gross_weight_kg' => 'Gross Weight(kg)',
+                'compose_require_pack' => 'Compose Require',
+                'pack_type' => 'Packing type',
+                2 => '',
+                'name_customs' => 'Name (customs)',
+                'hs_code' => 'HS CODE',
+                'tx_unit' => 'Transaction Unit',
+                'tax_rebates_pct' => 'Tax rebates(%)',
+                'regulatory_conds' => 'Regulatory conditions',
+                'commodity_ori_place' => 'Domestic supply of goods to',*/
+            ]
+        ];
+
+        $model = new EsGoodsModel();
+        $input['current_no'] = 0;
+        $input['pagesize'] = 100;
+        $spec_ary = $hs_ary = [];
+        $goods = [];
+        do{
+            $input['current_no']++;
+            $ret = $model->getgoods($input, null, $input['lang']);
+            $list = $this->_getdata($ret[0]);
+            foreach($list as $r){
+                foreach($r['attrs']['spec_attrs'] as $k=>$v){
+                    if(!isset($spec_ary[$v['name']])){
+                        $spec_ary[$v['name']] = $v['name'];
+                    }
+                    $r[$v['name']] = $v['value'];
+                }
+                $goods[] = $r;
+            }
+            array_splice($data_title[0], 16, 0, $spec_ary);
+            array_splice($data_title[1], 16, 0, $spec_ary);
+        }while(count($list)==$input['pagesize']);
+        if(empty($goods)){
+            jsonReturn('', ErrorMsg::FAILED , '无数据可导');
+        }
+
+        $return = $this->_createExcel($data_title,$goods);
+        return $return ? $return : false;
+    }
+
+    /**
+     * @param array $data_title  二维数组
+     *  [
+     *      0 => [...],
+     *      ...
+     *  ]
+     * @param array $datas
+     */
+    private function _createExcel($data_title=[],$datas=[]){
+        //目录
+        $tmpDir = MYPATH . '/public/tmp/';
+        $dirName = $tmpDir . time();
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+            }
+        }
+
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        $objPHPExcel = new PHPExcel();
+        $col_status = PHPExcel_Cell::stringFromColumnIndex(count($data_title[0]));    //状态
+        $objPHPExcel->getSheet(0)->setCellValue($col_status . '1', '审核状态');
+        //设置表头
+        $excel_index = 0;
+        foreach ($data_title[0] as $title_key => $title_value) {
+            $colname = PHPExcel_Cell::stringFromColumnIndex( $excel_index ); //由列数反转列名(0->'A')
+            $objPHPExcel->getSheet( 0 )->setCellValue( $colname . '1' , $title_value );
+            if ( count( $data_title ) > 1 ){
+                $objPHPExcel->getSheet( 0 )->setCellValue( $colname . '2' , $data_title[ 1 ][ $title_key ] );
+            }
+            $excel_index++;
+            $row = 3;    //内容起始行
+            foreach ($datas as $r) {
+                if (isset($r[$title_key])) {
+                    $objPHPExcel->getSheet(0)->setCellValue($colname . $row, ' ' . $r[$title_key]);
+                } elseif (isset($r[$title_value])) {
+                    $objPHPExcel->getSheet(0)->setCellValue($colname . $row, ' ' . $r[$title_value]);
+                } else {
+                    $objPHPExcel->getSheet(0)->setCellValue($colname . $row, '');
+                }
+                if ($excel_index == count($data_title[0])) {
+                    $status = '';
+                    switch ($r['status']) {
+                        case 'VALID':
+                            $status = '通过';
+                            break;
+                        case 'CHECKING':
+                            $status = '报审';
+                            break;
+                        case 'DRAFT':
+                            $status = '暂存';
+                            break;
+                        case 'INVALID':
+                            $status = '驳回';
+                            break;
+                    }
+                    $objPHPExcel->getSheet(0)->setCellValue($col_status . $row, $status);
+                }
+                $row++;
+            }
+            $objPHPExcel->getActiveSheet()->getColumnDimension($colname)->setAutoSize(true);    //自适应宽
+        }
+        $objPHPExcel->getActiveSheet()->getStyle("A1:" . $col_status . "2")->getFont()->setSize(11)->setBold(true);    //粗体
+        $objPHPExcel->getActiveSheet()->getStyle("A1:" . $colname . "2")->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('3D9140');
+        $objPHPExcel->getActiveSheet()->getStyle($col_status . '1')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('ff6600');
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
+        $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row - 1))->applyFromArray($styleArray);
+        $objPHPExcel->getActiveSheet()->freezePaneByColumnAndRow(2, 3);
+        $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row - 1))->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $objPHPExcel->getActiveSheet()->getStyle("A1:$col_status" . ($row - 1))->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save($dirName . '/' . time() . '.xls');    //文件保存
+
+
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if (file_exists($dirName . '.zip')) {
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            if ($fileId) {
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            }
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $dirName . '.zip 上传到FastDFS失败', Log::INFO);
+            return false;
+        } else {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Zip failed:' . $dirName . '.zip 打包失败', Log::INFO);
+            return false;
+        }
+    }
+
+
+    private function _getdata($data) {
+        $user_ids = [];
+        foreach ($data['hits']['hits'] as $key => $item) {
+            $product = $list[$key] = $item["_source"];
+            $attachs = json_decode($item["_source"]['attachs'], true);
+            if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
+                $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
+            } else {
+                $list[$key]['img'] = new stdClass();
+            }
+            $show_cats = json_decode($item["_source"]["show_cats"], true);
+            if ($show_cats) {
+                rsort($show_cats);
+            }
+            if ($product['created_by']) {
+                $user_ids[] = $product['created_by'];
+            }
+            if ($product['updated_by']) {
+                $user_ids[] = $product['updated_by'];
+            }
+            if ($product['checked_by']) {
+                $user_ids[] = $product['checked_by'];
+            }
+            if ($product['onshelf_by']) {
+                $user_ids[] = $product['onshelf_by'];
+            }
+            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
+            $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+        }
+
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($list as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
+                $val['checked_by_name'] = $usernames[$val['checked_by']];
+            } else {
+                $val['checked_by_name'] = '';
+            }
+            if ($val['onshelf_by'] && isset($usernames[$val['onshelf_by']])) {
+                $val['onshelf_by_name'] = $usernames[$val['onshelf_by']];
+            } else {
+                $val['onshelf_by_name'] = '';
+            }
+            $list[$key] = $val;
+        }
+        return $list;
     }
 
 }
