@@ -3001,7 +3001,7 @@ class GoodsModel extends PublicModel {
                 $fileId = postfile($data, $url);
                 if ($fileId) {
                     //unlink($localDir);    //清理本地空间
-                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=expireTemplate.xls', 'name' => $fileId['name']);
+                    $data = array('url' => $fastDFSServer . $fileId['url'] . '?filename=expireTemplate.xlsx', 'name' => $fileId['name']);
                     redisHashSet('sku', 'expireTemp', json_encode($data));
                     return $data;
                 }
