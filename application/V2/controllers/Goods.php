@@ -652,8 +652,14 @@ class GoodsController extends PublicController {
     /**
      * 到期提醒模板导出
      */
-    public function expireTmpAction(){
-
+    public function expireTempAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->expireTemp();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
     /**
