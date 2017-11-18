@@ -289,12 +289,8 @@ class QuoteController extends PublicController{
      */
     public function updateSkuBatchAction(){
         $request = $this->validateRequests();
-        //判断每条记录的数字类型是否正确
-        foreach($request['data'] as $value){
 
-        }
-
-        $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
+        $response = $this->quoteItemModel->updateItemBatch($request['data'],$this->user['id']);
         $this->jsonReturn($response);
     }
 
