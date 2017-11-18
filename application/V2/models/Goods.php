@@ -3146,14 +3146,18 @@ class GoodsModel extends PublicModel {
                     $result = $gcpModel->where($where)->save($data);
                     if(!$result){
                         $this->rollback();
-                        return false;;
+                        return false;
                     }
                 }else{
                     $this->rollback();
-                    return false;;
+                    return false;
                 }
             }
             $this->commit();
+            $es_goods_model = new EsGoodsModel();
+            foreach(['zh','en','es','ru'] as $lang){
+                $es_goods_model->create_data($input['sku'], $lang);
+            }
             return true;
         }
         return false;
