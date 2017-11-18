@@ -163,7 +163,7 @@ class InquiryitemModel extends PublicModel {
         }
         if (empty($condition['inquiry_rows'])) {
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = '没有询单行数!';
             return $results;
         }
 
@@ -243,7 +243,7 @@ class InquiryitemModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->delete();
+            $id = $this->where($where)->save(['deleted_flag'=>'Y']);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
