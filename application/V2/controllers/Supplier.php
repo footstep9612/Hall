@@ -640,7 +640,9 @@ class SupplierController extends PublicController {
             $this->setMessage('供应商ID必须是数字!');
             $this->jsonReturn();
         }
-        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+        $inquirymodel = new InquiryModel();
+
+        $condition['org_id'] = $inquirymodel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
         if (!$condition['org_id']) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您不属于易瑞或事业部,没有供应商审核权限!');
