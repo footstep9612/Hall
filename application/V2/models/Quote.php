@@ -262,12 +262,14 @@ class QuoteModel extends PublicModel {
                 ]));
 
                 $quoteItemModel = new QuoteItemModel();
-                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
-
                 $quoteItemLogiModel = new QuoteItemLogiModel();
+
+                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
+                $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'deleted_flag'=>'N'])->getField('id',true);
+
                 foreach ($quoteItemIds as $quoteItemId) {
-                    $logiId = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'quote_item_id' => $quoteItemId])->getField('id',true);
-                    if(!$logiId){
+
+                    if(!in_array($quoteItemId,$logiIds)){
                         $quoteItemLogiModel->add($quoteItemLogiModel->create([
                             'inquiry_id' => $request['inquiry_id'],
                             'quote_id' => $quoteInfo['id'],

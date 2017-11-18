@@ -164,12 +164,15 @@ class QuoteController extends PublicController{
         $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
-        //判断是否存在数据，如果是退回报价，在此提交，就不在新插入报价单
+        $quoteModel = new QuoteModel();
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        //验证数据
+        $quoteInfo  = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee,total_exw_price,total_quote_price,total_insu_fee')->find();
+
+        //判断是否存在数据，如果是退回报价更新数据，如果不是就插入一条数据
         $final = $finalQuoteModel->field('id')->where('inquiry_id='.$request['inquiry_id'])->find();
 
         if(empty($final)){
-            $quoteModel = new QuoteModel();
-            $quoteInfo  = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee,total_exw_price,total_quote_price,total_insu_fee')->find();
             $finalQuoteModel->add($finalQuoteModel->create([
                 'inquiry_id'           => $request['inquiry_id'],
                 'buyer_id'             => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
@@ -186,13 +189,47 @@ class QuoteController extends PublicController{
                 'created_by'           => $this->user['id'],
                 'created_at'           => date('Y-m-d H:i:s')
             ]));
+        }else{
+            $finalQuoteModel->where('inquiry_id='.$request['inquiry_id'])->save($finalQuoteModel->create([
+                'inquiry_id'           => $request['inquiry_id'],
+                'buyer_id'             => $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('buyer_id'),
+                'quote_id'             => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                'payment_period'       => $quoteInfo['payment_period'],
+                'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
+                'delivery_period'      => $quoteInfo['delivery_period'],
+                'total_purchase'       => $quoteInfo['total_purchase'],
+                'total_logi_fee'       => $quoteInfo['total_logi_fee'],
+                'total_bank_fee'       => $quoteInfo['total_bank_fee'],
+                'total_exw_price'      => $quoteInfo['total_exw_price'],
+                'total_quote_price'    => $quoteInfo['total_quote_price'],
+                'total_insu_fee'       => $quoteInfo['total_insu_fee'],
+                'created_by'           => $this->user['id'],
+                'created_at'           => date('Y-m-d H:i:s')
+            ]));
+        }
 
-            $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
+        $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
 
-            $finalQuoteItemModel = new FinalQuoteItemModel();
-            foreach ($quoteItems as $quote=>$item){
+        $finalItems = $finalQuoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('id',true);
+        $quote_id = $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
+
+        foreach ($quoteItems as $quote=>$item){
+            if(in_array($item['id'],$finalItems)){
                 $finalQuoteItemModel->add($finalQuoteItemModel->create([
-                    'quote_id'         => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'quote_id'         => $quote_id,
+                    'inquiry_id'       => $request['inquiry_id'],
+                    'inquiry_item_id'  => $item['inquiry_item_id'],
+                    'quote_item_id'    => $item['id'],
+                    'sku'              => $item['sku'],
+                    'supplier_id'      => $item['supplier_id'],
+                    'quote_unit_price' => $item['quote_unit_price'],
+                    'exw_unit_price'   => $item['exw_unit_price'],
+                    'created_by'       => $this->user['id'],
+                    'created_at'       => date('Y-m-d H:i:s'),
+                ]));
+            }else{
+                $finalQuoteItemModel->where('id='.$item['id'])->save($finalQuoteItemModel->create([
+                    'quote_id'         => $quote_id,
                     'inquiry_id'       => $request['inquiry_id'],
                     'inquiry_item_id'  => $item['inquiry_item_id'],
                     'quote_item_id'    => $item['id'],
@@ -204,6 +241,7 @@ class QuoteController extends PublicController{
                     'created_at'       => date('Y-m-d H:i:s'),
                 ]));
             }
+
         }
 
         $this->jsonReturn();
@@ -278,8 +316,14 @@ class QuoteController extends PublicController{
     public function updateSkuAction(){
 
         $request = $this->validateRequests();
-        $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
-        $this->jsonReturn($response);
+        //验证必填项是否填写
+        $checkitem = $this->checkSkuFieldsAction($request['data']);
+        if($checkitem['code'] == '1'){
+            $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
+            $this->jsonReturn($response);
+        }else{
+            $this->jsonReturn($checkitem);
+        }
     }
 
     /**
@@ -496,5 +540,75 @@ class QuoteController extends PublicController{
         return $request;
     }
 
+    /**
+     * 验证报价单SKU必填和数字字段
+     * @param $request
+     * @return mixed
+     */
+    public function checkSkuFieldsAction($data=[]){
+
+        foreach($data as $key=>$value){
+            if(empty($value['reason_for_no_quote'])){
+                //供应商活着未报价分析
+                if(empty($value['supplier_id'])){
+                    return ['code'=>'-104','message'=>'供应商未选择'];
+                }
+                //品牌
+                if (empty($value['brand'])){
+                    return ['code'=>'-104','message'=>'品牌必填'];
+                }
+                //采购单价
+                if (empty($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必填'];
+                }
+                if (!is_numeric($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                }
+                //采购币种
+                if (empty($value['purchase_price_cur_bn'])){
+                    return ['code'=>'-104','message'=>'采购币种必选'];
+                }
+                //毛重
+                if (empty($value['gross_weight_kg'])){
+                    return ['code'=>'-104','message'=>'毛重必填'];
+                }
+                if (!is_numeric($value['gross_weight_kg'])){
+                    return ['code'=>'-104','message'=>'毛重必须是数字'];
+                }
+                //包装体积
+                if (empty($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必填'];
+                }
+                if (!is_numeric($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                }
+                //包装方式
+                if (empty($value['package_mode'])){
+                    return ['code'=>'-104','message'=>'包装方式必填'];
+                }
+                //产品来源
+                if (empty($value['goods_source'])){
+                    return ['code'=>'-104','message'=>'产品来源必填'];
+                }
+                //存放地
+                if (empty($value['stock_loc'])){
+                    return ['code'=>'-104','message'=>'存放地必填'];
+                }
+                //交货期(天)，报价有效期
+                if (empty($value['delivery_days'])){
+                    return ['code'=>'-104','message'=>'交货期必填'];
+                }
+                if (!is_numeric($value['delivery_days'])){
+                    return ['code'=>'-104','message'=>'交货期必须是数字'];
+                }
+                //报价有效期
+                if (empty($value['period_of_validity'])){
+                    return ['code'=>'-104','message'=>'报价有效期必填'];
+                }
+            }
+        }
+
+        return ['code'=>'1','message'=>'验证通过'];
+    }
 }
 
