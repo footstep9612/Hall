@@ -3107,7 +3107,6 @@ class GoodsModel extends PublicModel {
 
         $userInfo = getLoinInfo();
 
-
         if(isset($input['supplier_cost']) && $input['supplier_cost']){
             $this->startTrans();
             foreach($input['supplier_cost'] as $r){
@@ -3147,11 +3146,11 @@ class GoodsModel extends PublicModel {
                     $result = $gcpModel->where($where)->save($data);
                     if(!$result){
                         $this->rollback();
-                        break;
+                        return false;;
                     }
                 }else{
                     $this->rollback();
-                    break;
+                    return false;;
                 }
             }
             $this->commit();
