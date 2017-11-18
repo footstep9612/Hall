@@ -116,7 +116,7 @@ class BizdivitionController extends PublicController{
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
-            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,sku,qty,unit')->select();
+            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->field('id,sku,qty,unit')->select();
 
             $quoteItemModel = new QuoteItemModel();
             foreach ($inquiryItems as $item=>$value){

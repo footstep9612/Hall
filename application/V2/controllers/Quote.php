@@ -370,7 +370,7 @@ class QuoteController extends PublicController{
 
         //先删除询单SKU，在删除报价单SKU，最后删除物流和市场报价单SKU
         $this->inquiryItemModel->startTrans();
-        $results = $this->inquiryItemModel->deleteData($inquiryItemIds);    //删除询单SKU
+        $results = $this->inquiryItemModel->deleteData($request);    //删除询单SKU
         if($results['code'] == 1){
             //判断报价单SKU表是否存在数据，有就删除
             $quoteItemIds = $this->quoteItemModel->where('inquiry_item_id IN('.$inquiryItemIds.')')->getField('id',true);
