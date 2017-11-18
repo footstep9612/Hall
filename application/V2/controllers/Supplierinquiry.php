@@ -60,6 +60,7 @@ class SupplierinquiryController extends PublicController {
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID不能为空!');
+            $this->jsonReturn();
         }
         $supplier_inquiry_model = new SupplierInquiryModel();
         $info = $supplier_inquiry_model->Info($supplier_id);
