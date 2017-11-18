@@ -145,6 +145,49 @@ class QuoteItemModel extends PublicModel {
 
     }
 
+    /**
+     * 保存SKU信息，不加任何必填校验
+     * @param $data 数据对象
+     * @param $user 当前用户
+     *
+     * @return array|bool
+     */
+    public function updateItemBatch($data,$user){
+
+        foreach ($data as $key=>$value){
+
+            if(!empty($value['purchase_unit_price'])){
+                if (!is_numeric($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                }
+            }
+            if(!empty($value['gross_weight_kg'])) {
+                if (!is_numeric($value['gross_weight_kg'])) {
+                    return ['code' => '-104', 'message' => '毛重必须是数字'];
+                }
+            }
+            if(!empty($value['package_size'])){
+                if (!is_numeric($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                }
+            }
+            if(!empty($value['delivery_days'])) {
+                if (!is_numeric($value['delivery_days'])) {
+                    return ['code' => '-104', 'message' => '交货期必须是数字'];
+                }
+            }
+
+            $value['updated_at'] = date('Y-m-d H:i:s');
+            $value['updated_by'] = $user;
+
+            $this->save($this->create($value));
+
+
+        }
+        return true;
+
+    }
+
     public function syncSku($request,$user){
 
         $quoteModel = new QuoteModel();

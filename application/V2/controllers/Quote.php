@@ -10,6 +10,7 @@ class QuoteController extends PublicController{
     private $quoteModel;
     private $quoteItemModel;
     private $inquiryModel;
+    private $inquiryItemModel;
 
     private $requestParams = [];
 
@@ -20,6 +21,7 @@ class QuoteController extends PublicController{
         $this->quoteModel     = new QuoteModel();
         $this->quoteItemModel = new QuoteItemModel();
         $this->inquiryModel   = new InquiryModel();
+        $this->inquiryItemModel = new InquiryItemModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -273,11 +275,25 @@ class QuoteController extends PublicController{
     }
 
     /**
-     * 保存SKU信息
+     * 保存SKU信息，加校验
      */
     public function updateSkuAction(){
 
         $request = $this->validateRequests();
+        $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
+        $this->jsonReturn($response);
+    }
+
+    /**
+     * 批量保存SKU信息，不加校验
+     */
+    public function updateSkuBatchAction(){
+        $request = $this->validateRequests();
+        //判断每条记录的数字类型是否正确
+        foreach($request['data'] as $value){
+
+        }
+
         $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
         $this->jsonReturn($response);
     }
@@ -341,6 +357,69 @@ class QuoteController extends PublicController{
         $response = $this->quoteItemModel->delItem($quoteItemIds);
         $this->jsonReturn($response);
 
+    }
+    /**
+     * 删除所有相关的SKU
+     */
+    public function delItemAllAction(){
+        $quoteItemLogiModel = new QuoteItemLogiModel();
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+
+        $request = $this->validateRequests('id');
+        $inquiryItemIds = $request['id'];
+
+        //先删除询单SKU，在删除报价单SKU，最后删除物流和市场报价单SKU
+        $this->inquiryItemModel->startTrans();
+        $results = $this->inquiryItemModel->deleteData($inquiryItemIds);    //删除询单SKU
+        if($results['code'] == 1){
+            //判断报价单SKU表是否存在数据，有就删除
+            $quoteItemIds = $this->quoteItemModel->where('inquiry_item_id IN('.$inquiryItemIds.')')->getField('id',true);
+            if($quoteItemIds){
+                $resquote = $this->quoteItemModel->delItem($inquiryItemIds);    //删除报价单SKU
+                if($resquote){
+                    $quoteItemId = implode(',',$quoteItemIds);
+
+                    //判断物流SKU表是否存在数据，有就删除
+                    $logiItemIds = $quoteItemLogiModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    if($logiItemIds){
+                        $logiItemId['r_id'] = implode(',',$logiItemIds);
+                        $reslogi = $quoteItemLogiModel->delRecord($logiItemId);
+                        if(!$reslogi){
+                            $this->inquiryItemModel->rollback();
+                            $results['code'] = '-101';
+                            $results['messaage'] = '删除失败!';
+                            $this->jsonReturn($results);
+                        }
+                    }
+
+                    //判断物流SKU表是否存在数据，有就删除
+                    $finalItemIds = $finalQuoteItemModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    if($finalItemIds){
+                        $finalItemId['id'] = implode(',',$finalItemIds);
+                        $resfinal = $finalQuoteItemModel->delItem($finalItemId);
+                        if(!$resfinal){
+                            $this->inquiryItemModel->rollback();
+                            $results['code'] = '-101';
+                            $results['messaage'] = '删除失败!';
+                            $this->jsonReturn($results);
+                        }
+                    }
+                    $this->inquiryItemModel->commit();
+                    $this->jsonReturn($results);
+                }else{
+                    $this->inquiryItemModel->rollback();
+                    $results['code'] = '-101';
+                    $results['messaage'] = '删除失败!';
+                    $this->jsonReturn($results);
+                }
+            }else{
+                $this->inquiryItemModel->commit();
+                $this->jsonReturn($results);
+            }
+        }else{
+            $this->inquiryItemModel->rollback();
+            $this->jsonReturn($results);
+        }
     }
 
     /**
