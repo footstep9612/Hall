@@ -11,7 +11,7 @@
  * @author  zhongyg
  * @date    2017-8-5 9:54:14
  * @version V2.0
- * @desc   
+ * @desc
  */
 class OrgModel extends PublicModel {
 
@@ -24,7 +24,7 @@ class OrgModel extends PublicModel {
     }
 
     /**
-     * Description of 获取组织名称    
+     * Description of 获取组织名称
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
      * @version V2.0
@@ -41,6 +41,41 @@ class OrgModel extends PublicModel {
         } else {
             return '';
         }
+    }
+
+    /**
+     * @desc 获取询单办理部门组ID
+     *
+     * @param array $groupId 当前用户的全部组ID
+     * @param string $membership 是否属于erui
+     * @param string $org_node 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-10-20
+     */
+    public function getOrgIdsById($groupId, $membership = 'erui', $org_node = 'ub') {
+        $where = [
+            'id' => ['in', $groupId ?: ['-1']],
+        ];
+        if ($membership && $org_node) {
+
+            $map1['org_node'] = $org_node;
+            $map1['membership'] = $membership;
+            $map1['_logic'] = 'or';
+            $where['_complex'] = $map1;
+        } elseif ($org_node) {
+            $where['org_node'] = $org_node;
+        } elseif ($membership) {
+            $where['membership'] = $membership;
+        }
+        $orgList = $this->field('id')->where($where)->select();
+
+        // 用户所在部门的组ID
+        $orgIds = [];
+        foreach ($orgList as $org) {
+            $orgIds[] = $org['id'];
+        }
+        return $orgIds;
     }
 
 }

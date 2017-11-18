@@ -29,8 +29,9 @@ class SupplierchainController extends PublicController {
      */
     public function listChainAction() {
         $condition = $this->getPut();
-        $inquirymodel = new InquiryModel();
-        $condition['org_id'] = $inquirymodel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
+
+        $org_model = new OrgModel();
+        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
         if (!$condition['org_id']) {
             $this->setCode(MSG::ERROR_PARAM);
@@ -63,8 +64,8 @@ class SupplierchainController extends PublicController {
     public function listAction() {
         $condition = $this->getPut();
         $supplier_model = new SupplierChainModel();
-        $inquirymodel = new InquiryModel();
-        $condition['org_id'] = $inquirymodel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+        $org_model = new OrgModel();
+        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
 
         if (!$condition['org_id']) {
             $this->setCode(MSG::ERROR_PARAM);
@@ -96,8 +97,8 @@ class SupplierchainController extends PublicController {
     public function batchUpdateLevelAction() {
 
         $supplier_ids = $this->getPut('supplier_id');
-        $inquirymodel = new InquiryModel();
-        $condition['org_id'] = $inquirymodel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
+        $org_model = new OrgModel();
+        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
         if (!$condition['org_id']) {
             $this->setCode(MSG::ERROR_PARAM);
@@ -148,8 +149,8 @@ class SupplierchainController extends PublicController {
     public function CheckedAction() {
         $supplier_level = $this->getPut('supplier_level');
 
-        $inquirymodel = new InquiryModel();
-        $condition['org_id'] = $inquirymodel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
+        $org_model = new OrgModel();
+        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
         if (!$condition['org_id']) {
             $this->setCode(MSG::ERROR_PARAM);
