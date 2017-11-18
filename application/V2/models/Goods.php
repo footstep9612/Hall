@@ -778,6 +778,7 @@ class GoodsModel extends PublicModel {
                         fclose($fp);
                         return false;
                     }
+
                     $supplier_model = new GoodsSupplierModel();
                     $res = $supplier_model->editSupplier($supplierCost, $sku, $editer, $spu); //供应商
                     if (!$res || $res['code'] != 1) {

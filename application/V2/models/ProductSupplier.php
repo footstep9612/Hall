@@ -234,35 +234,41 @@ class ProductSupplierModel extends PublicModel {
                 $data['spu'] = $spu;
                 $data['status'] = 'VALID';
                 $data['supplier_id'] = $data['supplier_id'];
-                if (isset($data['supplier_id']) && $data['supplier_id']) {
-
-                    $product_supplier = $this->field('id')->where(['supplier_id' => $data['supplier_id'], 'spu' => $spu])->find();
+                if (!isset($data['supplier_id']) || empty($data['supplier_id'])) {
+                    continue;
                 }
-                $product_model = new ProductModel();
+                $product_supplier = $this->field('id,deleted_flag')->where(['supplier_id' => $data['supplier_id'], 'spu' => $spu ])->find();
+
+                /** 感觉这里的brand就是个鸡肋，而且没用 　暂时隐藏掉　*/
+                /*$product_model = new ProductModel();
                 $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
                 if (empty($product)) {
                     $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
                 }
-//存在SPU编辑,反之新增,后续扩展性
                 $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
+                */
                 if ($product_supplier) {
-                    $data['updated_by'] = $admin;
-                    $data['updated_at'] = date('Y-m-d H:i:s');
+                    if($product_supplier['deleted_flag']!='N'){
+                        $data['updated_by'] = $admin;
+                        $data['updated_at'] = date('Y-m-d H:i:s');
 
-                    $where = [
-                        'id' => $product_supplier['id'],
-                    ];
-                    $res = $this->where($where)->save($data);
-                    if ($res) {
+                        $where = [
+                            'id' => $product_supplier['id'],
+                        ];
+                        $res = $this->where($where)->save($data);
+                        if ($res) {
+                            $results['code'] = '1';
+                            $results['message'] = '成功！';
+                        } else {
+                            $results['code'] = '-101';
+                            $results['message'] = '失败!';
+                            return $results;
+                        }
+                    }else{
                         $results['code'] = '1';
                         $results['message'] = '成功！';
-                    } else {
-                        $results['code'] = '-101';
-                        $results['message'] = '失败!';
                     }
                 } else {
-
-                    $data['spu'] = $spu;
                     $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s');
                     $res = $this->add($data);
@@ -272,10 +278,10 @@ class ProductSupplierModel extends PublicModel {
                     } else {
                         $results['code'] = '-101';
                         $results['message'] = '失败!';
+                        return $results;
                     }
                 }
             }
-
             return $results;
         } catch (Exception $e) {
             Log::write(__CLASS__);

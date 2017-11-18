@@ -119,12 +119,14 @@ class GoodsSupplierModel extends PublicModel {
         if (empty($input) || empty($sku) || empty($spu)) {
             return false;
         }
-
         $this->where(['sku' => $sku])->save(['deleted_flag' => 'Y', 'status' => 'DELETED']);
         $results = array();
         try {
             $product_supplier_model = new ProductSupplierModel();
-            $product_supplier_model->editSupplier($input, $spu, $admin);
+            $psm = $product_supplier_model->editSupplier($input, $spu, $admin);
+            if (!$psm || $psm['code'] != 1) {
+                return $psm;
+            }
             foreach ($input as $value) {
                 $data = $this->checkParam($value, $sku);
                 $data['deleted_flag'] = 'N';
@@ -132,53 +134,54 @@ class GoodsSupplierModel extends PublicModel {
                 $data['spu'] = $spu;
                 $data['status'] = 'VALID';
                 $data['supplier_id'] = $data['supplier_id'];
-                if (isset($data['supplier_id']) && $data['supplier_id']) {
-
-                    $goods_supplier = $this->field('id')->where(['supplier_id' => $data['supplier_id'], 'sku' => $sku])->find();
+                if (!isset($data['supplier_id']) || empty($data['supplier_id'])) {
+                    continue;
                 }
-                $product_model = new ProductModel();
+                $goods_supplier = $this->field('id,deleted_flag')->where(['supplier_id' => $data['supplier_id'], 'sku' => $sku])->find();
+
+                /** 这里这个brand有用吗   暂时隐藏掉 */
+                /*$product_model = new ProductModel();
                 $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
                 if (empty($product)) {
                     $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
                 }
                 //存在sku编辑,反之新增,后续扩展性
                 $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
+                */
                 if ($goods_supplier) {
-                    $data['updated_by'] = $admin;
-                    $data['updated_at'] = date('Y-m-d H:i:s');
-
-                    $where = [
-                        'id' => $goods_supplier['id'],
-                    ];
-                    $res = $this->where($where)->save($data);
-
-
-                    if ($res) {
+                    if( $goods_supplier['deleted_flag'] != 'N'){
+                        $data['updated_by'] = $admin;
+                        $data['updated_at'] = date('Y-m-d H:i:s');
+                        $where = [
+                            'id' => $goods_supplier['id'],
+                        ];
+                        $res = $this->where($where)->save($data);
+                        if ($res) {
+                            $results['code'] = '1';
+                            $results['message'] = '成功！';
+                        } else {
+                            $results['code'] = '-101';
+                            $results['message'] = '失败!';
+                            return $results;
+                        }
+                    }else{
                         $results['code'] = '1';
                         $results['message'] = '成功！';
-                    } else {
-                        $results['code'] = '-101';
-                        $results['message'] = '失败!';
                     }
                 } else {
-
-                    $data['sku'] = $sku;
-                    $data['spu'] = $spu;
-
                     $data['created_by'] = $admin;
                     $data['created_at'] = date('Y-m-d H:i:s');
                     $res = $this->add($data);
-
                     if ($res) {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
                     } else {
                         $results['code'] = '-101';
                         $results['message'] = '失败!';
+                        return $results;
                     }
                 }
             }
-
             return $results;
         } catch (Exception $e) {
             Log::write(__CLASS__);
