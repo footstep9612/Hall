@@ -145,12 +145,13 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
-        $supplier = $supplier_model->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
+        $supplier = $supplier_model->field(['supplier_level,erui_status,status'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
         if (!$supplier) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
+
         if (!$supplier_level && empty($supplier['supplier_level'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商等级不能为空!');
@@ -161,6 +162,16 @@ class SupplierchainController extends PublicController {
         if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
+            $this->jsonReturn();
+        }
+        if (!in_array($supplier['status'], ['APPROVED', 'VALID'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('未通过供应商审核的供应商,不能进行供应链审核!!');
+            $this->jsonReturn();
+        }
+        if ($supplier['erui_status'] == 'VALID') {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('已通过供应链审核,不需要重复审核!');
             $this->jsonReturn();
         }
 

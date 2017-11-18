@@ -382,39 +382,34 @@ class SupplierChainModel extends PublicModel {
         ];
 
         $info = $this->field('status')->where($where)->find();
-        if (in_array($info['status'], ['APPROVED', 'VALID'])) {
-            $data['supplier_level'] = $supplier_level;
-            $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
-            $data['erui_status'] = self::ERUI_STATUS_VALID;
-            $data['erui_checked_at'] = date('Y-m-d H:i:s');
-            $data['erui_checked_by'] = defined('UID') ? UID : 0;
-            $this->startTrans();
-            $flag = $this->where($where)->save($data);
-            if (!$flag) {
-                $this->rollback();
-                return FALSE;
-            }
-            $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = 'APPROVED';
-            $condition['erui_member_flag'] = $data['is_erui'];
-            $condition['supplier_id'] = $supplier_id;
-            $condition['org_id'] = $info['org_id'];
-            $condition['rating'] = $supplier_level;
-            $flag_log = $supplierchecklog_model->create_data($condition);
-            if (!$flag_log && $this->error) {
-                $this->rollback();
-                jsonReturn(null, MSG::MSG_FAILED, $this->error);
-            } elseif (!$flag_log) {
-                $this->rollback();
-                jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
-            } else {
-                $this->commit();
-                return true;
-            }
-        } elseif ($info) {
-            jsonReturn($data, MSG::MSG_FAILED, '供应商审核未通过,不能进行供应链审核!');
+
+        $data['supplier_level'] = $supplier_level;
+        $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
+        $data['erui_status'] = self::ERUI_STATUS_VALID;
+        $data['erui_checked_at'] = date('Y-m-d H:i:s');
+        $data['erui_checked_by'] = defined('UID') ? UID : 0;
+        $this->startTrans();
+        $flag = $this->where($where)->save($data);
+        if (!$flag) {
+            $this->rollback();
+            return FALSE;
+        }
+        $supplierchecklog_model = new SupplierCheckLogModel();
+        $condition['status'] = 'APPROVED';
+        $condition['erui_member_flag'] = $data['is_erui'];
+        $condition['supplier_id'] = $supplier_id;
+        $condition['org_id'] = $info['org_id'];
+        $condition['rating'] = $supplier_level;
+        $flag_log = $supplierchecklog_model->create_data($condition);
+        if (!$flag_log && $this->error) {
+            $this->rollback();
+            jsonReturn(null, MSG::MSG_FAILED, $this->error);
+        } elseif (!$flag_log) {
+            $this->rollback();
+            jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {
-            jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
+            $this->commit();
+            return true;
         }
     }
 
