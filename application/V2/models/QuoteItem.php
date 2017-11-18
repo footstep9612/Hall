@@ -192,14 +192,17 @@ class QuoteItemModel extends PublicModel {
 
         $quoteModel = new QuoteModel();
         $inquiryItemModel = new InquiryItemModel();
-        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->select();
+        //查询所有已经添加过的，后面判断是添加还是修改
+        $quoteItems = $this->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('inquiry_item_id',true);
+        $quoteId = $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
+
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->select();
 
         foreach ($inquiryItems as $inquiry=>$item){
-
-            $hasFlag = $this->where(['inquiry_item_id'=>$item['id']])->find();
-            if (!$hasFlag){
+            //判断是添加还是修改
+            if (!in_array($item['id'],$quoteItems)){
                 $this->add($this->create([
-                    'quote_id' => $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'quote_id' => $quoteId,
                     'inquiry_id' => $item['inquiry_id'],
                     'inquiry_item_id' => $item['id'],
                     'sku' => $item['sku'],
@@ -208,7 +211,6 @@ class QuoteItemModel extends PublicModel {
                     'created_by' => $user,
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
-
             }
 
         }
