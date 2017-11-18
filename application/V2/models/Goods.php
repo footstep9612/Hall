@@ -3095,6 +3095,71 @@ class GoodsModel extends PublicModel {
     }
 
     /**
+     * 过期修改
+     * @param array $input
+     * @return bool
+     */
+    public function expireUpdate($input = []){
+        if(!isset($input['sku']) || empty($input['sku'])){
+            jsonReturn('' , ErrorMsg::ERROR_PARAM, 'SKU不能为空');
+        }
+
+        $userInfo = getLoinInfo();
+
+
+        if(isset($input['supplier_cost']) && $input['supplier_cost']){
+            $this->startTrans();
+            foreach($input['supplier_cost'] as $r){
+                $where = ['sku'=>$input['sku']];
+                if(isset($r['id'])){
+                    $where['id'] = $r['id'];
+                }else{
+                    $this->rollback();
+                    jsonReturn('' , ErrorMsg::ERROR_PARAM, '供应商价格有效期ID不能为空');
+                }
+                $data = [];
+                if(isset($r['price'])){
+                    if(!preg_match('/^\d+(\.\d{1,4})?$/', $r['price'])){
+                        $this->rollback();
+                        jsonReturn('', ErrorMsg::FAILED, '最小价格有误');
+                    }
+                    $data['price'] = $r['price'];
+                }
+                if(isset($r['max_price'])){
+                    if(!preg_match('/^\d+(\.\d{1,4})?$/', $r['max_price'])){
+                        $this->rollback();
+                        jsonReturn('', ErrorMsg::FAILED, '最大价格有误');
+                    }
+                    $data['max_price'] = $r['max_price'];
+                }
+                if(isset($r['price_validity']) && !empty($r['price_validity'])){
+                    if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$r['price_validity'])){
+                        $this->rollback();
+                        jsonReturn('', ErrorMsg::FAILED, '有效期有误');
+                    }
+                    $data['price_validity'] = $r['price_validity'];
+                }
+                if(!empty($data)){
+                    $gcpModel = new GoodsCostPriceModel();
+                    $data['updated_by'] = $userInfo['id'];
+                    $data['updated_at'] = date('Y-m-d H:i:s',time());
+                    $result = $gcpModel->where($where)->save($data);
+                    if(!$result){
+                        $this->rollback();
+                        break;
+                    }
+                }else{
+                    $this->rollback();
+                    break;
+                }
+            }
+            $this->commit();
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param array $data_title  二维数组
      *  [
      *      0 => [...],
@@ -3191,7 +3256,11 @@ class GoodsModel extends PublicModel {
         }
     }
 
-
+    /**
+     * 用于获取es数据
+     * @param $data
+     * @return mixed
+     */
     private function _getdata($data) {
         $user_ids = [];
         foreach ($data['hits']['hits'] as $key => $item) {

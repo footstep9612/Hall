@@ -694,6 +694,19 @@ class GoodsController extends PublicController {
         }
     }
 
+    /**
+     * 到期修改
+     */
+    public function expireUpdateAction(){
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->expireUpdate($this->put_data);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 
     /********************************************
      * 临时导出
