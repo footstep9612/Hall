@@ -602,11 +602,11 @@ class SupplierController extends PublicController {
     public function getSkuSupplierListAction() {
         $data = $this->put_data;
 
-        /*if (empty($data['sku'])) {
-            $datajson['code'] = -104;
-            $datajson['message'] = 'SKU为空!';
-            $this->jsonReturn($datajson);
-        }*/
+        /* if (empty($data['sku'])) {
+          $datajson['code'] = -104;
+          $datajson['message'] = 'SKU为空!';
+          $this->jsonReturn($datajson);
+          } */
 
         $model = new SupplierModel();
         $data = $model->getSkuSupplierList($data);
@@ -633,15 +633,18 @@ class SupplierController extends PublicController {
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
+            $this->jsonReturn();
         }
         if (!is_numeric($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字!');
+            $this->jsonReturn();
         }
         $status = $this->getPut('status');
         if (empty($status)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择审核状态!');
+            $this->jsonReturn();
         }
         $note = $this->getPut('note');
         $supplier_model = new SupplierChainModel();

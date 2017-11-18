@@ -333,7 +333,7 @@ class InquiryController extends PublicController {
             $data = [
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
-                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub','erui']]),
+                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub', 'erui']]),
                 'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
@@ -573,21 +573,21 @@ class InquiryController extends PublicController {
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-             $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-             $results['data']['country_name'] = $rs10['name'];
-         }
-         //询单所在区域
-         if (!empty($results['data']['area_bn'])) {
-             $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-             $results['data']['area_name'] = $rs11['name'];
-         }
-        
-         if (!empty($results['data'])) {
+            $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $results['data']['country_name'] = $rs10['name'];
+        }
+        //询单所在区域
+        if (!empty($results['data']['area_bn'])) {
+            $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $results['data']['area_name'] = $rs11['name'];
+        }
+
+        if (!empty($results['data'])) {
             $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
-            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : '暂无';
-            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : '暂无';
-            $results['data']['project_name'] = $results['data']['project_name'] ? : '暂无';
-         }
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: '暂无';
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: '暂无';
+            $results['data']['project_name'] = $results['data']['project_name'] ?: '暂无';
+        }
 
         $this->jsonReturn($results);
     }
@@ -1061,6 +1061,22 @@ class InquiryController extends PublicController {
             $results['message'] = '找不到相关细信息！';
         }
         $this->jsonReturn($results);
+    }
+
+    /**
+     * 询单导出
+     */
+    public function exportAction() {
+        $inquiry_model = new InquiryModel();
+
+        set_time_limit(0);
+        $localDir = $inquiry_model->export();
+
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
 }

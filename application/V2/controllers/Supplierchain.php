@@ -78,24 +78,29 @@ class SupplierchainController extends PublicController {
      * @desc
      */
     public function batchUpdateLevelAction() {
-        $supplier_level = $this->getPut('supplier_level');
-        if (!$supplier_level) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级不能为空!');
-        }
-        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
-        }
+
         $supplier_ids = $this->getPut('supplier_id');
 
         if (empty($supplier_ids)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
+            $this->jsonReturn();
         }
         if (!is_array($supplier_ids)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字数组!');
+            $this->jsonReturn();
+        }
+        $supplier_level = $this->getPut('supplier_level');
+        if (!$supplier_level) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商等级不能为空!');
+            $this->jsonReturn();
+        }
+        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
+            $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
         $data = $supplier_model->batchUpdateLevel($supplier_ids, $supplier_level);
@@ -119,29 +124,46 @@ class SupplierchainController extends PublicController {
      */
     public function CheckedAction() {
         $supplier_level = $this->getPut('supplier_level');
-        if (!$supplier_level) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级不能为空!');
-        }
-        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
-        }
+
+
+
         $supplier_id = $this->getPut('supplier_id');
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
+            $this->jsonReturn();
         }
         if (!is_numeric($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字!');
+            $this->jsonReturn();
         }
         $is_erui = $this->getPut('is_erui');
         if (empty($is_erui)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择是否符合易瑞!');
+            $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
+        $supplier = $supplier_model->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
+        if (!$supplier) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商不存在!');
+            $this->jsonReturn();
+        }
+        if (!$supplier_level && empty($supplier['supplier_level'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商等级不能为空!');
+            $this->jsonReturn();
+        } elseif (!$supplier_level && !empty($supplier['supplier_level'])) {
+            $supplier_level = $supplier['supplier_level'];
+        }
+        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
+            $this->jsonReturn();
+        }
+
         $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
