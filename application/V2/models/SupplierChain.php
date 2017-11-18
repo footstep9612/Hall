@@ -56,6 +56,12 @@ class SupplierChainModel extends PublicModel {
         }
         $this->_getValue($where, $condition, 'created_at', 'between');
         if ($is_Chain) {
+            if (isset($condition['org_id'])) {
+                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+                $map1[] = 'org_id is null';
+                $map1['_logic'] = 'or';
+                $where['_complex'] = $map1;
+            }
             $this->_getValue($where, $condition, 'erui_status');
             $this->_getValue($where, $condition, 'is_erui', 'bool');
             if (!empty($condition['erui_checked_at_end'])) {
@@ -72,7 +78,12 @@ class SupplierChainModel extends PublicModel {
                 }
             }
         } else {
-
+            if (isset($condition['org_id'])) {
+                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+                $map1[] = 'org_id is null';
+                $map1['_logic'] = 'or';
+                $where['_complex'] = $map1;
+            }
             //  $where['status'] = 'DRAFT';
             $this->_getValue($where, $condition, 'status');
             if (!empty($condition['checked_at_end'])) {
@@ -382,7 +393,6 @@ class SupplierChainModel extends PublicModel {
         ];
 
         $info = $this->field('status')->where($where)->find();
-
         $data['supplier_level'] = $supplier_level;
         $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
         $data['erui_status'] = self::ERUI_STATUS_VALID;

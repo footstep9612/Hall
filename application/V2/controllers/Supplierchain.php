@@ -29,6 +29,13 @@ class SupplierchainController extends PublicController {
      */
     public function listChainAction() {
         $condition = $this->getPut();
+        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
+
+        if (!$condition['org_id']) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您不属于易瑞,没有查看权限!');
+            $this->jsonReturn();
+        }
         $supplier_model = new SupplierChainModel();
         $data = $supplier_model->getListChain($condition);
         if ($data) {
@@ -46,7 +53,7 @@ class SupplierchainController extends PublicController {
     }
 
     /**
-     * Description of 供应链列表
+     * Description of 供应商列表
      * @author  zhongyg
      * @date    2017-11-10 13:32:36
      * @version V2.0
@@ -55,6 +62,13 @@ class SupplierchainController extends PublicController {
     public function listAction() {
         $condition = $this->getPut();
         $supplier_model = new SupplierChainModel();
+        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+
+        if (!$condition['org_id']) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您不属于事业部或易瑞,没有查看权限!');
+            $this->jsonReturn();
+        }
         $data = $supplier_model->getList($condition);
         if ($data) {
             $this->setvalue('count', $supplier_model->getCount($condition));
@@ -80,7 +94,13 @@ class SupplierchainController extends PublicController {
     public function batchUpdateLevelAction() {
 
         $supplier_ids = $this->getPut('supplier_id');
+        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
 
+        if (!$condition['org_id']) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您不属于易瑞,没有更改供应商等级权限!');
+            $this->jsonReturn();
+        }
         if (empty($supplier_ids)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
@@ -125,14 +145,21 @@ class SupplierchainController extends PublicController {
     public function CheckedAction() {
         $supplier_level = $this->getPut('supplier_level');
 
+        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['erui']]);
 
-
+        if (!$condition['org_id']) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您不属于易瑞,没有供应链审核权限!');
+            $this->jsonReturn();
+        }
         $supplier_id = $this->getPut('supplier_id');
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
             $this->jsonReturn();
         }
+
+
         if (!is_numeric($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字!');
@@ -151,6 +178,7 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
+
 
         if (!$supplier_level && empty($supplier['supplier_level'])) {
             $this->setCode(MSG::ERROR_PARAM);
