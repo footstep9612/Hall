@@ -596,7 +596,7 @@ class GoodsModel extends PublicModel {
             //获取当前用户信息
             $userInfo = getLoinInfo();
             $this->startTrans();
-            //try {
+            try {
                 $success = 0;
                 $spuModel = new ProductModel();
                 foreach ($datas as $lang => $value) {
@@ -799,13 +799,13 @@ class GoodsModel extends PublicModel {
                     fclose($fp);
                     jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
                 }
-          /*  } catch (Exception $ex) {
+            } catch (Exception $ex) {
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
                 $this->rollback();
                 flock($fp, LOCK_UN);
                 fclose($fp);
                 return false;
-            }*/
+            }
             flock($fp, LOCK_UN);
         }
         fclose($fp);
