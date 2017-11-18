@@ -189,10 +189,12 @@ class SupplierchainController extends PublicController {
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
+            $this->jsonReturn();
         }
         if (!is_numeric($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字!');
+            $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
         $data = $supplier_model->getBaseInfo($supplier_id);
