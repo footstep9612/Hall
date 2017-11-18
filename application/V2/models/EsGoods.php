@@ -380,6 +380,8 @@ class EsGoodsModel extends Model {
 
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
+
+
             $body = $this->getCondition($condition, $lang);
 
             if (!$body) {
