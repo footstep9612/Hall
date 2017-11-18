@@ -149,8 +149,6 @@ class QuoteController extends PublicController{
         $condition = $this->put_data;
         $request = $this->validateRequests('inquiry_id');
 
-        $this->changeInquiryStatus($request['inquiry_id'],'MARKET_APPROVING');
-
         $inquiryModel = new InquiryModel();
         $check_org_id = $condition['check_org_id'];//$inquiryModel->getRoleUserId($this->user['group_id'],$inquiryModel::quoteCheckRole);
 
@@ -159,7 +157,7 @@ class QuoteController extends PublicController{
             'quote_status' => 'QUOTED',
             'now_agent_id' => $check_org_id,
             'check_org_id' => $check_org_id, //事业部审核人
-            'status' => 'BIZ_APPROVING',
+            'status' => 'MARKET_APPROVING',
             'updated_by' => $this->user['id']
         ]);
 
