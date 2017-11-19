@@ -154,16 +154,19 @@ class EsgoodsController extends PublicController {
                 foreach ($list[$key]['costprices'] as $costprice) {
 
                     if (!empty($costprice['price_validity']) && $costprice['price_validity'] <= $pricevalidity_end) {
-                        $supplier_ids[] = $costprice['supplier_id'];
-                        $costprices[] = $costprice;
+                        $supplier_ids[$costprice['supplier_id']] = $costprice['supplier_id'];
+                        $costprices[$costprice['supplier_id']] = $costprice;
                     }
                 }
+                rsort($costprices);
                 $list[$key]['costprices'] = $costprices;
                 foreach ($list[$key]['suppliers'] as $supplier) {
                     if (!empty($supplier['supplier_id']) && in_array($supplier['supplier_id'], $supplier_ids)) {
-                        $suppliers[] = $supplier;
+                        $suppliers[$supplier['supplier_id']] = $supplier;
                     }
                 }
+
+                rsort($suppliers);
                 $list[$key]['suppliers'] = $suppliers;
             }
         }

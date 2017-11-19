@@ -254,6 +254,7 @@ class GoodsCostPriceModel extends PublicModel {
                         'status' => 'VALID',
                         'deleted_flag' => 'N'
                     ])
+                    ->order('supplier_id desc')
                     ->select();
             if (!$product_costprices) {
                 return [];
