@@ -2846,10 +2846,10 @@ class GoodsModel extends PublicModel {
      * @param array $input
      * @return array|bool
      */
-    public function expireImport($url){
+    public function expireImport($input = []){
         set_time_limit(0);  # 设置执行时间最大值
         //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xlsx";
-        $localFile = ExcelHelperTrait::download2local($url);
+        $localFile = ExcelHelperTrait::download2local($input['xls']);
         if (!file_exists($localFile)) {
             jsonReturn('', ErrorMsg::FAILED, '导入文件未找到');
         }
@@ -2986,7 +2986,7 @@ class GoodsModel extends PublicModel {
         $url = $server . '/V2/Uploadfile/upload';
         $data_fastDFS['tmp_name'] = $localFile;
         $data_fastDFS['type'] = 'application/excel';
-        $data_fastDFS['name'] = pathinfo($localFile, PATHINFO_BASENAME);
+        $data_fastDFS['name'] = (isset($input['name']) && !empty($input['name'])) ? $input['name'] : pathinfo($localFile, PATHINFO_BASENAME);
         $fileId = postfile($data_fastDFS, $url);
         if ($fileId) {
             unlink($localFile);
