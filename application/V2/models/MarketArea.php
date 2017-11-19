@@ -242,7 +242,7 @@ class MarketAreaModel extends PublicModel {
     private function _updateandcreate($data, $lang, $newbn) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
-            $where['bn'] = $data['bn'];
+            $where['bn'] = trim($data['bn']);
             $arr['bn'] = $newbn;
             $arr['lang'] = $lang;
             $arr['name'] = trim($data[$lang]['name']);
