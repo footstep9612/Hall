@@ -185,8 +185,8 @@ class SuppliersController extends PublicController {
             if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
                 jsonReturn('', -101, '您输入的邮箱格式不正确!');
 
-            if (strlen($item['email']) > 20)
-                jsonReturn('', -101, '您输入的邮箱大于20字!');
+            if (strlen($item['email']) > 50)
+                jsonReturn('', -101, '您输入的邮箱大于50字!');
 
             if (strlen($item['title']) > 20)
                 jsonReturn('', -101, '您输入的职位大于20字!');
@@ -425,8 +425,8 @@ class SuppliersController extends PublicController {
             if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
                 jsonReturn('', -101, '您输入的邮箱格式不正确!');
 
-            if (strlen($item['email']) > 20)
-                jsonReturn('', -101, '您输入的邮箱大于20字!');
+            if (strlen($item['email']) > 50)
+                jsonReturn('', -101, '您输入的邮箱大于50字!');
 
             if (strlen($item['title']) > 20)
                 jsonReturn('', -101, '您输入的职位大于20字!');
@@ -482,11 +482,8 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function addSupplierSupplyRecordAction() {
-        $condition = $this->put_data;
-        //去除参数左右空格
-        foreach ($condition as $key => $val) {
-            $condition[$key] = trim($val);
-        }
+        $condition = $this->_trim($this->put_data);
+    
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
