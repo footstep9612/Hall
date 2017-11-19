@@ -61,7 +61,7 @@ class SupplierChainModel extends PublicModel {
 //                $map1[] = 'org_id is null';
 //                $map1['_logic'] = 'or';
 //                $where['_complex'] = $map1;
-                $where['where'] = ['in', $condition['org_id'] ?: ['-1']];
+                $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
             }
             $this->_getValue($where, $condition, 'erui_status');
             $this->_getValue($where, $condition, 'is_erui', 'bool');
@@ -84,7 +84,7 @@ class SupplierChainModel extends PublicModel {
 //                $map1[] = 'org_id is null';
 //                $map1['_logic'] = 'or';
 //                $where['_complex'] = $map1;
-                $where['where'] = ['in', $condition['org_id'] ?: ['-1']];
+                $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
             }
             //  $where['status'] = 'DRAFT';
             $this->_getValue($where, $condition, 'status');

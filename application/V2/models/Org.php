@@ -58,7 +58,7 @@ class OrgModel extends PublicModel {
             'id' => ['in', $groupId ?: ['-1']],
         ];
         if ($membership === 'ERUI' && $org_node) {
-            $where['org_node'] = ['erui', $org_node];
+            $where['org_node'] = ['in', ['erui', $org_node]];
 //            $map1['org_node'] = $org_node;
 //            $map1['membership'] = $membership;
 //            $map1['_logic'] = 'or';

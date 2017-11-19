@@ -83,15 +83,15 @@ class SuppliersModel extends PublicModel {
             ];
         }
 //
-//        if (isset($condition['org_id'])) {
-//            $where['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
-//        }
         if (isset($condition['org_id'])) {
-            $map1['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
-            $map1[] = 'a.org_id is null';
-            $map1['_logic'] = 'or';
-            $where['_complex'] = $map1;
+            $where['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
         }
+//        if (isset($condition['org_id'])) {
+//            $map1['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+//            $map1[] = 'a.org_id is null';
+//            $map1['_logic'] = 'or';
+//            $where['_complex'] = $map1;
+//        }
 
         return $where;
     }
