@@ -355,6 +355,7 @@ class SuppliersController extends PublicController {
     public function addSupplierContactRecordAction() {
         $condition = $this->put_data;
 
+
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
@@ -482,7 +483,10 @@ class SuppliersController extends PublicController {
      */
     public function addSupplierSupplyRecordAction() {
         $condition = $this->put_data;
-
+        //去除参数左右空格
+        foreach ($condition as $key => $val) {
+            $condition[$key] = trim($val);
+        }
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
