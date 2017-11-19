@@ -523,12 +523,18 @@ class InquiryController extends PublicController {
         $employee = new EmployeeModel();
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
+        $buyerModel = new BuyerModel();
         $org = new OrgModel();
 
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
 
+        //BOSS编码
+        if (!empty($results['data']['buyer_id'])) {
+            $rs0 = $buyerModel->field('buyer_no')->where('id=' . $results['data']['buyer_id'])->find();
+            $results['data']['buyer_no'] = $rs0['buyer_no'];
+        }
         //经办人
         if (!empty($results['data']['agent_id'])) {
             $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();
