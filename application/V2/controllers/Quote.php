@@ -214,7 +214,7 @@ class QuoteController extends PublicController{
         $quote_id = $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
 
         foreach ($quoteItems as $quote=>$item){
-            if(in_array($item['id'],$finalItems)){
+            if(!in_array($item['id'],$finalItems)){
                 $finalQuoteItemModel->add($finalQuoteItemModel->create([
                     'quote_id'         => $quote_id,
                     'inquiry_id'       => $request['inquiry_id'],
