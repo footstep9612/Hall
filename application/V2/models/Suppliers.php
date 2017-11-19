@@ -201,6 +201,7 @@ class SuppliersModel extends PublicModel {
         if (!empty($condition['serial_no'])) {
             $condition['supplier_no'] = $condition['serial_no'];
         }
+
         $data = $this->create($condition);
         return $this->add($data);
     }
