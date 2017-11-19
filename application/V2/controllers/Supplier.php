@@ -657,6 +657,12 @@ class SupplierController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
+        if (empty($supplier['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请先在编辑管理编辑页面选择事业部,再对供应商进行审核!');
+            $this->jsonReturn();
+        }
+
         if (!in_array($supplier['org_id'], $condition['org_id']) && !empty($supplier['org_id'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您所属的事业部和供应商的事业部不匹配,不能对该供应商进行审核!');

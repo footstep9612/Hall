@@ -176,6 +176,7 @@ class SupplierchainController extends PublicController {
             $this->setMessage('请选择是否符合易瑞!');
             $this->jsonReturn();
         }
+
         $supplier_model = new SupplierChainModel();
         $supplier = $supplier_model->field(['supplier_level,erui_status,status'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
         if (!$supplier) {
@@ -183,7 +184,11 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
-
+        if (empty($supplier['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
+            $this->jsonReturn();
+        }
 
         if (!$supplier_level && empty($supplier['supplier_level'])) {
             $this->setCode(MSG::ERROR_PARAM);
