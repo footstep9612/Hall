@@ -494,6 +494,8 @@ class SuppliersController extends PublicController {
             jsonReturn('', -101, '一级物料分类编码不能为空!');
 
         $exist = $this->supplierMaterialCatModel->Exist($condition);
+        echo $this->supplierMaterialCatModel->_sql();
+        die;
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;

@@ -161,6 +161,8 @@ class SupplierMaterialCatModel extends PublicModel {
         try {
             if (empty($where['material_cat_no2'])) {
                 $where[] = 'material_cat_no2 is null';
+
+                unset($where['material_cat_no2']);
             }
             $row = $this->where($where)
                     ->field('id')
