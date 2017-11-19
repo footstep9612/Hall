@@ -82,9 +82,15 @@ class SuppliersModel extends PublicModel {
                 ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
         }
-
+//
+//        if (isset($condition['org_id'])) {
+//            $where['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+//        }
         if (isset($condition['org_id'])) {
-            $where['a.org_id'] = ['in', $condition['org_id'] ? : ['-1']];
+            $map1['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+            $map1[] = 'a.org_id is null';
+            $map1['_logic'] = 'or';
+            $where['_complex'] = $map1;
         }
 
         return $where;
@@ -103,9 +109,9 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         $count = $this->alias('a')
-                                 ->join($this->joinTable1, 'LEFT')
-                                 ->where($where)
-                                 ->count('a.id');
+                ->join($this->joinTable1, 'LEFT')
+                ->where($where)
+                ->count('a.id');
 
         return $count > 0 ? $count : 0;
     }
@@ -126,12 +132,12 @@ class SuppliersModel extends PublicModel {
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->field($this->joinField)
-                            ->where($where)
-                            ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
-                            ->select();
+                        ->join($this->joinTable1, 'LEFT')
+                        ->field($this->joinField)
+                        ->where($where)
+                        ->page($currentPage, $pageSize)
+                        ->order('a.id DESC')
+                        ->select();
     }
 
     /**
@@ -162,13 +168,13 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
-                            ->join($this->joinTable3, 'LEFT')
-                            ->join($this->joinTable4, 'LEFT')
-                            ->field($this->joinField_)
-                            ->where($where)
-                            ->find();
+                        ->join($this->joinTable1, 'LEFT')
+                        ->join($this->joinTable2, 'LEFT')
+                        ->join($this->joinTable3, 'LEFT')
+                        ->join($this->joinTable4, 'LEFT')
+                        ->field($this->joinField_)
+                        ->where($where)
+                        ->find();
     }
 
     /**

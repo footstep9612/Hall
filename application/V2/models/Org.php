@@ -53,20 +53,20 @@ class OrgModel extends PublicModel {
      * @author liujf
      * @time 2017-10-20
      */
-    public function getOrgIdsById($groupId, $membership = 'erui', $org_node = 'ub') {
+    public function getOrgIdsById($groupId, $membership = 'ERUI', $org_node = 'ub') {
         $where = [
             'id' => ['in', $groupId ?: ['-1']],
         ];
-        if ($membership && $org_node) {
-
-            $map1['org_node'] = $org_node;
-            $map1['membership'] = $membership;
-            $map1['_logic'] = 'or';
-            $where['_complex'] = $map1;
+        if ($membership === 'ERUI' && $org_node) {
+            $where['org_node'] = ['erui', $org_node];
+//            $map1['org_node'] = $org_node;
+//            $map1['membership'] = $membership;
+//            $map1['_logic'] = 'or';
+//            $where['_complex'] = $map1;
         } elseif ($org_node) {
             $where['org_node'] = $org_node;
-        } elseif ($membership) {
-            $where['membership'] = $membership;
+        } elseif ($membership === 'ERUI') {
+            $where['org_node'] = 'erui';
         }
         $orgList = $this->field('id')->where($where)->select();
 
