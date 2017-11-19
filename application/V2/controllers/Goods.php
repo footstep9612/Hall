@@ -686,7 +686,7 @@ class GoodsController extends PublicController {
         }
 
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->expireImport($this->put_data['xls']);
+        $result = $goodsModel->expireImport($this->put_data);
         if($result){
             jsonReturn($result, ErrorMsg::SUCCESS, '成功操作'.(isset($result['success']) ? $result['success'] : 0).'条，失败'.(isset($result['faild']) ? $result['faild'] : 0).'条');
         }else{
