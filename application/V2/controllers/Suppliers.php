@@ -497,11 +497,16 @@ class SuppliersController extends PublicController {
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
-
+            if (empty($condition['material_cat_no2'])) {
+                $condition['material_cat_no2'] = null;
+            }
             $res = $this->supplierMaterialCatModel->addRecord($condition);
 
             $this->jsonReturn($res);
         } else {
+            if (empty($condition['material_cat_no2'])) {
+                $condition['material_cat_no2'] = null;
+            }
             $condition['updated_by'] = $this->user['id'];
             $condition['updated_at'] = $this->time;
             $res = $this->supplierMaterialCatModel->saveRecord($condition, ['id' => $exist]);
