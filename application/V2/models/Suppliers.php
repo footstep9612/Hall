@@ -187,7 +187,7 @@ class SuppliersModel extends PublicModel {
      */
     public function addRecord($condition = []) {
 
-        $data_t_supplier = $this->find('max(serial_no) as serial_no')->find(); //($this->put_data);
+        $data_t_supplier = $this->field('max(serial_no) as serial_no')->find(); //($this->put_data);
         if ($data_t_supplier && substr($data_t_supplier['serial_no'], 0, 8) == date("Ymd")) {
             $no = substr($data_t_supplier['serial_no'], -1, 6);
             $no++;
