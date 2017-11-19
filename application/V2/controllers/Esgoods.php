@@ -150,15 +150,17 @@ class EsgoodsController extends PublicController {
                 $supplier_ids = [];
                 $pricevalidity_end = date('Y-m-d', strtotime('+7 days'));
                 $suppliers = $costprices = [];
-                foreach ($item['costprices'] as $costprice) {
-                    if (!empty($costprice['price_validity']) && $costprice['price_validity'] < $pricevalidity_end) {
+
+                foreach ($list[$key]['costprices'] as $costprice) {
+
+                    if (!empty($costprice['price_validity']) && $costprice['price_validity'] <= $pricevalidity_end) {
                         $supplier_ids[] = $costprice['supplier_id'];
                         $costprices[] = $costprice;
                     }
                 }
                 $list[$key]['costprices'] = $costprices;
-                foreach ($item['suppliers'] as $supplier) {
-                    if (!empty($supplier['supplier_id']) && in_array($costprice['supplier_id'], $supplier_ids)) {
+                foreach ($list[$key]['suppliers'] as $supplier) {
+                    if (!empty($supplier['supplier_id']) && in_array($supplier['supplier_id'], $supplier_ids)) {
                         $suppliers[] = $supplier;
                     }
                 }
