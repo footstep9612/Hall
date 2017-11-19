@@ -478,4 +478,26 @@ class ShowcatController extends PublicController {
         }
     }
 
+    /**
+     * 产品导出
+     */
+    public function exportAction() {
+        $esproduct_model = new EsProductModel();
+        $condition = $this->getPut();
+        $process = $this->getPut('process', '');
+        $lang = $this->getPut('lang');
+        $this->_handleCondition($condition);
+        if (empty($lang)) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
+        }
+        set_time_limit(0);
+        $localDir = $esproduct_model->export($condition, $process, $lang);
+
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 }
