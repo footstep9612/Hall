@@ -187,8 +187,21 @@ class SuppliersModel extends PublicModel {
      */
     public function addRecord($condition = []) {
 
+        $data_t_supplier = $this->find('max(serial_no) as serial_no')->find(); //($this->put_data);
+        if ($data_t_supplier && substr($data_t_supplier['serial_no'], 0, 8) == date("Ymd")) {
+            $no = substr($data_t_supplier['serial_no'], -1, 6);
+            $no++;
+        } else {
+            $no = 1;
+        }
+        $temp_num = 1000000;
+        $new_num = $no + $temp_num;
+        $real_num = date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
+        $condition['serial_no'] = $real_num;
+        if (!empty($condition['serial_no'])) {
+            $condition['supplier_no'] = $condition['serial_no'];
+        }
         $data = $this->create($condition);
-
         return $this->add($data);
     }
 
