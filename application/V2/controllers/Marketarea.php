@@ -215,7 +215,7 @@ class MarketareaController extends PublicController {
             $this->setMessage('请输入中文');
             $this->jsonReturn();
         } elseif ($newbn != $data['bn']) {
-            $newbn = ucwords($data['en']['name']);
+            $newbn = ucwords(trim($data['en']['name']));
             $row = $market_area_model->Exits(['bn' => $newbn, 'status' => 'VALID']);
 
             if ($row) {

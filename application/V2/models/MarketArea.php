@@ -220,8 +220,8 @@ class MarketAreaModel extends PublicModel {
         if (!isset($data['bn']) || !$data['bn']) {
             return false;
         }
-        $newbn = ucwords($data['en']['name']);
-        $data['en']['name'] = ucwords($data['en']['name']);
+        $newbn = trim(ucwords($data['en']['name']));
+        $data['en']['name'] = trim(ucwords($data['en']['name']));
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
@@ -245,7 +245,7 @@ class MarketAreaModel extends PublicModel {
             $where['bn'] = $data['bn'];
             $arr['bn'] = $newbn;
             $arr['lang'] = $lang;
-            $arr['name'] = $data[$lang]['name'];
+            $arr['name'] = trim($data[$lang]['name']);
             $arr['status'] = 'VALID';
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
