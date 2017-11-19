@@ -650,7 +650,7 @@ class SupplierController extends PublicController {
         }
 
         $supplier_model = new SupplierChainModel();
-        $supplier = $supplier_model->field(['supplier_level,erui_status,status'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
+        $supplier = $supplier_model->field(['supplier_level,erui_status,status,org_id'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
 
         if (!$supplier) {
             $this->setCode(MSG::ERROR_PARAM);
