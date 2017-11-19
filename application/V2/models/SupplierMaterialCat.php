@@ -209,11 +209,11 @@ class SupplierMaterialCatModel extends PublicModel {
      * @author liujf
      * @time 2017-11-11
      */
-    public function saveRecord($condition = []) {
+    public function saveRecord($condition = [], $where = []) {
 
         $data = $this->create($condition);
 
-        return $this->save($data);
+        return $this->where($where)->save($data);
     }
 
     /**

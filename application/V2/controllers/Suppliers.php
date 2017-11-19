@@ -493,8 +493,8 @@ class SuppliersController extends PublicController {
         if ($condition['material_cat_no1'] == '')
             jsonReturn('', -101, '一级物料分类编码不能为空!');
 
-
-        if (!$this->supplierMaterialCatModel->Exist($condition)) {
+        $exist = $this->supplierMaterialCatModel->Exist($condition);
+        if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
 
@@ -504,7 +504,8 @@ class SuppliersController extends PublicController {
         } else {
             $condition['updated_by'] = $this->user['id'];
             $condition['updated_at'] = $this->time;
-            $res = $this->supplierMaterialCatModel->saveRecord($condition);
+            $res = $this->supplierMaterialCatModel->saveRecord($condition, ['id' => $exist]);
+
             $this->jsonReturn($res);
         }
     }
