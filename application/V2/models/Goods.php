@@ -2902,6 +2902,15 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
 
+                if(!isset($data_tmp['供应商名称'])){
+                    $faild++;
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '供应商名称不能为空');
+                    flock($fp, LOCK_UN);
+                    fclose($fp);
+                    $start_row++;
+                    continue;
+                }
+
                 $supplierInfo = $supplierModel->field('id')->where(['name'=>$data_tmp['供应商名称'], 'deleted_flag'=>'N'])->find();
                 if(!$supplierInfo){
                     $faild++;
@@ -2912,7 +2921,7 @@ class GoodsModel extends PublicModel {
                     continue;
                 }
 
-                if(!preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
+                if(isset($data_tmp['价格']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
                     $faild++;
                     $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '价格有误');
                     flock($fp, LOCK_UN);
@@ -2920,7 +2929,7 @@ class GoodsModel extends PublicModel {
                     $start_row++;
                     continue;
                 }
-                $price_ary = explode('-', $data_tmp['价格']);
+                $price_ary = isset($data_tmp['价格']) ? explode('-', $data_tmp['价格']) : [];
 
                 if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
                     if(is_numeric($data_tmp['有效期'])){
