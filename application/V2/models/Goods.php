@@ -2879,6 +2879,7 @@ class GoodsModel extends PublicModel {
         $gcpModel = new GoodsCostPriceModel();
         $supplierModel = new SupplierModel();
         $gsupplierModel = new GoodsSupplierModel();
+        $es_goods_model = new EsGoodsModel();
         $userInfo = getLoinInfo();
         do {
             $fp = fopen(MYPATH . '/public/file/skuedit.lock', 'r');
@@ -2964,6 +2965,10 @@ class GoodsModel extends PublicModel {
                 $result_pn = $gsupplierModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id']])->save($data_pn);
                 if($result && $result_pn){
                     $success++;
+                    //更新ES
+                    foreach(['zh','en','es','ru'] as $lang){
+                        $es_goods_model->create_data($data_tmp['sku编码'], $lang);
+                    }
                     $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新成功');
                 }else{
                     $faild++;
