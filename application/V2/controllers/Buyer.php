@@ -430,7 +430,17 @@ class BuyerController extends PublicController {
             //$countryInfo = $countryModel->getInforByBn($arr['country_bn']);
             //获取市场经办人信息 -- link 2017-10-31
             $userInfo = new UserModel();
+            $countryModel = new CountryModel();
+            $marketAreaModel = new MarketAreaModel();
             $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag' => 'N', 'status' => 'NORMAL'], 'name');
+
+            //询单所在国家
+            $rs1 = $countryModel->field('name')->where(['bn' => $arr['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $datajson['country_name'] = $rs1['name'];
+
+            //询单所在区域
+            $rs2 = $marketAreaModel->field('name')->where(['bn' => $arr['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $datajson['area_name'] = $rs2['name'];
 
             $datajson['code'] = 1;
             $datajson['id'] = $id;
