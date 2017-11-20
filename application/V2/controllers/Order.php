@@ -243,7 +243,7 @@ class OrderController extends PublicController {
                 'order_id' => intval($data['id']),
                 'deleted_flag' => 'N'
             ];
-            $data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+            $data = $orderAddress->where($condition)->field('consignee_id as id,name,tel_number,country,zipcode,city,fax,address,email')->select();
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
         }
@@ -548,6 +548,7 @@ class OrderController extends PublicController {
                 'address' => $item['address'],
                 'zipcode' => $item['zipcode'],
                 'tel_number' => $item['phone'],
+                'consignee_id' => $item['id'],
                 'name' => $item['first_name'] . ' ' . $item['last_name'],
                 'country' => $item['country_bn'],
                 'city' => $item['city'],
@@ -742,6 +743,9 @@ class OrderController extends PublicController {
     public function listAction() {
         $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
+        if ($auth['code'] == '2') {
+            $condition['agent_id'] = $this->user['id'];
+        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
