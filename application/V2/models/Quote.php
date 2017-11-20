@@ -94,7 +94,7 @@ class QuoteModel extends PublicModel {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
 
                     $exchange_rate  = $exchangeRateModel->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
-                    $exw_unit_price = $value['purchase_unit_price'] * $gross_profit_rate / $exchange_rate;
+                    $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate/100)+1) / $exchange_rate;//毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
                     $exw_unit_price = sprintf("%.8f", $exw_unit_price);
 
                     $quoteItemModel->where(['id' => $value['id']])->save([
