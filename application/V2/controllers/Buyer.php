@@ -60,6 +60,12 @@ class BuyerController extends PublicController {
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
+
+        if ($data['is_agent']=="Y") {
+            $where['is_agent'] = $data['is_agent'];
+            $where['agent']['user_id'] = $this->user['id'];
+            $where['agent']['agent_id'] = $this->user['id'];
+        }
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
         }
@@ -153,6 +159,26 @@ class BuyerController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /*
+     * 统计各状态数量 jhw
+     * */
+    public function buyercountAction() {
+        $model = new BuyerModel();
+        $data = $model->getBuyerCountByStatus();
+        $arr = [];
+        for ($i = 0; $i<count($data); $i++){
+            $arr[$data[$i]['status']] = $data[$i]['number'];
+        }
+        if ($arr) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户详情
      * */

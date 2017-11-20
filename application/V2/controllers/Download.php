@@ -5,12 +5,12 @@
  * @desc   DownloadController
  * @Author 买买提
  */
-class DownloadController extends PublicController{
+class DownloadController extends Yaf_Controller_Abstract{
 
 
     public function init()
     {
-        parent::init();
+       // parent::init();
     }
 
     /**
@@ -31,19 +31,30 @@ class DownloadController extends PublicController{
      */
     public function buyerListAction()
     {
-        $buyerList = $this->getBuyerList();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $where = [];
+        if ($data['is_agent']=="Y") {
+            $where['is_agent'] = $data['is_agent'];
+            $where['agent']['user_id'] = $this->user['id'];
+            $where['agent']['agent_id'] = $this->user['id'];
+        }
+        $where['is_agent']="Y";
+        $where['agent']['user_id'] = 31515;
+        $where['agent']['agent_id'] = 31515;
+        $buyerList = $this->getBuyerList($where);
+        var_dump($buyerList);die;
         $localFile = $this->createExcelObjWithData($buyerList);
         $compressedFile = $this->compresFile($localFile);
         $remoteFile = $this->upload2FileServer($compressedFile);
 
         if (!$remoteFile['code']=='1'){
-            $this->jsonReturn([
+            jsonReturn([
                 'code' => '-104',
                 'message' => '导出失败!'
             ]);
         }
 
-        $this->jsonReturn([
+        jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
@@ -100,11 +111,24 @@ class DownloadController extends PublicController{
      * 获取会员列表
      * @return mixed
      */
-    private function getBuyerList()
+    private function getBuyerList($where)
     {
         $buyerModel = new BuyerModel();
         //会员编号,会员名称,注册地,会员等级,用户来源,注册时间,审核状态
-        $data = $buyerModel->field('buyer_no,name,province,buyer_level,created_by,created_at,status')->order('id DESC')->select();
+        $map =[];
+        if ($where['is_agent']=='Y') {
+            $map1['buyer.created_by'] = $where['agent']['user_id'];
+            $map1['agent_id'] = $where['agent']['agent_id'];
+            $map1['_logic'] = 'or';
+            $map['_complex'] = $map1;
+        }
+        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.name,province,buyer_level,`erui_buyer`.`buyer`.created_by,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
+            ->join('`erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id`', 'left')
+            ->join('`erui_sys`.`employee` em on em.id=erui_buyer.buyer_agent.agent_id', 'left')
+            ->where($map)
+            ->group('`erui_buyer`.`buyer`.`id`')
+            ->order('`erui_buyer`.`buyer`.`id` DESC')
+            ->select();
         foreach ($data as $k=>$v){
             //会员等级
             if (empty($v['buyer_level'])){

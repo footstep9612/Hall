@@ -138,6 +138,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['credit_status'])) {
             $where .= ' And `erui_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
         }
+        if ($condition['is_agent']=='Y') {
+            $where .= ' And (`erui_buyer`.`buyer`.created_by  ="' . $condition['agent']['user_id'] . '" OR `erui_buyer`.`buyer_agent`.`agent_id`  in ("' . $condition['agent']['agent_id'] . '"))';
+        }
         if ($where) {
             $sql .= $where;
             // $sql_count .= $where;
@@ -917,5 +920,14 @@ class BuyerModel extends PublicModel {
             return ['code' => MSG::MSG_FAILED, 'message' => '客户不存在!'];
         }
     }
-
+    /**
+     * 获取各状态下会员数量
+     * @return data
+     * @author jhw
+     */
+    public function getBuyerCountByStatus(){
+        $sql = "SELECT  `status` ,COUNT(*)  as number FROM  ".$this->g_table." WHERE deleted_flag ='N' GROUP  BY `status`";
+        $row = $this->query($sql);
+        return $row;
+    }
 }

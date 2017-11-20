@@ -32,7 +32,7 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     protected function getCondition($condition = []) {
-        $sql = ' WHERE 1 = 1';
+        $sql = ' WHERE `employee`.`deleted_flag` = "N" ';
         if (!empty($condition['status'])) {
             $sql .= ' AND `employee`.`status`= \'' . $condition['status'] . '\'';
         }
