@@ -532,7 +532,7 @@ class ProductController extends PublicController {
      */
     public function exportShelfAction() {
         $productModel = new ProductModel();
-        $localDir = $productModel->exportShelf();
+        $localDir = $productModel->exportShelf($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

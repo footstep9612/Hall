@@ -1497,6 +1497,7 @@ class ProductModel extends PublicModel {
         $supplierModel = new SupplierModel();
         $spModel = new ProductSupplierModel();
         $tablePS = $spModel->getTableName();
+        $userModel = new UserModel();
 
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
@@ -1515,7 +1516,7 @@ class ProductModel extends PublicModel {
 
             $condition = array('product.lang' => $lang);
             if(isset($input['spus']) && is_array($input['spus'])){
-                $condition['product.spus'] = array('in', $input['spus']);
+                $condition['product.spu'] = array('in', $input['spus']);
             }else{
                 if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
                     $condition['product.spu'] = $input['spu'];
@@ -1523,8 +1524,8 @@ class ProductModel extends PublicModel {
                 if (isset($input['name']) && !empty($input['name'])) {    //名称
                     $condition['product.name'] = array('like', '%' . $input['spu'] . '%');
                 }
-                if (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
-                    $condition['product.material_cat_no'] = $input['material_cat_no'];
+                if (isset($input['mcat_no3']) && !empty($input['mcat_no3'])) {    //物料分类
+                    $condition['product.material_cat_no'] = $input['mcat_no3'];
                 }
                 if(isset($input['supplier_name']) && !empty($input['supplier_name'])){
                     $supplierInfo = $supplierModel->field('id')->where(['name'=>$input['supplier_name'],'deleted_flag'=>'N'])->find();
@@ -1534,30 +1535,40 @@ class ProductModel extends PublicModel {
                         jsonReturn('', ErrorMsg::FAILED, '无数据可导');
                     }
                 }
-                if (isset($input['status']) && !empty($input['status'])) {    //上架状态
-                    if ($input['status'] == 'Y') {
+                if (isset($input['onshelf_flag']) && !empty($input['onshelf_flag'])) {    //上架状态
+                    if ($input['onshelf_flag'] == 'Y') {
                         $condition[$tableSCP . '.onshelf_flag'] = 'Y';
                         $condition[$tableSCP . '.status'] = 'VALID';
-                    } else {
+                    } elseif($input['onshelf_flag'] == 'N') {
                         $condition[$tableSCP . '.onshelf_flag'] = 'N';
                     }
                     // $condition['status'] = $input['status'];
                 }
-                if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
-                    $condition['product.created_by'] = $input['created_by'];
+                if (isset($input['user_name']) && !empty($input['user_name'])) {    //创建人
+                    $userInfo = $userModel->field('id,user_no')->where(['name'=>$input['user_name']])->find();
+                    if($userInfo){
+                        if(isset($input['user_type']) && $input['user_type']=='create'){
+                            $condition['product.created_by'] = $userInfo['id'];
+                        }else{
+                            $condition['product.updated_by'] = $userInfo['id'];
+                        }
+                    }else{
+                        jsonReturn('', ErrorMsg::FAILED, '无数据可导');
+                    }
                 }
-                if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                    $time_ary = explode(' - ', $input['created_at']);
-                    $condition['created_at'] = array('between', $time_ary);
-                    unset($time_ary);
+                if (isset($input['date_start']) && !empty($input['date_start'])) {
+                    if(isset($input['user_type']) && $input['user_type']=='create'){
+                        $condition['created_at'] = array('get', $input['date_start']);
+                    }else{
+                        $condition['updated_at'] = array('get', $input['date_start']);
+                    }
                 }
-                if (isset($input['updated_by']) && !empty($input['updated_by'])) {    //创建人
-                    $condition['product.updated_by'] = $input['updated_by'];
-                }
-                if (isset($input['updated_at']) && !empty($input['updated_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                    $time_ary = explode(' - ', $input['updated_at']);
-                    $condition['updated_at'] = array('between', $time_ary);
-                    unset($time_ary);
+                if (isset($input['date_end']) && !empty($input['date_end'])) {
+                    if(isset($input['user_type']) && $input['user_type']=='create'){
+                        $condition['created_at'] = array('lte', $input['date_end']);
+                    }else{
+                        $condition['updated_at'] = array('lte', $input['date_end']);
+                    }
                 }
             }
             do {
