@@ -1515,7 +1515,7 @@ class ProductModel extends PublicModel {
             //$objPHPExcel = null;
 
             $condition = array('product.lang' => $lang);
-            if(isset($input['spus']) && is_array($input['spus'])){
+            if(isset($input['spus']) && is_array($input['spus']) && !empty($input['spus'])){
                 $condition['product.spu'] = array('in', $input['spus']);
             }else{
                 if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
@@ -1557,17 +1557,17 @@ class ProductModel extends PublicModel {
                     }
                 }
                 if (isset($input['date_start']) && !empty($input['date_start'])) {
-                    if(isset($input['user_type']) && $input['user_type']=='create'){
-                        $condition['created_at'] = array('EGT', $input['date_start']);
+                    if(isset($input['date_type']) && $input['date_type']=='create'){
+                        $condition['product.created_at'] = array('EGT', $input['date_start']);
                     }else{
-                        $condition['updated_at'] = array('EGT', $input['date_start']);
+                        $condition['product.updated_at'] = array('EGT', $input['date_start']);
                     }
                 }
                 if (isset($input['date_end']) && !empty($input['date_end'])) {
-                    if(isset($input['user_type']) && $input['user_type']=='create'){
-                        $condition['created_at'] = array('ELT', $input['date_end']);
+                    if(isset($input['date_type']) && $input['date_type']=='create'){
+                        $condition['product.created_at'] = array('ELT', $input['date_end']);
                     }else{
-                        $condition['updated_at'] = array('ELT', $input['date_end']);
+                        $condition['product.updated_at'] = array('ELT', $input['date_end']);
                     }
                 }
             }
