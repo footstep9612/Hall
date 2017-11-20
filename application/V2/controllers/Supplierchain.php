@@ -31,9 +31,9 @@ class SupplierchainController extends PublicController {
         $condition = $this->getPut();
 
         $org_model = new OrgModel();
-        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
+        $org_ids = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
-        if (!$condition['org_id']) {
+        if (!$org_ids) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您不属于易瑞,没有查看权限!');
             $this->jsonReturn();
@@ -150,9 +150,9 @@ class SupplierchainController extends PublicController {
         $supplier_level = $this->getPut('supplier_level');
 
         $org_model = new OrgModel();
-        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
+        $org_ids = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
-        if (!$condition['org_id']) {
+        if (!$org_ids) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您不属于易瑞,没有供应链审核权限!');
             $this->jsonReturn();
@@ -184,12 +184,6 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
-        if (empty($supplier['org_id'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
-            $this->jsonReturn();
-        }
-
         if (!$supplier_level && empty($supplier['supplier_level'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商等级不能为空!');
@@ -213,7 +207,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
 
-        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui);
+        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui, $org_ids);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');

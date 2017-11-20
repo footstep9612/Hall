@@ -258,11 +258,12 @@ class QuoteController extends PublicController{
         //更新当前办理人
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
+
         $response = $this->inquiryModel->updateData([
-            'id'=>$request['inquiry_id'],
-            'now_agent_id'=>$now_agent_id,
-            'status' => 'BIZ_APPROVING',
-            'updated_by' => $this->user['id']
+            'id'            => $request['inquiry_id'],
+            'now_agent_id'  => $now_agent_id,
+            'status'        => 'BIZ_APPROVING',
+            'updated_by'    => $this->user['id']
         ]);
 
         $this->jsonReturn($response);
@@ -278,11 +279,12 @@ class QuoteController extends PublicController{
 
         //更新当前办理人
         $now_agent_id = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('agent_id');
+
         $response = $this->inquiryModel->updateData([
-            'id'=>$request['inquiry_id'],
-            'now_agent_id'=>$now_agent_id,
-            'status' => 'MARKET_CONFIRMING',
-            'updated_by' => $this->user['id']
+            'id'           => $request['inquiry_id'],
+            'now_agent_id' => $now_agent_id,
+            'status'       => 'MARKET_CONFIRMING',
+            'updated_by'   => $this->user['id']
         ]);
 
         $this->jsonReturn($response);

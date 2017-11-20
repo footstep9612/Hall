@@ -483,13 +483,16 @@ class SuppliersController extends PublicController {
      */
     public function addSupplierSupplyRecordAction() {
         $condition = $this->_trim($this->put_data);
-    
-        if ($condition['supplier_id'] == '')
+
+        if (empty($condition['supplier_id']))
             jsonReturn('', -101, '缺少供应商id参数!');
 
-        if ($condition['material_cat_no1'] == '')
+        if (empty($condition['material_cat_no1']))
             jsonReturn('', -101, '一级物料分类编码不能为空!');
-
+        if (empty($condition['material_cat_no2']))
+            jsonReturn('', -101, '二级物料分类编码不能为空!');
+        if (empty($condition['material_cat_name3']))
+            jsonReturn('', -101, '请输入铺货产品!');
         $exist = $this->supplierMaterialCatModel->Exist($condition);
 
         if (!$exist) {
@@ -502,14 +505,7 @@ class SuppliersController extends PublicController {
 
             $this->jsonReturn($res);
         } else {
-            if (empty($condition['material_cat_no2'])) {
-                $condition['material_cat_no2'] = null;
-            }
-            $condition['updated_by'] = $this->user['id'];
-            $condition['updated_at'] = $this->time;
-            $res = $this->supplierMaterialCatModel->saveRecord($condition, ['id' => $exist]);
-
-            $this->jsonReturn($res);
+            jsonReturn('', -101, '已经选择输入过相同的供货范围!');
         }
     }
 
@@ -720,7 +716,7 @@ class SuppliersController extends PublicController {
                 jsonReturn('', -101, '发证日期不能为空!');
 
             if ($item['issue_date'] == '')
-                unset($item['issue_date']);
+                $item['issue_date'] = null;
 
             if (strlen($item['issuing_authority']) > 50)
                 jsonReturn('', -101, '您输入的发证机构长度超过限制!');
@@ -765,24 +761,6 @@ class SuppliersController extends PublicController {
 
         $this->_handleList($this->supplierQualificationModel, $data, $condition);
     }
-
-    /**
-     * @desc 提交供应商审核接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    /* public function submitSupplierCheckAction() {
-      $condition = $this->put_data;
-
-      if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
-
-      $where['id'] = $condition['id'];
-
-      $res = $this->suppliersModel->updateInfo($where, ['status' => 'CHECKING']);
-
-      $this->jsonReturn($res);
-      } */
 
     /**
      * @desc 获取供应商审核日志列表接口
