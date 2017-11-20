@@ -505,7 +505,7 @@ class SuppliersController extends PublicController {
 
             $this->jsonReturn($res);
         } else {
-            jsonReturn('', -101, '已经输入国相同的供货范围!');
+            jsonReturn('', -101, '已经选择输入过相同的供货范围!');
         }
     }
 
