@@ -32,7 +32,7 @@ class BizdivitionController extends PublicController{
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('agent_id');
         $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
-            'status'       => 'DRAFT',
+            'status'       => 'REJECT_MARKET',//改为驳回市场，我了让查看询单的饿呢看到
             'now_agent_id' => $now_agent_id,
             'quote_id' => NULL,
             'updated_by'   => $this->user['id'],

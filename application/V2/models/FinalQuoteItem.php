@@ -10,7 +10,7 @@ class FinalQuoteItemModel extends PublicModel {
 	protected $joinTable1 = 'erui_rfq.quote_item b ON a.quote_item_id = b.id';
 	protected $joinTable2 = 'erui_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
 	protected $joinField = 'a.id,a.inquiry_id,a.quote_id,a.sku,a.supplier_id,a.exw_unit_price as final_exw_unit_price,a.quote_unit_price as final_quote_unit_price,'.
-								'c.qty as quote_qty,c.unit as quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,b.remarks as final_remarks,'.
+								'c.qty as quote_qty,c.unit as quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,b.remarks as final_remarks,c.bn,'.
 								'b.package_mode,b.package_size,b.delivery_days,b.period_of_validity,b.goods_source,b.stock_loc,b.reason_for_no_quote,'.
 								'c.buyer_goods_no,c.name,c.name_zh,c.model,c.remarks,c.remarks_zh';
 
