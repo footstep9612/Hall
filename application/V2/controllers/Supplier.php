@@ -679,7 +679,7 @@ class SupplierController extends PublicController {
 
         $note = $this->getPut('note');
 
-        $data = $supplier_model->Checked($supplier_id, $status, $note);
+        $data = $supplier_model->Checked($supplier_id, $status, $note, $condition['org_id']);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');

@@ -184,15 +184,6 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
-        if (empty($supplier['org_id'])) {
-
-            $org_id = $org_ids[0];
-
-//            $this->setCode(MSG::ERROR_PARAM);
-//            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
-//            $this->jsonReturn();
-        }
-
         if (!$supplier_level && empty($supplier['supplier_level'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商等级不能为空!');
@@ -216,7 +207,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
 
-        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui, $org_id);
+        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui, $org_ids);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');
