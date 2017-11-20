@@ -1151,4 +1151,177 @@ class ShowCatModel extends PublicModel {
         }
     }
 
+    /*
+     * 导入展示分类
+     */
+
+    public function import() {
+        $data = $this->get_excel();
+
+        $show_cats = [];
+        foreach ($data as $item) {
+            if ($show_cats[$item['show_cat_name1_zh']]) {
+                if (!isset($show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']])) {
+                    $show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']] = [
+                        'show_cat_name2_zh' => $item['show_cat_name2_zh'],
+                        'show_cat_name2_en' => $item['show_cat_name2_en'],
+                    ];
+                }
+                $material_cat_no3s = [];
+                if (!isset($show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']]['childs'][$item['show_cat_name3_zh']]['material_cat_no3'])) {
+                    $material_cat_no3s = array_merge($item['material_cat_no3'], $show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']]['childs'][$item['show_cat_name3_zh']]['material_cat_no3']);
+                } else {
+                    $material_cat_no3s[] = $item['material_cat_no3'];
+                }
+                $show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']]['childs']
+                        [$item['show_cat_name3_zh']] = [
+                    'show_cat_name3_zh' => $item['show_cat_name3_zh'],
+                    'show_cat_name3_en' => $item['show_cat_name3_en'],
+                    'material_cat_no3' => $material_cat_no3s,
+                ];
+            } else {
+                $show_cats[$item['show_cat_name1_zh']] = [
+                    'show_cat_name1_zh' => $item['show_cat_name1_zh'],
+                    'show_cat_name1_en' => $item['show_cat_name1_en'],
+                    'childs' => [
+                        $item['show_cat_name2_zh'] => [
+                            'show_cat_name2_zh' => $item['show_cat_name2_zh'],
+                            'show_cat_name2_en' => $item['show_cat_name2_en'],
+                            'childs' => [
+                                $item['show_cat_name3_zh'] => [
+                                    'show_cat_name3_zh' => $item['show_cat_name3_zh'],
+                                    'show_cat_name3_en' => $item['show_cat_name3_en'],
+                                    'material_cat_no3' => $item['material_cat_no3'],
+                                ]]
+                        ]]
+                ];
+            }
+        }
+
+        $market_area_bn = 'South America';
+        $country_bn = 'Colombia';
+        foreach ($show_cats as $show_cat1s) {
+            $cat_no1 = null;
+            $data1 = [];
+            $data1['sort_order'] = 1;
+            $data1['en']['name'] = $show_cat1s['show_cat_name1_en'];
+            $data1['zh']['name'] = $show_cat1s['show_cat_name1_zh'];
+            $data1['parent_cat_no'] = null;
+            $data1['material_cat_nos'] = [];
+            $data1['market_area_bn'] = $market_area_bn;
+            $data1['country_bn'] = $country_bn;
+            $cat_no1 = $this->create_data($data1);
+            if ($cat_no1) {
+                foreach ($show_cat1s['childs'] as $show_cat2s) {
+                    $data2 = [];
+                    $cat_no2 = null;
+                    $data2['sort_order'] = 1;
+                    $data2['en']['name'] = $show_cat2s['show_cat_name2_en'];
+                    $data2['zh']['name'] = $show_cat2s['show_cat_name2_zh'];
+                    $data2['parent_cat_no'] = $cat_no1;
+                    $data2['material_cat_nos'] = [];
+                    $data2['market_area_bn'] = $market_area_bn;
+                    $data2['country_bn'] = $country_bn;
+                    $cat_no2 = $this->create_data($data2);
+                    if ($cat_no2) {
+                        foreach ($show_cat2s['childs'] as $show_cat3) {
+                            $data3 = [];
+                            $cat_no3 = null;
+                            $data3['sort_order'] = 1;
+                            $data3['en']['name'] = $show_cat3['show_cat_name3_en'];
+                            $data3['zh']['name'] = $show_cat3['show_cat_name3_zh'];
+                            $data3['parent_cat_no'] = $cat_no2;
+                            $data3['material_cat_nos'] = $show_cat3['material_cat_no3'];
+                            $data3['market_area_bn'] = $market_area_bn;
+                            $data3['country_bn'] = $country_bn;
+                            $cat_no3 = $this->create_data($data3);
+                            if (!$cat_no3) {
+                                Log::write(var_export($show_cat3, true));
+                            }
+                        }
+                    } else {
+                        Log::write(var_export($show_cat2s, true));
+                    }
+                }
+            } else {
+                Log::write(var_export($show_cat1s, true));
+            }
+        }
+        return true;
+    }
+
+    /*
+     * 获取EXCEL信息
+     */
+
+    public function get_excel() {
+
+
+        // $PHPExcel = new PHPExcel();
+        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+
+        $localFile = MYPATH . DS . 'public' . DS . 'file' . DS . 'showcat.xlsx';
+        $fileType = PHPExcel_IOFactory::identify($localFile);    //获取文件类型
+        $objReader = PHPExcel_IOFactory::createReader($fileType);    //创建PHPExcel读取对象
+        if (!$objReader->canRead($localFile)) {
+            echo 'no Excel';
+            return;
+        }
+        $PHPExcel = $objReader->load($localFile);    //加载文件
+
+        $currentSheet = $PHPExcel->getSheet(0);
+        $allColumn = $currentSheet->getHighestColumn();
+        $allColumn_num = 0;
+        for ($i = 0, $j = strlen($allColumn); $i < $j; $i++) {
+            $allColumn_num += $i * 26 + ord($allColumn[$i]) - 65;
+        }
+        $allRow = $currentSheet->getHighestRow();
+        $result = array();
+        $val = $currentSheet->getCellByColumnAndRow(0, 1)->getValue();
+        if ($val == '展示分类一级') {
+            $row_name = array(
+                'A' => 'show_cat_name1_zh', //展示分类一级(中文)
+                'B' => 'show_cat_name1_en', //	展示分类一级(英文)
+                'C' => 'show_cat_name2_zh', //	展示分类二级(中文)
+                'D' => 'show_cat_name2_en', //	展示分类二级(英文)
+                'E' => 'show_cat_name3_zh', //	展示分类三级(中文)
+                'F' => 'show_cat_name3_en', //	展示分类三级(英文)
+                'G' => 'material_cat_name1_zh', //	物料分类一级(中文)
+                'H' => 'material_cat_name2_zh', //	物料分类二级(中文)
+                'I' => 'material_cat_name3_zh', //	物料分类三级(中文)
+                'J' => 'material_cat_no3',
+            );
+        } else {
+            $row_name = array(
+                'A' => 'market_area_bn', //营销区域
+                'B' => 'country_bn', //国家
+                'C' => 'show_cat_name1_zh', //展示分类一级(中文)
+                'D' => 'show_cat_name1_en', //	展示分类一级(英文)
+                'E' => 'show_cat_name2_zh', //	展示分类二级(中文)
+                'F' => 'show_cat_name2_en', //	展示分类二级(英文)
+                'G' => 'show_cat_name3_zh', //	展示分类三级(中文)
+                'H' => 'show_cat_name3_en', //	展示分类三级(英文)
+                'I' => 'material_cat_name1_zh', //	物料分类一级(中文)
+                'J' => 'material_cat_name2_zh', //	物料分类二级(中文)
+                'K' => 'material_cat_name3_zh', //	物料分类三级(中文)
+                'L' => 'material_cat_no3',
+            );
+        }
+        for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
+            for ($currentColumn = 0; $currentColumn <= $allColumn_num; $currentColumn++) {
+                $val = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
+                $quotient = intval($currentColumn / 26);
+                $remainder = $currentColumn % 26;
+                $f = $quotient > 0 ? chr(65 + $quotient - 1) : '';
+                $s = $remainder >= 0 ? chr(65 + $remainder) : '';
+                $newcurrentColumn = $f . $s;
+                $result[$currentRow][$row_name[$newcurrentColumn]] = trim($val);
+            }
+        }
+
+        unset($currentSheet, $PHPExcel, $objReader);
+        //unlink($localFile);
+        return $result;
+    }
+
 }

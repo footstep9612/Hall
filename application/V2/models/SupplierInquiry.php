@@ -28,7 +28,7 @@ class SupplierInquiryModel extends PublicModel {
     private function _getCondition($condition, &$where) {
         $this->_getValue($where, $condition, 'supplier_no', 'string', 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
-        // $this->_getValue($where, $condition, 'created_at', 'between', 'i.created_at');
+        $this->_getValue($where, $condition, 'created_at', 'between', 'created_at');
     }
 
     /**
@@ -44,12 +44,13 @@ class SupplierInquiryModel extends PublicModel {
         ];
         $this->_getCondition($condition, $where);
         list($offset, $length) = $this->_getPage($condition);
-        $created_at_start = !empty($condition['created_at_start']) ? $condition['created_at_start'] : null;
-        $created_at_end = !empty($condition['created_at_end']) ? $condition['created_at_end'] : null;
+        $created_at_start = null; // !empty($condition['created_at_start']) ? $condition['created_at_start'] : null;
+        $created_at_end = null; // !empty($condition['created_at_end']) ? $condition['created_at_end'] : null;
         $data = $this
                 ->field('supplier_no,name as supplier_name,id as supplier_id')
                 ->where($where)
                 ->limit($offset, $length)
+                ->order('id desc')
                 ->select();
         $ret = [];
 
