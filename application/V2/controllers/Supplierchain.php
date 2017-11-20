@@ -188,11 +188,11 @@ class SupplierchainController extends PublicController {
         if (!$supplier_level && !empty($supplier['supplier_level'])) {
             $supplier_level = $supplier['supplier_level'];
         }
-        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
-            $this->jsonReturn();
-        }
+//        if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {
+//            $this->setCode(MSG::ERROR_PARAM);
+//            $this->setMessage('供应商等级必须是大于等于1小于等于4的数字!');
+//            $this->jsonReturn();
+//        }
         if (!in_array($supplier['status'], ['APPROVED', 'VALID'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('未通过供应商审核的供应商,不能进行供应链审核!!');
