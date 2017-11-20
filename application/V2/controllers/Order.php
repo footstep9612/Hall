@@ -790,5 +790,39 @@ class OrderController extends PublicController {
             $this->jsonReturn(null);
         }
     }
-
+    /** 删除订单
+     *
+     * @author  Zhengkq
+     * @date    2017-11-20 14:50
+     * @version V2.0
+     * @desc   订单未出库时可删除
+     **/
+    public function deleteAction() {
+        $auth = $this->checkAuthAction();
+        $data = file_get_contents('php://input');
+        $data = @json_decode($data, true);
+        
+        if (!isset($data['id']) || $data['id'] < 1) {
+            $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
+        }
+        $order_id = intval($data['id']);
+        $cond = ['id'=>$order_id,'deleted_flag'=>'N'];
+        $order = new OrderModel();
+        $hasOrder = $order->where($cond)->count();
+        if($hasOrder != 1){
+            $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
+        }
+        $OrderLog = new OrderLogModel();
+        $logCond = [
+            'log_group'=>'OUTBOUND',
+            'order_id' => $order_id
+        ];
+        $logs = $OrderLog->where($logCond)->count();
+        if($logs >0){
+            $this->jsonReturn(['code' => -101, 'message' => '订单已出库，删除失败']);
+        }else{
+            $hasOrder = $order->where($cond)->limit(1)->save(['deleted_flag'=>'Y']);
+            $this->jsonReturn(['code' => 1, 'message' => '删除成功']);
+        }
+    }
 }
