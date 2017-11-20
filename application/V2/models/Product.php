@@ -1495,7 +1495,8 @@ class ProductModel extends PublicModel {
         $showCatProduct = new ShowCatProductModel();
         $tableSCP = $showCatProduct->getTableName();
         $supplierModel = new SupplierModel();
-        $tablePS = $supplierModel->getTableName();
+        $spModel = new ProductSupplierModel();
+        $tablePS = $spModel->getTableName();
 
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
