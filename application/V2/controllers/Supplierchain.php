@@ -31,9 +31,9 @@ class SupplierchainController extends PublicController {
         $condition = $this->getPut();
 
         $org_model = new OrgModel();
-        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
+        $org_ids = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
-        if (!$condition['org_id']) {
+        if (!$org_ids) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您不属于易瑞,没有查看权限!');
             $this->jsonReturn();
@@ -150,9 +150,9 @@ class SupplierchainController extends PublicController {
         $supplier_level = $this->getPut('supplier_level');
 
         $org_model = new OrgModel();
-        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
+        $org_ids = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
-        if (!$condition['org_id']) {
+        if (!$org_ids) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您不属于易瑞,没有供应链审核权限!');
             $this->jsonReturn();
