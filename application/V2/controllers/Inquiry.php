@@ -378,6 +378,9 @@ class InquiryController extends PublicController {
         // 是否审核人的标识
         $isCheck = 'N';
 
+        // 会员管理国家负责人
+        $isCountryAgent = 'N';
+
         foreach ($this->user['role_no'] as $roleNo) {
             if ($roleNo == $inquiry::marketAgentRole) {
                 $isAgent = 'Y';
@@ -394,6 +397,10 @@ class InquiryController extends PublicController {
             if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole) {
                 $isCheck = 'Y';
             }
+            if ($roleNo == $inquiry::buyerCountryAgent) {
+                $isCountryAgent = 'Y';
+            }
+
         }
 
         if ($isAgent == 'Y') {
@@ -411,7 +418,7 @@ class InquiryController extends PublicController {
         $data['is_issue'] = $isIssue;
         $data['is_quote'] = $isQuote;
         $data['is_check'] = $isCheck;
-
+        $data['is_country_agent'] = $isCountryAgent;
         $res['code'] = 1;
         $res['message'] = '成功!';
         $res['data'] = $data;

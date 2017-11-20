@@ -38,11 +38,14 @@ class DownloadController extends Yaf_Controller_Abstract{
             $where['agent']['user_id'] = $this->user['id'];
             $where['agent']['agent_id'] = $this->user['id'];
         }
-        $where['is_agent']="Y";
-        $where['agent']['user_id'] = 31515;
-        $where['agent']['agent_id'] = 31515;
+        if (!empty($data['country_bn'])) {
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+            }
+            $where['country_bn'] = rtrim($where['country_bn'], ",");
+        }
         $buyerList = $this->getBuyerList($where);
-        var_dump($buyerList);die;
         $localFile = $this->createExcelObjWithData($buyerList);
         $compressedFile = $this->compresFile($localFile);
         $remoteFile = $this->upload2FileServer($compressedFile);
@@ -121,6 +124,9 @@ class DownloadController extends Yaf_Controller_Abstract{
             $map1['agent_id'] = $where['agent']['agent_id'];
             $map1['_logic'] = 'or';
             $map['_complex'] = $map1;
+        }
+        if (!empty($where['country_bn'])) {
+            $map['buyer.country_bn'] = ['in', $where['country_bn'] ];
         }
         $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.name,province,buyer_level,`erui_buyer`.`buyer`.created_by,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
             ->join('`erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id`', 'left')

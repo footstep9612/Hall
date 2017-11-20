@@ -142,9 +142,7 @@ class BuyerController extends PublicController {
             $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
-
         $data = $model->getlist($where);
-
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
         if (!empty($data)) {
