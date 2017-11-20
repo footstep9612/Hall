@@ -267,7 +267,7 @@ class InquiryController extends PublicController {
         $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
-
+        $buyerModel = new BuyerModel();
         // 市场经办人
         if (!empty($condition['agent_name'])) {
             $agent = $userModel->where(['name' => $condition['agent_name']])->find();
@@ -301,6 +301,8 @@ class InquiryController extends PublicController {
                 $inquiry['agent_name'] = $agent['name'];
                 $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
                 $inquiry['quote_name'] = $quoter['name'];
+                $buyer = $buyerModel->field('buyer_no')->where(['id' => $inquiry['buyer_id']])->find();
+                $inquiry['buyer_no'] = $buyer['buyer_no'];
                 $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
                 $inquiry['now_agent_name'] = $nowAgent['name'];
                 $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
