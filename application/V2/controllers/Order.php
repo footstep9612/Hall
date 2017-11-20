@@ -134,6 +134,7 @@ class OrderController extends PublicController {
             }
             $orderModel = new OrderModel();
             $field = '`id`,`order_no`,`po_no`,`execute_no`,`contract_date`,' .
+                    '`execute_date`,`order_agent`,' .
                     '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,' .
                     '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,' .
                     '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,' .
@@ -292,6 +293,13 @@ class OrderController extends PublicController {
         $contract_date = strtotime($data['contract_date']);
         if ($contract_date > 0) {
             $order['contract_date'] = date('Y-m-d', $contract_date);
+        }
+        $execute_date = strtotime($data['execute_date']);
+        if ($contract_date > 0) {
+            $order['execute_date'] = date('Y-m-d', $execute_date);
+        }
+        if (!empty($data['order_agent'])) {
+            $order['order_agent'] = $this->safeString($data['order_agent']);
         }
         //采购商ID
         if (is_numeric($data['buyer_id']) && $data['buyer_id'] > 0) {
