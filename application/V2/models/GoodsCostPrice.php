@@ -160,6 +160,12 @@ class GoodsCostPriceModel extends PublicModel {
             $data['price_unit'] = $checkout['price_unit'];
         }
         if (!empty($checkout['price_cur_bn'])) {
+            $currencyModel = new CurrencyModel();
+            $currencyList = $currencyModel->field('bn')->where(['deleted_flag'=>'N'])->select();
+            if(!in_array(array('bn'=>$data['price_cur_bn']),$currencyList)){
+                $results['code'] = '-1001';
+                $results['message'] = '[币种有误]';
+            }
             $data['price_cur_bn'] = $checkout['price_cur_bn'];
         }
         if (!empty($checkout['min_purchase_qty'])) {
