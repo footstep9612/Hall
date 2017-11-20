@@ -185,9 +185,12 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
         if (empty($supplier['org_id'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
-            $this->jsonReturn();
+
+            $supplier['org_id'] = $org_ids[0];
+
+//            $this->setCode(MSG::ERROR_PARAM);
+//            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
+//            $this->jsonReturn();
         }
 
         if (!$supplier_level && empty($supplier['supplier_level'])) {
