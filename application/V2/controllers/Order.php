@@ -758,10 +758,25 @@ class OrderController extends PublicController {
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
         if ($data) {
+            $order_ids = [];
             foreach ($data as $key => $val) {
                 $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
-                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
+                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);  
+                $val['can_delete'] = 'Y';
+                $order_ids[$val['id']] = $key;                 
                 $data[$key] = $val;
+            }
+            if(sizeof($order_ids) >0){
+                $OrderLog = new OrderLogModel();
+                $logCond = [
+                    'log_group'=>'OUTBOUND',
+                    'order_id' => ['in',array_keys($order_ids)]
+                ];
+                $logs = $OrderLog->field('distinct(order_id) as order_id')->where($logCond)->select();
+                foreach($logs as $item){
+                    $data_key = $order_ids[$item['order_id']] ;  
+                    $data[$data_key]['can_delete'] = 'N';
+                }
             }
             $this->setvalue('count', intval($count));
             $this->jsonReturn($data);
