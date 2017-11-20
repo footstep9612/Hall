@@ -484,13 +484,15 @@ class SuppliersController extends PublicController {
     public function addSupplierSupplyRecordAction() {
         $condition = $this->_trim($this->put_data);
 
-        if ($condition['supplier_id'] == '')
+        if (empty($condition['supplier_id']))
             jsonReturn('', -101, '缺少供应商id参数!');
 
-        if ($condition['material_cat_no1'] == '')
+        if (empty($condition['material_cat_no1']))
             jsonReturn('', -101, '一级物料分类编码不能为空!');
-        if ($condition['material_cat_no2'] == '')
+        if (empty($condition['material_cat_no2']))
             jsonReturn('', -101, '二级物料分类编码不能为空!');
+        if (empty($condition['material_cat_name3']))
+            jsonReturn('', -101, '请输入铺货产品!');
         $exist = $this->supplierMaterialCatModel->Exist($condition);
 
         if (!$exist) {
@@ -503,14 +505,7 @@ class SuppliersController extends PublicController {
 
             $this->jsonReturn($res);
         } else {
-            if (empty($condition['material_cat_no2'])) {
-                $condition['material_cat_no2'] = null;
-            }
-            $condition['updated_by'] = $this->user['id'];
-            $condition['updated_at'] = $this->time;
-            $res = $this->supplierMaterialCatModel->saveRecord($condition, ['id' => $exist]);
-
-            $this->jsonReturn($res);
+            jsonReturn('', -101, '已经输入国相同的供货范围!');
         }
     }
 
