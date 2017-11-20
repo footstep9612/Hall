@@ -2023,6 +2023,8 @@ class GoodsModel extends PublicModel {
         $goodsSupplierModel = new GoodsSupplierModel();
         $goodsCostPriceModel = new GoodsCostPriceModel();
         $goodsAttrModel = new GoodsAttrModel();
+        $currencyModel = new CurrencyModel();
+        $currencyList = $currencyModel->field('bn')->where(['deleted_flag'=>'N'])->select();
 
         /** 处理数据 */
         $start_row = 3;    //从第三行开始取
@@ -2194,6 +2196,14 @@ class GoodsModel extends PublicModel {
                             }
                         }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
+                        if(!in_array(array('bn'=>$data['purchase_price_cur_bn']),$currencyList)){
+                            $faild++;
+                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
+                            $start_row++;
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            continue;
+                        }
                         if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入非固定属性]');
