@@ -279,7 +279,6 @@ class SupplierInquiryModel extends PublicModel {
      */
     public function Info($supplier_id) {
 
-
         $info = $this
                 ->field('supplier_no,name as supplier_name,id as supplier_id')
                 ->where(['id' => $supplier_id])

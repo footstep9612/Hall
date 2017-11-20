@@ -83,6 +83,7 @@ class ProductSupplierModel extends PublicModel {
                                 , 'left')
                         // ->join($supplier_table . ' as s on s.id=ps.supplier_id', 'left')
                         ->limit($starrow, $pagesize)
+                        ->order('pzh.view_count desc')
                         ->select();
     }
 
@@ -237,18 +238,18 @@ class ProductSupplierModel extends PublicModel {
                 if (!isset($data['supplier_id']) || empty($data['supplier_id'])) {
                     continue;
                 }
-                $product_supplier = $this->field('id,deleted_flag')->where(['supplier_id' => $data['supplier_id'], 'spu' => $spu ])->find();
+                $product_supplier = $this->field('id,deleted_flag')->where(['supplier_id' => $data['supplier_id'], 'spu' => $spu])->find();
 
-                /** 感觉这里的brand就是个鸡肋，而且没用 　暂时隐藏掉　*/
-                /*$product_model = new ProductModel();
-                $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
-                if (empty($product)) {
-                    $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
-                }
-                $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
-                */
+                /** 感觉这里的brand就是个鸡肋，而且没用 　暂时隐藏掉　 */
+                /* $product_model = new ProductModel();
+                  $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
+                  if (empty($product)) {
+                  $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
+                  }
+                  $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
+                 */
                 if ($product_supplier) {
-                    if($product_supplier['deleted_flag']!='N'){
+                    if ($product_supplier['deleted_flag'] != 'N') {
                         $data['updated_by'] = $admin;
                         $data['updated_at'] = date('Y-m-d H:i:s');
 
@@ -264,7 +265,7 @@ class ProductSupplierModel extends PublicModel {
                             $results['message'] = '失败!';
                             return $results;
                         }
-                    }else{
+                    } else {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
                     }
