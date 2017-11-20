@@ -1494,6 +1494,8 @@ class ProductModel extends PublicModel {
         $userInfo = getLoinInfo();
         $showCatProduct = new ShowCatProductModel();
         $tableSCP = $showCatProduct->getTableName();
+        $supplierModel = new SupplierModel();
+        $tablePS = $supplierModel->getTableName();
 
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
@@ -1511,36 +1513,56 @@ class ProductModel extends PublicModel {
             //$objPHPExcel = null;
 
             $condition = array('product.lang' => $lang);
-            if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
-                $condition['product.spu'] = $input['spu'];
-            }
-            if (isset($input['name']) && !empty($input['name'])) {    //名称
-                $condition['product.name'] = array('like', '%' . $input['spu'] . '%');
-            }
-            if (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
-                $condition['product.material_cat_no'] = $input['material_cat_no'];
-            }
-            if (isset($input['status']) && !empty($input['status'])) {    //上架状态
-                if ($input['status'] == 'Y') {
-                    $condition[$tableSCP . '.onshelf_flag'] = 'Y';
-                    $condition[$tableSCP . '.status'] = 'VALID';
-                } else {
-                    $condition[$tableSCP . '.onshelf_flag'] = 'N';
+            if(isset($input['spus']) && is_array($input['spus'])){
+                $condition['product.spus'] = array('in', $input['spus']);
+            }else{
+                if (isset($input['spu']) && !empty($input['spu'])) {    //spu编码
+                    $condition['product.spu'] = $input['spu'];
                 }
-                // $condition['status'] = $input['status'];
-            }
-            if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
-                $condition['product.created_by'] = $input['created_by'];
-            }
-            if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
-                $time_ary = explode(' - ', $input['created_at']);
-                $condition['created_at'] = array('between', $time_ary);
-                unset($time_ary);
+                if (isset($input['name']) && !empty($input['name'])) {    //名称
+                    $condition['product.name'] = array('like', '%' . $input['spu'] . '%');
+                }
+                if (isset($input['material_cat_no']) && !empty($input['material_cat_no'])) {    //物料分类
+                    $condition['product.material_cat_no'] = $input['material_cat_no'];
+                }
+                if(isset($input['supplier_name']) && !empty($input['supplier_name'])){
+                    $supplierInfo = $supplierModel->field('id')->where(['name'=>$input['supplier_name'],'deleted_flag'=>'N'])->find();
+                    if($supplierInfo){
+                        $condition['product_supplier.supplier_id'] = $supplierInfo['id'];
+                    }else{
+                        jsonReturn('', ErrorMsg::FAILED, '无数据可导');
+                    }
+                }
+                if (isset($input['status']) && !empty($input['status'])) {    //上架状态
+                    if ($input['status'] == 'Y') {
+                        $condition[$tableSCP . '.onshelf_flag'] = 'Y';
+                        $condition[$tableSCP . '.status'] = 'VALID';
+                    } else {
+                        $condition[$tableSCP . '.onshelf_flag'] = 'N';
+                    }
+                    // $condition['status'] = $input['status'];
+                }
+                if (isset($input['created_by']) && !empty($input['created_by'])) {    //创建人
+                    $condition['product.created_by'] = $input['created_by'];
+                }
+                if (isset($input['created_at']) && !empty($input['created_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                    $time_ary = explode(' - ', $input['created_at']);
+                    $condition['created_at'] = array('between', $time_ary);
+                    unset($time_ary);
+                }
+                if (isset($input['updated_by']) && !empty($input['updated_by'])) {    //创建人
+                    $condition['product.updated_by'] = $input['updated_by'];
+                }
+                if (isset($input['updated_at']) && !empty($input['updated_at'])) {    //创建时间段，注意格式：2017-09-08 00:00:00 - 2017-09-08 00:00:00
+                    $time_ary = explode(' - ', $input['updated_at']);
+                    $condition['updated_at'] = array('between', $time_ary);
+                    unset($time_ary);
+                }
             }
             do {
                 unset($result);
                 $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status';
-                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->where($condition)->limit($i * $length, $length)->select();
+                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->join($tablePS.' ON product.spu = '.$tablePS.'.spu','LEFT')->where($condition)->limit($i * $length, $length)->select();
                 if ($result) {
                     foreach ($result as $r) {
                         if (!isset($objPHPExcel) || !$objPHPExcel) {
