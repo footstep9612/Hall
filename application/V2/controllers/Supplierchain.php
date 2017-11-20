@@ -184,11 +184,8 @@ class SupplierchainController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
-        if (!$supplier_level && empty($supplier['supplier_level'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage('供应商等级不能为空!');
-            $this->jsonReturn();
-        } elseif (!$supplier_level && !empty($supplier['supplier_level'])) {
+
+        if (!$supplier_level && !empty($supplier['supplier_level'])) {
             $supplier_level = $supplier['supplier_level'];
         }
         if (!is_numeric($supplier_level) || $supplier_level > 4 || $supplier_level < 1) {

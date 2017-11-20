@@ -26,9 +26,20 @@ class SupplierInquiryModel extends PublicModel {
     }
 
     private function _getCondition($condition, &$where) {
-        $this->_getValue($where, $condition, 'supplier_no', 'string', 'supplier_no');
-        $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
-        $this->_getValue($where, $condition, 'created_at', 'between', 'created_at');
+        if (!empty($condition['supplier_no'])) {
+            $where .= ' AND tmp.supplier_no=\'' . trim($condition['supplier_no']) . '\'';
+        }
+        if (!empty($condition['supplier_name'])) {
+            $where .= ' AND tmp.supplier_name like \'%' . trim($condition['supplier_no']) . '%\'';
+        }
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $where .= ' AND tmp.created_at between \'' . trim($condition['created_at_start']) . '\''
+                    . ' AND \'' . trim($condition['created_at_end']) . '\'';
+        } elseif (!empty($condition['created_at_start'])) {
+            $where .= ' AND tmp.created_at > \'' . trim($condition['created_at_start']) . '\'';
+        } elseif (!empty($condition['created_at_end'])) {
+            $where .= ' AND tmp.created_at < \'' . trim($condition['created_at_end']) . '\'';
+        }
     }
 
     /**
@@ -38,27 +49,41 @@ class SupplierInquiryModel extends PublicModel {
      * @author zyg
      */
     public function getList($condition) {
-        $where = [
-            'deleted_flag' => 'N',
-            'status' => ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']]
-        ];
+        $where = '';
+
         $this->_getCondition($condition, $where);
         list($offset, $length) = $this->_getPage($condition);
-        $created_at_start = null; // !empty($condition['created_at_start']) ? $condition['created_at_start'] : null;
-        $created_at_end = null; // !empty($condition['created_at_end']) ? $condition['created_at_end'] : null;
-        $data = $this
-                ->field('supplier_no,name as supplier_name,id as supplier_id')
-                ->where($where)
-                ->limit($offset, $length)
-                ->order('id desc')
-                ->select();
-        $ret = [];
 
-        foreach ($data as $item) {
-            $this->getAreaCountBySupplierId($item['supplier_id'], $created_at_start, $created_at_end, $item);
-            $ret[] = $item;
+        $inquiry_model = new InquiryModel();
+        $inquiry_table = $inquiry_model->getTableName();
+        $final_quote_item_model = new FinalQuoteItemModel();
+        $final_quote_item_table = $final_quote_item_model->getTableName();
+
+        $field = 'supplier_no,supplier_name,supplier_id,';
+        foreach ($this->areas as $area_bn) {
+            $new_area_bn = str_replace(' ', '-', trim($area_bn));
+            $field .= 'sum(if(tmp.area_bn=\'' . $area_bn . '\',1,0)) as \'' . $new_area_bn . '\',';
         }
-        return $ret;
+        $field .= 'sum(if(tmp.area_bn is not null,1,0)) as \'total\' ';
+
+        $supplier_table = $this->getTableName();
+
+        $sql = 'select ' . $field . ' from (SELECT s.supplier_no,s.name as supplier_name,s.id as supplier_id,fqi.inquiry_id,i.area_bn,s.created_at FROM '
+                . $supplier_table . ' s left JOIN ' . $final_quote_item_table . ' fqi on fqi.supplier_id=s.id and fqi.deleted_flag=\'N\' and fqi.`status`=\'VALID\' left JOIN '
+                . $inquiry_table . ' i on i.id =fqi.inquiry_id WHERE s.deleted_flag = \'N\' '
+                . 'AND s.status IN (\'APPROVED\',\'VALID\',\'DRAFT\',\'APPLING\') '
+                . 'AND i.deleted_flag = \'N\' AND i.status = \'QUOTE_SENT\' '
+                . 'AND i.quote_status = \'COMPLETED\' AND i.area_bn '
+                . 'IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
+                . ' AND  s.deleted_flag=\'N\' AND s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
+                . 'GROUP BY fqi.inquiry_id,i.area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
+                . ' group by  supplier_id order by total desc ';
+
+        $data = $this->query($sql . ' limit ' . $offset . ' ,' . $length);
+
+        $count = $this->query('select count(*) as num from (' . $sql . ') t');
+
+        return [$data, isset($count[0]['num']) ? intval($count[0]['num']) : 0];
     }
 
     /**

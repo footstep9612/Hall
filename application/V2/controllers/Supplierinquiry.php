@@ -27,12 +27,12 @@ class SupplierinquiryController extends PublicController {
     public function listAction() {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        $data = $supplier_inquiry_model->getList($condition);
+        list($data, $count) = $supplier_inquiry_model->getList($condition);
 
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
             $inquirycount = $supplier_inquiry_model->getInquiryCount();
-            $count = $supplier_inquiry_model->getCount($condition);
+            // $count = 0; // $supplier_inquiry_model->getCount($condition);
             $this->setvalue('suppliercount', $suppliercount);
             $this->setvalue('inquirycount', $inquirycount);
             $this->setvalue('count', $count);
