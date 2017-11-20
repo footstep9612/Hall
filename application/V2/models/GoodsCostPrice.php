@@ -122,8 +122,7 @@ class GoodsCostPriceModel extends PublicModel {
         }
         $results = $data = array();
         if (empty($sku)) {
-            $results['code'] = '-1001';
-            $results['message'] = '[sku]缺失!';
+            jsonReturn('',ErrorMsg::FAILED, '[sku]缺失!');
         }
         /* if (empty($checkout['min_purchase_qty'])) {
           $results['code'] = '-1001';
@@ -135,8 +134,7 @@ class GoodsCostPriceModel extends PublicModel {
           } */
 
         if (empty($checkout['supplier_id'])) {
-            $results['code'] = '-1001';
-            $results['message'] = '[供应商]缺失!';
+            jsonReturn('',ErrorMsg::FAILED, '[供应商]缺失!');
         }
 
         if (!empty($checkout['supplier_id'])) {
@@ -162,9 +160,8 @@ class GoodsCostPriceModel extends PublicModel {
         if (!empty($checkout['price_cur_bn'])) {
             $currencyModel = new CurrencyModel();
             $currencyList = $currencyModel->field('bn')->where(['deleted_flag'=>'N'])->select();
-            if(!in_array(array('bn'=>$data['price_cur_bn']),$currencyList)){
-                $results['code'] = '-1001';
-                $results['message'] = '[币种有误]';
+            if(!in_array(array('bn'=>$checkout['price_cur_bn']),$currencyList)){
+                jsonReturn('',ErrorMsg::FAILED, '币种有误');
             }
             $data['price_cur_bn'] = $checkout['price_cur_bn'];
         }
@@ -182,10 +179,6 @@ class GoodsCostPriceModel extends PublicModel {
         }
         if (!empty($checkout['id'])) {
             $data['id'] = $checkout['id'];
-        }
-
-        if ($results) {
-            jsonReturn($results);
         }
         return $data;
     }
@@ -257,12 +250,13 @@ class GoodsCostPriceModel extends PublicModel {
                 return [];
             }
             $product_costprices = $this->field('sku,supplier_id,contact_first_name,contact_last_name,price,max_price,'
-                            . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
-                    ->where(['sku' => ['in', $skus],
-                        'status' => 'VALID',
-                        'deleted_flag' => 'N'
-                    ])
-                    ->select();
+                . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
+                ->where(['sku' => ['in', $skus],
+                    'status' => 'VALID',
+                    'deleted_flag' => 'N'
+                ])
+                ->order('supplier_id desc')
+                ->select();
             if (!$product_costprices) {
                 return [];
             }
@@ -296,12 +290,12 @@ class GoodsCostPriceModel extends PublicModel {
                 return [];
             }
             $product_costprices = $this->field('supplier_id,contact_first_name,contact_last_name,price,max_price,'
-                            . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
-                    ->where(['sku' => $sku,
-                        'status' => 'VALID',
-                        'deleted_flag' => 'N'
-                    ])
-                    ->select();
+                . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
+                ->where(['sku' => $sku,
+                    'status' => 'VALID',
+                    'deleted_flag' => 'N'
+                ])
+                ->select();
             if (!$product_costprices) {
                 return [];
             }
