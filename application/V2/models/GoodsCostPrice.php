@@ -150,8 +150,10 @@ class GoodsCostPriceModel extends PublicModel {
         }
         if (!empty($checkout['price']) && is_numeric($checkout['price'])) {
             $data['price'] = $checkout['price'];
+        }else{
+            $data['price'] = 0;
         }
-        if (!empty($checkout['max_price'])) {
+        if (!empty($checkout['max_price']) && ($checkout['max_price'] >= $data['price'])) {
             $data['max_price'] = $checkout['max_price'];
         }
         if (!empty($checkout['price_unit'])) {
