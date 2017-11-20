@@ -186,7 +186,7 @@ class SupplierchainController extends PublicController {
         }
         if (empty($supplier['org_id'])) {
 
-            $supplier['org_id'] = $org_ids[0];
+            $org_id = $org_ids[0];
 
 //            $this->setCode(MSG::ERROR_PARAM);
 //            $this->setMessage('请先在编辑管理编辑页面选择事业部,再进行供应链审核!');
@@ -216,7 +216,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
 
-        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui);
+        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui, $org_id);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');
