@@ -388,7 +388,7 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
-    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_id = null) {
+    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
@@ -400,8 +400,8 @@ class SupplierChainModel extends PublicModel {
         $data['erui_status'] = self::ERUI_STATUS_VALID;
         $data['erui_checked_at'] = date('Y-m-d H:i:s');
         $data['erui_checked_by'] = defined('UID') ? UID : 0;
-        if (empty($info['org_id']) && $org_id) {
-            $data['org_id'] = $org_id;
+        if (empty($info['org_id']) && $org_ids) {
+            $data['org_id'] = $org_ids[0];
         }
         $this->startTrans();
         $flag = $this->where($where)->save($data);
@@ -413,7 +413,7 @@ class SupplierChainModel extends PublicModel {
         $condition['status'] = 'APPROVED';
         $condition['erui_member_flag'] = $data['is_erui'];
         $condition['supplier_id'] = $supplier_id;
-        $condition['org_id'] = $org_id;
+        $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
         $condition['rating'] = $supplier_level;
         $flag_log = $supplierchecklog_model->create_data($condition);
         if (!$flag_log && $this->error) {
