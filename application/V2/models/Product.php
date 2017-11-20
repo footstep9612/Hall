@@ -1558,23 +1558,23 @@ class ProductModel extends PublicModel {
                 }
                 if (isset($input['date_start']) && !empty($input['date_start'])) {
                     if(isset($input['user_type']) && $input['user_type']=='create'){
-                        $condition['created_at'] = array('get', $input['date_start']);
+                        $condition['created_at'] = array('EGT', $input['date_start']);
                     }else{
-                        $condition['updated_at'] = array('get', $input['date_start']);
+                        $condition['updated_at'] = array('EGT', $input['date_start']);
                     }
                 }
                 if (isset($input['date_end']) && !empty($input['date_end'])) {
                     if(isset($input['user_type']) && $input['user_type']=='create'){
-                        $condition['created_at'] = array('lte', $input['date_end']);
+                        $condition['created_at'] = array('ELT', $input['date_end']);
                     }else{
-                        $condition['updated_at'] = array('lte', $input['date_end']);
+                        $condition['updated_at'] = array('ELT', $input['date_end']);
                     }
                 }
             }
             do {
                 unset($result);
                 $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status';
-                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->join($tablePS.' ON product.spu = '.$tablePS.'.spu','LEFT')->where($condition)->limit($i * $length, $length)->select();
+                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->join($tablePS.' ON product.spu = '.$tablePS.'.spu','LEFT')->where($condition)->group('product.spu')->limit($i * $length, $length)->select();
                 if ($result) {
                     foreach ($result as $r) {
                         if (!isset($objPHPExcel) || !$objPHPExcel) {
