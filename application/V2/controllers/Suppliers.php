@@ -716,7 +716,7 @@ class SuppliersController extends PublicController {
                 jsonReturn('', -101, '发证日期不能为空!');
 
             if ($item['issue_date'] == '')
-                unset($item['issue_date']);
+                $item['issue_date'] = null;
 
             if (strlen($item['issuing_authority']) > 50)
                 jsonReturn('', -101, '您输入的发证机构长度超过限制!');
@@ -761,24 +761,6 @@ class SuppliersController extends PublicController {
 
         $this->_handleList($this->supplierQualificationModel, $data, $condition);
     }
-
-    /**
-     * @desc 提交供应商审核接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    /* public function submitSupplierCheckAction() {
-      $condition = $this->put_data;
-
-      if ($condition['id'] == '') jsonReturn('', -101, '缺少供应商id参数!');
-
-      $where['id'] = $condition['id'];
-
-      $res = $this->suppliersModel->updateInfo($where, ['status' => 'CHECKING']);
-
-      $this->jsonReturn($res);
-      } */
 
     /**
      * @desc 获取供应商审核日志列表接口
