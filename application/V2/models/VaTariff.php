@@ -115,7 +115,7 @@ class VaTariffModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $result = $this->alias('vt')
-                    ->join('erui_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\' and c.deleted_flag=\N\'', 'left')
+                    ->join('erui_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\' and c.deleted_flag=\'N\'', 'left')
                     ->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)

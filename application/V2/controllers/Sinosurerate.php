@@ -116,6 +116,10 @@ class SinosureRateController extends PublicController {
                 $this->setMessage('已存在该国家的信保税率记录!');
                 $this->jsonReturn();
             }
+        } elseif (empty($condition['country_bn'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
         $res = $this->sinosureRateModel->addRecord($condition);
 
