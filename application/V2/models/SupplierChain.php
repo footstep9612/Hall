@@ -384,7 +384,7 @@ class SupplierChainModel extends PublicModel {
             $this->rollback();
             return FALSE;
         }
-        $suppliers = $this->field('id,name')->where($where)->select();
+        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
         /*
          * 更新日志
          */
@@ -394,7 +394,10 @@ class SupplierChainModel extends PublicModel {
 
             $condition = [];
             $condition['supplier_id'] = $supplier['id'];
+            $condition['erui_member_flag'] = $supplier['is_erui'];
+            $condition['org_id'] = $supplier['org_id'];
             $condition['rating'] = $supplier_level;
+//            $condition['note'] = '批设置供应商量等级';
             $flag_log = $supplierchecklog_model->create_data($condition);
             if (!$flag_log) {
                 $this->rollback();
