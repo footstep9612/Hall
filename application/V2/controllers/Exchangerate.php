@@ -199,7 +199,6 @@ class ExchangerateController extends PublicController {
     }
 
     function isDateTime($dateTime) {
-        echo $dateTime;
         $ret = strtotime($dateTime . '-01');
         return $ret !== FALSE && $ret != -1;
     }
