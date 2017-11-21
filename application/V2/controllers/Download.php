@@ -123,7 +123,7 @@ class DownloadController extends PublicController {
     {
         $buyerModel = new BuyerModel();
         //会员编号,会员名称,注册地,会员等级,用户来源,注册时间,审核状态
-        $map['deleted_flag'] = 'N';
+        $map['buyer.deleted_flag'] = 'N';
         if ($where['is_agent']=='Y') {
             $map1['buyer.created_by'] = $where['agent']['user_id'];
             $map1['agent_id'] = $where['agent']['agent_id'];
