@@ -181,7 +181,7 @@ class BizdivitionController extends PublicController{
                 ]);
                 //判断是添加还是修改
                 if(in_array($value['id'],$quoteItems)){
-                    $quoteItemModel->where('id='.$item['id'])->save($data);
+                    $quoteItemModel->where('id='.$value['id'])->save($data);
                 }else{
                     $quoteItemModel->add($data);
                 }
