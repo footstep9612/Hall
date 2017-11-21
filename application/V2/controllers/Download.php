@@ -48,8 +48,8 @@ class DownloadController extends PublicController {
         $buyerList = $this->getBuyerList($where);
         if (!$buyerList){
             $this->jsonReturn([
-                'code' => '-104',
-                'message' => '没有用户!'
+                'code' => -104,
+                'message' => '没有会员数据!'
             ]);
         }
         $localFile = $this->createExcelObjWithData($buyerList);
@@ -57,13 +57,13 @@ class DownloadController extends PublicController {
         $remoteFile = $this->upload2FileServer($compressedFile);
         if (!$remoteFile['code']=='1'){
             $this->jsonReturn([
-                'code' => '-104',
+                'code' => -104,
                 'message' => '导出失败!'
             ]);
         }
 
         $this->jsonReturn([
-            'code' => '1',
+            'code' => 1,
             'message' => '导出成功!',
             'data' => [
                 'url' => $remoteFile
