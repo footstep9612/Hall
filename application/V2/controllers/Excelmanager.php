@@ -224,11 +224,11 @@ class ExcelmanagerController extends PublicController {
         $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status'=>'QUOTE_SENT']);
         //更改询单的状态
         $inquiryModel = new InquiryModel();
-        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+        $inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
             'status'=>'QUOTE_SENT',
             'quote_status'=>'COMPLETED',
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
+            'updated_by' => $this->user['id']
         ]);
 
         $data = $this->getCommercialQuoteData($request['inquiry_id']);
