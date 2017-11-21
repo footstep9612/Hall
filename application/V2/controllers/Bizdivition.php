@@ -31,12 +31,12 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('agent_id');
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
             'status'       => 'REJECT_MARKET',//改为驳回市场，我了让查看询单的饿呢看到
             'now_agent_id' => $now_agent_id,
             'quote_id' => NULL,
-            'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_by'   => $this->user['id']
         ]);
 
         $this->jsonReturn($response);
@@ -58,12 +58,12 @@ class BizdivitionController extends PublicController{
         $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
         $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
 
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id'      => $erui_id,
             'now_agent_id' => $roleUser,
-            'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_by'   => $this->user['id']
         ]);
 
         $this->jsonReturn($response);
@@ -79,13 +79,13 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
 
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
             'status'       => 'BIZ_QUOTING', //事业部报价
             'quote_status' => 'ONGOING', //报价中
             'quote_id'     => $request['quote_id'],
             'now_agent_id' => $request['quote_id'],
-            'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_by'   => $this->user['id']
         ]);
 
         $quoteModel = new QuoteModel();
