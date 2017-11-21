@@ -124,8 +124,8 @@ class SuppliersController extends PublicController {
         if ($condition['bank_account'] != '' && !is_numeric($condition['bank_account']))
             jsonReturn('', -101, '开户账号只能输入数字!');
 
-        if (strlen($condition['bank_account']) > 16)
-            jsonReturn('', -101, '您输入的开户账号超过16位!');
+        if (strlen($condition['bank_account']) > 20)
+            jsonReturn('', -101, '您输入的开户账号超过20位!');
 
         if (strlen($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');

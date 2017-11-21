@@ -329,4 +329,51 @@ class ShowCatProductModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据SPUS 根据物料分类编码与展示分类编码更新产品商品与展示分类的关系
+     * @param mix $material_cat_nos // 物料分类编码数组
+     * @param string $show_cat_no // 展示分类编码
+     * @return mix  展示分类信息列表
+     * @author  zhongyg
+     * @date    2017-11-21 17:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function UpdateShowCatProductByMaterialCatNos($material_cat_nos, $show_cat_no) {
+        $product_model = new ProductModel();
+        $product_table = $product_model->getTableName();
+        $goods_model = new GoodsModel();
+        $show_cat_goods_model = new ShowCatGoodsModel();
+        $products = $product_model->field('spu,lang')->where(['material_cat_no' => ['in', $material_cat_nos], 'deleted_flag' => 'N'])->select();
+        foreach ($products as $product) {
+            $this->add([
+                'spu' => $product['spu'],
+                'lang' => $product['lang'],
+                'cat_no' => $show_cat_no,
+                'created_by' => 0,
+                'created_at' => '2017-11-21 00:00:00',
+                'onshelf_flag' => 'Y',
+                'status' => 'VALID'
+            ]);
+        }
+        $goods = $goods_model->alias('g')
+                ->join($product_table . ' as p on p.spu=g.spu and p.lang=g.lang and p.deleted_flag=\'N\'')
+                ->field('g.sku,g.lang,g.spu')
+                ->where(['p.material_cat_no' => ['in', $material_cat_nos, 'g.deleted_flag' => 'N']])
+                ->select();
+        foreach ($goods as $goods) {
+
+            $show_cat_goods_model->add([
+                'spu' => $goods['spu'],
+                'sku' => $goods['sku'],
+                'lang' => $goods['lang'],
+                'cat_no' => $show_cat_no,
+                'created_by' => 0,
+                'created_at' => '2017-11-21 00:00:00',
+                'onshelf_flag' => 'Y',
+                'status' => 'VALID']);
+        }
+    }
+
 }

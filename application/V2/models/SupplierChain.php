@@ -378,7 +378,32 @@ class SupplierChainModel extends PublicModel {
             'id' => ['in', $supplier_ids]
             , 'status' => ['in', ['APPROVED', 'VALID']]];
         $data['supplier_level'] = $supplier_level;
-        return $this->where($where)->save($data);
+        $this->startTrans();
+        $flag = $this->where($where)->save($data);
+        if (!$flag) {
+            $this->rollback();
+            return FALSE;
+        }
+        $suppliers = $this->field('id,name')->where($where)->select();
+        /*
+         * 更新日志
+         */
+        $supplierchecklog_model = new SupplierCheckLogModel();
+
+        foreach ($suppliers as $supplier) {
+
+            $condition = [];
+            $condition['supplier_id'] = $supplier['id'];
+            $condition['rating'] = $supplier_level;
+            $flag_log = $supplierchecklog_model->create_data($condition);
+            if (!$flag_log) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
+            }
+        }
+
+        $this->commit();
+        return $flag;
     }
 
     /**
