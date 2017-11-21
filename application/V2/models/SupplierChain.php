@@ -381,36 +381,35 @@ class SupplierChainModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 
-        $this->startTrans();
+        //  $this->startTrans();
         $flag = $this->where($where)->save($data);
-        if (!$flag) {
-            $this->rollback();
-            return FALSE;
-        }
-        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
-        /*
-         * 更新日志
-         */
-        $supplierchecklog_model = new SupplierCheckLogModel();
-
-        foreach ($suppliers as $supplier) {
-
-            $condition = [];
-            $condition['supplier_id'] = $supplier['id'];
-            $condition['erui_member_flag'] = $supplier['is_erui'];
-            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
-
-            $condition['rating'] = $supplier_level;
-//            $condition['note'] = '批设置供应商量等级';
-            $flag_log = $supplierchecklog_model->create_data($condition);
-            if (!$flag_log) {
-                $this->rollback();
-                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
-            }
-        }
-
-        $this->commit();
         return $flag;
+//        if (!$flag) {
+//            $this->rollback();
+//            return FALSE;
+//        }
+//        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
+//        /*
+//         * 更新日志
+//         */
+//        $supplierchecklog_model = new SupplierCheckLogModel();
+//
+//        foreach ($suppliers as $supplier) {
+//
+//            $condition = [];
+//            $condition['supplier_id'] = $supplier['id'];
+//            $condition['erui_member_flag'] = $supplier['is_erui'];
+//            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+//
+//            $condition['rating'] = $supplier_level;
+////            $condition['note'] = '批设置供应商量等级';
+//            $flag_log = $supplierchecklog_model->create_data($condition);
+//            if (!$flag_log) {
+//                $this->rollback();
+//                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
+//            }
+//        }
+        //  $this->commit();
     }
 
     /**
