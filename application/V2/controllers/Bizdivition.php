@@ -35,8 +35,10 @@ class BizdivitionController extends PublicController{
             'id'=>$request['inquiry_id'],
             'status'       => 'REJECT_MARKET',//改为驳回市场，我了让查看询单的饿呢看到
             'now_agent_id' => $now_agent_id,
+            'inflow_time'  => date('Y-m-d H:i:s',time()),
             'quote_id' => NULL,
-            'updated_by'   => $this->user['id']
+            'updated_by'   => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);
@@ -63,7 +65,9 @@ class BizdivitionController extends PublicController{
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id'      => $erui_id,
             'now_agent_id' => $roleUser,
-            'updated_by'   => $this->user['id']
+            'inflow_time'  => date('Y-m-d H:i:s',time()),
+            'updated_by'   => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);
@@ -85,7 +89,9 @@ class BizdivitionController extends PublicController{
             'quote_status' => 'ONGOING', //报价中
             'quote_id'     => $request['quote_id'],
             'now_agent_id' => $request['quote_id'],
-            'updated_by'   => $this->user['id']
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
+            'updated_by'   => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $quoteModel = new QuoteModel();
