@@ -180,6 +180,10 @@ class ExchangerateController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('汇率必须是浮点数字!');
             $this->jsonReturn();
+        } elseif (floatval($condition['rate']) <= 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('汇率必须大于零!');
+            $this->jsonReturn();
         }
         $result = $this->_model->create_data($condition);
 
