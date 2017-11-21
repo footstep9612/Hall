@@ -162,9 +162,12 @@ class QuoteModel extends PublicModel {
      * @return array
      */
     public function rejectToBiz($condition, $user){
+        if(!empty($condition['inquiry_id'])){
+            $where['inquiry_id'] = $condition['inquiry_id'];
+        }
 
         $this->startTrans();
-        $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
+        $quoteResult = $this->where($where)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
