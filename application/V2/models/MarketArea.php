@@ -32,7 +32,7 @@ class MarketAreaModel extends PublicModel {
      * @desc   营销区域
      */
     private function _getCondition($condition) {
-        $data = [];
+        $data = ['zh.deleted_flag' => 'N'];
         $data['zh.lang'] = 'zh';
         //$this->_getValue($data, $condition, 'lang', 'string');
         $this->_getValue($data, $condition, 'bn', 'string', 'zh.bn');
@@ -250,6 +250,7 @@ class MarketAreaModel extends PublicModel {
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
                 $arr['updated_by'] = defined('UID') ? UID : 0;
+                $arr['deleted_flag'] = 'N';
 
                 $flag = $this->where($where)->save($arr);
                 return $flag;
@@ -281,7 +282,7 @@ class MarketAreaModel extends PublicModel {
     public function getNamesBybns($bns) {
 
         try {
-            $where = [];
+            $where = ['deleted_flag' => 'N'];
 
             if (is_string($bns)) {
                 $where['bn'] = $bns;

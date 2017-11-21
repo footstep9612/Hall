@@ -32,7 +32,7 @@ class ExportTariffModel extends PublicModel {
      * @desc   增值税、关税信息
      */
     private function _getCondition($condition) {
-        $data = [];
+        $data = ['deleted_flag' => 'N'];
         $this->_getValue($data, $condition, 'lang', 'string'); //语言
         $this->_getValue($data, $condition, 'country_bn', 'string'); //国家简称
         $this->_getValue($data, $condition, 'cat_name', 'string'); //品类
@@ -129,7 +129,7 @@ class ExportTariffModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             return $this->where($where)
-                            ->delete();
+                            ->save(['deleted_flag' => 'N', 'status' => 'DELETED']);
         } else {
             return false;
         }
@@ -144,7 +144,7 @@ class ExportTariffModel extends PublicModel {
      * @desc   增值税、关税信息
      */
     public function Exits($where) {
-
+        $where['deleted_flag'] = 'N';
         return $this->_exist($where);
     }
 
@@ -168,7 +168,6 @@ class ExportTariffModel extends PublicModel {
         $create['supervised_criteria'] = $create['country_bn'];
         $data = $this->create($create);
 
-        var_dump($data);
         return $this->add($data);
 //        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
 ////            $datalist = [];

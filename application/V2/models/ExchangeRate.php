@@ -138,6 +138,10 @@ class ExchangeRateModel extends PublicModel {
         if (isset($data['rate'])) {
             $arr['rate'] = $data['rate'];
         }
+
+        $arr['deleted_flag'] = 'N';
+
+
         if (!empty($where)) {
             try {
                 return $this->where($where)->save($arr);

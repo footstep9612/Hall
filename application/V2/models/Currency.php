@@ -26,7 +26,7 @@ class CurrencyModel extends PublicModel {
         }
         try {
             $field = 'bn,name,symbol';
-            $result = $this->field($field)->select();
+            $result = $this->field($field)->where(['deleted_flag' => 'N'])->select();
             if ($result) {
                 redisSet($key_redis, $result);
             }
@@ -48,7 +48,7 @@ class CurrencyModel extends PublicModel {
         }
         try {
             $field = 'bn,symbol,name';
-            $result = $this->field($field)->order('bn')->select();
+            $result = $this->field($field)->where(['deleted_flag' => 'N'])->order('bn')->select();
             if ($result) {
                 redisHashSet('Currency', 'currency', json_encode($result));
                 return $result;
@@ -69,7 +69,9 @@ class CurrencyModel extends PublicModel {
 
         try {
             $field = 'bn,symbol,name';
-            $result = $this->field($field)->order('bn')->select();
+            $result = $this->field($field)
+                            ->where(['deleted_flag' => 'N'])
+                            ->order('bn')->select();
             if ($result) {
 
                 return $result;
@@ -89,7 +91,7 @@ class CurrencyModel extends PublicModel {
 
         try {
             if ($bns) {
-                $where = ['bn' => ['in', $bns]];
+                $where = ['bn' => ['in', $bns], 'deleted_flag' => 'N'];
                 $field = 'bn,name';
                 $result = $this->where($where)->field($field)->select();
                 $curs = [];

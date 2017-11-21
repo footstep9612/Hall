@@ -29,6 +29,7 @@ class PortModel extends PublicModel {
     public function getPort($lang = '', $country = '') {
         $condition = array(
             'lang' => $lang,
+            'deleted_flag' => 'N'
         );
         if (!empty($country)) {
             $condition['country_bn'] = $country;
@@ -59,7 +60,7 @@ class PortModel extends PublicModel {
      * @desc
      */
     private function _getCondition($condition) {
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
 //        if (isset($condition['id']) && $condition['id']) {
 //            $where['id'] = $condition['id'];
 //        }
@@ -240,7 +241,7 @@ class PortModel extends PublicModel {
             $arr['trans_mode'] = $data['trans_mode'];
             $arr['port_type'] = $data['port_type'];
             $arr['remarks'] = $data['remarks'];
-
+            $arr['deleted_flag'] = 'N';
             if ($this->Exits($where)) {
                 $flag = $this->where($where)->save($arr);
                 return $flag;
@@ -281,7 +282,7 @@ class PortModel extends PublicModel {
             $arr['port_type'] = $create['port_type'];
             $arr['remarks'] = $create['remarks'];
             $arr['created_by'] = defined('UID') ? UID : 0;
-            $data['status'] = 'VALID';
+            $arr['status'] = 'VALID';
             $arr['created_at'] = date('Y-m-d H:i:s');
             $langs = ['en', 'zh', 'es', 'ru'];
             foreach ($langs as $lang) {

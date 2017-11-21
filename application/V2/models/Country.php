@@ -29,11 +29,13 @@ class CountryModel extends PublicModel {
      */
 
     private function _getCondition(&$condition) {
-        $data = [];
+        $data = ['c.deleted_flag' => 'N'];
         getValue($data, $condition, 'lang', 'string', 'c.lang');
         if (isset($condition['bn']) && $condition['bn']) {
             $data['c.bn'] = $condition['bn'];
         }
+
+
         getValue($data, $condition, 'name', 'like', 'c.name');
         getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
         getValue($data, $condition, 'region_bn', 'like', 'c.region_bn');
@@ -69,8 +71,8 @@ class CountryModel extends PublicModel {
             }
             $this->alias('c')
                     ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
-                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
-                    ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang', 'left')
+                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang and ma.deleted_flag=\'N\'', 'left')
+                    ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang and r.deleted_flag=\'N\'', 'left')
                     ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
                             . 'ma.name as market_area_name ,mac.market_area_bn,c.int_tel_code')
                     ->where($where);
@@ -96,7 +98,7 @@ class CountryModel extends PublicModel {
         try {
             $data = $this->alias('c')
                     ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
-                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang', 'left')
+                    ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang  and ma.deleted_flag=\'N\' ', 'left')
                     ->_getCondition($condition);
             return $this->where($data)->count();
         } catch (Exception $ex) {
@@ -156,7 +158,7 @@ class CountryModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             return $this->where($where)
-                            ->save(['status' => 'DELETED']);
+                            ->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
         } else {
             return false;
         }
@@ -173,6 +175,7 @@ class CountryModel extends PublicModel {
         $data = $this->create($update);
         $where['bn'] = $data['bn'];
         $arr['status'] = $data['status'] == 'VALID' ? 'VALID' : 'INVALID';
+        $arr['deleted_flag'] = 'N';
         $flag = $this->where($where)->save($arr);
         if ($flag && $update['market_area_bn'] && $where['bn']) {
             $update = ['market_area_bn' => $update['market_area_bn'],
@@ -200,7 +203,7 @@ class CountryModel extends PublicModel {
         }
         $this->startTrans();
         foreach ($data['countrys'] as $item) {
-            $flag = $this->where(['bn' => $item['bn']])->save(['status' => $item['status']]);
+            $flag = $this->where(['bn' => $item['bn']])->save(['status' => $item['status'], 'deleted_flag' => 'N']);
             if (!$flag) {
                 $this->rollback();
                 return FALSE;
@@ -238,12 +241,14 @@ class CountryModel extends PublicModel {
         if (isset($create['region'])) {
             $arr['region'] = $create['region'];
         }
+        $arr['deleted_flag'] = 'N';
+
         $data = $this->create($arr);
         if ($data && $create['market_area_bn']) {
             $update = ['market_area_bn' => $create['market_area_bn'],
                 'country_bn' => $arr['bn']];
             $this->table('erui_operation.market_area_country')
-                    ->create($update);
+                    ->add($update);
         }
         $flag = $this->add($data);
         if ($flag && $create['market_area_bn']) {
@@ -251,7 +256,7 @@ class CountryModel extends PublicModel {
                 'country_bn' => $arr['bn']];
             if ($this->getmarket_area_countryexit($update)) {
                 $this->table('erui_operation.market_area_country')
-                        ->create($update);
+                        ->save($update);
             }
         }
         return $flag;
@@ -424,7 +429,8 @@ class CountryModel extends PublicModel {
         $MarketAreaCountry = new MarketAreaCountryModel(); //对应表的营销区域简写bn
         $market_area_bn = $MarketAreaCountry->field('market_area_bn')->where(array('country_bn' => $country_bn['bn']))->find();
         $MarketArea = new MarketAreaModel();
-        $market_area = $MarketArea->field('name,bn')->where(array('bn' => $market_area_bn['market_area_bn'], 'lang' => $lang))->find();
+        $market_area = $MarketArea->field('name,bn')->where(['bn' => $market_area_bn['market_area_bn'],
+                    'lang' => $lang, 'deleted_flag' => 'N'])->find();
         if ($market_area) {
             $market_area['country_bn'] = $country_bn;
             return $market_area;
@@ -449,6 +455,7 @@ class CountryModel extends PublicModel {
             $condition = array(
                 'bn' => $bn,
                 'lang' => $lang,
+                'deleted_flag' => 'N'
                     // 'status'=>self::STATUS_VALID
             );
             $field = 'name';
@@ -479,7 +486,8 @@ class CountryModel extends PublicModel {
 
             $condition = array(
                 'name' => ['like', '%' . $name . '%'],
-                'status' => self::STATUS_VALID
+                'status' => self::STATUS_VALID,
+                'deleted_flag' => 'N'
             );
 
             $field = 'bn';

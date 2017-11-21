@@ -45,7 +45,7 @@ class VaTariffModel extends PublicModel {
      */
 
     function getCondition($condition) {
-        $where = [];
+        $where = ['vt.deleted_flag' => 'N'];
         if (isset($condition['id']) && $condition['id']) {
             $where['vt.id'] = $condition['id'];
         }
@@ -115,7 +115,7 @@ class VaTariffModel extends PublicModel {
             }
             $from = ($current_no - 1) * $pagesize;
             $result = $this->alias('vt')
-                    ->join('erui_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\'', 'left')
+                    ->join('erui_dict.country c on vt.country_bn=c.bn and c.lang=\'zh\' and c.deleted_flag=\N\'', 'left')
                     ->field($field)
                     ->limit($from, $pagesize)
                     ->where($where)
@@ -141,6 +141,8 @@ class VaTariffModel extends PublicModel {
             return false;
         }
         $update_data['status'] = 'VALID';
+        $update_data['deleted_flag'] = 'N';
+
         $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
         $where['id'] = $update_data['id'];

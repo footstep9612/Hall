@@ -66,7 +66,7 @@ class RateModel extends PublicModel {
      * @author zyg
      */
     private function _getCondition(&$condition) {
-        $data = [];
+        $data = ['deleted_flag' => 'N'];
         $this->_getValue($data, $condition, 'lang'); //语言
         $this->_getValue($data, $condition, 'name'); //名称
         $this->_getValue($data, $condition, 'trade_terms_bn'); //贸易术语简称
@@ -214,6 +214,8 @@ class RateModel extends PublicModel {
         $where['id'] = $data['id'];
         $update_data['updated_by'] = defined('UID') ? UID : 0;
         $update_data['updated_at'] = date('Y-m-d H:i:s');
+        $update_data['deleted_flag'] = 'N';
+
         $flag = $this->where($where)->save($data);
         if ($flag) {
             return $flag;

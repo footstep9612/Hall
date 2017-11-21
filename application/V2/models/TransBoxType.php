@@ -55,7 +55,7 @@ class TransBoxTypeModel extends PublicModel {
      * @author zyg
      */
     private function _getCondition(&$condition) {
-        $data = [];
+        $data = ['tbt.deleted_flag' => 'N'];
         $this->_getValue($data, $condition, 'status', 'string', 'tbt.status'); //状态
         if (!isset($data['tbt.status'])) {
             $data['tbt.status'] = 'VALID';
@@ -87,8 +87,8 @@ class TransBoxTypeModel extends PublicModel {
                 return json_decode(redisHashGet('TransBoxType', $redis_keys), true);
             }
             $result = $this->alias('tbt')
-                    ->join('erui_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\'', 'left')
-                    ->join('erui_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\'', 'left')
+                    ->join('erui_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\' and bt.deleted_flag=\'N\'', 'left')
+                    ->join('erui_dict.trans_mode tm on tm.bn=tbt.trans_mode_bn and tm.lang=\'zh\' and tm.deleted_flag=\'N\'', 'left')
                     ->field('tbt.id,bt.box_type_name,tm.trans_mode,tbt.box_type_bn,'
                             . 'tbt.trans_mode_bn,tbt.created_by,tbt.created_at ')
                     ->order($order)
@@ -155,6 +155,8 @@ class TransBoxTypeModel extends PublicModel {
     public function update_data($update) {
         $data = $this->create($update);
         $where['id'] = $data['id'];
+        $data['deleted_flag'] = 'N';
+
         $flag = $this->where($where)->save($data);
         if ($flag !== false) {
             return true;

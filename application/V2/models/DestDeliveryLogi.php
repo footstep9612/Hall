@@ -33,7 +33,8 @@ class DestDeliveryLogiModel extends PublicModel {
             $condition = array(
                 'country' => $country,
                 'lang' => $lang,
-                'status' => self::STATUS_VALID
+                'status' => self::STATUS_VALID,
+                'deleted_flag' => 'N',
             );
             $field = 'lang,logi_no,trans_mode_bn,country,from_port,to_loc,remarks,'
                     . 'clearance_days_min,clearance_days_max,delivery_time_min,delivery_time_max';
@@ -55,7 +56,7 @@ class DestDeliveryLogiModel extends PublicModel {
      */
 
     function getCondition($condition) {
-        $where = [];
+        $where = ['deleted_flag' => 'N',];
         if (isset($condition['id']) && $condition['id']) {
             $where['id'] = $condition['id'];
         }
@@ -87,6 +88,7 @@ class DestDeliveryLogiModel extends PublicModel {
         if (isset($condition['created_by']) && $condition['created_by']) {
             $where['created_by'] = $condition['created_by'];
         }
+
         return $where;
     }
 

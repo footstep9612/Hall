@@ -32,7 +32,7 @@ class LogiRateModel extends PublicModel {
      * @desc   物流费率
      */
     private function _getCondition($condition) {
-        $data = [];
+        $data = ['zh.deleted_flag' => 'N'];
         $data['zh.lang'] = 'zh';
         //$this->_getValue($data, $condition, 'lang', 'string');
         $this->_getValue($data, $condition, 'trade_terms_bn', 'string');
@@ -146,7 +146,7 @@ class LogiRateModel extends PublicModel {
      * @desc   物流费率
      */
     public function Exits($where) {
-
+        //   $where['deleted_flag'] = 'N';
         return $this->_exist($where);
     }
 
@@ -200,6 +200,7 @@ class LogiRateModel extends PublicModel {
                     $arr['name'] = $create[$lang]['name'];
                     $arr['updated_by'] = defined('UID') ? UID : 0;
                     $arr['updated_at'] = date('Y-m-d H:i:s');
+                    $arr['deleted_flag'] = 'N';
                     $this->where($where)->save($arr);
                 } else {
 

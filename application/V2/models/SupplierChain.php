@@ -450,7 +450,9 @@ class SupplierChainModel extends PublicModel {
             if ($info['org_id'] && $data['status'] == 'APPROVED') {
                 $org_model = new OrgModel();
                 $orgInfo = $org_model->field('membership,org_node,name')->where(['id' => $info['org_id'], 'deleted_flag' => 'N'])->find();
-                if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+                if (isset($orgInfo['org_node']) && $orgInfo['org_node'] === 'erui') {
+                    $data['erui_checked_at'] = date('Y-m-d H:i:s');
+                    $data['erui_checked_by'] = defined('UID') ? UID : 0;
                     $data['erui_status'] = 'VALID';
                     $data['is_erui'] = 'Y';
                 }
