@@ -467,7 +467,7 @@ class SupplierChainModel extends PublicModel {
             $condition['status'] = $status == 'APPROVED' ? 'APPROVED' : 'INVALID';
             $condition['supplier_id'] = $supplier_id;
             $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
-            if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+            if (isset($orgInfo['membership']) && $orgInfo['org_node'] === 'erui') {
                 $data['erui_member_flag'] = 'Y';
             }
             $condition['note'] = $note;
