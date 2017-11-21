@@ -375,9 +375,12 @@ class SupplierChainModel extends PublicModel {
     public function batchUpdateLevel($supplier_ids, $supplier_level) {
 
         $where = ['deleted_flag' => 'N',
-            'id' => ['in', $supplier_ids]
-            , 'status' => ['in', ['APPROVED', 'VALID']]];
+            'id' => ['in', $supplier_ids],
+            'status' => ['in', ['APPROVED', 'VALID']]];
         $data['supplier_level'] = $supplier_level;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $data['updated_by'] = defined('UID') ? UID : 0;
+
         $this->startTrans();
         $flag = $this->where($where)->save($data);
         if (!$flag) {
