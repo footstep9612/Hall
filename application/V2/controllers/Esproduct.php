@@ -27,15 +27,6 @@ class EsproductController extends PublicController {
         if ($this->getRequest()->isCli()) {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
-        } elseif ($username == '016417' && $password) {
-            $model = new EmployeeModel();
-            $info = $model->field('password_hash')->where(['user_no' => $username])->find();
-            if ($info && $info['password_hash'] == $password) {
-                ini_set("display_errors", "On");
-                error_reporting(E_ERROR | E_STRICT);
-            } else {
-                parent::init();
-            }
         } else {
             parent::init();
         }

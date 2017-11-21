@@ -1169,7 +1169,10 @@ class ShowCatModel extends PublicModel {
                 }
                 $material_cat_no3s = [];
                 if (!isset($show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']]['childs'][$item['show_cat_name3_zh']]['material_cat_no3'])) {
-                    $material_cat_no3s = array_merge($item['material_cat_no3'], $show_cats[$item['show_cat_name1_zh']]['childs'][$item['show_cat_name2_zh']]['childs'][$item['show_cat_name3_zh']]['material_cat_no3']);
+                    $material_cat_no3s = $show_cats[$item['show_cat_name1_zh']]
+                            ['childs'][$item['show_cat_name2_zh']]
+                            ['childs'][$item['show_cat_name3_zh']]['material_cat_no3'];
+                    $material_cat_no3s[] = $item['material_cat_no3'];
                 } else {
                     $material_cat_no3s[] = $item['material_cat_no3'];
                 }
@@ -1191,7 +1194,7 @@ class ShowCatModel extends PublicModel {
                                 $item['show_cat_name3_zh'] => [
                                     'show_cat_name3_zh' => $item['show_cat_name3_zh'],
                                     'show_cat_name3_en' => $item['show_cat_name3_en'],
-                                    'material_cat_no3' => $item['material_cat_no3'],
+                                    'material_cat_no3' => [$item['material_cat_no3']],
                                 ]]
                         ]]
                 ];
@@ -1200,6 +1203,8 @@ class ShowCatModel extends PublicModel {
 
         $market_area_bn = 'South America';
         $country_bn = 'Colombia';
+
+        $ShowCatProductModel = new ShowCatProductModel();
         foreach ($show_cats as $show_cat1s) {
             $cat_no1 = null;
             $data1 = [];
@@ -1234,13 +1239,20 @@ class ShowCatModel extends PublicModel {
                             $data3['material_cat_nos'] = $show_cat3['material_cat_no3'];
                             $data3['market_area_bn'] = $market_area_bn;
                             $data3['country_bn'] = $country_bn;
+
+
+
+
                             $cat_no3 = $this->create_data($data3);
                             if (!$cat_no3) {
-                                Log::write(var_export($show_cat3, true));
+
+                                Log::write('三级级分类:导入失败,二级分类编码为:' . $cat_no2 . PHP_EOL . '三级分类编码:' . $cat_no3 . PHP_EOL . var_export($show_cat3, true));
+                            } else {
+                                $ShowCatProductModel->UpdateShowCatProductByMaterialCatNos($show_cat3['material_cat_no3'], $cat_no3);
                             }
                         }
                     } else {
-                        Log::write(var_export($show_cat2s, true));
+                        Log::write('二级分类:导入失败,一级分类编码为:' . $cat_no1 . PHP_EOL . var_export($show_cat2s, true));
                     }
                 }
             } else {
