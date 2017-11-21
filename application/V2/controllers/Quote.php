@@ -105,9 +105,12 @@ class QuoteController extends PublicController{
      *退回分单员(事业部分单员)
      */
     public function rejectToBizAction(){
+        $inquiryModel = new InquiryModel();
 
         $request   = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
+        $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
+        $condition['now_agent_id'] = $inquiryModel->getRoleUserId($org_id, $inquiryModel::quoteIssueMainRole, 'ub');
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
         $this->jsonReturn($response);
 
@@ -135,8 +138,10 @@ class QuoteController extends PublicController{
         $result = $inquiryModel->updateData([
             'id'=>$request['inquiry_id'],
             'now_agent_id'=>$now_agent_id,
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
             'status' =>'LOGI_QUOTING',
-            'updated_by' => $this->user['id']
+            'updated_by' => $this->user['id'],
+            'updated_at'   => date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($result);
@@ -156,9 +161,11 @@ class QuoteController extends PublicController{
             'id'=>$request['inquiry_id'],
             'quote_status' => 'QUOTED',
             'now_agent_id' => $check_org_id,
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
             'check_org_id' => $check_org_id, //事业部审核人
             'status' => 'MARKET_APPROVING',
-            'updated_by' => $this->user['id']
+            'updated_by' => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
@@ -262,8 +269,10 @@ class QuoteController extends PublicController{
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],
             'now_agent_id'  => $now_agent_id,
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
             'status'        => 'BIZ_APPROVING',
-            'updated_by'    => $this->user['id']
+            'updated_by'    => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);
@@ -283,8 +292,10 @@ class QuoteController extends PublicController{
         $response = $this->inquiryModel->updateData([
             'id'           => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
             'status'       => 'MARKET_CONFIRMING',
-            'updated_by'   => $this->user['id']
+            'updated_by'   => $this->user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);

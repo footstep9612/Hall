@@ -169,10 +169,13 @@ class QuoteModel extends PublicModel {
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
         $inquiryResult = $inquiry->updateData([
-            'id'           => $condition['inquiry_id'],
-            'status'       => self::INQUIRY_BIZ_DISPATCHING,
+            'id'            => $condition['inquiry_id'],
+            'now_agent_id' => $condition['now_agent_id'],
+            'inflow_time'  => date('Y-m-d H:i:s',time()),
+            'status'        => self::INQUIRY_BIZ_DISPATCHING,
             'quote_status' => self::QUOTE_NOT_QUOTED,
-            'updated_by'   => $user['id']
+            'updated_by'   => $user['id'],
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         if ($quoteResult && $inquiryResult){
@@ -206,12 +209,17 @@ class QuoteModel extends PublicModel {
             $orgId[] = $org['id'];
         }
 
+
+        $time = date('Y-m-d H:i:s',time());
+
         $inquiryResult = $inquiry->updateData([
             'id'           => $request['inquiry_id'],
             'status'       => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id'  => $orgId[0],
             'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg'),
-            'updated_by'   => $user['id']
+            'inflow_time'   => $time,
+            'updated_by'   => $user['id'],
+            'updated_at'   => $time
         ]);
 
         $this->startTrans();
