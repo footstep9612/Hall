@@ -5,7 +5,7 @@
  * @desc   DownloadController
  * @Author 买买提
  */
-class DownloadController extends Yaf_Controller_Abstract{
+class DownloadController extends PublicController {
 
 
     public function init()
@@ -51,13 +51,13 @@ class DownloadController extends Yaf_Controller_Abstract{
         $remoteFile = $this->upload2FileServer($compressedFile);
 
         if (!$remoteFile['code']=='1'){
-            jsonReturn([
+            $this->jsonReturn([
                 'code' => '-104',
                 'message' => '导出失败!'
             ]);
         }
 
-        jsonReturn([
+        $this->jsonReturn([
             'code' => '1',
             'message' => '导出成功!',
             'data' => [
