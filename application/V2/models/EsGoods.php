@@ -741,7 +741,7 @@ class EsGoodsModel extends Model {
             $body['supplier_count'] = 0;
         }
         $body['supplier_count'] = strval($body['supplier_count']);
-        if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
+        if ($es_goods && ($es_goods['_source']['suppliers'] != $body['suppliers'] || $es_goods['_source']['min_order_qty'] != $body['min_order_qty'] || $es_goods['_source']['exw_days'] != $body['exw_days'] || $es_goods['_source']['min_pack_unit'] != $body['min_pack_unit'] )) {
             $this->UpdateSPU($spu, $lang);
         }
 

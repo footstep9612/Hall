@@ -919,7 +919,7 @@ class EsProductModel extends Model {
             $body['show_cats'] = [];
         }
 
-        if ($es_product && ($es_product['brand'] !== $body['brand'] || $es_product['material_cat_no'] !== $item['material_cat_no'])) {
+        if ($es_product && ($es_product['_source']['brand'] != $body['brand'] || $es_product['_source']['material_cat_no'] !== $item['material_cat_no'])) {
             $this->BatchSKU($spu, $lang, $body['brand'], $body['brand_childs'], $item['material_cat_no'], $body['material_cat'], $body['material_cat_zh']);
         }
         if (isset($name_locs[$spu]) && $name_locs[$spu]) {
