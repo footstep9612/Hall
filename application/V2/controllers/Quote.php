@@ -217,7 +217,7 @@ class QuoteController extends PublicController{
 
         $quoteItems = $this->quoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
 
-        $finalItems = $finalQuoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('id',true);
+        $finalItems = $finalQuoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('quote_item_id',true);
         $quote_id = $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
 
         foreach ($quoteItems as $quote=>$item){
