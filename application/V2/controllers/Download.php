@@ -46,10 +46,15 @@ class DownloadController extends PublicController {
             $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
         $buyerList = $this->getBuyerList($where);
+        if (!$buyerList){
+            $this->jsonReturn([
+                'code' => '-104',
+                'message' => '没有用户!'
+            ]);
+        }
         $localFile = $this->createExcelObjWithData($buyerList);
         $compressedFile = $this->compresFile($localFile);
         $remoteFile = $this->upload2FileServer($compressedFile);
-
         if (!$remoteFile['code']=='1'){
             $this->jsonReturn([
                 'code' => '-104',
