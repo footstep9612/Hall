@@ -278,7 +278,7 @@ class QuoteModel extends PublicModel {
                 $quoteItemLogiModel = new QuoteItemLogiModel();
 
                 $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
-                $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'deleted_flag'=>'N'])->getField('id',true);
+                $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'deleted_flag'=>'N'])->getField('quote_item_id',true);
 
                 foreach ($quoteItemIds as $quoteItemId) {
 
