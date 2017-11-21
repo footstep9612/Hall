@@ -127,7 +127,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
-        $data = $supplier_model->batchUpdateLevel($supplier_ids, $supplier_level);
+        $data = $supplier_model->batchUpdateLevel($supplier_ids, $supplier_level, $condition['org_id']);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');

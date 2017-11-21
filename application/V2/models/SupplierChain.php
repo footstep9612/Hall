@@ -372,7 +372,7 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
-    public function batchUpdateLevel($supplier_ids, $supplier_level) {
+    public function batchUpdateLevel($supplier_ids, $supplier_level, $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => ['in', $supplier_ids],
@@ -398,7 +398,8 @@ class SupplierChainModel extends PublicModel {
             $condition = [];
             $condition['supplier_id'] = $supplier['id'];
             $condition['erui_member_flag'] = $supplier['is_erui'];
-            $condition['org_id'] = $supplier['org_id'];
+            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+
             $condition['rating'] = $supplier_level;
 //            $condition['note'] = '批设置供应商量等级';
             $flag_log = $supplierchecklog_model->create_data($condition);
