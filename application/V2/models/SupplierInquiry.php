@@ -70,7 +70,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'sum(1) as \'total\' ';
 
         $supplier_table = $this->getTableName();
-
+        $areas = '\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\'';
         $sql = 'select ' . $field . ' from (SELECT s.supplier_no,s.name as supplier_name,s.id as supplier_id,fqi.inquiry_id,mac.market_area_bn as area_bn,s.created_at FROM '
                 . $supplier_table . ' s left JOIN ' . $final_quote_item_table . ' fqi on fqi.supplier_id=s.id and fqi.deleted_flag=\'N\' and fqi.`status`=\'VALID\' '
                 . ' left JOIN ' . $inquiry_table . ' i on i.id =fqi.inquiry_id '
@@ -79,7 +79,7 @@ class SupplierInquiryModel extends PublicModel {
                 . ' left join ' . $marketareacountry_table . ' mac on mac.country_bn=i.country_bn  '
                 . ' WHERE s.deleted_flag = \'N\' '
                 . ' AND  s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
-                . ' and  mac.market_area_bn  IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
+                // . ' and  mac.market_area_bn  IN ('.$areas.')'
                 . ' GROUP BY fqi.inquiry_id,mac.market_area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
                 . ' group by  supplier_id order by total desc ';
 
