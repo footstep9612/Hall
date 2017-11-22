@@ -220,7 +220,7 @@ class DownloadController extends PublicController {
         foreach ($data as $v){
 
             $objSheet->setCellValue("A" . $rowNum, $v['buyer_no']);
-            $objSheet->setCellValue("B" . $rowNum, $v['buyer_']);
+            $objSheet->setCellValue("B" . $rowNum, $v['buyer_code']);
             $objSheet->setCellValue("C" . $rowNum, $v['country_name']);
             $objSheet->setCellValue("D" . $rowNum, $v['buyer_level']);
             $objSheet->setCellValue("E" . $rowNum, $v['created_by']);
