@@ -146,7 +146,7 @@ class ProductSupplierModel extends PublicModel {
     public function getproductCount() {
         $where = [
             'deleted_flag' => 'N',
-            'status' => ['in', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'DRAFT', 'INVALID']],
+            'status' => ['in', ['NORMAL', 'VALID', 'CHECKING', 'DRAFT', 'INVALID']],
             'lang' => 'zh'
         ];
         $product_model = new ProductModel();
