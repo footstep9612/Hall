@@ -67,7 +67,7 @@ class SupplierInquiryModel extends PublicModel {
             $new_area_bn = str_replace(' ', '-', trim($area_bn));
             $field .= 'sum(if(tmp.area_bn=\'' . $area_bn . '\',1,0)) as \'' . $new_area_bn . '\',';
         }
-        $field .= 'sum(1) as \'total\' ';
+        $field .= 'sum(tmp.area_bn is not null) as \'total\' ';
 
         $supplier_table = $this->getTableName();
         $areas = '\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\'';
@@ -79,7 +79,7 @@ class SupplierInquiryModel extends PublicModel {
                 . ' left join ' . $marketareacountry_table . ' mac on mac.country_bn=i.country_bn  '
                 . ' WHERE s.deleted_flag = \'N\' '
                 . ' AND  s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
-                // . ' and  mac.market_area_bn  IN ('.$areas.')'
+                . ' and  mac.market_area_bn  IN (' . $areas . ')'
                 . ' GROUP BY fqi.inquiry_id,mac.market_area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
                 . ' group by  supplier_id order by total desc ';
 
@@ -261,6 +261,8 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($inquiryids as $inquiryid) {
             $inquiry_ids[] = $inquiryid['inquiry_id'];
         }
+
+
         if (empty($inquiry_ids)) {
             return null;
         }
@@ -269,7 +271,7 @@ class SupplierInquiryModel extends PublicModel {
             'status' => 'QUOTE_SENT',
             'quote_status' => 'COMPLETED',
             'id' => ['in', $inquiry_ids],
-                //  'area_bn' => ['in', $this->areas]
+            'area_bn' => ['in', $this->areas]
         ];
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model
@@ -278,6 +280,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->order('created_at ASC')
                 ->limit($offset, $length)
                 ->select();
+
         return $list;
     }
 
