@@ -67,7 +67,7 @@ class SupplierInquiryModel extends PublicModel {
             $new_area_bn = str_replace(' ', '-', trim($area_bn));
             $field .= 'sum(if(tmp.area_bn=\'' . $area_bn . '\',1,0)) as \'' . $new_area_bn . '\',';
         }
-        $field .= 'sum(if(tmp.area_bn is not null,1,0)) as \'total\' ';
+        $field .= 'sum(1) as \'total\' ';
 
         $supplier_table = $this->getTableName();
 
@@ -85,6 +85,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $data = $this->query($sql . ' limit ' . $offset . ' ,' . $length);
 
+        echo $sql;
         $count = $this->query('select count(*) as num from (' . $sql . ') t');
 
         return [$data, isset($count[0]['num']) ? intval($count[0]['num']) : 0];
@@ -268,7 +269,7 @@ class SupplierInquiryModel extends PublicModel {
             'status' => 'QUOTE_SENT',
             'quote_status' => 'COMPLETED',
             'id' => ['in', $inquiry_ids],
-            'area_bn' => ['in', $this->areas]
+                //  'area_bn' => ['in', $this->areas]
         ];
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model
