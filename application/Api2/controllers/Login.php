@@ -48,7 +48,7 @@ class LoginController extends PublicController {
         $info = $model->login($arr);
         if ($info) {
             $buyer_model = new BuyerModel();
-            $buyer_info = $buyer_model->info(['id' => $info['buyer_id']] );
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['buyer_no'] = $buyer_info['buyer_no'];

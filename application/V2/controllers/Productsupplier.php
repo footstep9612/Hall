@@ -172,7 +172,7 @@ class ProductSupplierController extends PublicController {
      */
     public function productListAction() {
         $condition = $this->getPut();
-
+        $productsupplier_model = new ProductSupplierModel();
         $esproduct = new EsProductModel();
         $pagesize = 10;
         $current_no = 1;
@@ -189,6 +189,8 @@ class ProductSupplierController extends PublicController {
         $data = $esproduct->getList($condition, ['spu', 'supplier_count', 'name_loc', 'name'], 'zh', $from, $pagesize, $total);
         if ($data) {
             $this->setvalue('count', $total);
+            $this->setvalue('product_count', $productsupplier_model->getproductCount());
+            $this->setvalue('supplier_count', $productsupplier_model->getSupplierCount());
 
             $this->jsonReturn($data);
         } elseif ($data === null) {

@@ -316,6 +316,7 @@ class BuyerModel extends PublicModel {
      * @author jhw
      */
     public function info($data) {
+
         if ($data['id']) {
             $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')

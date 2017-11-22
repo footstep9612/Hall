@@ -59,27 +59,32 @@ class SupplierInquiryModel extends PublicModel {
         $final_quote_item_model = new FinalQuoteItemModel();
         $final_quote_item_table = $final_quote_item_model->getTableName();
 
+        $marketareacountry_model = new MarketAreaCountryModel();
+
+        $marketareacountry_table = $marketareacountry_model->getTableName();
         $field = 'supplier_no,supplier_name,supplier_id,';
         foreach ($this->areas as $area_bn) {
             $new_area_bn = str_replace(' ', '-', trim($area_bn));
             $field .= 'sum(if(tmp.area_bn=\'' . $area_bn . '\',1,0)) as \'' . $new_area_bn . '\',';
         }
-        $field .= 'sum(if(tmp.area_bn is not null,1,0)) as \'total\' ';
+        $field .= 'sum(1) as \'total\' ';
 
         $supplier_table = $this->getTableName();
 
-        $sql = 'select ' . $field . ' from (SELECT s.supplier_no,s.name as supplier_name,s.id as supplier_id,fqi.inquiry_id,i.area_bn,s.created_at FROM '
-                . $supplier_table . ' s left JOIN ' . $final_quote_item_table . ' fqi on fqi.supplier_id=s.id and fqi.deleted_flag=\'N\' and fqi.`status`=\'VALID\' left JOIN '
-                . $inquiry_table . ' i on i.id =fqi.inquiry_id WHERE s.deleted_flag = \'N\' '
-                . 'AND s.status IN (\'APPROVED\',\'VALID\',\'DRAFT\',\'APPLING\') '
-                . 'AND i.deleted_flag = \'N\' AND i.status = \'QUOTE_SENT\' '
-                . 'AND i.quote_status = \'COMPLETED\' AND i.area_bn '
-                . 'IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
-                . ' AND  s.deleted_flag=\'N\' AND s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
-                . 'GROUP BY fqi.inquiry_id,i.area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
+        $sql = 'select ' . $field . ' from (SELECT s.supplier_no,s.name as supplier_name,s.id as supplier_id,fqi.inquiry_id,mac.market_area_bn as area_bn,s.created_at FROM '
+                . $supplier_table . ' s left JOIN ' . $final_quote_item_table . ' fqi on fqi.supplier_id=s.id and fqi.deleted_flag=\'N\' and fqi.`status`=\'VALID\' '
+                . ' left JOIN ' . $inquiry_table . ' i on i.id =fqi.inquiry_id '
+                . ' AND i.deleted_flag = \'N\' AND i.status = \'QUOTE_SENT\' '
+                . ' AND i.quote_status = \'COMPLETED\' '
+                . ' left join ' . $marketareacountry_table . ' mac on mac.country_bn=i.country_bn  '
+                . ' WHERE s.deleted_flag = \'N\' '
+                . ' AND  s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
+                . ' and  mac.market_area_bn  IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
+                . ' GROUP BY fqi.inquiry_id,mac.market_area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
                 . ' group by  supplier_id order by total desc ';
 
         $data = $this->query($sql . ' limit ' . $offset . ' ,' . $length);
+
 
         $count = $this->query('select count(*) as num from (' . $sql . ') t');
 
@@ -142,7 +147,7 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_model = new InquiryModel();
 
         $areacounts = $inquiry_model
-                ->field('count(\'id\') as area_count,area_bn')
+                ->field('count(\'id\') as area_count,area_bn ')
                 ->where($where)
                 ->group('area_bn')
                 ->select();
@@ -218,15 +223,20 @@ class SupplierInquiryModel extends PublicModel {
         if (empty($inquiry_ids)) {
             return 0;
         }
+        $marketareacountry_model = new MarketAreaCountryModel();
+
+        $marketareacountry_table = $marketareacountry_model->getTableName();
         $where = [
-            'deleted_flag' => 'N',
-            'status' => 'QUOTE_SENT',
-            'quote_status' => 'COMPLETED',
-            'id' => ['in', $inquiry_ids],
-            'area_bn' => ['in', $this->areas]
+            'i.deleted_flag' => 'N',
+            'i.status' => 'QUOTE_SENT',
+            'i.quote_status' => 'COMPLETED',
+            'i.id' => ['in', $inquiry_ids],
+            'mac.market_area_bn' => ['in', $this->areas],
         ];
         $inquiry_model = new InquiryModel();
         $count = $inquiry_model
+                ->alias('i')
+                ->join($marketareacountry_table . ' mac on  mac.country_bn=i.country_bn  ')
                 ->where($where)
                 ->count();
 
@@ -259,7 +269,7 @@ class SupplierInquiryModel extends PublicModel {
             'status' => 'QUOTE_SENT',
             'quote_status' => 'COMPLETED',
             'id' => ['in', $inquiry_ids],
-            'area_bn' => ['in', $this->areas]
+                //  'area_bn' => ['in', $this->areas]
         ];
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model
