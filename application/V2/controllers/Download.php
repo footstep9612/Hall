@@ -46,6 +46,7 @@ class DownloadController extends PublicController {
             $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
         $buyerList = $this->getBuyerList($where);
+        $this->_setCountry($buyerList, 'country');
         if (!$buyerList){
             $this->jsonReturn([
                 'code' => -104,
@@ -114,7 +115,33 @@ class DownloadController extends PublicController {
         return $fastDFSServer.$result['url'];
     }
 
+    /*
+         * Description of 获取国家
+         * @param array $arr
+         * @author  zhongyg
+         * @date    2017-8-2 13:07:21
+         * @version V2.0
+         * @desc
+         */
 
+    private function _setCountry(&$arr, $filed) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val[$filed . '_bn']);
+            }
+            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            foreach ($arr as $key => $val) {
+                if (trim($val[$filed . '_bn']) && isset($countrynames[trim($val[$filed . '_bn'])])) {
+                    $val[$filed . '_name'] = $countrynames[trim($val[$filed . '_bn'])];
+                } else {
+                    $val[$filed . '_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
     /**
      * 获取会员列表
      * @return mixed
@@ -133,7 +160,7 @@ class DownloadController extends PublicController {
         if (!empty($where['country_bn'])) {
             $map['buyer.country_bn'] = ['in', $where['country_bn'] ];
         }
-        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.name,province,buyer_level,`erui_buyer`.`buyer`.created_by,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
+        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.buyer_code,`erui_buyer`.`buyer`.country_bn,buyer_level,`erui_buyer`.`buyer`.created_by,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
             ->join('`erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id`', 'left')
             ->join('`erui_sys`.`employee` em on em.id=erui_buyer.buyer_agent.agent_id', 'left')
             ->where($map)
@@ -178,8 +205,8 @@ class DownloadController extends PublicController {
 
         //列表头
         $objSheet->setCellValue("A1","会员编号")->getColumnDimension("A")->setWidth('24');
-        $objSheet->setCellValue("B1","会员名称")->getColumnDimension("B")->setWidth('24');
-        $objSheet->setCellValue("C1","注册地")->getColumnDimension("C")->setWidth('24');
+        $objSheet->setCellValue("B1","Crm编号")->getColumnDimension("B")->setWidth('24');
+        $objSheet->setCellValue("C1","所属国家")->getColumnDimension("C")->setWidth('24');
         $objSheet->setCellValue("D1","会员等级")->getColumnDimension("D")->setWidth('24');
         $objSheet->setCellValue("E1","用户来源")->getColumnDimension("E")->setWidth('24');
         $objSheet->setCellValue("F1","注册时间")->getColumnDimension("F")->setWidth('24');
@@ -193,8 +220,8 @@ class DownloadController extends PublicController {
         foreach ($data as $v){
 
             $objSheet->setCellValue("A" . $rowNum, $v['buyer_no']);
-            $objSheet->setCellValue("B" . $rowNum, $v['name']);
-            $objSheet->setCellValue("C" . $rowNum, $v['province']);
+            $objSheet->setCellValue("B" . $rowNum, $v['buyer_']);
+            $objSheet->setCellValue("C" . $rowNum, $v['country_name']);
             $objSheet->setCellValue("D" . $rowNum, $v['buyer_level']);
             $objSheet->setCellValue("E" . $rowNum, $v['created_by']);
             $objSheet->setCellValue("F" . $rowNum, $v['created_at']);

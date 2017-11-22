@@ -388,7 +388,7 @@ class BuyerController extends PublicController {
         $check_email = $buyer_account_model->Exist($login_email, 'or');
 
         if ($check_email) {
-            jsonReturn('', -101, '公司邮箱已经存在!');
+            jsonReturn('', -101, '邮箱已经存在!');
         }
         $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
