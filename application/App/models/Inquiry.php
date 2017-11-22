@@ -23,6 +23,7 @@ class InquiryModel extends PublicModel
     const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
     const viewAllRole = 'A012'; //查看全部询单角色编号
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
+    const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
 
     public $inquiryStatus = [
         'DRAFT' => '草稿',
