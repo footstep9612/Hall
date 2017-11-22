@@ -76,11 +76,10 @@ class SupplierInquiryModel extends PublicModel {
                 . ' left JOIN ' . $inquiry_table . ' i on i.id =fqi.inquiry_id '
                 . ' AND i.deleted_flag = \'N\' AND i.status = \'QUOTE_SENT\' '
                 . ' AND i.quote_status = \'COMPLETED\' '
-                . ' left join ' . $marketareacountry_table . ' mac on mac.country_bn=i.country_bn and '
-                . ' mac.market_area_bn '
-                . ' IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
+                . ' left join ' . $marketareacountry_table . ' mac on mac.country_bn=i.country_bn  '
                 . ' WHERE s.deleted_flag = \'N\' '
                 . ' AND  s.`status` in (\'APPROVED\', \'VALID\', \'DRAFT\', \'APPROVING\',\'INVALID\') '
+                . ' and  mac.market_area_bn  IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')'
                 . ' GROUP BY fqi.inquiry_id,mac.market_area_bn,fqi.supplier_id  ) tmp WHERE 1=1 ' . $where
                 . ' group by  supplier_id order by total desc ';
 
@@ -231,13 +230,12 @@ class SupplierInquiryModel extends PublicModel {
             'i.status' => 'QUOTE_SENT',
             'i.quote_status' => 'COMPLETED',
             'i.id' => ['in', $inquiry_ids],
+            'mac.market_area_bn' => ['in', $this->areas],
         ];
         $inquiry_model = new InquiryModel();
         $count = $inquiry_model
                 ->alias('i')
-                ->join($marketareacountry_table . ' mac on  mac.country_bn=i.country_bn and '
-                        . ' mac.market_area_bn '
-                        . ' IN (\'Middle East\',\'South America\',\'North America\',\'Africa\',\'Pan Russian\',\'Asia-Pacific\',\'Europe\')')
+                ->join($marketareacountry_table . ' mac on  mac.country_bn=i.country_bn  ')
                 ->where($where)
                 ->count();
 
