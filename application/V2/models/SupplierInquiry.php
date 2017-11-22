@@ -85,7 +85,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $data = $this->query($sql . ' limit ' . $offset . ' ,' . $length);
 
-        echo $sql;
+
         $count = $this->query('select count(*) as num from (' . $sql . ') t');
 
         return [$data, isset($count[0]['num']) ? intval($count[0]['num']) : 0];
