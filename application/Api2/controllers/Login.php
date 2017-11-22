@@ -53,7 +53,7 @@ class LoginController extends PublicController {
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['user_name'] = $info['user_name'];
-            $datajson['id'] = $info['id'];
+            $datajson['buyer_no'] = $info['buyer_no'];
             $datajson['email'] = $info['email'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
