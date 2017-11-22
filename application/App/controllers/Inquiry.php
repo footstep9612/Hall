@@ -224,18 +224,14 @@ class InquiryController extends PublicController
         $logiDetail = $this->getQuoteLogiFeeDetail($condition);
 
         $quoteItemModel = new QuoteItemModel();
-        $totalCount= $quoteItemModel->where($condition)->count('id');
-        $quotedCount = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
+        $inquiryDetail['totalCount']= $quoteItemModel->where($condition)->count('id');
+        $inquiryDetail['quotedCount'] = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功!',
             'data' => [
                 'inquiry'    => $inquiryDetail,
-                'statistics' => [
-                    'totalCount'  => $totalCount,
-                    'quotedCount' => $quotedCount
-                ],
                 'quote'      => $quoteDetail,
                 'logistics'  => $logiDetail
             ]
@@ -325,8 +321,6 @@ class InquiryController extends PublicController
         $data = $logi->getQuoteLogiFeeDetailAction($condition);
 
         $logiDetail = [
-            "起运国-港", $data['from_country'].'-'.$data['from_port'],
-            "目的国-港", $data['to_country'].'-'.$data['to_port'],
             "陆运费（USD）", $data['land_freight'],
             "陆运险", $data['overland_insu'],
             "陆运险税率", $data['overland_insu_rate'],
