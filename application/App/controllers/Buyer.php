@@ -75,7 +75,10 @@ class BuyerController extends PublicController {
                     'serial_no'  => $value['serial_no'],
                     'buyer_no'   => $value['buyer_no'],
                     'name'       => $value['name'],
-                    'country_name' => $value['country_name']
+                    'country_name' => $value['country_name'],
+                    'country_bn' => $value['country_bn'],
+                    'area_bn' => $value['area_bn'],
+                    'created_by' => $value['created_by'],
                 ];
             }
 

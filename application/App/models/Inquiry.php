@@ -122,9 +122,8 @@ class InquiryModel extends PublicModel
     public function updateData($data = [])
     {
 
-        if (!empty($data['status'])) $data['inflow_time'] = $time;
+        if (!empty($data['status'])) $data['inflow_time'] = $this->getTime();
         if (!empty($data['agent_id'])) $data['now_agent_id'] = $data['agent_id'];
-
         $data['updated_at'] = $this->getTime();
 
         try{
