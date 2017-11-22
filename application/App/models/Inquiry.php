@@ -98,6 +98,7 @@ class InquiryModel extends PublicModel
         $data = $this->create($condition);
         $time = $this->getTime();
         $data['quote_status'] = 'NOT_QUOTED';
+        $data['status'] = 'BIZ_DISPATCHING';
         $data['inquiry_source'] = 'APP';
         $data['inflow_time'] = $time;
         $data['created_at'] = $time;
