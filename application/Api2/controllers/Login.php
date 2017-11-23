@@ -47,12 +47,15 @@ class LoginController extends PublicController {
         $model = new BuyerAccountModel();
         $info = $model->login($arr);
         if ($info) {
+            $buyer_model = new BuyerModel();
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
-            $jwt['buyer_no'] = $info['buyer_no'];
+            $jwt['buyer_no'] = $buyer_info['buyer_no'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['user_name'] = $info['user_name'];
+            $datajson['buyer_no'] = $buyer_info['buyer_no'];
             $datajson['email'] = $info['email'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密

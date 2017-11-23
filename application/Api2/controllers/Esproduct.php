@@ -163,7 +163,7 @@ class EsproductController extends PublicController {
         $showcats = json_decode(redisGet($catno_key), true);
         if (!$showcats) {
             $showcatmodel = new ShowCatModel();
-            $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $this->getLang());
+            $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $this->getLang(), true, $condition['country_bn']);
             redisSet($catno_key, json_encode($showcats), 3600);
         }
         $new_showcats3 = [];

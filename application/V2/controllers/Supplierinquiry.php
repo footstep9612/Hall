@@ -27,12 +27,12 @@ class SupplierinquiryController extends PublicController {
     public function listAction() {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        $data = $supplier_inquiry_model->getList($condition);
+        list($data, $count) = $supplier_inquiry_model->getList($condition);
 
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
             $inquirycount = $supplier_inquiry_model->getInquiryCount();
-            $count = $supplier_inquiry_model->getCount($condition);
+            // $count = 0; // $supplier_inquiry_model->getCount($condition);
             $this->setvalue('suppliercount', $suppliercount);
             $this->setvalue('inquirycount', $inquirycount);
             $this->setvalue('count', $count);
@@ -48,12 +48,19 @@ class SupplierinquiryController extends PublicController {
         }
     }
 
+    /*     * **********----供应商询单明细----****************
+     * |supplier_id|是|string|供应商id|
+     * |current_no |否  |int    |当前页(默认1)|
+     * |pagesize |否	|int	|每页显示条数|
+     */
+
     public function InfoAction() {
         $supplier_id = $this->getPut('supplier_id');
         $condition = $this->getPut();
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID不能为空!');
+            $this->jsonReturn();
         }
         $supplier_inquiry_model = new SupplierInquiryModel();
         $info = $supplier_inquiry_model->Info($supplier_id);
@@ -63,6 +70,29 @@ class SupplierinquiryController extends PublicController {
         if ($data) {
             $count = $supplier_inquiry_model->getInquiryCount($supplier_id);
             $this->setvalue('count', $count);
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*     * **********----导出询单列表----****************
+     * |supplier_id|是|string|供应商id|
+     * |current_no |否  |int    |当前页(默认1)|
+     * |pagesize |否	|int	|每页显示条数|
+     */
+
+    public function InquiryexportAction() {
+        $supplier_inquiry_model = new SupplierInquiryModel();
+        $data = $supplier_inquiry_model->Inquiryexport();
+
+        if ($data) {
             $this->jsonReturn($data);
         } elseif ($data === null) {
             $this->setCode(MSG::ERROR_EMPTY);

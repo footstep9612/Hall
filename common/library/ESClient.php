@@ -914,7 +914,7 @@ class ESClient {
      *
      */
 
-    public function search($index, $type, $from = 0, $size = 10) {
+    public function search($index, $type, $from = 0, $size = 10, $preference = null) {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
@@ -925,6 +925,9 @@ class ESClient {
             $searchParams['body']['size'] = $size;
         } elseif ($size > 0) {
             $searchParams['body']['size'] = $size;
+        }
+        if ($preference) {
+            $searchParams['preference'] = $preference;
         }
         try {
 

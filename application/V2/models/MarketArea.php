@@ -32,7 +32,7 @@ class MarketAreaModel extends PublicModel {
      * @desc   营销区域
      */
     private function _getCondition($condition) {
-        $data = [];
+        $data = ['zh.deleted_flag' => 'N'];
         $data['zh.lang'] = 'zh';
         //$this->_getValue($data, $condition, 'lang', 'string');
         $this->_getValue($data, $condition, 'bn', 'string', 'zh.bn');
@@ -220,8 +220,8 @@ class MarketAreaModel extends PublicModel {
         if (!isset($data['bn']) || !$data['bn']) {
             return false;
         }
-        $newbn = ucwords($data['en']['name']);
-        $data['en']['name'] = ucwords($data['en']['name']);
+        $newbn = trim(ucwords($data['en']['name']));
+        $data['en']['name'] = trim(ucwords($data['en']['name']));
         $this->startTrans();
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
@@ -242,14 +242,15 @@ class MarketAreaModel extends PublicModel {
     private function _updateandcreate($data, $lang, $newbn) {
         if (isset($data[$lang]['name'])) {
             $where['lang'] = $lang;
-            $where['bn'] = $data['bn'];
+            $where['bn'] = trim($data['bn']);
             $arr['bn'] = $newbn;
             $arr['lang'] = $lang;
-            $arr['name'] = $data[$lang]['name'];
+            $arr['name'] = trim($data[$lang]['name']);
             $arr['status'] = 'VALID';
             if ($this->Exits($where)) {
                 $arr['updated_at'] = date('Y-m-d H:i:s');
                 $arr['updated_by'] = defined('UID') ? UID : 0;
+                $arr['deleted_flag'] = 'N';
 
                 $flag = $this->where($where)->save($arr);
                 return $flag;
@@ -281,7 +282,7 @@ class MarketAreaModel extends PublicModel {
     public function getNamesBybns($bns) {
 
         try {
-            $where = [];
+            $where = ['deleted_flag' => 'N'];
 
             if (is_string($bns)) {
                 $where['bn'] = $bns;

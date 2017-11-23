@@ -46,6 +46,7 @@ class GoodsSupplierModel extends PublicModel {
                         'deleted_flag' => 'N'
                     ])
                     ->group('supplier_id,sku')
+                    ->order('supplier_id desc')
                     ->select();
             if (!$product_attrs) {
                 return [];
@@ -140,16 +141,16 @@ class GoodsSupplierModel extends PublicModel {
                 $goods_supplier = $this->field('id,deleted_flag')->where(['supplier_id' => $data['supplier_id'], 'sku' => $sku])->find();
 
                 /** 这里这个brand有用吗   暂时隐藏掉 */
-                /*$product_model = new ProductModel();
-                $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
-                if (empty($product)) {
-                    $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
-                }
-                //存在sku编辑,反之新增,后续扩展性
-                $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
-                */
+                /* $product_model = new ProductModel();
+                  $product = $product_model->where(['spu' => $spu, 'lang' => 'zh'])->find();
+                  if (empty($product)) {
+                  $product = $product_model->where(['spu' => $spu, 'lang' => 'en'])->find();
+                  }
+                  //存在sku编辑,反之新增,后续扩展性
+                  $data['brand'] = isset($product['brand']) ? $product['brand'] : '{"lang": "zh", "name": "", "logo": "", "manufacturer": ""}';
+                 */
                 if ($goods_supplier) {
-                    if( $goods_supplier['deleted_flag'] != 'N'){
+                    if ($goods_supplier['deleted_flag'] != 'N') {
                         $data['updated_by'] = $admin;
                         $data['updated_at'] = date('Y-m-d H:i:s');
                         $where = [
@@ -164,7 +165,7 @@ class GoodsSupplierModel extends PublicModel {
                             $results['message'] = '失败!';
                             return $results;
                         }
-                    }else{
+                    } else {
                         $results['code'] = '1';
                         $results['message'] = '成功！';
                     }

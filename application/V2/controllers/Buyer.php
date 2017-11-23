@@ -60,6 +60,12 @@ class BuyerController extends PublicController {
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
+
+        if ($data['is_agent']=="Y") {
+            $where['is_agent'] = $data['is_agent'];
+            $where['agent']['user_id'] = $this->user['id'];
+            $where['agent']['agent_id'] = $this->user['id'];
+        }
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $data['buyer_no'];
         }
@@ -136,9 +142,7 @@ class BuyerController extends PublicController {
             $where['credit_status'] = $data['credit_status'];
         }
         $model = new BuyerModel();
-
         $data = $model->getlist($where);
-
         $this->_setArea($data['data'], 'area');
         $this->_setCountry($data['data'], 'country');
         if (!empty($data)) {
@@ -153,6 +157,70 @@ class BuyerController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /*
+     * 统计各状态数量 jhw
+     * */
+    public function buyercountAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new BuyerModel();
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
+        if (!empty($data['country_bn'])) {
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+            }
+            $where['country_bn'] = rtrim($where['country_bn'], ",");
+        }
+        if (!empty($data['buyer_no'])) {
+            $where['buyer_no'] = $data['buyer_no'];
+        }
+        if (!empty($data['buyer_code'])) {
+            $where['buyer_code'] = $data['buyer_code'];
+        }
+        if (!empty($data['status'])) {
+            $where['status'] = $data['status'];
+        }
+        if (!empty($data['employee_name'])) {
+            $where['employee_name'] = $data['employee_name'];
+        }
+        if (!empty($data['source'])) {
+            $where['source'] = $data['source'];
+        }
+        if (!empty($data['checked_at_start'])) {
+            $where['checked_at_start'] = $data['checked_at_start'];
+        }
+        if (!empty($data['checked_at_end'])) {
+            $where['checked_at_end'] = $data['checked_at_end'];
+        }
+        if (!empty($data['created_at_end'])) {
+            $where['created_at_end'] = $data['created_at_end'];
+        }
+        if (!empty($data['created_at_start'])) {
+            $where['created_at_start'] = $data['created_at_start'];
+        }
+        if (!empty($data['pageSize'])) {
+            $where['num'] = $data['pageSize'];
+        }
+        if (!empty($data['currentPage'])) {
+            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
+        $data = $model->getBuyerCountByStatus($where);
+        $arr = [];
+        for ($i = 0; $i<count($data); $i++){
+            $arr[$data[$i]['status']] = $data[$i]['number'];
+        }
+        if ($arr) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户详情
      * */
@@ -364,7 +432,7 @@ class BuyerController extends PublicController {
         $check_email = $buyer_account_model->Exist($login_email, 'or');
 
         if ($check_email) {
-            jsonReturn('', -101, '公司邮箱已经存在!');
+            jsonReturn('', -101, '邮箱已经存在!');
         }
         $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
@@ -430,7 +498,17 @@ class BuyerController extends PublicController {
             //$countryInfo = $countryModel->getInforByBn($arr['country_bn']);
             //获取市场经办人信息 -- link 2017-10-31
             $userInfo = new UserModel();
+            $countryModel = new CountryModel();
+            $marketAreaModel = new MarketAreaModel();
             $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag' => 'N', 'status' => 'NORMAL'], 'name');
+
+            //询单所在国家
+            $rs1 = $countryModel->field('name')->where(['bn' => $arr['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $datajson['country_name'] = $rs1['name'];
+
+            //询单所在区域
+            $rs2 = $marketAreaModel->field('name')->where(['bn' => $arr['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $datajson['area_name'] = $rs2['name'];
 
             $datajson['code'] = 1;
             $datajson['id'] = $id;
@@ -585,6 +663,7 @@ class BuyerController extends PublicController {
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
 
+
         if (!empty($data['password'])) {
             $account['password_hash'] = $data['password'];
             // $buyer_account_model->update_data($arr_account, $where_account);
@@ -604,6 +683,30 @@ class BuyerController extends PublicController {
         //$model = new UserModel();
         if (!empty($account)) {
             $buyer_account_model->update_data($account, $where_account);
+        }
+        if (!empty($data['status'])&&$res!==false) {
+            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+                $info =  $buyer_account_model->info($where_account);
+                $info_buyer =  $model->info($where);
+                if($info['email']){
+                    if ($data['status'] == 'APPROVED') {
+                        //审核通过邮件
+                        if($info_buyer['lang']){
+                            $body = $this->getView()->render('buyer/approved_'.$info_buyer['lang'].'.html');
+                            if($body){
+                                send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+                            }
+                        }
+                    }
+                    if ($data['status'] == 'REJECTED') {
+                        //驳回邮件
+                        if($info_buyer['lang']){
+                            $body = $this->getView()->render('buyer/rejected_'.$info_buyer['lang'].'.html');
+                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+                        }
+                    }
+                }
+            }
         }
         if ($res !== false) {
             $datajson['code'] = 1;

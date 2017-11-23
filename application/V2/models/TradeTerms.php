@@ -31,7 +31,7 @@ class TradeTermsModel extends PublicModel {
      */
 
     private function _getCondition($condition) {
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
 
         $this->_getValue($where, $condition, 'id', 'string');
         $this->_getValue($where, $condition, 'lang', 'string');

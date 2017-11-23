@@ -224,18 +224,14 @@ class InquiryController extends PublicController
         $logiDetail = $this->getQuoteLogiFeeDetail($condition);
 
         $quoteItemModel = new QuoteItemModel();
-        $totalCount= $quoteItemModel->where($condition)->count('id');
-        $quotedCount = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
+        $inquiryDetail['totalCount']= $quoteItemModel->where($condition)->count('id');
+        $inquiryDetail['quotedCount'] = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功!',
             'data' => [
                 'inquiry'    => $inquiryDetail,
-                'statistics' => [
-                    'totalCount'  => $totalCount,
-                    'quotedCount' => $quotedCount
-                ],
                 'quote'      => $quoteDetail,
                 'logistics'  => $logiDetail
             ]
@@ -325,8 +321,6 @@ class InquiryController extends PublicController
         $data = $logi->getQuoteLogiFeeDetailAction($condition);
 
         $logiDetail = [
-            "起运国-港", $data['from_country'].'-'.$data['from_port'],
-            "目的国-港", $data['to_country'].'-'.$data['to_port'],
             "陆运费（USD）", $data['land_freight'],
             "陆运险", $data['overland_insu'],
             "陆运险税率", $data['overland_insu_rate'],
@@ -367,6 +361,78 @@ class InquiryController extends PublicController
             'data'    => $data
         ]);
 
+    }
+
+    /**
+     * @desc 获取当前用户询报价角色接口
+     *
+     * @author liujf
+     * @time 2017-10-23
+     */
+    public function getInquiryUserRoleAction() {
+        $inquiry = new InquiryModel();
+
+        // 是否市场经办人的标识
+        $isAgent = 'N';
+
+        // 是否易瑞分单员的标识
+        $isErui = 'N';
+
+        // 是否分单员的标识
+        $isIssue = 'N';
+
+        // 是否报价人的标识
+        $isQuote = 'N';
+
+        // 是否审核人的标识
+        $isCheck = 'N';
+
+        // 会员管理国家负责人
+        $isCountryAgent = 'N';
+
+        foreach ($this->user['role_no'] as $roleNo) {
+            if ($roleNo == $inquiry::marketAgentRole) {
+                $isAgent = 'Y';
+            }
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::inquiryIssueAuxiliaryRole) {
+                $isErui = 'Y';
+            }
+            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
+                $isIssue = 'Y';
+            }
+            if ($roleNo == $inquiry::quoterRole || $roleNo == $inquiry::logiQuoterRole) {
+                $isQuote = 'Y';
+            }
+            if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole) {
+                $isCheck = 'Y';
+            }
+            if ($roleNo == $inquiry::buyerCountryAgent) {
+                $isCountryAgent = 'Y';
+            }
+
+        }
+
+        if ($isAgent == 'Y') {
+            $orgModel = new OrgModel();
+
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']]])->order('id DESC')->find();
+
+            // 事业部id和名称
+            $data['ub_id'] = $org['id'];
+            $data['ub_name'] = $org['name'];
+        }
+
+        $data['is_agent'] = $isAgent;
+        $data['is_erui'] = $isErui;
+        $data['is_issue'] = $isIssue;
+        $data['is_quote'] = $isQuote;
+        $data['is_check'] = $isCheck;
+        $data['is_country_agent'] = $isCountryAgent;
+        $res['code'] = 1;
+        $res['message'] = '成功!';
+        $res['data'] = $data;
+
+        $this->jsonReturn($res);
     }
 
 }

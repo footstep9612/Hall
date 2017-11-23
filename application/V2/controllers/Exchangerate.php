@@ -180,6 +180,10 @@ class ExchangerateController extends PublicController {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('汇率必须是浮点数字!');
             $this->jsonReturn();
+        } elseif (floatval($condition['rate']) <= 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('汇率必须大于零!');
+            $this->jsonReturn();
         }
         $result = $this->_model->create_data($condition);
 
@@ -199,7 +203,6 @@ class ExchangerateController extends PublicController {
     }
 
     function isDateTime($dateTime) {
-        echo $dateTime;
         $ret = strtotime($dateTime . '-01');
         return $ret !== FALSE && $ret != -1;
     }
@@ -239,6 +242,10 @@ class ExchangerateController extends PublicController {
         } elseif (empty(floatval($condition['rate']))) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('汇率必须是浮点数字!');
+            $this->jsonReturn();
+        } elseif (floatval($condition['rate']) <= 0) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('汇率必须大于零!');
             $this->jsonReturn();
         }
         $where['id'] = $this->getPut('id');

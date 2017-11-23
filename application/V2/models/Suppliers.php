@@ -82,10 +82,16 @@ class SuppliersModel extends PublicModel {
                 ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
         }
-
+//
         if (isset($condition['org_id'])) {
-            $where['a.org_id'] = ['in', $condition['org_id'] ? : ['-1']];
+            $where['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
         }
+//        if (isset($condition['org_id'])) {
+//            $map1['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+//            $map1[] = 'a.org_id is null';
+//            $map1['_logic'] = 'or';
+//            $where['_complex'] = $map1;
+//        }
 
         return $where;
     }
@@ -103,9 +109,9 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         $count = $this->alias('a')
-                                 ->join($this->joinTable1, 'LEFT')
-                                 ->where($where)
-                                 ->count('a.id');
+                ->join($this->joinTable1, 'LEFT')
+                ->where($where)
+                ->count('a.id');
 
         return $count > 0 ? $count : 0;
     }
@@ -126,12 +132,12 @@ class SuppliersModel extends PublicModel {
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->field($this->joinField)
-                            ->where($where)
-                            ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
-                            ->select();
+                        ->join($this->joinTable1, 'LEFT')
+                        ->field($this->joinField)
+                        ->where($where)
+                        ->page($currentPage, $pageSize)
+                        ->order('a.id DESC')
+                        ->select();
     }
 
     /**
@@ -162,13 +168,13 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
-                            ->join($this->joinTable3, 'LEFT')
-                            ->join($this->joinTable4, 'LEFT')
-                            ->field($this->joinField_)
-                            ->where($where)
-                            ->find();
+                        ->join($this->joinTable1, 'LEFT')
+                        ->join($this->joinTable2, 'LEFT')
+                        ->join($this->joinTable3, 'LEFT')
+                        ->join($this->joinTable4, 'LEFT')
+                        ->field($this->joinField_)
+                        ->where($where)
+                        ->find();
     }
 
     /**
@@ -181,8 +187,22 @@ class SuppliersModel extends PublicModel {
      */
     public function addRecord($condition = []) {
 
-        $data = $this->create($condition);
+        $data_t_supplier = $this->field('max(serial_no) as serial_no')->find(); //($this->put_data);
+        if ($data_t_supplier && substr($data_t_supplier['serial_no'], 0, 8) == date("Ymd")) {
+            $no = substr($data_t_supplier['serial_no'], -1, 6);
+            $no++;
+        } else {
+            $no = 1;
+        }
+        $temp_num = 1000000;
+        $new_num = $no + $temp_num;
+        $real_num = date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
+        $condition['serial_no'] = $real_num;
+        if (!empty($condition['serial_no'])) {
+            $condition['supplier_no'] = $condition['serial_no'];
+        }
 
+        $data = $this->create($condition);
         return $this->add($data);
     }
 

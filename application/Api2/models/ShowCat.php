@@ -27,7 +27,7 @@ class ShowCatModel extends PublicModel {
      *
      */
 
-    public function getshowcatsByshowcatnos($show_cat_nos, $lang = 'en', $page_flag = true) {
+    public function getshowcatsByshowcatnos($show_cat_nos, $lang = 'en', $page_flag = true, $country_bn = 'China') {
 
         try {
 
@@ -38,6 +38,7 @@ class ShowCatModel extends PublicModel {
                     'cat_no' => ['in', $show_cat_nos],
                     'status' => 'VALID',
                     'lang' => $lang,
+                    'country_bn' => $country_bn
                 ];
                 $this
                         ->where($where)

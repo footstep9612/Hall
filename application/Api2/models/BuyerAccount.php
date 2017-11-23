@@ -105,9 +105,9 @@ class BuyerAccountModel extends PublicModel {
         $table = $model->getTableName();
         $buyeraddress_model = new BuyerAddressModel();
         $buyeragent_model = new BuyerAgentModel();
-
         $buyeraddress_table = $buyeraddress_model->getTableName();
         $buyeragent_table = $buyeragent_model->getTableName();
+
         if (!empty($data['buyer_id'])) {
             $row = $this->alias('b')
                     ->join($table . ' as ba on b.buyer_id=ba.id', 'left')

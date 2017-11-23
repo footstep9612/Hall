@@ -62,7 +62,7 @@ class InquiryitemModel extends PublicModel {
         $where = $this->getCondition($condition);
 
         try {
-            $list = $this->where($where)->order('created_at desc')->select();
+            $list = $this->where($where)->order('id')->select();
             if($list){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
@@ -163,7 +163,7 @@ class InquiryitemModel extends PublicModel {
         }
         if (empty($condition['inquiry_rows'])) {
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = '没有询单行数!';
             return $results;
         }
 
@@ -207,6 +207,10 @@ class InquiryitemModel extends PublicModel {
             $results['message'] = '没有询单ID!';
             return $results;
         }
+        //如果从报价过来，品牌是inquiry_brand
+        if(!empty($condition['inquiry_brand'])){
+            $condition['brand'] = $condition['inquiry_brand'];
+        }
 
         $data = $this->create($condition);
         $data['status'] = !empty($createcondition['status']) ? $createcondition['status'] :'VALID';
@@ -243,7 +247,7 @@ class InquiryitemModel extends PublicModel {
         }
 
         try {
-            $id = $this->where($where)->delete();
+            $id = $this->where($where)->save(['deleted_flag'=>'Y']);
             if(isset($id)){
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';

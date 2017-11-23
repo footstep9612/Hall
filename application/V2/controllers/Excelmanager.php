@@ -55,7 +55,7 @@ class ExcelmanagerController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/00/25/rBFgyFn_zU2ADFqLAAAm5shBeOo63.xlsx'
+                'url' => 'http://file01.erui.com/group1/M00/00/63/rBFgyFoSidKAZRkqAAAm7vzdxvQ96.xlsx'
             ]
         ]);
     }
@@ -87,21 +87,21 @@ class ExcelmanagerController extends PublicController {
 
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
-            return ['code' => '-104', 'message' => '没有可导入的数据', 'data' => ''];
+            return ['code' => '-104', 'message' => '没有可导入的数据'];
         }
 
         //遍历重组
         foreach ($data as $k => $v) {
             //$sku[$k]['sku'] = $v[1]; //平台sku
             $sku[$k]['inquiry_id'] = $inquiry_id; //询单id
-            $sku[$k]['name'] = $v[1]; //外文品名
-            $sku[$k]['name_zh'] = $v[2]; //中文品名
-            $sku[$k]['qty'] = $v[3]; //数量
-            $sku[$k]['unit'] = $v[4]; //单位
-            $sku[$k]['brand'] = $v[5]; //品牌
-            $sku[$k]['model'] = $v[6]; //型号
-            $sku[$k]['remarks'] = $v[7]; //客户需求描述(外文)
-            $sku[$k]['remarks_zh'] = $v[8]; //客户需求描述(中文)
+            $sku[$k]['pn'] = $v[1]; //商品供应商P/N码
+            $sku[$k]['name'] = $v[2]; //外文品名
+            $sku[$k]['name_zh'] = $v[3]; //中文品名
+            $sku[$k]['qty'] = $v[4]; //数量
+            $sku[$k]['unit'] = $v[5]; //单位
+            $sku[$k]['brand'] = $v[6]; //品牌
+            $sku[$k]['model'] = $v[7]; //型号
+            $sku[$k]['remarks'] = $v[8]; //客户需求描述
             $sku[$k]['buyer_goods_no'] = $v[9]; //客户询单号
             $sku[$k]['created_at'] = date('Y-m-d H:i:s', time()); //添加时间
         }
@@ -120,8 +120,7 @@ class ExcelmanagerController extends PublicController {
         } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
-                'message' => $exception->getMessage(),
-                'data' => ''
+                'message' => $exception->getMessage()
             ];
         }
     }
@@ -225,11 +224,11 @@ class ExcelmanagerController extends PublicController {
         $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status'=>'QUOTE_SENT']);
         //更改询单的状态
         $inquiryModel = new InquiryModel();
-        $inquiryModel->where(['id'=>$request['inquiry_id']])->save([
+        $inquiryModel->updateData([
+            'id'=>$request['inquiry_id'],
             'status'=>'QUOTE_SENT',
             'quote_status'=>'COMPLETED',
-            'updated_by' => $this->user['id'],
-            'updated_at' => date('Y-m-d H:i:s')
+            'updated_by' => $this->user['id']
         ]);
 
         $data = $this->getCommercialQuoteData($request['inquiry_id']);

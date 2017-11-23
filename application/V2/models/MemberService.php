@@ -323,7 +323,7 @@ class MemberServiceModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getTime() {
-        return date('Y-m-d h:i:s', time());
+        return date('Y-m-d H:i:s', time());
     }
 
 }

@@ -9,7 +9,12 @@
 class ShowcatController extends PublicController {
 
     public function init() {
-        parent::init();
+        if ($this->getRequest()->isCli()) {
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
+        } else {
+            parent::init();
+        }
         $this->_model = new ShowCatModel();
     }
 
@@ -475,6 +480,40 @@ class ShowcatController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 产品导出
+     */
+    public function importAction() {
+        set_time_limit(0);
+        $showcat = new ShowCatModel();
+
+        $localDir = $showcat->import();
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 产品导出
+     */
+    public function InsrtIntoShowCat3Action() {
+        set_time_limit(0);
+        $show_cat3 = $this->getPut('show_cat3');
+        $market_area_bn = $this->getPut('market_area_bn');
+        $country_bn = $this->getPut('country_bn');
+        $cat_no2 = $this->getPut('cat_no2');
+        $showcat = new ShowCatModel();
+
+        $localDir = $showcat->InsrtIntoShowCat3($show_cat3, $market_area_bn, $country_bn, $cat_no2);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
         }
     }
 

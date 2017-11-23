@@ -61,7 +61,7 @@ class BrandModel extends PublicModel {
      */
     private function _getcondition($condition, $lang = '') {
 
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'id', 'string');
 
 

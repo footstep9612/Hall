@@ -134,6 +134,7 @@ class OrderController extends PublicController {
             }
             $orderModel = new OrderModel();
             $field = '`id`,`order_no`,`po_no`,`execute_no`,`contract_date`,' .
+                    '`execute_date`,`order_agent`,' .
                     '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,' .
                     '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,' .
                     '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,' .
@@ -243,7 +244,7 @@ class OrderController extends PublicController {
                 'order_id' => intval($data['id']),
                 'deleted_flag' => 'N'
             ];
-            $data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+            $data = $orderAddress->where($condition)->field('consignee_id as id,name,tel_number,country,zipcode,city,fax,address,email')->select();
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
         }
@@ -292,6 +293,13 @@ class OrderController extends PublicController {
         $contract_date = strtotime($data['contract_date']);
         if ($contract_date > 0) {
             $order['contract_date'] = date('Y-m-d', $contract_date);
+        }
+        $execute_date = strtotime($data['execute_date']);
+        if ($contract_date > 0) {
+            $order['execute_date'] = date('Y-m-d', $execute_date);
+        }
+        if (!empty($data['order_agent'])) {
+            $order['order_agent'] = $this->safeString($data['order_agent']);
         }
         //采购商ID
         if (is_numeric($data['buyer_id']) && $data['buyer_id'] > 0) {
@@ -548,6 +556,7 @@ class OrderController extends PublicController {
                 'address' => $item['address'],
                 'zipcode' => $item['zipcode'],
                 'tel_number' => $item['phone'],
+                'consignee_id' => $item['id'],
                 'name' => $item['first_name'] . ' ' . $item['last_name'],
                 'country' => $item['country_bn'],
                 'city' => $item['city'],
@@ -742,14 +751,32 @@ class OrderController extends PublicController {
     public function listAction() {
         $auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
+        if ($auth['code'] == '2') {
+            $condition['agent_id'] = $this->user['id'];
+        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
         if ($data) {
+            $order_ids = [];
             foreach ($data as $key => $val) {
                 $val['show_status_text'] = $oder_moder->getShowStatus($val['show_status']);
-                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);
+                $val['pay_status_text'] = $oder_moder->getPayStatus($val['pay_status']);  
+                $val['can_delete'] = 'Y';
+                $order_ids[$val['id']] = $key;                 
                 $data[$key] = $val;
+            }
+            if(sizeof($order_ids) >0){
+                $OrderLog = new OrderLogModel();
+                $logCond = [
+                    'log_group'=>'OUTBOUND',
+                    'order_id' => ['in',array_keys($order_ids)]
+                ];
+                $logs = $OrderLog->field('distinct(order_id) as order_id')->where($logCond)->select();
+                foreach($logs as $item){
+                    $data_key = $order_ids[$item['order_id']] ;  
+                    $data[$data_key]['can_delete'] = 'N';
+                }
             }
             $this->setvalue('count', intval($count));
             $this->jsonReturn($data);
@@ -763,5 +790,39 @@ class OrderController extends PublicController {
             $this->jsonReturn(null);
         }
     }
-
+    /** 删除订单
+     *
+     * @author  Zhengkq
+     * @date    2017-11-20 14:50
+     * @version V2.0
+     * @desc   订单未出库时可删除
+     **/
+    public function deleteAction() {
+        $auth = $this->checkAuthAction();
+        $data = file_get_contents('php://input');
+        $data = @json_decode($data, true);
+        
+        if (!isset($data['id']) || $data['id'] < 1) {
+            $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
+        }
+        $order_id = intval($data['id']);
+        $cond = ['id'=>$order_id,'deleted_flag'=>'N'];
+        $order = new OrderModel();
+        $hasOrder = $order->where($cond)->count();
+        if($hasOrder != 1){
+            $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
+        }
+        $OrderLog = new OrderLogModel();
+        $logCond = [
+            'log_group'=>'OUTBOUND',
+            'order_id' => $order_id
+        ];
+        $logs = $OrderLog->where($logCond)->count();
+        if($logs >0){
+            $this->jsonReturn(['code' => -101, 'message' => '订单已出库，删除失败']);
+        }else{
+            $hasOrder = $order->where($cond)->limit(1)->save(['deleted_flag'=>'Y']);
+            $this->jsonReturn(['code' => 1, 'message' => '删除成功']);
+        }
+    }
 }

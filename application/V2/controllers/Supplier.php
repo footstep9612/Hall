@@ -602,11 +602,11 @@ class SupplierController extends PublicController {
     public function getSkuSupplierListAction() {
         $data = $this->put_data;
 
-        /*if (empty($data['sku'])) {
-            $datajson['code'] = -104;
-            $datajson['message'] = 'SKU为空!';
-            $this->jsonReturn($datajson);
-        }*/
+        /* if (empty($data['sku'])) {
+          $datajson['code'] = -104;
+          $datajson['message'] = 'SKU为空!';
+          $this->jsonReturn($datajson);
+          } */
 
         $model = new SupplierModel();
         $data = $model->getSkuSupplierList($data);
@@ -633,19 +633,53 @@ class SupplierController extends PublicController {
         if (empty($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择供应商!');
+            $this->jsonReturn();
         }
         if (!is_numeric($supplier_id)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('供应商ID必须是数字!');
+            $this->jsonReturn();
         }
+        $org_model = new OrgModel();
+
+        $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
+        if (!$condition['org_id']) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您不属于易瑞或事业部,没有供应商审核权限!');
+            $this->jsonReturn();
+        }
+
+        $supplier_model = new SupplierChainModel();
+        $supplier = $supplier_model->field(['supplier_level,erui_status,status,org_id'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
+
+        if (!$supplier) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('供应商不存在!');
+            $this->jsonReturn();
+        }
+        if (empty($supplier['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请先在编辑管理编辑页面选择事业部,再对供应商进行审核!');
+            $this->jsonReturn();
+        }
+
+        if (!in_array($supplier['org_id'], $condition['org_id']) && !empty($supplier['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('您所属的事业部和供应商的事业部不匹配,不能对该供应商进行审核!');
+            $this->jsonReturn();
+        }
+
         $status = $this->getPut('status');
         if (empty($status)) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请选择审核状态!');
+            $this->jsonReturn();
         }
+
+
         $note = $this->getPut('note');
-        $supplier_model = new SupplierChainModel();
-        $data = $supplier_model->Checked($supplier_id, $status, $note);
+
+        $data = $supplier_model->Checked($supplier_id, $status, $note, $condition['org_id']);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');

@@ -56,6 +56,13 @@ class SupplierChainModel extends PublicModel {
         }
         $this->_getValue($where, $condition, 'created_at', 'between');
         if ($is_Chain) {
+            if (isset($condition['org_id'])) {
+//                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+//                $map1[] = 'org_id is null';
+//                $map1['_logic'] = 'or';
+//                $where['_complex'] = $map1;
+                $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+            }
             $this->_getValue($where, $condition, 'erui_status');
             $this->_getValue($where, $condition, 'is_erui', 'bool');
             if (!empty($condition['erui_checked_at_end'])) {
@@ -72,7 +79,13 @@ class SupplierChainModel extends PublicModel {
                 }
             }
         } else {
-
+            if (isset($condition['org_id'])) {
+                //                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+//                $map1[] = 'org_id is null';
+//                $map1['_logic'] = 'or';
+//                $where['_complex'] = $map1;
+                $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+            }
             //  $where['status'] = 'DRAFT';
             $this->_getValue($where, $condition, 'status');
             if (!empty($condition['checked_at_end'])) {
@@ -359,13 +372,44 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
-    public function batchUpdateLevel($supplier_ids, $supplier_level) {
+    public function batchUpdateLevel($supplier_ids, $supplier_level, $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
-            'id' => ['in', $supplier_ids]
-            , 'status' => ['in', ['APPROVED', 'VALID']]];
+            'id' => ['in', $supplier_ids],
+            'status' => ['in', ['APPROVED', 'VALID']]];
         $data['supplier_level'] = $supplier_level;
-        return $this->where($where)->save($data);
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $data['updated_by'] = defined('UID') ? UID : 0;
+
+        //  $this->startTrans();
+        $flag = $this->where($where)->save($data);
+        return $flag;
+//        if (!$flag) {
+//            $this->rollback();
+//            return FALSE;
+//        }
+//        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
+//        /*
+//         * 更新日志
+//         */
+//        $supplierchecklog_model = new SupplierCheckLogModel();
+//
+//        foreach ($suppliers as $supplier) {
+//
+//            $condition = [];
+//            $condition['supplier_id'] = $supplier['id'];
+//            $condition['erui_member_flag'] = $supplier['is_erui'];
+//            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+//
+//            $condition['rating'] = $supplier_level;
+////            $condition['note'] = '批设置供应商量等级';
+//            $flag_log = $supplierchecklog_model->create_data($condition);
+//            if (!$flag_log) {
+//                $this->rollback();
+//                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
+//            }
+//        }
+        //  $this->commit();
     }
 
     /**
@@ -375,46 +419,43 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
-    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N') {
+    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
         ];
 
-        $info = $this->field('status')->where($where)->find();
-        if (in_array($info['status'], ['APPROVED', 'VALID'])) {
-            $data['supplier_level'] = $supplier_level;
-            $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
-            $data['erui_status'] = self::ERUI_STATUS_VALID;
-            $data['erui_checked_at'] = date('Y-m-d H:i:s');
-            $data['erui_checked_by'] = defined('UID') ? UID : 0;
-            $this->startTrans();
-            $flag = $this->where($where)->save($data);
-            if (!$flag) {
-                $this->rollback();
-                return FALSE;
-            }
-            $supplierchecklog_model = new SupplierCheckLogModel();
-            $condition['status'] = 'APPROVED';
-            $condition['erui_member_flag'] = $data['is_erui'];
-            $condition['supplier_id'] = $supplier_id;
-            $condition['org_id'] = $info['org_id'];
-            $condition['rating'] = $supplier_level;
-            $flag_log = $supplierchecklog_model->create_data($condition);
-            if (!$flag_log && $this->error) {
-                $this->rollback();
-                jsonReturn(null, MSG::MSG_FAILED, $this->error);
-            } elseif (!$flag_log) {
-                $this->rollback();
-                jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
-            } else {
-                $this->commit();
-                return true;
-            }
-        } elseif ($info) {
-            jsonReturn($data, MSG::MSG_FAILED, '供应商审核未通过,不能进行供应链审核!');
+        $info = $this->field('status,org_id')->where($where)->find();
+        $data['supplier_level'] = $supplier_level;
+        $data['is_erui'] = $is_erui === 'Y' ? 'Y' : 'N';
+        $data['erui_status'] = self::ERUI_STATUS_VALID;
+        $data['erui_checked_at'] = date('Y-m-d H:i:s');
+        $data['erui_checked_by'] = defined('UID') ? UID : 0;
+        if (empty($info['org_id']) && $org_ids) {
+            $data['org_id'] = $org_ids[0];
+        }
+        $this->startTrans();
+        $flag = $this->where($where)->save($data);
+        if (!$flag) {
+            $this->rollback();
+            return FALSE;
+        }
+        $supplierchecklog_model = new SupplierCheckLogModel();
+        $condition['status'] = 'APPROVED';
+        $condition['erui_member_flag'] = $data['is_erui'];
+        $condition['supplier_id'] = $supplier_id;
+        $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
+        $condition['rating'] = $supplier_level;
+        $flag_log = $supplierchecklog_model->create_data($condition);
+        if (!$flag_log && $this->error) {
+            $this->rollback();
+            jsonReturn(null, MSG::MSG_FAILED, $this->error);
+        } elseif (!$flag_log) {
+            $this->rollback();
+            jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {
-            jsonReturn($data, MSG::MSG_FAILED, '供应商不存在!');
+            $this->commit();
+            return true;
         }
     }
 
@@ -425,22 +466,26 @@ class SupplierChainModel extends PublicModel {
      * @return
      * @author zyg
      */
-    public function Checked($supplier_id, $status, $note = '') {
+    public function Checked($supplier_id, $status, $note = '', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
         ];
 
-        $info = $this->field('status')->where($where)->find();
+        $info = $this->field('status,org_id')->where($where)->find();
         if ($info['status'] == 'APPROVING') {
             $data['status'] = ($status == 'APPROVED' ? 'APPROVED' : 'INVALID');
-            $data['erui_status'] = 'CHECKING';
+            if ($status == 'APPROVED') {
+                $data['erui_status'] = 'CHECKING';
+            }
             $data['checked_at'] = date('Y-m-d H:i:s');
             $data['checked_by'] = defined('UID') ? UID : 0;
             if ($info['org_id'] && $data['status'] == 'APPROVED') {
                 $org_model = new OrgModel();
                 $orgInfo = $org_model->field('membership,org_node,name')->where(['id' => $info['org_id'], 'deleted_flag' => 'N'])->find();
-                if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+                if (isset($orgInfo['org_node']) && $orgInfo['org_node'] === 'erui') {
+                    $data['erui_checked_at'] = date('Y-m-d H:i:s');
+                    $data['erui_checked_by'] = defined('UID') ? UID : 0;
                     $data['erui_status'] = 'VALID';
                     $data['is_erui'] = 'Y';
                 }
@@ -454,8 +499,8 @@ class SupplierChainModel extends PublicModel {
             $supplierchecklog_model = new SupplierCheckLogModel();
             $condition['status'] = $status == 'APPROVED' ? 'APPROVED' : 'INVALID';
             $condition['supplier_id'] = $supplier_id;
-            $condition['org_id'] = $info['org_id'];
-            if (isset($orgInfo['membership']) && $orgInfo['membership'] === 'ERUI') {
+            $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
+            if (isset($orgInfo['org_node']) && $orgInfo['org_node'] === 'erui' && $condition['status'] === 'APPROVED') {
                 $data['erui_member_flag'] = 'Y';
             }
             $condition['note'] = $note;

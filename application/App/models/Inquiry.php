@@ -23,6 +23,7 @@ class InquiryModel extends PublicModel
     const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
     const viewAllRole = 'A012'; //查看全部询单角色编号
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
+    const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
 
     public $inquiryStatus = [
         'DRAFT' => '草稿',
@@ -122,9 +123,8 @@ class InquiryModel extends PublicModel
     public function updateData($data = [])
     {
 
-        if (!empty($data['status'])) $data['inflow_time'] = $time;
+        if (!empty($data['status'])) $data['inflow_time'] = $this->getTime();
         if (!empty($data['agent_id'])) $data['now_agent_id'] = $data['agent_id'];
-
         $data['updated_at'] = $this->getTime();
 
         try{
@@ -137,14 +137,28 @@ class InquiryModel extends PublicModel
                     $inquiryAttach = new InquiryAttachModel();
 
                     foreach ($data['attach_list'] as $v) {
-                        $inquiryAttach->add($inquiryAttach->create([
-                            'inquiry_id' => $data['id'],
-                            'attach_group' => 'INQUIRY_SKU',
-                            'attach_name' => $v['attach_name'],
-                            'attach_url' => $v['attach_url'],
-                            'created_by' => $data['updated_by'],
-                            'created_at' => $this->getTime()
-                        ]));
+
+                        $flag = $inquiryAttach->where(['inquiry_id'=>$data['id'],'attach_name'=>$v['attach_name']])->find();
+                        if ($flag){
+                            $inquiryAttach->save($inquiryAttach->create([
+                                'inquiry_id' => $data['id'],
+                                'attach_group' => 'INQUIRY_SKU',
+                                'attach_name' => $v['attach_name'],
+                                'attach_url' => $v['attach_url'],
+                                'created_by' => $data['updated_by'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }else{
+                            $inquiryAttach->add($inquiryAttach->create([
+                                'inquiry_id' => $data['id'],
+                                'attach_group' => 'INQUIRY_SKU',
+                                'attach_name' => $v['attach_name'],
+                                'attach_url' => $v['attach_url'],
+                                'created_by' => $data['updated_by'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }
+
                     }
                 }
 
@@ -156,8 +170,8 @@ class InquiryModel extends PublicModel
                 $results['message'] = '修改失败!';
             }
         }catch (Exception $exception){
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
+            $results['code'] = $exception->getCode();
+            $results['message'] = $exception->getMessage();
         }
 
         return $results;

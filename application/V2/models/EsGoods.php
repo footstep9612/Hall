@@ -253,8 +253,8 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         if (isset($condition['price_validity']) && $condition['price_validity'] === 'Y') {
-            $condition['pricevalidity_start'] = date('Y-m-d');
-            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('+7 days'));
+            $condition['pricevalidity_start'] = null; // date('Y-m-d');
+            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('30 days'));
             $this->_getQurey($condition, $body, ESClient::RANGE, 'pricevalidity', 'costprices.price_validity');
             unset($condition['pricevalidity_end'], $condition['pricevalidity_start']);
         }
@@ -380,6 +380,8 @@ class EsGoodsModel extends Model {
 
     public function getgoods($condition, $_source = null, $lang = 'en') {
         try {
+
+
             $body = $this->getCondition($condition, $lang);
 
             if (!$body) {
@@ -405,7 +407,7 @@ class EsGoodsModel extends Model {
                         ->setsort('sku', 'desc');
             }
 
-            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize, '_primary_first'), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -739,7 +741,7 @@ class EsGoodsModel extends Model {
             $body['supplier_count'] = 0;
         }
         $body['supplier_count'] = strval($body['supplier_count']);
-        if ($es_goods && ($es_goods['suppliers'] !== $body['suppliers'] || $es_goods['min_order_qty'] !== $body['min_order_qty'] || $es_goods['exw_days'] !== $body['exw_days'] || $es_goods['min_pack_unit'] !== $body['min_pack_unit'] )) {
+        if ($es_goods && ($es_goods['_source']['suppliers'] != $body['suppliers'] || $es_goods['_source']['min_order_qty'] != $body['min_order_qty'] || $es_goods['_source']['exw_days'] != $body['exw_days'] || $es_goods['_source']['min_pack_unit'] != $body['min_pack_unit'] )) {
             $this->UpdateSPU($spu, $lang);
         }
 

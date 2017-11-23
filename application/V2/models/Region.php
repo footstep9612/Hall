@@ -36,7 +36,7 @@ class RegionModel extends PublicModel {
      * @author zyg
      */
     private function _getCondition(&$condition) {
-        $data = [];
+        $data = ['deleted_flag' => 'N'];
         $this->_getValue($data, $condition, 'lang');
         $this->_getValue($data, $condition, 'bn');
         $this->_getValue($data, $condition, 'name');

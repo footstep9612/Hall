@@ -207,6 +207,7 @@ class InquiryController extends PublicController {
         $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
+        $buyerModel = new BuyerModel();
 
         // 市场经办人
         if (!empty($condition['agent_name'])) {
@@ -231,6 +232,8 @@ class InquiryController extends PublicController {
             $inquiry['agent_name'] = $agent['name'];
             $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
             $inquiry['quote_name'] = $quoter['name'];
+            $buyer = $buyerModel->field('buyer_no')->where(['id' => $inquiry['buyer_id']])->find();
+            $inquiry['buyer_no'] = $buyer['buyer_no'];
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['now_agent_name'] = $nowAgent['name'];
             $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
@@ -264,7 +267,7 @@ class InquiryController extends PublicController {
         $userModel = new UserModel();
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
-
+        $buyerModel = new BuyerModel();
         // 市场经办人
         if (!empty($condition['agent_name'])) {
             $agent = $userModel->where(['name' => $condition['agent_name']])->find();
@@ -298,6 +301,8 @@ class InquiryController extends PublicController {
                 $inquiry['agent_name'] = $agent['name'];
                 $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
                 $inquiry['quote_name'] = $quoter['name'];
+                $buyer = $buyerModel->field('buyer_no')->where(['id' => $inquiry['buyer_id']])->find();
+                $inquiry['buyer_no'] = $buyer['buyer_no'];
                 $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
                 $inquiry['now_agent_name'] = $nowAgent['name'];
                 $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
@@ -333,7 +338,7 @@ class InquiryController extends PublicController {
             $data = [
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
-                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub','erui']]),
+                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub', 'erui']]),
                 'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
@@ -373,6 +378,9 @@ class InquiryController extends PublicController {
         // 是否审核人的标识
         $isCheck = 'N';
 
+        // 会员管理国家负责人
+        $isCountryAgent = 'N';
+
         foreach ($this->user['role_no'] as $roleNo) {
             if ($roleNo == $inquiry::marketAgentRole) {
                 $isAgent = 'Y';
@@ -389,6 +397,10 @@ class InquiryController extends PublicController {
             if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole) {
                 $isCheck = 'Y';
             }
+            if ($roleNo == $inquiry::buyerCountryAgent) {
+                $isCountryAgent = 'Y';
+            }
+
         }
 
         if ($isAgent == 'Y') {
@@ -406,7 +418,7 @@ class InquiryController extends PublicController {
         $data['is_issue'] = $isIssue;
         $data['is_quote'] = $isQuote;
         $data['is_check'] = $isCheck;
-
+        $data['is_country_agent'] = $isCountryAgent;
         $res['code'] = 1;
         $res['message'] = '成功!';
         $res['data'] = $data;
@@ -520,12 +532,18 @@ class InquiryController extends PublicController {
         $employee = new EmployeeModel();
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
+        $buyerModel = new BuyerModel();
         $org = new OrgModel();
 
         $where = $this->put_data;
 
         $results = $inquiry->getInfo($where);
 
+        //BOSS编码
+        if (!empty($results['data']['buyer_id'])) {
+            $rs0 = $buyerModel->field('buyer_no')->where('id=' . $results['data']['buyer_id'])->find();
+            $results['data']['buyer_no'] = $rs0['buyer_no'];
+        }
         //经办人
         if (!empty($results['data']['agent_id'])) {
             $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();
@@ -573,21 +591,21 @@ class InquiryController extends PublicController {
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-             $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-             $results['data']['country_name'] = $rs10['name'];
-         }
-         //询单所在区域
-         if (!empty($results['data']['area_bn'])) {
-             $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-             $results['data']['area_name'] = $rs11['name'];
-         }
-        
-         if (!empty($results['data'])) {
+            $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $results['data']['country_name'] = $rs10['name'];
+        }
+        //询单所在区域
+        if (!empty($results['data']['area_bn'])) {
+            $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
+            $results['data']['area_name'] = $rs11['name'];
+        }
+
+        if (!empty($results['data'])) {
             $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
-            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : '暂无';
-            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : '暂无';
-            $results['data']['project_name'] = $results['data']['project_name'] ? : '暂无';
-         }
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: '暂无';
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: '暂无';
+            $results['data']['project_name'] = $results['data']['project_name'] ?: '暂无';
+        }
 
         $this->jsonReturn($results);
     }
@@ -1061,6 +1079,22 @@ class InquiryController extends PublicController {
             $results['message'] = '找不到相关细信息！';
         }
         $this->jsonReturn($results);
+    }
+
+    /**
+     * 询单导出
+     */
+    public function exportAction() {
+        $inquiry_model = new InquiryModel();
+
+        set_time_limit(0);
+        $localDir = $inquiry_model->export();
+
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
 }

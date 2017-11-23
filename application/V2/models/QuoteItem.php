@@ -31,7 +31,7 @@ class QuoteItemModel extends PublicModel {
         $where['a.inquiry_id'] = $request['inquiry_id'];
         $where['a.deleted_flag'] = 'N';
 
-        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote';
+        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn';
         return $this->alias('a')
             ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->field($fields)
@@ -145,18 +145,64 @@ class QuoteItemModel extends PublicModel {
 
     }
 
+    /**
+     * 保存SKU信息，不加任何必填校验
+     * @param $data 数据对象
+     * @param $user 当前用户
+     *
+     * @return array|bool
+     */
+    public function updateItemBatch($data,$user){
+
+        foreach ($data as $key=>$value){
+
+            if(!empty($value['purchase_unit_price'])){
+                if (!is_numeric($value['purchase_unit_price'])){
+                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                }
+            }
+            if(!empty($value['gross_weight_kg'])) {
+                if (!is_numeric($value['gross_weight_kg'])) {
+                    return ['code' => '-104', 'message' => '毛重必须是数字'];
+                }
+            }
+            if(!empty($value['package_size'])){
+                if (!is_numeric($value['package_size'])){
+                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                }
+            }
+            if(!empty($value['delivery_days'])) {
+                if (!is_numeric($value['delivery_days'])) {
+                    return ['code' => '-104', 'message' => '交货期必须是数字'];
+                }
+            }
+
+            $value['updated_at'] = date('Y-m-d H:i:s');
+            $value['updated_by'] = $user;
+
+            $this->save($this->create($value));
+
+
+        }
+        return true;
+
+    }
+
     public function syncSku($request,$user){
 
         $quoteModel = new QuoteModel();
         $inquiryItemModel = new InquiryItemModel();
-        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->select();
+        //查询所有已经添加过的，后面判断是添加还是修改
+        $quoteItems = $this->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('inquiry_item_id',true);
+        $quoteId = $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
+
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->select();
 
         foreach ($inquiryItems as $inquiry=>$item){
-
-            $hasFlag = $this->where(['inquiry_item_id'=>$item['id']])->find();
-            if (!$hasFlag){
+            //判断是添加还是修改
+            if (!in_array($item['id'],$quoteItems)){
                 $this->add($this->create([
-                    'quote_id' => $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                    'quote_id' => $quoteId,
                     'inquiry_id' => $item['inquiry_id'],
                     'inquiry_item_id' => $item['id'],
                     'sku' => $item['sku'],
@@ -165,7 +211,6 @@ class QuoteItemModel extends PublicModel {
                     'created_by' => $user,
                     'created_at' => date('Y-m-d H:i:s')
                 ]));
-
             }
 
         }

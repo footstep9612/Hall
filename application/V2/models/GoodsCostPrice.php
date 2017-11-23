@@ -250,13 +250,13 @@ class GoodsCostPriceModel extends PublicModel {
                 return [];
             }
             $product_costprices = $this->field('sku,supplier_id,contact_first_name,contact_last_name,price,max_price,'
-                . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
-                ->where(['sku' => ['in', $skus],
-                    'status' => 'VALID',
-                    'deleted_flag' => 'N'
-                ])
-                ->order('supplier_id desc')
-                ->select();
+                            . 'price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,pricing_date,price_validity')
+                    ->where(['sku' => ['in', $skus],
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])
+                    ->order('supplier_id desc')
+                    ->select();
             if (!$product_costprices) {
                 return [];
             }

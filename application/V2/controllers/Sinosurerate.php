@@ -104,17 +104,23 @@ class SinosureRateController extends PublicController {
      * @time 2017-08-01
      */
     public function addSinosureRateRecordAction() {
-        $condition = $this->put_data;
+        $condition = $this->getPut();
         $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = date('Y-m-d H:i:s');
-        if (isset($condition['country_bn']) && $condition['country_bn']) {
+
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('请选择国家!');
+
+            parent::jsonReturn();
+        } elseif (isset($condition['country_bn']) && $condition['country_bn']) {
             $country_bn = $condition['country_bn'];
             $row = $this->sinosureRateModel->Exits(['country_bn' => $country_bn, 'status' => 'VALID']);
 
             if ($row) {
                 $this->setCode(MSG::MSG_EXIST);
                 $this->setMessage('已存在该国家的信保税率记录!');
-                $this->jsonReturn();
+                parent::jsonReturn();
             }
         }
         $res = $this->sinosureRateModel->addRecord($condition);
@@ -200,12 +206,21 @@ class SinosureRateController extends PublicController {
             $this->setMessage('成功!');
             parent::jsonReturn($data, $type);
         } elseif ($data === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage(MSG::ERROR_EMPTY);
+            if (empty($this->getCode()) || $this->getCode() != 1) {
+                $this->setCode(MSG::ERROR_EMPTY);
+            }
+            if (empty($this->getMessage())) {
+                $this->setMessage(MSG::ERROR_EMPTY);
+            }
             parent::jsonReturn($data);
         } else {
-            $this->setCode('-101');
-            $this->setMessage('失败!');
+            if (empty($this->getCode()) || $this->getCode() != 1) {
+                $this->setCode(-101);
+            }
+            if (empty($this->getMessage())) {
+                $this->setMessage('失败!');
+            }
+
             parent::jsonReturn();
         }
     }

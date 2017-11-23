@@ -31,12 +31,14 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('agent_id');
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
-            'status'       => 'DRAFT',
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
+            'status'       => 'REJECT_MARKET',//改为驳回市场，我了让查看询单的饿呢看到
             'now_agent_id' => $now_agent_id,
+            'inflow_time'  => date('Y-m-d H:i:s',time()),
             'quote_id' => NULL,
             'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);
@@ -58,12 +60,14 @@ class BizdivitionController extends PublicController{
         $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
         $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
 
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id'      => $erui_id,
             'now_agent_id' => $roleUser,
+            'inflow_time'  => date('Y-m-d H:i:s',time()),
             'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $this->jsonReturn($response);
@@ -79,18 +83,20 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
 
-        $response = $inquiry->where(['id'=>$request['inquiry_id']])->save([
+        $response = $inquiry->updateData([
+            'id'=>$request['inquiry_id'],
             'status'       => 'BIZ_QUOTING', //事业部报价
             'quote_status' => 'ONGOING', //报价中
             'quote_id'     => $request['quote_id'],
             'now_agent_id' => $request['quote_id'],
+            'inflow_time'   => date('Y-m-d H:i:s',time()),
             'updated_by'   => $this->user['id'],
-            'updated_at'   => date('Y-m-d H:i:s')
+            'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
 
         $quoteModel = new QuoteModel();
 
-        $flag = $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->find();
+        $flag = $quoteModel->field('id')->where(['inquiry_id'=>$request['inquiry_id']])->find();
 
         if (!$flag){
             $inquiryInfo = $inquiry->where(['id'=>$request['inquiry_id']])->find();
@@ -116,7 +122,7 @@ class BizdivitionController extends PublicController{
             ]));
 
             $inquiryItemModel = new InquiryItemModel();
-            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id']])->field('id,sku,qty,unit')->select();
+            $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->field('id,sku,qty,unit')->select();
 
             $quoteItemModel = new QuoteItemModel();
             foreach ($inquiryItems as $item=>$value){
@@ -132,7 +138,54 @@ class BizdivitionController extends PublicController{
                 ]));
             }
         }else{
-            $quoteModel->where(['inquiry_id'=>$request['inquiry_id']])->save(['status'=>'BIZ_QUOTING']);
+            $inquiryInfo = $inquiry->where(['id'=>$request['inquiry_id']])->find();
+            $quote_id = $quoteModel->where(['id'=>$flag['id']])->save($quoteModel->create([
+                'inquiry_id'     => $request['inquiry_id'],
+                'serial_no'      => $request['serial_no'],
+                'updated_by'     => $this->user['id'],
+                'updated_at'     => date('Y-m-d H:i:s'),
+                'status'         => 'BIZ_QUOTING',
+                'trade_terms_bn' => $inquiryInfo['trade_terms_bn'],
+                'payment_mode'   => $inquiryInfo['payment_mode'],
+                'trans_mode_bn'  => $inquiryInfo['trans_mode_bn'],
+                'quote_cur_bn'   => $inquiryInfo['cur_bn'],
+                'from_country'   => $inquiryInfo['from_country'],
+                'from_port'      => $inquiryInfo['from_port'],
+                'dispatch_place' => $inquiryInfo['dispatch_place'],
+                'to_country'     => $inquiryInfo['to_country'],
+                'to_port'        => $inquiryInfo['to_port'],
+                'delivery_addr'  => $inquiryInfo['delivery_addr'],
+                'payment_period' => $inquiryInfo['payment_period'],
+                'delivery_addr'  => $inquiryInfo['destination']
+            ]));
+
+            $inquiryItemModel = new InquiryItemModel();
+            $quoteItemModel = new QuoteItemModel();
+
+            $where['inquiry_id'] = $request['inquiry_id'];
+            $where['deleted_flag'] = 'N';
+            //查询所有已经添加过的，后面判断是添加还是修改
+            $quoteItems = $quoteItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('inquiry_item_id',true);
+
+            $inquiryItems = $inquiryItemModel->where($where)->field('id,sku,qty,unit')->select();   //查出来询单所有的询单SKU，循环插入到报价单
+            foreach ($inquiryItems as $item=>$value){
+                $data = $quoteItemModel->create([
+                    'quote_id'        => $quote_id,
+                    'inquiry_id'      => $request['inquiry_id'],
+                    'inquiry_item_id' => $value['id'],
+                    'sku'             => $value['sku'],
+                    'quote_qty'       => $value['qty'],
+                    'quote_unit'      => $value['unit'],
+                    'created_by'      => $this->user['id'],
+                    'created_at'      => date('Y-m-d H:i:s')
+                ]);
+                //判断是添加还是修改
+                if(in_array($value['id'],$quoteItems)){
+                    $quoteItemModel->where('id='.$value['id'])->save($data);
+                }else{
+                    $quoteItemModel->add($data);
+                }
+            }
         }
 
         $this->jsonReturn($response);
