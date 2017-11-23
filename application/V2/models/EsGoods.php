@@ -402,12 +402,13 @@ class EsGoodsModel extends Model {
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc')->setsort('sku', 'desc');
+                $es->setpreference('_primary_first');
             } else {
                 $es->setsort('created_at', 'desc')
                         ->setsort('sku', 'desc');
             }
 
-            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize, '_primary_first'), $current_no, $pagesize];
+            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

@@ -376,13 +376,15 @@ class EsProductModel extends Model {
             }
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setbody($body)->setsort('_score')->setsort('id', 'DESC');
+                $es->setpreference('_primary_first');
             } else {
                 $es->setbody($body)->setsort('id', 'DESC');
             }
 
+
             $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
-            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize, '_primary_first'), $current_no, $pagesize];
+            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
             return $data;
@@ -435,6 +437,7 @@ class EsProductModel extends Model {
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score');
+                $es->setpreference('_primary_first');
             }
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
