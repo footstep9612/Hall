@@ -46,12 +46,13 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr';
+            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,logi_quote_flag';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
             if(!empty($quotedata)){
                 //追加结果
+                $quoteinfo['logi_quote_flag'] = $quotedata['logi_quote_flag'];  //是否需要物流报价
                 $quoteinfo['total_weight'] = $quotedata['total_weight'];    //总重
                 $quoteinfo['package_volumn'] = $quotedata['package_volumn'];    //包装总体积
                 $quoteinfo['total_purchase'] = $quotedata['total_purchase'];    //采购总价
