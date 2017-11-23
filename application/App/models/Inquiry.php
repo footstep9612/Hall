@@ -137,14 +137,28 @@ class InquiryModel extends PublicModel
                     $inquiryAttach = new InquiryAttachModel();
 
                     foreach ($data['attach_list'] as $v) {
-                        $inquiryAttach->add($inquiryAttach->create([
-                            'inquiry_id' => $data['id'],
-                            'attach_group' => 'INQUIRY_SKU',
-                            'attach_name' => $v['attach_name'],
-                            'attach_url' => $v['attach_url'],
-                            'created_by' => $data['updated_by'],
-                            'created_at' => $this->getTime()
-                        ]));
+
+                        $flag = $inquiryAttach->where(['inquiry_id'=>$data['id'],'attach_name'=>$v['attach_name']])->find();
+                        if ($flag){
+                            $inquiryAttach->save($inquiryAttach->create([
+                                'inquiry_id' => $data['id'],
+                                'attach_group' => 'INQUIRY_SKU',
+                                'attach_name' => $v['attach_name'],
+                                'attach_url' => $v['attach_url'],
+                                'created_by' => $data['updated_by'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }else{
+                            $inquiryAttach->add($inquiryAttach->create([
+                                'inquiry_id' => $data['id'],
+                                'attach_group' => 'INQUIRY_SKU',
+                                'attach_name' => $v['attach_name'],
+                                'attach_url' => $v['attach_url'],
+                                'created_by' => $data['updated_by'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }
+
                     }
                 }
 
