@@ -221,6 +221,33 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+
+    /*
+     * 统计各状态数量 jhw
+     * */
+    public function buyercheckedlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new BuyerCheckedLogModel();
+
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
+        }else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '会员id缺失!';
+        }
+        $data = $model->getlist($where);
+        if ($data) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户详情
      * */
@@ -467,7 +494,6 @@ class BuyerController extends PublicController {
             $arr['serial_no'] = $arr['buyer_no'];
         }
         $arr['created_by'] = $this->user['id'];
-
         $id = $model->create_data($arr);
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;

@@ -297,10 +297,18 @@ class BuyerModel extends PublicModel {
         if (isset($create['created_by'])) {
             $data['checked_by']  = $create['created_by'];
             $data['checked_at'] = date('Y-m-d H:i:s');
+
         }
         try {
             $datajson = $this->create($data);
             $res = $this->add($datajson);
+            if($res){
+                $checked_log_arr['id'] = $res;
+                $checked_log_arr['status'] = 'APPROVED';
+                $checked_log_arr['checked_by'] = $create['created_by'];
+                $checked_log = new BuyerCheckedLogModel();
+                $checked_log->create_data($checked_log_arr);
+            }
             return $res;
         } catch (Exception $ex) {
             print_r($ex);
@@ -439,12 +447,27 @@ class BuyerModel extends PublicModel {
             switch ($create['status']) {
                 case self::STATUS_APPROVED:
                     $data['status'] = $create['status'];
+                    if($where['id']){
+                        $checked_log_arr['id'] = $where['id'];
+                        $checked_log_arr['status'] = self::STATUS_APPROVED;
+                        $checked_log_arr['checked_by'] = $create['checked_by'];
+                        $checked_log = new BuyerCheckedLogModel();
+                        $checked_log->create_data($checked_log_arr);
+                    }
                     break;
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
                     break;
                 case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
+                    if($where['id']){
+                        $checked_log_arr['id'] = $where['id'];
+                        $checked_log_arr['status'] = self::STATUS_REJECTED;
+                        $checked_log_arr['checked_by'] = $create['checked_by'];
+                        $checked_log_arr['remarks'] = $create['remarks'];
+                        $checked_log = new BuyerCheckedLogModel();
+                        $checked_log->create_data($checked_log_arr);
+                    }
                     break;
             }
         }
