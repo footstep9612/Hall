@@ -827,6 +827,7 @@ class ShowCatModel extends PublicModel {
             $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
             if (!empty($re['max_cat_no'])) {
                 if ($re['max_cat_no'] >= 990000) {
+                    Log::write($re['max_cat_no'] . '一级展示分类超过限制!');
                     return false;
                 }
                 return sprintf('%06d', intval($re['max_cat_no']) + 10000);
@@ -842,14 +843,16 @@ class ShowCatModel extends PublicModel {
             $format = '%06d';
             if (!empty($re['max_cat_no']) && $level_no == 3) {
 
-                if (strpos(intval($re['max_cat_no']) + 1) % 100 == 0) {
+                if ((intval($re['max_cat_no']) + 1) % 100 === 0) {
+                    Log::write($re['max_cat_no'] . '三级展示分类超过限制!');
                     return false;
                 }
                 return sprintf($format, (intval($re['max_cat_no']) + 1));
             } elseif ($level_no == 3) {
                 return sprintf($format, (intval($parent_cat_no) + 1));
             } elseif (!empty($re['max_cat_no']) && $level_no == 2) {
-                if (strpos(intval($re['max_cat_no']) + 100) % 10000 == 0) {
+                if ((intval($re['max_cat_no']) + 100) % 10000 === 0) {
+                    Log::write($re['max_cat_no'] . '二级展示分类超过限制!');
                     return false;
                 }
                 return sprintf($format, (intval($re['max_cat_no']) + 100));
@@ -1219,6 +1222,7 @@ class ShowCatModel extends PublicModel {
             $cat_no1 = null;
             $data1 = [];
             $data1['sort_order'] = 1;
+            $data1['level_no'] = 1;
             $data1['en']['name'] = $show_cat1s['show_cat_name1_en'];
             $data1['zh']['name'] = $show_cat1s['show_cat_name1_zh'];
             $data1['parent_cat_no'] = null;
@@ -1231,6 +1235,7 @@ class ShowCatModel extends PublicModel {
                     $data2 = [];
                     $cat_no2 = null;
                     $data2['sort_order'] = 1;
+                    $data2['level_no'] = 2;
                     $data2['en']['name'] = $show_cat2s['show_cat_name2_en'];
                     $data2['zh']['name'] = $show_cat2s['show_cat_name2_zh'];
                     $data2['parent_cat_no'] = $cat_no1;
@@ -1257,6 +1262,7 @@ class ShowCatModel extends PublicModel {
         $data3 = [];
         $cat_no3 = null;
         $data3['sort_order'] = 1;
+        $data3['level_no'] = 3;
         $data3['en']['name'] = $show_cat3['show_cat_name3_en'];
         $data3['zh']['name'] = $show_cat3['show_cat_name3_zh'];
         $data3['parent_cat_no'] = $cat_no2;
@@ -1333,6 +1339,7 @@ class ShowCatModel extends PublicModel {
         for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
             for ($currentColumn = 0; $currentColumn <= $allColumn_num; $currentColumn++) {
                 $val = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
+                $val = str_replace('_x000D_', '', $val);
                 $quotient = intval($currentColumn / 26);
                 $remainder = $currentColumn % 26;
                 $f = $quotient > 0 ? chr(65 + $quotient - 1) : '';
