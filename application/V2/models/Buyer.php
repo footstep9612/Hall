@@ -41,7 +41,6 @@ class BuyerModel extends PublicModel {
         $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
         $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
         $sql .= '`erui_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
-        $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.deleted_flag='N' ";
@@ -50,7 +49,6 @@ class BuyerModel extends PublicModel {
         $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` AND em.deleted_flag='N' ";
         $str .= " left Join `erui_buyer`.`buyer_address` on `erui_buyer`.`buyer_address`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
         $sql .= $str;
-        $sql_count .= $str;
         $where = " WHERE buyer.deleted_flag = 'N'  ";
         if (!empty($condition['country_bn'])) {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
@@ -929,8 +927,72 @@ class BuyerModel extends PublicModel {
      * @return data
      * @author jhw
      */
-    public function getBuyerCountByStatus(){
-        $sql = "SELECT  `status` ,COUNT(*)  as number FROM  ".$this->g_table." WHERE deleted_flag ='N' GROUP  BY `status`";
+    public function getBuyerCountByStatus($condition){
+        $sql = "SELECT  `erui_buyer`.buyer.`status` ,COUNT(*)  as number ";
+        $str = ' FROM ' . $this->g_table;
+        $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
+        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.deleted_flag='N' ";
+        $sql .= $str;
+        $where = " WHERE buyer.deleted_flag = 'N'  ";
+        if (!empty($condition['country_bn'])) {
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+        }
+        if (!empty($condition['name'])) {
+            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+        }
+        if (!empty($condition['buyer_no'])) {
+            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
+        }
+        if (!empty($condition['employee_name'])) {
+            $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
+        }
+        if (!empty($condition['status'])) {
+            $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
+        }
+        if (!empty($condition['checked_at_start'])) {
+            $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
+        }
+        if (!empty($condition['checked_at_end'])) {
+            $where .= ' And `erui_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
+        }
+        if (!empty($condition['created_by'])) {
+            $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
+        }
+        if (!empty($condition['source'])) {
+            if ($condition['source'] == 1) {
+                $where .= ' And `erui_buyer`.`buyer`.created_by  > 0';
+            } else if ($condition['source'] == 2) {
+                $where .= ' And `erui_buyer`.`buyer`.created_by  is null';
+            }
+        }
+        if (!empty($condition['created_at_start'])) {
+            $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
+        }
+        if (!empty($condition['created_at_end'])) {
+            $where .= ' And `erui_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
+        }
+        if (!empty($condition['buyer_code'])) {
+            $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
+        }
+        if ($condition['is_agent']=='Y') {
+            $where .= ' And (`erui_buyer`.`buyer`.created_by  ="' . $condition['agent']['user_id'] . '" OR `erui_buyer`.`buyer_agent`.`agent_id`  in ("' . $condition['agent']['agent_id'] . '"))';
+        }
+        if ($where) {
+            $sql .= $where;
+            // $sql_count .= $where;
+        }
+        $sql .= ' Group By `buyer`.status';
+        //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
+        $res['count'] = count($this->query($sql));
+        if ($condition['num']) {
+            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+        }
+
+        //$count = $this->query($sql_count);
+
+        $res['data'] = $this->query($sql);
+
+
         $row = $this->query($sql);
         return $row;
     }

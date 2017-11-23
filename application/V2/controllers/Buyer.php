@@ -161,8 +161,52 @@ class BuyerController extends PublicController {
      * 统计各状态数量 jhw
      * */
     public function buyercountAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerModel();
-        $data = $model->getBuyerCountByStatus();
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
+        if (!empty($data['country_bn'])) {
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+            }
+            $where['country_bn'] = rtrim($where['country_bn'], ",");
+        }
+        if (!empty($data['buyer_no'])) {
+            $where['buyer_no'] = $data['buyer_no'];
+        }
+        if (!empty($data['buyer_code'])) {
+            $where['buyer_code'] = $data['buyer_code'];
+        }
+        if (!empty($data['status'])) {
+            $where['status'] = $data['status'];
+        }
+        if (!empty($data['employee_name'])) {
+            $where['employee_name'] = $data['employee_name'];
+        }
+        if (!empty($data['source'])) {
+            $where['source'] = $data['source'];
+        }
+        if (!empty($data['checked_at_start'])) {
+            $where['checked_at_start'] = $data['checked_at_start'];
+        }
+        if (!empty($data['checked_at_end'])) {
+            $where['checked_at_end'] = $data['checked_at_end'];
+        }
+        if (!empty($data['created_at_end'])) {
+            $where['created_at_end'] = $data['created_at_end'];
+        }
+        if (!empty($data['created_at_start'])) {
+            $where['created_at_start'] = $data['created_at_start'];
+        }
+        if (!empty($data['pageSize'])) {
+            $where['num'] = $data['pageSize'];
+        }
+        if (!empty($data['currentPage'])) {
+            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
+        }
+        $data = $model->getBuyerCountByStatus($where);
         $arr = [];
         for ($i = 0; $i<count($data); $i++){
             $arr[$data[$i]['status']] = $data[$i]['number'];
