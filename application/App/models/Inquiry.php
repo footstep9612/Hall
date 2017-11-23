@@ -156,8 +156,8 @@ class InquiryModel extends PublicModel
                 $results['message'] = '修改失败!';
             }
         }catch (Exception $exception){
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
+            $results['code'] = $exception->getCode();
+            $results['message'] = $exception->getMessage();
         }
 
         return $results;
