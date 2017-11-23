@@ -2196,7 +2196,7 @@ class GoodsModel extends PublicModel {
                             }
                         }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
-                        if(!in_array(array('bn'=>$data['purchase_price_cur_bn']),$currencyList)){
+                        if(!empty($data['purchase_price_cur_bn']) && !in_array(array('bn'=>$data['purchase_price_cur_bn']),$currencyList)){
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
                             $start_row++;
