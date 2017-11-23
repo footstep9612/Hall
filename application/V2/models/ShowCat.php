@@ -1230,26 +1230,7 @@ class ShowCatModel extends PublicModel {
                     $cat_no2 = $this->create_data($data2);
                     if ($cat_no2) {
                         foreach ($show_cat2s['childs'] as $show_cat3) {
-                            $data3 = [];
-                            $cat_no3 = null;
-                            $data3['sort_order'] = 1;
-                            $data3['en']['name'] = $show_cat3['show_cat_name3_en'];
-                            $data3['zh']['name'] = $show_cat3['show_cat_name3_zh'];
-                            $data3['parent_cat_no'] = $cat_no2;
-                            $data3['material_cat_nos'] = $show_cat3['material_cat_no3'];
-                            $data3['market_area_bn'] = $market_area_bn;
-                            $data3['country_bn'] = $country_bn;
-
-
-
-
-                            $cat_no3 = $this->create_data($data3);
-                            if (!$cat_no3) {
-
-                                Log::write('三级级分类:导入失败,二级分类编码为:' . $cat_no2 . PHP_EOL . '三级分类编码:' . $cat_no3 . PHP_EOL . var_export($show_cat3, true));
-                            } else {
-                                $ShowCatProductModel->UpdateShowCatProductByMaterialCatNos($show_cat3['material_cat_no3'], $cat_no3);
-                            }
+                            $this->InsrtIntoShowCat3($show_cat3, $market_area_bn, $country_bn, $cat_no2);
                         }
                     } else {
                         Log::write('二级分类:导入失败,一级分类编码为:' . $cat_no1 . PHP_EOL . var_export($show_cat2s, true));
@@ -1260,6 +1241,26 @@ class ShowCatModel extends PublicModel {
             }
         }
         return true;
+    }
+
+    public function InsrtIntoShowCat3($show_cat3, $market_area_bn, $country_bn, $cat_no2) {
+        $data3 = [];
+        $cat_no3 = null;
+        $data3['sort_order'] = 1;
+        $data3['en']['name'] = $show_cat3['show_cat_name3_en'];
+        $data3['zh']['name'] = $show_cat3['show_cat_name3_zh'];
+        $data3['parent_cat_no'] = $cat_no2;
+        $data3['material_cat_nos'] = $show_cat3['material_cat_no3'];
+        $data3['market_area_bn'] = $market_area_bn;
+        $data3['country_bn'] = $country_bn;
+        $cat_no3 = $this->create_data($data3);
+        if (!$cat_no3) {
+            Log::write('三级级分类:导入失败,二级分类编码为:' . $cat_no2 . PHP_EOL . '三级分类编码:' . $cat_no3 . PHP_EOL . var_export($show_cat3, true));
+        } else {
+            $ShowCatProductModel = new ShowCatProductModel();
+            $ShowCatProductModel->UpdateShowCatProductByMaterialCatNos($show_cat3['material_cat_no3'], $cat_no3);
+            return $cat_no3;
+        }
     }
 
     /*

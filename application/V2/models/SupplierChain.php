@@ -475,7 +475,9 @@ class SupplierChainModel extends PublicModel {
         $info = $this->field('status,org_id')->where($where)->find();
         if ($info['status'] == 'APPROVING') {
             $data['status'] = ($status == 'APPROVED' ? 'APPROVED' : 'INVALID');
-            $data['erui_status'] = 'CHECKING';
+            if ($status == 'APPROVED') {
+                $data['erui_status'] = 'CHECKING';
+            }
             $data['checked_at'] = date('Y-m-d H:i:s');
             $data['checked_by'] = defined('UID') ? UID : 0;
             if ($info['org_id'] && $data['status'] == 'APPROVED') {

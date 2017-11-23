@@ -498,4 +498,23 @@ class ShowcatController extends PublicController {
         }
     }
 
+    /**
+     * 产品导出
+     */
+    public function InsrtIntoShowCat3Action() {
+        set_time_limit(0);
+        $show_cat3 = $this->getPut('show_cat3');
+        $market_area_bn = $this->getPut('market_area_bn');
+        $country_bn = $this->getPut('country_bn');
+        $cat_no2 = $this->getPut('cat_no2');
+        $showcat = new ShowCatModel();
+
+        $localDir = $showcat->InsrtIntoShowCat3($show_cat3, $market_area_bn, $country_bn, $cat_no2);
+        if ($localDir) {
+            jsonReturn($localDir);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
 }

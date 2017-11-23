@@ -205,15 +205,22 @@ class SupplierInquiryModel extends PublicModel {
     public function getInquiryCount($supplier_id = null) {
 
         $final_quote_item_model = new FinalQuoteItemModel();
-        $final_where = ['supplier_id' => ['gt', 0],
-            'deleted_flag' => 'N',
-            'status' => 'VALID',
+        $supplier_model = new SupplierModel();
+        $supplier_table = $supplier_model->getTableName();
+        $final_where = ['fqi.supplier_id' => ['gt', 0],
+            'fqi.deleted_flag' => 'N',
+            'fqi.status' => 'VALID',
+            's.id' => ['gt', 0],
+            's.deleted_flag' => 'N',
         ];
         if ($supplier_id) {
-            $final_where['supplier_id'] = $supplier_id;
+            $final_where['fqi.supplier_id'] = $supplier_id;
         }
-        $inquiryids = $final_quote_item_model->field('inquiry_id')
-                        ->where($final_where)->group('inquiry_id')->select();
+        $inquiryids = $final_quote_item_model
+                        ->alias('fqi')
+                        ->join($supplier_table . ' s on s.id=fqi.supplier_id')
+                        ->field('fqi.inquiry_id')
+                        ->where($final_where)->group('fqi.inquiry_id')->select();
         $inquiry_ids = [];
 
 
