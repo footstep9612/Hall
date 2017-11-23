@@ -484,21 +484,24 @@ class SuppliersController extends PublicController {
     public function addSupplierSupplyRecordAction() {
         $condition = $this->_trim($this->put_data);
 
-        if (empty($condition['supplier_id']))
+        if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
-        if (empty($condition['material_cat_no1']))
+        if ($condition['material_cat_no1'] == '')
             jsonReturn('', -101, '一级物料分类编码不能为空!');
-        if (empty($condition['material_cat_no2']))
+        
+        if ($condition['material_cat_no2'] == '')
             jsonReturn('', -101, '二级物料分类编码不能为空!');
-        if (empty($condition['material_cat_name3']))
-            jsonReturn('', -101, '请输入铺货产品!');
+        
+        if ($condition['material_cat_name3'] == '')
+            jsonReturn('', -101, '请输入三级物料分类名称!');
+        
         $exist = $this->supplierMaterialCatModel->Exist($condition);
 
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
-            if (empty($condition['material_cat_no2'])) {
+            if ($condition['material_cat_no2'] == '') {
                 $condition['material_cat_no2'] = null;
             }
             $res = $this->supplierMaterialCatModel->addRecord($condition);
