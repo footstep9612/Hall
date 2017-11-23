@@ -374,7 +374,11 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $es->setbody($body)->setsort('_score');
+            if (isset($condition['keyword']) && $condition['keyword']) {
+                $es->setbody($body)->setsort('_score')->setsort('id', 'DESC');
+            } else {
+                $es->setbody($body)->setsort('id', 'DESC');
+            }
             $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
