@@ -407,7 +407,7 @@ class EsGoodsModel extends Model {
                         ->setsort('sku', 'desc');
             }
 
-            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+            return [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize, '_primary_first'), $current_no, $pagesize];
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
