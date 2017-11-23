@@ -501,9 +501,7 @@ class SuppliersController extends PublicController {
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
-            if ($condition['material_cat_no2'] == '') {
-                $condition['material_cat_no2'] = null;
-            }
+            
             $res = $this->supplierMaterialCatModel->addRecord($condition);
 
             $this->jsonReturn($res);
