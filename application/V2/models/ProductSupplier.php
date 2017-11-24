@@ -42,18 +42,13 @@ class ProductSupplierModel extends PublicModel {
         $where['pzh.deleted_flag'] = 'N';
         $where['pzh.lang'] = 'zh';
 
-        //$where['s.deleted_flag'] = 'N';
-        // $where['ps.deleted_flag'] = 'N';
         $where['pzh.status'] = ['in', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'DRAFT', 'INVALID']];
 
-        //  $where['s.status'] = ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']];
+
         if (!empty($condition['created_at_end'])) {
             $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
         }
         $this->_getValue($where, $condition, 'created_at', 'between', 'pzh.created_at');
-
-
-        //$this->_getValue($where, $condition, 'supplier_name', 'like', 's.name');
     }
 
     /* 通过SPU供应商列表
@@ -489,7 +484,7 @@ class ProductSupplierModel extends PublicModel {
                 . '(SELECT g.spu from ' . $goods_table . ' as g where g.sku=fqi.sku and lang=\'zh\' and deleted_flag=\'N\' '
                 . 'GROUP BY g.sku )  as spu '
                 . 'from ' . $final_quote_item_table . ' fqi left join ' . $quote_item_table
-                . ' on  qi.id=fqi.quote_item_id and  qi.deleted_flag=\'N\'  where fqi.deleted_flag=\''
+                . ' qi on  qi.id=fqi.quote_item_id and  qi.deleted_flag=\'N\'  where fqi.deleted_flag=\''
                 . 'N\' and fqi.`status`=\'VALID\' GROUP BY fqi.inquiry_id,spu)  tmp_table';
         $inquiryinfo = $this->query('select count(inquiry_id) as quote_num,avg(total_quote_price) as avg_quote_price from '
                 . $tmp_table . ' where spu=\'' . $spu . '\'');
