@@ -233,7 +233,7 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         }else {
-            $datajson['code'] = -104;
+            $datajson['code'] = -103;
             $datajson['data'] = "";
             $datajson['message'] = '会员id缺失!';
         }
@@ -714,14 +714,13 @@ class BuyerController extends PublicController {
             if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
                 $info =  $buyer_account_model->info($where_account);
                 $info_buyer =  $model->info($where);
+
                 if($info['email']){
                     if ($data['status'] == 'APPROVED') {
                         //审核通过邮件
                         if($info_buyer['lang']){
                             $body = $this->getView()->render('buyer/approved_'.$info_buyer['lang'].'.html');
-                            if($body){
-                                send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                            }
+                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
                         }
                     }
                     if ($data['status'] == 'REJECTED') {

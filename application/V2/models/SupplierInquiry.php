@@ -337,7 +337,7 @@ class SupplierInquiryModel extends PublicModel {
 
 
         /*         * *************-----------询单项明细开始------------------- */
-        $inquiry_item_model = new InquiryitemModel();
+        $inquiry_item_model = new InquiryItemModel();
         $inquiry_item_table = $inquiry_item_model->getTableName(); //询单项明细表
         /*         * *************-----------询单项明细结束------------------- */
 
@@ -397,6 +397,8 @@ class SupplierInquiryModel extends PublicModel {
                 ->where(['i.deleted_flag' => 'N', 'i.status' => ['neq', 'DRAFT']])
                 ->select();
 
+        echo $inquiry_model->_sql();
+        die;
         return $this->_createXls($list);
     }
 

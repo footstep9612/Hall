@@ -57,13 +57,13 @@ class InquiryModel extends PublicModel
         {
             case 'TODAY' :
                 $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
-                $data = count($this->getList_($auth,$this->listFields,$where));
+                $data = count($this->getList($auth,$this->listFields,$where));
                 break;
             case 'TOTAL' :
-                $data = count($this->getList_($auth,$this->listFields));
+                $data = count($this->getList($auth,$this->listFields));
                 break;
             case 'QUOTED' :
-                $data = $data = count($this->getList_($auth,$this->listFields,['quote_status'=>'QUOTED']));
+                $data = $data = count($this->getList($auth,$this->listFields,['quote_status'=>'QUOTED']));
                 break;
         }
         return $data;
@@ -77,7 +77,7 @@ class InquiryModel extends PublicModel
      */
     public function getNewItems($auth,$field)
     {
-        $data = array_slice($this->getList_($auth,$field),0,3);
+        $data = array_slice($this->getList($auth,$field),0,3);
 
         $employee = new EmployeeModel();
         foreach ($data  as $key=>$value) {
@@ -192,7 +192,7 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList_($condition = [], $field = '*',$where1=[]) {
+    public function getList($condition = [], $field = '*',$where1=[]) {
 
         $where = $this->getWhere($condition);
 
@@ -215,7 +215,7 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-19
      */
-    public function getCount_($condition = []) {
+    public function getCount($condition = []) {
 
         $where = $this->getWhere($condition);
 
@@ -293,6 +293,9 @@ class InquiryModel extends PublicModel
 
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
+                        if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                            $map[] = ['country_bn' => $condition['user_country']];
+                        }
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
                         }
@@ -307,6 +310,9 @@ class InquiryModel extends PublicModel
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
 
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
+                        }
+                        if ($roleNo == self::logiIssueAuxiliaryRole) {
+                            $map[] = ['country_bn' => $condition['user_country']];
                         }
                         if ($roleNo == self::logiQuoterRole) {
                             $map[] = ['logi_agent_id' => $condition['user_id']];

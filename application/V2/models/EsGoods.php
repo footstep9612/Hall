@@ -253,8 +253,8 @@ class EsGoodsModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         if (isset($condition['price_validity']) && $condition['price_validity'] === 'Y') {
-            $condition['pricevalidity_start'] = null; // date('Y-m-d');
-            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('30 days'));
+            $condition['pricevalidity_start'] = '2017-01-01';
+            $condition['pricevalidity_end'] = date('Y-m-d', strtotime('+30 days'));
             $this->_getQurey($condition, $body, ESClient::RANGE, 'pricevalidity', 'costprices.price_validity');
             unset($condition['pricevalidity_end'], $condition['pricevalidity_start']);
         }
