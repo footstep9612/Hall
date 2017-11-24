@@ -207,6 +207,29 @@ class InquiryModel extends PublicModel
             ->select();
     }
 
+    public function getList_($condition = [], $field = '*') {
+
+        $where = $this->getWhere($condition);
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        return $this->field($field)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('id DESC')
+            ->select();
+    }
+
+    public function getCount_($condition = []) {
+
+        $where = $this->getWhere($condition);
+
+        $count = $this->where($where)->count('id');
+
+        return $count > 0 ? $count : 0;
+    }
+
     /**
      * @desc 获取记录总数
      *
