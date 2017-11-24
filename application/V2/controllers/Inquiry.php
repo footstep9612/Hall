@@ -208,6 +208,7 @@ class InquiryController extends PublicController {
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
         $buyerModel = new BuyerModel();
+        $countryUserModel = new CountryUserModel();
 
         // 市场经办人
         if (!empty($condition['agent_name'])) {
@@ -222,8 +223,11 @@ class InquiryController extends PublicController {
         $condition['group_id'] = $this->user['group_id'];
 
         $condition['user_id'] = $this->user['id'];
+        
+        $countryUser = $countryUserModel->getDetail(['employee_id' => $this->user['id']], 'country_bn');
+        $condition['user_country'] = $countryUser['country_bn'];
 
-        $inquiryList = $inquiryModel->getList_($condition);
+        $inquiryList = $inquiryModel->getList($condition);
 
         foreach ($inquiryList as &$inquiry) {
             $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
@@ -244,7 +248,7 @@ class InquiryController extends PublicController {
             $res['code'] = 1;
             $res['message'] = '成功!';
             $res['data'] = $inquiryList;
-            $res['count'] = $inquiryModel->getCount_($condition);
+            $res['count'] = $inquiryModel->getCount($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
