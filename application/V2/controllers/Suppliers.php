@@ -229,8 +229,7 @@ class SuppliersController extends PublicController {
             'updated_at' => $this->time
         ];
 
-        if ($condition['org_id'] == '')
-            $supplierData['org_id'] = null;
+        $supplierData['org_id'] = $condition['org_id'] == '' ? null : $condition['org_id'];
 
         $supplierWhere['id'] = $condition['supplier_id'];
 
@@ -284,12 +283,9 @@ class SuppliersController extends PublicController {
             'photo_upload_flag' => $condition['photo_upload_flag']
         ];
 
-        if ($condition['sign_agreement_time'] == '')
-            $extraData['sign_agreement_time'] = null;
-        if ($condition['est_time_arrival'] == '')
-            $extraData['est_time_arrival'] = null;
-        if ($condition['distribution_amount'] == '')
-            $extraData['distribution_amount'] = null;
+        $extraData['sign_agreement_time'] = $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'];
+        $extraData['est_time_arrival'] = $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'];
+        $extraData['distribution_amount'] = $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'];
 
         if ($hasExtra) {
             $extraData['updated_by'] = $this->user['id'];
