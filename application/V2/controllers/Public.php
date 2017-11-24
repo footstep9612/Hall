@@ -573,19 +573,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $inquiryCheckLogModel->addAll($checkLogList);
     }
 
-//    /**
-//     * @param        $to            收信人手机号
-//     * @param        $action        操作说明 SUBMIT(询报价提交) REJECT(询报价退回)
-//     * @param        $receiver      收信人名称 如:买买提
-//     * @param        $serial_no     询单流程编码
-//     * @param        $from          发信人名称
-//     * @param string $areaCode      手机所属区号 默认86
-//     * @param int    $subType       短信发送方式  0普通文本 1模板
-//     * @param int    $groupSending  类型：0为单独发送，1为批量发送
-//     * @param string $useType       发送用途： 例如：Order、Customer、System等
-//     * @author 买买提
-//     * @return string
-//     */
+    /**
+     * @param        $to            收信人手机号
+     * @param        $action        操作说明 SUBMIT(询报价提交) REJECT(询报价退回)
+     * @param        $receiver      收信人名称 如:买买提
+     * @param        $serial_no     询单流程编码
+     * @param        $from          发信人名称
+     * @param string $areaCode      手机所属区号 默认86
+     * @param int    $subType       短信发送方式  0普通文本 1模板
+     * @param int    $groupSending  类型：0为单独发送，1为批量发送
+     * @param string $useType       发送用途： 例如：Order、Customer、System等
+     * @author 买买提
+     * @return string
+     */
 
 
     public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode = "86", $subType = 1, $groupSending = 0, $useType = "询报价系统") {
@@ -635,6 +635,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         return;
+    }
+
+
+    /**
+     * 验证指定参数是否存在
+     * @param string $params 初始的请求字段
+     * @return array 验证后的请求字段
+     */
+    public function validateRequestParams($params=''){
+        $request = $this->getPut();
+        unset($request['token']);
+
+        if ($params){
+            $params = explode(',',$params);
+            foreach ($params as $param){
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少['.$param.']参数']);
+            }
+        }
+        return $request;
     }
 
 }
