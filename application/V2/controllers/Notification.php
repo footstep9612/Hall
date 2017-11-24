@@ -31,7 +31,7 @@ class NotificationController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功!',
-            'count'   => count($list),
+            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id']])->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->select()),
             'data'    => $list
         ]);
 
