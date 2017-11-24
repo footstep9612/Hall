@@ -503,15 +503,17 @@ class ProductSupplierModel extends PublicModel {
         $final_quote_item_table = $final_quote_item_model->getTableName();
         $goods_model = new GoodsModel();
         $goods_table = $goods_model->getTableName();
-        $tmp_table = '(SELECT fqi.inquiry_id,sum(if(fqi.total_quote_price>0,fqi.total_quote_price,0)) as total_quote_price,'
+        $tmp_table = '(SELECT fqi.inquiry_id,sum(if(fqi.exw_unit_price+fqi.quote_unit_price>0,fqi.exw_unit_price+fqi.quote_unit_price,0)) as total_quote_price,'
                 . '(SELECT g.spu from ' . $goods_table . ' as g where g.sku=fqi.sku and lang=\'zh\' and deleted_flag=\'N\' '
                 . 'GROUP BY g.sku )  as spu '
                 . 'from ' . $final_quote_item_table . ' fqi where fqi.deleted_flag=\'N\' '
                 . 'and fqi.`status`=\'VALID\' GROUP BY fqi.inquiry_id,spu)  tmp_table';
         $inquiryinfo = $this->query('select count(inquiry_id) as quote_num,avg(total_quote_price) as avg_quote_price from '
                 . $tmp_table . ' where spu=\'' . $spu . '\'');
-        $item['avg_price'] = isset($inquiryinfo['avg_quote_price']) ? $inquiryinfo['avg_quote_price'] : 0;
-        $item['quote_num'] = count($inquiryinfo['quote_num']);
+
+
+        $item['avg_price'] = isset($inquiryinfo[0]['avg_quote_price']) ? $inquiryinfo[0]['avg_quote_price'] : 0;
+        $item['quote_num'] = $inquiryinfo[0]['quote_num'];
     }
 
     /**
