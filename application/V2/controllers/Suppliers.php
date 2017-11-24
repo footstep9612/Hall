@@ -225,11 +225,10 @@ class SuppliersController extends PublicController {
             'reg_capital' => $condition['reg_capital'],
             'logo' => $condition['logo'],
             'profile' => $condition['profile'],
+            'org_id' => $condition['org_id'] == '' ? null : $condition['org_id'],
             'updated_by' => $this->user['id'],
             'updated_at' => $this->time
         ];
-
-        $supplierData['org_id'] = $condition['org_id'] == '' ? null : $condition['org_id'];
 
         $supplierWhere['id'] = $condition['supplier_id'];
 
@@ -276,16 +275,15 @@ class SuppliersController extends PublicController {
         // 供应商其他信息
         $extraData = [
             'sign_agreement_flag' => $condition['sign_agreement_flag'],
+            'sign_agreement_time' => $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'],
+            'est_time_arrival' => $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'],
+            'distribution_amount' => $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'],
             'providing_sample_flag' => $condition['providing_sample_flag'],
             'distribution_products' => $condition['distribution_products'],
             'stocking_place' => $condition['stocking_place'],
             'info_upload_flag' => $condition['info_upload_flag'],
             'photo_upload_flag' => $condition['photo_upload_flag']
         ];
-
-        $extraData['sign_agreement_time'] = $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'];
-        $extraData['est_time_arrival'] = $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'];
-        $extraData['distribution_amount'] = $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'];
 
         if ($hasExtra) {
             $extraData['updated_by'] = $this->user['id'];
