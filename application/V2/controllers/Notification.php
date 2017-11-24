@@ -14,10 +14,13 @@ class NotificationController extends PublicController
     public function listAction()
     {
 
-        $this->validateRequestParams();
+        $request = $this->validateRequestParams();
+
+        $page = !empty($request['currentPage']) ? $request['currentPage'] : 1;
+        $pagesize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
 
         $inquiry = new InquiryModel();
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->select();
+        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->page($page, $pagesize)->select();
 
         foreach ($list as &$item){
             $item['remind_count'] = count($this->remindList($item['id']));
