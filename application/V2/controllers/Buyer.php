@@ -233,7 +233,7 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         }else {
-            $datajson['code'] = -104;
+            $datajson['code'] = -103;
             $datajson['data'] = "";
             $datajson['message'] = '会员id缺失!';
         }
