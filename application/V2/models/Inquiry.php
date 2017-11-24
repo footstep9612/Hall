@@ -693,6 +693,95 @@ class InquiryModel extends PublicModel {
     
         return $orgMember['employee_id'];
     }
+    
+    /**
+     * @desc 根据用户ID获取用户角色
+     *
+     * @param string $userId 用户ID
+     * @return array
+     * @author liujf
+     * @time 2017-11-24
+     */
+    public function getUserRoleById($userId = '') {
+        $roleUserModel = new RoleUserModel();
+        $roleModel = new RoleModel();
+    
+        $roleUserList = $roleUserModel->field('role_id')->where(['employee_id' => $userId ? : '-1'])->select();
+    
+        $roleId = [];
+    
+        foreach ($roleUserList as $roleUser) {
+            $roleId[] = $roleUser['role_id'];
+        }
+    
+        $roleList = $roleModel->field('role_no')->where(['id' => ['in', $roleId ? : ['-1']]])->select();
+    
+        $roleNoArr = [];
+    
+        foreach ($roleList as $role) {
+            $roleNoArr[] = $role['role_no'];
+        }
+    
+        return $this->getUserRoleByNo($roleNoArr);
+    }
+    
+    /**
+     * @desc 根据角色编号判断用户角色
+     *
+     * @param array $roleNoArr 用户的全部角色编号
+     * @return array
+     * @author liujf
+     * @time 2017-11-24
+     */
+    public function getUserRoleByNo($roleNoArr = []) {
+        // 是否市场经办人的标识
+        $isAgent = 'N';
+    
+        // 是否易瑞分单员的标识
+        $isErui = 'N';
+    
+        // 是否分单员的标识
+        $isIssue = 'N';
+    
+        // 是否报价人的标识
+        $isQuote = 'N';
+    
+        // 是否审核人的标识
+        $isCheck = 'N';
+    
+        // 会员管理国家负责人
+        $isCountryAgent = 'N';
+    
+        foreach ($roleNoArr as $roleNo) {
+            if ($roleNo == self::marketAgentRole) {
+                $isAgent = 'Y';
+            }
+            if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
+                $isErui = 'Y';
+            }
+            if ($roleNo == self::inquiryIssueRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole || $roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
+                $isIssue = 'Y';
+            }
+            if ($roleNo == self::quoterRole || $roleNo == self::logiQuoterRole) {
+                $isQuote = 'Y';
+            }
+            if ($roleNo == self::quoteCheckRole || $roleNo == self::logiCheckRole) {
+                $isCheck = 'Y';
+            }
+            if ($roleNo == self::buyerCountryAgent) {
+                $isCountryAgent = 'Y';
+            }
+        }
+    
+        $data['is_agent'] = $isAgent;
+        $data['is_erui'] = $isErui;
+        $data['is_issue'] = $isIssue;
+        $data['is_quote'] = $isQuote;
+        $data['is_check'] = $isCheck;
+        $data['is_country_agent'] = $isCountryAgent;
+    
+        return $data;
+    }
 
     /**
      * 更新用户信息和询单经办人等信息

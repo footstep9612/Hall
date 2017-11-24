@@ -227,7 +227,7 @@ class InquiryController extends PublicController {
         $countryUser = $countryUserModel->getDetail(['employee_id' => $this->user['id']], 'country_bn');
         $condition['user_country'] = $countryUser['country_bn'];
 
-        $inquiryList = $inquiryModel->getList($condition);
+        $inquiryList = $inquiryModel->getList_($condition);
 
         foreach ($inquiryList as &$inquiry) {
             $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
@@ -248,7 +248,7 @@ class InquiryController extends PublicController {
             $res['code'] = 1;
             $res['message'] = '成功!';
             $res['data'] = $inquiryList;
-            $res['count'] = $inquiryModel->getCount($condition);
+            $res['count'] = $inquiryModel->getCount_($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
@@ -365,49 +365,11 @@ class InquiryController extends PublicController {
      * @time 2017-10-23
      */
     public function getInquiryUserRoleAction() {
-        $inquiry = new InquiryModel();
+        $inquiryModel = new InquiryModel();
+        
+        $data = $inquiryModel->getUserRoleByNo($this->user['role_no']);
 
-        // 是否市场经办人的标识
-        $isAgent = 'N';
-
-        // 是否易瑞分单员的标识
-        $isErui = 'N';
-
-        // 是否分单员的标识
-        $isIssue = 'N';
-
-        // 是否报价人的标识
-        $isQuote = 'N';
-
-        // 是否审核人的标识
-        $isCheck = 'N';
-
-        // 会员管理国家负责人
-        $isCountryAgent = 'N';
-
-        foreach ($this->user['role_no'] as $roleNo) {
-            if ($roleNo == $inquiry::marketAgentRole) {
-                $isAgent = 'Y';
-            }
-            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::inquiryIssueAuxiliaryRole) {
-                $isErui = 'Y';
-            }
-            if ($roleNo == $inquiry::inquiryIssueRole || $roleNo == $inquiry::quoteIssueMainRole || $roleNo == $inquiry::quoteIssueAuxiliaryRole || $roleNo == $inquiry::logiIssueMainRole || $roleNo == $inquiry::logiIssueAuxiliaryRole) {
-                $isIssue = 'Y';
-            }
-            if ($roleNo == $inquiry::quoterRole || $roleNo == $inquiry::logiQuoterRole) {
-                $isQuote = 'Y';
-            }
-            if ($roleNo == $inquiry::quoteCheckRole || $roleNo == $inquiry::logiCheckRole) {
-                $isCheck = 'Y';
-            }
-            if ($roleNo == $inquiry::buyerCountryAgent) {
-                $isCountryAgent = 'Y';
-            }
-
-        }
-
-        if ($isAgent == 'Y') {
+        if ($data['is_agent'] == 'Y') {
             $orgModel = new OrgModel();
 
             $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']]])->order('id DESC')->find();
@@ -417,12 +379,6 @@ class InquiryController extends PublicController {
             $data['ub_name'] = $org['name'];
         }
 
-        $data['is_agent'] = $isAgent;
-        $data['is_erui'] = $isErui;
-        $data['is_issue'] = $isIssue;
-        $data['is_quote'] = $isQuote;
-        $data['is_check'] = $isCheck;
-        $data['is_country_agent'] = $isCountryAgent;
         $res['code'] = 1;
         $res['message'] = '成功!';
         $res['data'] = $data;
