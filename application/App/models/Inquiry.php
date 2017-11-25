@@ -316,9 +316,6 @@ class InquiryModel extends PublicModel
 
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $map[] = ['country_bn' => $condition['user_country']];
-                        }
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
                         }
@@ -333,9 +330,6 @@ class InquiryModel extends PublicModel
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
 
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
-                        }
-                        if ($roleNo == self::logiIssueAuxiliaryRole) {
-                            $map[] = ['country_bn' => $condition['user_country']];
                         }
                         if ($roleNo == self::logiQuoterRole) {
                             $map[] = ['logi_agent_id' => $condition['user_id']];
