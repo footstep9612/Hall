@@ -224,8 +224,7 @@ class InquiryController extends PublicController {
 
         $condition['user_id'] = $this->user['id'];
         
-        $countryUser = $countryUserModel->getDetail(['employee_id' => $this->user['id']], 'country_bn');
-        $condition['user_country'] = $countryUser['country_bn'];
+        //$condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]);
 
         $inquiryList = $inquiryModel->getList_($condition);
 

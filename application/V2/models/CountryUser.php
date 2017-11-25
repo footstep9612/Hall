@@ -181,4 +181,27 @@ class CountryUserModel extends PublicModel {
     
         return $this->where($where)->delete();
     }
+    
+    /**
+     * @desc 获取用户所在的国家
+     *
+     * @param array $condition
+     * @return bool
+     * @author liujf
+     * @time 2017-11-23
+     */
+    public function getUserCountry($condition = []) {
+    
+        $where = $this->getWhere($condition);
+        
+        $userCountryList = $this->field('country_bn')->where($where)->select();
+        
+        $country = [];
+        
+        foreach ($userCountryList as $userCountry) {
+            $country[] = $userCountry['country_bn'];
+        }
+    
+        return $country;
+    }
 }
