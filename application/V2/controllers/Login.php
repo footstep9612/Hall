@@ -87,7 +87,7 @@ class LoginController extends Yaf_Controller_Abstract {
             $datajson['name'] = $info['name'];
             $datajson['password_status'] = $info['password_status'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            //var_dump($info);
+            $info['last_used_at'] = time();
             redisSet('user_info_' . $info['id'], json_encode($info), 50400);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();

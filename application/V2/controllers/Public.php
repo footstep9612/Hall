@@ -64,7 +64,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                     if (empty($userinfo)) {
                         echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                         exit;
-                    } else {
+                    }else {
                         $this->user = array(
                             "id" => $userinfo["id"],
                             "name" => $tokeninfo["name"],
@@ -76,7 +76,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                             "role_no" => $userinfo['role_no'],
                         );
                         $this->_setUid($userinfo);
-                        // redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
+                        if($userinfo['last_used_at']){
+                            if(time() - $userinfo['last_used_at']>=3600){
+                                $userinfo['last_used_at'] = time();
+                                redisSet('user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
+                            }
+                        }
                     }
                     //权限控制
 //                        if(redisExist('role_user_'.$userinfo['id'])){
@@ -97,12 +102,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //                        }
                     //}
                     //}
-                } catch (Exception $e) {
+                }catch (Exception $e) {
                     LOG::write($e->getMessage());
                     $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                     exit;
                 }
-            } else {
+            }else {
                 $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
                 exit;
             }
