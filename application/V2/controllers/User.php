@@ -61,14 +61,14 @@ class UserController extends PublicController {
             $where['bn'] = trim($data['bn']);
         }
         if (!empty($data['role_name'])) {
-            $where['role_name'] = ['like', '%' . trim($data['role_name']) . '%'];
+            $where['role_name'] = trim($data['role_name']);
         }
         if (!empty($data['currentPage'])) {
             $where['page'] = intval($data['currentPage']) > 1 ? (intval($data['currentPage']) - 1) * $where['num'] : 0;
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
-
+        echo $user_modle->_sql();
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
