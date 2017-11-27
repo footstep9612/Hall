@@ -36,8 +36,10 @@ class RoleModel extends PublicModel {
      * @author jhw
      */
     public function getlist($data, $limit, $order = 'id desc') {
+
         $field = 'role.id,role.name,role.name_en,role.remarks,role.created_by,'
-                . 'emby.name as created_name ,role_no,admin_show,role_group,role.created_at,role.updated_at,'
+                . 'emby.name as created_name ,(select name from `erui_sys`.`employee` where id=role.updated_by) as updated_name'
+                . ',role_no,admin_show,role_group,role.created_at,role.updated_at,updated_by,'
                 . 'role.status,group_concat(`em`.`name`) as employee_name,group_concat(`em`.`id`) as employee_id';
         if (!empty($limit)) {
             $res = $this->field($field)
