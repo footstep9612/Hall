@@ -397,8 +397,6 @@ class SupplierInquiryModel extends PublicModel {
                 ->where(['i.deleted_flag' => 'N', 'i.status' => ['neq', 'DRAFT']])
                 ->select();
 
-        echo $inquiry_model->_sql();
-        die;
         return $this->_createXls($list);
     }
 
