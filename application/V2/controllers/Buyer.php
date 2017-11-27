@@ -364,8 +364,8 @@ class BuyerController extends PublicController {
         if (!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
         }
-        if (!empty($data['frist_name'])) {
-            $arr['frist_name'] = $data['frist_name'];
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
         }
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
@@ -586,8 +586,8 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
-        if (!empty($data['frist_name'])) {
-            $arr['frist_name'] = $data['frist_name'];
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['country_bn'])) {
             $arr['country_bn'] = $data['country_bn'];
