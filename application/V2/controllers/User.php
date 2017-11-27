@@ -35,9 +35,7 @@ class UserController extends PublicController {
         if (!empty($data['role_id'])) {
             $where['role_id'] = trim($data['role_id']);
         }
-        if (!empty($data['role_name'])) {
-            $where['role_name'] = trim($data['role_name']);
-        }
+
         if (!empty($data['status'])) {
             $where['status'] = trim($data['status']);
         }
@@ -61,6 +59,9 @@ class UserController extends PublicController {
         }
         if (!empty($data['bn'])) {
             $where['bn'] = trim($data['bn']);
+        }
+        if (!empty($data['role_name'])) {
+            $where['role_name'] = ['like', '%' . trim($data['role_name']) . '%'];
         }
         if (!empty($data['currentPage'])) {
             $where['page'] = intval($data['currentPage']) > 1 ? (intval($data['currentPage']) - 1) * $where['num'] : 0;
