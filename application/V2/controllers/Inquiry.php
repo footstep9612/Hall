@@ -615,7 +615,7 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         if ($data['status'] == 'BIZ_DISPATCHING') {
-            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], $inquiry::quoteIssueMainRole);
+            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         }
 
         $results = $inquiry->updateStatus($data);

@@ -672,7 +672,7 @@ class InquiryModel extends PublicModel {
      * @desc 获取指定角色用户ID
      *
      * @param array $groupId 当前用户的全部组ID
-     * @param string $roleNo 角色编号
+     * @param mixed $roleNo 角色编号
      * @param mixed $orgNode 部门节点
      * @return array
      * @author liujf
@@ -685,9 +685,15 @@ class InquiryModel extends PublicModel {
         
         $orgId = $this->getDeptOrgId($groupId, $orgNode);
 	        
-        $role = $roleModel->field('id')->where(['role_no' => $roleNo])->find();
+        $roleList = $roleModel->field('id')->where(['role_no' => $roleNo])->select();
         
-        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => $role['id']])->select();
+        $roleId = [];
+        
+        foreach ($roleList as $role) {
+            $roleId[] = $role['id'];
+        }
+        
+        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => ['in', $roleId ? : ['-1']]])->select();
         
         $employeeId = [];
         
