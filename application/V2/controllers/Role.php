@@ -26,7 +26,7 @@ class RoleController extends PublicController {
         }
         if (!empty($data['role_group'])) {
             if ($data['role_group'] == 'other') {
-                $where[] = ['isnull(role.role_group) or role.role_group=\'\''];
+                $where['role.role_group'] = ['notin', ['sys', 'admin', 'inquiry']];
             } else {
                 $where['role.role_group'] = $data['role_group'];
             }
