@@ -56,7 +56,7 @@ class InquiryModel extends PublicModel
         switch ($type)
         {
             case 'TODAY' :
-                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
+                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') AND updated_by is NOT NULL";
                 $data = count($this->getList($auth,$this->listFields,$where));
                 break;
             case 'TOTAL' :
@@ -195,6 +195,7 @@ class InquiryModel extends PublicModel
     public function getList($condition = [], $field = '*',$where1=[]) {
 
         $where = $this->getWhere($condition);
+        $where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
@@ -211,6 +212,8 @@ class InquiryModel extends PublicModel
 
         $where = $this->getWhere($condition);
 
+        $where[]="updated_by is NOT NULL";
+
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
@@ -224,6 +227,7 @@ class InquiryModel extends PublicModel
     public function getCount_($condition = []) {
 
         $where = $this->getWhere($condition);
+        $where[]="updated_by is NOT NULL";
 
         $count = $this->where($where)->count('id');
 
