@@ -205,6 +205,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_code'])) {
             $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
+        if (isset($create['frist_name'])) {
+            $data['frist_name'] = $create['frist_name'];
+        }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
         } else {
@@ -353,6 +356,9 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['official_fax'])) {
             $data['official_fax'] = $create['official_fax'];
+        }
+        if (isset($create['frist_name'])) {
+            $data['frist_name'] = $create['frist_name'];
         }
         if (isset($create['province'])) {
             $data['province'] = $create['province'];
