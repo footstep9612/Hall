@@ -25,10 +25,6 @@ class BuyerController extends PublicController {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $limit = [];
-        $where = [];
-
-
         if (!empty($data['keyword'])) {
 
             $keyword = trim($data['keyword']);
@@ -52,27 +48,21 @@ class BuyerController extends PublicController {
 
         }
 
-        if (!empty($data['pageSize'])) {
-            $where['num'] = $data['pageSize'];
-        }
-        if (!empty($data['currentPage'])) {
-            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
-        }
 
         $model = new BuyerModel();
 
         $data = $model->getlist($where);
 
-        $this->_setArea($data['data'], 'area');
-        $this->_setCountry($data['data'], 'country');
+        $this->_setArea($data, 'area');
+        $this->_setCountry($data, 'country');
 
         if (!empty($data)) {
 
             $buyerList = [];
-            foreach ($data['data'] as $key=>$value){
+            foreach ($data as $key=>$value){
                 $buyerList[$key] = [
                     'id'         => $value['id'],
-                    'serial_no'  => $value['serial_no'],
+                    'buyer_code'  => $value['buyer_code'],
                     'buyer_no'   => $value['buyer_no'],
                     'name'       => $value['name'],
                     'country_name' => $value['country_name'],
@@ -83,7 +73,7 @@ class BuyerController extends PublicController {
             }
 
             $datajson['code'] = 1;
-            $datajson['count'] = $data['count'];
+            $datajson['count'] = $model->getCount($where);
             $datajson['data'] = $buyerList;
         } else {
             $datajson['code'] = -104;

@@ -13,10 +13,8 @@
  */
 class BuyerModel extends PublicModel {
 
-    //put your code here
-    protected $tableName = 'buyer';
     protected $dbName = 'erui_buyer'; //数据库名称
-    protected $g_table = 'erui_buyer.buyer';
+    protected $tableName = 'buyer'; //数据表表名
 
 //    protected $autoCheckFields = false;
     public function __construct() {
@@ -29,111 +27,45 @@ class BuyerModel extends PublicModel {
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
 
-    /**
-     * 获取列表
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
-        $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
-        $sql .= '`erui_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
-        $sql_count = 'SELECT *  ';
-        $str = ' FROM ' . $this->g_table;
-        $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` ";
-        $str .= " left Join `erui_buyer`.`buyer_account` on `erui_buyer`.`buyer_account`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_buyer`.`buyer_credit_log` on `erui_buyer`.`buyer_credit_log`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` ";
-        $str .= " left Join `erui_buyer`.`buyer_address` on `erui_buyer`.`buyer_address`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $sql .= $str;
-        $sql_count .= $str;
-        $where = " WHERE 1 = 1";
+
         if (!empty($condition['country_bn'])) {
-            //$where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-            $where .= ' And `buyer`.country_bn ="' . $condition['country_bn'] . '"';
+            $where['country_bn'] = $condition['country_bn'];
         }
 
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
+
         if (!empty($condition['buyer_no'])) {
-            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
-        }
-        if (!empty($condition['employee_name'])) {
-            $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
-        }
-        if (!empty($condition['agent_id'])) {
-            $where .= " AND `erui_buyer`.`buyer_agent`.`agent_id`  in (" . $condition['agent_id'] . ")";
-        }
-        if (!empty($condition['official_phone'])) {
-            $where .= ' AND official_phone  = " ' . $condition['official_phone'] . '"';
-        }
-        if (!empty($condition['status'])) {
-            $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
-        }
-        if (!empty($condition['user_name'])) {
-            $where .= ' And `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
-        }
-        if (!empty($condition['last_name'])) {
-            $where .= " And `erui_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
-        }
-        if (!empty($condition['checked_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
-        }
-        if (!empty($condition['checked_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
-        }
-        if (!empty($condition['created_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
-        }
-        if (!empty($condition['created_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
-        }
-        if (!empty($condition['credit_checked_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer_credit_log`.checked_at  >="' . $condition['credit_checked_at_start'] . '"';
-        }
-        if (!empty($condition['credit_checked_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer_credit_log`.checked_at  <="' . $condition['credit_checked_at_end'] . '"';
-        }
-        if (!empty($condition['approved_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer_credit_log`.approved_at  >="' . $condition['approved_at_start'] . '"';
-        }
-        if (!empty($condition['approved_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer_credit_log`.approved_at  <="' . $condition['approved_at_end'] . '"';
-        }
-        if (!empty($condition['credit_checked_name'])) {
-            $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
-        }
-        if (!empty($condition['line_of_credit_max'])) {
-            $where .= ' And `erui_buyer`.`buyer`.line_of_credit  <="' . $condition['line_of_credit_max'] . '"';
-        }
-        if (!empty($condition['line_of_credit_min'])) {
-            $where .= ' And `erui_buyer`.`buyer`.line_of_credit  >="' . $condition['line_of_credit_min'] . '"';
-        }
-        if (!empty($condition['credit_status'])) {
-            $where .= ' And `erui_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
-        }
-        if ($where) {
-            $sql .= $where;
-            // $sql_count .= $where;
-        }
-        $sql .= ' Group By `erui_buyer`.`buyer`.`id`';
-        //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
-        $sql .= ' Order By ' . $order;
-        $res['count'] = count($this->query($sql));
-        if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+            $where['buyer_no'] = $condition['buyer_no'];
         }
 
-        //$count = $this->query($sql_count);
+        $page = !empty($where['currentPage'])?$where['currentPage']:1;
+        $pagesize = !empty($where['pageSize'])?$where['pageSize']:10;
+        $field = 'id,buyer_no,buyer_code,name,bn,country_bn,area_bn,created_by';
 
-        $res['data'] = $this->query($sql);
-        //p($this->getLastSql());
-        return $res;
+        return $this->where($where)->page($page, $pagesize)->order($order)->field($field)->select();
+
+    }
+
+    public function getCount($condition = []){
+
+        if (!empty($condition['country_bn'])) {
+            $where['country_bn'] = $condition['country_bn'];
+        }
+
+        if (!empty($condition['name'])) {
+            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+        }
+
+        if (!empty($condition['buyer_no'])) {
+            $where['buyer_no'] = $condition['buyer_no'];
+        }
+
+        return $this->where($where)->field('id')->count();
+
     }
 
     /**
