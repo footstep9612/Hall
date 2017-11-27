@@ -48,6 +48,8 @@ class BuyerController extends PublicController {
 
         }
 
+        $where['currentPage'] = !empty($data['currentPage']) ? $data['currentPage']:1;
+        $where['pageSize'] = !empty($data['pageSize']) ? $data['pageSize']:10;
 
         $model = new BuyerModel();
 

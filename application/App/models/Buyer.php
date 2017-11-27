@@ -42,11 +42,12 @@ class BuyerModel extends PublicModel {
             $where['buyer_no'] = $condition['buyer_no'];
         }
 
-        $page = !empty($where['currentPage'])?$where['currentPage']:1;
-        $pagesize = !empty($where['pageSize'])?$where['pageSize']:10;
+        $page = $condition['currentPage'];
+        $pagesize = $condition['pageSize'];
+
         $field = 'id,buyer_no,buyer_code,name,bn,country_bn,area_bn,created_by';
 
-        return $this->where($where)->page($page, $pagesize)->order($order)->field($field)->select();
+        return $this->where($where)->order($order)->page($page, $pagesize)->field($field)->select();
 
     }
 
