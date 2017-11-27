@@ -56,6 +56,7 @@ class NotificationController extends PublicController
         $inquiryRemind->add($inquiryRemind->create([
             'inquiry_id' => $request['id'],
             'created_by' => $this->user['id'],
+            'op_note' => $request['op_note'],
             'created_at' => date('Y-m-d H:i:s')
         ]));
 
@@ -67,23 +68,37 @@ class NotificationController extends PublicController
     {
 
         $inquiryRemind = new InquiryRemindModel();
+        $inquiry = new InquiryModel();
 
         $where = ['inquiry_id'=>$inquiry_id];
         $data = $inquiryRemind->where($where)->field('inquiry_id,created_by,created_at')->select();
 
         foreach ($data as &$datum){
+            $datum['role_name'] = $this->_setRoleName($inquiry->getUserRoleById($datum['created_by']));
             $datum['created_by'] = $this->_setUserName($datum['created_by']);
-            $datum['role_name'] = $this->_setRoleName($datum['created_by']);
         }
 
         return $data;
 
     }
 
-    private function _setRoleName($id)
+    private function _setRoleName($rolaArr)
     {
-
-
+        if (!empty($rolaArr)){
+            if ($rolaArr['is_agent'] == 'Y'){
+                return "市场经办人";
+            }elseif ($rolaArr['is_check'] == 'Y'){
+                return "报价审核人";
+            }elseif ($rolaArr['is_country_agent'] == 'Y'){
+                return "区域负责人";
+            }elseif ($rolaArr['is_erui'] == 'Y'){
+                return "易瑞分单员";
+            }elseif ($rolaArr['is_issue'] == 'Y'){
+                return "事业部分单员";
+            }elseif ($rolaArr['is_quote'] == 'Y'){
+                return "报价人";
+            }
+        }
     }
 
     private function _setUserName($id)
