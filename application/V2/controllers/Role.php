@@ -25,7 +25,11 @@ class RoleController extends PublicController {
             $where['role.name'] = array('like', '%' . $data['name'] . '%');
         }
         if (!empty($data['role_group'])) {
-            //   $where['role.role_group'] = $data['role_group'];
+            if ($data['role_group'] == 'other') {
+                $where[] = ['isnull(role.role_group) or role.role_group=\'\''];
+            } else {
+                $where['role.role_group'] = $data['role_group'];
+            }
         }
         if (!empty($data['role_no'])) {
             $where['role.role_no'] = $data['role_no'];
