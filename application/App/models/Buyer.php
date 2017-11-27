@@ -37,9 +37,9 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_code`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`buyer`.`credit_cur_bn`,`buyer_level`,`credit_level`,';
-        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
+        $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
+        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
+        $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
         $sql .= '`erui_buyer`.`buyer_address`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
         $sql_count = 'SELECT *  ';
         $str = ' FROM ' . $this->g_table;
@@ -63,9 +63,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['buyer_no'])) {
             $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
         }
-        if (!empty($condition['serial_no'])) {
-            $where .= ' And serial_no  ="' . $condition['serial_no'] . '"';
-        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -83,9 +80,6 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['last_name'])) {
             $where .= " And `erui_buyer`.`buyer_account`.last_name like '%" . $condition['last_name'] . "%'";
-        }
-        if (!empty($condition['first_name'])) {
-            $where .= " And `erui_buyer`.`buyer_account`.first_name like '%" . $condition['first_name'] . "%'";
         }
         if (!empty($condition['checked_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
