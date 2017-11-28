@@ -105,6 +105,7 @@ class QuoteController extends PublicController{
      *退回分单员(事业部分单员)
      */
     public function rejectToBizAction(){
+
         $inquiryModel = new InquiryModel();
 
         $request   = $this->validateRequests('inquiry_id');
@@ -113,6 +114,11 @@ class QuoteController extends PublicController{
         $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
         $condition['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
+
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($condition['now_agent_id']),"REJECT",$employee->getUserNameById($condition['now_agent_id']),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_QUOTING","BIZ_DISPATCHING");
+
         $this->jsonReturn($response);
 
     }
