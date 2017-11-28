@@ -116,4 +116,28 @@ class EmployeeModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取用户姓名
+     * @param $id
+     * @return mixed
+     * @author 买买提
+     */
+    public function getUserNameById($id) {
+
+        return $this->where(['id'=>$id])->getField('name');
+
+    }
+
+    /**
+     * 获取用户手机号
+     * @param $id
+     * @return mixed
+     * @author 买买提
+     */
+    public function getMobileByUserId($id) {
+
+        return $this->where(['id'=>$id])->getField('mobile');
+
+    }
+
 }
