@@ -31,6 +31,11 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id'=>$request['inquiry_id']])->getField('agent_id');
+
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($now_agent_id),"REJECT",$employee->getUserNameById($now_agent_id),$inquiry->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_DISPATCHING","REJECT_MARKET");
+
         $response = $inquiry->updateData([
             'id'=>$request['inquiry_id'],
             'status'       => 'REJECT_MARKET',//改为驳回市场，我了让查看询单的饿呢看到
@@ -60,6 +65,10 @@ class BizdivitionController extends PublicController{
         $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
         $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
 
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($roleUser),"REJECT",$employee->getUserNameById($roleUser),$inquiry->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_DISPATCHING","CC_DISPATCHING");
+
         $response = $inquiry->updateData([
             'id'=>$request['inquiry_id'],
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
@@ -83,12 +92,19 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
 
+        $user_id = $request['quote_id'];
+
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($user_id),"SUBMIT",$employee->getUserNameById($user_id),$request['serial_no'],$this->user['name'],"BIZ_DISPATCHING","BIZ_QUOTING");
+
+
         $response = $inquiry->updateData([
             'id'=>$request['inquiry_id'],
             'status'       => 'BIZ_QUOTING', //事业部报价
             'quote_status' => 'ONGOING', //报价中
-            'quote_id'     => $request['quote_id'],
-            'now_agent_id' => $request['quote_id'],
+            'quote_id'     => $user_id,
+            'now_agent_id' => $user_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
