@@ -1,9 +1,9 @@
 <?php
-//客户档案信息管理-wangs
-class BuyerFileController extends PublicController
-{
-    public function __init()
-    {
+
+
+class BuyerFileController extends Pextends PublicController {
+
+    public function __init() {
         parent::__init();
     }
     /*
@@ -12,7 +12,7 @@ class BuyerFileController extends PublicController
     public function buyerListAction()
     {
         $created_by = '39305';
-//        $created_by = $this -> user['id'];
+echo __LINE__;exit();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerBusinessModel();
