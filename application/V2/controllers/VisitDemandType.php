@@ -30,16 +30,12 @@ class VisitDemandTypeController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->getlist($data, false);
-        if ($arr) {
-
+        $arr = $visit_demand_model->getList($data);
+        if ($arr !== false) {
+            jsonReturn($arr);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
         }
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-        }else {
-            $this->setCode(MSG::MSG_FAILED);
-        }
-        $this->jsonReturn($arr);
     }
 
     /**
@@ -50,7 +46,18 @@ class VisitDemandTypeController extends PublicController {
      * @desc   需求类型
      */
     public function infoAction() {
+        $data = $this->getPut();
+        if(!isset($data['id']) || empty($data['id'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
+        }
 
+        $visit_demand_model = new VisitDemadTypeModel();
+        $arr = $visit_demand_model->getInfoById($data['id']);
+        if ($arr !== false) {
+            jsonReturn($arr);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
     }
 
     /**
