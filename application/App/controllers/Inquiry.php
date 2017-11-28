@@ -210,12 +210,13 @@ class InquiryController extends PublicController
 
         $request = $this->validateRequestParams('id');
 
-        $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,from_country,from_port,to_country,to_port';
+        $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,now_agent_id,from_country,from_port,to_country,to_port';
         $inquiryDetail = $this->inquiryModel->getDetail($request,$inquiryFields);
 
         $employeeModel = new EmployeeModel();
         $inquiryDetail['quote_agent'] = $employeeModel->where(['id'=>$inquiryDetail['quote_id']])->getField('name');
         $inquiryDetail['logi_agent'] = $employeeModel->where(['id'=>$inquiryDetail['logi_agent_id']])->getField('name');
+        $inquiryDetail['now_agent'] = $employeeModel->where(['id'=>$inquiryDetail['now_agent_id']])->getField('name');
 
         $condition = ['inquiry_id'=>$request['id']];
 
