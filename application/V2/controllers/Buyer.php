@@ -364,8 +364,23 @@ class BuyerController extends PublicController {
         if (!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
         }
-        if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
+        if (!empty($data['type_remarks'])) {
+            $arr['type_remarks'] = $data['type_remarks'];
+        }
+        if (!empty($data['employee_count'])) {
+            $arr['employee_count'] = $data['employee_count'];
+        }
+        if (!empty($data['reg_capital'])) {
+            $arr['reg_capital'] = $data['reg_capital'];
+        }
+        if (!empty($data['reg_capital_cur'])) {
+            $arr['reg_capital_cur'] = $data['reg_capital_cur'];
+        }
+        if (!empty($data['expiry_at'])) {
+            $arr['expiry_at'] = $data['expiry_at'];
+        }
+        if (!empty($data['show_name'])) {
+            $buyer_account_data['show_name'] = $data['show_name'];
         }
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
@@ -586,11 +601,11 @@ class BuyerController extends PublicController {
         if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
-        if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];   //新增CRM编码，张玉良 2017-9-27
+        if (!empty($data['show_name'])) {
+            $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['country_bn'])) {
-            $arr['country_bn'] = $data['country_bn'];
+            $account['country_bn'] = $data['country_bn'];
         }
         if (!empty($data['biz_scope'])) {
             $arr['biz_scope'] = $data['biz_scope'];
@@ -615,6 +630,22 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
+            $arr['level_at'] =date("Y-m-d H:i:s");
+        }
+        if (!empty($data['type_remarks'])) {
+            $arr['type_remarks'] = $data['type_remarks'];
+        }
+        if (!empty($data['employee_count'])) {
+            $arr['employee_count'] = $data['employee_count'];
+        }
+        if (!empty($data['reg_capital'])) {
+            $arr['reg_capital'] = $data['reg_capital'];
+        }
+        if (!empty($data['reg_capital_cur'])) {
+            $arr['reg_capital_cur'] = $data['reg_capital_cur'];
+        }
+        if (!empty($data['expiry_at'])) {
+            $arr['expiry_at'] = $data['expiry_at'];
         }
         if (!empty($data['remarks'])) {
             $arr['remarks'] = $data['remarks'];

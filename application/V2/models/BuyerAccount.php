@@ -144,11 +144,8 @@ class BuyerAccountModel extends PublicModel {
         if (isset($data['role'])) {
             $arr['role'] = $data['role'];
         }
-        if (isset($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
-        }
-        if (isset($data['last_name'])) {
-            $arr['last_name'] = $data['last_name'];
+        if (isset($data['show_name'])) {
+            $arr['show_name'] = $data['show_name'];
         }
         if (isset($data['phone'])) {
             $arr['phone'] = $data['phone'];
@@ -198,11 +195,8 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['role'])) {
             $arr['role'] = $create['role'];
         }
-        if (isset($create['first_name'])) {
-            $arr['first_name'] = $create['first_name'];
-        }
-        if (isset($create['last_name'])) {
-            $arr['last_name'] = $create['last_name'];
+        if (isset($create['show_name'])) {
+            $arr['show_name'] = $create['show_name'];
         }
         if (isset($create['phone'])) {
             $arr['phone'] = $create['phone'];
