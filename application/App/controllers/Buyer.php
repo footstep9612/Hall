@@ -78,7 +78,7 @@ class BuyerController extends PublicController {
             $datajson['count'] = $model->getCount($where);
             $datajson['data'] = $buyerList;
         } else {
-            $datajson['code'] = 0;
+            $datajson['code'] = -1;
             $datajson['data'] = null;
             $datajson['message'] = '没有数据!';
         }
