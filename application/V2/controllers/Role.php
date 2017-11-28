@@ -296,7 +296,7 @@ class RoleController extends PublicController {
                 $this->jsonReturn($datajson);
             }
         }
-        $data['created_by'] = $this->user['id'];
+
         $model_rolo->update_data($data, $where);
         $model_role_access_perm = new RoleAccessPermModel();
         $role_arr['url_perm_ids'] = $data['url_perm_ids'];
