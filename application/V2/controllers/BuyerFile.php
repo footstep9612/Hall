@@ -11,6 +11,7 @@ class BuyerFileController extends PublicController
      * */
     public function buyerListAction()
     {
+        echo 123;die;
         $created_by = '39305';
 //        $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
