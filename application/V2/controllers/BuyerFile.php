@@ -1,5 +1,10 @@
 <?php
-class BuyerFileController  extends PublicController {
+
+/**
+ * name: Industrychain.php
+ * desc: 产业链控制器
+ */
+class BuyerFileController extends PublicController {
 
     public function __init() {
         parent::__init();
