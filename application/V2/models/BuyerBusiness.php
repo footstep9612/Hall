@@ -13,7 +13,7 @@ class BuyerBusinessModel extends PublicModel
         parent::__construct();
     }
 
-    //list
+    //list1111111111111111111
     public function buyerList($data)
     {
 //        print_r($data);die;
