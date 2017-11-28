@@ -1,7 +1,7 @@
 <?php
 
 
-class BuyerFileController extends Pextends PublicController {
+class BuyerFileController extends PublicController {
 
     public function __init() {
         parent::__init();
