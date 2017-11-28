@@ -16,7 +16,7 @@ class IndustrychainController extends PublicController {
         $model = new IndustrychainModel();
         $res = $model->createChain($data);
         if($res==false){
-            echo json_encode(array("code" => "-101", "message" => "输入不可以为空"));
+            echo json_encode(array("code" => "-101", "message" => "输入不可以为空或字符过多"));
             exit();
         }
         echo json_encode(array("code" => "1", "message" => "提交成功"));
