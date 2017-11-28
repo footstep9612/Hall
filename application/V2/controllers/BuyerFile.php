@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 //客户档案信息管理-wangs
 class BuyerFileController extends PublicController
 {
