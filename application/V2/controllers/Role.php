@@ -43,12 +43,13 @@ class RoleController extends PublicController {
         //判断用户可分配权限
         if ($data['is_show'] == 1) {
             if ($this->user['id'] != 1) {
-                $where['role.admin_show'] = ['exp', ' NOT IN (1) '];
+                $where['role.admin_show'] = 'N';
             }
         }
         $where['role.deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
+
         if ($limit) {
             $count = $model_rolo->getcount($where);
             $datajson['count'] = $count;
