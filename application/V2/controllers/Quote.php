@@ -160,6 +160,10 @@ class QuoteController extends PublicController{
             'updated_at'   => date('Y-m-d H:i:s',time())
         ]);
 
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($now_agent_id),"REJECT",$employee->getUserNameById($now_agent_id),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_APPROVING","LOGI_QUOTING");
+
         $this->jsonReturn($result);
     }
 
