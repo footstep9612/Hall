@@ -26,7 +26,10 @@ class RoleController extends PublicController {
         }
         if (!empty($data['role_group'])) {
             if ($data['role_group'] == 'other') {
-                $where['role.role_group'] = ['notin', ['sys', 'admin', 'inquiry']];
+                $map['role.role_group'] = ['notin', ['sys', 'admin', 'inquiry']];
+                $map[] = 'ISNULL(role.role_group)';
+                $map['_logic'] = 'or';
+                $where['_complex'] = $map;
             } else {
                 $where['role.role_group'] = $data['role_group'];
             }
@@ -49,7 +52,7 @@ class RoleController extends PublicController {
         $where['role.deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
-
+        echo $model_rolo->_sql();
         if ($limit) {
             $count = $model_rolo->getcount($where);
             $datajson['count'] = $count;
