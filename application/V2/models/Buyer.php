@@ -26,6 +26,8 @@ class BuyerModel extends PublicModel {
     //状态
 
     const STATUS_APPROVING = 'APPROVING'; //待报审；
+    const STATUS_FIRST_APPROVED = 'FIRST_APPROVED'; //待报审；
+    const STATUS_FIRST_REJECTED = 'FIRST_REJECTED'; //初审驳回
     const STATUS_APPROVED = 'APPROVED'; //审核；
     const STATUS_REJECTED = 'REJECTED'; //无效；
 
@@ -205,9 +207,6 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_code'])) {
             $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
         }
-        if (isset($create['first_name'])) {
-            $data['first_name'] = $create['first_name'];
-        }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
         } else {
@@ -221,6 +220,21 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['profile'])) {
             $data['profile'] = $create['profile'];
+        }
+        if (isset($create['type_remarks'])) {
+            $data['type_remarks'] = $create['type_remarks'];
+        }
+        if (isset($create['employee_count'])) {
+            $data['employee_count'] = $create['employee_count'];
+        }
+        if (isset($create['reg_capital'])) {
+            $data['reg_capital'] = $create['reg_capital'];
+        }
+        if (isset($create['reg_capital_cur'])) {
+            $data['reg_capital_cur'] = $create['reg_capital_cur'];
+        }
+        if (isset($create['expiry_at'])) {
+            $data['expiry_at'] = $create['expiry_at'];
         }
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
@@ -351,14 +365,14 @@ class BuyerModel extends PublicModel {
         if (isset($create['official_email'])) {
             $data['official_email'] = $create['official_email'];
         }
+        if (isset($create['level_at'])) {
+            $data['level_at'] = $create['level_at'];
+        }
         if (isset($create['official_phone'])) {
             $data['official_phone'] = $create['official_phone'];
         }
         if (isset($create['official_fax'])) {
             $data['official_fax'] = $create['official_fax'];
-        }
-        if (isset($create['first_name'])) {
-            $data['first_name'] = $create['first_name'];
         }
         if (isset($create['province'])) {
             $data['province'] = $create['province'];
@@ -368,6 +382,22 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['logo'])) {
             $data['logo'] = $create['logo'];
+        }
+
+        if (isset($create['type_remarks'])) {
+            $data['type_remarks'] = $create['type_remarks'];
+        }
+        if (isset($create['employee_count'])) {
+            $data['employee_count'] = $create['employee_count'];
+        }
+        if (isset($create['reg_capital'])) {
+            $data['reg_capital'] = $create['reg_capital'];
+        }
+        if (isset($create['reg_capital_cur'])) {
+            $data['reg_capital_cur'] = $create['reg_capital_cur'];
+        }
+        if (isset($create['expiry_at'])) {
+            $data['expiry_at'] = $create['expiry_at'];
         }
         if (isset($create['city'])) {
             $data['city'] = $create['city'];
@@ -422,6 +452,28 @@ class BuyerModel extends PublicModel {
                     break;
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
+                    break;
+                case self::STATUS_FIRST_APPROVED:
+                    $data['status'] = $create['status'];
+                    if($where['id']){
+                        $checked_log_arr['id'] = $where['id'];
+                        $checked_log_arr['status'] = self::STATUS_FIRST_APPROVED;
+                        $checked_log_arr['checked_by'] = $create['checked_by'];
+                        $checked_log_arr['remarks'] = $create['remarks'];
+                        $checked_log = new BuyerCheckedLogModel();
+                        $checked_log->create_data($checked_log_arr);
+                    }
+                    break;
+                case self::STATUS_FIRST_REJECTED:
+                    $data['status'] = $create['status'];
+                    if($where['id']){
+                        $checked_log_arr['id'] = $where['id'];
+                        $checked_log_arr['status'] = self::STATUS_FIRST_REJECTED;
+                        $checked_log_arr['checked_by'] = $create['checked_by'];
+                        $checked_log_arr['remarks'] = $create['remarks'];
+                        $checked_log = new BuyerCheckedLogModel();
+                        $checked_log->create_data($checked_log_arr);
+                    }
                     break;
                 case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];

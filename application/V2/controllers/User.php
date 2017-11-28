@@ -359,7 +359,6 @@ class UserController extends PublicController {
                 $model_role_user = new RoleUserModel();
                 $role_user_arr['user_id'] = $res;
                 $role_user_arr['role_ids'] = $data['role_ids'];
-                
                 $model_role_user->update_role_datas($role_user_arr);
             }
             if ($data['group_ids']) {
