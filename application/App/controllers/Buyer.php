@@ -78,9 +78,9 @@ class BuyerController extends PublicController {
             $datajson['count'] = $model->getCount($where);
             $datajson['data'] = $buyerList;
         } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据为空!';
+            $datajson['code'] = -1;
+            $datajson['data'] = null;
+            $datajson['message'] = '没有数据!';
         }
         $this->jsonReturn($datajson);
     }
