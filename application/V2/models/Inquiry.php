@@ -738,7 +738,7 @@ class InquiryModel extends PublicModel {
             if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                 $isErui = 'Y';
             }
-            if ($roleNo == self::inquiryIssueRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole || $roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
+            if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole || $roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
                 $isIssue = 'Y';
             }
             if ($roleNo == self::quoterRole || $roleNo == self::logiQuoterRole) {
