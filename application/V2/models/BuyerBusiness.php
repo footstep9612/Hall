@@ -18,27 +18,27 @@ class BuyerBusinessModel extends PublicModel
     {
 //        print_r($data);die;
         $map = array('buyer.created_by'=>$data['created_by']);
-        if(!empty($data['area_bn'])){
-            $map += array('buyer.area_bn'=>$data['area_bn']);
-        }
-        if(!empty($data['country_bn'])){
-            $map += array('buyer.country_bn'=>$data['country_bn']);
-        }
-        if(!empty($data['buyer_code'])){
-            $map += array('buyer.buyer_code'=>$data['buyer_code']);
-        }
-        if(!empty($data['name'])){
-            $map += array('buyer.name'=>$data['name']);
-        }
-        if(!empty($data['buyer_level'])){
-            $map += array('buyer.buyer_level'=>$data['buyer_level']);
-        }
-        if(!empty($data['reg_capital'])){
-            $map += array('buyer.reg_capital'=>$data['reg_capital']);
-        }
-        if(!empty($data['line_of_credit'])){
-            $map += array('buyer.line_of_credit'=>$data['line_of_credit']);
-        }
+//        if(!empty($data['area_bn'])){
+//            $map += array('buyer.area_bn'=>$data['area_bn']);
+//        }
+//        if(!empty($data['country_bn'])){
+//            $map += array('buyer.country_bn'=>$data['country_bn']);
+//        }
+//        if(!empty($data['buyer_code'])){
+//            $map += array('buyer.buyer_code'=>$data['buyer_code']);
+//        }
+//        if(!empty($data['name'])){
+//            $map += array('buyer.name'=>$data['name']);
+//        }
+//        if(!empty($data['buyer_level'])){
+//            $map += array('buyer.buyer_level'=>$data['buyer_level']);
+//        }
+//        if(!empty($data['reg_capital'])){
+//            $map += array('buyer.reg_capital'=>$data['reg_capital']);
+//        }
+//        if(!empty($data['line_of_credit'])){
+//            $map += array('buyer.line_of_credit'=>$data['line_of_credit']);
+//        }
         if(empty($data['page'])){
             $page = ($this -> page-1)*($this ->pageSize);
         }else{
