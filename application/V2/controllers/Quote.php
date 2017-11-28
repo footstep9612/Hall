@@ -129,7 +129,16 @@ class QuoteController extends PublicController{
     public function sendLogisticsAction(){
 
         $request  = $this->validateRequests('inquiry_id');
+
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
+
+        //发送短信通知
+        $inquiryModel = new InquiryModel();
+        $info = $inquiryModel->where(['id'=>$request['inquiry_id']])->field('now_agent_id,serial_no')->find();
+
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($info['now_agent_id']),"SUBMIT",$employee->getUserNameById($info['now_agent_id']),$info['serial_no'],$this->user['name'],"BIZ_QUOTING","LOGI_DISPATCHING");
+
         $this->jsonReturn($response);
 
     }
