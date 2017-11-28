@@ -13,7 +13,7 @@ class IndustrychainModel extends PublicModel
         parent::__construct();
     }
     //chain数据编辑
-    public function editChainInfo($created_by=''){
+    public function chainList($created_by=''){
         $buyer_id = $this -> buyer_id;
         $chainExist = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
         if($chainExist){
@@ -45,8 +45,8 @@ class IndustrychainModel extends PublicModel
         }
         return true;
     }
-    //上下游添加数据
-    public function getChainData($data)
+    //上下游创建数据
+    public function createChain($data)
     {
         $buyer_id = $this -> buyer_id;
         $created_by = $data['created_by'];

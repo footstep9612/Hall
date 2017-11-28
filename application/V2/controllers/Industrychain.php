@@ -9,12 +9,12 @@ class IndustrychainController extends PublicController {
            parent::__init();
     }
     //上下游获取添加数据
-    public function getChainInfoAction(){
+    public function createChainAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new IndustrychainModel();
-        $res = $model->getChainData($data);
+        $res = $model->createChain($data);
         if($res==false){
             echo json_encode(array("code" => "-101", "message" => "输入不可以为空"));
             exit();
@@ -22,10 +22,10 @@ class IndustrychainController extends PublicController {
         echo json_encode(array("code" => "1", "message" => "提交成功"));
     }
     //上下游数据编辑
-    public function editChainAction(){
+    public function chainListAction(){
         $created_by = $this->user['id'];
         $model = new IndustrychainModel();
-        $res = $model->editChainInfo($created_by);
+        $res = $model->chainList($created_by);
         if($res){
             echo json_encode(array("code" => "1", "data" => $res, "message" => "返回数据"));
         }
