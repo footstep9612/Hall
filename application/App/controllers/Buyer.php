@@ -78,33 +78,9 @@ class BuyerController extends PublicController {
             $datajson['count'] = $model->getCount($where);
             $datajson['data'] = $buyerList;
         } else {
-            $datajson['code'] = -1;
+            $datajson['code'] = 0;
             $datajson['data'] = null;
             $datajson['message'] = '没有数据!';
-        }
-        $this->jsonReturn($datajson);
-    }
-
-    /*
-     * 用户详情
-     * */
-
-    public function infoAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $model = new BuyerModel();
-        $res = $model->info($data);
-        $countryModel = new CountryModel();
-        $marketAreaModel = new MarketAreaModel();
-        $res_arr = [$res];
-        $this->_setArea($res_arr, 'area');
-        $this->_setCountry($res_arr, 'country');
-        if (!empty($res_arr[0])) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $res_arr[0];
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据为空!';
         }
         $this->jsonReturn($datajson);
     }
