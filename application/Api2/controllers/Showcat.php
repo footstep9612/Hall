@@ -25,17 +25,17 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-        $marke_area_bn = $this->getPut('marke_area_bn', '');
-        if (empty($country_bn) {
+        $market_area_bn = $this->getPut('market_area_bn', '');
+        if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('国家简称不能为空'));
+            $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
 
 
-        if (empty($market_area_bn) {
+        if (empty($market_area_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空'));
+            $this->setMessage('营销区域简称不能为空');
             $this->jsonReturn();
         }
         $jsondata['country_bn'] = $country_bn;
@@ -106,16 +106,16 @@ class ShowcatController extends PublicController {
         $country_bn = $this->getPut('country_bn', '');
         $marke_area_bn = $this->getPut('marke_area_bn', '');
 
-        if (empty($country_bn) {
+        if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('国家简称不能为空'));
+            $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
 
 
-        if (empty($market_area_bn) {
+        if (empty($market_area_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空'));
+            $this->setMessage('营销区域简称不能为空');
             $this->jsonReturn();
         }
         $jsondata['country_bn'] = $country_bn;
@@ -193,16 +193,16 @@ class ShowcatController extends PublicController {
 
 
 
-        if (empty($country_bn) {
+        if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('国家简称不能为空'));
+            $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
         $market_area_bn = $this->getPut('market_area_bn', '');
 
-        if (empty($market_area_bn) {
+        if (empty($market_area_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空'));
+            $this->setMessage('营销区域简称不能为空');
             $this->jsonReturn();
         }
         $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
@@ -215,7 +215,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn();
         }
 
-        $this->jsonReturn($data);
+        $this->jsonReturn($arr);
     }
 
 }
