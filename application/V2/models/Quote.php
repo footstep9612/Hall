@@ -214,12 +214,12 @@ class QuoteModel extends PublicModel {
 
 
         $time = date('Y-m-d H:i:s',time());
-
+        $country = $inquiry->getInquiryCountry($request['inquiry_id']);
         $inquiryResult = $inquiry->updateData([
             'id'           => $request['inquiry_id'],
             'status'       => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id'  => $orgId[0],
-            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg'),
+            'now_agent_id' => $inquiry->getCountryIssueUserId($country, [$orgId[0]], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
             'inflow_time'   => $time,
             'updated_by'   => $user['id'],
             'updated_at'   => $time

@@ -109,8 +109,9 @@ class QuoteController extends PublicController{
 
         $request   = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
+        $country = $inquiryModel->getInquiryCountry($request['inquiry_id']);
         $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
-        $condition['now_agent_id'] = $inquiryModel->getRoleUserId($org_id, $inquiryModel::quoteIssueMainRole, 'ub');
+        $condition['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
         $this->jsonReturn($response);
 
@@ -264,7 +265,7 @@ class QuoteController extends PublicController{
 
         //更新当前办理人
         $inquiry = new InquiryModel();
-        $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
+        $now_agent_id = $inquiry->where(['id' => $request['inquiry_id']])->getField('quote_id');
 
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],
