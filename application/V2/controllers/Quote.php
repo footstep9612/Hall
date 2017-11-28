@@ -271,6 +271,11 @@ class QuoteController extends PublicController{
 
         }
 
+        //发送短信通知
+        $employee = new EmployeeModel();
+        $this->sendSms($employee->getMobileByUserId($check_org_id),"SUBMIT",$employee->getUserNameById($check_org_id),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_APPROVING","MARKET_APPROVING");
+
+
         $this->jsonReturn();
 
     }
