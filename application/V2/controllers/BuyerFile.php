@@ -1,7 +1,5 @@
 <?php
-
-
-class BuyerFileController extends Pextends PublicController {
+class BuyerFileController  extends PublicController {
 
     public function __init() {
         parent::__init();
@@ -11,9 +9,7 @@ class BuyerFileController extends Pextends PublicController {
      * */
     public function buyerListAction()
     {
-        echo 123;die;
         $created_by = '39305';
-echo __LINE__;exit();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerBusinessModel();
