@@ -35,7 +35,7 @@ class BuyerModel extends PublicModel {
         }
 
         if (!empty($condition['name'])) {
-            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+            $where .= "name like '%" . $condition['name'] . "%'";
         }
 
         if (!empty($condition['buyer_no'])) {
@@ -48,6 +48,7 @@ class BuyerModel extends PublicModel {
         $field = 'id,buyer_no,buyer_code,name,bn,country_bn,area_bn,created_by';
 
         return $this->where($where)->order($order)->page($page, $pagesize)->field($field)->select();
+        p($this->getLastSql());
 
     }
 
@@ -58,7 +59,7 @@ class BuyerModel extends PublicModel {
         }
 
         if (!empty($condition['name'])) {
-            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+            $where .= "name like '%" . $condition['name'] . "%'";
         }
 
         if (!empty($condition['buyer_no'])) {
