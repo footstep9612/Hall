@@ -57,23 +57,23 @@ trait ZipHelper{
     public static function removeDir($directory){
         if(file_exists($directory)){
             if(is_file($directory)){
-                unlink($directory);
+                return unlink($directory);
             }else {
                 if ( $dir_handle = @opendir( $directory ) ) {
                     while ( $filename = readdir( $dir_handle ) ) {
                         if ( $filename != '.' && $filename != '..' ) {    //排除两个特殊的目录
                             $subFile = $directory . "/" . $filename;
                             if ( is_dir( $subFile ) ) {
-                                delDir( $subFile );
+                                self::removeDir( $subFile );
                             }
                             if ( is_file( $subFile ) ) {
                                 unlink( $subFile );
                             }
                         }
                     }
-                    closedir( $dir_handle );
-                    rmdir( $directory );
                 }
+                closedir( $dir_handle );
+                return rmdir( $directory );
             }
         }
     }
