@@ -832,4 +832,16 @@ class InquiryModel extends PublicModel {
             return $results;
         }
     }
+
+    /**
+     * 根据询单id获取流程编码
+     * @param $id
+     * @return mixed
+     * @author 买买提
+     */
+    public function getSerialNoById($id){
+
+        return $this->where(['id'=>$id])->getField('serial_no');
+
+    }
 }
