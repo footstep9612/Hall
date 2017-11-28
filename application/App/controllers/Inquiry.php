@@ -161,9 +161,10 @@ class InquiryController extends PublicController
             $res['data'] = $inquiryList;
             $this->jsonReturn($res);
         } else {
-            $this->setCode('-101');
-            $this->setMessage('暂无数据!');
-            $this->jsonReturn();
+            $this->jsonReturn([
+                'code'    => -1,
+                'message' => '暂无数据!'
+            ]);
         }
     }
 
@@ -194,9 +195,10 @@ class InquiryController extends PublicController
             $res['data'] = $inquiryList;
             $this->jsonReturn($res);
         } else {
-            $this->setCode('-101');
-            $this->setMessage('暂无数据!');
-            $this->jsonReturn();
+            $this->jsonReturn([
+                'code'    => -1,
+                'message' => '暂无数据!'
+            ]);
         }
     }
 
