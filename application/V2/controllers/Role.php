@@ -52,7 +52,7 @@ class RoleController extends PublicController {
         $where['role.deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
-        echo $model_rolo->_sql();
+
         if ($limit) {
             $count = $model_rolo->getcount($where);
             $datajson['count'] = $count;
