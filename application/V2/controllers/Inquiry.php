@@ -212,8 +212,7 @@ class InquiryController extends PublicController {
 
         // 市场经办人
         if (!empty($condition['agent_name'])) {
-            $agent = $userModel->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
+            $condition['agent_id'] = $userModel->where(['name' => $condition['agent_name']])->getField('id');
         }
 
         // 当前用户的所有角色编号
@@ -224,23 +223,17 @@ class InquiryController extends PublicController {
 
         $condition['user_id'] = $this->user['id'];
         
-        //$condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]);
+        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]);
 
         $inquiryList = $inquiryModel->getList_($condition);
 
         foreach ($inquiryList as &$inquiry) {
-            $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $inquiry['country_name'] = $country['name'];
-            $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
-            $inquiry['agent_name'] = $agent['name'];
-            $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-            $inquiry['quote_name'] = $quoter['name'];
-            $buyer = $buyerModel->field('buyer_no')->where(['id' => $inquiry['buyer_id']])->find();
-            $inquiry['buyer_no'] = $buyer['buyer_no'];
-            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['now_agent_name'] = $nowAgent['name'];
-            $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
-            $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+            $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['agent_name'] = $employeeModel->where(['id' => $inquiry['agent_id']])->getField('name');
+            $inquiry['quote_name'] = $employeeModel->where(['id' => $inquiry['quote_id']])->getField('name');
+            $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
+            $inquiry['now_agent_name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
+            $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
         }
 
         if ($inquiryList) {
@@ -273,8 +266,7 @@ class InquiryController extends PublicController {
         $buyerModel = new BuyerModel();
         // 市场经办人
         if (!empty($condition['agent_name'])) {
-            $agent = $userModel->where(['name' => $condition['agent_name']])->find();
-            $condition['agent_id'] = $agent['id'];
+            $condition['agent_id'] = $userModel->where(['name' => $condition['agent_name']])->getField('id');
         }
 
         // 是否显示列表
@@ -287,7 +279,7 @@ class InquiryController extends PublicController {
             }
             if ($roleNo == $inquiryModel::viewBizDeptRole) {
                 $isShow = true;
-                $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id']);
+                $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
                 break;
             }
         }
@@ -298,18 +290,12 @@ class InquiryController extends PublicController {
             $inquiryList = $inquiryModel->getViewList($condition);
 
             foreach ($inquiryList as &$inquiry) {
-                $country = $countryModel->field('name')->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh'])->find();
-                $inquiry['country_name'] = $country['name'];
-                $agent = $employeeModel->field('name')->where(['id' => $inquiry['agent_id']])->find();
-                $inquiry['agent_name'] = $agent['name'];
-                $quoter = $employeeModel->field('name')->where(['id' => $inquiry['quote_id']])->find();
-                $inquiry['quote_name'] = $quoter['name'];
-                $buyer = $buyerModel->field('buyer_no')->where(['id' => $inquiry['buyer_id']])->find();
-                $inquiry['buyer_no'] = $buyer['buyer_no'];
-                $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-                $inquiry['now_agent_name'] = $nowAgent['name'];
-                $quote = $quoteModel->field('logi_quote_flag')->where(['inquiry_id' => $inquiry['id']])->find();
-                $inquiry['logi_quote_flag'] = $quote['logi_quote_flag'];
+                $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                $inquiry['agent_name'] = $employeeModel->where(['id' => $inquiry['agent_id']])->getField('name');
+                $inquiry['quote_name'] = $employeeModel->where(['id' => $inquiry['quote_id']])->getField('name');
+                $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
+                $inquiry['now_agent_name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
+                $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
             }
         }
 
@@ -338,10 +324,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
             $inquiryModel = new InquiryModel();
 
+            $country = $inquiryModel->getInquiryCountry($condition['inquiry_id']);
             $data = [
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
-                'now_agent_id' => $inquiryModel->getRoleUserId([$condition['org_id']], $inquiryModel::quoteIssueMainRole, ['in', ['ub', 'erui']]),
+                'now_agent_id' => $inquiryModel->getCountryIssueUserId($country, [$condition['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]),
                 'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
@@ -397,11 +384,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
 
-            $inquiry = $inquiryModel->field('agent_id')->where(['id' => $condition['inquiry_id']])->find();
+            $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
 
             $data = [
                 'id' => $condition['inquiry_id'],
-                'now_agent_id' => $inquiry['agent_id'],
+                'now_agent_id' => $agentId,
                 'status' => 'INQUIRY_CLOSED',
                 'quote_status' => 'COMPLETED',
                 'updated_by' => $this->user['id']
@@ -435,11 +422,11 @@ class InquiryController extends PublicController {
             $quoteModel->startTrans();
             $finalQuoteModel->startTrans();
 
-            $inquiry = $inquiryModel->field('quote_id')->where(['id' => $condition['inquiry_id']])->find();
+            $quoteId= $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('quote_id');
 
             $data = [
                 'id' => $condition['inquiry_id'],
-                'now_agent_id' => $inquiry['quote_id'],
+                'now_agent_id' => $quoteId,
                 'status' => 'BIZ_QUOTING',
                 'quote_status' => 'ONGOING',
                 'updated_by' => $this->user['id']
@@ -500,63 +487,51 @@ class InquiryController extends PublicController {
 
         //BOSS编码
         if (!empty($results['data']['buyer_id'])) {
-            $rs0 = $buyerModel->field('buyer_no')->where('id=' . $results['data']['buyer_id'])->find();
-            $results['data']['buyer_no'] = $rs0['buyer_no'];
+            $results['data']['buyer_no'] = $buyerModel->where('id=' . $results['data']['buyer_id'])->getField('buyer_no');
         }
         //经办人
         if (!empty($results['data']['agent_id'])) {
-            $rs1 = $employee->field('name')->where('id=' . $results['data']['agent_id'])->find();
-            $results['data']['agent_name'] = $rs1['name'];
+            $results['data']['agent_name'] = $employee->where('id=' . $results['data']['agent_id'])->getField('name');
         }
         //客户中心分单员
         if (!empty($results['data']['erui_id'])) {
-            $rs2 = $employee->field('name')->where('id=' . $results['data']['erui_id'])->find();
-            $results['data']['erui_name'] = $rs2['name'];
+            $results['data']['erui_name'] = $employee->where('id=' . $results['data']['erui_id'])->getField('name');
         }
         //询单创建人
         if (!empty($results['data']['created_by'])) {
-            $rs3 = $employee->field('name')->where('id=' . $results['data']['created_by'])->find();
-            $results['data']['created_name'] = $rs3['name'];
+            $results['data']['created_name'] = $employee->where('id=' . $results['data']['created_by'])->getField('name');
         }
         //事业部报价人
         if (!empty($results['data']['quote_id'])) {
-            $rs4 = $employee->field('name')->where('id=' . $results['data']['quote_id'])->find();
-            $results['data']['quote_name'] = $rs4['name'];
+            $results['data']['quote_name'] = $employee->where('id=' . $results['data']['quote_id'])->getField('name');
         }
         //事业部
         if (!empty($results['data']['org_id'])) {
-            $rs5 = $org->field('name')->where('id=' . $results['data']['org_id'])->find();
-            $results['data']['org_name'] = $rs5['name'];
+            $results['data']['org_name'] = $org->where('id=' . $results['data']['org_id'])->getField('name');
         }
         //事业部审核人
         if (!empty($results['data']['check_org_id'])) {
-            $rs6 = $employee->field('name')->where('id=' . $results['data']['check_org_id'])->find();
-            $results['data']['check_org_name'] = $rs6['name'];
+            $results['data']['check_org_name'] = $employee->where('id=' . $results['data']['check_org_id'])->getField('name');
         }
         //物流报价人
         if (!empty($results['data']['logi_agent_id'])) {
-            $rs7 = $employee->field('name')->where('id=' . $results['data']['logi_agent_id'])->find();
-            $results['data']['logi_agent_name'] = $rs7['name'];
+            $results['data']['logi_agent_name'] = $employee->where('id=' . $results['data']['logi_agent_id'])->getField('name');
         }
         //物流审核人
         if (!empty($results['data']['logi_check_id'])) {
-            $rs8 = $employee->field('name')->where('id=' . $results['data']['logi_check_id'])->find();
-            $results['data']['logi_check_name'] = $rs8['name'];
+            $results['data']['logi_check_name'] = $employee->where('id=' . $results['data']['logi_check_id'])->getField('name');
         }
         //当前办理人
         if (!empty($results['data']['now_agent_id'])) {
-            $rs9 = $employee->field('name')->where('id=' . $results['data']['now_agent_id'])->find();
-            $results['data']['current_name'] = $rs9['name'];
+            $results['data']['current_name'] = $employee->where('id=' . $results['data']['now_agent_id'])->getField('name');
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-            $rs10 = $countryModel->field('name')->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $results['data']['country_name'] = $rs10['name'];
+            $results['data']['country_name'] = $countryModel->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
         }
         //询单所在区域
         if (!empty($results['data']['area_bn'])) {
-            $rs11 = $marketAreaModel->field('name')->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $results['data']['area_name'] = $rs11['name'];
+            $results['data']['area_name'] = $marketAreaModel->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
         }
 
         if (!empty($results['data'])) {
@@ -615,7 +590,8 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         if ($data['status'] == 'BIZ_DISPATCHING') {
-            $data['now_agent_id'] = $inquiry->getRoleUserId([$data['org_id']], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+            $country = $inquiry->getInquiryCountry($data['id']);
+            $data['now_agent_id'] = $inquiry->getCountryIssueUserId($country, [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         }
 
         $results = $inquiry->updateStatus($data);
@@ -895,8 +871,7 @@ class InquiryController extends PublicController {
                 $inquiryCheckLog['action_name'] = $action[$inquiryCheckLog['action']];
                 $inquiryCheckLog['in_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['in_node']];
                 $inquiryCheckLog['out_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['out_node']];
-                $employee = $employeeModel->field('name')->where(['id' => $inquiryCheckLog['created_by']])->find();
-                $inquiryCheckLog['created_name'] = $employee['name'];
+                $inquiryCheckLog['created_name'] = $employeeModel->where(['id' => $inquiryCheckLog['created_by']])->getField('name');
             }
 
             if ($inquiryCheckLogList) {
@@ -948,8 +923,7 @@ class InquiryController extends PublicController {
             $res = $inquiryCheckLogModel->getDetail($condition);
 
             if (!empty($res['created_by'])) {
-                $employee = $employeeModel->field('name')->where(['id' => $res['created_by']])->find();
-                $res['created_name'] = $employee['name'];
+                $res['created_name'] = $employeeModel->where(['id' => $res['created_by']])->getField('name');
             }
 
             if ($res) {

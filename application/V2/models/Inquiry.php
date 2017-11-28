@@ -146,14 +146,14 @@ class InquiryModel extends PublicModel {
                             
                             if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                        if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
                             
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
-                        /*if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                        if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $map[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
-                        }*/
+                        }
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
                         }
@@ -169,9 +169,9 @@ class InquiryModel extends PublicModel {
                             
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
-                        /*if ($roleNo == self::logiIssueAuxiliaryRole) {
+                        if ($roleNo == self::logiIssueAuxiliaryRole) {
                             $map[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
-                        }*/
+                        }
                         if ($roleNo == self::logiQuoterRole) {
                             $map[] = ['logi_agent_id' => $condition['user_id']];
                         }
@@ -657,15 +657,8 @@ class InquiryModel extends PublicModel {
              'id' => ['in', $groupId ? : ['-1']],
              'org_node' => $orgNode
         ];
-        $orgList = $orgModel->field('id')->where($where)->select();
         
-        // 用户所在部门的组ID
-        $orgId = [];
-        foreach ($orgList as $org) {
-            $orgId[] = $org['id'];
-        }
-        
-        return $orgId;
+        return $orgModel->where($where)->getField('id', true);
     }
     
     /**
@@ -685,25 +678,11 @@ class InquiryModel extends PublicModel {
         
         $orgId = $this->getDeptOrgId($groupId, $orgNode);
 	        
-        $roleList = $roleModel->field('id')->where(['role_no' => $roleNo])->select();
+        $roleId = $roleModel->where(['role_no' => $roleNo])->getField('id', true);
         
-        $roleId = [];
+        $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ? : ['-1']]])->getField('employee_id', true);
         
-        foreach ($roleList as $role) {
-            $roleId[] = $role['id'];
-        }
-        
-        $roleUserList = $roleUserModel->field('employee_id')->where(['role_id' => ['in', $roleId ? : ['-1']]])->select();
-        
-        $employeeId = [];
-        
-        foreach ($roleUserList as $roleUser) {
-            $employeeId[] = $roleUser['employee_id'];
-        }
-        
-        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
-    
-        return $orgMember['employee_id'];
+        return $orgMemberModel->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->getField('employee_id', true);
     }
     
     /**
@@ -718,21 +697,9 @@ class InquiryModel extends PublicModel {
         $roleUserModel = new RoleUserModel();
         $roleModel = new RoleModel();
     
-        $roleUserList = $roleUserModel->field('role_id')->where(['employee_id' => $userId ? : '-1'])->select();
+        $roleId = $roleUserModel->where(['employee_id' => $userId ? : '-1'])->getField('role_id', true);
     
-        $roleId = [];
-    
-        foreach ($roleUserList as $roleUser) {
-            $roleId[] = $roleUser['role_id'];
-        }
-    
-        $roleList = $roleModel->field('role_no')->where(['id' => ['in', $roleId ? : ['-1']]])->select();
-    
-        $roleNoArr = [];
-    
-        foreach ($roleList as $role) {
-            $roleNoArr[] = $role['role_no'];
-        }
+        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']]])->getField('role_no', true);
     
         return $this->getUserRoleByNo($roleNoArr);
     }
@@ -793,6 +760,55 @@ class InquiryModel extends PublicModel {
         $data['is_country_agent'] = $isCountryAgent;
     
         return $data;
+    }
+    
+    /**
+     * @desc 获取指定国家的角色用户ID
+     *
+     * @param mixed $country 国家简称
+     * @param array $groupId 当前用户的全部组ID
+     * @param mixed $roleNo 角色编号
+     * @param mixed $orgNode 部门节点
+     * @return array
+     * @author liujf
+     * @time 2017-11-27
+     */
+    public function getCountryRoleUserId($country = '', $groupId = [], $roleNo = '', $orgNode = 'ub') {
+        $countryUserModel = new CountryUserModel();
+        
+        $employeeId = $this->getRoleUserId($groupId, $roleNo, $orgNode);
+        
+        return $countryUserModel->where(['employee_id' => ['in', $employeeId ? : ['-1']], 'country_bn' => $country])->getField('employee_id', true);
+    }
+    
+    /**
+     * @desc 获取指定国家的辅分单员用户ID，如果没有就获取主分单员用户ID
+     *
+     * @param mixed $country 国家简称
+     * @param array $groupId 当前用户的全部组ID
+     * @param mixed $roleNo1 辅分单员角色编号
+     * @param mixed $roleNo2 主分单员角色编号
+     * @param mixed $orgNode 部门节点
+     * @return string
+     * @author liujf
+     * @time 2017-11-28
+     */
+    public function getCountryIssueUserId($country = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+        $userId = $this->getCountryRoleUserId($country, $groupId, $roleNo1, $orgNode) ? : $this->getRoleUserId($groupId, $roleNo2, $orgNode);
+    
+        return $userId[0];
+    }
+    
+    /**
+     * @desc 获取询单所在国家简称
+     *
+     * @param string $id 询单ID
+     * @return string
+     * @author liujf
+     * @time 2017-11-28
+     */
+    public function getInquiryCountry($id = '') {
+        return $this->where(['id' => $id])->getField('country_bn');
     }
 
     /**
