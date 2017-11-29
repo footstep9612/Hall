@@ -1,19 +1,11 @@
 <?php
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * Description of ExportTariffController
- * @author  jianghw
- * @date    2017-11-28
- * @version V2.0
- * @desc   需求类型
+ * @author  Link
+ * @date    2017-11-29
+ * @desc   职位拜访类型
  */
-class VisitDemandTypeController extends PublicController {
+class VisitPositionController extends PublicController {
 
     //put your code here
     public function init() {
@@ -22,15 +14,13 @@ class VisitDemandTypeController extends PublicController {
 
     /**
      * Description of 列表
-     * @author  jianghw
-     * @date    2017-11-28
-     * @version V2.0
-     * @desc   需求类型列表
+     * @author  link
+     * @date    2017-11-29
      */
     public function listAction() {
         $data = $this->getPut();
-        $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->getList($data);
+        $visit_model = new VisitPositionModel();
+        $arr = $visit_model->getList($data);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -40,10 +30,8 @@ class VisitDemandTypeController extends PublicController {
 
     /**
      * Description of 详情
-     * @author  jianghw
-     * @date    2017-11-28
-     * @version V2.0
-     * @desc   需求类型
+     * @author  link
+     * @date    2017-11-29
      */
     public function infoAction() {
         $data = $this->getPut();
@@ -51,8 +39,8 @@ class VisitDemandTypeController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
-        $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->getInfoById($data['id']);
+        $visit_model = new VisitPositionModel();
+        $arr = $visit_model->getInfoById($data['id']);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -62,15 +50,13 @@ class VisitDemandTypeController extends PublicController {
 
     /**
      * Description of 新增
-     * @author  jianghw
-     * @date    2017-11-28
-     * @version V2.0
-     * @desc   需求类型
+     * @author  link
+     * @date    2017-11-29
      */
     public function createAction() {
         $data = $this->getPut();
-        $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->edit($data);
+        $visit_model = new VisitPositionModel();
+        $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -79,11 +65,9 @@ class VisitDemandTypeController extends PublicController {
     }
 
     /**
-     * Description of 编辑
-     * @author  jianghw
-     * @date    2017-11-28
-     * @version V2.0
-     * @desc   需求类型
+     * Description of 修改
+     * @author  link
+     * @date    2017-11-29
      */
     public function updateAction() {
         $data = $this->getPut();
@@ -91,8 +75,8 @@ class VisitDemandTypeController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
-        $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->edit($data);
+        $visit_model = new VisitPositionModel();
+        $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -101,11 +85,10 @@ class VisitDemandTypeController extends PublicController {
     }
 
     /**
-     * Description of 删除增值税、关税信息
-     * @author  jianghw
-     * @date    2017-11-28
-     * @version V2.0
-     * @desc   需求类型
+     * Description of 删除级别
+     * @author  link
+     * @date    2017-11-29
+     * @desc    删
      */
     public function deleteAction() {
         $data = $this->getPut();
@@ -113,8 +96,8 @@ class VisitDemandTypeController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
-        $visit_demand_model = new VisitDemadTypeModel();
-        $arr = $visit_demand_model->deleteById($data['id']);
+        $visit_model = new VisitPositionModel();
+        $arr = $visit_model->deleteById($data['id']);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
