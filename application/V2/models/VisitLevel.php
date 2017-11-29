@@ -5,11 +5,11 @@
  * @author link
  * @desc 需求种类
  */
-class VisitDemadTypeModel extends PublicModel {
+class VisitLevelModel extends PublicModel {
 
     //put your code here
     protected $dbName = 'erui_config';
-    protected $tableName = 'visit_demand_type';
+    protected $tableName = 'visit_level';
 
     const DELETED_Y = 'Y';
     const DELETED_N = 'N';
@@ -36,7 +36,7 @@ class VisitDemadTypeModel extends PublicModel {
             $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
             return $result ? $result : [];
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitLevel】getList:' . $e , Log::ERR);
             return false;
         }
     }
@@ -54,7 +54,7 @@ class VisitDemadTypeModel extends PublicModel {
             $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->find();
             return $result ? $result : [];
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitLevel】getInfoById:' . $e , Log::ERR);
             return false;
         }
     }
@@ -66,7 +66,7 @@ class VisitDemadTypeModel extends PublicModel {
      */
     public function edit($_input = []){
         if(!isset($_input['name']) || empty($_input['name'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入需求反馈种类');
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入级别');
         }
 
         $userInfo = getLoinInfo();
@@ -89,7 +89,7 @@ class VisitDemadTypeModel extends PublicModel {
             }
             return $result ? $result : false;
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】edit:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitLevel】edit:' . $e , Log::ERR);
             return false;
         }
     }
@@ -114,7 +114,7 @@ class VisitDemadTypeModel extends PublicModel {
             $result = $this->where($condition)->save($data);
             return $result ? true : false;
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitLevel】deleteById:' . $e , Log::ERR);
             return false;
         }
     }
