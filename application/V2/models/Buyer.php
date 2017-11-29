@@ -483,8 +483,6 @@ class BuyerModel extends PublicModel {
 
 //        $buyerAccountModel = new BuyerAccountModel();
 //        $tableAcco = $buyerAccountModel->getTableName();
-        $buyeraddress_model = new BuyerAddressModel();
-        $tableAddr = $buyeraddress_model->getTableName();
         $BuyerreginfoModel = new BuyerreginfoModel();
         $tableReg = $BuyerreginfoModel->getTableName();
         $buyerBankInfoModel = new BuyerBankInfoModel();
@@ -501,7 +499,6 @@ class BuyerModel extends PublicModel {
             $buyerInfo = $this->alias('b')
                     ->field($fields)
                     ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
-                    ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
                     ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
                     ->where($where)
                     ->find();
