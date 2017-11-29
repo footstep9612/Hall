@@ -176,9 +176,9 @@ class InquiryController extends PublicController
 
         $employeeModel = new EmployeeModel();
 
-        $condition = array_merge($condition,$this-listAuth);
+        $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
 
