@@ -149,6 +149,7 @@ class BuyerModel extends PublicModel {
     }
 
     public function create_data($create = []) {
+
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
@@ -252,7 +253,7 @@ class BuyerModel extends PublicModel {
         }
         $data['status'] = 'APPROVING';
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['checked_at'] = date('Y-m-d H:i:s');
+        //$data['checked_at'] = date('Y-m-d H:i:s');
         try {
             $datajson = $this->create($data);
             $res = $this->add($datajson);
