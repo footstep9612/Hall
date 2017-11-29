@@ -46,7 +46,7 @@ class BuyerBusinessModel extends PublicModel
     //客户档案管理搜索列表index,wangs
     public function createBusiness($data)
     {
-        $buyer_id = 123;
+        $buyer_id = $data['buyer_id'];
         $created_by = $data['created_by'];
         //验证
         $validRes = $this -> validData($data);
@@ -55,7 +55,7 @@ class BuyerBusinessModel extends PublicModel
         }
         //组装数据
         $arr = array(
-            'buyer_id' => 123,
+            'buyer_id' => $buyer_id,
             'created_by' => $created_by,
             'created_at' => date('Y-m-d H:i:s'),
             'product_type' => $data['product_type'],
@@ -92,15 +92,25 @@ class BuyerBusinessModel extends PublicModel
         //数据存在，删除
         $showRes = $this -> showBusiness($buyer_id,$created_by);
         if(!empty($showRes)){
-            $map = array(
-                'buyer_id'=>$buyer_id,
-                'created_by'=>$created_by
-            );
-            $this -> where($map) -> delete();
+            $delRes = $this -> delBusiness($buyer_id,$created_by);
+            if(!$delRes){
+                return false;
+            }
         }
         //添加数据
         $addRes = $this -> add($arr);
         if($addRes){
+            return true;
+        }
+    }
+    //删除业务信息
+    public function delBusiness($buyer_id,$created_by){
+        $map = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by
+        );
+        $res = $this -> where($map) -> delete();
+        if($res){
             return true;
         }
     }
