@@ -13,7 +13,7 @@ class ShowcatController extends PublicController {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } else {
-            parent::init();
+            //    parent::init();
         }
         $this->_model = new ShowCatModel();
     }
@@ -25,21 +25,15 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-        $market_area_bn = $this->getPut('market_area_bn', '');
+
         if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
 
-
-        if (empty($market_area_bn)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空');
-            $this->jsonReturn();
-        }
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['marke_area_bn'] = $marke_area_bn;
+
 
         $arr = $this->_model->tree($jsondata);
 
@@ -60,7 +54,7 @@ class ShowcatController extends PublicController {
             }
 
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->_setCount($lang, $country_bn, $marke_area_bn);
+            $this->_setCount($lang, $country_bn);
             $this->jsonReturn($arr);
         } else {
             $this->setvalue('count1', 0);
@@ -78,12 +72,11 @@ class ShowcatController extends PublicController {
      * @author zyg
      *
      */
-    private function _setCount($lang, $country_bn, $marke_area_bn) {
+    private function _setCount($lang, $country_bn) {
 
 
 
         $countData = ['lang' => $lang,
-            'marke_area_bn' => $marke_area_bn,
             'country_bn' => $country_bn,
         ];
 
@@ -104,7 +97,7 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-        $marke_area_bn = $this->getPut('marke_area_bn', '');
+
 
         if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -112,14 +105,8 @@ class ShowcatController extends PublicController {
             $this->jsonReturn();
         }
 
-
-        if (empty($market_area_bn)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空');
-            $this->jsonReturn();
-        }
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['marke_area_bn'] = $marke_area_bn;
+
         $jsondata['cat_no1'] = $this->getPut('cat_no1', '');
         $jsondata['cat_no2'] = $this->getPut('cat_no2', '');
         $jsondata['cat_no3'] = $this->getPut('cat_no3', '');
@@ -132,18 +119,17 @@ class ShowcatController extends PublicController {
                 $this->setCode(MSG::MSG_SUCCESS);
                 foreach ($arr as $key => $val) {
                     $arr[$key]['childs'] = $this->_model->getlist(
-                            ['parenshow_material_catcashow_material_catno' => $val['cashow_material_catno'],
+                            ['parent_cat_no' => $val['cat_no'],
                                 'level_no' => 2,
                                 'country_bn' => $country_bn,
-                                'markeshow_material_catarea_bn' => $markeshow_material_catarea_bn,
                                 'lang' => $lang]);
 
                     if ($arr[$key]['childs']) {
                         foreach ($arr[$key]['childs'] as $k => $item) {
-                            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parenshow_material_catcashow_material_catno' => $item['cashow_material_catno'],
+                            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
                                 'level_no' => 3,
                                 'country_bn' => $country_bn,
-                                'markeshow_material_catarea_bn' => $markeshow_material_catarea_bn,
+                                //  'markeshow_material_catarea_bn' => $markeshow_material_catarea_bn,
                                 'lang' => $lang]);
                         }
                     }
@@ -158,9 +144,9 @@ class ShowcatController extends PublicController {
 
                     foreach ($arr[$key]['childs'] as $k => $item) {
                         $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(
-                                ['parent_catno' => $item['cat_no'], 'level_no' => 3,
+                                ['parent_cat_no' => $item['cat_no'], 'level_no' => 3,
                                     'country_bn' => $country_bn,
-                                    'marke_area_bn' => $markeshow_material_catarea_bn,
+                                    //    'marke_area_bn' => $markeshow_material_catarea_bn,
                                     'lang' => $lang]);
                     }
 
@@ -188,7 +174,7 @@ class ShowcatController extends PublicController {
     public function getlistAction() {
 
         $lang = $this->getPut('lang', 'en');
-        $show_material_catno = $this->getPut('show_material_catno', '');
+        $show_cat_no = $this->getPut('show_cat_no', '');
         $country_bn = $this->getPut('country_bn', '');
 
 
@@ -198,14 +184,14 @@ class ShowcatController extends PublicController {
             $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
-        $market_area_bn = $this->getPut('market_area_bn', '');
-
-        if (empty($market_area_bn)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('营销区域简称不能为空');
-            $this->jsonReturn();
-        }
-        $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
+//        $market_area_bn = $this->getPut('market_area_bn', '');
+//
+//        if (empty($market_area_bn)) {
+//            $this->setCode(MSG::ERROR_EMPTY);
+//            $this->setMessage('营销区域简称不能为空');
+//            $this->jsonReturn();
+//        }
+        $arr = $this->_model->get_list($country_bn, $show_cat_no, $lang);
         if ($arr) {
 
             $this->setCode(MSG::MSG_SUCCESS);

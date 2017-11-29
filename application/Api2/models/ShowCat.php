@@ -100,7 +100,7 @@ class ShowCatModel extends PublicModel {
         $where = [];
         getValue($where, $condition, 'id');
         getValue($where, $condition, 'cat_no');
-        getValue($where, $condition, 'market_area_bn');
+
         getValue($where, $condition, 'country_bn');
         if (isset($condition['cat_no3']) && $condition['cat_no3']) {
             $where['level_no'] = 3;
@@ -205,16 +205,10 @@ class ShowCatModel extends PublicModel {
         return $data;
     }
 
-    public function get_list($market_area_bn, $country_bn, $cat_no = '', $lang = 'en') {
-        if ($market_area_bn) {
-            $where['market_area_bn'] = $market_area_bn;
-        } else {
-            //  return [];
-        }
+    public function get_list($country_bn, $cat_no = '', $lang = 'en') {
+
         if ($country_bn) {
-            $where['country_bn'] = $country_bn;
-        } else {
-            //return [];
+            $condition['country_bn'] = $country_bn;
         }
         if ($cat_no) {
             $condition['parent_cat_no'] = $cat_no;
