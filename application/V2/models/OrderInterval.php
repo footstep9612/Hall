@@ -3,13 +3,13 @@
  * Description of User
  *
  * @author link
- * @desc 需求种类
+ * @desc   订单偏重区间
  */
-class VisitDemadTypeModel extends PublicModel {
+class OrderIntervalModel extends PublicModel {
 
     //put your code here
     protected $dbName = 'erui_config';
-    protected $tableName = 'visit_demand_type';
+    protected $tableName = 'order_interval';
 
     const DELETED_Y = 'Y';
     const DELETED_N = 'N';
@@ -33,10 +33,10 @@ class VisitDemadTypeModel extends PublicModel {
             'deleted_flag' => self::DELETED_N
         ];
         try{
-            $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
+            $result = $this->field('id,min_interval,max_interval,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
             return $result ? $result : [];
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderInterval】getList:' . $e , Log::ERR);
             return false;
         }
     }
@@ -51,10 +51,10 @@ class VisitDemadTypeModel extends PublicModel {
             'id' => $id,
         ];
         try{
-            $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->find();
+            $result = $this->field('id,min_interval,max_interval,is_show,created_by,created_at')->where($condition)->find();
             return $result ? $result : [];
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderInterval】getInfoById:' . $e , Log::ERR);
             return false;
         }
     }
@@ -65,14 +65,22 @@ class VisitDemadTypeModel extends PublicModel {
      * @return bool
      */
     public function edit($_input = []){
-        if(!isset($_input['name']) || empty($_input['name'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入需求反馈种类');
+        if(!isset($_input['min_interval']) || !isset($_input['max_interval']) || empty($_input['min_interval']) || empty($_input['max_interval'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入偏重区间');
+        }
+
+        if(!empty($_input['min_interval']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$_input['min_interval'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '偏重区间起始值有误');
+        }
+        if(!empty($_input['max_interval']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$_input['max_interval'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '偏重区间结束值有误');
         }
 
         $userInfo = getLoinInfo();
         $where = [];
         $data = [];
-        $data['name'] = $_input['name'];
+        $data['min_interval'] = $_input['min_interval'];
+        $data['max_interval'] = $_input['max_interval'];
         $data['is_show'] = $_input['is_show'];
         try{
             if(isset($_input['id']) && !empty($_input['id'])){
@@ -89,7 +97,7 @@ class VisitDemadTypeModel extends PublicModel {
             }
             return $result ? $result : false;
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】edit:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderInterval】edit:' . $e , Log::ERR);
             return false;
         }
     }
@@ -99,7 +107,7 @@ class VisitDemadTypeModel extends PublicModel {
      * @param string $id
      * @return bool
      */
-    public function deleteById($id){
+    public function deleteById($id = ''){
         if(empty($id)){
             return false;
         }
@@ -114,7 +122,7 @@ class VisitDemadTypeModel extends PublicModel {
             $result = $this->where($condition)->save($data);
             return $result ? true : false;
         }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitDemadType】getList:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderInterval】deleteById:' . $e , Log::ERR);
             return false;
         }
     }
