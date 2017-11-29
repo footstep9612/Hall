@@ -14,7 +14,6 @@ class BuyerFileController extends PublicController {
      * */
     public function buyerListAction()
     {
-        //1111111111111111
         $created_by = '39305';
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
