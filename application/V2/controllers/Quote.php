@@ -109,15 +109,12 @@ class QuoteController extends PublicController{
         $inquiryModel = new InquiryModel();
 
         $request   = $this->validateRequests('inquiry_id');
+
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         $country = $inquiryModel->getInquiryCountry($request['inquiry_id']);
         $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
         $condition['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
-
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($condition['now_agent_id']),"REJECT",$employee->getUserNameById($condition['now_agent_id']),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_QUOTING","BIZ_DISPATCHING");
 
         $this->jsonReturn($response);
 
@@ -131,13 +128,6 @@ class QuoteController extends PublicController{
         $request  = $this->validateRequests('inquiry_id');
 
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
-
-        //发送短信通知
-        $inquiryModel = new InquiryModel();
-        $info = $inquiryModel->where(['id'=>$request['inquiry_id']])->field('now_agent_id,serial_no')->find();
-
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($info['now_agent_id']),"SUBMIT",$employee->getUserNameById($info['now_agent_id']),$info['serial_no'],$this->user['name'],"BIZ_QUOTING","LOGI_DISPATCHING");
 
         $this->jsonReturn($response);
 
@@ -159,10 +149,6 @@ class QuoteController extends PublicController{
             'updated_by' => $this->user['id'],
             'updated_at'   => date('Y-m-d H:i:s',time())
         ]);
-
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($now_agent_id),"REJECT",$employee->getUserNameById($now_agent_id),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_APPROVING","LOGI_QUOTING");
 
         $this->jsonReturn($result);
     }
@@ -271,11 +257,6 @@ class QuoteController extends PublicController{
 
         }
 
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($check_org_id),"SUBMIT",$employee->getUserNameById($check_org_id),$inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_APPROVING","MARKET_APPROVING");
-
-
         $this->jsonReturn();
 
     }
@@ -291,19 +272,19 @@ class QuoteController extends PublicController{
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id' => $request['inquiry_id']])->getField('quote_id');
 
+        //是不是需要物流报价标识区分
+        $quoteModel = new QuoteModel();
+        $logi_quote_flag = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('logi_quote_flag');
+        $status = $logi_quote_flag == "Y" ? "BIZ_APPROVING" : "BIZ_QUOTING";
+
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],
             'now_agent_id'  => $now_agent_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
-            'status'        => 'BIZ_APPROVING',
+            'status'        => $status,
             'updated_by'    => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
-
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($now_agent_id),"REJECT",$employee->getUserNameById($now_agent_id),$inquiry->getSerialNoById($request['inquiry_id']),$this->user['name'],"MARKET_APPROVING","BIZ_APPROVING");
-
 
         $this->jsonReturn($response);
 
@@ -327,10 +308,6 @@ class QuoteController extends PublicController{
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
-
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($now_agent_id),"SUBMIT",$employee->getUserNameById($now_agent_id),$this->inquiryModel->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_APPROVING","MARKET_CONFIRMING");
 
         $this->jsonReturn($response);
 
