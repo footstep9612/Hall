@@ -4,7 +4,6 @@ class BuyerBusinessModel extends PublicModel
 {
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'buyer_business'; //采购商业务信息表名
-    protected $buyer_id = 123; //采购商id
     public function __construct()
     {
         parent::__construct();
@@ -12,6 +11,7 @@ class BuyerBusinessModel extends PublicModel
     //验证有效数据性
     public function validData($data){
         $validArr = array(
+            'buyer_id',
             'product_type', //所需产品类型
             'purchasing_model', //采购模式
 //            'purchasing_cycle', //采购周期
@@ -46,13 +46,13 @@ class BuyerBusinessModel extends PublicModel
     //客户档案管理搜索列表index,wangs
     public function createBusiness($data)
     {
-        $buyer_id = $data['buyer_id'];
-        $created_by = $data['created_by'];
         //验证
         $validRes = $this -> validData($data);
         if(!$validRes){
             return false;
         }
+        $buyer_id = $data['buyer_id'];
+        $created_by = $data['created_by'];
         //组装数据
         $arr = array(
             'buyer_id' => $buyer_id,

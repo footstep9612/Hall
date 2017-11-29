@@ -7,8 +7,7 @@
  */
 
 /**
-创建客户---业务信息
- * 王帅
+客户管理---业务信息--王帅
  */
 class BuyerbusinessController extends PublicController
 {
