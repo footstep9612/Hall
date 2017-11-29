@@ -1071,4 +1071,8 @@ class BuyerModel extends PublicModel {
             ->select();
         return $info;
     }
+    //查看客户信息
+//    public function showBuyer(){
+//
+//    }
 }

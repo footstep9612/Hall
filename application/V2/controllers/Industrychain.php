@@ -21,7 +21,7 @@ class IndustrychainController extends PublicController {
         }
         echo json_encode(array("code" => "1", "message" => "提交成功"));
     }
-    //上下游数据编辑
+    //上下游数据详情
     public function chainListAction(){
         $created_by = $this->user['id'];
         $model = new IndustrychainModel();

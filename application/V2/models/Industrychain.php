@@ -16,8 +16,16 @@ class IndustrychainModel extends PublicModel
     public function chainList($created_by=''){
         $buyer_id = $this -> buyer_id;
         $chainExist = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
-        if($chainExist){
-            return $chainExist;
+        $arr = array();
+        foreach($chainExist as $key => $value){
+            if($value['industry_group']=='up'){
+                $arr['up'][]=$value;
+            }else{
+                $arr['down'][] = $value;
+            }
+        }
+        if($arr){
+            return $arr;
         }
     }
     /**
