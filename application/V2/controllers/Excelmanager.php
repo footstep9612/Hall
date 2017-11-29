@@ -344,7 +344,9 @@ class ExcelmanagerController extends PublicController {
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
             return [];
-        }        
+        }        else{
+            echo $$response;die();
+        }
         curl_close($ch);
         $cfile = null;
         unset($cfile);
