@@ -346,6 +346,7 @@ class ExcelmanagerController extends PublicController {
             echo $cookies."\n";
             print_r($data);
             print_r(curl_error($ch));
+            die();
             return [];
         }
         curl_close($ch);
