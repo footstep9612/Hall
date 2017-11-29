@@ -120,13 +120,6 @@ class BuyerModel extends PublicModel {
         if (!empty($data['email'])) {
             $where .= " where email = '" . $data['email'] . "'";
         }
-        if (!empty($data['mobile'])) {
-            if ($where) {
-                $where .= " or mobile = '" . $data['mobile'] . "'";
-            } else {
-                $where .= " where mobile = '" . $data['mobile'] . "'";
-            }
-        }
         if (!empty($data['id'])) {
             if ($where) {
                 $where .= " and id = '" . $data['id'] . "'";
@@ -675,7 +668,7 @@ class BuyerModel extends PublicModel {
 
             //通过顾客id查询用户信息
             $buyerAccount = new BuyerAccountModel();
-            $userInfo = $buyerAccount->field('email,mobile,first_name,last_name')
+            $userInfo = $buyerAccount->field('email,first_name,last_name')
                     ->where(array('id' => $data['id'], 'status' => 'VALID'))
                     ->find();
 
@@ -684,7 +677,6 @@ class BuyerModel extends PublicModel {
                 if ($userInfo) {
                     $buyerInfo['email'] = $userInfo['email'];
                     $buyerInfo['user_name'] = $userInfo['user_name'];
-                    $buyerInfo['mobile'] = $userInfo['mobile'];
                     $buyerInfo['first_name'] = $userInfo['first_name'];
                     $buyerInfo['last_name'] = $userInfo['last_name'];
                 }
