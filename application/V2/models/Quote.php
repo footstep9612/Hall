@@ -78,6 +78,9 @@ class QuoteModel extends PublicModel {
 
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
+        
+        $where = $condition;
+        $where['deleted_flag'] = 'N';
 
         /*
         |--------------------------------------------------------------------------
@@ -87,7 +90,7 @@ class QuoteModel extends PublicModel {
         $quoteInfo = $this->where($condition)->field('id,gross_profit_rate,exchange_rate')->find();
         $gross_profit_rate = $quoteInfo['gross_profit_rate'];//毛利率
 
-        $quoteItemIds = $quoteItemModel->where($condition)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
+        $quoteItemIds = $quoteItemModel->where($where)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
@@ -109,7 +112,7 @@ class QuoteModel extends PublicModel {
         | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
         |--------------------------------------------------------------------------
         */
-        $quoteItemExwUnitPrices = $quoteItemModel->where($condition)->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
+        $quoteItemExwUnitPrices = $quoteItemModel->where($where)->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
 
         $total_exw_price = [];
         foreach ($quoteItemExwUnitPrices as $price) {
@@ -136,7 +139,7 @@ class QuoteModel extends PublicModel {
         |--------------------------------------------------------------------------
         */
         $totalPurchase = [];
-        $quoteItemsData = $quoteItemModel->where($condition)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
+        $quoteItemsData = $quoteItemModel->where($where)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
         foreach ($quoteItemsData as $quote => $item) {
             switch ($item['purchase_price_cur_bn']) {
                 case 'EUR' :
@@ -206,20 +209,15 @@ class QuoteModel extends PublicModel {
         $inquiry->startTrans();
 
         $org = new OrgModel();
-        $orgList = $org->field('id')->where(['org_node' => 'lg'])->select();
-        $orgId = [];
-        foreach ($orgList as $org) {
-            $orgId[] = $org['id'];
-        }
-
+        $orgId = $org->where(['org_node' => 'lg'])->getField('id');
 
         $time = date('Y-m-d H:i:s',time());
         $country = $inquiry->getInquiryCountry($request['inquiry_id']);
         $inquiryResult = $inquiry->updateData([
             'id'           => $request['inquiry_id'],
             'status'       => self::INQUIRY_LOGI_DISPATCHING,
-            'logi_org_id'  => $orgId[0],
-            'now_agent_id' => $inquiry->getCountryIssueUserId($country, [$orgId[0]], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
+            'logi_org_id'  => $orgId,
+            'now_agent_id' => $inquiry->getCountryIssueUserId($country, [$orgId], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
             'inflow_time'   => $time,
             'updated_by'   => $user['id'],
             'updated_at'   => $time
