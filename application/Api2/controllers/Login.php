@@ -160,9 +160,6 @@ class LoginController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
-            $arr['serial_no'] = $arr['buyer_no'];
-        }
         $id = $model->create_data($arr);
         if ($id) {
             if (!empty($buyer_address_data)) {
@@ -426,9 +423,6 @@ class LoginController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6);
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
-            $arr['serial_no'] = $arr['buyer_no'];
-        }
         $id = $model->create_data($arr);
         if ($id) {
             if (!empty($buyer_address_data)) {

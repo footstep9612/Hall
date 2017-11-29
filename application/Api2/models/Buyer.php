@@ -37,9 +37,9 @@ class BuyerModel extends PublicModel {
      */
 
     public function getlist($condition = [], $order = " id desc") {
-        $sql = 'SELECT `erui_buyer`.`buyer`.`id`,`serial_no`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`country_code`,`country_bn`,`province`,`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`sec_ex_listed_on`,`line_of_credit`,`credit_available`,`credit_cur_bn`,`buyer_level`,`credit_level`,';
-        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
+        $sql = 'SELECT `erui_buyer`.`buyer`.`id`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`country_bn`,`province`,`city`,`official_email`,';
+        $sql .= '`official_email`,`official_phone`,`official_fax`,`erui_buyer`.`buyer`.`first_name`,`erui_buyer`.`buyer`.`last_name`,`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
+        $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`checked_by`,`checked_at`';
         $sql_count = 'SELECT count(`erui_buyer`.`buyer`.`id`) as num ';
         $str = ' FROM ' . $this->g_table;
         if (!empty($condition['employee_name'])) {
@@ -112,9 +112,9 @@ class BuyerModel extends PublicModel {
      * @author zyg
      */
     public function Exist($data) {
-        $sql = 'SELECT `id`,`serial_no`,`buyer_no`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
+        $sql = 'SELECT `id`,`buyer_no`,`lang`,`name`,`bn`,`profile`,`country`,`province`,`city`,`reg_date`,';
         $sql .= '`logo`,`official_website`,`brand`,`bank_name`,`swift_code`,`bank_address`,`bank_account`,`buyer_level`,`credit_level`,';
-        $sql .= '`finance_level`,`logi_level`,`qa_level`,`steward_level`,`status`,`remarks`,`apply_at`,`approved_at`';
+        $sql .= '`status`,`remarks`,`apply_at`,`approved_at`';
         $sql .= ' FROM ' . $this->g_table;
         $where = '';
         if (!empty($data['email'])) {
@@ -152,9 +152,6 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
-        if (isset($create['serial_no'])) {
-            $data['serial_no'] = $create['serial_no'];
-        }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
         } else {
@@ -168,9 +165,6 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['profile'])) {
             $data['profile'] = $create['profile'];
-        }
-        if (isset($create['country_code'])) {
-            $data['country_code'] = $create['country_code'];
         }
         if (isset($create['country_bn'])) {
             $data['country_bn'] = $create['country_bn'];
@@ -299,9 +293,6 @@ class BuyerModel extends PublicModel {
         if (isset($create['buyer_no'])) {
             $data['buyer_no'] = $create['buyer_no'];
         }
-        if (isset($create['serial_no'])) {
-            $data['serial_no'] = $create['serial_no'];
-        }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
         }
@@ -313,9 +304,6 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['profile'])) {
             $data['profile'] = $create['profile'];
-        }
-        if (isset($create['country_code'])) {
-            $data['country_code'] = $create['country_code'];
         }
         if (isset($create['area_bn'])) {
             $data['area_bn'] = $create['area_bn'];
@@ -449,7 +437,7 @@ class BuyerModel extends PublicModel {
             jsonReturn('', '-1001', '用户[id]不可以为空');
         }
 
-        $field = 'id,lang,serial_no,buyer_type,buyer_no,name,bn,country_code,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,sec_ex_listed_on,line_of_credit,credit_available,credit_cur_bn,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
+        $field = 'id,lang,buyer_type,buyer_no,name,bn,country_bn,profile,province,city,official_email,official_phone,official_fax,first_name,last_name,brand,official_website,line_of_credit,credit_available,buyer_level,credit_level,recommend_flag,status,remarks,apply_at,created_by,created_at,checked_by,checked_at';
         try {
             $buyerInfo = $this->field($field)->where($where)->find();
             if ($buyerInfo) {
@@ -477,7 +465,6 @@ class BuyerModel extends PublicModel {
                 $checkout = $this->checkParam($input);
                 $data = [
                     'name' => $checkout['name'],
-                    'country_code' => strtoupper($checkout['country_code']),
                     'country_bn' => strtoupper($checkout['country_code']),
                     'official_email' => isset($checkout['official_email']) ? $checkout['official_email'] : '',
                     'official_phone' => isset($checkout['official_phone']) ? $checkout['official_phone'] : '',
@@ -511,7 +498,6 @@ class BuyerModel extends PublicModel {
                     $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”即为buyer_no
 
                     $data['buyer_no'] = $real_num;
-                    $data['serial_no'] = $real_num;
                     $data['apply_at'] = date('Y-m-d H:i:s', time());
                     $data['created_at'] = date('Y-m-d H:i:s', time());
                     $data['status'] = self::STATUS_CHECKING; //待审状态
@@ -744,7 +730,7 @@ class BuyerModel extends PublicModel {
 //        $tableReg = $BuyerreginfoModel->getTableName();
         try {
             //基本信息-$this
-            $fields = 'b.id as buyer_id, b.lang, bd.address, b.serial_no, b.buyer_no, b.country_code, b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.sec_ex_listed_on,b.line_of_credit,b.credit_available,b.credit_cur_bn,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            $fields = 'b.id as buyer_id, b.lang, bd.address,b.buyer_no,  b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.line_of_credit,b.credit_available,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
             //联系信息-BuyercontactModel
             $fields .= ',ba.first_name as con_first_name,ba.last_name as con_last_name,ba.gender,ba.title,ba.phone as con_phone,ba.email as con_email,ba.remarks as con_remarks';
 

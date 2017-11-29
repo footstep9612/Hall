@@ -160,7 +160,7 @@ class BuyerAccountModel extends PublicModel {
         }
         $where['status'] = 'VALID';
         $row = $this->where($where)
-                ->field('id,buyer_id,email,mobile,user_name,password_hash,role,first_name,last_name,login_count,last_login_time,login_failure_count')
+                ->field('id,buyer_id,email,user_name,password_hash,first_name,last_name,login_count,last_login_time,login_failure_count')
                 ->find();
         return $row;
     }
@@ -178,12 +178,6 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($data['user_name'])) {
             $arr['user_name'] = $data['user_name'];
-        }
-        if (isset($data['mobile'])) {
-            $arr['mobile'] = $data['mobile'];
-        }
-        if (isset($data['role'])) {
-            $arr['role'] = $data['role'];
         }
         if (isset($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
@@ -234,14 +228,8 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['user_name'])) {
             $arr['user_name'] = $create['user_name'];
         }
-        if (isset($create['mobile'])) {
-            $arr['mobile'] = $create['mobile'];
-        }
         if (isset($create['password_hash'])) {
             $arr['password_hash'] = $create['password_hash'];
-        }
-        if (isset($create['role'])) {
-            $arr['role'] = $create['role'];
         }
         if (isset($create['first_name'])) {
             $arr['first_name'] = $create['first_name'];
