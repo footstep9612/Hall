@@ -1,12 +1,20 @@
 <?php
 
-/**
- * name: Industrychain.php
- * desc: 产业链控制器
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
-class BuyerFileController extends PublicController {
 
-    public function __init() {
+/**
+    客户管理列表搜索展示
+ * 王帅
+ */
+class BuyerfileController extends PublicController
+{
+
+    public function __init()
+    {
         parent::__init();
     }
     /*
