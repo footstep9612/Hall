@@ -6,17 +6,16 @@ class BuyerBusinessModel extends PublicModel
     protected $tableName = 'buyer'; //客户表名
     protected $tableAccount = 'buyer_account'; //客户账号表名
     protected $tableBusiness = 'buyer_business'; //采购商业务信息表名
-    public $page = 1;
-    public $pageSize = 2;
     public function __construct()
     {
         parent::__construct();
     }
 
-    //list1111111111111111111
+    //客户档案管理搜索列表index,wangs
     public function buyerList($data)
     {
-//        print_r($data);die;
+        $page = isset($data['page'])&&!empty($data['page']) ? $data['page'] : 1;
+        $offset = ($page-1)*2;
         $map = array('buyer.created_by'=>$data['created_by']);
         if(!empty($data['area_bn'])){
             $map += array('buyer.area_bn'=>$data['area_bn']);
@@ -39,18 +38,12 @@ class BuyerBusinessModel extends PublicModel
         if(!empty($data['line_of_credit'])){
             $map += array('buyer.line_of_credit'=>$data['line_of_credit']);
         }
-        if(empty($data['page'])){
-            $page = ($this -> page-1)*($this ->pageSize);
-        }else{
-            $page = ($data['page']-1)*($this ->pageSize);
-        }
-
         $info = $this->alias('buyer')
             ->join('erui_buyer.buyer_account account on buyer.id=account.buyer_id','left')
             ->join('erui_buyer.buyer_business business on account.buyer_id=business.buyer_id','left')
             ->field('buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.created_by,account.email,business.is_local_settlement,business.is_purchasing_relationship,business.is_net,business.net_at,business.net_invalid_at')
             ->where($map)
-            ->limit($page,$this->pageSize)
+            ->limit($offset,2)
             ->select();
         return $info;
     }
