@@ -15,7 +15,7 @@ class LogisticsController extends PublicController {
 		$this->quoteItemModel = new QuoteItemModel();
 		$this->quoteLogiFeeModel = new QuoteLogiFeeModel();
 		$this->quoteItemLogiModel = new QuoteItemLogiModel();
-		$this->userModel = new UserModel();
+		//$this->userModel = new UserModel();
 		$this->inquiryCheckLogModel = new InquiryCheckLogModel();
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();

@@ -115,6 +115,19 @@ class EmployeeModel extends PublicModel {
             return false;
         }
     }
+    
+    /**
+     * @desc 根据用户姓名获取获取ID
+     *
+     * @param string $name
+     * @return array
+     * @author liujf
+     * @time 2017-11-29
+     */
+    public function getUserIdByName($name) {
+        
+        return $this->where(['name'=>$name, 'deleted_flag' => 'N'])->getField('id', true);
+    }
 
     /**
      * 获取用户姓名
