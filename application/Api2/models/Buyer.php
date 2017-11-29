@@ -184,6 +184,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['last_name'])) {
             $data['last_name'] = $create['last_name'];
         }
+        if (isset($create['address'])) {
+            $data['address'] = $create['address'];
+        }
         if (isset($create['province'])) {
             $data['province'] = $create['province'];
         }
@@ -298,6 +301,9 @@ class BuyerModel extends PublicModel {
         }
         if (isset($create['name'])) {
             $data['name'] = $create['name'];
+        }
+        if (isset($create['address'])) {
+            $data['address'] = $create['address'];
         }
         if (isset($create['bn'])) {
             $data['bn'] = $create['bn'];
