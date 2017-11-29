@@ -27,11 +27,6 @@ class LoginController extends PublicController {
     public function loginAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        if (!empty($data['password'])) {
-            $arr['password'] = trim($data['password']);
-        } else {
-            jsonReturn(null,-110,ShopMsg::getMessage('-110',$lang));
-        }
         if (!empty($data['email'])) {
             if (!isEmail($data['email'])) {
                 jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
@@ -39,6 +34,11 @@ class LoginController extends PublicController {
             $arr['email'] = trim($data['email']);
         } else {
             jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+        }
+        if (!empty($data['password'])) {
+            $arr['password'] = trim($data['password']);
+        } else {
+            jsonReturn(null,-110,ShopMsg::getMessage('-110',$lang));
         }
         $model = new BuyerAccountModel();
         $info = $model->login($arr);
