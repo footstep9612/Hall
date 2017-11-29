@@ -55,6 +55,7 @@ class SSOClient{
         }else{
             $this->sso_token = "";
         }
+        $GLOBALS['SSO_TOKEN'] = $this->sso_token;
         return $this->sso_token;
     }
     
