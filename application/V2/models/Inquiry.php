@@ -152,7 +152,7 @@ class InquiryModel extends PublicModel {
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $map[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
+                            $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
@@ -170,7 +170,7 @@ class InquiryModel extends PublicModel {
                             if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiIssueAuxiliaryRole) {
-                            $map[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
+                            $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                         if ($roleNo == self::logiQuoterRole) {
                             $map[] = ['logi_agent_id' => $condition['user_id']];
@@ -655,7 +655,8 @@ class InquiryModel extends PublicModel {
         
         $where = [
              'id' => ['in', $groupId ? : ['-1']],
-             'org_node' => $orgNode
+             'org_node' => $orgNode,
+             'deleted_flag' => 'N'
         ];
         
         return $orgModel->where($where)->getField('id', true);

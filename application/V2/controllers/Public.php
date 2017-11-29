@@ -611,7 +611,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             'groupSending' => $groupSending,
         ];
 
-        if ($action == "SUBMIT") {
+        if ($action == "CREATE") {
             $data['tplId'] = '55047';
             $data['tplParas'] = '["' . $receiver . '","' . $from . '","' . $serial_no . '"]';
         } elseif ($action == "REJECT") {

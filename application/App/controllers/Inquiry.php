@@ -44,7 +44,7 @@ class InquiryController extends PublicController
             'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED', $this->listAuth)
         ];
 
-        $data['carousel'] = $this->inquiryModel->getList_($this->listAuth,"id,buyer_code",['quote_status'=>'QUOTED']);
+        $data['carousel'] = $this->inquiryModel->getList($this->listAuth,"id,buyer_code,status,quote_status",['quote_status'=>'QUOTED']);
 
         $data['list'] = $this->inquiryModel->getNewItems($this->listAuth,"id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
 
@@ -172,13 +172,13 @@ class InquiryController extends PublicController
     {
 
         $condition = $this->validateRequestParams();
-        $condition['quote_status'] = 'QUOTED';
+        $condition['quote_status'] = 'COMPLETED';
 
         $employeeModel = new EmployeeModel();
 
         $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
 

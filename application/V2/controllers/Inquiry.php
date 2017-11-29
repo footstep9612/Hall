@@ -358,7 +358,7 @@ class InquiryController extends PublicController {
         if ($data['is_agent'] == 'Y') {
             $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']]])->order('id DESC')->find();
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
 
             // 事业部id和名称
             $data['ub_id'] = $org['id'];
@@ -904,7 +904,18 @@ class InquiryController extends PublicController {
         $data['created_by'] = $this->user['id'];
 
         $results = $checklog->addData($data);
+
+        //发送短信
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+
+        $employeeModel = new EmployeeModel();
+        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile')->find();
+
+        $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+
         $this->jsonReturn($results);
+
     }
 
     /**
