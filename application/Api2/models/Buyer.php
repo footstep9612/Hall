@@ -273,12 +273,6 @@ class BuyerModel extends PublicModel {
                 $this->rollback();
                 return false;
             }
-            $buyerAddress = new BuyerAddressModel();
-            $resultAddress = $buyerAddress->update_data($data, $where);
-            if (!$resultAddress) {
-                $this->rollback();
-                return false;
-            }
             $this->commit();
             return true;
         } catch (Exception $e) {
@@ -662,7 +656,7 @@ class BuyerModel extends PublicModel {
      */
     public function getInfo($data) {
         $where = array();
-        $field = 'buyer_no,lang,name,bn,country_bn,province,city,buyer_level';
+        $field = 'buyer_no,lang,name,bn,country_bn,province,city,buyer_level,address';
         try {
             if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
                 if (!empty($data['id'])) {
@@ -686,10 +680,6 @@ class BuyerModel extends PublicModel {
                     ->find();
 
             //通过顾客id查询用户邮编
-            $buyerAddress = new BuyerAddressModel();
-            $zipCode = $buyerAddress->field('zipcode,address')
-                    ->where(array('id' => $buyerInfo['id']))
-                    ->find();
             if ($buyerInfo) {
                 if ($userInfo) {
                     $buyerInfo['email'] = $userInfo['email'];
@@ -697,10 +687,6 @@ class BuyerModel extends PublicModel {
                     $buyerInfo['mobile'] = $userInfo['mobile'];
                     $buyerInfo['first_name'] = $userInfo['first_name'];
                     $buyerInfo['last_name'] = $userInfo['last_name'];
-                }
-                if ($zipCode) {
-                    $buyerInfo['zipcode'] = $zipCode['zipcode'];
-                    $buyerInfo['address'] = $zipCode['address'];
                 }
                 return $buyerInfo;
             }
@@ -730,13 +716,11 @@ class BuyerModel extends PublicModel {
 
         $buyercontactModel = new BuyerContactModel();
         $tableAcon = $buyercontactModel->getTableName();
-        $buyeraddress_model = new BuyerAddressModel();
-        $tableAddr = $buyeraddress_model->getTableName();
 //        $BuyerreginfoModel = new BuyerreginfoModel();
 //        $tableReg = $BuyerreginfoModel->getTableName();
         try {
             //基本信息-$this
-            $fields = 'b.id as buyer_id, b.lang, bd.address,b.buyer_no,  b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.line_of_credit,b.credit_available,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
+            $fields = 'b.id as buyer_id, b.lang, b.address,b.buyer_no,  b.area_bn, b.name, b.buyer_type,b.bn,b.country_bn,b.profile,b.province,b.city,b.official_email,b.official_phone,b.official_fax,b.first_name,b.last_name,b.brand,b.official_website,b.line_of_credit,b.credit_available,b.buyer_level,b.credit_level,b.recommend_flag,b.status,b.remarks';
             //联系信息-BuyercontactModel
             $fields .= ',ba.first_name as con_first_name,ba.last_name as con_last_name,ba.gender,ba.title,ba.phone as con_phone,ba.email as con_email,ba.remarks as con_remarks';
 
