@@ -194,14 +194,6 @@ class CountryUserModel extends PublicModel {
     
         $where = $this->getWhere($condition);
         
-        $userCountryList = $this->field('country_bn')->where($where)->select();
-        
-        $country = [];
-        
-        foreach ($userCountryList as $userCountry) {
-            $country[] = $userCountry['country_bn'];
-        }
-    
-        return $country;
+        return $this->where($where)->getField('country_bn', true);
     }
 }
