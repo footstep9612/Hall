@@ -904,7 +904,18 @@ class InquiryController extends PublicController {
         $data['created_by'] = $this->user['id'];
 
         $results = $checklog->addData($data);
+
+        //发送短信
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+
+        $employeeModel = new EmployeeModel();
+        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile')->find();
+
+        $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+
         $this->jsonReturn($results);
+
     }
 
     /**
