@@ -36,6 +36,7 @@ class SuppliersController extends PublicController {
         $this->suppliersModel->startTrans();
 
         $condition['status'] = 'DRAFT';
+        $condition['deleted_flag'] = 'Y';
         $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = $this->time;
 
@@ -130,7 +131,7 @@ class SuppliersController extends PublicController {
         if (strlen($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');
 
-        if ($condition['status'] != 'DRAFT' && $condition['org_id'] == '')
+        if ($condition['org_id'] == '')
             jsonReturn('', -101, '所属事业部不能为空!');
 
         if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == '')
@@ -226,6 +227,7 @@ class SuppliersController extends PublicController {
             'logo' => $condition['logo'],
             'profile' => $condition['profile'],
             'org_id' => $condition['org_id'] == '' ? null : $condition['org_id'],
+            'deleted_flag' => 'N', // 非删除
             'updated_by' => $this->user['id'],
             'updated_at' => $this->time
         ];
