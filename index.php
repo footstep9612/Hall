@@ -43,10 +43,11 @@ foreach ($environments as $environment) {
 $application = new Yaf_Application($application_path);
 
 #SSO登陆验证 added by zhengkq
-$config = $application->getConfig();
-require_once('common/library/Erui/Common/SSOClient.php');
-Erui\Common\SSOClient::Start($config->sso_server);
-
+if($module == 'V2'){    
+    $config = $application->getConfig();
+    require_once('common/library/Erui/Common/SSOClient.php');
+    Erui\Common\SSOClient::Start($config->sso_server);
+}
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象
  */
