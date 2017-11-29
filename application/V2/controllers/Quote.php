@@ -272,11 +272,16 @@ class QuoteController extends PublicController{
         $inquiry = new InquiryModel();
         $now_agent_id = $inquiry->where(['id' => $request['inquiry_id']])->getField('quote_id');
 
+        //是不是需要物流报价标识区分
+        $quoteModel = new QuoteModel();
+        $logi_quote_flag = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('logi_quote_flag');
+        $status = $logi_quote_flag == "Y" ? "BIZ_APPROVING" : "BIZ_QUOTING";
+
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],
             'now_agent_id'  => $now_agent_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
-            'status'        => 'BIZ_APPROVING',
+            'status'        => $status,
             'updated_by'    => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
