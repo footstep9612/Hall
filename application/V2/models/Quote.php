@@ -209,7 +209,7 @@ class QuoteModel extends PublicModel {
         $inquiry->startTrans();
 
         $org = new OrgModel();
-        $orgId = $org->where(['org_node' => 'lg'])->getField('id');
+        $orgId = $org->where(['org_node' => 'lg', 'deleted_flag' => 'N'])->getField('id');
 
         $time = date('Y-m-d H:i:s',time());
         $country = $inquiry->getInquiryCountry($request['inquiry_id']);

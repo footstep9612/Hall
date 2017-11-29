@@ -358,7 +358,7 @@ class InquiryController extends PublicController {
         if ($data['is_agent'] == 'Y') {
             $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']]])->order('id DESC')->find();
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
 
             // 事业部id和名称
             $data['ub_id'] = $org['id'];

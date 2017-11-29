@@ -655,7 +655,8 @@ class InquiryModel extends PublicModel {
         
         $where = [
              'id' => ['in', $groupId ? : ['-1']],
-             'org_node' => $orgNode
+             'org_node' => $orgNode,
+             'deleted_flag' => 'N'
         ];
         
         return $orgModel->where($where)->getField('id', true);
