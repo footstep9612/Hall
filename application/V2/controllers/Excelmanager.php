@@ -336,10 +336,10 @@ class ExcelmanagerController extends PublicController {
         curl_setopt($ch, CURLOPT_AUTOREFERER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
         curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
+        $cookies = "eruitoken=".$GLOBALS['SSO_TOKEN'];        
+        curl_setopt($ch,CURLOPT_COOKIE,$cookies);
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
-            print_r(curl_error($ch));
-            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
             return [];
         }
         curl_close($ch);

@@ -602,7 +602,7 @@ class BuyerController extends PublicController {
             $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $buyer_account_model = new BuyerAccountModel();
-        if (!empty($data['email'])) {
+        if(!empty($data['email'])) {
             $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
@@ -634,8 +634,6 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-
-
         if (!empty($data['password'])) {
             $account['password_hash'] = $data['password'];
             // $buyer_account_model->update_data($arr_account, $where_account);
