@@ -459,6 +459,7 @@ class EsGoodsModel extends Model {
         try {
 
             $body = $this->getCondition($condition);
+
             $es = new ESClient();
             $ret = $es->setbody($body)
                     ->count($this->dbName, $this->tableName . '_' . $lang, '');

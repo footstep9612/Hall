@@ -716,6 +716,11 @@ class SupplierController extends PublicController {
         $condition['status'] = 'INVALID';
         $InvalidCount = $supplier_model->getCount($condition); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+        unset($condition['status']);
+        $supplier_brand_model = new SupplierBrandModel();
+        $brandcount = $supplier_brand_model->getBrandsCount($condition); //供应商品牌数量
+
+        $this->setvalue('brand_count', $brandcount); //$InvalidCount
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
         $this->jsonReturn();

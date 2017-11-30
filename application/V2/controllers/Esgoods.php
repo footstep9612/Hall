@@ -304,12 +304,17 @@ class EsgoodsController extends PublicController {
      */
     public function getGoodsCountAction() {
         $condition = $this->getPut();
+
         $lang = $this->getPut('lang', 'zh');
         $condition['status'] = 'ALL';
         $condition['onshelf_flag'] = 'A';
+
         $esproduct_model = new EsGoodsModel();
         $total = $esproduct_model->getCount($condition, $lang); //已开发SPU数量
         $this->setvalue('count', $total); //已开发供应商数量
+        $condition['status'] = 'DRAFT';
+        $DraftCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $this->setvalue('draft_count', $DraftCount); //$InvalidCount
         $condition['status'] = 'CHECKING';
         $CheckingCount = $esproduct_model->getCount($condition, $lang); //待审核供应商数量
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量

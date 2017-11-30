@@ -923,6 +923,10 @@ class EsproductController extends PublicController {
         $condition['status'] = 'INVALID';
         $InvalidCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+
+        $condition['status'] = 'DRAFT';
+        $DraftCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $this->setvalue('draft_count', $DraftCount); //$InvalidCount
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
         $this->jsonReturn();
