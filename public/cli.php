@@ -7,7 +7,8 @@ if (PHP_SAPI !== 'cli') {
 }
 /* INI配置文件支持常量替换 */
 define('MYPATH', dirname(dirname(__FILE__)));
-$uri = $argv [1];
+
+$uri = $argv[1];
 preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $out);
 $module = ucfirst($out[1]);
 if (file_exists(MYPATH . DS . 'application' . DS . $module)) {
