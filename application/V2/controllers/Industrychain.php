@@ -10,10 +10,8 @@ class IndustrychainController extends PublicController {
     }
     //上下游获取添加数据
     public function createChainAction(){
-        $buyer_id = 123;
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['buyer_id'] = $buyer_id;
         $data['created_by'] = $created_by;
         $model = new IndustrychainModel();
         $res = $model->createChain($data);
@@ -25,10 +23,10 @@ class IndustrychainController extends PublicController {
     }
     //上下游数据详情
     public function chainListAction(){
-        $buyer_id = '123';
         $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
         $model = new IndustrychainModel();
-        $res = $model->chainList($buyer_id,$created_by);
+        $res = $model->chainList($data['buyer_id'],$created_by);
         if($res){
             echo json_encode(array("code" => "1", "data" => $res, "message" => "返回数据"));
         }

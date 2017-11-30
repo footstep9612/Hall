@@ -22,15 +22,15 @@ class BuyerBusinessModel extends PublicModel
             'buyer_id',
             'product_type', //所需产品类型
             'purchasing_model', //采购模式
-//            'purchasing_cycle', //采购周期
-//            'trade_terms',  //客户惯用贸易术语+
-//            'settlement',   //结算方式
-//            'is_local_settlement',  //是否本地决算
-//            'is_purchasing_relationship',   //采购关系
-//            'is_net',   //是否入网
-//            'net_at',   //入网时间
-//            'net_invalid_at',   //失效时间
-//            'net_goods',    //入网产品+
+            'purchasing_cycle', //采购周期
+            'trade_terms',  //客户惯用贸易术语+
+            'settlement',   //结算方式
+            'is_local_settlement',  //是否本地决算
+            'is_purchasing_relationship',   //采购关系
+            'is_net',   //是否入网
+            'net_at',   //入网时间
+            'net_invalid_at',   //失效时间
+            'net_goods',    //入网产品+
         );
         unset($data['token']);
         unset($data['purchase']);
@@ -80,19 +80,19 @@ class BuyerBusinessModel extends PublicModel
         );
         $arrOpt = array();
         if(!empty($data['usage'])){
-            $arrOpt['usage'] += $data['usage'];
+            $arrOpt['usage'] = $data['usage'];
         }
         if(!empty($data['is_warehouse'])){
-            $arrOpt['is_warehouse'] += $data['is_warehouse'];
+            $arrOpt['is_warehouse'] = $data['is_warehouse'];
         }
         if(!empty($data['warehouse_address'])){
-            $arrOpt['warehouse_address'] += $data['warehouse_address'];
+            $arrOpt['warehouse_address'] = $data['warehouse_address'];
         }
         if(!empty($data['competitor_info'])){
-            $arrOpt['competitor_info'] += $data['competitor_info'];
+            $arrOpt['competitor_info'] = $data['competitor_info'];
         }
         if(!empty($data['net_subject'])){
-            $arrOpt['net_subject'] += $data['net_subject'];
+            $arrOpt['net_subject'] = $data['net_subject'];
         }
         if(!empty($arrOpt)){
             $arr = array_merge($arr,$arrOpt);

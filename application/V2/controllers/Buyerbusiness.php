@@ -21,11 +21,8 @@ class BuyerbusinessController extends PublicController
     public function createBusinessAction()
     {
 
-        $created_by = '39305';  //创建人
-        $buyer_id = '123';
-//        $created_by = $this->user['id'];
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['buyer_id'] = $buyer_id;
         $data['created_by'] = $created_by;
         $business = new BuyerBusinessModel();
         $businessRes = $business->createBusiness($data);
@@ -41,11 +38,8 @@ class BuyerbusinessController extends PublicController
     }
     //展示客户业务信息
     public function businessListAction(){
-        $created_by = '39305';  //创建人
-        $buyer_id = '123';
-//        $created_by = $this->user['id'];
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['buyer_id'] = $buyer_id;
         $data['created_by'] = $created_by;
         $business = new BuyerBusinessModel();
         $businessRes = $business->businessList($data);
