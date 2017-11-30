@@ -89,6 +89,12 @@ class SupplierModel extends PublicModel {
         return $res;
     }
 
+    /**
+     * @desc 已开发供应商数量
+     *
+     * @author zhongyg
+     * @time 2017-11-30
+     */
     public function create_data($create = []) {
         if (isset($create['serial_no'])) {
             $data['serial_no'] = $create['serial_no'];
@@ -317,56 +323,107 @@ class SupplierModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getSkuSupplierList($condition = []){
+    public function getSkuSupplierList($condition = []) {
         $where = ' where s.deleted_flag="N" ';
-        if(!empty($condition['name'])){
-            $where .= 'and s.name like "'.$condition['name'].'%"';
+        if (!empty($condition['name'])) {
+            $where .= 'and s.name like "' . $condition['name'] . '%"';
         }
-        if(!empty($condition['sec_ex_listed_on'])){
-            $where .= 'and s.sec_ex_listed_on like "%'.$condition['sec_ex_listed_on'].'%"';
+        if (!empty($condition['sec_ex_listed_on'])) {
+            $where .= 'and s.sec_ex_listed_on like "%' . $condition['sec_ex_listed_on'] . '%"';
         }
 
-        $currentPage = !empty($condition['currentPage'])?$condition['currentPage']:1;
-        $pagesize = !empty($condition['pageSizce'])?$condition['pageSize']:10;
+        $currentPage = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
+        $pagesize = !empty($condition['pageSizce']) ? $condition['pageSize'] : 10;
         $num = $pagesize;
         $page = ($currentPage - 1) * $pagesize;
 
-        if(!empty($condition['sku'])){
+        if (!empty($condition['sku'])) {
             $sql = 'SELECT s.id as supplier_id,s.name,s.sec_ex_listed_on,s.sec_ex_listed_on,t.* FROM erui_supplier.supplier s ';
             $sql .= 'LEFT JOIN (SELECT gs.supplier_id as s_id,gs.sku,gs.pn,gs.brand,p.price as purchase_unit_price,p.price_cur_bn as purchase_price_cur_bn,p.price_validity as period_of_validity,';
             $sql .= 'g.gross_weight_kg,g.pack_type as package_mode ';
             $sql .= 'FROM erui_goods.goods_supplier gs ';
             $sql .= 'LEFT JOIN erui_goods.goods g ON g.sku = gs.sku ';
             $sql .= 'LEFT JOIN erui_goods.goods_cost_price p ON p.sku = gs.sku ';
-            $sql .= 'WHERE gs.sku = '.$condition['sku'].' GROUP BY gs.supplier_id  ';
-            $sql .= ') t ON t.s_id = s.id '.$where;
+            $sql .= 'WHERE gs.sku = ' . $condition['sku'] . ' GROUP BY gs.supplier_id  ';
+            $sql .= ') t ON t.s_id = s.id ' . $where;
             $sql_count = $sql;
-            $sql = $sql.' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
-        }else{
+            $sql = $sql . ' ORDER BY t.sku DESC LIMIT ' . $page . ',' . $num;
+        } else {
             $sql = 'SELECT s.id as supplier_id,s.name,s.sec_ex_listed_on,s.sec_ex_listed_on FROM erui_supplier.supplier s ';
             $sql .= $where;
             $sql_count = $sql;
-            $sql = $sql.' ORDER BY s.id DESC LIMIT ' . $page . ',' . $num;
+            $sql = $sql . ' ORDER BY s.id DESC LIMIT ' . $page . ',' . $num;
         }
 
         try {
             $list = $this->query($sql_count);
             $data = $this->query($sql);
 
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['count'] = count($list);
                 $results['data'] = $data;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
             return $results;
-        }catch (Exception $e) {
+        } catch (Exception $e) {
             $results['code'] = $e->getCode();
             $results['message'] = $e->getMessage();
             return $results;
         }
     }
+
+    private function _getcondition($condition) {
+        $where = ['deleted_flag' => 'N',];
+        $map['name'] = ['neq', ''];
+        $map[] = '`name` is not null';
+        $map['_logic'] = 'and';
+        $where['_complex'] = $map;
+        $this->_getValue($where, $condition, 'created_at', 'between', 'created_at');
+        return $where;
+    }
+
+    /**
+     * 已开发供应商数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getCount($condition = []) {
+
+        $where = $this->_getcondition($condition);
+        try {
+            $count = $this->where($where)->count();
+
+            return $count;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
+    }
+
+    /**
+     * 已开发供应商数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getCount($condition = []) {
+
+        $where = $this->_getcondition($condition);
+        try {
+            $count = $this->where($where)->count();
+
+            return $count;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
+    }
+
 }
