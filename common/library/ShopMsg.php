@@ -85,7 +85,7 @@ class ShopMsg {
             '-123' => 'Please enter the content in the correct format',
         ),
         'es' => array(
-            '130' => 'Recuperación de contraseña en la plataforma ERUI ',
+            '130' => 'Recuperación de contraseña en la plataforma ERUI',
 
             '103' => 'Registrado correctamente',
 
