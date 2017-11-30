@@ -191,15 +191,9 @@ class SuppliersController extends PublicController {
 
             if (strlen($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
-
-            // 审核通过状态下校验必填字段是否修改
-            if ($condition['status'] == 'APPROVED' && !$change) {
-                $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
-
-                $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
-            }
             
             if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
             
@@ -209,6 +203,13 @@ class SuppliersController extends PublicController {
                     jsonReturn('', -101, '缺少供应商联系人主键id参数!');
             
                 $contactWhere['id'] = $item['id'];
+                
+                // 审核通过状态下校验必填字段是否修改
+                if ($condition['status'] == 'APPROVED' && !$change) {
+                    $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
+                
+                    $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
+                }
         
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
@@ -434,6 +435,7 @@ class SuppliersController extends PublicController {
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
 
             if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
                 
@@ -728,6 +730,7 @@ class SuppliersController extends PublicController {
                 jsonReturn('', -101, '您输入的认证产品长度超过限制!');
             
             if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
             
