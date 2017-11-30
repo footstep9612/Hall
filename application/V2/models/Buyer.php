@@ -1065,6 +1065,14 @@ class BuyerModel extends PublicModel {
             ->where($map)
             ->limit($offset,2)
             ->select();
-        return $info;
+        $ids = array();
+        foreach($info as $k => $v){
+            $ids[$v['id']] = $v['id'];
+        }
+        $res = array(
+            'ids' => $ids,
+            'info' => $info
+        );
+        return $res;
     }
 }
