@@ -41,7 +41,7 @@ class BuyerBusinessModel extends PublicModel
                 }
             }
             if(!in_array($key,$validArr)){
-                if(strlen($value)>200*3){
+                if(strlen($value)>100*3){
                     return false;
                 }
             }

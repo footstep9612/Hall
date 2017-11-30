@@ -27,6 +27,7 @@ class BuyerfilesController extends PublicController
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->buyerList($data);
+        print_r($res);die;
         if(!$res){
             echo json_encode(array("code" => "0", "data" => $res, "message" => "空数据"));
             exit();

@@ -53,7 +53,7 @@ class IndustrychainModel extends PublicModel
                         return false;
                     }
                 }else{
-                    if(strlen($v)>200*3){
+                    if(strlen($v)>100*3){
                         return false;
                     }
                 }
