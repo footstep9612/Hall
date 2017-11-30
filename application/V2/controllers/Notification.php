@@ -70,7 +70,7 @@ class NotificationController extends PublicController
         $inquiryRemind = new InquiryRemindModel();
         $inquiry = new InquiryModel();
 
-        $where = ['inquiry_id'=>$inquiry_id];
+        $where = ['inquiry_id'=>$inquiry_id,'isread_flag'=>'N'];
         $data = $inquiryRemind->where($where)->field('inquiry_id,created_by,created_at')->select();
 
         foreach ($data as &$datum){

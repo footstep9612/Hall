@@ -906,7 +906,26 @@ class InquiryController extends PublicController {
 
         $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
 
+        //催办测试清零
+        $this->cleanInquiryRemind($data['inquiry_id']);
+
         $this->jsonReturn($results);
+
+    }
+
+    public function cleanInquiryRemind($inquiry_id){
+
+        $inquiryModel = new InquiryModel();
+        $inquiryModel->where(['id'=>$inquiry_id])->save(['remind'=>0]);
+
+        //提醒详情标为已读
+        $inquiryRemind = new InquiryRemindModel();
+        $inquiryRemind->where(['inquiry_id'=>$inquiry_id])->save([
+            'isread_flag' => 'Y',
+            'updated_at'  => date('Y-m-d H:i:s')
+        ]);
+
+        return;
 
     }
 

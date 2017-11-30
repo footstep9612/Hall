@@ -449,24 +449,14 @@ class ExcelmanagerController extends PublicController {
         $info['quote_time'] = $finalQuoteInfo['biz_quote_at'];
 
 
-        //报价单项(final_quote)
-//        $finalQuoteItemModel = new FinalQuoteItemModel();
-//        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
-//        $finalQuoteItems = $finalQuoteItemModel->alias('a')
-//                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-//                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
-//                ->field($fields)
-//                ->where(['a.inquiry_id' => $inquiry_id])
-//                ->order('a.id DESC')
-//                ->select();
-
+        //报价单项(QuoteItem
 
         $quoteItemModel = new QuoteItemModel();
         $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,a.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity';
         $quoteItems = $quoteItemModel->alias('a')
             ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->field($fields)
-            ->where(['a.inquiry_id' => $inquiry_id])
+            ->where(['a.inquiry_id' => $inquiry_id,'a.deleted_flag'=>'N'])
             ->order('a.id DESC')
             ->select();
 
@@ -481,7 +471,7 @@ class ExcelmanagerController extends PublicController {
         return $finalQuoteData = [
             'quoter_info' => $info,
             'quote_items' => $quoteItems,
-            'quote_info' => $quoteInfo
+            'quote_info'  => $quoteInfo
         ];
 
     }
