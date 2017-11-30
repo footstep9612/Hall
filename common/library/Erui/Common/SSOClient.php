@@ -9,7 +9,7 @@ class SSOClient{
     /**
     * SSO服务器验证地址
     **/
-    private $sso_server = "http://sso.eruidev.com/api/checkToken";
+    private $sso_server = "";
     
     /**
     * Token 名称
@@ -31,13 +31,11 @@ class SSOClient{
     **/
     private static $instance = null;
     
-    public function __construct(){
+    public function __construct($url){
+        $this->sso_server = $url;
         if($this->getSsoToken() != ""){
             $this->Validate();
-        }
-        if(defined('SSO_URL')){
-            $this->sso_server = SSO_URL;
-        }
+        }        
     }
     
     /**
@@ -96,14 +94,11 @@ class SSOClient{
     * 开始验证用户信息
     **/
     public static function Start($url = ''){
-        if(!empty($url)){
-            $this->sso_server = $url;
-        }
         if(self::$instance == null){
-            self::$instance = new self();
+            self::$instance = new self($url);
         }
         if(self::$instance->IsLogined() == false){
-            header("Content-Type: application/json");
+             header("Content-Type: application/json");
             exit(json_encode(['code'=>403,'message'=>'Token Expired.']));
         }else{
             $GLOBALS['SSO_USER'] =  self::$instance->getUser();

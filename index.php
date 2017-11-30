@@ -46,7 +46,7 @@ $application = new Yaf_Application($application_path);
 if($module == 'V2'){    
     $config = $application->getConfig();
     require_once('common/library/Erui/Common/SSOClient.php');
-    Erui\Common\SSOClient::Start($config->sso_server);
+    Erui\Common\SSOClient::Start($config->ssoServer);
 }
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象
