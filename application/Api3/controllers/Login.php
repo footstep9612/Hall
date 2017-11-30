@@ -41,6 +41,16 @@ class LoginController extends PublicController {
             jsonReturn(null,-110,ShopMsg::getMessage('-110',$lang));
         }
         $model = new BuyerAccountModel();
+//        $check_arr['email'] = trim($arr['email']);
+//        $checkEmail = $model->Exist($check_arr);
+//        if(!$checkEmail){
+//            jsonReturn(null,-125,ShopMsg::getMessage('-125',$lang));
+//        }
+//        $check_arr['password'] = md5(trim($arr['password']));
+//        $checkPwd = $model->Exist($check_arr);
+//        if(!$checkPwd){
+//            jsonReturn(null,-126,ShopMsg::getMessage('-126',$lang));
+//        }
         $info = $model->login($arr);
         if ($info) {
             $jwtclient = new JWTClient();
@@ -57,7 +67,7 @@ class LoginController extends PublicController {
             exit();
         } else {
             $datajson = [];
-            echo json_encode(array("code" => "-104", "data" => $datajson, "message" => ShopMsg::getMessage('-106',$lang)));
+            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124',$lang)));
         }
     }
 

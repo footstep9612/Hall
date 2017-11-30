@@ -61,6 +61,7 @@ class ShopMsg {
             '-121' => '链接失效',
             '-122' => '邮箱不存在',
             '-123' => '请输入正确格式的内容',
+            '-124' => '账号或密码错误',
         ),
         'en' => array(
             '130' => 'Password retrieval on ERUI platform',
@@ -83,6 +84,7 @@ class ShopMsg {
             '-121' => 'Link invalid',
             '-122' => 'Email does not exist',
             '-123' => 'Please enter the content in the correct format',
+            '-124' => 'Account or password error',
         ),
         'es' => array(
             '130' => 'Recuperación de contraseña en la plataforma ERUI',
@@ -105,6 +107,7 @@ class ShopMsg {
             '-121' => 'Enlace inválido',
             '-122' => 'El  Email no existe',
             '-123' => 'Por favor ingrese el contenido en el formato correcto',
+            '-124' => 'Error de cuenta o contraseña',
 
         ),
         'ru' => array(
@@ -128,6 +131,7 @@ class ShopMsg {
             '-121' => 'Ошибка при связи',
             '-122' => 'Электронная почта не существует',
             '-123' => 'Введите содержимое в правильном формате',
+            '-124' => 'Ошибка учетной записи или пароля',
         ),
     );
 
