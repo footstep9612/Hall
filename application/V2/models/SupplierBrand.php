@@ -29,11 +29,13 @@ class SupplierBrandModel extends PublicModel {
      */
     private function _getcondition($condition) {
 
-        $where = [];
+        $where = ['S.deleted_flag' => 'N',
+        ];
         $this->_getValue($where, $condition, 'supplier_id', 'string', 'B.supplier_id'); //按供应商ID 搜索
         $this->_getValue($where, $condition, 'brand_id', 'string', 'B.brand_id'); //按品牌ID 搜索
         $this->_getValue($where, $condition, 'status', 'string', 'B.status', 'VALID');
         $this->_getValue($where, $condition, 'supplier_name', 'string', 'S.name');
+        $this->_getValue($where, $condition, 'created_at', 'string', 'S.created_at');
         if (!empty($condition['brand_name'])) {
             $brand_name = trim($condition['brand_name']);
             $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '

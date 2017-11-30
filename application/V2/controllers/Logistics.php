@@ -384,15 +384,15 @@ class LogisticsController extends PublicController {
 	    
 	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
-	    //$volumn = $condition['length'] * $condition['width'] * $condition['height'];
-	    //$condition['volumn'] = $volumn > 0 ? $volumn : 0;
-	    
-	    $this->quoteLogiQwvModel->startTrans();
+	    $volumn = $condition['length'] * $condition['width'] * $condition['height'];
+	    $condition['volumn'] = $volumn > 0 ? $volumn : 0;
 	    
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
 	    $condition['updated_by'] = $this->user['id'];
 	    $condition['updated_at'] = $this->time;
+	    
+	    $this->quoteLogiQwvModel->startTrans();
 	    
 	    // 新增多行
 	    $row = intval($condition['row']);

@@ -28,9 +28,9 @@ class SupplierController extends PublicController {
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         } else {
-            $map['name'] = '';
-            $map[] = 'ISNULL(`name`)';
-            $map['_logic'] = 'or';
+            $map['name'] = ['neq', ''];
+            $map[] = '`name` is not null';
+            $map['_logic'] = 'and';
             $where['_complex'] = $map;
         }
         if (!empty($data['supplier_no'])) {
@@ -694,6 +694,36 @@ class SupplierController extends PublicController {
             $this->setMessage('更新失败!');
             $this->jsonReturn();
         }
+    }
+
+    /**
+     * 已开发供应商数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getSupplierCountAction() {
+        $condition = $this->getPut();
+        $supplier_model = new SupplierChainModel();
+        $total = $supplier_model->getCount($condition); //已开发供应商数量
+        $this->setvalue('count', $total); //已开发供应商数量
+        $condition['status'] = 'APPROVING';
+        $CheckingCount = $supplier_model->getCount($condition); //待审核供应商数量
+        $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
+        $condition['status'] = 'APPROVED';
+        $ValidCount = $supplier_model->getCount($condition); //已通过供应商数量
+        $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
+        $condition['status'] = 'INVALID';
+        $InvalidCount = $supplier_model->getCount($condition); //已驳回供应商数量
+        $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+        unset($condition['status']);
+        $supplier_brand_model = new SupplierBrandModel();
+        $brandcount = $supplier_brand_model->getBrandsCount($condition); //供应商品牌数量
+
+        $this->setvalue('brand_count', $brandcount); //$InvalidCount
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->setMessage('获取成功!');
+        $this->jsonReturn();
     }
 
 }

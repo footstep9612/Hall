@@ -296,4 +296,37 @@ class EsgoodsController extends PublicController {
         }
     }
 
+    /**
+     * 已开发SPU数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getGoodsCountAction() {
+        $condition = $this->getPut();
+
+        $lang = $this->getPut('lang', 'zh');
+        $condition['status'] = 'ALL';
+        $condition['onshelf_flag'] = 'A';
+
+        $esproduct_model = new EsGoodsModel();
+        $total = $esproduct_model->getCount($condition, $lang); //已开发SPU数量
+        $this->setvalue('count', $total); //已开发供应商数量
+        $condition['status'] = 'DRAFT';
+        $DraftCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $this->setvalue('draft_count', $DraftCount); //$InvalidCount
+        $condition['status'] = 'CHECKING';
+        $CheckingCount = $esproduct_model->getCount($condition, $lang); //待审核供应商数量
+        $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
+        $condition['status'] = 'VALID';
+        $ValidCount = $esproduct_model->getCount($condition, $lang); //已通过供应商数量
+        $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
+        $condition['status'] = 'INVALID';
+        $InvalidCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->setMessage('获取成功!');
+        $this->jsonReturn();
+    }
+
 }

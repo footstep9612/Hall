@@ -292,7 +292,7 @@ class ExcelmanagerController extends PublicController {
         $list = $quoteItemModel->alias('a')
                                 ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id=b.id')
                                 ->field('b.id,b.remarks,b.qty,a.purchase_unit_price')
-                                ->where(['b.inquiry_id'=>$inquiry_id])
+                                ->where(['a.inquiry_id' => $inquiry_id,'a.deleted_flag'=>'N'])
                                 ->select();
         $final_total_price = [];
         $final_total_qty = [];

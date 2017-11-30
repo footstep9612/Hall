@@ -31,9 +31,16 @@ class ExportoldController extends PublicController {
      * 产品导出
      */
     public function exportAction() {
-        $gadget_model = new GadgetModel();
+        $export_model = new ExportOldModel();
         set_time_limit(0);
-        $localDir = $gadget_model->excelAll();
+        ini_set('memory_limit', '8G');
+        $condition['created_at_end'] = '2017-11-01';
+        $condition['created_at_start'] = '2017-08-01';
+        $condition['status'] = 'ALL';
+        //$condition['spu'] = '1402260000700000';
+
+        $condition['onshelf_flag'] = 'A';
+        $localDir = $export_model->export($condition, '', 'zh');
 
         if ($localDir) {
             jsonReturn($localDir);
