@@ -21,6 +21,15 @@ class BuyeragreementController extends PublicController
     }
     //查看框架协议详情
     public function showAgreeAction(){
-        echo 123;
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $agree = new BuyerAgreementModel();
+        $res = $agree->showAgreeDesc($data);
+        if($res == false){
+            echo json_encode(array("code" => "0","message" => "请输入正确执行单号"));
+            exit();
+        }
+        echo json_encode(array("code" => "1","message" => "返回数据",""=>$res));
     }
 }

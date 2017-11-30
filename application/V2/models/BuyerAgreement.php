@@ -59,6 +59,17 @@ class BuyerAgreementModel extends PublicModel
         }
         return false;
     }
+    //查看框架协议详情
+    public function showAgreeDesc($data){
+        if(empty($data['execute_no'])){
+            return false;
+        }
+        $info = $this -> showAgree($data['execute_no']);
+        if(empty($info)){
+            return false;
+        }
+        return $info;
+    }
     //按单号查看数据
     public function showAgree($execute_no){
         $info = $this -> where(array('execute_no'=>$execute_no)) -> find();
