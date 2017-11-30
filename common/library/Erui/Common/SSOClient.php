@@ -9,7 +9,7 @@ class SSOClient{
     /**
     * SSO服务器验证地址
     **/
-    private $sso_server = "http://sso.eruidev.com/api/checkToken";
+    private $sso_server = "";
     
     /**
     * Token 名称
