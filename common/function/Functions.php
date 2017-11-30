@@ -1774,6 +1774,8 @@ function postfile($data, $url, $timeout = 30) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+    $cookies = "eruitoken=".$GLOBALS['SSO_TOKEN'];        
+    curl_setopt($ch,CURLOPT_COOKIE,$cookies);
     curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
     curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
     $response = curl_exec($ch);
