@@ -176,7 +176,8 @@ class LoginController extends PublicController {
             $email_arr['key'] = $data_key['key'];
             $email_arr['name'] = $check[0]['name'];
             $body = $this->getView()->render('login/retrieve_email_'.$lang.'.html', $email_arr);
-            send_Mail($data_key['email'], ShopMsg::getMessage('130',$lang), $body, $data_key['name']);
+            $title = ShopMsg::getMessage('130',$lang);
+            send_Mail($data_key['email'], $title, $body, $data_key['name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
             jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang));//'The company email is not registered yet'
