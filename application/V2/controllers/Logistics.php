@@ -384,17 +384,40 @@ class LogisticsController extends PublicController {
 	    
 	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
-	    $volumn = $condition['length'] * $condition['width'] * $condition['height'];
-	    $condition['volumn'] = $volumn > 0 ? $volumn : 0;
-	
+	    //$volumn = $condition['length'] * $condition['width'] * $condition['height'];
+	    //$condition['volumn'] = $volumn > 0 ? $volumn : 0;
+	    
+	    $this->quoteLogiQwvModel->startTrans();
+	    
 	    $condition['created_by'] = $this->user['id'];
 	    $condition['created_at'] = $this->time;
 	    $condition['updated_by'] = $this->user['id'];
 	    $condition['updated_at'] = $this->time;
-	     
-	    $res = $this->quoteLogiQwvModel->addRecord($condition);
-	     
-	    $this->jsonReturn($res);
+	    
+	    // 新增多行
+	    $row = intval($condition['row']);
+	    $row = $row > 1 ? $row : 1;
+	    $flag = true;
+	    $data['ids'] = [];
+	   
+	    for ($i = 0; $i < $row; $i++) {
+	        $res = $this->quoteLogiQwvModel->addRecord($condition);
+	        
+	        if ($res) {
+	            $data['ids'][] = $res;
+	        } else {
+	            $flag = false;
+	            break;
+	        }
+	    }
+	    
+	    if ($flag) {
+	        $this->quoteLogiQwvModel->commit();
+	        $this->jsonReturn($data);
+	    } else {
+	        $this->quoteLogiQwvModel->rollback();
+	        $this->jsonReturn($flag);
+	    }
 	}
 	
 	/**
