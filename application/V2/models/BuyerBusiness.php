@@ -8,6 +8,14 @@ class BuyerBusinessModel extends PublicModel
     {
         parent::__construct();
     }
+    //业务信息详情
+    public function businessList($data){
+        if(empty($data['buyer_id']) || empty($data['created_by'])){
+            return false;
+        }
+        $info = $this -> showBusinessFind($data['buyer_id'],$data['created_by']);
+        return $info;
+    }
     //验证有效数据性
     public function validData($data){
         $validArr = array(
@@ -121,6 +129,15 @@ class BuyerBusinessModel extends PublicModel
             'created_by'=>$created_by
         );
         $info = $this -> where($map) -> select();
+        return $info;
+    }
+    //查询业务信息find
+    public function showBusinessFind($buyer_id,$created_by){
+        $map = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by
+        );
+        $info = $this -> where($map) -> find();
         return $info;
     }
 }

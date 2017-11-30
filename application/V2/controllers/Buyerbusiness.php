@@ -39,4 +39,21 @@ class BuyerbusinessController extends PublicController
         }
         echo json_encode(array("code" => "1","message" => "创建成功"));
     }
+    //展示客户业务信息
+    public function businessListAction(){
+        $created_by = '39305';  //创建人
+        $buyer_id = '123';
+//        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['buyer_id'] = $buyer_id;
+        $data['created_by'] = $created_by;
+        $business = new BuyerBusinessModel();
+        $businessRes = $business->businessList($data);
+        $purchase = new BuyerPurchasingModel();
+        $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);
+        if(!empty($purchaseRes)){
+            $businessRes ['purchase'] = $purchaseRes;
+        }
+        echo json_encode(array("code" => "1","message" => "返回成功","data" => $businessRes));
+    }
 }
