@@ -43,7 +43,7 @@ foreach ($environments as $environment) {
 $application = new Yaf_Application($application_path);
 
 #SSO登陆验证 added by zhengkq
-if($module == 'V2'){    
+if($module == 'V2' || $module == 'App'){
     $config = $application->getConfig();
     require_once('common/library/Erui/Common/SSOClient.php');
     Erui\Common\SSOClient::Start($config->ssoServer);
