@@ -105,6 +105,7 @@ class ShopMsg {
             '-121' => 'Enlace inválido',
             '-122' => 'El  Email no existe',
             '-123' => 'Por favor ingrese el contenido en el formato correcto',
+
         ),
         'ru' => array(
             '130' => 'Восстановление пароля платформы ERUI',
