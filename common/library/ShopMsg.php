@@ -59,7 +59,8 @@ class ShopMsg {
             '-119' => '经营范围不可以都为空',
             '-120' => '意向产品不可以都为空',
             '-121' => '链接失效',
-            '-122' => '请输入注册邮箱',
+            '-122' => '邮箱不存在',
+            '-123' => '请输入正确格式的内容',
         ),
         'en' => array(
             '130' => 'Password retrieval on ERUI platform',
@@ -80,7 +81,8 @@ class ShopMsg {
             '-119' => '经营范围不可以都为空',
             '-120' => '意向产品不可以都为空',
             '-121' => 'Link invalid',
-            '-122' => 'Enter e-mail address',
+            '-122' => 'Email does not exist',
+            '-123' => 'Please enter the content in the correct format',
         ),
         'es' => array(
             '130' => 'Recuperación de contraseña en la plataforma ERUI ',
@@ -101,7 +103,8 @@ class ShopMsg {
             '-119' => '经营范围不可以都为空',
             '-120' => '意向产品不可以都为空',
             '-121' => 'Enlace inválido',
-            '-122' => 'Por favor ingrese el correo electrónico registrado',
+            '-122' => 'El  Email no existe',
+            '-123' => 'Por favor ingrese el contenido en el formato correcto',
         ),
         'ru' => array(
             '130' => 'Восстановление пароля платформы ERUI',
@@ -122,7 +125,8 @@ class ShopMsg {
             '-119' => '经营范围不可以都为空',
             '-120' => '意向产品不可以都为空',
             '-121' => 'Ошибка при связи',
-            '-122' => ' введите зарегистрированную электронную почту',
+            '-122' => 'Электронная почта не существует',
+            '-123' => 'Введите содержимое в правильном формате',
         ),
     );
 

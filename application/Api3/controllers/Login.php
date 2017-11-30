@@ -323,12 +323,12 @@ class LoginController extends PublicController {
         if (!empty($data['biz_scope'])) {
             $buyer_data['biz_scope'] = trim($data['biz_scope']);
         } else {
-            jsonReturn('', -101, '经营范围不可以为空!');
+            jsonReturn('', -123,  ShopMsg::getMessage('-123',$lang));
         }
         if (!empty($data['intent_product'])) {
             $buyer_data['intent_product'] = trim($data['intent_product']);
         } else {
-            jsonReturn('', -101, '意向产品不可以为空!');
+            jsonReturn('', -123,  ShopMsg::getMessage('-123',$lang));
         }
         if (isset($data['purchase_amount'])) {
             $buyer_data['purchase_amount'] = trim($data['purchase_amount']);
