@@ -360,8 +360,10 @@ class InquiryController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功!',
-            'count'   => $inquiryItem->getCountItemWithQuote($request),
-            'data'    => $data
+            'data'    => [
+                'count' => $inquiryItem->getCountItemWithQuote($request),
+                'data'  => $data
+            ]
         ]);
 
     }
