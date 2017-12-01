@@ -22,7 +22,8 @@ class BuyerfilesController extends PublicController
      * */
     public function buyerListAction()
     {
-        $created_by = '39305';
+//        $created_by = '39305';
+        $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
@@ -37,13 +38,14 @@ class BuyerfilesController extends PublicController
         foreach($info as $key => $value){
             foreach($visitRes as $k => $v){
                 if($value['id']==$k){
-                    $info[$key]['week']=$v['week'];
-                    $info[$key]['month']=$v['month'];
-                    $info[$key]['quarter']=$v['quarter'];
+                    $info[$key]['total_visit']=$v['totalVisit'];
+                    $info[$key]['week_visit']=$v['week'];
+                    $info[$key]['month_visit']=$v['month'];
+                    $info[$key]['quarter_visit']=$v['quarter'];
                 }
             }
         }
-        echo json_encode(array("code" => "1", "data" => $info, "message" => "返回数据"));
+        echo json_encode(array("code" => "1",  "message" => "返回数据","data" => $info));
     }
     //查看
 //    public function showBuyerAction(){

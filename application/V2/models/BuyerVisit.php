@@ -343,9 +343,11 @@ class BuyerVisitModel extends PublicModel {
                 $quarterArr[]=$v['visit_at'];
             }
         }
+        $totalVisit=count($info);    //本周
         $week=count($weekArr);    //本周
         $month=count($monthArr);    //本月
         $quarter=count($quarterArr);    //本季
+        $arr['totalVisit'] = $totalVisit;
         $arr['week'] = $week;
         $arr['month'] = $month;
         $arr['quarter'] = $quarter;
