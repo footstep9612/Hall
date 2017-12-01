@@ -41,6 +41,7 @@ class LoginController extends PublicController {
             jsonReturn(null,-110,ShopMsg::getMessage('-110',$lang));
         }
         $model = new BuyerAccountModel();
+        $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
 //        $check_arr['email'] = trim($arr['email']);
 //        $checkEmail = $model->Exist($check_arr);
 //        if(!$checkEmail){
@@ -59,6 +60,7 @@ class LoginController extends PublicController {
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['show_name'] = $info['show_name'];
+            $datajson['buyer_no'] = $buyer_info['buyer_no'];
             $datajson['email'] = $info['email'];
             $datajson['show_name'] = $info['show_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
