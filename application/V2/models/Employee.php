@@ -153,4 +153,33 @@ class EmployeeModel extends PublicModel {
 
     }
 
+    /**
+     * 框架协议-商务技术经办人-列表
+     * wangs
+     */
+    public function buyerTechAgent($data){
+        if(!empty($data['name'])){
+            $cond['name'] = $data['name'];
+        }
+        if(!empty($data['user_no'])){
+            $cond['user_no'] = $data['user_no'];
+        }
+        $page = 1;
+        $pageSize = 3;
+        $totalCont = $this -> where($cond) -> count();
+        $totalPage = ceil($totalCont/$pageSize);
+        if(!empty($data['page']) && is_numeric($data['page']) && $data['page']>0){
+            $page = ceil($data['page']);
+        }
+        if($page > $totalPage){
+            $page = $totalPage;
+        }
+        $offset = ($page-1)*$pageSize;
+        $info = $this -> field('id,user_no,name') ->where($cond) -> limit($offset,$pageSize) -> select();
+        $arr = array(
+            'info'=>$info,
+            'page'=>$page
+        );
+        return $arr;
+    }
 }

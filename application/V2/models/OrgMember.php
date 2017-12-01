@@ -160,6 +160,11 @@ class OrgMemberModel extends PublicModel {
 		}else{
 			$where['c.role_no'] = $condition['role_no'];
 		}
+		if(empty($condition['country_bn'])){
+		    return ['code'=>'-104','message'=>'国家简称必填'];
+		}else{
+		    $where['e.country_bn'] = $condition['country_bn'];
+		}
 		if(!empty($condition['user_no'])){
 			$where['d.user_no'] = array('like',$condition['user_no']);
 		}
@@ -178,6 +183,7 @@ class OrgMemberModel extends PublicModel {
 					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
 					->join('erui_sys.role c ON b.role_id = c.id','left')
 					->join('erui_sys.employee d ON a.employee_id = d.id','left')
+					->join('erui_sys.country_member e ON a.employee_id = e.employee_id','left')
 					->field($fields)
 					->where($where)
 					->page($page, $pagesize)
@@ -187,6 +193,7 @@ class OrgMemberModel extends PublicModel {
 					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
 					->join('erui_sys.role c ON b.role_id = c.id','left')
 					->join('erui_sys.employee d ON a.employee_id = d.id','left')
+					->join('erui_sys.country_member e ON a.employee_id = e.employee_id','left')
 					->where($where)
 					->count('a.id');
 
