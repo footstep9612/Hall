@@ -356,4 +356,48 @@ class BuyerAgentModel extends PublicModel {
         $result = $this->where($token['customer_id'])->save(['status' => $status['status']]);
         return $result ? true : false;
     }
+    /**
+     * 框架协议-客户市场经办人-列表
+     * wangs
+     */
+    public function buyerMarketAgent($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info = $this -> MarketAgentlist($data);
+        return $info;
+    }
+    //获取列表
+    public function MarketAgentlist($data){
+        $cond = [
+            'buyer_id' => $data['buyer_id']
+        ];
+        $totalCount = $this -> alias('agent')
+            ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')
+            -> where($cond)
+            -> count();
+        if($totalCount==0){
+            return [];
+        }
+        $size = 10;
+        $totalPage = ceil($totalCount / $size);
+        $page = 1;
+        if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0){
+            $page = ceil($data['page']);
+        }
+        if($page > $totalPage){
+            $page = $totalPage;
+        }
+        $offset = ($page-1)*$size;
+        $field = 'agent.buyer_id,agent.agent_id';
+        $field .= ',em.name,em.mobile,em.gender';
+        return $this -> alias('agent')
+            -> field($field)
+            ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')
+            -> where($cond)
+            ->group('em.id')
+            ->order('agent.id desc')
+            ->limit($offset,$size)
+            ->select();
+    }
 }

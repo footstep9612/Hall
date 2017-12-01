@@ -49,7 +49,7 @@ class IndustrychainModel extends PublicModel
         foreach($data as $key => $value){
             foreach($value as $k => $v){
                 if(in_array($k,$inArr)){
-                    if(strlen($v)>1000*3){
+                    if(strlen($v)>1000){
                         return false;
                     }
                 }else{
