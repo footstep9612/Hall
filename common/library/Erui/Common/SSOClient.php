@@ -98,8 +98,8 @@ class SSOClient{
             self::$instance = new self($url);
         }
         if(self::$instance->IsLogined() == false){
-             header("Content-Type: application/json");
-            exit(json_encode(['code'=>403,'message'=>'Token Expired.']));
+            //header("Content-Type: application/json");
+            //exit(json_encode(['code'=>403,'message'=>'Token Expired.']));
         }else{
             $GLOBALS['SSO_USER'] =  self::$instance->getUser();
         }
