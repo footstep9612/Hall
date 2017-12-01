@@ -186,7 +186,7 @@ class LoginController extends PublicController {
             $email_arr['key'] = $data_key['key'];
             $email_arr['name'] = $check[0]['name'];
             $body = $this->getView()->render('login/retrieve_email_'.$lang.'.html', $email_arr);
-            $title = ShopMsg::getMessage('130',$lang);
+            $title = 'Erui.com';
             send_Mail($data_key['email'], $title, $body, $data_key['name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
