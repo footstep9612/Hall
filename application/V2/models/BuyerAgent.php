@@ -364,14 +364,26 @@ class BuyerAgentModel extends PublicModel {
         if(empty($data['buyer_id'])){
             return false;
         }
-        $info = $this -> MarketAgentlist($data);
-        return $info;
-    }
-    //获取列表
-    public function MarketAgentlist($data){
         $cond = [
             'buyer_id' => $data['buyer_id']
         ];
+        if(!empty($data['page'])){
+            $page = $data['page'];
+        }
+        $info = $this -> MarketAgentlist($page,$cond);
+        return $info;
+    }
+
+    /**
+     * 框架协议-经办人-获取列表
+     * wangs
+     */
+    public function MarketAgentlist($pages,$cond=[]){
+        $page = 1;
+        if(isset($page) && is_numeric($page) && $page >0){
+            $page = ceil($page);
+        }
+        $size = 10;
         $totalCount = $this -> alias('agent')
             ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')
             -> where($cond)
@@ -379,19 +391,14 @@ class BuyerAgentModel extends PublicModel {
         if($totalCount==0){
             return [];
         }
-        $size = 10;
         $totalPage = ceil($totalCount / $size);
-        $page = 1;
-        if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0){
-            $page = ceil($data['page']);
-        }
         if($page > $totalPage){
             $page = $totalPage;
         }
         $offset = ($page-1)*$size;
         $field = 'agent.buyer_id,agent.agent_id';
-        $field .= ',em.name,em.mobile,em.gender';
-        return $this -> alias('agent')
+        $field .= ',em.name,em.user_no';
+        $info = $this -> alias('agent')
             -> field($field)
             ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')
             -> where($cond)
@@ -399,5 +406,10 @@ class BuyerAgentModel extends PublicModel {
             ->order('agent.id desc')
             ->limit($offset,$size)
             ->select();
+        $arr = array(
+            'info'=>$info,
+            'page'=>$page
+        );
+        return $arr;
     }
 }
