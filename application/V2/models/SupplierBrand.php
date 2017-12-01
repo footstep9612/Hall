@@ -152,8 +152,8 @@ class SupplierBrandModel extends PublicModel {
 
         try {
 
-            $supplier_model = new SupplierChainModel();
-            return $supplier_model->getCount();
+            $productsupplier_model = new ProductSupplierModel();
+            return $productsupplier_model->getSupplierCount();
         } catch (Exception $ex) {
             Log::write($ex->getMessage());
             return 0;
