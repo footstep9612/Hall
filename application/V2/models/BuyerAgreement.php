@@ -8,6 +8,53 @@ class BuyerAgreementModel extends PublicModel
     {
         parent::__construct();
     }
+    //框架协议管理
+    public function manageAgree($data){
+        $cond = [];
+        if(!empty($data['execute_no'])){    //执行单号
+            $cond['execute_no'] = $data['execute_no'];
+        }
+        if(!empty($data['execute_start_at'])){  //执行时间
+            $cond['execute_start_at'] = $data['execute_start_at'];
+        }
+        if(!empty($data['execute_company'])){   //执行分公司
+            $cond['execute_company'] = $data['execute_company'];
+        }
+        if(!empty($data['org_id'])){    //事业部
+            $cond['org_id'] = $data['org_id'];
+        }
+        $info = $this -> manageAgreeList($cond);
+        print_r($info);die;
+    }
+    //框架协议管理数据列表
+    public function manageAgreeList($cond){
+        $fields = array(
+            'execute_no',       //框架执行单号
+            'org_id',           //事业部
+            'execute_company',  //执行分公司
+            'area_bn',          //所属地区
+//            'name',       //客户名称  buyer
+//            'buyer_code',       //客户代码  buyer
+            'product_name',     //品名中文
+            'number',           // 数量
+            'unit',             //单位
+            'amount',           //项目金额
+            'execute_start_at', //项目开始执行时间
+            'agent',            //市场经办人
+            'technician'        //商务技术经办人
+        );
+        $field = 'buyer.buyer_code,buyer.name';
+        foreach($fields as $v){
+            $field .= ',agree.'.$v;
+        }
+        $info = $this ->alias('agree')
+            ->field($field)
+            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            -> where($cond)
+            ->limit(3)
+            ->select();
+        return $info;
+    }
     //创建框架协议
     public function createAgree($data){
         if(empty($data['buyer_id']) || empty($data['created_by'])){

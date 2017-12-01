@@ -6,6 +6,15 @@ class BuyeragreementController extends PublicController
     {
         parent::__init();
     }
+    //框架协议管理index-wangs
+    public function manageAgreeAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $agree = new BuyerAgreementModel();
+        $res = $agree->manageAgree($data);
+        print_r($res);die;
+    }
     //创建客户---业务信息
     public function createAgreeAction()
     {
