@@ -25,9 +25,9 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-        $marke_area_bn = $this->getPut('marke_area_bn', '');
+        $market_area_bn = $this->getPut('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['marke_area_bn'] = $marke_area_bn;
+        $jsondata['market_area_bn'] = $market_area_bn;
 
         $arr = $this->_model->tree($jsondata);
 
@@ -92,9 +92,9 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-        $marke_area_bn = $this->getPut('marke_area_bn', '');
+        $market_area_bn = $this->getPut('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['marke_area_bn'] = $marke_area_bn;
+        $jsondata['market_area_bn'] = $market_area_bn;
         $jsondata['cat_no1'] = $this->getPut('cat_no1', '');
         $jsondata['cat_no2'] = $this->getPut('cat_no2', '');
         $jsondata['cat_no3'] = $this->getPut('cat_no3', '');

@@ -103,15 +103,11 @@ class BuyerAccountModel extends PublicModel {
     public function getinfo($data) {
         $model = new BuyerModel();
         $table = $model->getTableName();
-        $buyeraddress_model = new BuyerAddressModel();
         $buyeragent_model = new BuyerAgentModel();
-        $buyeraddress_table = $buyeraddress_model->getTableName();
         $buyeragent_table = $buyeragent_model->getTableName();
-
         if (!empty($data['buyer_id'])) {
             $row = $this->alias('b')
                     ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
-                    ->join($buyeraddress_table . ' as bad on b.buyer_id=bad.buyer_id', 'left')
                     ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
@@ -160,7 +156,7 @@ class BuyerAccountModel extends PublicModel {
         }
         $where['status'] = 'VALID';
         $row = $this->where($where)
-                ->field('id,buyer_id,email,mobile,user_name,password_hash,role,first_name,last_name,login_count,last_login_time,login_failure_count')
+                ->field('id,buyer_id,email,user_name,password_hash,first_name,last_name,login_count,last_login_time,login_failure_count')
                 ->find();
         return $row;
     }
@@ -178,12 +174,6 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($data['user_name'])) {
             $arr['user_name'] = $data['user_name'];
-        }
-        if (isset($data['mobile'])) {
-            $arr['mobile'] = $data['mobile'];
-        }
-        if (isset($data['role'])) {
-            $arr['role'] = $data['role'];
         }
         if (isset($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
@@ -234,14 +224,8 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['user_name'])) {
             $arr['user_name'] = $create['user_name'];
         }
-        if (isset($create['mobile'])) {
-            $arr['mobile'] = $create['mobile'];
-        }
         if (isset($create['password_hash'])) {
             $arr['password_hash'] = $create['password_hash'];
-        }
-        if (isset($create['role'])) {
-            $arr['role'] = $create['role'];
         }
         if (isset($create['first_name'])) {
             $arr['first_name'] = $create['first_name'];

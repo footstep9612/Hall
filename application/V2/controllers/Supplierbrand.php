@@ -52,6 +52,22 @@ class SupplierbrandController extends PublicController {
     }
 
     /**
+     * 供应商品牌数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getBrandsCountAction() {
+        $condition = $this->getPut();
+        $supplier_model = new SupplierBrandModel();
+        $count = $supplier_model->getBrandsCount($condition);
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->setMessage('获取成功!');
+        $this->setvalue('count', $data);
+        $this->jsonReturn();
+    }
+
+    /**
      * 供应商品牌列表
      * @date    2017-11-5 10:02:57
      * @author zyg

@@ -44,7 +44,7 @@ class InquiryController extends PublicController
             'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED', $this->listAuth)
         ];
 
-        $data['carousel'] = $this->inquiryModel->getList_($this->listAuth,"id,buyer_code",['quote_status'=>'QUOTED']);
+        $data['carousel'] = $this->inquiryModel->getList($this->listAuth,"id,buyer_code,status,quote_status",['quote_status'=>'QUOTED']);
 
         $data['list'] = $this->inquiryModel->getNewItems($this->listAuth,"id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
 
@@ -161,9 +161,10 @@ class InquiryController extends PublicController
             $res['data'] = $inquiryList;
             $this->jsonReturn($res);
         } else {
-            $this->setCode('-101');
-            $this->setMessage('暂无数据!');
-            $this->jsonReturn();
+            $this->jsonReturn([
+                'code'    => -1,
+                'message' => '暂无数据!'
+            ]);
         }
     }
 
@@ -171,13 +172,13 @@ class InquiryController extends PublicController
     {
 
         $condition = $this->validateRequestParams();
-        $condition['quote_status'] = 'QUOTED';
+        $condition['quote_status'] = 'COMPLETED';
 
         $employeeModel = new EmployeeModel();
 
         $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
         foreach ($inquiryList as &$inquiry) {
 
@@ -194,9 +195,10 @@ class InquiryController extends PublicController
             $res['data'] = $inquiryList;
             $this->jsonReturn($res);
         } else {
-            $this->setCode('-101');
-            $this->setMessage('暂无数据!');
-            $this->jsonReturn();
+            $this->jsonReturn([
+                'code'    => -1,
+                'message' => '暂无数据!'
+            ]);
         }
     }
 
@@ -208,12 +210,13 @@ class InquiryController extends PublicController
 
         $request = $this->validateRequestParams('id');
 
-        $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,from_country,from_port,to_country,to_port';
+        $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,now_agent_id,from_country,from_port,to_country,to_port';
         $inquiryDetail = $this->inquiryModel->getDetail($request,$inquiryFields);
 
         $employeeModel = new EmployeeModel();
         $inquiryDetail['quote_agent'] = $employeeModel->where(['id'=>$inquiryDetail['quote_id']])->getField('name');
         $inquiryDetail['logi_agent'] = $employeeModel->where(['id'=>$inquiryDetail['logi_agent_id']])->getField('name');
+        $inquiryDetail['now_agent'] = $employeeModel->where(['id'=>$inquiryDetail['now_agent_id']])->getField('name');
 
         $condition = ['inquiry_id'=>$request['id']];
 
@@ -357,8 +360,10 @@ class InquiryController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功!',
-            'count'   => $inquiryItem->getCountItemWithQuote($request),
-            'data'    => $data
+            'data'    => [
+                'count' => $inquiryItem->getCountItemWithQuote($request),
+                'data'  => $data
+            ]
         ]);
 
     }

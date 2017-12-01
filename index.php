@@ -1,7 +1,9 @@
 <?php
 
 error_reporting(E_ERROR);
-header('Access-Control-Allow-Origin:*');
+$origin = empty($_SERVER['HTTP_ORIGIN']) ? '*' : $_SERVER['HTTP_ORIGIN'];
+header('Access-Control-Allow-Origin:'.$origin);
+header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers:x-requested-with,content-type,token');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -15,7 +17,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 
 $module = ucfirst($out[1]);
 
-if (!in_array(strtolower($module), ['v1', 'v2', 'api', 'api2','app'])) {
+if (!in_array(strtolower($module), ['v1', 'v2', 'api', 'api2','app', 'api3'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
@@ -40,6 +42,12 @@ foreach ($environments as $environment) {
  */
 $application = new Yaf_Application($application_path);
 
+#SSO登陆验证 added by zhengkq
+if($module == 'V2' || $module == 'App'){
+    $config = $application->getConfig();
+    require_once('common/library/Erui/Common/SSOClient.php');
+    Erui\Common\SSOClient::Start($config->ssoServer);
+}
 /* 如果打开flushIstantly, 则视图渲染结果会直接发送给请求端
  * 而不会写入Response对象
  */

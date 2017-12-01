@@ -108,7 +108,6 @@ class BuyercontactController extends PublicController {
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
         } else {

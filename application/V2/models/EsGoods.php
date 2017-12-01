@@ -445,6 +445,39 @@ class EsGoodsModel extends Model {
     }
 
     /*
+     * 获取SKU总数
+     * @param array $condition //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getCount($condition, $lang = 'en') {
+
+        try {
+
+            $body = $this->getCondition($condition);
+
+            $es = new ESClient();
+            $ret = $es->setbody($body)
+                    ->count($this->dbName, $this->tableName . '_' . $lang, '');
+
+            unset($es);
+            if (isset($ret['count'])) {
+                return $ret['count'];
+            } else {
+                return 0;
+            }
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
+        }
+    }
+
+    /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
      * @param string $lang // 语言 zh en ru es
