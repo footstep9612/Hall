@@ -41,7 +41,6 @@ class LoginController extends PublicController {
             jsonReturn(null,-110,ShopMsg::getMessage('-110',$lang));
         }
         $model = new BuyerAccountModel();
-        $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
 //        $check_arr['email'] = trim($arr['email']);
 //        $checkEmail = $model->Exist($check_arr);
 //        if(!$checkEmail){
@@ -54,6 +53,8 @@ class LoginController extends PublicController {
 //        }
         $info = $model->login($arr);
         if ($info) {
+            $buyer_model = new BuyerModel();
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['buyer_id'] = $info['buyer_id'];
@@ -266,7 +267,7 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -114, ShopMsg::getMessage('-114',$lang));
         }
-        if (!empty($data['show_name'])) {
+        if (isset($data['show_name'])) {
             $buyer_account_data['show_name'] = trim($data['show_name']);
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
