@@ -367,6 +367,12 @@ class BuyerAgentModel extends PublicModel {
         $cond = [
             'buyer_id' => $data['buyer_id']
         ];
+        if(!empty($data['name'])){
+            $cond['name'] = $data['name'];
+        }
+        if(!empty($data['user_no'])){
+            $cond['user_no'] = $data['user_no'];
+        }
         if(!empty($data['page'])){
             $page = $data['page'];
         }
@@ -378,7 +384,7 @@ class BuyerAgentModel extends PublicModel {
      * 框架协议-经办人-获取列表
      * wangs
      */
-    public function MarketAgentlist($pages,$cond=[]){
+    public function MarketAgentlist($page,$cond=[]){
         $page = 1;
         if(isset($page) && is_numeric($page) && $page >0){
             $page = ceil($page);
