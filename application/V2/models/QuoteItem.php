@@ -138,6 +138,8 @@ class QuoteItemModel extends PublicModel {
                 }
 
                 $value['status'] = 'QUOTED';
+                $value['quote_qty'] = $value['qty'];
+                $value['quote_unit'] = $value['unit'];
 
                 $this->save($this->create($value));
 
