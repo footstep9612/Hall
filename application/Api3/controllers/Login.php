@@ -267,7 +267,7 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -114, ShopMsg::getMessage('-114',$lang));
         }
-        if (!empty($data['show_name'])) {
+        if (isset($data['show_name'])) {
             $buyer_account_data['show_name'] = trim($data['show_name']);
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
