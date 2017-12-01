@@ -418,6 +418,30 @@ class EsProductModel extends Model {
     }
 
     /*
+     * 获取产品图片总数量
+     */
+
+    public function getSupplierCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+
+        $es->setaggs('suppliers.supplier_id', 'supplier_id', 'terms', 0);
+        $es->setfields(['spu']);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
+
+        $count = 0;
+        if (isset($ret['aggregations']['supplier_id']['buckets'])) {
+            $count = count($ret['aggregations']['supplier_id']['buckets']);
+        }
+        //$ret = $es = null;
+        //unset($ret, $es);
+
+        return $count;
+    }
+
+    /*
      * 获取商品总数量
      */
 
