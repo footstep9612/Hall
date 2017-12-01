@@ -710,12 +710,22 @@ class SupplierController extends PublicController {
         $condition['status'] = 'APPROVING';
         $CheckingCount = $supplier_model->getCount($condition); //待审核供应商数量
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
+        $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
+
+
         $condition['status'] = 'APPROVED';
         $ValidCount = $supplier_model->getCount($condition); //已通过供应商数量
         $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
+        $this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
+
+
         $condition['status'] = 'INVALID';
         $InvalidCount = $supplier_model->getCount($condition); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+
+        $this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
+
+
         unset($condition['status']);
         $supplier_brand_model = new SupplierBrandModel();
         $brandcount = $supplier_brand_model->getBrandsCount($condition); //供应商品牌数量
@@ -724,6 +734,14 @@ class SupplierController extends PublicController {
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
         $this->jsonReturn();
+    }
+
+    private function _number_format($value, $total) {
+        if ($total) {
+            return number_format($value / $total * 100, 2, '.', ',');
+        } else {
+            return 100;
+        }
     }
 
 }
