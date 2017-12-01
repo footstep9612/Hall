@@ -315,6 +315,8 @@ class LogisticsController extends PublicController {
 	        if ($data['total_insu_fee'] != $quote['total_insu_fee']) $quoteData['total_insu_fee'] = $data['total_insu_fee'];
 	        
 	        if ($quoteData) {
+	            $quoteData['updated_by'] = $this->user['id'];
+	            $quoteData['updated_at'] = $this->time;
 	            $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        }
 	        
@@ -541,7 +543,12 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_QUOTING']);
+	        $quoteData = [
+	            'status' => 'LOGI_QUOTING',
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 	        
 	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
@@ -596,7 +603,12 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'LOGI_APPROVING']);
+	        $quoteData = [
+	            'status' => 'LOGI_APPROVING',
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 	         
 	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
@@ -636,7 +648,12 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->inquiryModel->updateData($data);
 	         
 	        // 更改报价单状态
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
+	        $quoteData = [
+	            'status' => 'BIZ_APPROVING',
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 	    
 	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();
@@ -754,7 +771,12 @@ class LogisticsController extends PublicController {
 	        $res1 = $this->inquiryModel->updateData($data);
 	        
 	        // 更改报价单状态
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => $status]);
+	        $quoteData = [
+	            'status' => $status,
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
+	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 	        
 	        if ($res1['code'] == 1 && $res2) {
 	            $this->inquiryModel->commit();

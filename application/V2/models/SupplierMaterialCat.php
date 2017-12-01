@@ -277,10 +277,18 @@ class SupplierMaterialCatModel extends PublicModel {
         $where['_complex'] = $map;
         $Supplier_model = new SuppliersModel();
         $Supplier_table = $Supplier_model->getTableName();
-        return $this->alias('sm')
-                        ->join($Supplier_table . ' s on s.id=sm.supplier_id and s.deleted_flag=\'N\'')
-                        ->where($where)
-                        ->count();
+        $data = $this->alias('sm')
+                ->field('sm.id')
+                ->join($Supplier_table . ' s on s.id=sm.supplier_id and s.deleted_flag=\'N\'')
+                ->where($where)
+                ->group('sm.supplier_id')
+                ->select();
+
+        if ($data) {
+            return count($data);
+        } else {
+            return 0;
+        }
     }
 
 }

@@ -23,6 +23,9 @@ class ReportController extends PublicController {
 
     public function getPut($name = null, $default = null) {
 
+        return parent::getPut($name, $default);
+
+
 
         if (!$this->put_data) {
 
@@ -162,8 +165,10 @@ class ReportController extends PublicController {
             $sku_count = $esgoods_model->getCount($condition, $lang); //已开发SPU数量
             $cat['sku_count'] = $sku_count;
 
+            $supplier_material_cat_model = new SupplierMaterialCatModel();
+            $supplier_count = $supplier_material_cat_model->getCatSupplierCount($cat['cat_no'], $condition); //已开发SPU数量
 
-            $supplier_count = $esproduct_model->getSupplierCountByCondition($condition, $lang); //已开发SPU数量
+            echo $supplier_material_cat_model->_sql();
             $cat['supplier_count'] = $supplier_count;
 
             $catlist[$key] = $cat;

@@ -115,8 +115,12 @@ class ProductSupplierModel extends PublicModel {
     public function getSupplierCount() {
         $where = [
             'deleted_flag' => 'N',
-            'status' => ['in', ['APPROVED', 'VALID', 'DRAFT', 'APPLING']]
+            'status' => ['in', ['APPROVED', 'DRAFT', 'APPROVING', 'INVALID']]
         ];
+        $map['name'] = ['neq', ''];
+        $map[] = '`name` is not null';
+        $map['_logic'] = 'and';
+        $where['_complex'] = $map;
         $supplier_model = new SupplierModel();
         $count = $supplier_model
 // ->field('supplier_no,name as supplier_name,id as supplier_id')
