@@ -406,24 +406,4 @@ class SupplierModel extends PublicModel {
         }
     }
 
-    /**
-     * 已开发供应商数量
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-    public function getCount($condition = []) {
-
-        $where = $this->_getcondition($condition);
-        try {
-            $count = $this->where($where)->count();
-
-            return $count;
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
-            return 0;
-        }
-    }
-
 }
