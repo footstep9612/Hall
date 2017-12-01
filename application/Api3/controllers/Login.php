@@ -181,7 +181,7 @@ class LoginController extends PublicController {
             $data_key['email'] = $check_arr['email'];
             $data_key['name'] = $check[0]['name'];
             $account_id = $check[0]['id'];
-            redisHashSet('reset_password_key', $data_key['key'], $account_id);
+            redisHashSet('reset_password_key', $data_key['key'], $account_id, 86400);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
