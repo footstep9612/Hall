@@ -117,7 +117,7 @@ class EmployeeModel extends PublicModel {
     }
     
     /**
-     * @desc 根据用户姓名获取获取ID
+     * @desc 根据用户姓名获取ID
      *
      * @param string $name
      * @return array
