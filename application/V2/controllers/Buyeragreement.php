@@ -13,7 +13,7 @@ class BuyeragreementController extends PublicController
         $data['created_by'] = $created_by;
         $agree = new BuyerAgreementModel();
         $res = $agree->manageAgree($data);
-        print_r($res);die;
+        echo json_encode(array("code" => 1,"message" => "返回数据","data"=>$res));
     }
     //创建客户---业务信息
     public function createAgreeAction()
@@ -39,6 +39,6 @@ class BuyeragreementController extends PublicController
             echo json_encode(array("code" => "0","message" => "请输入正确执行单号"));
             exit();
         }
-        echo json_encode(array("code" => "1","message" => "返回数据",""=>$res));
+        echo json_encode(array("code" => 1,"message" => "返回数据",""=>$res));
     }
 }

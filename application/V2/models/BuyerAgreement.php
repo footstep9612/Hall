@@ -23,12 +23,31 @@ class BuyerAgreementModel extends PublicModel
         if(!empty($data['org_id'])){    //事业部
             $cond['org_id'] = $data['org_id'];
         }
-        $info = $this -> manageAgreeList($cond);
-        print_r($info);die;
+        $page = 1;
+        if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0   ){    //事业部
+            $page = ceil($data['page']);
+        }
+        $info = $this -> manageAgreeList($page,$cond);
+        return $info;
     }
     //框架协议管理数据列表
-    public function manageAgreeList($cond){
+    public function manageAgreeList($page=1,$cond){
+        //条件
+        $totalCount = $this ->alias('agree')
+            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            -> where($cond)
+            ->count();
+        if($totalCount==0){
+            return [];
+        }
+        $pageSize = 3;
+        $totalPage = ceil($totalCount/$pageSize);
+        if($page > $totalPage){
+            $page = $totalPage;
+        }
+        $offset = ($page-1)*$pageSize;
         $fields = array(
+            'id',
             'execute_no',       //框架执行单号
             'org_id',           //事业部
             'execute_company',  //执行分公司
@@ -51,9 +70,13 @@ class BuyerAgreementModel extends PublicModel
             ->field($field)
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
             -> where($cond)
-            ->limit(3)
+            ->limit($offset,$pageSize)
             ->select();
-        return $info;
+        $arr = array(
+            'info'=>$info,
+            'page'=>$page
+        );
+        return $arr;
     }
     //创建框架协议
     public function createAgree($data){
