@@ -624,6 +624,31 @@ class GoodsController extends PublicController {
     }
 
     /**
+     * 导入
+     */
+    public function import2Action() {
+        if (empty($this->put_data['spu']) || empty($this->put_data['xls']) || !in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+        $process = isset($this->put_data['process']) ? 1 : '';
+        $filename = $this->getPut('name');
+        $goodsModel = new GoodsModel();
+        $localDir = $goodsModel->import2($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process, $filename);
+        if ($localDir) {
+            if (is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0) {
+                jsonReturn($localDir, ErrorMsg::SUCCESS, '导入失败');
+            }
+            $message = '成功' . $localDir['success'] . '条';
+            if (isset($localDir['faild']) && $localDir['faild'] > 0) {
+                $message = $message . ',失败' . $localDir['faild'] . '条。';
+            }
+            jsonReturn($localDir, ErrorMsg::SUCCESS, $message);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
      * zip导入
      * @param xls zip文件fastdfs地址
      */
