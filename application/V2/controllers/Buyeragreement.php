@@ -24,9 +24,9 @@ class BuyeragreementController extends PublicController
         $agree = new BuyerAgreementModel();
         $res = $agree->createAgree($data);
         if($res){
-            echo json_encode(array("code" => "1","message" => "创建成功"));
+            echo json_encode(array("code" => 1,"message" => "创建成功"));
         }
-        echo json_encode(array("code" => "0","message" => "请输入规范数据"));
+        echo json_encode(array("code" => 0,"message" => "请输入规范数据"));
     }
     //查看框架协议详情
     public function showAgreeAction(){
@@ -36,7 +36,7 @@ class BuyeragreementController extends PublicController
         $agree = new BuyerAgreementModel();
         $res = $agree->showAgreeDesc($data);
         if($res == false){
-            echo json_encode(array("code" => "0","message" => "请输入正确执行单号"));
+            echo json_encode(array("code" => 0,"message" => "请输入正确执行单号"));
             exit();
         }
         echo json_encode(array("code" => 1,"message" => "返回数据",""=>$res));
