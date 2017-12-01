@@ -168,7 +168,7 @@ class ReportController extends PublicController {
             $supplier_material_cat_model = new SupplierMaterialCatModel();
             $supplier_count = $supplier_material_cat_model->getCatSupplierCount($cat['cat_no'], $condition); //已开发SPU数量
 
-            echo $supplier_material_cat_model->_sql();
+
             $cat['supplier_count'] = $supplier_count;
 
             $catlist[$key] = $cat;
