@@ -29,10 +29,11 @@ class AdsChannelModel extends Model {
      * 获取广告频道列表
      */
 
-    public function getList($country_bn, $lang, $order = 'sort_order desc') {
+    public function getList($country_bn, $type = 'HOME', $lang = 'en', $order = 'sort_order desc') {
         $where['deleted_flag'] = 'N';
         $where['status'] = 'VALID';
         $where['country_bn'] = $country_bn;
+        $where['type'] = $type;
         $where['lang'] = $lang;
 
         $data = $this->where($where)->limit(0, 10)->order($order)->select();
@@ -41,6 +42,28 @@ class AdsChannelModel extends Model {
         } else {
             $where['country_bn'] = 'China';
             $data = $this->where($where)->limit(0, 10)->order($order)->select();
+        }
+    }
+
+    /*
+     * 获取广告频道列表
+     */
+
+    public function getInfo($country_bn, $type = 'HOME', $lang = 'en', $order = 'sort_order desc') {
+        $where['deleted_flag'] = 'N';
+        $where['status'] = 'VALID';
+        $where['country_bn'] = $country_bn;
+        $where['type'] = $type;
+        $where['lang'] = $lang;
+
+        $data = $this->where($where)->limit(0, 10)->order($order)->find();
+        if ($data) {
+            return $data;
+        } elseif ($type == 'HOME') {
+            $where['country_bn'] = 'China';
+            $data = $this->where($where)->limit(0, 10)->order($order)->select();
+        } else {
+            return [];
         }
     }
 

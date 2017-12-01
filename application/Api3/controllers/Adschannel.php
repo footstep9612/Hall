@@ -34,10 +34,39 @@ class AdschannelController extends PublicController {
             $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
+
         $adschannel_model = new AdsChannelModel();
-        $list = $adschannel_model->getList($country_bn, $lang);
-        if ($list) {
-            $this->jsonReturn($list);
+        $ret = [];
+        $ret['HOME'] = $adschannel_model->getInfo($country_bn, 'HOME', $lang);
+
+        $ret['STOCK'] = $adschannel_model->getInfo($country_bn, 'STOCK', $lang);
+        if ($ret) {
+            $this->jsonReturn($ret);
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('没有数据!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 获取广告频道列表
+     */
+
+    public function getInfoAction() {
+        $lang = $this->getPut('lang', 'en');
+
+        $country_bn = $this->getPut('country_bn', '');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空');
+            $this->jsonReturn();
+        }
+        $type = $this->getPut('type', 'HOME'); //HOME 首页 STOCK 现货
+        $adschannel_model = new AdsChannelModel();
+        $info = $adschannel_model->getInfo($country_bn, $type, $lang);
+        if ($info) {
+            $this->jsonReturn($info);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('没有数据!');
