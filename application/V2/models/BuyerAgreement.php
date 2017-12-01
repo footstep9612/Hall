@@ -89,7 +89,7 @@ class BuyerAgreementModel extends PublicModel
             'execute_no',   //框架执行单号
             'org_id',   //所属事业部
             'execute_company',  //执行分公司
-            'area_bn',  //所属国家
+            'country_bn',  //所属国家
             'agent',    //市场经办人
             'technician',   //商务技术经办人
             'execute_start_at', //框架开始时间
