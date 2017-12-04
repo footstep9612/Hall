@@ -377,7 +377,7 @@ class BrandController extends PublicController {
     public function exportAction() {
         $data = $this->getPut();
         $brand_model = new BrandModel();
-        $localDir = $brand_model->export($data);
+        $localDir = $brand_model->export($data, $this->user);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

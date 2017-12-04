@@ -557,7 +557,7 @@ class MaterialcatController extends PublicController {
     public function exportAction() {
         $data = $this->getPut();
         $materialcat_model = new MaterialCatModel();
-        $localDir = $materialcat_model->export($data);
+        $localDir = $materialcat_model->export($data, $this->user);
         if ($localDir) {
             jsonReturn($localDir);
         } else {

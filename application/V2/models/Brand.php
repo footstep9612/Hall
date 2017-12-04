@@ -361,10 +361,10 @@ class BrandModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function export($input) {
+    public function export($input, $userInfo) {
         set_time_limit(0);  # 设置执行时间最大值
         @ini_set("memory_limit", "1024M"); // 设置php可使用内存
-        $userInfo = getLoinInfo();
+
         PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
         $objPHPExcel = new PHPExcel();
         $objPHPExcel->getProperties()->setCreator($userInfo['name']);
