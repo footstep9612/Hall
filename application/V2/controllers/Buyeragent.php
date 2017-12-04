@@ -357,7 +357,6 @@ class BuyeragentController extends PublicController {
             $dataJson['code'] = 1;
             $dataJson['message'] = '输入客户';
         }
-        
         $this -> jsonReturn($dataJson);
     }
     
