@@ -22,7 +22,6 @@ class BuyerfilesController extends PublicController
      * */
     public function buyerListAction()
     {
-//        $created_by = '39305';
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
@@ -43,7 +42,6 @@ class BuyerfilesController extends PublicController
         }
         $dataJson['info'] = $info;
         $dataJson['page'] = $arr['page'];
-//        var_dump($dataJson);die;
         echo json_encode(array("code" => 1,  "message" => "返回数据","data" => $dataJson));
     }
     //查看
