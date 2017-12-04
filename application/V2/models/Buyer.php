@@ -1090,7 +1090,9 @@ class BuyerModel extends PublicModel {
         $res = array(
             'ids' => $ids,
             'info' => $info,
-            'page'=>$page
+            'page'=>$page,
+            'totalCount'=>$totalCount,
+            'totalPage'=>$totalPage,
         );
         return $res;
     }

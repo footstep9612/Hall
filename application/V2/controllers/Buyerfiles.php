@@ -41,6 +41,8 @@ class BuyerfilesController extends PublicController
             }
         }
         $result['page'] = $arr['page'];
+        $result['totalCount'] = $arr['totalCount'];
+        $result['totalPage'] = $arr['totalPage'];
         $result['info'] = $info;
         $dataJson['code'] = 1;
         $dataJson['message'] = '返回数据';
