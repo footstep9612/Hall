@@ -353,11 +353,13 @@ class BuyeragentController extends PublicController {
             $dataJson['code'] = 1;
             $dataJson['message'] = '返回数据';
             $dataJson['data'] = $res;
-            $this -> jsonReturn($dataJson);
         }else{
-            $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入客户';
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '输入客户';
         }
+
+
+
         $this -> jsonReturn($dataJson);
     }
     
