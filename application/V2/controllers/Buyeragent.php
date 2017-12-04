@@ -349,9 +349,15 @@ class BuyeragentController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerAgentModel();
         $res = $model -> buyerMarketAgent($data);
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '返回数据';
-        $dataJson['data'] = $res;
+        if($res){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '返回数据';
+            $dataJson['data'] = $res;
+            $this -> jsonReturn($dataJson);
+        }else{
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '请输入客户';
+        }
         $this -> jsonReturn($dataJson);
     }
     /**
