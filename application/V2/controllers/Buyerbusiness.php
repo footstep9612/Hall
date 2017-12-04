@@ -48,6 +48,9 @@ class BuyerbusinessController extends PublicController
         if(!empty($purchaseRes)){
             $businessRes ['purchase'] = $purchaseRes;
         }
-        echo json_encode(array("code" => "1","message" => "返回成功","data" => $businessRes));
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '返回数据';
+            $dataJson['data'] = $businessRes;
+        $this -> jsonReturn($dataJson);
     }
 }
