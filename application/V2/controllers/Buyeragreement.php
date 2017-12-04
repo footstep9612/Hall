@@ -6,7 +6,7 @@ class BuyeragreementController extends PublicController
     {
         parent::__init();
     }
-    //框架协议管理index-wangs
+    //框架协议管理index-wangs//
     public function manageAgreeAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
@@ -39,6 +39,6 @@ class BuyeragreementController extends PublicController
             echo json_encode(array("code" => 0,"message" => "请输入正确执行单号"));
             exit();
         }
-        echo json_encode(array("code" => 1,"message" => "返回数据",""=>$res));
+        echo json_encode(array("code" => 1,"message" => "返回数据","data"=>$res));
     }
 }
