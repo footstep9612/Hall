@@ -28,7 +28,10 @@ class IndustrychainController extends PublicController {
         $model = new IndustrychainModel();
         $res = $model->chainList($data['buyer_id'],$created_by);
         if($res){
-            echo json_encode(array("code" => "1", "data" => $res, "message" => "返回数据"));
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '返回数据';
+            $dataJson['data'] = $res;
         }
+        $this -> jsonReturn($dataJson);
     }
 }

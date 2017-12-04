@@ -349,7 +349,10 @@ class BuyeragentController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerAgentModel();
         $res = $model -> buyerMarketAgent($data);
-        echo json_encode(array("code" => 1,"message" => "返回数据","data"=>$res));
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '返回数据';
+        $dataJson['data'] = $res;
+        $this -> jsonReturn($dataJson);
     }
     /**
      * 框架协议-商务技术经办人列表
@@ -361,6 +364,9 @@ class BuyeragentController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new EmployeeModel();
         $res = $model -> buyerTechAgent($data);
-        echo json_encode(array("code" => 1,"message" => "返回数据","data"=>$res));
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '返回数据';
+        $dataJson['data'] = $res;
+        $this -> jsonReturn($dataJson);
     }
 }
