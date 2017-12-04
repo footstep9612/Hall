@@ -409,7 +409,9 @@ class BuyerAgentModel extends PublicModel {
             ->select();
         $arr = array(
             'info'=>$info,
-            'page'=>$page
+            'page'=>$page,
+            'totalCount'=>$totalCount,
+            'totalPage'=>$totalPage
         );
         return $arr;
     }
