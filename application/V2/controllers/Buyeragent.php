@@ -362,7 +362,7 @@ class BuyeragentController extends PublicController {
     
     /**
      * 框架协议-商务技术经办人列表
-     * wangs
+     * wangs/////////////
      */
     public function techAgentAction(){
         $created_by = $this -> user['id'];
