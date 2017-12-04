@@ -78,7 +78,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //创建框架协议
     public function createAgree($data){
-        if(empty($data['buyer_id']) || empty($data['created_by'])){
+        if(empty($data['buyer_id']) || empty($data['created_by']) || empty($data['buyer_code'])){
             return false;
         }
         if(!empty($data['token'])){
@@ -91,6 +91,7 @@ class BuyerAgreementModel extends PublicModel
         //组装数据
         $arr = array(
             'buyer_id' => $data['buyer_id'],
+            'buyer_code' => $data['buyer_code'],
             'created_by' => $data['created_by'],
             'created_at' => date('Y-m-d H:i:s'),
             'execute_no' => $data['execute_no'],
@@ -115,9 +116,6 @@ class BuyerAgreementModel extends PublicModel
         if(!empty($data['payment_mode'])){  //汇款方式
             $arr['payment_mode'] = $data['payment_mode'];
         }
-//        if(!empty($data['buyer_code'])){  //客户代码
-//            $arr['buyer_code'] = $data['buyer_code'];
-//        }
         $exRes = $this -> showAgree($arr['execute_no']);
         if(!empty($exRes)){
             return false;
