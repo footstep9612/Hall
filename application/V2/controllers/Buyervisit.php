@@ -5,7 +5,7 @@
  * @date    2017-11-29
  * @desc    客户拜访记录
  */
-class BuyerVisitController extends PublicController {
+class BuyervisitController extends PublicController {
 
     //put your code here
     public function init() {
