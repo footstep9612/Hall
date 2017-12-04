@@ -72,7 +72,9 @@ class BuyerAgreementModel extends PublicModel
             ->select();
         $arr = array(
             'info'=>$info,
-            'page'=>$page
+            'page'=>$page,
+            'totalPage'=>$totalPage,
+            'totalCount'=>$totalCount
         );
         return $arr;
     }
