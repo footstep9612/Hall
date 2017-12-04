@@ -68,12 +68,13 @@ class BrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
 // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
-            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\'';
+            $where[] = '(brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\' or '
+                    . 'brand like \'%"lang": "' . $lang . '"%\' and brand like \'%"name": "%' . trim($condition['name']) . '%\' )';
         } elseif ($lang) {
-
-            $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
+            $where[] = '(brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\')';
         } elseif (!empty($condition['name'])) {
-            $where['brand'] = ['like', '%"name":"%' . trim($condition['name']) . '%'];
+            $name = trim($condition['name']);
+            $where[] = '(brand like \'%"name":"' . $name . '"%\' or name like \'%"name": "' . $name . '"%\')';
         }
         return $where;
     }
@@ -88,15 +89,15 @@ class BrandModel extends PublicModel {
     public function getCount($condition, $lang = '') {
         $where = $this->_getcondition($condition, $lang);
 
-        $redis_key = md5(json_encode($where) . $lang) . '_COUNT';
-        if (redisHashExist('Brand', $redis_key)) {
-            return redisHashGet('Brand', $redis_key);
-        }
+//        $redis_key = md5(json_encode($where) . $lang) . '_COUNT';
+//        if (redisHashExist('Brand', $redis_key)) {
+//            return redisHashGet('Brand', $redis_key);
+//        }
         try {
             $count = $this->where($where)
                     ->count('id');
-
-            redisHashSet('Brand', $redis_key, $count);
+            echo $this->_sql();
+//            redisHashSet('Brand', $redis_key, $count);
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
