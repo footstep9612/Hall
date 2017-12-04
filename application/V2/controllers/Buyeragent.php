@@ -351,6 +351,7 @@ class BuyeragentController extends PublicController {
         $res = $model -> buyerMarketAgent($data);
         echo json_encode(array("code" => 1,"message" => "返回数据","data"=>$res));
     }
+    
     /**
      * 框架协议-商务技术经办人列表
      * wangs
