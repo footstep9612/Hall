@@ -370,9 +370,9 @@ class BuyeragentController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new EmployeeModel();
         $res = $model -> buyerTechAgent($data);
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '返回数据';
-            $dataJson['data'] = $res;
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '返回数据';
+        $dataJson['data'] = $res;
         $this -> jsonReturn($dataJson);
     }
 }
