@@ -68,13 +68,13 @@ class BrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
 // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
-            $where[] = '((brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\') or '
-                    . '(brand like \'%"lang": "' . $lang . '"%\' and brand like \'%"name": "%' . trim($condition['name']) . '%\' ))';
+            $where[] = '(brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\')  ';
+            $where[] = '( and brand like \'%"name": "%' . trim($condition['name']) . '%\' )';
         } elseif ($lang) {
             $where[] = '(brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\')';
         } elseif (!empty($condition['name'])) {
             $name = trim($condition['name']);
-            $where[] = '(brand like \'%"name":"' . $name . '"%\' or name like \'%"name": "' . $name . '"%\')';
+            $where[] = '(brand like \'%"name":"' . $name . '"%\' or brand like \'%"name": "' . $name . '"%\')';
         }
         return $where;
     }
