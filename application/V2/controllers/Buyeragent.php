@@ -358,15 +358,11 @@ class BuyeragentController extends PublicController {
             $dataJson['code'] = 1;
             $dataJson['message'] = '输入客户';
         }
-<<<<<<< HEAD
-        $this->jsonReturn($dataJson);
-=======
         $this -> jsonReturn($dataJson);
->>>>>>> dev11.27_12.15
     }
     /**
      * 框架协议-商务技术经办人列表
-     * wangs/////////////
+     * wangs
      */
     public function techAgentAction(){
         $created_by = $this -> user['id'];
