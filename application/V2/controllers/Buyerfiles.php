@@ -40,10 +40,11 @@ class BuyerfilesController extends PublicController
                 }
             }
         }
+        $result['page'] = $arr['page'];
+        $result['info'] = $info;
         $dataJson['code'] = 1;
         $dataJson['message'] = '返回数据';
-        $dataJson['info'] = $info;
-        $dataJson['page'] = $arr['page'];
+        $dataJson['data'] = $result;
         $this -> jsonReturn($dataJson);
     }
 }
