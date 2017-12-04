@@ -1065,28 +1065,13 @@ class BuyerModel extends PublicModel {
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
             ->where($cond)
             ->count();
-        $pageSize = 1;
+        $pageSize = 10;
         $totalPage = ceil($totalCount/$pageSize);
         $page = isset($data['page'])&&!empty($data['page'])&& $data['page']>0 ? ceil($data['page']) : 1;
         if($page > $totalPage && $totalPage > 0){
             $page = $totalPage;
         }
         $offset = ($page-1)*$pageSize;
-//        $map = array('buyer.created_by'=>$data['created_by']);
-//        $arr = array(
-//            'area_bn',  //地区---
-//            'country_bn',   //国家---
-//            'buyer_code',   //客户代码
-//            'name', //客户名称
-//            'buyer_level',  //客户级别---
-//            'reg_capital',  //注册资金
-//            'line_of_credit'    //授信额度
-//        );
-//        foreach($arr as $v){
-//            if(!empty($data[$v])){
-//                $map['buyer.'.$v] = $data[$v];
-//            }
-//        }
         $field = 'buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,';
         $field .= 'buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.reg_capital_cur,buyer.created_by,';
         $field .= 'buyer.created_at,business.is_local_settlement,business.is_purchasing_relationship,';

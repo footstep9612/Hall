@@ -40,9 +40,13 @@ class BuyerfilesController extends PublicController
                 }
             }
         }
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '返回数据';
         $dataJson['info'] = $info;
         $dataJson['page'] = $arr['page'];
-        echo json_encode(array("code" => 1,  "message" => "返回数据","data" => $dataJson));
+
+        $this -> jsonReturn($dataJson);
+//        echo json_encode(array("code" => 1,  "message" => "返回数据","data" => $dataJson));
     }
     //查看
 //    public function showBuyerAction(){
