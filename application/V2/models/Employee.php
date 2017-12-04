@@ -179,7 +179,9 @@ class EmployeeModel extends PublicModel {
         $info = $this -> field('id,user_no,name') ->where($cond) -> limit($offset,$pageSize) -> select();
         $arr = array(
             'info'=>$info,
-            'page'=>$page
+            'page'=>$page,
+            'totalCount'=>$totalCont,
+            'totalPage'=>$totalPage
         );
         return $arr;
     }
