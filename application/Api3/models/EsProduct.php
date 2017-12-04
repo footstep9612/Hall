@@ -233,6 +233,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'created_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
+        $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
         $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         if (isset($condition['recommend_flag']) && $condition['recommend_flag']) {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
@@ -254,6 +255,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+
+
 
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         $employee_model = new EmployeeModel();
@@ -340,6 +343,8 @@ class EsProductModel extends Model {
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
@@ -388,10 +393,12 @@ class EsProductModel extends Model {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
             if (isset($condition['keyword']) && $condition['keyword']) {
-                $es->setbody($body)->setsort('_score')->setsort('id', 'DESC');
+                $es->setbody($body)->setsort('_score')
+                        ->setsort('onshelf_at', 'DESC')
+                        ->setsort('id', 'DESC');
                 $es->setpreference('_primary_first');
             } else {
-                $es->setbody($body)->setsort('id', 'DESC');
+                $es->setbody($body)->setsort('onshelf_at', 'DESC')->setsort('id', 'DESC');
             }
 
 
