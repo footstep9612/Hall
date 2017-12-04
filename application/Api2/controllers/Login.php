@@ -126,11 +126,8 @@ class LoginController extends PublicController {
         } else {
             jsonReturn('', -101, '国家不能为空!');
         }
-        if (!empty($data['zipcode'])) {
-            $buyer_address_data['zipcode'] = $data['zipcode'];
-        }
         if (!empty($data['address'])) {
-            $buyer_address_data['address'] = $data['address'];
+            $arr['address'] = $data['address'];
         }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
@@ -160,21 +157,11 @@ class LoginController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
-            $arr['serial_no'] = $arr['buyer_no'];
-        }
         $id = $model->create_data($arr);
         if ($id) {
-            if (!empty($buyer_address_data)) {
-                $buyer_address_data['buyer_id'] = $id;
-            }
             $buyer_account_data['buyer_id'] = $id;
             $buyer_account_data['status'] = 'DRAFT';
             $account_id = $buyer_account_model->create_data($buyer_account_data);
-            if (!empty($buyer_address_data)) {
-                $buyer_address_model = new BuyerAddressModel();
-                $buyer_address_model->create_data($buyer_address_data);
-            }
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $data['email'];
@@ -378,7 +365,6 @@ class LoginController extends PublicController {
         }
         if (!empty($data['country'])) {
             $arr['country_bn'] = $data['country'];
-            $buyer_address_data['country_bn'] = $data['country'];
         } else {
             jsonReturn('', -101, '国家不能为空!');
         }
@@ -426,21 +412,11 @@ class LoginController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6);
         $arr['buyer_no'] = $real_num;
-        if (empty($arr['serial_no'])) {
-            $arr['serial_no'] = $arr['buyer_no'];
-        }
         $id = $model->create_data($arr);
         if ($id) {
-            if (!empty($buyer_address_data)) {
-                $buyer_address_data['buyer_id'] = $id;
-            }
             $buyer_account_data['buyer_id'] = $id;
             $buyer_account_data['status'] = 'DRAFT';
             $account_id = $buyer_account_model->create_data($buyer_account_data);
-            if (!empty($buyer_address_data)) {
-                $buyer_address_model = new BuyerAddressModel();
-                $buyer_address_model->create_data($buyer_address_data);
-            }
             if($account_id){
                 jsonReturn('', 1, 'Success!');
             }
@@ -501,15 +477,11 @@ class LoginController extends PublicController {
             $buyer_reg_data['purchase_quota'] = $data['purchase_quota'];
         }
         if (isset($data['address'])) {
-            $buyer_address_data['address'] = $data['address'];
+            $buyer_reg_data['address'] = $data['address'];
         }
         $buyerModel = new BuyerModel();
         $res = $buyerModel->update_data($buyer_data,$where);
         if($res) {
-            if (!empty($buyer_address_data)) {
-                $buyer_address_model = new BuyerAddressModel();
-                $buyer_address_model->update_data($buyer_address_data,$where);
-            }
             $buyer_reg_model = new BuyerreginfoModel();
             $regId = $buyer_reg_model->create_data($buyer_reg_data);
             if($regId){

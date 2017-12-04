@@ -255,4 +255,40 @@ class SupplierMaterialCatModel extends PublicModel {
         return $this->where($where)->delete();
     }
 
+    /**
+     * @desc 删除记录
+     * @param string $material_cat_no1
+     * @param array $condition
+     * @return bool
+     * @author liujf
+     * @time 2017-11-11
+     */
+    public function getCatSupplierCount($material_cat_no1, $condition = []) {
+        $where = [];
+        if (!$material_cat_no1) {
+            return 0;
+        } else {
+            $where['sm.material_cat_no1'] = $material_cat_no1;
+        }
+        $this->_getValue($where, $condition, 'created_at', 'between', 'sm.created_at');
+        $map['s.name'] = ['neq', ''];
+        $map[] = 's.`name` is not null';
+        $map['_logic'] = 'and';
+        $where['_complex'] = $map;
+        $Supplier_model = new SuppliersModel();
+        $Supplier_table = $Supplier_model->getTableName();
+        $data = $this->alias('sm')
+                ->field('sm.id')
+                ->join($Supplier_table . ' s on s.id=sm.supplier_id and s.deleted_flag=\'N\'')
+                ->where($where)
+                ->group('sm.supplier_id')
+                ->select();
+
+        if ($data) {
+            return count($data);
+        } else {
+            return 0;
+        }
+    }
+
 }

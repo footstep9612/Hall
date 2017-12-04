@@ -360,5 +360,50 @@ class BuyerVisitModel extends PublicModel {
             return false;
         }
     }
-
+    //客户管理搜索列表页获取拜访次数信息-wangs
+    public function getVisitCount($ids){
+        $arr = [];
+        foreach($ids as $k => $id){
+            $arr[$k] = $this -> singleVisitInfo($id);
+        }
+        return $arr;
+    }
+    //单个客户管理搜索列表页获取拜访次数信息-wangs
+    public function singleVisitInfo($id){
+        //本周
+        $weekStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("w")+1,date("Y")));
+        $weekEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("w")+7,date("Y")));
+        //本月
+        $monthStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),1,date("Y")));
+        $monthEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("t"),date("Y")));
+        //本季度
+        $quarterStart = date('Y-m-d H:i:s', mktime(0, 0, 0,$season*3-3+1,1,date('Y')+1));
+        $quarterEnd = date('Y-m-d H:i:s', mktime(23,59,59,$season*3,date('t',mktime(0, 0 , 0,$season*3,1,date("Y"))),date('Y')+1));
+        //整合数据
+        $sqlT = "select visit_at from erui_buyer.buyer_visit where buyer_id =".$id;
+        $info = $this->db->query($sqlT);
+        $weekArr = [];
+        $monthArr = [];
+        $quarterArr = [];
+        foreach($info as $v){
+            if($weekStart <= $v['visit_at'] && $v['visit_at'] <= $weekEnd){
+                $weekArr[]=$v['visit_at'];
+            }
+            if($monthStart <= $v['visit_at'] && $v['visit_at'] <= $monthEnd){
+                $monthArr[]=$v['visit_at'];
+            }
+            if($quarterStart <= $v['visit_at'] && $v['visit_at'] <= $quarterEnd){
+                $quarterArr[]=$v['visit_at'];
+            }
+        }
+        $totalVisit=count($info);    //本周
+        $week=count($weekArr);    //本周
+        $month=count($monthArr);    //本月
+        $quarter=count($quarterArr);    //本季
+        $arr['totalVisit'] = $totalVisit;
+        $arr['week'] = $week;
+        $arr['month'] = $month;
+        $arr['quarter'] = $quarter;
+        return $arr;
+    }
 }

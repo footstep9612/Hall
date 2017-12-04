@@ -535,8 +535,6 @@ class BuyerModel extends PublicModel {
 
 //        $buyerAccountModel = new BuyerAccountModel();
 //        $tableAcco = $buyerAccountModel->getTableName();
-        $buyeraddress_model = new BuyerAddressModel();
-        $tableAddr = $buyeraddress_model->getTableName();
         $BuyerreginfoModel = new BuyerreginfoModel();
         $tableReg = $BuyerreginfoModel->getTableName();
         $buyerBankInfoModel = new BuyerBankInfoModel();
@@ -553,7 +551,6 @@ class BuyerModel extends PublicModel {
             $buyerInfo = $this->alias('b')
                     ->field($fields)
                     ->join($tableBank . ' as bb on bb.buyer_id=b.id ', 'left')
-                    ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
                     ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
                     ->where($where)
                     ->find();
@@ -1034,5 +1031,64 @@ class BuyerModel extends PublicModel {
 
         $row = $this->query($sql);
         return $row;
+    }
+    //客户档案管理搜索列表-王帅
+    public function buyerList($data)
+    {
+        //条件
+        $cond = "buyer.created_by=$data[created_by]";
+        if(!empty($data['area_bn'])){
+            $cond .= " and buyer.area_bn=$data[area_bn]";
+        }
+        if(!empty($data['country_bn'])){
+            $cond .= " and buyer.country_bn=$data[country_bn]";
+        }
+        if(!empty($data['buyer_level'])){
+            $cond .= " and buyer.buyer_level=$data[buyer_level]";
+        }
+        if(!empty($data['buyer_code'])){
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['name'])){
+            $cond .= " and buyer.name like '%$data[name]%'";
+        }
+        if(!empty($data['reg_capital'])){
+            $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
+        }
+        if(!empty($data['line_of_credit'])){
+            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
+        }
+        $totalCount = $this->alias('buyer')
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->where($cond)
+            ->count();
+        $pageSize = 10;
+        $totalPage = ceil($totalCount/$pageSize);
+        $page = isset($data['page'])&&!empty($data['page'])&& $data['page']>0 ? ceil($data['page']) : 1;
+        if($page > $totalPage && $totalPage > 0){
+            $page = $totalPage;
+        }
+        $offset = ($page-1)*$pageSize;
+        $field = 'buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,';
+        $field .= 'buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.reg_capital_cur,buyer.created_by,';
+        $field .= 'buyer.created_at,business.is_local_settlement,business.is_purchasing_relationship,';
+        $field .= 'business.is_net,business.net_at,business.net_invalid_at,business.product_type';
+        $info = $this->alias('buyer')
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->field($field)
+            ->where($cond)
+            ->limit($offset,$pageSize)
+            ->select();
+
+        $ids = array();
+        foreach($info as $k => $v){
+            $ids[$v['id']] = $v['id'];
+        }
+        $res = array(
+            'ids' => $ids,
+            'info' => $info,
+            'page'=>$page
+        );
+        return $res;
     }
 }

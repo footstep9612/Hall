@@ -20,7 +20,7 @@ class NotificationController extends PublicController
         $pagesize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
 
         $inquiry = new InquiryModel();
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->page($page, $pagesize)->select();
+        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->page($page, $pagesize)->select();
 
         foreach ($list as &$item){
             $item['remind_count'] = count($this->remindList($item['id']));
@@ -31,7 +31,7 @@ class NotificationController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功!',
-            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id']])->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->select()),
+            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->field('id')->select()),
             'data'    => $list
         ]);
 
@@ -70,7 +70,7 @@ class NotificationController extends PublicController
         $inquiryRemind = new InquiryRemindModel();
         $inquiry = new InquiryModel();
 
-        $where = ['inquiry_id'=>$inquiry_id];
+        $where = ['inquiry_id'=>$inquiry_id,'isread_flag'=>'N'];
         $data = $inquiryRemind->where($where)->field('inquiry_id,created_by,created_at')->select();
 
         foreach ($data as &$datum){

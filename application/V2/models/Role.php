@@ -51,6 +51,7 @@ class RoleModel extends PublicModel {
                     ->group('role.id')
                     ->order($order)
                     ->select();
+
             return $res;
         } else {
             return $this->field($field)

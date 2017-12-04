@@ -314,6 +314,19 @@ class EsProductModel extends Model {
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
+        if (isset($condition['spec_name']) && $condition['spec_name']) {
+            $spec_name = trim($condition['spec_name']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $spec_name . '*']],
+            ]]];
+        }
+        if (isset($condition['spec_value']) && $condition['spec_value']) {
+            $spec_value = trim($condition['spec_value']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $spec_value . '*']],
+            ]]];
+        }
+
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
         if (isset($condition['keyword']) && $condition['keyword']) {
@@ -558,12 +571,33 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->setaggs('attrs.spec_attrs.name.all', 'spec_name', 'terms', 20);
+
+        $es->body['aggs']['spec_name'] = [
+            'terms' => [
+                'field' => 'attrs.spec_attrs.name.all',
+                'size' => 20,
+                'order' => ['_count' => 'desc']
+            ],
+            'aggs' => ['spec_value' => [
+                    'terms' => [
+                        'field' => 'attrs.spec_attrs.value.all',
+                        'size' => 10,
+                        'order' => ['_count' => 'desc']
+                    ]
+                ]
+            ]
+        ];
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
         $spec_names = [];
         if (isset($ret['aggregations']['spec_name']['buckets'])) {
             foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
-                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count']];
+                $spec_values = [];
+
+                foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
+                    $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                }
+
+                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'], 'spec_values' => $spec_values];
             }
         }
         return $spec_names;

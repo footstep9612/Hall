@@ -27,6 +27,11 @@ class SupplierController extends PublicController {
         $where = [];
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
+        } else {
+            $map['name'] = ['neq', ''];
+            $map[] = '`name` is not null';
+            $map['_logic'] = 'and';
+            $where['_complex'] = $map;
         }
         if (!empty($data['supplier_no'])) {
             $where['supplier_no'] = $data['supplier_no'];
