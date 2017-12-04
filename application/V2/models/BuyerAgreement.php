@@ -38,12 +38,9 @@ class BuyerAgreementModel extends PublicModel
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
             -> where($cond)
             ->count();
-        if($totalCount==0){
-            return [];
-        }
         $pageSize = 10;
         $totalPage = ceil($totalCount/$pageSize);
-        if($page > $totalPage){
+        if($page > $totalPage && $totalPage > 0){
             $page = $totalPage;
         }
         $offset = ($page-1)*$pageSize;
