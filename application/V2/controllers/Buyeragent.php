@@ -343,21 +343,23 @@ class BuyeragentController extends PublicController {
      * 框架协议-客户市场经办人列表
      * wangs
      */
-    public function marketAgentAction(){
-        $created_by = $this -> user['id'];
+    public function marketAgentAction()
+    {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerAgentModel();
-        $res = $model -> buyerMarketAgent($data);
-        if($res){
+        $res = $model->buyerMarketAgent($data);
+        if ($res) {
             $dataJson['code'] = 1;
             $dataJson['message'] = '返回数据';
             $dataJson['data'] = $res;
-        }else{
+        } else {
             $dataJson['code'] = 1;
             $dataJson['message'] = '输入客户';
         }
-        $this -> jsonReturn($dataJson);
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 框架协议-商务技术经办人列表
      * wangs
