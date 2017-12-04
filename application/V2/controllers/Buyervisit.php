@@ -18,7 +18,11 @@ class BuyerVisitController extends PublicController {
      * @date    2017-11-29
      */
     public function listAction() {
+<<<<<<< HEAD:application/V2/controllers/Buyervisit.php
 
+=======
+        echo 123;die;
+>>>>>>> dev11.27_12.15:application/V2/controllers/BuyerVisit.php
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
         $arr = $visit_model->getList($data);
