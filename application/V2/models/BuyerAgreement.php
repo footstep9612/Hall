@@ -81,7 +81,9 @@ class BuyerAgreementModel extends PublicModel
         if(empty($data['buyer_id']) || empty($data['created_by'])){
             return false;
         }
-        unset($data['token']);
+        if(!empty($data['token'])){
+            unset($data['token']);
+        }
         $valid = $this -> validData($data);
         if($valid == false){
             return false;
@@ -169,7 +171,7 @@ class BuyerAgreementModel extends PublicModel
                 return false;
             }
         }
-        if($data['execute_start_at'] > $data['execute_end_at']){
+        if($data['execute_start_at'] >= $data['execute_end_at']){
             return false;
         }
         return true;
