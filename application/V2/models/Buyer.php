@@ -1035,23 +1035,48 @@ class BuyerModel extends PublicModel {
     //客户档案管理搜索列表-王帅
     public function buyerList($data)
     {
+        $pageSize = 10;
         $page = isset($data['page'])&&!empty($data['page']) ? $data['page'] : 1;
-        $offset = ($page-1)*2;
-        $map = array('buyer.created_by'=>$data['created_by']);
-        $arr = array(
-            'area_bn',
-            'country_bn',
-            'buyer_code',
-            'name',
-            'buyer_level',
-            'reg_capital',
-            'line_of_credit'
-        );
-        foreach($arr as $v){
-            if(!empty($data[$v])){
-                $map['buyer.'.$v] = $data[$v];
-            }
+        $offset = ($page-1)*$pageSize;
+//        $map = array('buyer.created_by'=>$data['created_by']);
+//        $arr = array(
+//            'area_bn',  //地区---
+//            'country_bn',   //国家---
+//            'buyer_code',   //客户代码
+//            'name', //客户名称
+//            'buyer_level',  //客户级别---
+//            'reg_capital',  //注册资金
+//            'line_of_credit'    //授信额度
+//        );
+//        foreach($arr as $v){
+//            if(!empty($data[$v])){
+//                $map['buyer.'.$v] = $data[$v];
+//            }
+//        }
+        $cond = "buyer.created_by=$data[created_by]";
+        if(!empty($data['area_bn'])){
+            $cond .= " and buyer.area_bn=$data[area_bn]";
         }
+        if(!empty($data['country_bn'])){
+            $cond .= " and buyer.country_bn=$data[country_bn]";
+        }
+        if(!empty($data['buyer_level'])){
+            $cond .= " and buyer.buyer_level=$data[buyer_level]";
+        }
+        if(!empty($data['buyer_code'])){
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['name'])){
+            $cond .= " and buyer.name like '%$data[name]%'";
+        }
+        if(!empty($data['reg_capital'])){
+            $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
+        }
+        if(!empty($data['line_of_credit'])){
+            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
+        }
+
+//        echo $cond;die;
         $field = 'buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,';
         $field .= 'buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.reg_capital_cur,buyer.created_by,';
         $field .= 'buyer.created_at,business.is_local_settlement,business.is_purchasing_relationship,';
@@ -1059,16 +1084,18 @@ class BuyerModel extends PublicModel {
         $info = $this->alias('buyer')
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
             ->field($field)
-            ->where($map)
-            ->limit($offset,2)
+            ->where($cond)
+            ->limit($offset,$pageSize)
             ->select();
+
         $ids = array();
         foreach($info as $k => $v){
             $ids[$v['id']] = $v['id'];
         }
         $res = array(
             'ids' => $ids,
-            'info' => $info
+            'info' => $info,
+            'page'=>$page
         );
         return $res;
     }

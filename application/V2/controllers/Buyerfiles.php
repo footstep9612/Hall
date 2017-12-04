@@ -28,10 +28,6 @@ class BuyerfilesController extends PublicController
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $arr = $model->buyerList($data);
-        if(!$arr){
-            echo json_encode(array("code" => "0", "data" => $res, "message" => "空数据"));
-            exit();
-        }
         $info = $arr['info'];
         $visitModel = new BuyerVisitModel();
         $visitRes = $visitModel->getVisitCount($arr['ids']);
@@ -45,7 +41,10 @@ class BuyerfilesController extends PublicController
                 }
             }
         }
-        echo json_encode(array("code" => "1",  "message" => "返回数据","data" => $info));
+        $dataJson['info'] = $info;
+        $dataJson['page'] = $arr['page'];
+//        var_dump($dataJson);die;
+        echo json_encode(array("code" => 1,  "message" => "返回数据","data" => $dataJson));
     }
     //查看
 //    public function showBuyerAction(){
