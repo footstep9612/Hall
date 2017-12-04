@@ -23,12 +23,9 @@ class ReportController extends PublicController {
 
     public function getPut($name = null, $default = null) {
 
-        return parent::getPut($name, $default);
-
-
+//        return parent::getPut($name, $default);
 
         if (!$this->put_data) {
-
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
             $sign = md5($key . $input['input']);
@@ -168,7 +165,7 @@ class ReportController extends PublicController {
             $supplier_material_cat_model = new SupplierMaterialCatModel();
             $supplier_count = $supplier_material_cat_model->getCatSupplierCount($cat['cat_no'], $condition); //已开发SPU数量
 
-            echo $supplier_material_cat_model->_sql();
+
             $cat['supplier_count'] = $supplier_count;
 
             $catlist[$key] = $cat;
@@ -192,17 +189,17 @@ class ReportController extends PublicController {
         $total = $supplier_model->getCount($condition); //已开发供应商数量
         $this->setvalue('count', $total); //已开发供应商数量
         $condition['status'] = 'APPROVING';
-        $CheckingCount = $supplier_model->getCount($condition); //待审核供应商数量
+        $CheckingCount = $supplier_model->getSupplierCount($condition); //待审核供应商数量
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
         // $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
         $condition['status'] = 'APPROVED';
-        $ValidCount = $supplier_model->getCount($condition); //已通过供应商数量
+        $ValidCount = $supplier_model->getSupplierCount($condition); //已通过供应商数量
         $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
         // $this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
 
 
         $condition['status'] = 'INVALID';
-        $InvalidCount = $supplier_model->getCount($condition); //已驳回供应商数量
+        $InvalidCount = $supplier_model->getSupplierCount($condition); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
         //  $this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
 
