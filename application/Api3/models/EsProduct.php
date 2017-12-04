@@ -247,7 +247,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.' . $analyzer);
-        $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'tech_paras', 'tech_paras.all');
+        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'warranty', 'warranty.all');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
@@ -255,7 +256,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'customization_flag', 'customization_flag.all');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku_count');
 
 
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
@@ -337,14 +339,14 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
+                        //  [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
                         [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
@@ -394,11 +396,11 @@ class EsProductModel extends Model {
             }
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setbody($body)->setsort('_score')
-                        ->setsort('onshelf_at', 'DESC')
+                        ->setsort('created_at', 'DESC')
                         ->setsort('id', 'DESC');
                 $es->setpreference('_primary_first');
             } else {
-                $es->setbody($body)->setsort('onshelf_at', 'DESC')->setsort('id', 'DESC');
+                $es->setbody($body)->setsort('created_at', 'DESC')->setsort('id', 'DESC');
             }
 
 
