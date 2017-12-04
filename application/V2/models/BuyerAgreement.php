@@ -10,18 +10,19 @@ class BuyerAgreementModel extends PublicModel
     }
     //框架协议管理
     public function manageAgree($data){
-        $cond = [];
-        if(!empty($data['execute_no'])){    //执行单号
-            $cond['execute_no'] = $data['execute_no'];
-        }
+        $cond = "1=1";
         if(!empty($data['execute_start_at'])){  //执行时间
-            $cond['execute_start_at'] = $data['execute_start_at'];
-        }
-        if(!empty($data['execute_company'])){   //执行分公司
-            $cond['execute_company'] = $data['execute_company'];
+            $cond .= " and execute_start_at='$data[execute_start_at]'";
         }
         if(!empty($data['org_id'])){    //事业部
-            $cond['org_id'] = $data['org_id'];
+            $cond .= " and org_id='$data[org_id]'";
+        }
+        if(!empty($data['execute_no'])){    //执行单号txt
+            $cond .= " and execute_no like '%$data[execute_no]%'";
+
+        }
+        if(!empty($data['execute_company'])){   //执行分公司txt
+            $cond .= " and execute_company like '%$data[execute_company]%'";
         }
         $page = 1;
         if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0   ){    //事业部
@@ -40,7 +41,7 @@ class BuyerAgreementModel extends PublicModel
         if($totalCount==0){
             return [];
         }
-        $pageSize = 3;
+        $pageSize = 10;
         $totalPage = ceil($totalCount/$pageSize);
         if($page > $totalPage){
             $page = $totalPage;
