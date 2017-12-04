@@ -360,6 +360,7 @@ class BuyeragentController extends PublicController {
         }
         $this -> jsonReturn($dataJson);
     }
+    
     /**
      * 框架协议-商务技术经办人列表
      * wangs
