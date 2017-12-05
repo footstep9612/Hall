@@ -65,4 +65,27 @@ class BuyeragreementController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    //查看框架协议编辑
+    public function updateAgreeAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $agree = new BuyerAgreementModel();
+        $res = $agree->updateAgree($data);
+        if($res == false || empty($data['attach_name']) || empty($data['attach_url'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '保存协议失败,请输入规范数据';
+            $this -> jsonReturn($dataJson);
+        }
+        $attach = new AgreementAttachModel();
+        $attachRes = $attach->updateAgreeAttach($res,$data);
+        if($attachRes){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '保存协议成功';
+        }else{
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '保存协议成功,附件失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }

@@ -25,4 +25,18 @@ class AgreementAttachModel extends PublicModel {
             return false;
         }
     }
+    //保存编辑协议附件数据
+    public function updateAgreeAttach($id,$data){
+        $arr['agreement_id'] = $id;
+        $arr['attach_name'] = $data['attach_name'];
+        $arr['attach_url'] = $data['attach_url'];
+        $arr['created_by'] = $data['created_by'];
+        $arr['created_at'] = date('Y-m-d H:i:s');
+        $res = $this->where(array('agreement_id'=>$id))->save($arr);
+        if($res){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
