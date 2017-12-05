@@ -935,10 +935,44 @@ class ExcelmanagerController extends PublicController {
 
         $data = $this->getRejectedInquiry();
 
-        $localFile = $this->createRejectedFile($data);
+        $excelFile = $this->createRejectedFile($data);
 
         //p($localFile);
-        $this->jsonReturn($localFile);
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server. '/V2/Uploadfile/upload';
+        $data['tmp_name']=$excelFile;
+        $data['type']='application/excel';
+        $data['name']='excelFile';
+        $remoteUrl = $this->postfile($data,$url);
+
+        if (!$remoteUrl) {
+            $this->jsonReturn(['code' => '-104', 'message' => '失败']);
+        }
+        //构建打包文件数组
+        $fileName = date('YmdHis');
+        $files = [['url'=>$excelFile,'name'=>$fileName.'.xls']];
+
+        //上传至FastDFS
+        $zipFile = $fileName.'.zip';
+        $fileId = $this->packAndUpload($url,$zipFile,$files);
+        //上传失败
+        if(empty($fileId) || empty($fileId['url'])){
+            $this->jsonReturn(['code' => '-1', 'message' => '导出失败!',]);
+            return;
+        }
+
+        //删除本地的临时文件
+        @unlink($excelFile);
+        $this->jsonReturn([
+            'code' => '1',
+            'message' => '导出成功!',
+            'data' => [
+                'url' => $fileId['url']
+            ]
+        ]);
+
 
     }
 
@@ -969,7 +1003,7 @@ class ExcelmanagerController extends PublicController {
             $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
 
         }
-        //p($data);
+
         //p($inquiry->getLastSql());
         return $data;
 
