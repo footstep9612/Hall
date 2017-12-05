@@ -928,4 +928,126 @@ class ExcelmanagerController extends PublicController {
 
     }
 
+
+    public function exportRejectedAction()
+    {
+        $this->validateRequestParams();
+
+        $data = $this->getRejectedInquiry();
+
+        $localFile = $this->createRejectedFile($data);
+
+        //p($localFile);
+        $this->jsonReturn($localFile);
+
+    }
+
+    private function getRejectedInquiry()
+    {
+
+        //驳回到市场部和易瑞的 REJECT_MARKET  || CC_DISPATCHING
+        $inquiry= new InquiryModel();
+        $inquiryCheckLog = new InquiryCheckLogModel();
+
+        $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id";
+        $where = " status='REJECT_MARKET' OR status='CC_DISPATCHING' ";
+
+        $data = $inquiry->where($where)->field($field)->select();
+
+        $employee = new EmployeeModel();
+        $org = new OrgModel();
+
+        foreach ($data as $key=>$value){
+            $data[$key]['check'] = $inquiryCheckLog->where([
+                'action' => 'REJECT',
+                'inquiry_id' => $value['id']
+            ])->where("out_node='REJECT_MARKET' OR out_node='CC_DISPATCHING' ")->order('created_at DESC')->field('created_at,created_by,op_note')->find();
+
+            $data[$key]['check']['rejector_name'] = $employee->where(['id'=>$data[$key]['check']['created_by']])->getField('name');
+            $data[$key]['agent'] = $employee->where(['id'=>$data[$key]['agent_id']])->getField('name');
+            $data[$key]['now_agent'] = $employee->where(['id'=>$data[$key]['now_agent_id']])->getField('name');
+            $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
+
+        }
+        //p($data);
+        //p($inquiry->getLastSql());
+        return $data;
+
+    }
+
+    private function createRejectedFile($data) {
+
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $objSheet->setTitle('');
+
+        $styleArray = ['borders' => ['outline' => ['style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => ['rgb' => '333333']]]];
+
+        /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
+        $objSheet->setCellValue("A1", '序号');
+        $objSheet->setCellValue("B1", '询单编号');
+        $objSheet->setCellValue("C1", '市场经办人');
+        $objSheet->setCellValue("D1", '原询单所属事业部');
+        $objSheet->setCellValue("E1", '询价时间');
+        $objSheet->setCellValue("F1", '询单描述');
+        $objSheet->setCellValue("G1", '驳回人');
+        $objSheet->setCellValue("H1", '驳回时间');
+        $objSheet->setCellValue("I1", '驳回理由');
+        $objSheet->setCellValue("J1", '当前办理人');
+        $objSheet->setCellValue("K1", '现询单所属事业部');
+
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+
+        $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('20');
+            $objSheet->getCell($normal_col."1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+        $objSheet->getColumnDimension("A")->setWidth('4');
+
+        $startRow = 2;
+        if(!empty($data)){
+            foreach ($data as $k=>$v){
+
+                $objSheet->getRowDimension($startRow)->setRowHeight(30);
+
+                $objSheet->setCellValue("A".$startRow, $k+1);
+                $objSheet->setCellValue("B".$startRow, $v['serial_no']);
+                $objSheet->setCellValue("C".$startRow, $v['agent']);
+                $objSheet->setCellValue("D".$startRow, $v['org_name']);
+                $objSheet->setCellValue("E".$startRow, $v['created_at']);
+                $objSheet->setCellValue("F".$startRow, $v['adhoc_request']);
+                $objSheet->setCellValue("G".$startRow, $v['check']['rejector_name']);
+                $objSheet->setCellValue("H".$startRow, $v['check']['created_at']);
+                $objSheet->setCellValue("I".$startRow, $v['check']['op_note']);
+                $objSheet->setCellValue("J".$startRow, $v['now_agent']);
+                $objSheet->setCellValue("K".$startRow, $v['org_name']);
+
+                $objSheet->getCell("A".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("B".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("C".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("D".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("E".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("F".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("G".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("H".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("I".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("J".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("K".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+                $startRow++;
+            }
+
+        }
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, "REJECTED_" . date('Ymd-His') . '.xls');
+
+    }
+
 }
