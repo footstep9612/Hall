@@ -385,7 +385,7 @@ class EsProductModel extends Model {
             $es->setaggs('brand.name.all', 'brands', 'terms', 0);
             $es->setaggs('suppliers.supplier_id', 'suppliers', 'terms', 0);
 
-            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize, '_primary_first'), $current_no, $pagesize];
+            $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -415,6 +415,30 @@ class EsProductModel extends Model {
         unset($ret1, $ret, $es);
 
         return $image_count;
+    }
+
+    /*
+     * 获取产品图片总数量
+     */
+
+    public function getSupplierCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+
+        $es->setaggs('suppliers.supplier_id', 'supplier_id', 'terms', 0);
+        $es->setfields(['spu']);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+
+
+        $count = 0;
+        if (isset($ret['aggregations']['supplier_id']['buckets'])) {
+            $count = count($ret['aggregations']['supplier_id']['buckets']);
+        }
+        //$ret = $es = null;
+        //unset($ret, $es);
+
+        return $count;
     }
 
     /*

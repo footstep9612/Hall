@@ -68,12 +68,14 @@ class BrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
 // $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
         if (!empty($condition['name']) && $lang) {
-            $where[] = 'brand like \'%"lang":"' . $lang . '"%\' and brand like \'%"name":"%' . trim($condition['name']) . '%\'';
+            $name = trim($condition['name']);
+            $where[] = ' brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\'  ';
+            $where[] = ' brand like \'%"name":"%' . $name . '%"%\' or brand like \'%"name": "%' . $name . '%"%\' ';
         } elseif ($lang) {
-
-            $where['brand'] = ['like', '%"lang":"' . $lang . '"%'];
+            $where[] = ' brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\' ';
         } elseif (!empty($condition['name'])) {
-            $where['brand'] = ['like', '%"name":"%' . trim($condition['name']) . '%'];
+            $name = trim($condition['name']);
+            $where[] = ' brand like \'%"name":"%' . $name . '%"%\' or brand like \'%"name": "%' . $name . '%"%\' ';
         }
         return $where;
     }
@@ -116,9 +118,9 @@ class BrandModel extends PublicModel {
         list($row_start, $pagesize) = $this->_getPage($condition);
 
         $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
-        if (redisHashExist('Brand', $redis_key)) {
-            return json_decode(redisHashGet('Brand', $redis_key), true);
-        }
+//        if (redisHashExist('Brand', $redis_key)) {
+//            return json_decode(redisHashGet('Brand', $redis_key), true);
+//        }
         try {
             $item = $this->where($where)
                     ->field('id, brand, status, created_by, '
@@ -126,6 +128,7 @@ class BrandModel extends PublicModel {
                     ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
+
             redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
         } catch (Exception $ex) {
@@ -358,10 +361,10 @@ class BrandModel extends PublicModel {
      * @return bool
      * @author zyg
      */
-    public function export($input) {
+    public function export($input, $userInfo) {
         set_time_limit(0);  # 设置执行时间最大值
         @ini_set("memory_limit", "1024M"); // 设置php可使用内存
-        $userInfo = getLoinInfo();
+
         PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
         $objPHPExcel = new PHPExcel();
         $objPHPExcel->getProperties()->setCreator($userInfo['name']);

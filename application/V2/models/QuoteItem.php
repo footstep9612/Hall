@@ -137,6 +137,10 @@ class QuoteItemModel extends PublicModel {
                     return ['code'=>'-104','message'=>'报价有效期必填'];
                 }
 
+                $value['status'] = 'QUOTED';
+                $value['quote_qty'] = $value['qty'];
+                $value['quote_unit'] = $value['unit'];
+
                 $this->save($this->create($value));
 
             }

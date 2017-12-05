@@ -36,6 +36,7 @@ class SuppliersController extends PublicController {
         $this->suppliersModel->startTrans();
 
         $condition['status'] = 'DRAFT';
+        $condition['deleted_flag'] = 'Y';
         $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = $this->time;
 
@@ -130,7 +131,7 @@ class SuppliersController extends PublicController {
         if (strlen($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');
 
-        if ($condition['status'] != 'DRAFT' && $condition['org_id'] == '')
+        if ($condition['org_id'] == '')
             jsonReturn('', -101, '所属事业部不能为空!');
 
         if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == '')
@@ -155,18 +156,12 @@ class SuppliersController extends PublicController {
 
         $flag = true;
         $change = false;
+        $count = count($condition['items']);
 
         // 供应商联系人校验字段
         $checkContactFields = ['contact_name', 'phone', 'email'];
 
         foreach ($condition['items'] as $item) {
-            $contactWhere['id'] = $item['id'];
-
-            if ($item['id'] == '')
-                jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-
-            unset($item['id']);
-
             if ($condition['status'] != 'DRAFT' && $item['contact_name'] == '')
                 jsonReturn('', -101, '联系人姓名不能为空!');
 
@@ -196,18 +191,31 @@ class SuppliersController extends PublicController {
 
             if (strlen($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
-
-            // 审核通过状态下校验必填字段是否修改
-            if ($condition['status'] == 'APPROVED' && !$change) {
-                $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
-
-                $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
+            
+            if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
+                $item['created_by'] = $this->user['id'];
+                $item['created_at'] = $this->time;
+            
+                $resContact = $this->supplierContactModel->addRecord($item);
+            } else {
+                if ($item['id'] == '')
+                    jsonReturn('', -101, '缺少供应商联系人主键id参数!');
+            
+                $contactWhere['id'] = $item['id'];
+                
+                // 审核通过状态下校验必填字段是否修改
+                if ($condition['status'] == 'APPROVED' && !$change) {
+                    $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
+                
+                    $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
+                }
+        
+                $item['updated_by'] = $this->user['id'];
+                $item['updated_at'] = $this->time;
+        
+                $resContact = $this->supplierContactModel->updateInfo($contactWhere, $item);
             }
-
-            $item['updated_by'] = $this->user['id'];
-            $item['updated_at'] = $this->time;
-
-            $resContact = $this->supplierContactModel->updateInfo($contactWhere, $item);
 
             if (!$resContact && $flag)
                 $flag = false;
@@ -225,12 +233,11 @@ class SuppliersController extends PublicController {
             'reg_capital' => $condition['reg_capital'],
             'logo' => $condition['logo'],
             'profile' => $condition['profile'],
+            'org_id' => $condition['org_id'] == '' ? null : $condition['org_id'],
+            'deleted_flag' => 'N', // 非删除
             'updated_by' => $this->user['id'],
             'updated_at' => $this->time
         ];
-
-        if ($condition['org_id'] == '')
-            $supplierData['org_id'] = null;
 
         $supplierWhere['id'] = $condition['supplier_id'];
 
@@ -277,19 +284,15 @@ class SuppliersController extends PublicController {
         // 供应商其他信息
         $extraData = [
             'sign_agreement_flag' => $condition['sign_agreement_flag'],
+            'sign_agreement_time' => $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'],
+            'est_time_arrival' => $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'],
+            'distribution_amount' => $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'],
             'providing_sample_flag' => $condition['providing_sample_flag'],
             'distribution_products' => $condition['distribution_products'],
             'stocking_place' => $condition['stocking_place'],
             'info_upload_flag' => $condition['info_upload_flag'],
             'photo_upload_flag' => $condition['photo_upload_flag']
         ];
-
-        if ($condition['sign_agreement_time'] == '')
-            $extraData['sign_agreement_time'] = null;
-        if ($condition['est_time_arrival'] == '')
-            $extraData['est_time_arrival'] = null;
-        if ($condition['distribution_amount'] == '')
-            $extraData['distribution_amount'] = null;
 
         if ($hasExtra) {
             $extraData['updated_by'] = $this->user['id'];
@@ -398,15 +401,9 @@ class SuppliersController extends PublicController {
 
         $flag = true;
         $data = [];
+        $count = count($condition['items']);
 
         foreach ($condition['items'] as $item) {
-            $where['id'] = $item['id'];
-
-            if ($item['id'] == '')
-                jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-
-            unset($item['id']);
-
             if ($item['contact_name'] == '')
                 jsonReturn('', -101, '联系人姓名不能为空!');
 
@@ -437,10 +434,23 @@ class SuppliersController extends PublicController {
             if (strlen($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
 
-            $item['updated_by'] = $this->user['id'];
-            $item['updated_at'] = $this->time;
-
-            $res = $this->supplierContactModel->updateInfo($where, $item);
+            if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
+                $item['created_by'] = $this->user['id'];
+                $item['created_at'] = $this->time;
+                
+                $res = $this->supplierContactModel->addRecord($item);
+            } else {
+                if ($item['id'] == '')
+                    jsonReturn('', -101, '缺少供应商联系人主键id参数!');
+                
+                $where['id'] = $item['id'];
+                
+                $item['updated_by'] = $this->user['id'];
+                $item['updated_at'] = $this->time;
+                
+                $res = $this->supplierContactModel->updateInfo($where, $item);
+            }
 
             if (!$res) {
                 $data[] = $where['id'];
@@ -484,23 +494,24 @@ class SuppliersController extends PublicController {
     public function addSupplierSupplyRecordAction() {
         $condition = $this->_trim($this->put_data);
 
-        if (empty($condition['supplier_id']))
+        if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
-        if (empty($condition['material_cat_no1']))
+        if ($condition['material_cat_no1'] == '')
             jsonReturn('', -101, '一级物料分类编码不能为空!');
-        if (empty($condition['material_cat_no2']))
+        
+        if ($condition['material_cat_no2'] == '')
             jsonReturn('', -101, '二级物料分类编码不能为空!');
-        if (empty($condition['material_cat_name3']))
-            jsonReturn('', -101, '请输入铺货产品!');
+        
+        if ($condition['material_cat_name3'] == '')
+            jsonReturn('', -101, '请输入三级物料分类名称!');
+        
         $exist = $this->supplierMaterialCatModel->Exist($condition);
 
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
-            if (empty($condition['material_cat_no2'])) {
-                $condition['material_cat_no2'] = null;
-            }
+            
             $res = $this->supplierMaterialCatModel->addRecord($condition);
 
             $this->jsonReturn($res);
@@ -694,15 +705,9 @@ class SuppliersController extends PublicController {
 
         $flag = true;
         $data = [];
+        $count = count($condition['items']);
 
         foreach ($condition['items'] as $item) {
-            $where['id'] = $item['id'];
-
-            if ($item['id'] == '')
-                jsonReturn('', -101, '缺少供应商资质主键id参数!');
-
-            unset($item['id']);
-
             if (strlen($item['name']) > 50)
                 jsonReturn('', -101, '您输入的资质名称长度超过限制!');
 
@@ -723,11 +728,24 @@ class SuppliersController extends PublicController {
 
             if (strlen($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的认证产品长度超过限制!');
-
-            $item['updated_by'] = $this->user['id'];
-            $item['updated_at'] = $this->time;
-
-            $res = $this->supplierQualificationModel->updateInfo($where, $item);
+            
+            if ($count == 1 && !isset($item['id'])) {
+                $item['supplier_id'] = $condition['supplier_id'];
+                $item['created_by'] = $this->user['id'];
+                $item['created_at'] = $this->time;
+            
+                $res = $this->supplierQualificationModel->addRecord($item);
+            } else {
+                if ($item['id'] == '')
+                    jsonReturn('', -101, '缺少供应商资质主键id参数!');
+                
+                $where['id'] = $item['id'];
+            
+                $item['updated_by'] = $this->user['id'];
+                $item['updated_at'] = $this->time;
+            
+                $res = $this->supplierQualificationModel->updateInfo($where, $item);
+            }
 
             if (!$res) {
                 $data[] = $where['id'];

@@ -25,7 +25,14 @@ class RoleController extends PublicController {
             $where['role.name'] = array('like', '%' . $data['name'] . '%');
         }
         if (!empty($data['role_group'])) {
-            $where['role.role_group'] = $data['role_group'];
+            if ($data['role_group'] == 'other') {
+                $map['role.role_group'] = ['notin', ['sys', 'admin', 'inquiry']];
+                $map[] = 'ISNULL(role.role_group)';
+                $map['_logic'] = 'or';
+                $where['_complex'] = $map;
+            } else {
+                $where['role.role_group'] = $data['role_group'];
+            }
         }
         if (!empty($data['role_no'])) {
             $where['role.role_no'] = $data['role_no'];
@@ -39,12 +46,13 @@ class RoleController extends PublicController {
         //判断用户可分配权限
         if ($data['is_show'] == 1) {
             if ($this->user['id'] != 1) {
-                $where['role.admin_show'] = ['exp', ' NOT IN (1) '];
+                $where['role.admin_show'] = 'N';
             }
         }
         $where['role.deleted_flag'] = "N";
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
+
         if ($limit) {
             $count = $model_rolo->getcount($where);
             $datajson['count'] = $count;
@@ -288,7 +296,7 @@ class RoleController extends PublicController {
                 $this->jsonReturn($datajson);
             }
         }
-        $data['created_by'] = $this->user['id'];
+
         $model_rolo->update_data($data, $where);
         $model_role_access_perm = new RoleAccessPermModel();
         $role_arr['url_perm_ids'] = $data['url_perm_ids'];

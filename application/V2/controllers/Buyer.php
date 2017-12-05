@@ -60,7 +60,6 @@ class BuyerController extends PublicController {
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $data['agent_id'];
         }
-
         if ($data['is_agent']=="Y") {
             $where['is_agent'] = $data['is_agent'];
             $where['agent']['user_id'] = $this->user['id'];
@@ -71,9 +70,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['buyer_code'])) {
             $where['buyer_code'] = $data['buyer_code'];
-        }
-        if (!empty($data['serial_no'])) {
-            $where['serial_no'] = $data['serial_no'];
         }
         if (!empty($data['official_phone'])) {
             $where['official_phone'] = $data['official_phone'];
@@ -86,12 +82,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['user_name'])) {
             $where['user_name'] = $data['user_name'];
-        }
-        if (!empty($data['first_name'])) {
-            $where['first_name'] = $data['first_name'];
-        }
-        if (!empty($data['last_name'])) {
-            $where['last_name'] = $data['last_name'];
         }
         if (!empty($data['source'])) {
             $where['source'] = $data['source'];
@@ -221,6 +211,33 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+
+    /*
+     * 统计各状态数量 jhw
+     * */
+    public function buyercheckedlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new BuyerCheckedLogModel();
+
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
+        }else {
+            $datajson['code'] = -103;
+            $datajson['data'] = "";
+            $datajson['message'] = '会员id缺失!';
+        }
+        $data = $model->getlist($where);
+        if ($data) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户详情
      * */
@@ -332,9 +349,6 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '密码不可以都为空!');
         }
-        if (!empty($data['phone'])) {
-            $buyer_account_data['mobile'] = $data['mobile'];
-        }
         if (!empty($data['email'])) {
             $buyer_account_data['email'] = $data['email'];
             if (!isEmail($buyer_account_data['email'])) {
@@ -347,17 +361,27 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['first_name'])) {
-            $buyer_account_data['first_name'] = $data['first_name'];
-        }
-        if (!empty($data['last_name'])) {
-            $buyer_account_data['last_name'] = $data['last_name'];
-        }
         if (!empty($data['mobile'])) {
-            $buyer_account_data['mobile'] = $data['mobile'];
             $arr['official_phone'] = $data['mobile'];
         }
-
+        if (!empty($data['type_remarks'])) {
+            $arr['type_remarks'] = $data['type_remarks'];
+        }
+        if (!empty($data['employee_count'])) {
+            $arr['employee_count'] = $data['employee_count'];
+        }
+        if (!empty($data['reg_capital'])) {
+            $arr['reg_capital'] = $data['reg_capital'];
+        }
+        if (!empty($data['reg_capital_cur'])) {
+            $arr['reg_capital_cur'] = $data['reg_capital_cur'];
+        }
+        if (!empty($data['expiry_at'])) {
+            $arr['expiry_at'] = $data['expiry_at'];
+        }
+        if (!empty($data['show_name'])) {
+            $buyer_account_data['show_name'] = $data['show_name'];
+        }
         $buyer_account_data['created_at'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
@@ -370,8 +394,6 @@ class BuyerController extends PublicController {
         }
         $buyer_contact_data['mobile'] = $data['mobile'];
         $buyer_contact_data['email'] = $data['email'];
-        $buyer_contact_data['last_name'] = $data['last_name'];
-        $buyer_contact_data['first_name'] = $data['first_name'];
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
@@ -383,19 +405,10 @@ class BuyerController extends PublicController {
         if (!empty($data['province'])) {
             $arr['province'] = $data['province'];
         }
-        if (!empty($data['country_code'])) {
-            $arr['country_code'] = $data['country_code'];
-        }
         if (!empty($data['country_bn'])) {
             $arr['country_bn'] = $data['country_bn'];
         } else {
             jsonReturn('', -101, '国家名不可为空!');
-        }
-        if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
-        }
-        if (!empty($data['last_name'])) {
-            $arr['last_name'] = $data['last_name'];
         }
         if (!empty($data['buyer_no'])) {
             $arr['buyer_no'] = $data['buyer_no'];
@@ -411,11 +424,8 @@ class BuyerController extends PublicController {
         if ($checkcrm) {
             jsonReturn('', -103, 'crm编码已经存在');
         }
-        if (!empty($data['zipcode'])) {
-            $buyer_address_data['zipcode'] = $data['zipcode'];
-        }
         if (!empty($data['address'])) {
-            $buyer_address_data['address'] = $data['address'];
+            $arr['address'] = $data['address'];
         }
         if (!empty($data['biz_scope'])) {
             $arr['biz_scope'] = $data['biz_scope'];
@@ -461,19 +471,10 @@ class BuyerController extends PublicController {
         $new_num = $no + $temp_num;
         $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
         $arr['buyer_no'] = $real_num;
-        if (!empty($data['serial_no'])) {
-            $arr['serial_no'] = $data['serial_no'];
-        } else {
-            $arr['serial_no'] = $arr['buyer_no'];
-        }
         $arr['created_by'] = $this->user['id'];
-
         $id = $model->create_data($arr);
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;
-            if (!empty($buyer_address_data)) {
-                $buyer_address_data['buyer_id'] = $id;
-            }
             if (!empty($buyer_attach_data)) {
                 $buyer_attach_data['buyer_id'] = $id;
             }
@@ -486,10 +487,6 @@ class BuyerController extends PublicController {
             $buyer_attach_model->create_data($buyer_attach_data);
             //采购商帐号表
             $buyer_account_model->create_data($buyer_account_data);
-            if (!empty($buyer_address_data)) {
-                $buyer_address_model = new BuyerAddressModel();
-                $buyer_address_model->create_data($buyer_address_data);
-            }
             //获取营销区域信息 -- link 2017-10-31
             //$mareaModel = new MarketAreaModel();
             //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
@@ -588,7 +585,6 @@ class BuyerController extends PublicController {
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
-            $where_address['buyer_id'] = $data['id'];
             $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
@@ -602,25 +598,14 @@ class BuyerController extends PublicController {
         if (!empty($data['province'])) {
             $arr['province'] = $data['province'];
         }
-        if (!empty($data['serial_no'])) {
-            $arr['serial_no'] = $data['serial_no'];
-        }
         if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
-        if (!empty($data['country_code'])) {
-            $arr['country_code'] = $data['country_code'];
+        if (!empty($data['show_name'])) {
+            $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['country_bn'])) {
-            $arr['country_bn'] = $data['country_bn'];
-        }
-        if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
-            $account['first_name'] = $data['first_name'];
-        }
-        if (!empty($data['last_name'])) {
-            $arr['last_name'] = $data['last_name'];
-            $account['last_name'] = $data['last_name'];
+            $account['country_bn'] = $data['country_bn'];
         }
         if (!empty($data['biz_scope'])) {
             $arr['biz_scope'] = $data['biz_scope'];
@@ -632,7 +617,7 @@ class BuyerController extends PublicController {
             $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $buyer_account_model = new BuyerAccountModel();
-        if (!empty($data['email'])) {
+        if(!empty($data['email'])) {
             $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
@@ -642,10 +627,25 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['mobile'])) {
             $arr['official_phone'] = $data['mobile'];
-            $account['mobile'] = $data['mobile'];
         }
         if (!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
+            $arr['level_at'] =date("Y-m-d H:i:s");
+        }
+        if (!empty($data['type_remarks'])) {
+            $arr['type_remarks'] = $data['type_remarks'];
+        }
+        if (!empty($data['employee_count'])) {
+            $arr['employee_count'] = $data['employee_count'];
+        }
+        if (!empty($data['reg_capital'])) {
+            $arr['reg_capital'] = $data['reg_capital'];
+        }
+        if (!empty($data['reg_capital_cur'])) {
+            $arr['reg_capital_cur'] = $data['reg_capital_cur'];
+        }
+        if (!empty($data['expiry_at'])) {
+            $arr['expiry_at'] = $data['expiry_at'];
         }
         if (!empty($data['remarks'])) {
             $arr['remarks'] = $data['remarks'];
@@ -660,10 +660,11 @@ class BuyerController extends PublicController {
                 $arr['checked_at'] = Date("Y-m-d H:i:s");
             }
         }
+        if (!empty($data['address'])) {
+            $arr['address'] = $data['address'];
+        }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-
-
         if (!empty($data['password'])) {
             $account['password_hash'] = $data['password'];
             // $buyer_account_model->update_data($arr_account, $where_account);
@@ -673,13 +674,6 @@ class BuyerController extends PublicController {
             $where_attach['attach_url'] = $data['attach_url'];
             $buyer_attach_model->update_data($where_attach);
         }
-        if (!empty($data['address'])) {
-            $buyer_address_data['address'] = $data['address'];
-        }
-        if (!empty($buyer_address_data)) {
-            $buyer_address_model = new BuyerAddressModel();
-            $buyer_address_model->update_data($buyer_address_data, $where_address);
-        }
         //$model = new UserModel();
         if (!empty($account)) {
             $buyer_account_model->update_data($account, $where_account);
@@ -688,14 +682,13 @@ class BuyerController extends PublicController {
             if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
                 $info =  $buyer_account_model->info($where_account);
                 $info_buyer =  $model->info($where);
+
                 if($info['email']){
                     if ($data['status'] == 'APPROVED') {
                         //审核通过邮件
                         if($info_buyer['lang']){
                             $body = $this->getView()->render('buyer/approved_'.$info_buyer['lang'].'.html');
-                            if($body){
-                                send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                            }
+                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
                         }
                     }
                     if ($data['status'] == 'REJECTED') {

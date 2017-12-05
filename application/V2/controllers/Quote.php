@@ -105,13 +105,17 @@ class QuoteController extends PublicController{
      *退回分单员(事业部分单员)
      */
     public function rejectToBizAction(){
+
         $inquiryModel = new InquiryModel();
 
         $request   = $this->validateRequests('inquiry_id');
+
         $condition = ['inquiry_id'=>$request['inquiry_id']];
+        $country = $inquiryModel->getInquiryCountry($request['inquiry_id']);
         $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
-        $condition['now_agent_id'] = $inquiryModel->getRoleUserId($org_id, $inquiryModel::quoteIssueMainRole, 'ub');
+        $condition['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
+
         $this->jsonReturn($response);
 
     }
@@ -122,7 +126,9 @@ class QuoteController extends PublicController{
     public function sendLogisticsAction(){
 
         $request  = $this->validateRequests('inquiry_id');
+
         $response = $this->quoteModel->sendLogisticsHandler($request, $this->user);
+
         $this->jsonReturn($response);
 
     }
@@ -264,13 +270,18 @@ class QuoteController extends PublicController{
 
         //更新当前办理人
         $inquiry = new InquiryModel();
-        $now_agent_id = $inquiry->getRoleUserId($this->user['group_id'],$inquiry::quoterRole);
+        $now_agent_id = $inquiry->where(['id' => $request['inquiry_id']])->getField('quote_id');
+
+        //是不是需要物流报价标识区分
+        $quoteModel = new QuoteModel();
+        $logi_quote_flag = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('logi_quote_flag');
+        $status = $logi_quote_flag == "Y" ? "BIZ_APPROVING" : "BIZ_QUOTING";
 
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],
             'now_agent_id'  => $now_agent_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
-            'status'        => 'BIZ_APPROVING',
+            'status'        => $status,
             'updated_by'    => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);

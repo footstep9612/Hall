@@ -115,5 +115,74 @@ class EmployeeModel extends PublicModel {
             return false;
         }
     }
+    
+    /**
+     * @desc 根据用户姓名获取ID
+     *
+     * @param string $name
+     * @return array
+     * @author liujf
+     * @time 2017-11-29
+     */
+    public function getUserIdByName($name) {
+        
+        return $this->where(['name'=>$name, 'deleted_flag' => 'N'])->getField('id', true);
+    }
 
+    /**
+     * 获取用户姓名
+     * @param $id
+     * @return mixed
+     * @author 买买提
+     */
+    public function getUserNameById($id) {
+
+        return $this->where(['id'=>$id])->getField('name');
+
+    }
+
+    /**
+     * 获取用户手机号
+     * @param $id
+     * @return mixed
+     * @author 买买提
+     */
+    public function getMobileByUserId($id) {
+
+        return $this->where(['id'=>$id])->getField('mobile');
+
+    }
+
+    /**
+     * 框架协议-商务技术经办人-列表
+     * wangs
+     */
+    public function buyerTechAgent($data){
+        $cond = "1=1";
+        if(!empty($data['name'])){
+            $cond .= " and name like '%$data[name]%'";
+        }
+        if(!empty($data['user_no'])){
+            $cond .= " and user_no like '%$data[user_no]%'";
+        }
+        $page = 1;
+        $pageSize = 10;
+        $totalCont = $this -> where($cond) -> count();
+        $totalPage = ceil($totalCont/$pageSize);
+        if(!empty($data['page']) && is_numeric($data['page']) && $data['page']>0){
+            $page = ceil($data['page']);
+        }
+        if($page > $totalPage && $totalPage > 0){
+            $page = $totalPage;
+        }
+        $offset = ($page-1)*$pageSize;
+        $info = $this -> field('id,user_no,name') ->where($cond) -> limit($offset,$pageSize) -> select();
+        $arr = array(
+            'info'=>$info,
+            'page'=>$page,
+            'totalCount'=>$totalCont,
+            'totalPage'=>$totalPage
+        );
+        return $arr;
+    }
 }

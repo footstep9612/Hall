@@ -166,6 +166,9 @@ class SuppliersModel extends PublicModel {
     public function getJoinDetail($condition = []) {
 
         $where = $this->getJoinWhere($condition);
+        
+        // 去掉删除条件
+        unset($where['a.deleted_flag']); 
 
         return $this->alias('a')
                         ->join($this->joinTable1, 'LEFT')

@@ -56,14 +56,14 @@ class InquiryModel extends PublicModel
         switch ($type)
         {
             case 'TODAY' :
-                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
-                $data = count($this->getList_($auth,$this->listFields,$where));
+                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') AND updated_by is NOT NULL";
+                $data = count($this->getList($auth,$this->listFields,$where));
                 break;
             case 'TOTAL' :
-                $data = count($this->getList_($auth,$this->listFields));
+                $data = count($this->getList($auth,$this->listFields));
                 break;
             case 'QUOTED' :
-                $data = $data = count($this->getList_($auth,$this->listFields,['quote_status'=>'QUOTED']));
+                $data = $data = count($this->getList($auth,$this->listFields,['quote_status'=>'QUOTED']));
                 break;
         }
         return $data;
@@ -77,7 +77,7 @@ class InquiryModel extends PublicModel
      */
     public function getNewItems($auth,$field)
     {
-        $data = array_slice($this->getList_($auth,$field),0,3);
+        $data = array_slice($this->getList($auth,$field),0,3);
 
         $employee = new EmployeeModel();
         foreach ($data  as $key=>$value) {
@@ -192,9 +192,10 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList_($condition = [], $field = '*',$where1=[]) {
+    public function getList($condition = [], $field = '*',$where1=[]) {
 
         $where = $this->getWhere($condition);
+        $where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
@@ -207,6 +208,32 @@ class InquiryModel extends PublicModel
             ->select();
     }
 
+    public function getList_($condition = [], $field = '*') {
+
+        $where = $this->getWhere($condition);
+
+        $where[]="updated_by is NOT NULL";
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        return $this->field($field)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('id DESC')
+            ->select();
+    }
+
+    public function getCount_($condition = []) {
+
+        $where = $this->getWhere($condition);
+        $where[]="updated_by is NOT NULL";
+
+        $count = $this->where($where)->count('id');
+
+        return $count > 0 ? $count : 0;
+    }
+
     /**
      * @desc 获取记录总数
      *
@@ -215,7 +242,7 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-19
      */
-    public function getCount_($condition = []) {
+    public function getCount($condition = []) {
 
         $where = $this->getWhere($condition);
 

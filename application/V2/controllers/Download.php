@@ -205,7 +205,7 @@ class DownloadController extends PublicController {
 
         //列表头
         $objSheet->setCellValue("A1","会员编号")->getColumnDimension("A")->setWidth('24');
-        $objSheet->setCellValue("B1","Crm编号")->getColumnDimension("B")->setWidth('24');
+        $objSheet->setCellValue("B1","CRM编号")->getColumnDimension("B")->setWidth('24');
         $objSheet->setCellValue("C1","所属国家")->getColumnDimension("C")->setWidth('24');
         $objSheet->setCellValue("D1","会员等级")->getColumnDimension("D")->setWidth('24');
         $objSheet->setCellValue("E1","用户来源")->getColumnDimension("E")->setWidth('24');

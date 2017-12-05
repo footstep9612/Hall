@@ -46,7 +46,7 @@ class SupplierChainModel extends PublicModel {
             ];
         } else {
             $where = ['deleted_flag' => 'N',
-                'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING ']]
+                'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING']]
             ];
         }
         $this->_getValue($where, $condition, 'supplier_no');
@@ -158,6 +158,23 @@ class SupplierChainModel extends PublicModel {
      */
     public function getCount($condition = []) {
         $where = [];
+        $this->_getcondition($condition, $where, false);
+        $count = $this->where($where)
+                ->count();
+        return $count;
+    }
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getSupplierCount($condition = []) {
+        $where = ['deleted_flag' => 'N',
+            'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING', 'DRAFT']]
+        ];
+        $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getcondition($condition, $where, false);
         $count = $this->where($where)
                 ->count();

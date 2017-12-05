@@ -17,7 +17,7 @@ class SupplierinquiryController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        // parent::init();
     }
 
     /*
@@ -89,6 +89,7 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
+        ini_set('memory_limit', '1G');
         $supplier_inquiry_model = new SupplierInquiryModel();
         $data = $supplier_inquiry_model->Inquiryexport();
 

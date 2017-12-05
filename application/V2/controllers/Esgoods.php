@@ -148,7 +148,7 @@ class EsgoodsController extends PublicController {
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
             if ($price_validity === 'Y') {
                 $supplier_ids = [];
-                $pricevalidity_end = date('Y-m-d', strtotime('+7 days'));
+                $pricevalidity_end = date('Y-m-d', strtotime('+30 days'));
                 $suppliers = $costprices = [];
 
                 foreach ($list[$key]['costprices'] as $costprice) {

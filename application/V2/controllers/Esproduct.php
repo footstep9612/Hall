@@ -22,8 +22,7 @@ class EsproductController extends PublicController {
 
     //put your code here
     public function init() {
-        $username = $this->get('username');
-        $password = $this->get('password');
+
         if ($this->getRequest()->isCli()) {
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);

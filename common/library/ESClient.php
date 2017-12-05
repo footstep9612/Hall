@@ -107,6 +107,7 @@ class ESClient {
     // "client", "custom", "filter_path", "human", "master_timeout", "timeout", "update_all_types", "wait_for_active_shards"
 
     private $server = '';
+    private $_preference = null;
     public $body = [];
     private $regexp = []; //正则式查询
     private $wildcard = []; //模糊查询
@@ -776,6 +777,10 @@ class ESClient {
         return $must;
     }
 
+    public function setpreference($preference) {
+        $this->_preference = $preference;
+    }
+
     /*
      * filter : 过滤。
      */
@@ -914,7 +919,7 @@ class ESClient {
      *
      */
 
-    public function search($index, $type, $from = 0, $size = 10, $preference = null) {
+    public function search($index, $type, $from = 0, $size = 10) {
         $searchParams = array(
             'index' => $index,
             'type' => $type,
@@ -926,8 +931,8 @@ class ESClient {
         } elseif ($size > 0) {
             $searchParams['body']['size'] = $size;
         }
-        if ($preference) {
-            $searchParams['preference'] = $preference;
+        if ($this->_preference) {
+            $searchParams['preference'] = $this->_preference;
         }
         try {
 
