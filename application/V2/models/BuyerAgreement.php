@@ -61,13 +61,14 @@ class BuyerAgreementModel extends PublicModel
             'agent',            //市场经办人
             'technician'        //商务技术经办人
         );
-        $field = 'buyer.buyer_code,buyer.name';
+        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name';
         foreach($fields as $v){
             $field .= ',agree.'.$v;
         }
         $info = $this ->alias('agree')
             ->field($field)
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            ->join('erui_sys.org org on agree.org_id=org.id','left')
             ->where($cond)
             ->order('agree.id desc')
             ->limit($offset,$pageSize)
@@ -146,16 +147,14 @@ class BuyerAgreementModel extends PublicModel
         }
         return $info;
     }
-    //按单号查看数据及附件信息详情
+    //按单号查看数据及附件信息详情-------
     public function showAgree($execute_no){
         $info = $this ->alias('agree')
             ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
             ->join('erui_sys.org org on agree.org_id=org.id','left')
-            ->field('agree.*,attach.attach_name,attach.attach_url,org.name')
+            ->field('agree.*,attach.attach_name,attach.attach_url,org.name as org_name')
             ->where(array('execute_no'=>$execute_no))
             ->find();
-        $info['org_name'] = $info['name'];
-        unset($info['name']);
         return $info;
     }
     //添加数据
