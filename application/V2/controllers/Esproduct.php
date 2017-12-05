@@ -226,6 +226,7 @@ class EsproductController extends PublicController {
 
         $user_ids = [];
         $spus = [];
+        $esgoods = new EsGoodsModel();
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -251,6 +252,8 @@ class EsproductController extends PublicController {
             if ($is_recycled && !empty($product['spu'])) {
                 $spus = $product['spu'];
             }
+
+            $list[$key]['sku_count_notvalid'] = $esgoods->getSkuCountBySpu($product['spu'], $lang);
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
