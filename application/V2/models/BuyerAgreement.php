@@ -67,7 +67,8 @@ class BuyerAgreementModel extends PublicModel
         $info = $this ->alias('agree')
             ->field($field)
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
-            -> where($cond)
+            ->where($cond)
+            ->order('agree.id desc')
             ->limit($offset,$pageSize)
             ->select();
         $arr = array(

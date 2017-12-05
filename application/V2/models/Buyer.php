@@ -1080,6 +1080,7 @@ class BuyerModel extends PublicModel {
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
             ->field($field)
             ->where($cond)
+            ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
 
