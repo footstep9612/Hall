@@ -144,9 +144,12 @@ class BuyerAgreementModel extends PublicModel
     public function showAgree($execute_no){
         $info = $this ->alias('agree')
             ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
-            ->field('agree.*,attach.attach_name,attach.attach_url')
+            ->join('erui_sys.org org on agree.org_id=org.id','left')
+            ->field('agree.*,attach.attach_name,attach.attach_url,org.name')
             ->where(array('execute_no'=>$execute_no))
             ->find();
+        $info['org_name'] = $info['name'];
+        unset($info['name']);
         return $info;
     }
     //添加数据
