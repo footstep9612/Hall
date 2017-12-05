@@ -18,20 +18,33 @@ class BuyeragreementController extends PublicController
         $dataJson['data'] = $res;
         $this -> jsonReturn($dataJson);
     }
-    //创建客户---业务信息
+    //创建客户---框架协议
     public function createAgreeAction()
     {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        if(empty($data['attach_name']) || empty($data['attach_url'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '请选择协议附件';
+            $this -> jsonReturn($dataJson);
+        }
         $agree = new BuyerAgreementModel();
-        $res = $agree->createAgree($data);
-        if($res){
+        $agreement_id = $agree->createAgree($data);
+        if($agreement_id == false){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '创建协议失败,请输入规范数据';
+            $this -> jsonReturn($dataJson);
+        }
+        $data['agreement_id'] = $agreement_id;
+        $attach = new AgreementAttachModel();
+        $attachRes = $attach->createAgreeAttach($data);
+        if($attachRes){
             $dataJson['code'] = 1;
             $dataJson['message'] = '创建成功';
         }else{
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入规范数据';
+            $dataJson['message'] = '附件创建失败';
         }
         $this -> jsonReturn($dataJson);
     }

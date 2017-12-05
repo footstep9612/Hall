@@ -125,7 +125,7 @@ class BuyerAgreementModel extends PublicModel
         //添加
         $res = $this -> addAgree($arr);
         if($res){
-            return true;
+            return $this -> getLastInsID();
         }
         return false;
     }
