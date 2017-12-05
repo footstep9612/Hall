@@ -125,7 +125,7 @@ class BuyerAgreementModel extends PublicModel
         //添加
         $res = $this -> addAgree($arr);
         if($res){
-            return true;
+            return $this -> getLastInsID();
         }
         return false;
     }
@@ -140,9 +140,13 @@ class BuyerAgreementModel extends PublicModel
         }
         return $info;
     }
-    //按单号查看数据
+    //按单号查看数据及附件信息
     public function showAgree($execute_no){
-        $info = $this -> where(array('execute_no'=>$execute_no)) -> find();
+        $info = $this ->alias('agree')
+            ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
+            ->field('agree.*,attach.attach_name,attach.attach_url')
+            ->where(array('execute_no'=>$execute_no))
+            ->find();
         return $info;
     }
     //添加数据
