@@ -10,7 +10,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //框架协议管理
     public function manageAgree($data){
-        $cond = "1=1";
+        $cond = "buyer_id='$data[buyer_id]' and agree.created_by='$data[created_by]'";
         if(!empty($data['execute_start_at'])){  //执行时间
             $cond .= " and execute_start_at='$data[execute_start_at]'";
         }
@@ -45,6 +45,7 @@ class BuyerAgreementModel extends PublicModel
         }
         $offset = ($page-1)*$pageSize;
         $fields = array(
+            'buyer_id',
             'id',
             'execute_no',       //框架执行单号
             'org_id',           //事业部
@@ -67,7 +68,8 @@ class BuyerAgreementModel extends PublicModel
         $info = $this ->alias('agree')
             ->field($field)
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
-            -> where($cond)
+            ->where($cond)
+            ->order('agree.id desc')
             ->limit($offset,$pageSize)
             ->select();
         $arr = array(
