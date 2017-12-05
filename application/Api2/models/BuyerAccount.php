@@ -104,13 +104,17 @@ class BuyerAccountModel extends PublicModel {
         $model = new BuyerModel();
         $table = $model->getTableName();
         $buyeragent_model = new BuyerAgentModel();
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName();
         $buyeragent_table = $buyeragent_model->getTableName();
         if (!empty($data['buyer_id'])) {
-            $row = $this->alias('b')
+            $row = $this->field('b.*,ba.*,bag.*,country.name as country_name')->alias('b')
                     ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
                     ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
+                    ->join($country_table . ' as country on ba.lang=country.lang and ba.country_bn=country.bn', 'left')
                     ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                     ->find();
+
             if (!empty($row['buyer_level'])) {
                 $BuyerLevelModel = new BuyerLevelModel();
                 $res = $BuyerLevelModel->field('buyer_level')->where(['id' => $row['buyer_level']])->find();

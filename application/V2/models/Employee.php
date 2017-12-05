@@ -158,27 +158,30 @@ class EmployeeModel extends PublicModel {
      * wangs
      */
     public function buyerTechAgent($data){
+        $cond = "1=1";
         if(!empty($data['name'])){
-            $cond['name'] = $data['name'];
+            $cond .= " and name like '%$data[name]%'";
         }
         if(!empty($data['user_no'])){
-            $cond['user_no'] = $data['user_no'];
+            $cond .= " and user_no like '%$data[user_no]%'";
         }
         $page = 1;
-        $pageSize = 3;
+        $pageSize = 10;
         $totalCont = $this -> where($cond) -> count();
         $totalPage = ceil($totalCont/$pageSize);
         if(!empty($data['page']) && is_numeric($data['page']) && $data['page']>0){
             $page = ceil($data['page']);
         }
-        if($page > $totalPage){
+        if($page > $totalPage && $totalPage > 0){
             $page = $totalPage;
         }
         $offset = ($page-1)*$pageSize;
         $info = $this -> field('id,user_no,name') ->where($cond) -> limit($offset,$pageSize) -> select();
         $arr = array(
             'info'=>$info,
-            'page'=>$page
+            'page'=>$page,
+            'totalCount'=>$totalCont,
+            'totalPage'=>$totalPage
         );
         return $arr;
     }

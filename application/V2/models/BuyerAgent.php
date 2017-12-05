@@ -364,17 +364,15 @@ class BuyerAgentModel extends PublicModel {
         if(empty($data['buyer_id'])){
             return false;
         }
-        $cond = [
-            'buyer_id' => $data['buyer_id']
-        ];
-        if(!empty($data['name'])){
-            $cond['name'] = $data['name'];
-        }
-        if(!empty($data['user_no'])){
-            $cond['user_no'] = $data['user_no'];
-        }
         if(!empty($data['page'])){
             $page = $data['page'];
+        }
+        $cond = "buyer_id=$data[buyer_id]";
+        if(!empty($data['name'])){
+            $cond .= " and name like '%$data[name]%'";
+        }
+        if(!empty($data['user_no'])){
+            $cond .= " and user_no like '%$data[user_no]%'";
         }
         $info = $this -> MarketAgentlist($page,$cond);
         return $info;
@@ -394,11 +392,8 @@ class BuyerAgentModel extends PublicModel {
             ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')
             -> where($cond)
             -> count();
-        if($totalCount==0){
-            return [];
-        }
         $totalPage = ceil($totalCount / $size);
-        if($page > $totalPage){
+        if($page > $totalPage && $totalPage > 0){
             $page = $totalPage;
         }
         $offset = ($page-1)*$size;
@@ -414,7 +409,9 @@ class BuyerAgentModel extends PublicModel {
             ->select();
         $arr = array(
             'info'=>$info,
-            'page'=>$page
+            'page'=>$page,
+            'totalCount'=>$totalCount,
+            'totalPage'=>$totalPage
         );
         return $arr;
     }

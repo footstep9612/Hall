@@ -1425,20 +1425,8 @@ function createQrcode($url = '', $logo = '', $msize = 6, $error_level = 'L') {
  * @return array|bool
  */
 function getLoinInfo() {
-    $headers = getHeaders();
-    $token = isset($headers['token']) ? $headers['token'] : '';
-    $jsondata = json_decode(file_get_contents("php://input"), true);
-    $post = Yaf_Dispatcher::getInstance()->getRequest()->getPost();
-    if (isset($jsondata['token']) && !empty($jsondata['token'])) {
-        $token = $jsondata['token'];
-    }
-    if (isset($post['token']) && !empty($post['token'])) {
-        $token = $post['token'];
-    }
-    if (empty($token))
-        return array();
-    $tokeninfo = JwtInfo($token); //解析token
-    return $tokeninfo;
+
+    return $GLOBALS['SSO_USER'];
 }
 
 /**
@@ -1774,8 +1762,8 @@ function postfile($data, $url, $timeout = 30) {
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_AUTOREFERER, true);
-    $cookies = "eruitoken=".$GLOBALS['SSO_TOKEN'];        
-    curl_setopt($ch,CURLOPT_COOKIE,$cookies);
+    $cookies = "eruitoken=" . $GLOBALS['SSO_TOKEN'];
+    curl_setopt($ch, CURLOPT_COOKIE, $cookies);
     curl_setopt($ch, CURLOPT_POSTFIELDS, ['upFile' => $cfile]);
     curl_setopt($ch, CURLOPT_TIMEOUT, (int) $timeout);
     $response = curl_exec($ch);
@@ -1821,10 +1809,10 @@ function isNum($str) {
  * @param $str
  * @return string
  */
-function haveZh($str){
-    if(preg_match("/[\x{4e00}-\x{9fa5}]/u" , $str)){
+function haveZh($str) {
+    if (preg_match("/[\x{4e00}-\x{9fa5}]/u", $str)) {
         return true;
-    }else{
+    } else {
         return false;
     }
 }
