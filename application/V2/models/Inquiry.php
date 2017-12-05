@@ -139,13 +139,17 @@ class InquiryModel extends PublicModel {
                         }
                     }
                     break;
-                case 'quote' :
+                case 'erui' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
                             
                             if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
                         }
+                    }
+                    break;
+                case 'quote' :
+                    foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
                             
