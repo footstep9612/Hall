@@ -984,10 +984,10 @@ class ExcelmanagerController extends PublicController {
         $inquiryCheckLog = new InquiryCheckLogModel();
 
         $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id";
-        $where = " status='REJECT_MARKET' OR status='CC_DISPATCHING' ";
+        $where = " deleted_flag='N' AND (status='REJECT_MARKET' OR status='CC_DISPATCHING') ";
 
         $data = $inquiry->where($where)->field($field)->select();
-
+        p($data);
         $employee = new EmployeeModel();
         $org = new OrgModel();
 
