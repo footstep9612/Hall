@@ -78,19 +78,8 @@ class BuyerAgreementModel extends PublicModel
         );
         return $arr;
     }
-    //创建框架协议
-    public function createAgree($data){
-        if(empty($data['buyer_id']) || empty($data['created_by']) || empty($data['buyer_code'])){
-            return false;
-        }
-        if(!empty($data['token'])){
-            unset($data['token']);
-        }
-        $valid = $this -> validData($data);
-        if($valid == false){
-            return false;
-        }
-        //组装数据
+    //组装有效数据数据
+    public function pageageData($data){
         $arr = array(
             'buyer_id' => $data['buyer_id'],
             'buyer_code' => $data['buyer_code'],
@@ -118,7 +107,18 @@ class BuyerAgreementModel extends PublicModel
         if(!empty($data['payment_mode'])){  //汇款方式
             $arr['payment_mode'] = $data['payment_mode'];
         }
-        $exRes = $this -> showAgree($arr['execute_no']);
+        return $arr;
+    }
+    //创建框架协议
+    public function createAgree($data){
+        //验证
+        $valid = $this -> validData($data);
+        if($valid == false){
+            return false;
+        }
+        //组装数据
+        $arr = $this -> pageageData($data);
+        $exRes = $this -> showAgreeBrief($arr['execute_no']);
         if(!empty($exRes)){
             return false;
         }
@@ -128,6 +128,10 @@ class BuyerAgreementModel extends PublicModel
             return $this -> getLastInsID();
         }
         return false;
+    }
+    //查询框架协议单号唯一
+    public function showAgreeBrief($execute_no){
+        return $this->where(array('execute_no'=>$execute_no))->find();
     }
     //查看框架协议详情
     public function showAgreeDesc($data){
@@ -140,7 +144,7 @@ class BuyerAgreementModel extends PublicModel
         }
         return $info;
     }
-    //按单号查看数据及附件信息
+    //按单号查看数据及附件信息详情
     public function showAgree($execute_no){
         $info = $this ->alias('agree')
             ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
@@ -162,6 +166,13 @@ class BuyerAgreementModel extends PublicModel
     }
     //验证非空数据
     public function validData($data){
+        //验证必要数据
+        if(empty($data['buyer_id']) || empty($data['created_by']) || empty($data['buyer_code'])){
+            return false;
+        }
+        if(!empty($data['token'])){
+            unset($data['token']);
+        }
         $arr = array(
             'execute_no',   //框架执行单号
             'org_id',   //所属事业部
@@ -182,5 +193,25 @@ class BuyerAgreementModel extends PublicModel
             return false;
         }
         return true;
+    }
+    //框架协议编辑保存
+    public function updateAgree($data){
+        //验证
+        $valid = $this -> validData($data);
+        if($valid == false){
+            return false;
+        }
+        //组装数据
+        $arr = $this -> pageageData($data);
+        $exRes = $this -> showAgreeBrief($arr['execute_no']);
+        if(empty($exRes)){
+            return false;
+        }
+        //保存数据
+        $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
+        if($res){
+            return $exRes['id'];
+        }
+        return false;
     }
 }
