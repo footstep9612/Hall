@@ -779,6 +779,7 @@ class EsproductController extends PublicController {
             'source' => $ik_analyzed, //数据来源
             'source_detail' => $ik_analyzed, //数据来源详情
             'sku_count' => $int_analyzed, //SKU数
+            'sku_count_notvalid' => $int_analyzed, //SKU未审核的SKU数
             'view_count' => ['type' => $type], //浏览数量
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [

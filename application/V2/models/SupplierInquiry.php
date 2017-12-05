@@ -30,7 +30,7 @@ class SupplierInquiryModel extends PublicModel {
             $where .= ' AND tmp.supplier_no=\'' . trim($condition['supplier_no']) . '\'';
         }
         if (!empty($condition['supplier_name'])) {
-            $where .= ' AND tmp.supplier_name like \'%' . trim($condition['supplier_no']) . '%\'';
+            $where .= ' AND tmp.supplier_name like \'%' . trim($condition['supplier_name']) . '%\'';
         }
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
             $where .= ' AND tmp.created_at between \'' . trim($condition['created_at_start']) . '\''
