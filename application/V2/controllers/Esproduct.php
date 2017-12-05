@@ -891,6 +891,7 @@ class EsproductController extends PublicController {
             jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
         set_time_limit(0);
+        ini_set('memory_limit', '1G');
         $localDir = $esproduct_model->export($condition, $process, $lang);
 
         if ($localDir) {
