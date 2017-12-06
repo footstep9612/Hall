@@ -5,7 +5,7 @@
  * @date    2017-11-29
  * @desc    客户拜访记录
  */
-class BuyerVisitsController extends PublicController {
+class BuyerVisitController extends PublicController {
 
     //put your code here
     public function init() {
@@ -17,7 +17,7 @@ class BuyerVisitsController extends PublicController {
      * @author  link
      * @date    2017-11-29
      */
-    public function listsAction() {
+    public function getListAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
         $arr = $visit_model->getList($data);
