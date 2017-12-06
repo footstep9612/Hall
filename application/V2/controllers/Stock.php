@@ -125,10 +125,11 @@ class StockController extends PublicController {
             $this->jsonReturn();
         }
         $stock_model = new StockModel();
-        $list = $stock_model->createData($country_bn, $skus, $lang);
-        if ($list) {
-            $this->jsonReturn($list);
-        } elseif ($list === FALSE) {
+        $flag = $stock_model->createData($country_bn, $skus, $lang);
+
+        if ($flag) {
+            $this->jsonReturn();
+        } elseif ($flag === false) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('更新失败!');
             $this->jsonReturn(null);
@@ -217,7 +218,8 @@ class StockController extends PublicController {
         }
         $stock_cost_price_model = new StockCostPriceModel();
 
-        $list = $stock_cost_price_model->updateData($country_bn, $sku, $lang, $cost_prices);
+
+        $list = $stock_cost_price_model->updateDatas($country_bn, $data['spu'], $sku, $cost_prices);
         if ($list) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');

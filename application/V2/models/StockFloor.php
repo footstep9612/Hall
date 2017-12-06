@@ -136,6 +136,24 @@ class StockFloorModel extends PublicModel {
     }
 
     /**
+     * Description of 更新现货楼层上下架状态
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function onshelfData($id, $onshelf_flag) {
+
+        $condition['onshelf_flag'] = trim($onshelf_flag) == 'Y' ? 'Y' : 'N';
+        $condition['deleted_flag'] = 'N';
+        $data = $this->create($condition);
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $data['updated_by'] = defined('UID') ? UID : 0;
+
+        return $this->where(['id' => $id])->save($data);
+    }
+
+    /**
      * Description of 更新产品数量
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
@@ -143,11 +161,38 @@ class StockFloorModel extends PublicModel {
      * @desc  现货楼层
      */
     public function ChangeSkuCount($floor_id, $count = 1) {
-
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
         $data['sku_count'] = ['exp', $count];
         return $this->where(['id' => $floor_id])->save($data);
+    }
+
+    /**
+     * Description of 更新产品数量
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function addGoods($floor_id, $country_bn, $lang, $skus) {
+
+        $this->startTrans();
+        $stock_model = new StockModel();
+        foreach ($skus as $sku) {
+            $flag = $stock_model->where(['lang' => $lang,
+                        'country_bn' => $country_bn,
+                        'sku' => $sku])->save(['floor_id' => $floor_id,
+                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_by' => defined('UID') ? UID : 0
+            ]);
+            if (!$flag) {
+                $this->rollback();
+                return false;
+            }
+            $this->ChangeSkuCount($floor_id, 1);
+        }
+        $this->commit();
+        return true;
     }
 
 }

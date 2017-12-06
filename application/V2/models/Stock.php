@@ -27,6 +27,8 @@ class StockModel extends PublicModel {
         $where = ['s.deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn', 'string', 's.country_bn');
         $this->_getValue($where, $condition, 'floor_name', 'like', 'sf.floor_name');
+
+        $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
@@ -36,7 +38,7 @@ class StockModel extends PublicModel {
                 $where['s.created_by'] = null;
             }
         }
-        $this->_getValue($where, $condition, 'show_flag', 'bool');
+        $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
         return $where;
     }
@@ -52,7 +54,7 @@ class StockModel extends PublicModel {
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['sku'] = $sku;
-        return $this->where($where)->field('id')->find();
+        return $this->where($where)->field('id,floor_id')->find();
     }
 
     /**
@@ -65,14 +67,20 @@ class StockModel extends PublicModel {
     public function getList($condition, $lang) {
         $stock_floor_model = new StockFloorModel();
         $stock_floor_table = $stock_floor_model->getTableName();
-
+        $stock_cost_price_model = new StockCostPriceModel();
+        $stock_cost_price_table = $stock_cost_price_model->getTableName();
         $where = $this->_getCondition($condition);
-        $where['lang'] = $lang;
+        list($from, $size) = $this->_getPage($condition);
+        $where['s.lang'] = $lang;
         return $this->alias('s')
-                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn,'
+                                . 'scp.min_price,scp.max_price,scp.supplier_id')
                         ->join($stock_floor_table
-                                . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn', 'left')
+                                . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
+                        ->join($stock_cost_price_table
+                                . ' scp on  scp.sku=s.sku and scp.country_bn=s.country_bn and scp.deleted_flag=\'N\'', 'left')
                         ->where($where)
+                        ->limit($from, $size)
                         ->select();
     }
 
@@ -84,10 +92,34 @@ class StockModel extends PublicModel {
      * @desc  现货
      */
     public function getInfo($country_bn, $lang, $sku) {
-        $where['country_bn'] = $country_bn;
+        $where['  country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['sku'] = $sku;
         return $this->where($where)->find();
+    }
+
+    private function getSpu($sku, $lang) {
+        $where = ['deleted_flag' => 'N',
+            'lang' => $lang,
+            'sku' => $sku,
+        ];
+        $goods_model = new GoodsModel();
+        $data = $goods_model->field('spu,name,show_name')->where($where)->find();
+
+        if (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
+            $prodcut_model = new ProductModel();
+            $where_spu = ['deleted_flag' => ' N',
+                'lang' => $lang,
+                'spu' => $data['spu'],
+            ];
+            $product = $prodcut_model->field('spu,name,show_name')->where($where_spu)->find();
+
+            $data['name'] = $product['name'];
+            $data['show_name'] = empty($product['show_name']) ? $product['name'] : $product['show_name'];
+        } elseif (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
+            $data['show_name'] = $data['name'];
+        }
+        return $data;
     }
 
     /**
@@ -98,19 +130,38 @@ class StockModel extends PublicModel {
      * @desc  现货
      */
     public function createData($country_bn, $skus, $lang) {
+        $stock_cost_price_model = new StockCostPriceModel();
         $this->startTrans();
         foreach ($skus as $sku) {
-            if (!$this->getExit($country_bn, $lang, $sku)) {
+            $row = $this->getExit($country_bn, $lang, $sku);
 
+            if (!$row) {
+
+                $goods_name = $this->getSpu($sku, $lang);
+                if (empty($goods_name['spu'])) {
+
+                    return false;
+                }
                 $data = [
                     'country_bn' => $country_bn,
                     'lang' => $lang,
+                    'spu' => $goods_name['spu'],
+                    'name' => $goods_name['name'],
+                    'show_name' => $goods_name['show_name'],
                     'sku' => $sku,
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => defined('UID') ? UID : 0
                 ];
                 $flag = $this->add($data);
                 if (!$flag) {
+
+                    $this->rollback();
+                    return false;
+                }
+
+                $flag = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
+                if (!$flag) {
+
                     $this->rollback();
                     return false;
                 }
@@ -129,8 +180,10 @@ class StockModel extends PublicModel {
      */
     public function deleteData($country_bn, $skus, $lang) {
         $this->startTrans();
+        $stock_floor_model = new StockFloorModel();
         foreach ($skus as $sku) {
-            if (!$this->getExit($country_bn, $lang, $sku)) {
+            $row = $this->getExit($country_bn, $lang, $sku);
+            if (!$row) {
 
                 $where = [
                     'country_bn' => $country_bn,
@@ -139,10 +192,17 @@ class StockModel extends PublicModel {
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => defined('UID') ? UID : 0
                 ];
-                $flag = $this->where($where)->delete();
+                $flag = $this->where($where)->save(['deleted_flag' => 'N']);
                 if (!$flag) {
                     $this->rollback();
                     return false;
+                }
+                if ($row['floor_id']) {
+                    $flag = $stock_floor_model->ChangeSkuCount($row['floor_id'], -1);
+                    if (!$flag) {
+                        $this->rollback();
+                        return false;
+                    }
                 }
             }
         }
