@@ -732,23 +732,16 @@ class BuyerController extends PublicController {
             );
         }
     }
-
-//    public function creditAction() {
-//        $data = json_decode(file_get_contents("php://input"), true);
-//        $role_user = new RoleUserModel();
-//            $where['user_id'] = $this->user['id'];
-//            $data = $role_user->getRoleslist($where);
-//            $datajson = array(
-//                'code' => 1,
-//                'message' => '数据获取成功',
-//                'data' => $data
-//            );
-//            jsonReturn($datajson);
-//        } else {
-//            $datajson = array(
-//                'code' => -104,
-//                'message' => '用户验证失败',
-//            );
-//        }
-//    }
+    /**
+     * 客户档案信息管理，创建客户档案-->基本信息
+     * wangs
+     */
+    public function createBuyerInfoAction() {
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $arr = $model->createBuyerBaseInfo($data);
+        var_dump($arr);
+    }
 }

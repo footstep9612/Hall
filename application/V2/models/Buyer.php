@@ -1097,4 +1097,42 @@ class BuyerModel extends PublicModel {
         );
         return $res;
     }
+    //专用采购商客户基本信息展示数据信息brief
+    public function showBuyerBrief($buyer_id){
+        $fieldArr = array(
+            'id as buyer_id', //采购商客户id
+            'name as buyer_name', //采购商客户名称
+//            'buyer_code', //客户代码
+//            'buyer_level', //客户级别
+//            'level_at', //定级日期
+//            'expiry_at', //有效期
+//            'country_bn', //国家
+//            'area_bn', //地区
+
+            'official_phone', //公司固话
+            'official_email', //公司邮箱
+            'official_website', //公司网址
+            'company_reg_date', //成立日期
+            'reg_capital', //注册资金
+            'reg_capital_cur', //注册资金货币
+            'employee_count', //雇员数量
+            'profile as company', //公司介绍txt
+        );
+        $field = 'account.email as buyer_account';  //采购商客户账号
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        return $this->alias('buyer')
+            ->join('erui_buyer.buyer_account as account on buyer.id=account.buyer_id','inner')
+            ->field($field)
+            ->where(array('buyer.id'=>$buyer_id))
+            ->find();
+    }
+    //采购商客户管理，基本信息的创建
+    public function createBuyerBaseInfo($data){
+        $info = $this->showBuyerBrief($data['buyer_id']);
+
+
+        print_r($info);die;
+    }
 }
