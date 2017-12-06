@@ -23,10 +23,12 @@ class StockCostPriceModel extends PublicModel {
         parent::__construct();
     }
 
-    private function _getCondition($condition) {
-        $where = ['deleted_flag' => 'N'];
-        $this->_getValue($where, $condition, 'country_bn', 'string', 'country_bn');
-        $this->_getValue($where, $condition, 'sku', 'string', 'sku');
+    private function _getCondition($country_bn, $sku) {
+        $where = ['deleted_flag' => 'N',
+            'country_bn' => $country_bn,
+            'sku' => $sku,
+        ];
+
 
 
         return $where;
@@ -39,9 +41,12 @@ class StockCostPriceModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function getList($condition) {
-        $where = $this->_getCondition($condition);
-        return $this->where($where)
+    public function getList($country_bn, $sku) {
+        $where = $this->_getCondition($country_bn, $sku);
+        return $this->field('id,supplier_id,min_price,max_price,max_promotion_price,'
+                                . 'min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,'
+                                . 'max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end')
+                        ->where($where)
                         ->select();
     }
 
