@@ -987,7 +987,7 @@ class ExcelmanagerController extends PublicController {
         $where = " deleted_flag='N' AND (status='REJECT_MARKET' OR status='CC_DISPATCHING') ";
 
         $data = $inquiry->where($where)->field($field)->select();
-        p($data);
+
         $employee = new EmployeeModel();
         $org = new OrgModel();
 
