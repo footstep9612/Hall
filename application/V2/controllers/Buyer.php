@@ -741,7 +741,20 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
-        $arr = $model->createBuyerBaseInfo($data);
+//        $res = $model->createBuyerBaseInfo($data);  //创建基本信息
+//        if($res == false){
+//            $valid = array(
+//                'code'=>0,
+//                'message'=>'请输入规范数据',
+//            );
+//            $this -> jsonReturn($valid);
+//        }
+        if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+            //创建采购商客户证书-财务表附件
+            $model = new BuyerattachModel();
+            $financeRes = $model->createBuyerFinanceTable($data['base_info']['attach_name'],$data['base_info']['attach_url'],$created_by);
+            var_dump($financeRes);die;
+        }
         var_dump($arr);
     }
 }

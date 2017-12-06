@@ -49,11 +49,11 @@ class IndustrychainModel extends PublicModel
         foreach($data as $key => $value){
             foreach($value as $k => $v){
                 if(in_array($k,$inArr)){
-                    if(strlen($v)>1000){
+                    if(strlen($v)>300){
                         return false;
                     }
                 }else{
-                    if(strlen($v)>100*3){
+                    if(strlen($v)>150){
                         return false;
                     }
                 }
@@ -76,50 +76,78 @@ class IndustrychainModel extends PublicModel
             return $arr;
         }
     }
+    //查询up,down
+    public function showChain($buyer_id,$created_by){
+        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
+        return $res;
+    }
     //上下游创建数据
     public function createChain($data)
     {
+//        $checkedUp = $this -> checkedUp($up);
+//        $checkedDown = $this -> checkedDown($down);
+//        if($checkedUp == false || $checkedDown == false){
+//            return false;
+//        }
+        //end验证
         $buyer_id = $data['buyer_id'];
         $created_by = $data['created_by'];
-        if(empty($data['up']) || empty($data['down'])){
-            return false;
-        }
-        $up = $data['up'];
-        $down = $data['down'];
-        $checkedUp = $this -> checkedUp($up);
-        $checkedDown = $this -> checkedDown($down);
-        if($checkedUp == false || $checkedDown == false){
-            return false;
-        }
-        //end验证
         //重新保存,删除之前
-        $showDelRes = $this -> showDel($buyer_id,$created_by);
-        if(!$showDelRes){
-            return false;
+//        $showDelRes = $this -> showDel($buyer_id,$created_by);
+//        if($showDelRes == false){
+//            return false;
+//        }
+        if(!empty($data['up'])){
+            $showDelResUP = $this -> showgroupDel($industry_group='up',$buyer_id,$created_by);
+            if($showDelResUP == false){
+                return false;
+            }
+            $up = $data['up'];
+            $checkedUp = $this -> checkedSize($up);
+            if($checkedUp == false){
+                return false;
+            }
+            foreach($up as $k => $v){
+                $v['buyer_id'] = $buyer_id;
+                $v['industry_group'] = 'up';
+                $v['created_by'] = $created_by;
+                $v['created_at'] = date('Y-m-d H:i:s');
+                $upRes = $this -> add($v); //一条
+                if($upRes == false){
+                    return false;
+                }
+            }
         }
-        foreach($up as $k => $v){
-            $up[$k]['buyer_id'] = $buyer_id;
-            $up[$k]['industry_group'] = 'up';
-            $up[$k]['created_by'] = $created_by;
-            $up[$k]['created_at'] = date('Y-m-d H:i:s');
+        if(!empty($data['down'])){
+            $showDelResDown = $this -> showgroupDel($industry_group='down',$buyer_id,$created_by);
+            if($showDelResDown == false){
+                return false;
+            }
+            $down = $data['down'];
+            $checkedDown = $this -> checkedSize($down);
+            if($checkedDown == false){
+                return false;
+            }
+            foreach($down as $k => $v){
+                $v['buyer_id'] = $buyer_id;
+                $v['industry_group'] = 'down';
+                $v['created_by'] = $created_by;
+                $v['created_at'] = date('Y-m-d H:i:s');
+                $downRes = $this -> add($v);
+                if($downRes == false){
+                    return false;
+                }
+            }
         }
-        $upRes = $this -> addAll($up);
-        foreach($up as $k => $v){
-            $down[$k]['buyer_id'] = $buyer_id;
-            $down[$k]['industry_group'] = 'down';
-            $down[$k]['created_by'] = $created_by;
-            $down[$k]['created_at'] = date('Y-m-d H:i:s');
-        }
-        $downRes = $this -> addAll($down);
-        if($upRes && $downRes){
+        if($upRes || $downRes){
             return true;
         }
     }
     //查看删除
-    public function showDel($buyer_id,$created_by){
-        $chainInfo = $this -> showChain($buyer_id,$created_by);
+    public function showgroupDel($industry_group,$buyer_id,$created_by){
+        $chainInfo = $this -> showgroupChain($industry_group,$buyer_id,$created_by);
         if(!empty($chainInfo)){
-            $chainDel = $this -> delChain($buyer_id,$created_by);
+            $chainDel = $this -> delgroupChain($industry_group,$buyer_id,$created_by);
             if(!$chainDel){
                 return false;
             }
@@ -127,15 +155,15 @@ class IndustrychainModel extends PublicModel
         return true;
     }
     //删除
-    public function delChain($buyer_id,$created_by){
-        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->delete();
+    public function delgroupChain($industry_group,$buyer_id,$created_by){
+        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->delete();
         if($res){
             return true;
         }
     }
     //查询
-    public function showChain($buyer_id,$created_by){
-        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
+    public function showgroupChain($industry_group,$buyer_id,$created_by){
+        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->select();
         return $res;
     }
 }

@@ -114,4 +114,15 @@ class BuyerattachModel extends PublicModel {
             $data = $this->create($createcondition);
             return $this->add($data);
     }
+    //创建财务报表--wangs
+    public function createBuyerFinanceTable($attach_name,$attach_url,$created_by){
+        $arr = array(
+            'buyer_id'  => $buyer_id,   //客户id
+            'attach_group'  => 'FINANCE',   //财务报表 FINANCE
+            'attach_name'  => $attach_name,   //文件名称
+            'attach_url'  => $attach_url,   //文件地址
+            'created_by'  => $created_by,   //创建人
+            'created_at'  => date('Y-m-d H:i:s'),   //创建时间datetime
+        );
+    }
 }

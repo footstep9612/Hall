@@ -1097,42 +1097,105 @@ class BuyerModel extends PublicModel {
         );
         return $res;
     }
-    //专用采购商客户基本信息展示数据信息brief
-    public function showBuyerBrief($buyer_id){
-        $fieldArr = array(
-            'id as buyer_id', //采购商客户id
-            'name as buyer_name', //采购商客户名称
+    //专用采购商客户基本创建数据验证
+    public function validBuyerBaseData($data){
+        //验证必填数据非空
+        $baseArr = array(
+            'buyer_id', //采购商客户id
+            'buyer_name', //采购商客户名称
 //            'buyer_code', //客户代码
 //            'buyer_level', //客户级别
 //            'level_at', //定级日期
 //            'expiry_at', //有效期
 //            'country_bn', //国家
 //            'area_bn', //地区
-
+//            'employee_count', //雇员数量
             'official_phone', //公司固话
             'official_email', //公司邮箱
             'official_website', //公司网址
             'company_reg_date', //成立日期
             'reg_capital', //注册资金
             'reg_capital_cur', //注册资金货币
-            'employee_count', //雇员数量
-            'profile as company', //公司介绍txt
+            'profile', //公司介绍txt
         );
-        $field = 'account.email as buyer_account';  //采购商客户账号
-        foreach($fieldArr as $v){
-            $field .= ',buyer.'.$v;
+        foreach($baseArr as $v){
+            if(empty($data['base_info'][$v])){
+                return false;
+            }
+            unset($baseArr['profile']);
+            if(strlen($data['base_info'][$v]) > 100 || strlen($data['profile']) > 1000){
+                return false;
+            }
         }
-        return $this->alias('buyer')
-            ->join('erui_buyer.buyer_account as account on buyer.id=account.buyer_id','inner')
-            ->field($field)
-            ->where(array('buyer.id'=>$buyer_id))
-            ->find();
+        $contactArr = array(    //buyer_attach   buyer_contact
+//            'role', //购买角色
+//            'email',    //邮箱
+//            'hobby',    //喜好
+            'address', //详细地址
+            'experience',    //工作经历
+            'social_relations',    //社会关系
+        );
+        $contactNeed = array(
+            'name', //联系人姓名
+            'title',    //联系人职位
+            'phone',    //联系人电话
+        );
+        foreach($data['contact'] as $value){
+            foreach($contactNeed as $v){
+                if(empty($value[$v]) || strlen($value[$v]) > 5){
+                    return false;
+                }
+            }
+            foreach($contactArr as $v){
+                if(!empty($value[$v]) && strlen($value[$v]) > 100){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
     //采购商客户管理，基本信息的创建
     public function createBuyerBaseInfo($data){
-        $info = $this->showBuyerBrief($data['buyer_id']);
-
-
-        print_r($info);die;
+        //验证数据
+        $info = $this->validBuyerBaseData($data);
+        if($info == false){
+            return false;
+        }
+        //组装基本信息数据
+        $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);
+        $res = $this->where(array('id'=>$arr['id']))->save($arr);
+        if($res){
+            return true;
+        }
+        return false;   //新建客户基本信息失败
+    }
+    //组装客户基本信息创建所需数据
+    public function packageBaseData($data,$created_by){
+        $arr = array(
+            'created_by'    => $created_by, //客户id
+            'created_at'    => date('Y-m-d H:i:s'), //客户id
+            'id'    => $data['buyer_id'], //客户id
+            'name'  => $data['buyer_name'], //客户名称
+            'official_phone'    => $data['official_phone'],    //公司固话
+            'official_email'    => $data['official_email'],    //公司邮箱
+            'official_website'  => $data['official_website'],  //公司网址
+            'company_reg_date'  => $data['company_reg_date'],  //成立日期
+            'reg_capital'   => $data['reg_capital'],   //注册资金
+            'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
+            'profile'   => $data['profile'],   //公司介绍txt
+        );
+        $baseArr = array(
+            'buyer_type', //客户类型
+            'type_remarks', //是否油气
+            'employee_count', //雇员数量
+        );
+        foreach($data as $value){
+            foreach($baseArr as $v){
+                if(!empty($data[$v])){
+                    $arr[$v] = $data[$v];
+                }
+            }
+        }
+        return $arr;
     }
 }
