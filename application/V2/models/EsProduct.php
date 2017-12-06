@@ -363,13 +363,13 @@ class EsProductModel extends Model {
         try {
             $body = $this->getCondition($condition);
 
-            $pagesize = 10;
+            $pagesize = 50;
             $current_no = 1;
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
             }
             if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 50;
             }
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
