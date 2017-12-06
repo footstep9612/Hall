@@ -227,7 +227,24 @@ class LoginController extends PublicController {
             $info = $buyer_account_model ->info(['id' => $account_id]);
             $check = $buyer_account_model->update_data($user_arr, ['id' => $account_id]);
             redisHashDel('rest_password_key', $data['key']);
-            jsonReturn('', 1, 'success!');
+
+            $buyer_model = new BuyerModel();
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
+            $jwtclient = new JWTClient();
+            $jwt['id'] = $info['buyer_id'];
+            $jwt['buyer_id'] = $info['buyer_id'];
+            $jwt['ext'] = time();
+            $jwt['iat'] = time();
+            $jwt['show_name'] = $info['show_name'];
+            $datajson['buyer_no']   =   $buyer_info['buyer_no'];
+            $datajson['email']      =   $info['email'];
+            $datajson['show_name']  =   $info['show_name'];
+            $datajson['country']    =   $buyer_info['country_bn'];
+            $datajson['phone']      =   $buyer_info['official_phone'];
+            $datajson['token']      =   $jwtclient->encode($jwt); //加密
+            redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($datajson), 18000);
+
+            jsonReturn($datajson, 1, 'success!');
         } else {
             jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
         }
@@ -301,13 +318,23 @@ class LoginController extends PublicController {
             $buyer_account_data['buyer_id'] = $id;
             $account_id = $buyer_account_model->create_data($buyer_account_data);
             if($account_id){
-                $buyer_data['key'] =  md5(uniqid());
-                redisSet('improve_info_key'.$buyer_data['key'], $id, 7200);
-                $buyer_data['email'] = $buyer_account_data['email'];
-                $buyer_data['country'] = $arr['country_bn'];
-                $buyer_data['phone'] = $arr['official_phone'];
-                $buyer_data['show_name'] = $buyer_account_data['show_name'];
-                jsonReturn($buyer_data, 1, 'Success!');
+                $datajson['key'] =  md5(uniqid());
+                redisSet('improve_info_key'.$datajson['key'], $id, 7200);
+
+                $jwtclient = new JWTClient();
+                $jwt['id'] = $id;
+                $jwt['buyer_id'] = $id;
+                $jwt['ext'] = time();
+                $jwt['iat'] = time();
+                $jwt['show_name'] = $buyer_account_data['show_name'];
+                $datajson['buyer_no']   =   $arr['buyer_no'];
+                $datajson['email']      =   $buyer_account_data['email'];
+                $datajson['show_name']  =   $buyer_account_data['show_name'];
+                $datajson['country']    =   $arr['country_bn'];
+                $datajson['phone']      =   $arr['official_phone'];
+                $datajson['token']      =   $jwtclient->encode($jwt); //加密
+                redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                jsonReturn($datajson, 1, 'Success!');
             }
             $where['id'] = $id;
             $model->delete_data($where);
@@ -355,6 +382,7 @@ class LoginController extends PublicController {
         }
         $res = $buyerModel->update_data($buyer_data,$where);
         if($res) {
+            redisDel('improve_info_key'.$data['key']);
             jsonReturn('', 1, 'Success!');
         } else{
             jsonReturn('',-121, ShopMsg::getMessage('-121',$lang));//Failed to update your buyerinfo!
