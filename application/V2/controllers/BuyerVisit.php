@@ -17,7 +17,7 @@ class BuyerVisitController extends PublicController {
      * @author  link
      * @date    2017-11-29
      */
-    public function getListAction() {
+    public function listAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
         $arr = $visit_model->getList($data);
