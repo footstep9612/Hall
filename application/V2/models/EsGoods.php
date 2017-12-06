@@ -387,13 +387,13 @@ class EsGoodsModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
-            $pagesize = 50;
+            $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
                 $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
             }
             if (isset($condition['pagesize'])) {
-                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 50;
+                $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
 
             $from = ($current_no - 1) * $pagesize;
