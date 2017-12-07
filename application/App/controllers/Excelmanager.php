@@ -73,7 +73,7 @@ class ExcelmanagerController extends PublicController {
         $localFile = ExcelHelperTrait::download2local($remoteFile);
         $data = ExcelHelperTrait::ready2import($localFile);
 
-        //$result = file_put_contents('./public/json/maimt-app.json',json_encode($data));
+        //$result = file_put_contents('./public/json/qx-07.json',json_encode($data));
         //p($result);
 
         $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
@@ -932,7 +932,8 @@ class ExcelmanagerController extends PublicController {
 
     public function importAction(){
 
-        $data = json_decode(file_get_contents('./public/json/maimt-app.json'),true);
+        p('stop....');
+        $data = json_decode(file_get_contents('./public/json/qx-07.json'),true);
         array_shift($data);
 
         $employee = new EmployeeModel();
@@ -942,7 +943,7 @@ class ExcelmanagerController extends PublicController {
 
         $insrt = [];
         foreach ($data as $key=>$value){
-            $insrt[$key]['employee_id'] = $employee->where(['user_no'=>$value[0]])->getField('id');
+            $insrt[$key]['employee_id'] = $employee->where(['name'=>$value[1]])->getField('id');
             $insrt[$key]['country_bn'] = $country->where(['name'=>$value[2]])->getField('bn');
 
         }
