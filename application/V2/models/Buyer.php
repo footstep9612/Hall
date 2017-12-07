@@ -1186,7 +1186,8 @@ class BuyerModel extends PublicModel {
         //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
-            'type_remarks', //是否油气
+            'type_remarks', //客户类型备注
+            'is_oilgas', //是否油气
             'employee_count', //雇员数量
         );
         foreach($data as $value){
