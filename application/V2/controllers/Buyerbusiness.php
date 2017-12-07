@@ -76,7 +76,11 @@ class BuyerbusinessController extends PublicController
         $this -> jsonReturn($dataJson);
 
     }
-    //展示客户业务信息
+
+    /**
+     * 展示客户业务信息详情
+     * wagns
+     */
     public function businessListAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
@@ -88,9 +92,11 @@ class BuyerbusinessController extends PublicController
         if(!empty($purchaseRes)){
             $businessRes ['purchase'] = $purchaseRes;
         }
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '返回数据';
-            $dataJson['data'] = $businessRes;
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$businessRes,
+        );
         $this -> jsonReturn($dataJson);
     }
 }

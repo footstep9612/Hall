@@ -142,7 +142,7 @@ class BuyerattachModel extends PublicModel {
             if(!empty($v['attach_url'])){
                 $arr['attach_url'] = $v['attach_url'];
             }
-            $arr['purchase_id'] = $k;
+            $arr['purchasing_id'] = $k;
             $res = $this->add($arr);
             if(!$res && $flag){
                 $flag = false;

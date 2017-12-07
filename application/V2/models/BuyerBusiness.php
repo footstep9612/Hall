@@ -76,7 +76,7 @@ class BuyerBusinessModel extends PublicModel
             'product_type',    //产品类型-------业务基础信息
             'purchasing_model',    //采购模式
             'purchasing_cycle',    //采购周期
-            'purchasing_date',    //采购写入时间
+            'cycle_remarks',    //采购周期写入时间
             'usage',  //使用情况
             'is_warehouse',  //是否有仓库
             'warehouse_address', //仓库地址
@@ -136,7 +136,34 @@ class BuyerBusinessModel extends PublicModel
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by
         );
-        $info = $this -> where($map) -> find();
+        $fieldArr = array(
+            'buyer_id', //客户id
+            'product_type', //产品类型
+            'purchasing_model', //采购模式
+            'purchasing_cycle', //采购周期
+            'cycle_remarks',    // 采购周期的备注时间
+            'usage',    // 设备使用情况
+            'is_warehouse', //是否有仓库
+            'warehouse_address',    //仓库所在地
+            'competitor_info',  //竞争对手信息
+            'trade_terms',  //贸易术语
+            'settlement',   //结算方式
+            'is_local_settlement',  //是否本地结算
+            'is_purchasing_relationship',   //采购关系
+            'is_net',   //是否入网
+            'net_subject',  //入网主题
+            'net_at',   //入网时间
+            'net_invalid_at',   //失效时间
+            'net_goods',    //入网商品
+            'created_by',   //创建人
+            'created_at'    //床架时间
+        );
+        $field = '';
+        foreach($fieldArr as $v){
+            $field .= ','.$v;
+        }
+        $field = substr($field,1);
+        $info = $this ->field($field)-> where($map) -> find();
         return $info;
     }
 }

@@ -67,13 +67,29 @@ class BuyerPurchasingModel extends PublicModel
         $res = $this -> where($map) -> delete();
         return $res;
     }
-    //查询采购计划
+    //查询采购计划 和 采购计划附件
     public function showPurchase($buyer_id,$created_by){
         $map = array(
-            'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+            'purchasing.buyer_id'=>$buyer_id,
+            'purchasing.created_by'=>$created_by,
         );
-        $info = $this ->where($map) -> select();
+        $fieldArr = array(
+            'id as purchasing_id',   //采购计划id
+            'buyer_id',   //采购商id
+            'purchasing_budget',   //采购预算
+            'purchasing_plan',   //采购计划
+            'created_by',   //创建人
+            'created_at',   //创建时间
+        );
+        $field = 'attach.attach_name,attach.attach_url';
+        foreach($fieldArr as $v){
+            $field .= ',purchasing.'.$v;
+        }
+        $info = $this->alias('purchasing')
+            ->join('erui_buyer.buyer_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->field($field)
+            ->where($map)
+            -> select();
         return $info;
     }
 }
