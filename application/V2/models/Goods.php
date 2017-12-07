@@ -30,7 +30,6 @@ class GoodsModel extends PublicModel {
         'es' => "西语"
     );
     //定义校验规则
-
     protected $field = array(
         'spu' => array('required', '', 'spu编码不能为空'),
         'supplier_cost' => array('required', '', '供应商不能为空'),
@@ -866,6 +865,13 @@ class GoodsModel extends PublicModel {
                             jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
+                        /*if(isset($attr['supplier'])){
+                            $gs_model = new GoodsSupplierModel();
+                            $result3 = $gs_model->field('id')->where(['supplier_id'=>$attr['supplier']['id']])->find();
+                            if($result3){
+                                jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在');
+                            }
+                        }*/
                         continue;
                     }
                 }
@@ -2182,6 +2188,31 @@ class GoodsModel extends PublicModel {
                             $price_ary = explode('-',$data['purchase_price']);
                             $data['purchase_price'] = $price_ary[0];
                         }
+
+                        if(isset($data_tmp['有效期开始时间']) && !empty($data_tmp['有效期开始时间'])){
+                            if($data_tmp['有效期开始时间']=='永久有效'){
+                                $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                                $data_tmp['有效期'] = null;
+                            }else{
+                                if(is_numeric($data_tmp['有效期开始时间'])){
+                                    $data_tmp['有效期开始时间'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期开始时间']));
+                                }
+                                if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期开始时间'])){
+                                    $faild++;
+                                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期开始时间有误]');
+                                    $start_row++;
+                                    flock($fp, LOCK_UN);
+                                    fclose($fp);
+                                    continue;
+                                }
+                            }
+                        }else{
+                            $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                        }
+
+                        if(isset($data_tmp['有效期结束时间']) && !empty($data_tmp['有效期结束时间'])){
+                            $data_tmp['有效期'] = $data_tmp['有效期结束时间'];
+                        }
                         if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
                             if(is_numeric($data_tmp['有效期'])){
                                 $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
@@ -2333,7 +2364,7 @@ class GoodsModel extends PublicModel {
                         if (!empty($input_sku)) {
                             $condition['sku'] = ['neq', $input_sku];
                         }
-                        $spec_attrs_array = array('spec_attrs' => $data_tmp['spec_attrs']);
+                        $spec_attrs_array = array('spec_attrs' => $data_tmp['spec_attrs'], 'supplier' => $supplierInfo);
                         //数据导入
                         $this->startTrans();
                         $workType = '';
@@ -2455,6 +2486,7 @@ class GoodsModel extends PublicModel {
                                     'price_cur_bn' => $data['purchase_price_cur_bn'],
                                     'min_purchase_qty' => $data['min_order_qty'],
                                     'pricing_date' => date('Y-m-d H:i:s', time()),
+                                    'price_validity_start' => isset($data_tmp['有效期开始时间']) ? $data_tmp['有效期开始时间'] : date('Y-m-d',time()),
                                     'price_validity' => isset($data_tmp['有效期']) ? $data_tmp['有效期'] : null,
                                     'status' => 'VALID'
                                 );
@@ -2975,7 +3007,7 @@ class GoodsModel extends PublicModel {
                         if (!empty($input_sku)) {
                             $condition['sku'] = ['neq', $input_sku];
                         }
-                        $spec_attrs_array = array('spec_attrs' => $data_tmp['spec_attrs']);
+                        $spec_attrs_array = array('spec_attrs' => $data_tmp['spec_attrs'], 'supplier' => $supplierInfo);
                         //数据导入
                         $this->startTrans();
                         $workType = '';
