@@ -1071,8 +1071,9 @@ class InquiryController extends PublicController {
      */
     public function getTimeIntervalDataAction() {
         $reportController = new ReportController();
+        $reportController->getPut();
         
-        $condition = $reportController->getPut();
+        $condition = $this->put_data['input'];
     
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
             $inquiryModel = new InquiryModel();
