@@ -43,12 +43,21 @@ class BuyerVisitReplyModel extends PublicModel{
             $result = $this->field('id,visit_id,visit_reply,created_by,created_at')->where($condition)->select();
             if($result){
                 $userModel = new UserModel();
+                $orgModel = new OrgModel();
+                $orgmModel = new OrgMemberModel();
                 //$bvrModel = new BuyerVisitReplyModel();
                 foreach($result as $index => $r){
                     $userInfo = $userModel->field('user_no,name,mobile')->where(['id'=>$r['created_by']])->find();
                     $result[$index]['user_no'] = $userInfo['user_no'] ? $userInfo['user_no'] : null;
                     $result[$index]['name'] = $userInfo['name'] ? $userInfo['name'] : null;
                     $result[$index]['mobile'] = $userInfo['mobile'] ? $userInfo['mobile'] : null;
+
+                    $morgInfo = $orgmModel->field('org_id')->where(['employee_id' =>$r['created_by']])->find();
+                    if($morgInfo){
+                        $orgInfo = $orgModel->field('name')->where(['id' => $morgInfo['org_id']])->find();
+                    }
+                    $result[$index]['org_name'] = $orgInfo ? $orgInfo['name'] : null;
+
                   /*  $result[$index]['reply'] = 'N';
                     $result[$index]['reply_time'] = null;
                     $bvrInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
@@ -62,6 +71,45 @@ class BuyerVisitReplyModel extends PublicModel{
             return $data;
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisitReply】getReplyById:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
+
+    /**
+     * 编辑（新增/修改）
+     * @param array $_input
+     * @return bool
+     */
+    public function edit($_input = []){
+        if(!isset($_input['visit_id']) || empty($_input['visit_id'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '拜访记录ID不能为空');
+        }
+
+        if(!isset($_input['visit_reply']) || empty($_input['visit_reply'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '内容不能为空');
+        }
+
+        $userInfo = getLoinInfo();
+        $data = $where = [];
+        $data['visit_id'] = $_input['visit_id'];
+        $data['visit_reply'] = $_input['visit_reply'];
+        try{
+            if(isset($_input['id']) && !empty($_input['id'])) {
+                //$data['deleted_flag'] = self::DELETED_N;
+                $where[ 'id' ] = intval( $_input[ 'id' ] );
+                if ( $this->where( $where )->save( $data ) ) {
+                    $result = $_input[ 'id' ];
+                }
+            }else{
+                $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
+                $data['created_at'] = date('Y-m-d H:i:s',time());
+                //$data['deleted_flag'] =  self::DELETED_N;
+                $result = $this->add($data);
+            }
+            return $result ? $result : false;
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】edit:' . $e , Log::ERR);
             return false;
         }
     }

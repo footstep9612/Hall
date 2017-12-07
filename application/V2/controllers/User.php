@@ -35,7 +35,9 @@ class UserController extends PublicController {
         if (!empty($data['role_id'])) {
             $where['role_id'] = trim($data['role_id']);
         }
-
+        if (!empty($data['role_no'])) {
+            $where['role_no'] = trim($data['role_no']);
+        }
         if (!empty($data['status'])) {
             $where['status'] = trim($data['status']);
         }

@@ -730,23 +730,65 @@ class BuyerController extends PublicController {
             );
         }
     }
-
-//    public function creditAction() {
-//        $data = json_decode(file_get_contents("php://input"), true);
-//        $role_user = new RoleUserModel();
-//            $where['user_id'] = $this->user['id'];
-//            $data = $role_user->getRoleslist($where);
-//            $datajson = array(
-//                'code' => 1,
-//                'message' => '数据获取成功',
-//                'data' => $data
-//            );
-//            jsonReturn($datajson);
-//        } else {
-//            $datajson = array(
-//                'code' => -104,
-//                'message' => '用户验证失败',
-//            );
-//        }
-//    }
+    /**
+     * 客户档案信息管理，创建客户档案-->基本信息
+     * wangs
+     */
+    public function createBuyerInfoAction() {
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $res = $model->createBuyerBaseInfo($data);  //创建基本信息
+        if($res == false){
+            $valid = array(
+                'code'=>0,
+                'message'=>'请输入规范数据',
+            );
+            $this -> jsonReturn($valid);
+        }
+        //创建联系人信息
+        $model = new BuyercontactModel();
+        $contactRes = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$created_by);
+        if($contactRes == false){
+            $valid = array(
+                'code'=>1,
+                'message'=>'基本信息，公司介绍，创建成功,联系人创建失败',
+            );
+            $this -> jsonReturn($valid);
+        }
+        //创建财务报表
+        if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+            //创建采购商客户证书-财务表附件
+            $financeRes = $this->_createBuyerFinanceTable($data);
+            if($financeRes == false){
+                $valid = array(
+                    'code'=>1,
+                    'message'=>'基本信息，公司介绍，联系人,创建成功，财务报表创建失败',
+                );
+            }else{
+                $valid = array(
+                    'code'=>1,
+                    'message'=>'基本信息，公司介绍，联系人，财务报表,创建成功',
+                );
+            }
+            $this -> jsonReturn($valid);
+        }
+        $valid = array(
+            'code'=>1,
+            'message'=>'基本信息，公司介绍，联系人,创建成功,财务报表为空',
+        );
+        $this -> jsonReturn($valid);
+    }
+    //添加财务报表
+    private function _createBuyerFinanceTable($data){
+        //创建采购商客户证书-财务表附件
+        $attach_name = $data['base_info']['attach_name'];
+        $attach_url = $data['base_info']['attach_url'];
+        $buyer_id = $data['base_info']['buyer_id'];
+        $created_by = $data['created_by'];
+        $model = new BuyerattachModel();
+        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
+        return $financeRes;
+    }
 }

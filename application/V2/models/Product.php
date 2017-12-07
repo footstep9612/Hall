@@ -281,6 +281,15 @@ class ProductModel extends PublicModel {
                     if (empty($data['material_cat_no'])) {
                         $data['material_cat_no'] = $material_cat_no;
                     }
+                    //严重展示名称必须包含产品名称
+                    if(!empty($data['show_name'])){
+                        if(!strstr($data['show_name'],$data['name'])){
+                            $this->rollback();
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            jsonReturn('', ErrorMsg::FAILED, '展示名称必须包含产品名称');
+                        }
+                    }
                     $data['bizline_id'] = $bizline_id;
                     $this->checkParam($data, $this->field);     //字段校验
                     if ($lang == 'en') {
@@ -1125,7 +1134,18 @@ class ProductModel extends PublicModel {
                             continue;
                         }
                         $data_tmp['show_name'] = trim($r[5]);    //展示名称
-                        //$r[6];    //产品组
+                        //严重展示名称必须包含产品名称
+                        if(!empty($data_tmp['show_name'])){
+                            if(!strstr($data_tmp['show_name'],$data_tmp['name'])){
+                                $faild++;
+                                $objPHPExcel->setActiveSheetIndex(0)
+                                    ->setCellValue('N' . ( $key + 1 ), '操作失败[展示名称必须包含产品名称]');
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
+                                continue;
+                            }
+                        }
+
                         if (empty($r[6])) {
                             $faild++;
                             $objPHPExcel->setActiveSheetIndex(0)

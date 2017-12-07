@@ -56,7 +56,7 @@ class BuyerVisitModel extends PublicModel {
              if($total<=0){
                  return $data;
              }
-             $id_ary = $this->field('id')->where($condition)->order('id')->limit(($current_no-1)*$length,$length)->select();
+             $id_ary = $this->field('id')->where($condition)->order('id DESC')->limit(($current_no-1)*$length,$length)->select();
              $ids = '';
              foreach($id_ary as $r){
                  $ids.= ','.$r['id'];

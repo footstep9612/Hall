@@ -122,6 +122,9 @@ class BuyervisitController extends PublicController {
         }
     }
 
+    /**
+     * 反馈列表
+     */
     public function replyAction(){
         $data = $this->getPut();
         if(!isset($data['visit_id']) || empty($data['visit_id'])){
@@ -130,6 +133,24 @@ class BuyervisitController extends PublicController {
 
         $visit_model = new BuyerVisitReplyModel();
         $arr = $visit_model->getReplyById($data);
+        if ($arr !== false) {
+            jsonReturn($arr);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * 提交反馈内容
+     */
+    public function replayAddAction(){
+        $data = $this->getPut();
+        if(!isset($data['visit_id']) || empty($data['visit_id'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
+        }
+
+        $visit_model = new BuyerVisitReplyModel();
+        $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
