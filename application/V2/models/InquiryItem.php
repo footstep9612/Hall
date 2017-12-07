@@ -11,6 +11,25 @@ class InquiryitemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
+    public $isOil = [
+        '石油专用管材',
+        '钻修井设备',
+        '固井酸化压裂设备',
+        '采油集输设备',
+        '石油专用工具',
+        '石油专用仪器仪表',
+        '油田化学材料'
+    ]; // 油气
+    public $noOil = [
+        '通用机械设备',
+        '劳动防护用品',
+        '消防、医疗产品',
+        '电力电工设备',
+        '橡塑产品',
+        '钢材',
+        '包装物',
+        '杂品'
+    ]; // 非油气
 
     public function __construct() {
         parent::__construct();
@@ -269,6 +288,31 @@ class InquiryitemModel extends PublicModel {
      */
     public function getTime() {
         return date('Y-m-d H:i:s', time());
+    }
+    
+    /**
+     * @desc 获取关联询单SKU列表
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2017-12-07
+     */
+    public function getJoinList($condition = []) {
+        if (!empty($condition['inquiry_id'])) {
+            $where['a.deleted_flag'] = 'N';
+            
+            $where['a.inquiry_id'] = $condition['inquiry_id'];
+        } else {
+            return false;
+        }
+         
+        return $this->alias('a')
+                            ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
+                            ->join('erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'', 'LEFT')
+                            ->where($where)
+                            ->order('a.id DESC')
+                            ->select();
     }
 
 }
