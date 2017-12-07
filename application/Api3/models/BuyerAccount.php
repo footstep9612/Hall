@@ -143,15 +143,21 @@ class BuyerAccountModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function login($data) {
+    public function login($data, $lang) {
         $where = array();
-        if (!empty($data['email'])) {
+        if (isset($data['email'])) {
             $where['email'] = $data['email'];
+        }
+        if (isset($data['user_name'])) {
+            $where['user_name'] = $data['user_name'];
+        }
+        if (empty($where['user_name']) && empty($where['email'])) {
+            jsonReturn(null, -124, ShopMsg::getMessage('-124',$lang));
         }
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
-        $where['status'] = 'VALID';
+        //$where['status'] = 'VALID';
         return $this->where($where)->find();
     }
 
