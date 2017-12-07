@@ -2459,6 +2459,7 @@ class GoodsModel extends PublicModel {
 
                             try {    //商品供应商关系与供应商价格
                                 $data_supplier = array(
+                                    'spu'=>$spu,
                                     'sku' => $input_sku,
                                     'supplier_id' => $supplierInfo['id'],
                                     'brand' => $supplierInfo['brand'],
@@ -3102,6 +3103,7 @@ class GoodsModel extends PublicModel {
 
                             try {    //商品供应商关系与供应商价格
                                 $data_supplier = array(
+                                    'spu' => $spu,
                                     'sku' => $input_sku,
                                     'supplier_id' => $supplierInfo['id'],
                                     'brand' => $supplierInfo['brand'],
