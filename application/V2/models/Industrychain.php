@@ -91,7 +91,7 @@ class IndustrychainModel extends PublicModel
 //        }//end验证
         $buyer_id = $data['buyer_id'];
         $created_by = $data['created_by'];
-        if(empty($data['up']) && empty($data['down'])){
+        if(empty($data['up']) && empty($data['down'])){ //添加空数据
             $null = $this->addNullData($buyer_id,$created_by);
             if($null){
                 return 'nullData';
