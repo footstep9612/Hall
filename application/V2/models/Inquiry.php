@@ -40,6 +40,13 @@ class InquiryModel extends PublicModel {
         'QUOTE_SENT' => '报价单已发出',
         'INQUIRY_CLOSED' => '报价关闭'
     ];
+    public $quoteStatus = [
+        'DRAFT' => '草稿',
+        'NOT_QUOTED' => '未报价',
+        'ONGOING' => '报价中',
+        'QUOTED' => '已报价',
+        'COMPLETED' => '已完成'
+    ];
 
     public function __construct() {
         parent::__construct();
