@@ -20,7 +20,8 @@ class NotificationController extends PublicController
         $pagesize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
 
         $inquiry = new InquiryModel();
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status')->page($page, $pagesize)->select();
+
+        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status,country_bn')->page($page, $pagesize)->select();
 
         foreach ($list as &$item){
             $item['remind_count'] = count($this->remindList($item['id']));

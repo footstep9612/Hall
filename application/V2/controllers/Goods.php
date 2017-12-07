@@ -607,6 +607,7 @@ class GoodsController extends PublicController {
         }
         $process = isset($this->put_data['process']) ? 1 : '';
         $filename = $this->getPut('name');
+        ini_set('memory_limit', '1G');
         $goodsModel = new GoodsModel();
         $localDir = $goodsModel->import($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process, $filename);
         if ($localDir) {
@@ -633,6 +634,7 @@ class GoodsController extends PublicController {
         $process = isset($this->put_data['process']) ? 1 : '';
         $filename = $this->getPut('name');
         $goodsModel = new GoodsModel();
+        ini_set('memory_limit', '1G');
         $localDir = $goodsModel->import2($this->put_data['spu'], $this->put_data['xls'], $this->put_data['lang'], $process, $filename);
         if ($localDir) {
             if (is_array($localDir) && isset($localDir['success']) && $localDir['success'] == 0) {
@@ -656,7 +658,7 @@ class GoodsController extends PublicController {
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
-
+        ini_set('memory_limit', '1G');
         $goodsModel = new GoodsModel();
         $result = $goodsModel->zipImport2($this->put_data['xls']);
         if ($result !== false) {
@@ -674,12 +676,12 @@ class GoodsController extends PublicController {
         }
     }
 
-
     /**
      * 到期提醒模板导出
      */
-    public function expireTempAction(){
+    public function expireTempAction() {
         $goodsModel = new GoodsModel();
+
         $localDir = $goodsModel->expireTemp();
         if ($localDir) {
             jsonReturn($localDir);
@@ -688,12 +690,12 @@ class GoodsController extends PublicController {
         }
     }
 
-
     /**
      * 到期提醒导出
      */
-    public function expireExportAction(){
+    public function expireExportAction() {
         $goodsModel = new GoodsModel();
+        ini_set('memory_limit', '1G');
         $localDir = $goodsModel->expireExport($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
@@ -705,16 +707,16 @@ class GoodsController extends PublicController {
     /**
      * 到期提醒导入
      */
-    public function expireImportAction(){
+    public function expireImportAction() {
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
-
+        ini_set('memory_limit', '1G');
         $goodsModel = new GoodsModel();
         $result = $goodsModel->expireImport($this->put_data);
-        if($result){
-            jsonReturn($result, ErrorMsg::SUCCESS, '成功操作'.(isset($result['success']) ? $result['success'] : 0).'条，失败'.(isset($result['faild']) ? $result['faild'] : 0).'条');
-        }else{
+        if ($result) {
+            jsonReturn($result, ErrorMsg::SUCCESS, '成功操作' . (isset($result['success']) ? $result['success'] : 0) . '条，失败' . (isset($result['faild']) ? $result['faild'] : 0) . '条');
+        } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
@@ -722,8 +724,9 @@ class GoodsController extends PublicController {
     /**
      * 到期修改
      */
-    public function expireUpdateAction(){
+    public function expireUpdateAction() {
         $goodsModel = new GoodsModel();
+
         $localDir = $goodsModel->expireUpdate($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
@@ -732,12 +735,13 @@ class GoodsController extends PublicController {
         }
     }
 
-
-    /********************************************
+    /*     * ******************************************
      * 临时导出
      */
+
     public function exportallAction() {
         $goodsModel = new GoodsModel();
+        ini_set('memory_limit', '1G');
         $localDir = $goodsModel->exportAll($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);
@@ -745,4 +749,5 @@ class GoodsController extends PublicController {
             jsonReturn('', ErrorMsg::FAILED);
         }
     }
+
 }

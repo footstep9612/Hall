@@ -915,7 +915,9 @@ class EsProductModel extends Model {
         } else {
             $body['sku_count'] = '0';
         }
+
         $body['sku_count'] = intval($body['sku_count']);
+
         $material_cat_no = $item['material_cat_no'];
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];

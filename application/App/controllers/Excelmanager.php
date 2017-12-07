@@ -73,6 +73,9 @@ class ExcelmanagerController extends PublicController {
         $localFile = ExcelHelperTrait::download2local($remoteFile);
         $data = ExcelHelperTrait::ready2import($localFile);
 
+        //$result = file_put_contents('./public/json/maimt-app.json',json_encode($data));
+        //p($result);
+
         $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
         $this->jsonReturn($response);
 
@@ -293,7 +296,7 @@ class ExcelmanagerController extends PublicController {
         $list = $quoteItemModel->alias('a')
                                 ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id=b.id')
                                 ->field('b.id,b.remarks,b.qty,a.purchase_unit_price')
-                                ->where(['b.inquiry_id'=>$inquiry_id])
+                                ->where(['a.inquiry_id' => $inquiry_id,'a.deleted_flag'=>'N'])
                                 ->select();
         $final_total_price = [];
         $final_total_qty = [];
@@ -450,24 +453,12 @@ class ExcelmanagerController extends PublicController {
         $info['quote_time'] = $finalQuoteInfo['biz_quote_at'];
 
 
-        //报价单项(final_quote)
-//        $finalQuoteItemModel = new FinalQuoteItemModel();
-//        $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,c.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,c.gross_weight_kg,c.package_size,c.package_mode,c.delivery_days,c.period_of_validity';
-//        $finalQuoteItems = $finalQuoteItemModel->alias('a')
-//                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
-//                ->join('erui_rfq.quote_item c ON a.quote_item_id = c.id')
-//                ->field($fields)
-//                ->where(['a.inquiry_id' => $inquiry_id])
-//                ->order('a.id DESC')
-//                ->select();
-
-
         $quoteItemModel = new QuoteItemModel();
         $fields = 'a.id,a.inquiry_id,b.name_zh,b.name,b.model,b.remarks,a.remarks quote_remarks,b.qty,b.unit,b.brand,a.exw_unit_price,a.quote_unit_price,a.gross_weight_kg,a.package_size,a.package_mode,a.delivery_days,a.period_of_validity';
         $quoteItems = $quoteItemModel->alias('a')
             ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id')
             ->field($fields)
-            ->where(['a.inquiry_id' => $inquiry_id])
+            ->where(['a.inquiry_id' => $inquiry_id,'a.deleted_flag'=>'N'])
             ->order('a.id DESC')
             ->select();
 
@@ -936,6 +927,97 @@ class ExcelmanagerController extends PublicController {
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "FQ_" . date('Ymd-His') . '.xls');
+
+    }
+
+    public function importAction(){
+
+        $data = json_decode(file_get_contents('./public/json/maimt-app.json'),true);
+        array_shift($data);
+
+        $employee = new EmployeeModel();
+        $country = new CountryModel();
+
+        $country_member = new CountryUserModel();
+
+        $insrt = [];
+        foreach ($data as $key=>$value){
+            $insrt[$key]['employee_id'] = $employee->where(['user_no'=>$value[0]])->getField('id');
+            $insrt[$key]['country_bn'] = $country->where(['name'=>$value[2]])->getField('bn');
+
+        }
+
+        foreach ($insrt as $item=>$value){
+
+            $country_member->where(['employee_id'=>$value['country_bn']])->delete();
+
+            $country_member->add($country_member->create([
+                'country_bn' => $value['country_bn'],
+                'employee_id' => $value['employee_id'],
+                'created_by' => $this->user['id'],
+                'created_at' => date('Y-m-d H:i:s')
+            ]));
+
+        }
+
+    }
+
+    public function importPortAction()
+    {
+        $port = new PortModel();
+
+        $data = [
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'BALITMORE/MD','name'=>'巴尔的摩','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'BIRMINGHAM/AL','name'=>'伯明翰','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'BOSTON/MA','name'=>'波士顿','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'CHARLOTTE/NC','name'=>'夏洛特','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'CHICAGO/IL','name'=>'芝加哥','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'CINCINNATI/OH','name'=>'辛西那提','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'CLEVELAND/OH','name'=>'克里弗兰','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'COLUMBUS/OH','name'=>'哥伦比亚','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'DALLAS，TX','name'=>'达拉斯','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'DENVER，CO','name'=>'丹佛','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'DETROIT，MI','name'=>'底特律','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'EL PASO，TX','name'=>'埃尔帕索','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'HOUSTON，TX','name'=>'休斯顿','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'HUNTSVILLE，AL','name'=>'亨兹威尔','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'INDIANAPOLIS，IN','name'=>'印第安那波利斯','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'JACKSONVILLE，FL','name'=>'杰克森威尔','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'KANSAS CITY，KS','name'=>'堪萨斯城','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'KANSAS CITY，MO','name'=>'堪萨斯城','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'LAREDO，TX','name'=>'拉雷多','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'LONG BEACH','name'=>'长滩','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'LOS ANGELES','name'=>'洛山矶','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'LOUISVILLE，KY','name'=>'路易斯维尔','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'MEMPHIS，TN','name'=>'孟菲斯','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'MIAMI，FL','name'=>'迈阿密','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'MILWAUKEE，WI','name'=>'密尔沃基','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'MINNEAPOLIS，MN','name'=>'明尼阿波利斯','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'MOBILE，AL','name'=>'莫比尔','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'NASHVILLE，TN','name'=>'纳什维尔','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'NEW ORLEANS，LA','name'=>'新奥尔良','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'NEW YORK, NT','name'=>'纽约','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'NORFOLK，VA','name'=>'诺福克','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'OAKLAND','name'=>'奥克兰','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'OMAHA，NE','name'=>'奥马哈','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'ORLANDO，FL','name'=>'奥兰多','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'PHLADELPHIA，PA','name'=>'费城','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'PHOENIX，AZ','name'=>'费尼克斯（凤凰城）','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'PITTSBURGH，PA','name'=>'匹兹堡','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'PORTLAND，OR','name'=>'波特兰','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'SALT LAKE CITY，UT','name'=>'盐湖城','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'SAN ANTONIO，TX','name'=>'圣安东尼奥','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'SAN FRANCISCO','name'=>'旧金山','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'SAVANNAH，GA','name'=>'萨凡那','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'SEATTLE','name'=>'西雅图','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'ST，LOUIS，MO','name'=>'圣路易斯','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'ST，PAUL，MN','name'=>'圣保罗','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+            ['lang'=>'zh', 'country_bn'=>'America', 'bn'=>'TAMPA，FL','name'=>'坦帕','status'=>'VALID', 'created_at'=>date('Y-m-d H:i:s'), 'deleted_flag'=>'N'],
+        ];
+        p(count($data));
+        foreach ($data as $key=>$value){
+            $port->add($port->create($value));
+        }
 
     }
 

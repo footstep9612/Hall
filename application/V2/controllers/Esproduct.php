@@ -226,6 +226,7 @@ class EsproductController extends PublicController {
 
         $user_ids = [];
         $spus = [];
+        $esgoods = new EsGoodsModel();
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -251,6 +252,8 @@ class EsproductController extends PublicController {
             if ($is_recycled && !empty($product['spu'])) {
                 $spus = $product['spu'];
             }
+
+            $list[$key]['sku_count_notvalid'] = $esgoods->getSkuCountBySpu($product['spu'], $lang);
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
@@ -776,6 +779,7 @@ class EsproductController extends PublicController {
             'source' => $ik_analyzed, //数据来源
             'source_detail' => $ik_analyzed, //数据来源详情
             'sku_count' => $int_analyzed, //SKU数
+            'sku_count_notvalid' => $int_analyzed, //SKU未审核的SKU数
             'view_count' => ['type' => $type], //浏览数量
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
@@ -891,6 +895,7 @@ class EsproductController extends PublicController {
             jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
         set_time_limit(0);
+        ini_set('memory_limit', '1G');
         $localDir = $esproduct_model->export($condition, $process, $lang);
 
         if ($localDir) {

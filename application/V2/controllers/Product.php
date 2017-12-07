@@ -448,6 +448,7 @@ class ProductController extends PublicController {
      *
      */
     public function importAction() {
+
         if (empty($this->put_data)) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
@@ -457,8 +458,10 @@ class ProductController extends PublicController {
         if (!in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '语言错误');
         }
+
         $process = isset($this->put_data['process']) ? 1 : '';
         $name = $this->getPut('name');
+        ini_set('memory_limit', '1G');
         $productModel = new ProductModel();
         $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process, $name);
         if ($result) {
@@ -482,7 +485,7 @@ class ProductController extends PublicController {
         if (empty($this->put_data['xls'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
-
+        ini_set('memory_limit', '1G');
         $productModel = new ProductModel();
         $result = $productModel->zipImport2($this->put_data['xls']);
         if ($result !== false && $result['sucess'] > 0) {
@@ -518,6 +521,7 @@ class ProductController extends PublicController {
      */
     public function exportAction() {
         $productModel = new ProductModel();
+        ini_set('memory_limit', '1G');
         $process = isset($this->put_data['process']) ? 1 : '';
         $localDir = $productModel->export($this->put_data, $process);
         if ($localDir) {
@@ -532,6 +536,7 @@ class ProductController extends PublicController {
      */
     public function exportShelfAction() {
         $productModel = new ProductModel();
+        ini_set('memory_limit', '1G');
         $localDir = $productModel->exportShelf($this->put_data);
         if ($localDir) {
             jsonReturn($localDir);

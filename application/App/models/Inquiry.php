@@ -162,15 +162,16 @@ class InquiryModel extends PublicModel
                     }
                 }
 
-                $results['code'] = '1';
+                $results['code'] = 1;
                 $results['message'] = '成功！';
 
             }else{
-                $results['code'] = '-101';
+                $results['code'] = -1;
                 $results['message'] = '修改失败!';
             }
         }catch (Exception $exception){
-            $results['code'] = $exception->getCode();
+            //$results['code'] = $exception->getCode();
+            $results['code'] = -1; //兼容APP端
             $results['message'] = $exception->getMessage();
         }
 
