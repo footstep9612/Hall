@@ -114,8 +114,47 @@ class BuyerattachModel extends PublicModel {
             $data = $this->create($createcondition);
             return $this->add($data);
     }
-    //创建财务报表--wangs
-    public function createBuyerFinanceTable($attach,$buyer_id,$created_by){
+
+    /*
+     * 创建财务报表
+     * attach_name,attach_url
+     * wangs
+     */
+    public function createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'attach_group'=>'FINANCE',
+            'deleted_flag'=>'N',
+        );
+        $this->startTrans();    //开启事务
+        $exist = $this->where($cond)->find();
+        if(!empty($exist)){
+            $this->where($cond)->save(array('deleted_flag'=>'Y'));
+        }
+        $arr = array(
+            'buyer_id'=>$buyer_id,
+            'attach_group'=>'FINANCE',
+            'attach_name'=>$attach_name,
+            'attach_url'=>$attach_url,
+            'created_by'=>$created_by,
+            'created_at'=>date('Y-m-d H:i:s'),
+        );
+        $res = $this -> add($arr);
+        if($res){
+            $this->commit();
+            return true;
+        }else{
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 创建采购计划报表-
+     * -wangs
+     */
+    public function createBuyerPurchaseTable($attach,$buyer_id,$created_by){
         $info = array();
         foreach($attach as $key => $value){
             if(!empty($value)){
