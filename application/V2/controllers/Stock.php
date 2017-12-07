@@ -125,10 +125,11 @@ class StockController extends PublicController {
             $this->jsonReturn();
         }
         $stock_model = new StockModel();
-        $list = $stock_model->createData($country_bn, $skus, $lang);
-        if ($list) {
-            $this->jsonReturn($list);
-        } elseif ($list === FALSE) {
+        $flag = $stock_model->createData($country_bn, $skus, $lang);
+
+        if ($flag) {
+            $this->jsonReturn();
+        } elseif ($flag === false) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('更新失败!');
             $this->jsonReturn(null);
@@ -189,7 +190,7 @@ class StockController extends PublicController {
      * @version V2.0
      * @desc  现货
      */
-    public function setingPriceAction() {
+    public function setingPricesAction() {
         $country_bn = $this->getPut('country_bn');
         if (empty($country_bn)) {
             $this->setCode(MSG::MSG_EXIST);
@@ -217,14 +218,56 @@ class StockController extends PublicController {
         }
         $stock_cost_price_model = new StockCostPriceModel();
 
-        $list = $stock_cost_price_model->updateData($country_bn, $sku, $lang, $cost_prices);
+
+        $list = $stock_cost_price_model->updateDatas($country_bn, $lang, $sku, $cost_prices);
         if ($list) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->setMessage('删除成功!');
+            $this->setMessage('更新成功!');
             $this->jsonReturn();
         } elseif ($list === FALSE) {
             $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('删除失败!');
+            $this->setMessage('更新失败!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 更新现货
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function getPricesAction() {
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $sku = $this->getPut('sku');
+        if (empty($sku)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择现货商品!');
+            $this->jsonReturn();
+        }
+
+
+        $stock_cost_price_model = new StockCostPriceModel();
+
+
+        $list = $stock_cost_price_model->getList($country_bn, $sku);
+        if ($list) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->setMessage('获取成功!');
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
             $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);

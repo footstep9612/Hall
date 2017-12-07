@@ -188,4 +188,111 @@ class StockfloorController extends PublicController {
         }
     }
 
+    /**
+     * Description of 更新现货楼层
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function OnshelfAction() {
+
+        $id = $this->getPut('id');
+        if (empty($id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
+        }
+        $onshelf_flag = $this->getPut('onshelf_flag');
+        if (empty($onshelf_flag)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('楼层上下架状态不能为空!');
+            $this->jsonReturn();
+        }
+
+        if (!in_array($onshelf_flag, ['N', 'Y'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('楼层上下架状态不正确!');
+            $this->jsonReturn();
+        }
+        $stock_floor_model = new StockFloorModel();
+
+
+        $list = $stock_floor_model->onshelfData($id, $onshelf_flag);
+        if ($list) {
+            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '成功!';
+            $this->setMessage($message);
+            $this->jsonReturn();
+        } elseif ($list === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '失败!';
+            $this->setMessage($message);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 更新现货楼层
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function addGoodsAction() {
+
+        $floor_id = $this->getPut('floor_id');
+        if (empty($floor_id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
+        }
+
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $skus = $this->getPut('skus');
+        if (empty($skus)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择产品!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        if (!in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('您选择的语言不正确!');
+            $this->jsonReturn();
+        }
+        $stock_floor_model = new StockFloorModel();
+
+
+        $flag = $stock_floor_model->addGoods($floor_id, $country_bn, $lang, $skus);
+        if ($flag) {
+            $message = '添加产品成功!';
+            $this->setMessage($message);
+            $this->jsonReturn();
+        } elseif ($list === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $message = '添加产品失败!';
+            $this->setMessage($message);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
 }

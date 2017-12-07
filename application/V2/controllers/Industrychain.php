@@ -16,10 +16,17 @@ class IndustrychainController extends PublicController {
         $model = new IndustrychainModel();
         $res = $model->createChain($data);
         if($res==false){
-            echo json_encode(array("code" => "-101", "message" => "输入不可以为空或字符过多"));
-            exit();
+            $valid = array(
+                'code'=>0,
+                'message'=>'创建失败，请输入规范长度数据',
+            );
+        }else{
+            $valid = array(
+                'code'=>1,
+                'message'=>'创建产业链上下游数据成功',
+            );
         }
-        echo json_encode(array("code" => "1", "message" => "提交成功"));
+        $this -> jsonReturn($valid);
     }
     //上下游数据详情
     public function chainListAction(){
