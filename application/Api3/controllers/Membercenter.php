@@ -22,7 +22,7 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function getUserInfoAction() {
-        $buyerModel = new BuyerAccountModel();jsonReturn($this->user);
+        $buyerModel = new BuyerAccountModel();
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             $data = array(
