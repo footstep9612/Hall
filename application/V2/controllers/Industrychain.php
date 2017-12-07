@@ -18,12 +18,17 @@ class IndustrychainController extends PublicController {
         if($res==false){
             $valid = array(
                 'code'=>0,
-                'message'=>'创建失败，请输入规范长度数据',
+                'message'=>'创建失败，请输入规范长度数据'
+            );
+        }elseif ($res === 'nullData'){
+            $valid = array(
+                'code'=>1,
+                'message'=>'创建上下游空数据成功'
             );
         }else{
             $valid = array(
                 'code'=>1,
-                'message'=>'创建产业链上下游数据成功',
+                'message'=>'创建产业链上下游数据成功'
             );
         }
         $this -> jsonReturn($valid);
