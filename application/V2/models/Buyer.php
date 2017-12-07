@@ -1094,7 +1094,7 @@ class BuyerModel extends PublicModel {
         );
         return $res;
     }
-    //专用采购商客户基本创建数据验证
+    //专用采购商客户基本创建 ----数据验证
     public function validBuyerBaseData($data){
         //验证必填数据非空
         $baseArr = array(
@@ -1124,6 +1124,7 @@ class BuyerModel extends PublicModel {
                 return false;
             }
         }
+        //联系人
         $contactArr = array(    //buyer_attach   buyer_contact
 //            'role', //购买角色
 //            'email',    //邮箱
@@ -1139,7 +1140,7 @@ class BuyerModel extends PublicModel {
         );
         foreach($data['contact'] as $value){
             foreach($contactNeed as $v){
-                if(empty($value[$v]) || strlen($value[$v]) > 5){
+                if(empty($value[$v]) || strlen($value[$v]) > 50){
                     return false;
                 }
             }
@@ -1168,6 +1169,7 @@ class BuyerModel extends PublicModel {
     }
     //组装客户基本信息创建所需数据
     public function packageBaseData($data,$created_by){
+        //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
             'created_at'    => date('Y-m-d H:i:s'), //客户id
@@ -1181,6 +1183,7 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
         );
+        //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
             'type_remarks', //是否油气
