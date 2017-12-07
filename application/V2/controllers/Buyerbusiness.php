@@ -47,7 +47,7 @@ class BuyerbusinessController extends PublicController
             //采购计划附件
             if(!empty($purchaseRes)){
                 $purchase = new BuyerattachModel();
-                $purchaseResult = $purchase->createBuyerFinanceTable($purchaseRes,$data['buyer_id'],$data['created_by']);
+                $purchaseResult = $purchase->createBuyerPurchaseTable($purchaseRes,$data['buyer_id'],$data['created_by']);
                 if($purchaseResult == false){
                     $dataJson = array(
                         'code'=>1,

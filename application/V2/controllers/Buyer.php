@@ -741,20 +741,56 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
-//        $res = $model->createBuyerBaseInfo($data);  //创建基本信息
-//        if($res == false){
-//            $valid = array(
-//                'code'=>0,
-//                'message'=>'请输入规范数据',
-//            );
-//            $this -> jsonReturn($valid);
-//        }
+        $res = $model->createBuyerBaseInfo($data);  //创建基本信息
+        if($res == false){
+            $valid = array(
+                'code'=>0,
+                'message'=>'请输入规范数据',
+            );
+            $this -> jsonReturn($valid);
+        }
+        //创建联系人信息
+        $model = new BuyercontactModel();
+        $contactRes = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$created_by);
+        if($contactRes == false){
+            $valid = array(
+                'code'=>1,
+                'message'=>'基本信息，公司介绍，创建成功,联系人创建失败',
+            );
+            $this -> jsonReturn($valid);
+        }
+        //创建财务报表
         if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
             //创建采购商客户证书-财务表附件
-            $model = new BuyerattachModel();
-            $financeRes = $model->createBuyerFinanceTable($data['base_info']['attach_name'],$data['base_info']['attach_url'],$created_by);
-            var_dump($financeRes);die;
+            $financeRes = $this->_createBuyerFinanceTable($data);
+            if($financeRes == false){
+                $valid = array(
+                    'code'=>1,
+                    'message'=>'基本信息，公司介绍，联系人,创建成功，财务报表创建失败',
+                );
+            }else{
+                $valid = array(
+                    'code'=>1,
+                    'message'=>'基本信息，公司介绍，联系人，财务报表,创建成功',
+                );
+            }
+            $this -> jsonReturn($valid);
         }
-        var_dump($arr);
+        $valid = array(
+            'code'=>1,
+            'message'=>'基本信息，公司介绍，联系人,创建成功,财务报表为空',
+        );
+        $this -> jsonReturn($valid);
+    }
+    //添加财务报表
+    private function _createBuyerFinanceTable($data){
+        //创建采购商客户证书-财务表附件
+        $attach_name = $data['base_info']['attach_name'];
+        $attach_url = $data['base_info']['attach_url'];
+        $buyer_id = $data['base_info']['buyer_id'];
+        $created_by = $data['created_by'];
+        $model = new BuyerattachModel();
+        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
+        return $financeRes;
     }
 }
