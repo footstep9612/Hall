@@ -815,6 +815,38 @@ class InquiryModel extends PublicModel {
     public function getInquiryCountry($id = '') {
         return $this->where(['id' => $id])->getField('country_bn');
     }
+    
+    /**
+     * @desc 获取某个时间段内的询单列表
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2017-12-07
+     */
+    public function getTimeIntervalList($condition = []) {
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $where['a.deleted_flag'] = 'N';
+            
+            $where['a.created_at'] = [
+                ['egt', $condition['created_at_start']],
+                ['elt', $condition['created_at_end'] . ' 23:59:59']
+            ];
+        } else {
+            return false;
+        }
+         
+        return $this->alias('a')
+                            ->field('a.id, a.serial_no, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                            ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'zh\' AND b.deleted_flag = \'N\'', 'LEFT')
+                            ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'zh\' AND c.deleted_flag = \'N\'', 'LEFT')
+                            ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
+                            ->join('erui_rfq.quote e ON a.id = e.inquiry_id AND e.deleted_flag = \'N\'', 'LEFT')
+                            ->join('erui_rfq.final_quote f ON a.id = f.inquiry_id AND f.deleted_flag = \'N\'', 'LEFT')
+                            ->where($where)
+                            ->order('a.id DESC')
+                            ->select();
+    }
 
     /**
      * 更新用户信息和询单经办人等信息

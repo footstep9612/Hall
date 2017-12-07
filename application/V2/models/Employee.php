@@ -126,7 +126,7 @@ class EmployeeModel extends PublicModel {
      */
     public function getUserIdByName($name) {
         
-        return $this->where(['name'=>$name, 'deleted_flag' => 'N'])->getField('id', true);
+        return $this->where(['name'=>['like', '%' . trim($name) . '%'], 'deleted_flag' => 'N'])->getField('id', true);
     }
 
     /**
