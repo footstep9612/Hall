@@ -5,7 +5,7 @@
  * Date: 2017/12/6
  * Time: 16:20
  */
-class CustomservicesController extends PublicController
+class MallController extends PublicController
 {
 
     public function init() {
