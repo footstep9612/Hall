@@ -791,4 +791,74 @@ class BuyerController extends PublicController {
         $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
         return $financeRes;
     }
+    /**
+     * 客户管理：客户基本信息展示详情
+     * wangs
+     */
+    public function showBuyerInfoAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $buerInfo = $model->showBuyerBaseInfo($data);
+        if(empty($buerInfo) || $buerInfo == false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'该客户暂无数据请添加',
+            );
+            $this->jsonReturn($dataJson);
+        }
+        //获取客户账号
+        $account = new BuyerAccountModel();
+        $accountInfo = $account->getBuyerAccount($data['buyer_id']);
+        $buerInfo['buyer_account'] = $accountInfo['email'];
+        //获取服务经理经办人，调用市场经办人方法
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->buyerMarketAgent($data);
+        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        //获取财务报表
+        $attach = new BuyerattachModel();
+        $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
+        if(!empty($finance)){
+            $buerInfo['attach_name'] = $finance['attach_name'];
+            $buerInfo['attach_url'] = $finance['attach_url'];
+        }
+        //获取客户联系人
+        $contact = new BuyercontactModel();
+        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
+        if(!empty($contactInfo)){
+            $buerInfo['contact'] = $contactInfo;
+        }
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$buerInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
+    /**
+     * 客户管理-附件下载
+     * wangs
+     */
+    public function attachDownloadAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerattachModel();
+        $attach = $model->attachDownload($data);
+        if($attach == false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'请输入正确信息'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'数据下载',
+                'data'=>$attach
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
 }

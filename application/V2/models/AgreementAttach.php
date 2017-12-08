@@ -32,10 +32,17 @@ class AgreementAttachModel extends PublicModel {
         $arr['attach_url'] = $data['attach_url'];
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
-        $res = $this->where(array('agreement_id'=>$id))->save($arr);
+        $this->startTrans();    //开启事务
+        $exist = $this->where(array('agreement_id'=>$id))->find();
+        if($exist){
+            $this->where(array('agreement_id'=>$id))->save(array('deleted_flag'=>'Y'));
+        }
+        $res = $this->add($arr);
         if($res){
+            $this->commit();
             return true;
         }else{
+            $this->rollback();
             return false;
         }
     }
