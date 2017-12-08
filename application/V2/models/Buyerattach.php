@@ -198,8 +198,20 @@ class BuyerattachModel extends PublicModel {
     public function delBuyerAttach($buyer_id,$created_by){
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->delete();
     }
-    //按条件客户id，创建人查询附件
+    //按条件客户id，创建人,查询附件
     public function showBuyerAttach($buyer_id,$created_by){
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
+    }
+    //按条件客户id，创建人,删除表示，查询附件
+    public function showBuyerExistAttach($buyer_id,$created_by,$deleted_flag='N'){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>$deleted_flag,
+            'attach_group'=>FINANCE
+        );
+        return $this->field('attach_name,attach_url')
+            ->where($cond)
+            ->find();
     }
 }
