@@ -43,12 +43,21 @@ class BuyerVisitReplyModel extends PublicModel{
             $result = $this->field('id,visit_id,visit_reply,created_by,created_at')->where($condition)->select();
             if($result){
                 $userModel = new UserModel();
+                $orgModel = new OrgModel();
+                $orgmModel = new OrgMemberModel();
                 //$bvrModel = new BuyerVisitReplyModel();
                 foreach($result as $index => $r){
                     $userInfo = $userModel->field('user_no,name,mobile')->where(['id'=>$r['created_by']])->find();
                     $result[$index]['user_no'] = $userInfo['user_no'] ? $userInfo['user_no'] : null;
                     $result[$index]['name'] = $userInfo['name'] ? $userInfo['name'] : null;
                     $result[$index]['mobile'] = $userInfo['mobile'] ? $userInfo['mobile'] : null;
+
+                    $morgInfo = $orgmModel->field('org_id')->where(['employee_id' =>$r['created_by']])->find();
+                    if($morgInfo){
+                        $orgInfo = $orgModel->field('name')->where(['id' => $morgInfo['org_id']])->find();
+                    }
+                    $result[$index]['org_name'] = $orgInfo ? $orgInfo['name'] : null;
+
                   /*  $result[$index]['reply'] = 'N';
                     $result[$index]['reply_time'] = null;
                     $bvrInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();

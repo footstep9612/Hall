@@ -281,5 +281,11 @@ class BuyerAccountModel extends PublicModel {
             return [];
         }
     }
-
+    /**
+     * buyer_id 获取客户账号email
+     * wangs
+     */
+    public function getBuyerAccount($buyer_id){
+        return $this->field('email')->where(array('buyer_id'=>$buyer_id))->find();
+    }
 }

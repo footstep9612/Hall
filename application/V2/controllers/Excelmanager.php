@@ -983,13 +983,16 @@ class ExcelmanagerController extends PublicController {
         $inquiry= new InquiryModel();
         $inquiryCheckLog = new InquiryCheckLogModel();
 
-        $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id";
+        $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id,area_bn,country_bn";
         $where = " deleted_flag='N' AND (status='REJECT_MARKET' OR status='CC_DISPATCHING') ";
 
         $data = $inquiry->where($where)->field($field)->select();
 
+
         $employee = new EmployeeModel();
         $org = new OrgModel();
+        $region = new RegionModel();
+        $country = new CountryModel();
 
         foreach ($data as $key=>$value){
             $data[$key]['check'] = $inquiryCheckLog->where([
@@ -1001,6 +1004,8 @@ class ExcelmanagerController extends PublicController {
             $data[$key]['agent'] = $employee->where(['id'=>$data[$key]['agent_id']])->getField('name');
             $data[$key]['now_agent'] = $employee->where(['id'=>$data[$key]['now_agent_id']])->getField('name');
             $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
+            $data[$key]['region_name'] = $region->where(['bn'=>trim($data[$key]['area_bn']),'lang'=>'zh'])->getField('name');
+            $data[$key]['country_name'] = $country->where(['bn'=>trim($data[$key]['country_bn']),'lang'=>'zh'])->getField('name');;
 
         }
 
@@ -1020,22 +1025,24 @@ class ExcelmanagerController extends PublicController {
         /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
         $objSheet->setCellValue("A1", '序号');
         $objSheet->setCellValue("B1", '询单编号');
-        $objSheet->setCellValue("C1", '市场经办人');
-        $objSheet->setCellValue("D1", '原询单所属事业部');
-        $objSheet->setCellValue("E1", '询价时间');
-        $objSheet->setCellValue("F1", '询单描述');
-        $objSheet->setCellValue("G1", '驳回人');
-        $objSheet->setCellValue("H1", '驳回时间');
-        $objSheet->setCellValue("I1", '驳回理由');
-        $objSheet->setCellValue("J1", '当前办理人');
-        $objSheet->setCellValue("K1", '现询单所属事业部');
+        $objSheet->setCellValue("C1", '区域');
+        $objSheet->setCellValue("D1", '国家');
+        $objSheet->setCellValue("E1", '市场经办人');
+        $objSheet->setCellValue("F1", '原询单所属事业部');
+        $objSheet->setCellValue("G1", '询价时间');
+        $objSheet->setCellValue("H1", '询单描述');
+        $objSheet->setCellValue("I1", '驳回人');
+        $objSheet->setCellValue("J1", '驳回时间');
+        $objSheet->setCellValue("K1", '驳回理由');
+        $objSheet->setCellValue("L1", '当前办理人');
+        $objSheet->setCellValue("M1", '现询单所属事业部');
 
         //设置全局文字居中
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
 
         $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('20');
             $objSheet->getCell($normal_col."1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1051,15 +1058,17 @@ class ExcelmanagerController extends PublicController {
 
                 $objSheet->setCellValue("A".$startRow, $k+1);
                 $objSheet->setCellValue("B".$startRow, $v['serial_no']);
-                $objSheet->setCellValue("C".$startRow, $v['agent']);
-                $objSheet->setCellValue("D".$startRow, $v['org_name']);
-                $objSheet->setCellValue("E".$startRow, $v['created_at']);
-                $objSheet->setCellValue("F".$startRow, $v['adhoc_request']);
-                $objSheet->setCellValue("G".$startRow, $v['check']['rejector_name']);
-                $objSheet->setCellValue("H".$startRow, $v['check']['created_at']);
-                $objSheet->setCellValue("I".$startRow, $v['check']['op_note']);
-                $objSheet->setCellValue("J".$startRow, $v['now_agent']);
-                $objSheet->setCellValue("K".$startRow, $v['org_name']);
+                $objSheet->setCellValue("C".$startRow, $v['region_name']);
+                $objSheet->setCellValue("D".$startRow, $v['country_name']);
+                $objSheet->setCellValue("E".$startRow, $v['agent']);
+                $objSheet->setCellValue("F".$startRow, $v['org_name']);
+                $objSheet->setCellValue("G".$startRow, $v['created_at']);
+                $objSheet->setCellValue("H".$startRow, $v['adhoc_request']);
+                $objSheet->setCellValue("I".$startRow, $v['check']['rejector_name']);
+                $objSheet->setCellValue("J".$startRow, $v['check']['created_at']);
+                $objSheet->setCellValue("K".$startRow, $v['check']['op_note']);
+                $objSheet->setCellValue("L".$startRow, $v['now_agent']);
+                $objSheet->setCellValue("M".$startRow, $v['org_name']);
 
                 $objSheet->getCell("A".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("B".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1072,6 +1081,8 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->getCell("I".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("J".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("K".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("L".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("M".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
                 $startRow++;
             }

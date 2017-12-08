@@ -208,4 +208,97 @@ class BuyercontactModel extends PublicModel
         }
         return $this->where($where)->save($arr);
     }
+    /**
+     * 客户管理，基本信息--新建-客户的-联系人
+     * wangs
+     */
+    public function createBuyerContact($contact,$buyer_id,$created_by){
+        $validArr = array(
+            'name', //联系人姓名+
+            'title', //联系人职位+
+            'phone', //联系人电话+
+            'email', //联系人邮箱
+            'address', //联系人姓名
+            'hobby', //爱好
+            'experience', //经历
+            'role', //角色
+            'social_relations', //社会关系
+        );
+        $arr = [];
+        $flag = true;
+        $this->startTrans();    //开启事务
+        $exist = $this->showContactDel($buyer_id,$created_by);
+        if($exist == false){
+            $flag = false;
+        }
+        foreach($contact as $key => $value){
+            foreach($validArr as $v){
+                if(!empty($value[$v])){
+                    $arr[$key][$v]=$value[$v];
+                    $arr[$key]['buyer_id']=$buyer_id;
+                    $arr[$key]['created_by']=$created_by;
+                    $arr[$key]['created_at']=date('Y-m-d H:i:s');
+                }
+            }
+            $res = $this->add($arr[$key]);
+            if(!$res && $flag){
+                $flag = false;
+            }
+        }
+        if($flag){
+            $this->commit();
+            return true;
+        }else{
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 创建联系人若存在，则删除，修改为删除状态Y
+     * wangs
+     */
+    public function showContactDel($buyer_id,$created_by){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>'N',
+        );
+        $exist = $this->where($cond)->select();
+        if(!empty($exist)){
+            $del = $this->where($cond)->save(array('deleted_flag'=>'Y'));
+            if(!$del){
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * 查询客户的联系人-----exist
+     * wangs
+     */
+    public function showBuyerExistContact($buyer_id,$created_by){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>'N',
+        );
+        $fieldArr = array(
+            'name', //联系人名字
+            'title', //联系人职位
+            'phone', //联系人电话
+            'email', //联系人邮箱
+            'address', //联系人地址
+            'hobby', //联系人爱好
+            'experience', //联系人经验
+            'role', //购买角色
+            'social_relations', //联系人社会关系
+        );
+        $field = '';
+        foreach($fieldArr as $v){
+            $field .= ','.$v;
+        }
+        $field = substr($field,1);
+        return $this->field($field)->where($cond)->select();
+    }
 }

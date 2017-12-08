@@ -114,8 +114,47 @@ class BuyerattachModel extends PublicModel {
             $data = $this->create($createcondition);
             return $this->add($data);
     }
-    //创建财务报表--wangs
-    public function createBuyerFinanceTable($attach,$buyer_id,$created_by){
+
+    /*
+     * 创建财务报表
+     * attach_name,attach_url
+     * wangs
+     */
+    public function createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'attach_group'=>'FINANCE',
+            'deleted_flag'=>'N',
+        );
+        $this->startTrans();    //开启事务
+        $exist = $this->where($cond)->find();
+        if(!empty($exist)){
+            $this->where($cond)->save(array('deleted_flag'=>'Y'));
+        }
+        $arr = array(
+            'buyer_id'=>$buyer_id,
+            'attach_group'=>'FINANCE',
+            'attach_name'=>$attach_name,
+            'attach_url'=>$attach_url,
+            'created_by'=>$created_by,
+            'created_at'=>date('Y-m-d H:i:s'),
+        );
+        $res = $this -> add($arr);
+        if($res){
+            $this->commit();
+            return true;
+        }else{
+            $this->rollback();
+            return false;
+        }
+    }
+
+    /**
+     * 创建采购计划报表-
+     * -wangs
+     */
+    public function createBuyerPurchaseTable($attach,$buyer_id,$created_by){
         $info = array();
         foreach($attach as $key => $value){
             if(!empty($value)){
@@ -159,8 +198,46 @@ class BuyerattachModel extends PublicModel {
     public function delBuyerAttach($buyer_id,$created_by){
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->delete();
     }
-    //按条件客户id，创建人查询附件
+    //按条件客户id，创建人,查询附件
     public function showBuyerAttach($buyer_id,$created_by){
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
+    }
+    //按条件客户id，创建人,删除表示，查询附件
+    public function showBuyerExistAttach($buyer_id,$created_by,$deleted_flag='N'){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>$deleted_flag,
+            'attach_group'=>FINANCE
+        );
+        return $this->field('attach_name,attach_url')
+            ->where($cond)
+            ->find();
+    }
+
+    /**
+     * @param $attach_url   附件url
+     * @param $attach_group 附件类型：CERT 证件,LICENSE 营业执照，财务报表 FINANCE，采购计划 PURCHASING'
+     * @param $buyer_id 客户id
+     * @param $created_by   创建人
+     */
+    public function attachDownload($data){
+        if(empty($data['buyer_id']) || empty($data['attach_url']) || empty($data['attach_group'])){
+            return false;
+        }
+        $cond = array(
+            'buyer_id'=>$data['buyer_id'],
+            'created_by'=>$data['created_by'],
+            'attach_url'=>$data['attach_url'],
+            'attach_group'=>$data['attach_group'],
+            'deleted_flag'=>'N'
+        );
+        $attach = $this->field('attach_name,attach_url')->where($cond)->find();
+        if(empty($attach)){
+            return false;
+        }
+//        $attachinfo = pathinfo($attach['attach_url']);
+        return $attach;
+
     }
 }

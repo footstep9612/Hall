@@ -332,14 +332,14 @@ class ProductModel extends PublicModel {
                     }
 
                     //非暂存进行下校验
-                    if ($item['status'] != 'DRAFT') {
+                    //if ($item['status'] != 'DRAFT') {
                         $exist_condition = array(//添加时判断同一语言,meterial_cat_no,brand下name是否存在
                             'lang' => $lang,
                             'name' => $data['name'],
                             //'material_cat_no' => $data['material_cat_no'],
                             //'brand' => $data['brand'],
                             'deleted_flag' => 'N',
-                            'status' => array('neq', 'DRAFT')
+                            //'status' => array('neq', 'DRAFT')
                         );
                         if (isset($input['spu'])) {
                             $exist_condition['spu'] = array('neq', $spu);
@@ -357,7 +357,7 @@ class ProductModel extends PublicModel {
                                 }
                             }
                         }
-                    }
+                    //}
                     $data['status'] = $item['status'] ? $item['status'] : self::STATUS_DRAFT;
                     $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->find();
                     if ($exist_check) {    //修改

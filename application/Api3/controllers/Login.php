@@ -64,6 +64,7 @@ class LoginController extends PublicController {
             $jwt['show_name'] = $info['show_name'];
             $datajson['buyer_no'] = $buyer_info['buyer_no'];
             $datajson['email'] = $info['email'];
+            $datajson['buyer_id'] = $info['buyer_id'];
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
@@ -243,6 +244,7 @@ class LoginController extends PublicController {
             $jwt['show_name'] = $info['show_name'];
             $datajson['buyer_no']   =   $buyer_info['buyer_no'];
             $datajson['email']      =   $info['email'];
+            $datajson['buyer_id']   =   $info['buyer_id'];
             $datajson['show_name']  =   $info['show_name'];
             $datajson['user_name']  =   $info['user_name'];
             $datajson['country']    =   $buyer_info['country_bn'];
@@ -335,6 +337,7 @@ class LoginController extends PublicController {
                 $jwt['show_name'] = $buyer_account_data['show_name'];
                 $datajson['buyer_no']   =   $arr['buyer_no'];
                 $datajson['email']      =   $buyer_account_data['email'];
+                $datajson['buyer_id']   =   $id;
                 $datajson['show_name']  =   $buyer_account_data['show_name'];
                 $datajson['user_name']  =   '';
                 $datajson['country']    =   $arr['country_bn'];

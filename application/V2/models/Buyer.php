@@ -1026,7 +1026,10 @@ class BuyerModel extends PublicModel {
         $row = $this->query($sql);
         return $row;
     }
-    //客户档案管理搜索列表-王帅
+    /**
+     * 客户档案管理搜索列表-
+     * wangs
+     */
     public function buyerList($data)
     {
         //条件
@@ -1088,7 +1091,10 @@ class BuyerModel extends PublicModel {
         );
         return $res;
     }
-    //专用采购商客户基本创建数据验证
+    /**
+     * 专用采购商客户基本创建 ----数据验证
+     * wangs
+     */
     public function validBuyerBaseData($data){
         //验证必填数据非空
         $baseArr = array(
@@ -1118,6 +1124,7 @@ class BuyerModel extends PublicModel {
                 return false;
             }
         }
+        //联系人
         $contactArr = array(    //buyer_attach   buyer_contact
 //            'role', //购买角色
 //            'email',    //邮箱
@@ -1133,7 +1140,7 @@ class BuyerModel extends PublicModel {
         );
         foreach($data['contact'] as $value){
             foreach($contactNeed as $v){
-                if(empty($value[$v]) || strlen($value[$v]) > 5){
+                if(empty($value[$v]) || strlen($value[$v]) > 50){
                     return false;
                 }
             }
@@ -1145,7 +1152,10 @@ class BuyerModel extends PublicModel {
         }
         return true;
     }
-    //采购商客户管理，基本信息的创建
+    /**
+     * 采购商客户管理，基本信息的创建
+     * wangs
+     */
     public function createBuyerBaseInfo($data){
         //验证数据
         $info = $this->validBuyerBaseData($data);
@@ -1160,8 +1170,21 @@ class BuyerModel extends PublicModel {
         }
         return false;   //新建客户基本信息失败
     }
-    //组装客户基本信息创建所需数据
+    /**
+     * 组装客户基本信息创建所需数据
+     * wangs
+     */
     public function packageBaseData($data,$created_by){
+        //会员有效期12个月--------------1年
+        if(!empty($data['level_at'])){
+            $level_at = $data['level_at'];
+        }else{
+            $level_at = date('Y-m-d');
+        }
+        $year_at = substr($level_at,0,4);
+        $year_end = substr($level_at,0,4)+1;
+        $expiry_at = str_replace($year_at,$year_end,$level_at);
+        //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
             'created_at'    => date('Y-m-d H:i:s'), //客户id
@@ -1174,10 +1197,14 @@ class BuyerModel extends PublicModel {
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
+            'level_at' =>  $level_at,  //定级日期
+            'expiry_at' =>  $expiry_at  //有效期
         );
+        //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
-            'type_remarks', //是否油气
+            'type_remarks', //客户类型备注
+            'is_oilgas', //是否油气
             'employee_count', //雇员数量
         );
         foreach($data as $value){
@@ -1188,5 +1215,52 @@ class BuyerModel extends PublicModel {
             }
         }
         return $arr;
+    }
+    /**
+     * 展示客户管理客户基本信息详情
+     * wangs
+     */
+    public function showBuyerBaseInfo($data){
+        if(empty($data['buyer_id']) || empty($data['created_by'])){
+            return false;
+        }
+        $buyerArr = array(
+            'id as buyer_id', //客户id
+            'buyer_type', //客户类型
+            'type_remarks', //客户类型备注
+            'is_oilgas', //是否油气
+            'buyer_code', //客户crm编码
+            'name as buyer_name', //客户名称
+            'profile', //公司介绍
+            'employee_count', //雇员数量
+            'company_reg_date', //公司注册日期
+            'reg_capital', //注册资金
+            'reg_capital_cur', //注册资金货币
+            'area_bn', //地区
+            'country_bn', //国家
+//            'address as company_address', //公司地址
+            'official_email', //公司邮箱
+            'official_phone', //公司电话
+            'official_website', //公司官网
+            'buyer_level', //客户等级
+            'level_at', //定级日期
+            'expiry_at', //有效日期
+            'created_by', //客户id
+            'created_at', //客户id
+            'deleted_flag', //客户id
+        );
+        $field = '';
+        foreach($buyerArr as $v){
+            $field .= ','.$v;
+        }
+        $field = substr($field,1);
+        $cond = array(
+            'id'=>$data['buyer_id'],
+            'created_by'=>$data['created_by']
+        );
+        $info = $this->field($field)
+            ->where($cond)
+            ->find();
+        return $info;
     }
 }
