@@ -398,7 +398,7 @@ class BuyerAgentModel extends PublicModel {
         }
         $offset = ($page-1)*$size;
         $field = 'agent.buyer_id,agent.agent_id';
-        $field .= ',em.name,em.user_no';
+        $field .= ',em.name,em.user_no,em.mobile';
         $info = $this -> alias('agent')
             -> field($field)
             ->join('erui_sys.employee em on em.id=agent.agent_id', 'left')

@@ -41,10 +41,10 @@ class BuyeragreementController extends PublicController
         $attachRes = $attach->createAgreeAttach($data);
         if($attachRes){
             $dataJson['code'] = 1;
-            $dataJson['message'] = '创建成功';
+            $dataJson['message'] = '协议，附件，创建成功';
         }else{
             $dataJson['code'] = 0;
-            $dataJson['message'] = '附件创建失败';
+            $dataJson['message'] = '创建协议成功，附件创建失败';
         }
         $this -> jsonReturn($dataJson);
     }
