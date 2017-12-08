@@ -1181,6 +1181,11 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function packageBaseData($data,$created_by){
+        //会员有效期12个月--------------1年
+        $level_at = $data['level_at'];
+        $year_at = substr($level_at,0,4);
+        $year_end = substr($level_at,0,4)+1;
+        $expiry_at = str_replace($year_at,$year_end,$level_at);
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
@@ -1194,6 +1199,7 @@ class BuyerModel extends PublicModel {
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
+            'expiry_at' =>  $expiry_at  //有效期
         );
         //非必须数据
         $baseArr = array(
