@@ -288,12 +288,6 @@ class BuyerModel extends PublicModel {
             $data['checked_by'] = $create['checked_by'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['status'] = 'APPROVED';
-        if (isset($create['created_by'])) {
-            $data['checked_by']  = $create['created_by'];
-            $data['checked_at'] = date('Y-m-d H:i:s');
-
-        }
         try {
             $datajson = $this->create($data);
             $res = $this->add($datajson);
