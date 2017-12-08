@@ -1239,6 +1239,7 @@ class BuyerModel extends PublicModel {
             'official_website', //公司官网
             'buyer_level', //客户等级
             'level_at', //定级日期
+            'expiry_at', //有效日期
             'created_by', //客户id
             'created_at', //客户id
             'deleted_flag', //客户id
