@@ -802,7 +802,7 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
-        $buerInfo = $model->showBuyerBaseInfo($data);  //创建基本信息
+        $buerInfo = $model->showBuyerBaseInfo($data);
         if(empty($buerInfo) || $buerInfo == false){
             $dataJson = array(
                 'code'=>0,
@@ -810,16 +810,25 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
+        //获取客户账号
+        $account = new BuyerAccountModel();
+        $accountInfo = $account->getBuyerAccount($data['buyer_id']);
+        $buerInfo['buyer_account'] = $accountInfo['email'];
+        //获取服务经理经办人，调用市场经办人方法
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->buyerMarketAgent($data);
+        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
         //获取财务报表
         $attach = new BuyerattachModel();
-        $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);  //创建基本信息
+        $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
         if(!empty($finance)){
             $buerInfo['attach_name'] = $finance['attach_name'];
             $buerInfo['attach_url'] = $finance['attach_url'];
         }
         //获取客户联系人
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);  //创建基本信息
+        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
         if(!empty($contactInfo)){
             $buerInfo['contact'] = $contactInfo;
         }
