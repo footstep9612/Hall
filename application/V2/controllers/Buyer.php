@@ -839,4 +839,28 @@ class BuyerController extends PublicController {
         );
         $this->jsonReturn($dataJson);
     }
+    /**
+     * 客户管理-附件下载
+     * wangs
+     */
+    public function attachDownloadAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerattachModel();
+        $attach = $model->attachDownload($data);
+        if($attach == false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'请输入正确信息'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'数据下载',
+                'data'=>$attach
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
 }
