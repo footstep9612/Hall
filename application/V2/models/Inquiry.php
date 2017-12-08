@@ -835,6 +835,8 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['creat_at_start']) && !empty($condition['creat_at_end'])) {
             $where['a.deleted_flag'] = 'N';
             
+            $where['a.status'] = ['neq', 'DRAFT'];
+            
             $where['_complex']['a.created_at'] = [
                 ['egt', $condition['creat_at_start']],
                 ['elt', $condition['creat_at_end']]
