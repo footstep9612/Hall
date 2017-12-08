@@ -1032,7 +1032,10 @@ class BuyerModel extends PublicModel {
         $row = $this->query($sql);
         return $row;
     }
-    //客户档案管理搜索列表-王帅
+    /**
+     * 客户档案管理搜索列表-
+     * wangs
+     */
     public function buyerList($data)
     {
         //条件
@@ -1094,7 +1097,10 @@ class BuyerModel extends PublicModel {
         );
         return $res;
     }
-    //专用采购商客户基本创建 ----数据验证
+    /**
+     * 专用采购商客户基本创建 ----数据验证
+     * wangs
+     */
     public function validBuyerBaseData($data){
         //验证必填数据非空
         $baseArr = array(
@@ -1152,7 +1158,10 @@ class BuyerModel extends PublicModel {
         }
         return true;
     }
-    //采购商客户管理，基本信息的创建
+    /**
+     * 采购商客户管理，基本信息的创建
+     * wangs
+     */
     public function createBuyerBaseInfo($data){
         //验证数据
         $info = $this->validBuyerBaseData($data);
@@ -1167,7 +1176,10 @@ class BuyerModel extends PublicModel {
         }
         return false;   //新建客户基本信息失败
     }
-    //组装客户基本信息创建所需数据
+    /**
+     * 组装客户基本信息创建所需数据
+     * wangs
+     */
     public function packageBaseData($data,$created_by){
         //必须数据
         $arr = array(
@@ -1198,5 +1210,52 @@ class BuyerModel extends PublicModel {
             }
         }
         return $arr;
+    }
+    /**
+     * 展示客户管理客户基本信息详情
+     * wangs
+     */
+    public function showBuyerBaseInfo($data){
+        if(empty($data['buyer_id']) || empty($data['created_by'])){
+            return false;
+        }
+        $buyerArr = array(
+            'id as buyer_id', //客户id
+            'buyer_type', //客户类型
+            'type_remarks', //客户类型备注
+            'is_oilgas', //是否油气
+            'buyer_code', //客户crm编码
+            'name as buyer_name', //客户名称
+            'profile', //公司介绍
+            'employee_count', //雇员数量
+            'company_reg_date', //公司注册日期
+            'reg_capital', //注册资金
+            'reg_capital_cur', //注册资金货币
+            'area_bn', //地区
+            'country_bn', //国家
+//            'address as company_address', //公司地址
+            'official_email', //公司邮箱
+            'official_phone', //公司电话
+            'official_website', //公司官网
+            'buyer_level', //客户等级
+            'level_at', //定级日期
+            'expiry_at', //有效日期
+            'created_by', //客户id
+            'created_at', //客户id
+            'deleted_flag', //客户id
+        );
+        $field = '';
+        foreach($buyerArr as $v){
+            $field .= ','.$v;
+        }
+        $field = substr($field,1);
+        $cond = array(
+            'id'=>$data['buyer_id'],
+            'created_by'=>$data['created_by']
+        );
+        $info = $this->field($field)
+            ->where($cond)
+            ->find();
+        return $info;
     }
 }
