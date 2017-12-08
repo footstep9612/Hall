@@ -303,16 +303,16 @@ class InquiryitemModel extends PublicModel {
             $where['a.deleted_flag'] = 'N';
             
             $where['a.inquiry_id'] = $condition['inquiry_id'];
+            
+            return $this->alias('a')
+                                ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
+                                ->join('erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'', 'LEFT')
+                                ->where($where)
+                                ->order('a.id DESC')
+                                ->select();
         } else {
             return false;
         }
-         
-        return $this->alias('a')
-                            ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
-                            ->join('erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'', 'LEFT')
-                            ->where($where)
-                            ->order('a.id DESC')
-                            ->select();
     }
 
 }

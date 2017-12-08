@@ -213,6 +213,55 @@ class ReportController extends PublicController {
         $this->setMessage('获取成功!');
         $this->jsonReturn();
     }
+    
+    /**
+     * @desc 获取询单某个时间段内的数据
+     *
+     * @author liujf
+     * @time 2017-12-08
+     */
+    public function getTimeIntervalDataAction() {
+        $condition = $this->getPut();
+    
+        if (!empty($condition['creat_at_start']) && !empty($condition['creat_at_end'])) {
+            $inquiryModel = new InquiryModel();
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+            $inquiryItemModel = new InquiryItemModel();
+    
+            $nowTime = time();
+    
+            $inquiryList = $inquiryModel->getTimeIntervalList($condition);
+    
+            foreach ($inquiryList as &$inquiry) {
+                $createdTime = strtotime($inquiry['created_at']);
+    
+                $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
+                $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
+    
+                if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
+                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'QUOTE_SENT'])->getField('out_at');
+                    $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
+                } else {
+                    $inquiry['quote_time'] = $nowTime - $createdTime;
+                }
+    
+                $inquiryItemList = $inquiryItemModel->getJoinList(['inquiry_id' => $inquiry['id']]);
+    
+                foreach ($inquiryItemList as &$inquiryItem) {
+                    $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                }
+    
+                $inquiry['other'] = $inquiryItemList;
+                unset($inquiry['id']);
+            }
+    
+            $this->jsonReturn($inquiryList);
+        } else {
+            $this->setCode('-103');
+            $this->setMessage('缺少参数!');
+            $this->jsonReturn();
+        }
+    }
 
     private function _number_format($value, $total) {
         if ($total) {
