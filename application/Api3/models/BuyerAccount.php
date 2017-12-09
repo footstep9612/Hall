@@ -158,6 +158,7 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
+        $where['deleted_flag'] = 'N';
         //$where['status'] = 'VALID';
         $row = $this->where($where)->find();
         return $row;

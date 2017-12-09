@@ -128,4 +128,35 @@ class StockCostPriceModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取商品价格属性
+     * @param array $skus
+     * @return array|mixed
+     */
+    public function getCostPriceBySkus($skus = [], $country_bn) {
+        $where = array(
+            'sku' => ['in', $skus],
+            'deleted_flag' => 'N',
+            'country_bn' => $country_bn,
+            'price_validity_end' => ['gt', date('Y-m-d H:i:s')],
+            'status' => 'VALID'
+        );
+        $field = 'sku,supplier_id,min_price,max_price,max_promotion_price,min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end';
+        $result = $this->field($field)->where($where)
+                ->order('id asc')
+                ->select();
+
+        if ($result) {
+            $data = array();
+            //按类型分组
+
+            foreach ($result as $item) {
+                $data[$item['sku']][] = $item;
+            }
+            $result = $data;
+            return $result;
+        }
+        return array();
+    }
+
 }

@@ -20,8 +20,11 @@ class ShopMsg {
     const SHOP_SUCCESS = 1;
     const SHOP_REGISTER = -105;
     const SHOP_LOGIN = -106;
-
-
+    /**
+     * 定制服务
+     */
+    const CUSTOM_FAILED = -201;
+    const CUSTOM_SUCCESS = 1;
 
     /**
      * 信息映射
