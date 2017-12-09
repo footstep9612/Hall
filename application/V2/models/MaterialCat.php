@@ -757,11 +757,11 @@ class MaterialCatModel extends PublicModel {
      */
     protected $data = array();
 
-    public function getNameByCat($code = '') {
-        if ($code == '')
+    public function getNameByCat($cat_no = '') {
+        if ($cat_no == '')
             return '';
         $condition = array(
-            'cat_no' => $code,
+            'cat_no' => $cat_no,
             'status' => self::STATUS_VALID
         );
         $resultTr = $this->field('name,parent_cat_no')->where($condition)->select();
@@ -954,6 +954,37 @@ class MaterialCatModel extends PublicModel {
             }
 
             return $newcat3s;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 及上级分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNameByCatNos($cat_nos, $lang = 'en') {
+        if (!$cat_nos) {
+            return[];
+        }
+        try {
+            $cats = $this->field('cat_no,name')
+                            ->where(['cat_no' => ['in', $cat_nos], 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N'])->select();
+            $re = [];
+            foreach ($cats as $cat) {
+                $re[$cat['cat_no']] = $cat['name'];
+            }
+
+            return $re;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);

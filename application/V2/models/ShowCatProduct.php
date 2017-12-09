@@ -298,6 +298,45 @@ class ShowCatProductModel extends PublicModel {
      * @desc   ES 产品
      */
 
+    public function getOnshelfFlagBySpus($spus, $lang = 'en') {
+        try {
+            if ($spus && is_array($spus)) {
+                $show_cat_products = $this->alias('scp')
+                        ->field('scp.spu,scp.onshelf_flag')
+                        ->where(['scp.spu' => ['in', $spus],
+                            'scp.status' => 'VALID',
+                            'scp.lang' => $lang,
+                            'scp.onshelf_flag' => 'Y'
+                        ])
+                        ->group('scp.spu')
+                        ->select();
+            } else {
+                return [];
+            }
+            $ret = [];
+
+            foreach ($show_cat_products as $item) {
+                $ret[$item['spu']] = 'Y';
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据SPUS 获取产品展示分类信息
+     * @param mix $spus // 产品SPU数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  展示分类信息列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
     public function getShowcatnosByspu($spu, $lang = 'en') {
         try {
             if ($spu && is_string($spu)) {

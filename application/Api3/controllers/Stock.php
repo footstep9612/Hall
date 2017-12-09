@@ -1,0 +1,101 @@
+<?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Description of 现货
+ * @author  zhongyg
+ * @date    2017-12-6 9:07:59
+ * @version V2.0
+ * @desc
+ */
+class StockController extends PublicController {
+
+    //put your code here
+    public function init() {
+
+    }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function ListAction() {
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+        $floor_id = $this->getPut('floor_id');
+        if (empty($floor_id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('楼层ID不能为空!');
+            $this->jsonReturn();
+        }
+        $stock_model = new StockModel();
+        $list = $stock_model->getList($country_bn, $lang, $floor_id);
+        if ($list) {
+            $this->_setImage($list);
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setImage(&$arr) {
+        if ($arr) {
+
+            $spus = [];
+            foreach ($arr as $key => $val) {
+                $spus[] = $val['spu'];
+            }
+
+            $product_attach_model = new ProductAttachModel();
+            $images = $product_attach_model->getImgBySpus($spus);
+
+            foreach ($arr as $key => $val) {
+
+                if ($val['spu'] && isset($images[$val['spu']])) {
+                    if (isset($images[$val['spu']])) {
+                        $val['image_url'] = $images[$val['spu']][0]['attach_url'];
+                        $val['image_name'] = $images[$val['spu']][0]['attach_name'];
+                    }
+                } else {
+                    $val['image_url'] = '';
+                    $val['image_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+}
