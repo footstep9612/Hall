@@ -35,7 +35,7 @@ class InquiryModel extends PublicModel {
         'LOGI_QUOTING' => '物流报价',
         'LOGI_APPROVING' => '物流审核',
         'BIZ_APPROVING' => '事业部核算',
-        'MARKET_APPROVING' => '市场主管审核',
+        'MARKET_APPROVING' => '事业部审核',
         'MARKET_CONFIRMING' => '市场确认',
         'QUOTE_SENT' => '报价单已发出',
         'INQUIRY_CLOSED' => '报价关闭'
