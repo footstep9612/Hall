@@ -87,7 +87,7 @@ class StockModel extends PublicModel {
      * @desc  现货
      */
     public function getInfo($country_bn, $lang, $sku) {
-        $where['  country_bn'] = $country_bn;
+        $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['sku'] = $sku;
         return $this->where($where)->find();
@@ -154,8 +154,8 @@ class StockModel extends PublicModel {
                     return false;
                 }
 
-                $flag = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
-                if (!$flag) {
+                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
+                if (!$flag_price) {
 
                     $this->rollback();
                     return false;
