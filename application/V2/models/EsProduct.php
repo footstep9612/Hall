@@ -1405,10 +1405,10 @@ class EsProductModel extends Model {
             if (is_array($spu)) {
 
                 $product_model = new ProductModel();
-                $products = $product_model->where(['spu' => ['in', $spu], 'lang' => $lang])->select();
+                $products = $product_model->where(['spu' => ['in', $spu], 'deleted_flag' => 'N', 'lang' => $lang])->select();
             } elseif ($spu) {
                 $product_model = new ProductModel();
-                $products = $product_model->where(['spu' => $spu, 'lang' => $lang])->select();
+                $products = $product_model->where(['spu' => $spu, 'deleted_flag' => 'N', 'lang' => $lang])->select();
             } else {
                 return false;
             }
