@@ -18,7 +18,6 @@ class StockController extends PublicController {
     //put your code here
     public function init() {
         parent::init();
-        error_reporting(E_ALL);
     }
 
     /**
