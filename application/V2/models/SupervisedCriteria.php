@@ -32,8 +32,8 @@ class SupervisedCriteriaModel extends PublicModel {
      * @author zyg
      */
     private function _getCondition($condition) {
-        $where = [];
-        $where['status'] = 'VALID';
+        $where = ['deleted_flag' => 'N', 'status' => 'VALID'];
+
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
@@ -48,15 +48,18 @@ class SupervisedCriteriaModel extends PublicModel {
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
-
             $userids = $employee_model->getUseridsByUserName($keyword);
-            $map1['created_by'] = ['in', $userids];
+            if ($userids) {
+                $map1['created_by'] = ['in', $userids];
+            } else {
+                $map1['created_by'] = -1;
+            }
             $map1['license'] = ['like', '%' . $keyword . '%'];
             $map1['_logic'] = 'or';
             $where['_complex'] = $map1;
         }
 
-        //$data['deleted_flag'] = 'N';
+
         return $where;
     }
 
