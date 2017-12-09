@@ -44,7 +44,10 @@ class SupervisedCriteriaModel extends PublicModel {
             }
         }
         if (isset($condition['license']) && $condition['license']) {
-            $map1['license'] = ['like', '%' . $condition['license'] . '%'];
+            $where['license'] = ['like', '%' . $condition['license'] . '%'];
+        }
+        if (isset($condition['authority']) && $condition['authority']) {
+            $where['authority'] = ['like', '%' . $condition['authority'] . '%'];
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
@@ -55,6 +58,7 @@ class SupervisedCriteriaModel extends PublicModel {
                 $map1['created_by'] = -1;
             }
             $map1['license'] = ['like', '%' . $keyword . '%'];
+            $map1['authority'] = ['like', '%' . $keyword . '%'];
             $map1['_logic'] = 'or';
             $where['_complex'] = $map1;
         }
