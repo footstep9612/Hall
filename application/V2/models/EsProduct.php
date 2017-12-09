@@ -2175,7 +2175,7 @@ class EsProductModel extends Model {
         $objSheet->setCellValue("N1", '审核状态');
         $objSheet->getStyle('C')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
 
-
+        $objSheet->getStyle('D')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
 
@@ -2189,8 +2189,10 @@ class EsProductModel extends Model {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
-                    if ($letter == 'C' || $letter == 'D') {
-                        $objSheet->setCellValue($letter . ($j + 2), strval($item[$key]), PHPExcel_Cell_DataType::TYPE_STRING);
+                    if ($letter == 'C') {
+                        $objSheet->setCellValue($letter . ($j + 2), ' ' . $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
+                    } elseif ($letter == 'D') {
+                        $objSheet->setCellValue($letter . ($j + 2), $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
                     } else {
                         $objSheet->setCellValue($letter . ($j + 2), $item[$key]);
                     }
