@@ -1019,7 +1019,9 @@ class MaterialCatModel extends PublicModel {
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
+        $objPHPExcel->getActiveSheet(0)->getStyle('A')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
         $objPHPExcel->getActiveSheet(0)->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+        $objPHPExcel->getActiveSheet(0)->getStyle('C')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
 //id,cat_no,parent_cat_no,level_no,lang,name,status,sort_order,created_at,created_by
         $objSheet->setTitle('物料分类');
         $objSheet->setCellValue("A1", "序号");
@@ -1036,8 +1038,8 @@ class MaterialCatModel extends PublicModel {
             foreach ($result as $cat_no => $item) {
 
                 $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("B" . $j, ' ' . $cat_no, PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("C" . $j, ' ' . $item['parent_cat_no'] ? $item['parent_cat_no'] : '', PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("B" . $j, $cat_no, PHPExcel_Cell_DataType::TYPE_STRING);
+                $objSheet->setCellValue("C" . $j, $item['parent_cat_no'] ? $item['parent_cat_no'] : '', PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("D" . $j, isset($item['zh']['name']) ? $item['zh']['name'] : '');
 
                 $objSheet->setCellValue("E" . $j, isset($item['en']['name']) ? $item['en']['name'] : '');

@@ -37,7 +37,11 @@ class SupervisedCriteriaModel extends PublicModel {
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
-            $where['created_by'] = ['in', $userids];
+            if ($userids) {
+                $where['created_by'] = ['in', $userids];
+            } else {
+                $where['created_by'] = -1;
+            }
         }
         if (isset($condition['license']) && $condition['license']) {
             $map1['license'] = ['like', '%' . $condition['license'] . '%'];

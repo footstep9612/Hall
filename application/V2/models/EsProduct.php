@@ -2168,11 +2168,13 @@ class EsProductModel extends Model {
         $objPHPExcel = $objReader->load($localFile);    //加载文件
 
         $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
-
+        $objSheet->getColumnDimension('C')->setWidth(25);
         $objSheet->setTitle(($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
         $objSheet->setCellValue("N1", '审核状态');
+        $objSheet->getStyle('C')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+
 
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
@@ -2182,13 +2184,18 @@ class EsProductModel extends Model {
 
                 if ($key === 'brand' && isset($item['brand']['name']) && $item['brand']['name']) {
 
-                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item['brand']['name']);
+                    $objSheet->setCellValue($letter . ($j + 2), $item['brand']['name']);
                 } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
 
-                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item['bizline']['name']);
+                    $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
-
-                    $objSheet->setCellValue($letter . ($j + 2), ' ' . $item[$key]);
+                    if ($letter == 'C') {
+                        $objSheet->setCellValue($letter . ($j + 2), strval($item[$key]), PHPExcel_Cell_DataType::TYPE_STRING);
+                    } elseif ($letter == 'D') {
+                        $objSheet->setCellValue($letter . ($j + 2), strval($item[$key]), PHPExcel_Cell_DataType::TYPE_STRING);
+                    } else {
+                        $objSheet->setCellValue($letter . ($j + 2), $item[$key]);
+                    }
                 } else {
                     $objSheet->setCellValue($letter . ($j + 2), ' ');
                 }
@@ -2222,8 +2229,8 @@ class EsProductModel extends Model {
 //            $objSheet->freezePane(chr($i) . '4');
 //        }
 
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xls');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
+        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xlsx');
         unset($objPHPExcel, $objSheet);
         return true;
     }
