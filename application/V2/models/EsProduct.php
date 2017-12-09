@@ -2190,8 +2190,6 @@ class EsProductModel extends Model {
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
                     if ($letter == 'C') {
-                        $objSheet->getStyle($letter . ($j + 2))->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
-
                         $objSheet->setCellValue($letter . ($j + 2), ' ' . $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
                     } elseif ($letter == 'D') {
                         $objSheet->setCellValue($letter . ($j + 2), $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
