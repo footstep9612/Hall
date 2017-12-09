@@ -2088,13 +2088,13 @@ class EsProductModel extends Model {
         if ($count <= 0) {
             jsonReturn('', ErrorMsg::FAILED, '无数据可导出');
         }
-
+        $date = date('YmdHi', time());
         //单excel显示条数
         //excel输出的起始行
         try {
 
             for ($p = 0; $p < $count / self::$xlsSize; $p++) {
-                $this->Createxls($condition, $lang, $p);
+                $this->Createxls($condition, $lang, $p, $date);
                 $progress_redis['processed'] = $p;    //记录导入进度信息
                 redisSet($progress_key, json_encode($progress_redis));
             }
@@ -2102,9 +2102,10 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Export failed:' . $e, Log::ERR);
             return false;
         }
+
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
         rmdir($tmpDir);
-        $dirName = $tmpDir . date('YmdH', time());
+        $dirName = $tmpDir . $date;
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
         if (file_exists($dirName . '.zip')) {
@@ -2148,12 +2149,13 @@ class EsProductModel extends Model {
      * 生成excel
      */
 
-    public function Createxls($condition = [], $lang = '', $xlsNum = 1) {
+    public function Createxls($condition = [], $lang = '', $xlsNum = 1, $date = null) {
         //存储目录
 
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
         rmdir($tmpDir);
-        $dirName = $tmpDir . date('YmdH', time());
+
+        $dirName = $tmpDir . $date;
         if (!is_dir($dirName)) {
             if (!mkdir($dirName, 0777, true)) {
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
@@ -2169,13 +2171,11 @@ class EsProductModel extends Model {
 
         $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
         $objSheet->getColumnDimension('C')->setWidth(25);
-        $objSheet->setTitle(($xlsNum + 1) . '_' . $lang);
+        $objSheet->setTitle('SPU导出_' . ($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
         $objSheet->setCellValue("N1", '审核状态');
-        $objSheet->getStyle('C')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
 
-        $objSheet->getStyle('D')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
 
@@ -2190,6 +2190,8 @@ class EsProductModel extends Model {
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
                     if ($letter == 'C') {
+                        $objSheet->getStyle($letter . ($j + 2))->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+
                         $objSheet->setCellValue($letter . ($j + 2), ' ' . $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
                     } elseif ($letter == 'D') {
                         $objSheet->setCellValue($letter . ($j + 2), $item[$key], PHPExcel_Cell_DataType::TYPE_STRING);
@@ -2230,7 +2232,7 @@ class EsProductModel extends Model {
 //        }
 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
-        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xls');
+        $objWriter->save($dirName . '/' . $date . '_' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
         return true;
     }
