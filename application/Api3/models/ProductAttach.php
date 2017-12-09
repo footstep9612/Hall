@@ -26,12 +26,40 @@ class ProductAttachModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getAttachBySpu($spu){
+        if(is_array($spu)){
+            $condition_attach = [
+                'spu' => ['in' ,$spu],
+                'attach_type' => 'BIG_IMAGE',
+                'status'=> self::STATUS_VALID,
+                'deleted_flag' => self::DELETED_N,
+            ];
+        }else {
+            $condition_attach = [
+                'spu' => $spu ,
+                'attach_type' => 'BIG_IMAGE' ,
+                'status' => self::STATUS_VALID ,
+                'deleted_flag' => self::DELETED_N ,
+            ];
+        }
+
+        try{
+            $attachs = $this->field('spu,attach_type,attach_name,attach_url,default_flag')->where($condition_attach)->order('sort_order')->select();
+            return $attachs ? $attachs : [];
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ProductAttach】getAttachBySpu:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
+
+
     /**
      * 根据spu获取附件
      * @param $spu spu编码
      * @return array
      */
-    public function getAttachBySpu($spu = '', $status = '') {
+   /* public function getAttachBySpu($spu = '', $status = '') {
         if (empty($spu)) {
             jsonReturn('', ErrorMsg::NOTNULL_SPU);
         }
@@ -67,14 +95,14 @@ class ProductAttachModel extends PublicModel {
                 return false;
             }
         }
-    }
+    }*/
 
     /**
      * 添加附件
      * @param array $input
      * @return bool|mixed
      */
-    public function addAttach($input = []) {
+    /*public function addAttach($input = []) {
         if (empty($input) || !isset($input['spu']) || !isset($input['attach_url'])) {
             return false;
         }
@@ -93,7 +121,7 @@ class ProductAttachModel extends PublicModel {
             return $this->where(array('id' => $input['id']))->save($data);
         }
         return $this->add($data);
-    }
+    }*/
 
     /* 通过SKU获取数据商品文件列表
      * @param mix $spus // 商品SKU编码数组
@@ -105,7 +133,7 @@ class ProductAttachModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getproduct_attachsbyspus($spus, $lang = 'en') {
+    /*public function getproduct_attachsbyspus($spus, $lang = 'en') {
 
         try {
             $product_attachs = $this->field('id,attach_type,attach_url,attach_name,attach_url,spu')
@@ -127,14 +155,14 @@ class ProductAttachModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
-    }
+    }*/
 
     /**
      * 获取商品附件   注：此方法用去前台接口调用，因为有错误输出
      * @param array $condition
      * @return array|mixed
      */
-    public function getAttach($condition = []) {
+    /*public function getAttach($condition = []) {
         $spu = isset($condition['spu']) ? $condition['spu'] : '';
         if (empty($spu)) {
             jsonReturn('', 1000);
@@ -186,14 +214,14 @@ class ProductAttachModel extends PublicModel {
             echo $e->getMessage();
             return false;
         }
-    }
+    }*/
 
     /**
      * 获取商品附件   注：此方法用去前台接口调用，因为有错误输出
      * @param array $spus
      * @return array|mixed
      */
-    public function getImgBySpus($spus = []) {
+    /*public function getImgBySpus($spus = []) {
         $where = array(
             'spu' => ['in', $spus],
             'deleted_flag' => 'N',
@@ -217,6 +245,6 @@ class ProductAttachModel extends PublicModel {
             return $result;
         }
         return array();
-    }
+    }*/
 
 }
