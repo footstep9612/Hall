@@ -5,7 +5,7 @@
  * Date: 2017/12/8
  * Time: 10:18
  */
-class CustomCatItemController extends PublicModel
+class CustomCatItemModel extends PublicModel
 {
     protected $tableName = 'custom_cat_item';
     protected $dbName = 'erui_mall'; //数据库名称
@@ -27,20 +27,36 @@ class CustomCatItemController extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info() {
-        $where = [
-            "custom_cat_item.deleted_flag" => 'N',
-        ];
+    public function info($lang, $cat_id, $item_id) {
+        if(isset($cat_id) && !empty($cat_id)) {
+            $where["custom_cat_item.cat_id"] = $cat_id;
+        }
+        if(isset($item_id) && !empty($item_id)) {
+            $where["custom_cat_item.id"] = $item_id;
+        }
+        if(isset($lang) && !empty($lang)) {
+            $where["custom_cat_item.lang"] = $lang;
+        }
+        $where["custom_cat_item.deleted_flag"] =  'N';
+
         if ($where) {
             $customitemInfo = $this->where($where)
                                   ->field('custom_cat_item.*,em.name as created_name')
                                   ->join('erui_sys.employee em on em.id=custom_cat_item.created_by', 'left')
+                                  ->group('custom_cat_item.item_name')
+                                  ->order('custom_cat_item.id asc')
                                   ->select();
             $data = array();
             if($customitemInfo) {
-                foreach ($customitemInfo as $item) {
-                    //按语言分组
-                    $data[$item['lang']] = $item;
+                $j = 0;
+                for($i=0; $i<=count($customitemInfo)-1;) {
+                    $data[$j][0] = $customitemInfo[$i];
+                    //$data[$j][1] = $customitemInfo[$i+1];
+                    if($customitemInfo[$i+1]) {
+                        $data[$j][1] = $customitemInfo[$i+1];
+                    }
+                    $j++;
+                    $i +=2;
                 }
                 return $data;
             } else{

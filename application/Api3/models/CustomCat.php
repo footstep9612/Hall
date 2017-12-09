@@ -5,7 +5,7 @@
  * Date: 2017/12/8
  * Time: 10:17
  */
-class CustomCatController extends PublicModel
+class CustomCatModel extends PublicModel
 {
     protected $tableName = 'custom_cat';
     protected $dbName = 'erui_mall'; //数据库名称
@@ -20,6 +20,8 @@ class CustomCatController extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     /**
      * 获取详情
@@ -27,25 +29,22 @@ class CustomCatController extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info() {
-        $where = [
-            "custom_cat.deleted_flag" => 'N',
-        ];
+    public function info($lang, $cat_id) {
+        if(isset($cat_id) && !empty($cat_id)) {
+            $where["custom_cat.id"] = $cat_id;
+        }
+        if(isset($lang) && !empty($lang)) {
+            $where["custom_cat.lang"] = $lang;
+        }
+        $where["custom_cat.deleted_flag"] =  'N';
         if ($where) {
             $customcatInfo = $this->where($where)
                                   ->field('custom_cat.*,em.name as created_name')
                                   ->join('erui_sys.employee em on em.id=custom_cat.created_by', 'left')
+                                  ->order('custom_cat.id asc')
                                   ->select();
-            $data = array();
-            if($customcatInfo) {
-                foreach ($customcatInfo as $item) {
-                    //按语言分组
-                    $data[$item['lang']] = $item;
-                }
-                return $data;
-            } else{
-                return  false;
-            }
+
+            return $customcatInfo ? $customcatInfo : false;
         } else {
             return false;
         }
@@ -128,6 +127,6 @@ class CustomCatController extends PublicModel
     删除
      */
     public function delete_data($where) {
-        return $this->where($where)->save(['deleted_flag'=> 'Y']);
+        return $this->where($where)->save(['deleted_flag'=> self::DELETE_Y]);
     }
 }

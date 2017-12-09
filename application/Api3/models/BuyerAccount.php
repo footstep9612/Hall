@@ -83,11 +83,11 @@ class BuyerAccountModel extends PublicModel {
     public function info($data) {
         if (!empty($data['buyer_id'])) {
             $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
-                    ->find();
+                        ->find();
             return $row;
         } elseif (!empty($data['id'])) {
             $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
-                    ->find();
+                        ->find();
             return $row;
         } else {
             return false;
@@ -101,20 +101,18 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function getinfo($data) {
-        $model = new BuyerModel();
-        $table = $model->getTableName();
-       // $Account_model = new BuyerAccountModel();
+        $buyer_model = new BuyerModel();
         $buyeragent_model = new BuyerAgentModel();
 
-       // $Account_table = $Account_model->getTableName();
-        $buyeragent_table = $buyeragent_model->getTableName();
+        $buyer_table = $buyer_model->getTableName();
+        $agent_table = $buyeragent_model->getTableName();
+
         if (!empty($data['buyer_id'])) {
-             $row = $this->field('b.*,ba.*,bag.*')->alias('b')
-                 ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
-                 ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
-                 //->join($Account_table . ' as ac on b.buyer_id=ac.buyer_id', 'left')
-                 ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
-                 ->find();
+             $row = $this->field('b.*,c.*,ag.*')->alias('c')
+                         ->join($agent_table . ' as ag on ag.buyer_id=c.buyer_id', 'left')
+                         ->join($buyer_table . ' as b on b.id=c.buyer_id', 'left')
+                         ->where(['c.buyer_id' => $data['buyer_id'], 'c.deleted_flag' => 'N'])
+                         ->find();
             if (!empty($row['buyer_level'])) {
                 $BuyerLevelModel = new BuyerLevelModel();
                 $res = $BuyerLevelModel->field('buyer_level')->where(['id' => $row['buyer_level']])->find();
@@ -122,9 +120,10 @@ class BuyerAccountModel extends PublicModel {
                     if (!is_null(json_decode($res['buyer_level'], true))) {
                         $level = json_decode($res['buyer_level'], true);
                         foreach ($level as $item) {
-                            $dat[$item['lang']] = $item;
+                            $info[$item['lang']] = $item;
                         }
-                        $row['buyer_level'] = $dat['en']['name'];
+                        $row['buyer_level'] = $info['en']['name'];
+                        $row['level_info'] = $info;
                     }
                 }
             }
@@ -251,9 +250,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data, $userId) {
-        if (!empty($userId['buyer_id'])) {
-            $where['buyer_id'] = $userId['buyer_id'];
+    public function checkPassword($data) {
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
@@ -274,10 +273,10 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data, $token) {
+    public function update_pwd($data) {
 
-        if (!empty($token['buyer_id'])) {
-            $where['buyer_id'] = $token['buyer_id'];
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
@@ -289,39 +288,5 @@ class BuyerAccountModel extends PublicModel {
         return $this->where(['buyer_id' => $where['buyer_id']])->save($new);
     }
 
-    /*
-     * 根据用户ID 获取用户名 姓
-     * @param array $buyer_ids // 用户ID
-     * @return mix
-     * @author  zhongyg
-     *  @date    2017-8-5 15:39:16
-     * @version V2.0
-     * @desc   ES 产品
-     */
-
-    public function getBuyerNamesByBuyerids($buyer_ids) {
-
-        try {
-            $where = [];
-
-            if (is_string($buyer_ids)) {
-                $where['buyer_id'] = $buyer_ids;
-            } elseif (is_array($buyer_ids) && !empty($buyer_ids)) {
-                $where['buyer_id'] = ['in', $buyer_ids];
-            } else {
-                return false;
-            }
-            $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
-            $buyer_names = [];
-            foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
-            }
-            return $buyer_names;
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
-            return [];
-        }
-    }
 
 }

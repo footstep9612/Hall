@@ -5,11 +5,12 @@
  * Date: 2017/12/6
  * Time: 16:28
  */
-class BuyerServiceModel extends PublicModel
+class BuyerCustomModel extends PublicModel
 {
 
     protected $tableName = 'buyer_custom';
     protected $dbName = 'erui_mall'; //数据库名称
+    protected $g_table = 'erui_mall.buyer_custom';
 
     public function __construct()
     {
@@ -20,7 +21,71 @@ class BuyerServiceModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
 
+    public function getlist($condition = [],$limit, $order = " id desc") {
+
+        $sql = 'SELECT `erui_mall`.`buyer_custom`.`id`, `erui_mall`.`buyer_custom`.`buyer_id`,
+                 `erui_mall`.`buyer_custom`.`service_no`, `erui_mall`.`buyer_custom`.`title`,
+                 `erui_mall`.`buyer_custom`.`cat_id`, `erui_mall`.`buyer_custom`.`term_id`,
+                 `erui_mall`.`buyer_custom`.`content`, `erui_mall`.`buyer_custom`.`remarks`,
+                 `erui_mall`.`buyer_custom`.`add_desc`, `erui_mall`.`buyer_custom`.`email`,
+                 `erui_mall`.`buyer_custom`.`contact_name`, `erui_mall`.`buyer_custom`.`company`,
+                 `erui_mall`.`buyer_custom`.`country_bn`, `erui_mall`.`buyer_custom`.`tel`,
+                 `erui_mall`.`buyer_custom`.`status`, `erui_mall`.`buyer_custom`.`created_at`,
+                 `erui_mall`.`buyer_custom`.`created_by`, `erui_mall`.`buyer_custom`.`updated_at`,
+                 `erui_mall`.`buyer_custom`.`updated_by`,';
+        $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
+        $sql .= '`erui_sys`.`employee`.`name` as `created_name`';
+        $str = ' FROM ' . $this->g_table;
+        $sql .= $str;
+
+        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
+        $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_mall`.`buyer_custom`.`created_by` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
+
+        $sql_count = 'SELECT count(`erui_mall`.`buyer_custom`.`id`) as num ';
+        $sql_count .= $str;
+        $where = " WHERE 1 = 1";
+        if (isset($condition['country_bn']) && !empty($condition['country_bn'])) {
+            $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
+        }
+        if (isset($condition['company']) && !empty($condition['company'])) {
+            $where .= " And company like '%" . $condition['company'] . "%'";
+        }
+        if (isset($condition['contact_name']) && !empty($condition['contact_name'])) {
+            $where .= " And `contact_name` like '%" . $condition['contact_name'] . "%'";
+        }
+        if (isset($condition['official_phone']) && !empty($condition['official_phone'])) {
+            $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
+        }
+        if (isset($condition['email']) && !empty($condition['email'])) {
+            $where .= ' And `email` ="' . $condition['email'] . '"';
+        }
+
+        if (isset($condition['cat_name']) && !empty($condition['cat_name'])) {
+            $where .= " And `erui_mall`.`custom_cat`.cat_name like '%" . $condition['cat_name'] . "%'";
+        }
+
+        if ($where) {
+            $sql .= $where;
+            $sql_count .= $where;
+        }
+        $sql .= ' Order By ' . $order;
+        if (!empty($limit['num'])) {
+            $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
+        }
+        $count = $this->query($sql_count);
+        $res['count'] = $count[0]['num'];
+        $res['data'] = $this->query($sql);
+        return $res;
+    }
 
     /**
      * 获取详情
@@ -29,17 +94,35 @@ class BuyerServiceModel extends PublicModel
      * @author klp
      */
     public function info($buyer_id) {
-
         $where = [
-            "buyer_id"  => $buyer_id,
-            "deleted_flag" => 'N',
+            "buyer_custom.buyer_id"     => $buyer_id,
+            "buyer_custom.deleted_flag" => 'N',
         ];
         if ($where) {
-            $customInfo = $this->where($where)->field('buyer.*,em.name as created_name')->select();
-//            $sql = "SELECT  `id`,  `service_id`,  `attach_type`,  `attach_name`,  `default_flag`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`service_attach` where deleted_flag ='N' and service_id = " . $customInfo['id'];
-//            $row = $this->query($sql);     ==>>扩展加附件使用(后期加)
+            $customInfo = $this->where($where)->field('buyer_custom.*,em.name as created_name')
+                                              ->join('erui_sys.employee em on em.id=buyer_custom.buyer_id', 'left')
+                                              ->select();
+//            $sql = "SELECT  `id`,  `service_id`,  `attach_type`,  `attach_name`,  `default_flag`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_mall`.`service_attach` where deleted_flag ='N' and service_id = " . $customInfo['id'];
+//            $row = $this->query($sql);     //==>>扩展加附件使用(后期加)
+            $data = array();
+            if($customInfo) {
+                $catModel = new CustomCatModel();
+                $itemModel = new CustomCatItemModel();
+                foreach($customInfo as $value) {
 
-            return $customInfo;
+                    $catInfo = $catModel->info('',$value['cat_id']);
+                    $value['cat_name'] = $catInfo[0]['cat_name'];
+                    $item = json_decode($value['term_id'], true);
+                    foreach($item as $v) {
+                        $itemInfo = $itemModel->info('', $value['cat_id'], $v);
+                        $value['item_name'][] = $itemInfo[0][0]['item_name'];
+                    }
+                    $data[] = $value;
+                }
+                return $data;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -61,7 +144,7 @@ class BuyerServiceModel extends PublicModel
             $arr['title'] = $create['title'];
         }
         if (isset($create['cat_id'])) {
-            $arr['cat_id'] = json_encode(trim($create['cat_id']));
+            $arr['cat_id'] = trim($create['cat_id']);
         }
         if (isset($create['term_id'])) {
             $arr['term_id'] = json_encode(trim($create['term_id']));
@@ -116,10 +199,10 @@ class BuyerServiceModel extends PublicModel
             $arr['title'] = $data['title'];
         }
         if (isset($data['cat_id'])) {
-            $arr['cat_id'] = json_encode(trim($data['cat_id']));
+            $arr['cat_id'] = trim($data['cat_id']);
         }
         if (isset($data['term_id'])) {
-            $arr['term_id'] = trim($data['term_id']);
+            $arr['term_id'] = json_encode(trim($data['term_id']));
         }
         if (isset($data['content'])) {
             $arr['content'] = trim($data['content']);
@@ -177,7 +260,7 @@ class BuyerServiceModel extends PublicModel
     删除
      */
     public function delete_data($where) {
-        return $this->where($where)->save(['deleted_flag'=> 'Y']);
+        return $this->where($where)->save(['deleted_flag'=> self::DELETE_Y]);
     }
 
 

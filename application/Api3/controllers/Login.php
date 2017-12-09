@@ -292,6 +292,9 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -114, ShopMsg::getMessage('-114',$lang));
         }
+        if (isset($data['city'])) {
+            $arr['city'] = trim($data['city']);
+        }
         if (isset($data['show_name'])) {
             $buyer_account_data['show_name'] = trim($data['show_name']);
         } else {
