@@ -50,6 +50,8 @@ class StockController extends PublicController {
         $list = $stock_model->getList($country_bn, $lang, $floor_id);
         if ($list) {
             $this->_setImage($list);
+            $this->_setConstPridce($list, $country_bn);
+
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -63,7 +65,7 @@ class StockController extends PublicController {
     }
 
     /*
-     * Description of 获取物料分类名称
+     * Description of 获取图片
      * @param array $arr
      * @author  zhongyg
      * @date    2017-8-2 13:07:21
@@ -92,6 +94,40 @@ class StockController extends PublicController {
                 } else {
                     $val['image_url'] = '';
                     $val['image_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setConstPridce(&$arr, $country_bn) {
+        if ($arr) {
+
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+
+            $product_attach_model = new StockCostPriceModel();
+            $stockcostprices = $product_attach_model->getCostPriceBySkus($skus, $country_bn);
+
+            foreach ($arr as $key => $val) {
+
+                if ($val['spu'] && isset($stockcostprices[$val['sku']])) {
+                    if (isset($stockcostprices[$val['sku']])) {
+                        $val['costprices'] = $stockcostprices[$val['sku']];
+                    }
+                } else {
+                    $val['costprices'] = '';
                 }
                 $arr[$key] = $val;
             }
