@@ -73,6 +73,7 @@ class BizdivitionController extends PublicController{
             'id'=>$request['inquiry_id'],
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id'      => $erui_id,
+            'org_id'      => $erui_id,
             'now_agent_id' => $roleUser,
             'inflow_time'  => date('Y-m-d H:i:s',time()),
             'updated_by'   => $this->user['id'],
