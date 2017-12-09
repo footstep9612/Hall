@@ -103,16 +103,16 @@ class BuyerAccountModel extends PublicModel {
     public function getinfo($data) {
         $model = new BuyerModel();
         $table = $model->getTableName();
-        $country_model = new CountryModel();
+       // $Account_model = new BuyerAccountModel();
         $buyeragent_model = new BuyerAgentModel();
 
-        $country_table = $country_model->getTableName();
+       // $Account_table = $Account_model->getTableName();
         $buyeragent_table = $buyeragent_model->getTableName();
         if (!empty($data['buyer_id'])) {
-             $row = $this->field('b.*,ba.*,bag.*,country.name as country_name')->alias('b')
+             $row = $this->field('b.*,ba.*,bag.*')->alias('b')
                  ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
                  ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
-                 ->join($country_table . ' as country on ba.lang=country.lang and ba.country_bn=country.bn', 'left')
+                 //->join($Account_table . ' as ac on b.buyer_id=ac.buyer_id', 'left')
                  ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
                  ->find();
             if (!empty($row['buyer_level'])) {
@@ -143,16 +143,25 @@ class BuyerAccountModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function login($data) {
+    public function login($data, $lang) {
         $where = array();
-        if (!empty($data['email'])) {
+        if (isset($data['email'])) {
             $where['email'] = $data['email'];
+        }
+        if (isset($data['user_name'])) {
+            $where['user_name'] = $data['user_name'];
+        }
+        if (empty($where['user_name']) && empty($where['email'])) {
+            jsonReturn(null, -124, ShopMsg::getMessage('-124',$lang));
+            exit();
         }
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
-        $where['status'] = 'VALID';
-        return $this->where($where)->find();
+        $where['deleted_flag'] = 'N';
+        //$where['status'] = 'VALID';
+        $row = $this->where($where)->find();
+        return $row;
     }
 
     /**

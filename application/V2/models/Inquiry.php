@@ -35,10 +35,17 @@ class InquiryModel extends PublicModel {
         'LOGI_QUOTING' => '物流报价',
         'LOGI_APPROVING' => '物流审核',
         'BIZ_APPROVING' => '事业部核算',
-        'MARKET_APPROVING' => '市场主管审核',
+        'MARKET_APPROVING' => '事业部审核',
         'MARKET_CONFIRMING' => '市场确认',
         'QUOTE_SENT' => '报价单已发出',
         'INQUIRY_CLOSED' => '报价关闭'
+    ];
+    public $quoteStatus = [
+        'DRAFT' => '草稿',
+        'NOT_QUOTED' => '未报价',
+        'ONGOING' => '报价中',
+        'QUOTED' => '已报价',
+        'COMPLETED' => '已完成'
     ];
 
     public function __construct() {
@@ -814,6 +821,49 @@ class InquiryModel extends PublicModel {
      */
     public function getInquiryCountry($id = '') {
         return $this->where(['id' => $id])->getField('country_bn');
+    }
+    
+    /**
+     * @desc 获取某个时间段内的询单列表
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2017-12-07
+     */
+    public function getTimeIntervalList($condition = []) {
+        if (!empty($condition['creat_at_start']) && !empty($condition['creat_at_end'])) {
+            $where['a.deleted_flag'] = 'N';
+            
+            $where['a.status'] = ['neq', 'DRAFT'];
+            
+            $where['_complex']['a.created_at'] = [
+                ['egt', $condition['creat_at_start']],
+                ['elt', $condition['creat_at_end']]
+            ];
+            
+            $where['_complex']['a.updated_at'] = [
+                ['egt', $condition['creat_at_start']],
+                ['elt', $condition['creat_at_end']]
+            ];
+            
+            $where['_complex']['_logic'] = 'or';
+            
+            $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
+            
+            return $this->alias('a')
+                                ->field('a.id, a.serial_no, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                                ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
+                                ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
+                                ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
+                                ->join('erui_rfq.quote e ON a.id = e.inquiry_id AND e.deleted_flag = \'N\'', 'LEFT')
+                                ->join('erui_rfq.final_quote f ON a.id = f.inquiry_id AND f.deleted_flag = \'N\'', 'LEFT')
+                                ->where($where)
+                                ->order('a.id DESC')
+                                ->select();
+        } else {
+            return false;
+        }
     }
 
     /**

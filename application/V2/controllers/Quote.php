@@ -275,7 +275,12 @@ class QuoteController extends PublicController{
         //是不是需要物流报价标识区分
         $quoteModel = new QuoteModel();
         $logi_quote_flag = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->getField('logi_quote_flag');
-        $status = $logi_quote_flag == "Y" ? "BIZ_APPROVING" : "BIZ_QUOTING";
+
+        if( $logi_quote_flag == "Y" ){
+            $status = "BIZ_QUOTING";
+        }else{
+            $status = "BIZ_APPROVING";
+        }
 
         $response = $this->inquiryModel->updateData([
             'id'            => $request['inquiry_id'],

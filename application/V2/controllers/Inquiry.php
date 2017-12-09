@@ -909,7 +909,13 @@ class InquiryController extends PublicController {
         $employeeModel = new EmployeeModel();
         $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile')->find();
 
-        $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+        //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
+        if( !in_array($data['out_node'],['QUOTE_SENT','INQUIRY_CLOSED'])){
+
+            $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+
+        }
+
 
         //催办测试清零
         $this->cleanInquiryRemind($data['inquiry_id']);
@@ -963,7 +969,7 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $this->setCode('-101');
+            $this->setCode('-103');
             $this->setMessage('缺少参数!');
             $this->jsonReturn();
         }

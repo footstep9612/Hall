@@ -471,6 +471,7 @@ class EsproductController extends PublicController {
      * @desc   ES 产品
      */
     public function mappingAction() {
+        $body = [];
         $body['mappings'] = [];
         $product_properties = $this->productAction('en');
         $goods_properties = $this->goodsAction('en');

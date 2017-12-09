@@ -43,6 +43,9 @@ class StockController extends PublicController {
         $stock_model = new StockModel();
         $list = $stock_model->getList($condition, $lang);
         if ($list) {
+            $this->_setCountry($list);
+            $this->_setConstPrice($list, $condition['country_bn']);
+            $this->_setShowcats($list, $lang, $condition['country_bn']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -255,11 +258,7 @@ class StockController extends PublicController {
             $this->setMessage('请选择现货商品!');
             $this->jsonReturn();
         }
-
-
         $stock_cost_price_model = new StockCostPriceModel();
-
-
         $list = $stock_cost_price_model->getList($country_bn, $sku);
         if ($list) {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -273,6 +272,131 @@ class StockController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setConstPrice(&$arr, $country_bn) {
+        if ($arr) {
+
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+
+            $product_attach_model = new StockCostPriceModel();
+            $supplier_model = new SuppliersModel();
+            $stockcostprices = $product_attach_model->getCostPriceBySkus($skus, $country_bn);
+
+            $supplier_ids = [];
+            foreach ($stockcostprices as $stockcostprice) {
+                foreach ($stockcostprice as $costprice) {
+                    $supplier_ids[] = $costprice['supplier_id'];
+                }
+            }
+            $suppliers = $supplier_model->getSupplierNameByIds($supplier_ids);
+            foreach ($arr as $key => $val) {
+
+                if ($val['spu'] && isset($stockcostprices[$val['sku']])) {
+                    if (isset($stockcostprices[$val['sku']])) {
+                        $val['costprices'] = $stockcostprices[$val['sku']];
+                        $val['supplier_names'] = $this->_getSuppliernames($stockcostprices[$val['sku']], $suppliers);
+                    }
+                } else {
+                    $val['costprices'] = '';
+                    $val['supplier_names'] = [];
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _getSuppliernames($stockcostprices, $suppliers) {
+        foreach ($stockcostprices as $stockcostprice) {
+            $supplier_id = $stockcostprice['supplier_id'];
+            if (isset($suppliers[$supplier_id])) {
+                $supplier_names[$supplier_id] = $suppliers[$supplier_id];
+            }
+        }
+        rsort($supplier_names);
+        unset($stockcostprices, $suppliers);
+        return $supplier_names;
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setCountry(&$arr) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val['country_bn']);
+            }
+            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            foreach ($arr as $key => $val) {
+                if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
+                    $val['country_name'] = $countrynames[trim($val['country_bn'])];
+                } else {
+                    $val['country_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取展示分类
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setShowcats(&$arr, $lang, $country_bn) {
+        if ($arr) {
+
+            $show_cat_goods_model = new ShowCatGoodsModel();
+
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = trim($val['sku']);
+            }
+
+            $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang, $country_bn);
+            foreach ($arr as $key => $val) {
+                if (trim($val['sku']) && isset($scats[trim($val['sku'])])) {
+                    $val['show_cats'] = $scats[trim($val['sku'])];
+                } else {
+                    $val['show_cats'] = [];
+                }
+                rsort($val['show_cats']);
+                $arr[$key] = $val;
+            }
         }
     }
 

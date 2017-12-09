@@ -49,6 +49,9 @@ class ProductrelationController extends PublicController {
         $data = $product_relation_model->getList($spu, $lang, ($current_no - 1) * $pagesize, $pagesize);
 
         if ($data) {
+            $this->_setMaterialCat($data);
+            $this->_setOnshelfFlag($data);
+
             $count = $product_relation_model->getCont($spu, $lang);
             $this->setvalue('count', $count);
             $this->jsonReturn($data);
@@ -60,6 +63,73 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setMaterialCat(&$arr) {
+        if ($arr) {
+            $material_cat_model = new MaterialCatModel();
+            $catnos = [];
+            foreach ($arr as $key => $val) {
+                $catnos[] = $val['material_cat_no'];
+            }
+
+            $catnames = $material_cat_model->getNameByCatNos($catnos, 'zh');
+
+            foreach ($arr as $key => $val) {
+                if ($val['material_cat_no'] && isset($catnames[$val['material_cat_no']])) {
+                    $val['material_cat_name'] = $catnames[$val['material_cat_no']];
+                } else {
+                    $val['material_cat_name'] = '';
+                }
+                $brand = [];
+                if ($val['brand'] && $brand = json_decode($val['brand'], true)) {
+                    if (isset($brand['name'])) {
+                        $val['brand'] = $brand['name'];
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取上下架状态
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setOnshelfFlag(&$arr) {
+        if ($arr) {
+            $show_cat_product_model = new ShowCatProductModel();
+            $spus = [];
+            foreach ($arr as $key => $val) {
+                $spus[] = $val['spu'];
+            }
+
+            $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, 'zh');
+
+            foreach ($arr as $key => $val) {
+                if ($val['spu'] && isset($show_cat_products[$val['spu']])) {
+                    $val['onshelf_flag'] = $show_cat_products[$val['spu']];
+                } else {
+                    $val['onshelf_flag'] = 'N';
+                }
+
+                $arr[$key] = $val;
+            }
         }
     }
 

@@ -31,8 +31,13 @@ class ProductRelationModel extends PublicModel {
      * @desc  SPU关联
      */
     public function getList($spu, $lang, $offset, $size) {
-        $where = ['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'];
-        return $this->where($where)
+        $product_model = new ProductModel();
+        $product_table = $product_model->getTableName();
+        $where = ['pr.spu' => $spu, 'pr.lang' => $lang, 'pr.deleted_flag' => 'N', 'p.deleted_flag' => 'N'];
+        return $this->alias('pr')
+                        ->field('p.id,p.lang,p.spu,p.name,p.brand,p.material_cat_no,p.status')
+                        ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=\'zh\' ')
+                        ->where($where)
                         ->limit($offset, $size)
                         ->select();
     }

@@ -88,62 +88,85 @@ class IndustrychainModel extends PublicModel
 //        $checkedDown = $this -> checkedDown($down);
 //        if($checkedUp == false || $checkedDown == false){
 //            return false;
-//        }
-        //end验证
+//        }//end验证
         $buyer_id = $data['buyer_id'];
         $created_by = $data['created_by'];
-        //重新保存,删除之前
-//        $showDelRes = $this -> showDel($buyer_id,$created_by);
-//        if($showDelRes == false){
-//            return false;
-//        }
-        if(!empty($data['up'])){
-            $showDelResUP = $this -> showgroupDel($industry_group='up',$buyer_id,$created_by);
-            if($showDelResUP == false){
-                return false;
-            }
-            $up = $data['up'];
-            $checkedUp = $this -> checkedSize($up);
-            if($checkedUp == false){
-                return false;
-            }
-            foreach($up as $k => $v){
-                $v['buyer_id'] = $buyer_id;
-                $v['industry_group'] = 'up';
-                $v['created_by'] = $created_by;
-                $v['created_at'] = date('Y-m-d H:i:s');
-                $upRes = $this -> add($v); //一条
-                if($upRes == false){
-                    return false;
-                }
+        if(empty($data['up']) && empty($data['down'])){ //添加空数据
+            $null = $this->addNullData($buyer_id,$created_by);
+            if($null){
+                return 'nullData';
             }
         }
-        if(!empty($data['down'])){
-            $showDelResDown = $this -> showgroupDel($industry_group='down',$buyer_id,$created_by);
-            if($showDelResDown == false){
-                return false;
-            }
-            $down = $data['down'];
-            $checkedDown = $this -> checkedSize($down);
-            if($checkedDown == false){
-                return false;
-            }
-            foreach($down as $k => $v){
-                $v['buyer_id'] = $buyer_id;
-                $v['industry_group'] = 'down';
-                $v['created_by'] = $created_by;
-                $v['created_at'] = date('Y-m-d H:i:s');
-                $downRes = $this -> add($v);
-                if($downRes == false){
-                    return false;
-                }
-            }
+        if(!empty($data['up'])){    //up添加数据
+            $upRes = $this->handleUpDown($industry_group='up',$data['up'],$buyer_id,$created_by);
+        }
+        if(!empty($data['down'])){  //down添加数据
+            $downRes = $this->handleUpDown($industry_group='down',$data['down'],$buyer_id,$created_by);
         }
         if($upRes || $downRes){
             return true;
         }
+        return false;
     }
-    //查看删除
+    //添加空数据
+    public function addNullData($buyer_id,$created_by){
+        $arrNull = array(
+            array(
+                'buyer_id' => $buyer_id,
+                'industry_group' => 'up',
+                'created_by' => $created_by,
+                'created_at' => date('Y-m-d H:i:s'),
+            ),
+            array(
+                'buyer_id' => $buyer_id,
+                'industry_group' => 'down',
+                'created_by' => $created_by,
+                'created_at' => date('Y-m-d H:i:s'),
+            ),
+        );
+        $exist = $this->showNulldel($buyer_id,$created_by);
+        if($exist){
+            $resNull = $this->addAll($arrNull);
+            if($resNull){
+                return 'nullData';
+            }
+        }
+        return false;
+    }
+    //创建up  和 down
+    public function handleUpDown($industry_group='up',$data,$buyer_id,$created_by){
+        $showDelRes = $this -> showgroupDel($industry_group,$buyer_id,$created_by);
+        if($showDelRes == false){
+            return false;
+        }
+        $checked = $this -> checkedSize($data);
+        if($checked == false){
+            return false;
+        }
+        foreach($data as $k => $v){
+            $v['buyer_id'] = $buyer_id;
+            $v['industry_group'] = $industry_group;
+            $v['created_by'] = $created_by;
+            $v['created_at'] = date('Y-m-d H:i:s');
+            $res = $this -> add($v); //一条
+            if($res == false){
+                return false;
+            }
+        }
+        return true;
+    }
+    //null-------删除up和down空数据
+    public function showNulldel($buyer_id,$created_by){
+        $null = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
+        if(!empty($null)){
+            $del = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->delete();
+            if(!$del){
+                return false;
+            }
+        }
+        return true;
+    }
+    //查看up和down删除
     public function showgroupDel($industry_group,$buyer_id,$created_by){
         $chainInfo = $this -> showgroupChain($industry_group,$buyer_id,$created_by);
         if(!empty($chainInfo)){
@@ -156,14 +179,10 @@ class IndustrychainModel extends PublicModel
     }
     //删除
     public function delgroupChain($industry_group,$buyer_id,$created_by){
-        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->delete();
-        if($res){
-            return true;
-        }
+        return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->delete();
     }
     //查询
     public function showgroupChain($industry_group,$buyer_id,$created_by){
-        $res = $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->select();
-        return $res;
+        return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by,'industry_group'=>$industry_group))->select();
     }
 }

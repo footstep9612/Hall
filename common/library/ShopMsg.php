@@ -20,8 +20,11 @@ class ShopMsg {
     const SHOP_SUCCESS = 1;
     const SHOP_REGISTER = -105;
     const SHOP_LOGIN = -106;
-
-
+    /**
+     * 定制服务
+     */
+    const CUSTOM_FAILED = -201;
+    const CUSTOM_SUCCESS = 1;
 
     /**
      * 信息映射
@@ -50,7 +53,7 @@ class ShopMsg {
             '-111' => '请输入公司邮箱',
             '-112' => '邮箱格式不正确',
             '-113' => '请输入您的手机号码',
-            '-114' => '选择国家',
+            '-114' => '请选择国家',
             '-115' => '请输入联系人姓名',
 
             '-116' => '帐号不可以都为空',
@@ -75,7 +78,7 @@ class ShopMsg {
             '-111' => 'Please enter your company Email',
             '-112' => 'The email format is incorrect',
             '-113' => 'Please enter your cellphone number',
-            '-114' => 'Country',
+            '-114' => 'Please select country',
             '-115' => 'Please enter the contact person\'s name',
             '-116' => '帐号不可以都为空',
             '-117' => 'Email already exists',
@@ -99,7 +102,7 @@ class ShopMsg {
             '-111' => 'Por favor, introduzca su empresa correo electrónico',
             '-112' => 'El formato del correo electrónico es incorrecto',
             '-113' => 'Por favor ingrese su número de teléfono celular',
-            '-114' => 'Seleccionar un país',
+            '-114' => 'Por favor seleccione un país',
             '-115' => 'Por favor ingrese el nombre de la persona de contacto',
             '-116' => '帐号不可以都为空',
             '-117' => 'El Email ya existe',
@@ -124,7 +127,7 @@ class ShopMsg {
             '-111' => 'Пожалуйста, введите адрес вашей компании',
             '-112' => 'Неправильный формат электронной почты',
             '-113' => 'Пожалуйста, введите номер вашего мобильного телефона',
-            '-114' => 'Выберите страну',
+            '-114' => 'Пожалуйста,  выберите страну',
             '-115' => 'Введите имя контактного лица',
             '-116' => '帐号不可以都为空',
             '-117' => 'Электронная почта уже существует',

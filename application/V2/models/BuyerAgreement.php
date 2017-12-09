@@ -1,5 +1,5 @@
 <?php
-//框架协议
+//框架协议wangs
 class BuyerAgreementModel extends PublicModel
 {
     protected  $dbName= 'erui_buyer';
@@ -82,7 +82,7 @@ class BuyerAgreementModel extends PublicModel
         return $arr;
     }
     //组装有效数据数据
-    public function pageageData($data){
+    public function packageData($data){
         $arr = array(
             'buyer_id' => $data['buyer_id'],
             'buyer_code' => $data['buyer_code'],
@@ -120,7 +120,7 @@ class BuyerAgreementModel extends PublicModel
             return false;
         }
         //组装数据
-        $arr = $this -> pageageData($data);
+        $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
         if(!empty($exRes)){
             return false;
@@ -153,7 +153,7 @@ class BuyerAgreementModel extends PublicModel
             ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
             ->join('erui_sys.org org on agree.org_id=org.id','left')
             ->field('agree.*,attach.attach_name,attach.attach_url,org.name as org_name')
-            ->where(array('execute_no'=>$execute_no))
+            ->where(array('execute_no'=>$execute_no,'attach.deleted_flag'=>'N'))
             ->find();
         return $info;
     }
@@ -173,6 +173,12 @@ class BuyerAgreementModel extends PublicModel
         }
         if(!empty($data['token'])){
             unset($data['token']);
+        }
+        //限制数据的长度200
+        foreach($data as $v){
+            if(strlen($v) > 200){
+                return false;
+            }
         }
         $arr = array(
             'execute_no',   //框架执行单号
@@ -203,7 +209,7 @@ class BuyerAgreementModel extends PublicModel
             return false;
         }
         //组装数据
-        $arr = $this -> pageageData($data);
+        $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
         if(empty($exRes)){
             return false;
