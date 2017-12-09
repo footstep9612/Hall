@@ -2189,9 +2189,7 @@ class EsProductModel extends Model {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
                 } elseif (isset($item[$key]) && $item[$key]) {
-                    if ($letter == 'C') {
-                        $objSheet->setCellValue($letter . ($j + 2), strval($item[$key]), PHPExcel_Cell_DataType::TYPE_STRING);
-                    } elseif ($letter == 'D') {
+                    if ($letter == 'C' || $letter == 'D') {
                         $objSheet->setCellValue($letter . ($j + 2), strval($item[$key]), PHPExcel_Cell_DataType::TYPE_STRING);
                     } else {
                         $objSheet->setCellValue($letter . ($j + 2), $item[$key]);
@@ -2229,8 +2227,8 @@ class EsProductModel extends Model {
 //            $objSheet->freezePane(chr($i) . '4');
 //        }
 
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel2007");
-        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xlsx');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        $objWriter->save($dirName . '/' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
         return true;
     }
