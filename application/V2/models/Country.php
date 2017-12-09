@@ -593,6 +593,46 @@ class CountryModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据国家简称获取营销区域和国家名称
+     * @param array $bns // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNameAndAreasBybns($bns) {
+
+
+        try {
+            $where = [];
+
+            if (is_string($bns)) {
+                $where['bn'] = $bns;
+            } elseif (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
+            } else {
+                return false;
+            }
+
+            $where['lang'] = 'zh';
+            $areas = $this->where($where)
+                            ->join($where)
+                            ->field('bn,name')->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['bn']] = $area['name'];
+            }
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
     /**
      * 根据bn获取国家新，并通过语言分组
      * @author link 2017-10-31

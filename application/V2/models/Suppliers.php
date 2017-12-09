@@ -166,9 +166,9 @@ class SuppliersModel extends PublicModel {
     public function getJoinDetail($condition = []) {
 
         $where = $this->getJoinWhere($condition);
-        
+
         // 去掉删除条件
-        unset($where['a.deleted_flag']); 
+        unset($where['a.deleted_flag']);
 
         return $this->alias('a')
                         ->join($this->joinTable1, 'LEFT')
@@ -241,6 +241,37 @@ class SuppliersModel extends PublicModel {
         }
 
         return $this->where($where)->save(['deleted_flag' => 'Y']);
+    }
+
+    /**
+     * @desc 根据供应商ID获取供应商名称
+     *
+     * @param array $supplier_ids
+     * @return bool
+     * @author liujf
+     * @time 2017-12-09
+     */
+    public function getSupplierNameByIds($supplier_ids = []) {
+
+
+        $where['id'] = ['deleted_flag' => 'Y'];
+        if (!empty($supplier_ids)) {
+            $where['id'] = ['in', $supplier_ids];
+        } else {
+            return [];
+        }
+        $map['name'] = ['neq', ''];
+        $map[] = '`name` is not null';
+        $map['_logic'] = 'and';
+        $where['_complex'] = $map;
+        $data = $this->field('id,name')->where($where)->select();
+        $ret = [];
+        if ($data) {
+            foreach ($data as $val) {
+                $ret[$val['id']] = $val;
+            }
+        }
+        return $ret;
     }
 
 }

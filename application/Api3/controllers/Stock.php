@@ -50,7 +50,7 @@ class StockController extends PublicController {
         $list = $stock_model->getList($country_bn, $lang, $floor_id);
         if ($list) {
             $this->_setImage($list);
-            $this->_setConstPridce($list, $country_bn);
+            $this->_setConstPrice($list, $country_bn);
 
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -109,7 +109,7 @@ class StockController extends PublicController {
      * @desc
      */
 
-    private function _setConstPridce(&$arr, $country_bn) {
+    private function _setConstPrice(&$arr, $country_bn) {
         if ($arr) {
 
             $skus = [];

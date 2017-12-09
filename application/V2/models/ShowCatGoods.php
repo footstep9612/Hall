@@ -236,19 +236,23 @@ class ShowCatGoodsModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getshow_catsbyskus($skus, $lang = 'en') {
+    public function getshow_catsbyskus($skus, $lang = 'en', $country_bn = null) {
         try {
             if ($skus && is_array($skus)) {
+                $where = ['scp.sku' => ['in', $skus],
+                    'scp.status' => 'VALID',
+                    'scp.lang' => $lang,
+                    'sc.status' => 'VALID',
+                    'sc.lang' => $lang,
+                    'sc.id>0',
+                ];
+                if ($country_bn) {
+                    $where['sc.country_bn'] = $country_bn;
+                }
                 $show_cat_goods = $this->alias('scp')
                         ->join('erui_goods.show_cat sc on scp.cat_no=sc.cat_no', 'left')
                         ->field('scp.cat_no,scp.spu,scp.sku,scp.onshelf_flag')
-                        ->where(['scp.sku' => ['in', $skus],
-                            'scp.status' => 'VALID',
-                            'scp.lang' => $lang,
-                            'sc.status' => 'VALID',
-                            'sc.lang' => $lang,
-                            'sc.id>0',
-                        ])
+                        ->where($where)
                         ->select();
             } else {
                 return [];
