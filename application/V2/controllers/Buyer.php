@@ -116,6 +116,12 @@ class BuyerController extends PublicController {
         if (!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
+        if (!empty($data['rows'])) {
+            $where['num'] = $data['rows'];
+        }
+        if (!empty($data['page'])) {
+            $where['page'] = ($data['page'] - 1) * $where['num'];
+        }
         if (!empty($data['credit_checked_name'])) {
             $where['credit_checked_name'] = $data['credit_checked_name'];
         }
