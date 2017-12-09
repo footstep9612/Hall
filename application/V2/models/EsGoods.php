@@ -1246,11 +1246,15 @@ class EsGoodsModel extends Model {
             $es = new ESClient();
             if (is_array($sku) && !empty($sku)) {
                 $goods_model = new GoodsModel();
-                $goods = $goods_model->where(['sku' => ['in', $sku], 'lang' => $lang])->select();
+                $goods = $goods_model->where(['sku' => ['in', $sku], 'deleted_flag' => 'N', 'lang' => $lang])
+                        ->order('id asc')
+                        ->select();
             } elseif ($sku) {
 
                 $goods_model = new GoodsModel();
-                $goods = $goods_model->where(['sku' => $sku, 'lang' => $lang])->select();
+                $goods = $goods_model->where(['sku' => $sku, 'deleted_flag' => 'N', 'lang' => $lang])
+                        ->order('id asc')
+                        ->select();
             } else {
                 return false;
             }

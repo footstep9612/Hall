@@ -131,4 +131,47 @@ class MarketAreaCountryModel extends PublicModel {
         return $this->add($data);
     }
 
+    /*
+     * 根据国家简称获取营销区域
+     * @param array $bns // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getAreasBybns($country_bns, $lang = 'zh') {
+
+
+        $market_area_model = new MarketAreaModel();
+        $market_area_table = $market_area_model->getTableName();
+        try {
+            $where = [];
+
+            if (is_string($country_bns)) {
+                $where['country_bn'] = $country_bns;
+            } elseif (is_array($country_bns)) {
+                $where['country_bn'] = ['in', $country_bns];
+            } else {
+                return false;
+            }
+
+
+            $areas = $this->where($where)
+                            ->join($where)
+                            ->field('country_bn,market_area_bn,(select `name` from ' . $market_area_table
+                                    . ' where bn=market_area_bn and lang=\'' . $lang . '\') as market_area_name')->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['country_bn']] = $area;
+            }
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
 }

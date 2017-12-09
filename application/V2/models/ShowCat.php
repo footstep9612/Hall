@@ -958,11 +958,11 @@ class ShowCatModel extends PublicModel {
      */
     protected $data = array();
 
-    public function getNameByCat($code = '', $lang = 'en') {
+    public function getNameByCat($cat_no = '', $lang = 'en') {
         if ($code == '')
             return '';
         $condition = array(
-            'cat_no' => $code,
+            'cat_no' => $cat_no,
             'status' => self::STATUS_VALID
         );
         if ($lang) {

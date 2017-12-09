@@ -158,7 +158,7 @@ class OrgMemberModel extends PublicModel {
 		if(empty($condition['role_no'])){
 			return ['code'=>'-104','message'=>'角色编码必填'];
 		}else{
-			$where['c.role_no'] = $condition['role_no'];
+			$where['c.role_no'] = ['in',explode(',',$condition['role_no'])];
 		}
 		if(!empty($condition['country_bn'])){
 		    $where['e.country_bn'] = $condition['country_bn'];

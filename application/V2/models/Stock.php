@@ -67,18 +67,13 @@ class StockModel extends PublicModel {
     public function getList($condition, $lang) {
         $stock_floor_model = new StockFloorModel();
         $stock_floor_table = $stock_floor_model->getTableName();
-        $stock_cost_price_model = new StockCostPriceModel();
-        $stock_cost_price_table = $stock_cost_price_model->getTableName();
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
         $where['s.lang'] = $lang;
         return $this->alias('s')
-                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn,'
-                                . 'scp.min_price,scp.max_price,scp.supplier_id')
+                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn')
                         ->join($stock_floor_table
                                 . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
-                        ->join($stock_cost_price_table
-                                . ' scp on  scp.sku=s.sku and scp.country_bn=s.country_bn and scp.deleted_flag=\'N\'', 'left')
                         ->where($where)
                         ->limit($from, $size)
                         ->select();
@@ -92,7 +87,7 @@ class StockModel extends PublicModel {
      * @desc  现货
      */
     public function getInfo($country_bn, $lang, $sku) {
-        $where['  country_bn'] = $country_bn;
+        $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['sku'] = $sku;
         return $this->where($where)->find();
@@ -159,8 +154,8 @@ class StockModel extends PublicModel {
                     return false;
                 }
 
-                $flag = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
-                if (!$flag) {
+                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
+                if (!$flag_price) {
 
                     $this->rollback();
                     return false;

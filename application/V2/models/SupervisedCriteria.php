@@ -32,27 +32,38 @@ class SupervisedCriteriaModel extends PublicModel {
      * @author zyg
      */
     private function _getCondition($condition) {
-        $where = [];
-        $where['status'] = 'VALID';
+        $where = ['deleted_flag' => 'N', 'status' => 'VALID'];
+
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['created_by_name']);
-            $where['created_by'] = ['in', $userids];
+            if ($userids) {
+                $where['created_by'] = ['in', $userids];
+            } else {
+                $where['created_by'] = -1;
+            }
         }
         if (isset($condition['license']) && $condition['license']) {
-            $map1['license'] = ['like', '%' . $condition['license'] . '%'];
+            $where['license'] = ['like', '%' . $condition['license'] . '%'];
+        }
+        if (isset($condition['authority']) && $condition['authority']) {
+            $where['authority'] = ['like', '%' . $condition['authority'] . '%'];
         }
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
-
             $userids = $employee_model->getUseridsByUserName($keyword);
-            $map1['created_by'] = ['in', $userids];
+            if ($userids) {
+                $map1['created_by'] = ['in', $userids];
+            } else {
+                $map1['created_by'] = -1;
+            }
             $map1['license'] = ['like', '%' . $keyword . '%'];
+            $map1['authority'] = ['like', '%' . $keyword . '%'];
             $map1['_logic'] = 'or';
             $where['_complex'] = $map1;
         }
 
-        //$data['deleted_flag'] = 'N';
+
         return $where;
     }
 

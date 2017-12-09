@@ -35,6 +35,7 @@ class StockcountryController extends PublicController {
         $list = $stock_country_model->getList($condition);
 
         if ($list) {
+            $this->_setCountry($list);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -44,6 +45,44 @@ class StockcountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setCountry(&$arr) {
+        if ($arr) {
+            $country_model = new CountryModel();
+            $market_area_country_model = new MarketAreaCountryModel();
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val['country_bn']);
+            }
+            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            $market_areas = $market_area_country_model->getAreasBybns($country_bns, 'zh');
+            foreach ($arr as $key => $val) {
+                if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
+                    $val['country_name'] = $countrynames[trim($val['country_bn'])];
+                } else {
+                    $val['country_name'] = '';
+                }
+
+                if (trim($val['country_bn']) && isset($market_areas[trim($val['country_bn'])])) {
+                    $val['market_area_name'] = $market_areas[trim($val['country_bn'])]['market_area_name'];
+                    $val['market_area_bn'] = $market_areas[trim($val['country_bn'])]['market_area_bn'];
+                } else {
+                    $val['country_name'] = '';
+                    $val['market_area_bn'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 
