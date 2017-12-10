@@ -622,7 +622,7 @@ class GoodsModel extends PublicModel {
                     $status = $this->checkSkuStatus( isset( $value[ 'status' ] ) && !empty( $value[ 'status' ] ) ? $value[ 'status' ] : ( ( isset( $input[ 'status' ] ) && !empty( $input[ 'status' ] ) ) ? $input[ 'status' ] : 'DRAFT' ) );
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
-                    if ( $status != 'DRAFT' ) {
+                    //if ( $status != 'DRAFT' ) {   //去掉暂存不进行校验，张玉良-2017-12-11 15:50:00
                         if ( empty( $attr[ 'spec_attrs' ] ) ) {
                             $this->rollback();
                             flock( $fp , LOCK_UN );
@@ -642,7 +642,7 @@ class GoodsModel extends PublicModel {
                             $exist_condition[ 'sku' ] = array( 'neq' , $input[ 'sku' ] );
                         }
                         $this->_checkExit( $exist_condition , $attr );
-                    }
+                    //}//去掉暂存不进行校验
 
                     $data = [
                         'lang' => $lang ,
