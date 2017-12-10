@@ -27,22 +27,21 @@ class CustomCatItemModel extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info($lang, $cat_id, $item_id) {
+    public function info($lang,$cat_id, $item_id) {
+
         if(isset($cat_id) && !empty($cat_id)) {
-            $where["custom_cat_item.cat_id"] = $cat_id;
+            $where["cat_id"] = $cat_id;
         }
         if(isset($item_id) && !empty($item_id)) {
-            $where["custom_cat_item.id"] = $item_id;
+            $where["id"] = $item_id;
         }
         if(isset($lang) && !empty($lang)) {
-            $where["custom_cat_item.lang"] = $lang;
+            $where["lang"] = $lang;
         }
-        $where["custom_cat_item.deleted_flag"] =  'N';
+        $where["deleted_flag"] =  'N';
 
         if ($where) {
             $customitemInfo = $this->where($where)
-                                  ->field('custom_cat_item.*,em.name as created_name')
-                                  ->join('erui_sys.employee em on em.id=custom_cat_item.created_by', 'left')
                                   ->group('custom_cat_item.item_name')
                                   ->order('custom_cat_item.id asc')
                                   ->select();
@@ -124,7 +123,7 @@ class CustomCatItemModel extends PublicModel
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::STATUS_DRAFT:
                     $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_DELETED:
@@ -137,8 +136,7 @@ class CustomCatItemModel extends PublicModel
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where)) {
-            $data = $this->create($arr);
-            $res = $this->where($where)->save($data);
+            $res = $this->where($where)->save($arr);
         } else {
             return false;
         }

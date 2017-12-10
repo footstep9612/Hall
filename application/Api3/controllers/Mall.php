@@ -9,7 +9,7 @@ class MallController extends PublicController
 {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
     }
 
@@ -20,6 +20,22 @@ class MallController extends PublicController
      * @author klp
      */
     public function getListAction() {
+        $data = $this->getPut();
+        $model = new BuyerCustomModel();
+        $res = $model->getlist($data);
+        $count = $model->getCount($data);
+        if (!empty($res)) {
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['count'] = $count;
+            $datajson['data'] = $res;
+        } else {
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
+   /* public function getListAction() {
         $data = $this->getPut();
         $limit = [];
         if(!empty($data['pageSize'])){
@@ -40,10 +56,10 @@ class MallController extends PublicController
             $datajson['message'] = 'Data is empty!';
         }
         $this->jsonReturn($datajson);
-    }
+    }*/
 
     /**
-     * 获取定制信息详情
+     * 展示所有定制信息详情
      * @param mix $condition
      * @return mix
      * @author klp
@@ -75,11 +91,12 @@ class MallController extends PublicController
     public function getUcustomInfoAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        if(!isset($data['buyer_id']) || empty($data['buyer_id'])) {
-            jsonReturn(null, -203, '用户ID不能为空!');
+        if(!isset($data['custom_id']) || empty($data['custom_id'])) {
+            jsonReturn(null, -203, '定制服务ID不能为空!');
         }
         $buyer_custom_model = new BuyerCustomModel();
-        $customInfo = $buyer_custom_model->info($data['buyer_id']);
+        $customInfo = $buyer_custom_model->info($data['custom_id']);
+        $this->_setBuyerName($customInfo);
         if($customInfo) {
             jsonReturn($customInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
@@ -157,10 +174,10 @@ class MallController extends PublicController
         } else {
             jsonReturn(null ,-201, '用户ID不能为空!');
         }
-        $limit['num'] = 1;
-        $limit['page'] = 0;
+        $limit['pagesize'] = 1;
+        $limit['current_no'] = 0;
         $buyer_custom_model = new BuyerCustomModel();
-        $data_t_custom = $buyer_custom_model->getlist([],$limit);
+        $data_t_custom = $buyer_custom_model->getlist($limit);
         if ($data_t_custom && substr($data_t_custom['data'][0]['service_no'], 1, 8) == date("Ymd")) {
             $no = substr($data_t_custom['data'][0]['service_no'], 9, 6);
             $no++;
@@ -223,6 +240,24 @@ class MallController extends PublicController
             jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED, 'failed!');
+        }
+    }
+
+    //获取采购商信息
+    private function _setBuyerName(&$info) {
+        if ($info['buyer_id']) {
+            $buyer_model = new BuyerAccountModel();
+            $custom_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
+            if (isset($custom_buyer_contact[$info['buyer_id']]) || isset($custom_buyer_contact['show_name'])) {
+                $info['buyer_name'] = $custom_buyer_contact[$info['buyer_id']];
+                $info['show_name'] = $custom_buyer_contact['show_name'];
+            } else {
+                $info['buyer_name'] = null;
+                $info['show_name'] = null;
+            }
+        } else {
+            $info['buyer_name'] = '';
+            $info['show_name'] = '';
         }
     }
 

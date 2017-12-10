@@ -310,10 +310,11 @@ class BuyerAccountModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
+            $buyers = $this->where($where)->field('buyer_id,show_name,first_name,last_name')->select();
             $buyer_names = [];
             foreach ($buyers as $buyer) {
                 $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
+                $buyer_names['show_name'] = $buyer['show_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

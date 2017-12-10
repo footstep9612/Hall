@@ -31,16 +31,14 @@ class CustomCatModel extends PublicModel
      */
     public function info($lang, $cat_id) {
         if(isset($cat_id) && !empty($cat_id)) {
-            $where["custom_cat.id"] = $cat_id;
+            $where["id"] = $cat_id;
         }
         if(isset($lang) && !empty($lang)) {
-            $where["custom_cat.lang"] = $lang;
+            $where["lang"] = $lang;
         }
-        $where["custom_cat.deleted_flag"] =  'N';
+        $where["deleted_flag"] =  'N';
         if ($where) {
             $customcatInfo = $this->where($where)
-                                  ->field('custom_cat.*,em.name as created_name')
-                                  ->join('erui_sys.employee em on em.id=custom_cat.created_by', 'left')
                                   ->order('custom_cat.id asc')
                                   ->select();
 
@@ -99,7 +97,7 @@ class CustomCatModel extends PublicModel
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::STATUS_DRAFT:
                     $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_DELETED:
@@ -112,8 +110,7 @@ class CustomCatModel extends PublicModel
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where)) {
-            $data = $this->create($arr);
-            $res = $this->where($where)->save($data);
+            $res = $this->where($where)->save($arr);
         } else {
             return false;
         }
