@@ -14,6 +14,7 @@
 class DictController extends PublicController {
 
     public function init() {
+        //$this->token = false;
         parent::init();
         $this->input = $this->getPut();
     }
