@@ -171,7 +171,7 @@ class MembercenterController extends PublicController {
      * @time 2017-9-14
      * @author klp
      */
-    public function agentlistAction() {
+    /*public function agentlistAction() {
 
         if (!empty($this->user['buyer_id'])) {
             $array['buyer_id'] = $this->user['buyer_id'];
@@ -190,5 +190,5 @@ class MembercenterController extends PublicController {
             $datajson['message'] = '数据操作失败!';
         }
         $this->jsonReturn($datajson);
-    }
+    }*/
 }
