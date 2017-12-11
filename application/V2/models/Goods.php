@@ -2393,7 +2393,7 @@ class GoodsModel extends PublicModel {
                                     if($exist_sku['spu'] !== $spu){
                                         $faild++;
                                         $this->rollback();
-                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[所选SPU可能不正确]');
+                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[SKU与SPU编码规则不符]');
                                         $start_row++;
                                         flock($fp, LOCK_UN);
                                         fclose($fp);
@@ -3048,7 +3048,7 @@ class GoodsModel extends PublicModel {
                                     if($exist_sku['spu'] !== $spu){
                                         $faild++;
                                         $this->rollback();
-                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[所选SPU可能不正确]');
+                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[SKU与SPU编码规则不符]');
                                         $start_row++;
                                         flock($fp, LOCK_UN);
                                         fclose($fp);
