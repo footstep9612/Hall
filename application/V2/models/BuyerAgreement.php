@@ -8,6 +8,134 @@ class BuyerAgreementModel extends PublicModel
     {
         parent::__construct();
     }
+
+    /**
+     * sheet名称 $sheetName
+     * execl导航头 $tableheader
+     * execl导出的数据 $data
+     * wangs
+     */
+    public function exportModel($sheetName,$tableheader,$data){
+        //创建对象
+        $excel = new PHPExcel();
+        $objActSheet = $excel->getActiveSheet();
+        $letter = range(A,Z);
+        //设置当前的sheet
+        $excel->setActiveSheetIndex(0);
+        //设置sheet的name
+        $objActSheet->setTitle($sheetName);
+        //填充表头信息
+        for($i = 0;$i < count($tableheader);$i++) {
+            //单独设置D列宽度为15
+            $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
+            $objActSheet->setCellValue("$letter[$i]1","$tableheader[$i]");
+            //设置表头字体样式
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
+            //设置表头字体大小
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setSize(10);
+            //设置表头字体是否加粗
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setBold(true);
+            //设置表头文字垂直居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            //设置文字上下居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            //设置表头外的文字垂直居中
+            $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+        //填充表格信息
+        for ($i = 2;$i <= count($data) + 1;$i++) {
+            $j = 0;
+            foreach ($data[$i - 2] as $key => $value) {
+                $objActSheet->setCellValue("$letter[$j]$i","$value");
+                $j++;
+            }
+        }
+        //创建Excel输入对象
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $time = date('YmdHis');
+        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $url = $server . '/V2/Uploadfile/upload';
+
+        $data['tmp_name'] = $time.$sheetName.'.xlsx';
+        $data['type'] = 'application/excel';
+        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
+        $fileId = postfile($data, $url);
+        return $fileId;
+    }
+    /**
+     * 数据excel导出
+     * wangs
+     */
+    public function exportAgree($data){
+        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属地区','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','执行金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
+        $arr = $this->getAgreeStatisData($data);
+        $res = $this->exportModel('agreestatis',$tableheader,$arr);
+        return $res;
+    }
+    //获取excel导出的数据
+    public function getAgreeStatisData($data){
+        $cond = '1=1';
+        if(!empty($data['all_id'])){  //根据id导出excel
+            $all_idStr = implode(',',$data['all_id']);
+            $cond .= " and agree.id in ($all_idStr)";
+        }
+        //条件
+        $totalCount = $this ->alias('agree')
+            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            -> where($cond)
+            ->count();
+        $fields = array(
+            'buyer_id',
+            'id',
+            'execute_no',       //框架执行单号
+            'org_id',           //事业部
+            'execute_company',  //执行分公司
+            'area_bn',          //所属地区
+            'product_name',     //品名中文
+            'number',           // 数量
+            'unit',             //单位
+            'amount',           //项目金额
+            'execute_start_at', //项目开始执行时间
+            'agent',            //市场经办人
+            'technician'        //商务技术经办人
+        );
+        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name';
+        foreach($fields as $v){
+            $field .= ',agree.'.$v;
+        }
+        $info = $this ->alias('agree')
+            ->field($field)
+            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            ->join('erui_sys.org org on agree.org_id=org.id','left')
+            ->where($cond)
+            ->order('agree.id desc')
+            ->select();
+        $res = array(
+            'info'=>$info,
+            'totalCount'=>$totalCount
+        );
+        //整合数据
+        $arr=array();
+        foreach($res['info'] as $k => $v){
+            $arr[$k]['id'] = $v['id'];    //序号
+            $arr[$k]['execute_no'] = $v['execute_no'];    //框架执行单号
+            $arr[$k]['org_name'] = $v['org_name'];    //事业部
+            $arr[$k]['execute_company'] = $v['execute_company'];    //执行分公司
+            $arr[$k]['area_bn'] = $v['area_bn'];    //所属地区
+            $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
+            $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
+            $arr[$k]['product_name'] = $v['product_name'];    //品名中文
+            $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
+            $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
+            $arr[$k]['execute_amount'] = $v['amount'];    //执行金额（美元
+            $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
+            $arr[$k]['agent'] = $v['agent'];    //市场经办人
+            $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
+        }
+        return $arr;
+    }
     //框架协议管理
     public function manageAgree($data){
         $cond = "buyer_id='$data[buyer_id]' and agree.created_by='$data[created_by]'";
