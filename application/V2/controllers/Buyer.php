@@ -876,5 +876,4 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
-
 }
