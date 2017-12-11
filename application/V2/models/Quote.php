@@ -249,17 +249,19 @@ class QuoteModel extends PublicModel {
                 //给物流报价单项形成记录
                 $quoteItemModel = new QuoteItemModel();
                 //$quoteItemIds = $quoteItemModel->where(['quote_id' => $quoteInfo['id'], 'deleted_flag' => 'N'])->getField('id', true);
-                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
+                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and deleted_flag='N'")->getField('id',true);
 
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {
-                    $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                        'inquiry_id'    => $request['inquiry_id'],
-                        'quote_id'      => $quoteInfo['id'],
-                        'quote_item_id' => $quoteItemId,
-                        'created_at'    => date('Y-m-d H:i:s'),
-                        'created_by'    => $user['id']
-                    ]));
+                    if(empty($quoteItemIds['reason_for_no_quote'])) {
+                        $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                            'inquiry_id' => $request['inquiry_id'],
+                            'quote_id' => $quoteInfo['id'],
+                            'quote_item_id' => $quoteItemId,
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'created_by' => $user['id']
+                        ]));
+                    }
                 }
             }else{
                 $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
@@ -275,19 +277,20 @@ class QuoteModel extends PublicModel {
                 $quoteItemModel = new QuoteItemModel();
                 $quoteItemLogiModel = new QuoteItemLogiModel();
 
-                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and ISNULL(reason_for_no_quote) and deleted_flag='N'")->getField('id',true);
+                $quoteItemIds = $quoteItemModel->where("quote_id=".$quoteInfo['id']." and deleted_flag='N'")->getField('id',true);
                 $logiIds = $quoteItemLogiModel->where(['inquiry_id' => $request['inquiry_id'],'deleted_flag'=>'N'])->getField('quote_item_id',true);
 
                 foreach ($quoteItemIds as $quoteItemId) {
-
-                    if(!in_array($quoteItemId,$logiIds)){
-                        $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                            'inquiry_id'    => $request['inquiry_id'],
-                            'quote_id'      => $quoteInfo['id'],
-                            'quote_item_id' => $quoteItemId,
-                            'created_at'    => date('Y-m-d H:i:s'),
-                            'created_by'    => $user['id']
-                        ]));
+                    if(empty($quoteItemIds['reason_for_no_quote'])){
+                        if(!in_array($quoteItemId,$logiIds)){
+                            $quoteItemLogiModel->add($quoteItemLogiModel->create([
+                                'inquiry_id'    => $request['inquiry_id'],
+                                'quote_id'      => $quoteInfo['id'],
+                                'quote_item_id' => $quoteItemId,
+                                'created_at'    => date('Y-m-d H:i:s'),
+                                'created_by'    => $user['id']
+                            ]));
+                        }
                     }
                 }
             }
