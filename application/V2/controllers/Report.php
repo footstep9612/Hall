@@ -29,6 +29,7 @@ class ReportController extends PublicController {
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
             $sign = md5($key . $input['input']);
+
             if ($input['sign'] != $sign) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->setMessage('验证失败!');
