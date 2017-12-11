@@ -35,7 +35,8 @@ class SupplierBrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'brand_id', 'string', 'B.brand_id'); //按品牌ID 搜索
         $this->_getValue($where, $condition, 'status', 'string', 'B.status', 'VALID');
         $this->_getValue($where, $condition, 'supplier_name', 'string', 'S.name');
-        $this->_getValue($where, $condition, 'created_at', 'string', 'S.created_at');
+        $this->_getValue($where, $condition, 'created_at', 'between', 'S.created_at');
+
         if (!empty($condition['brand_name'])) {
             $brand_name = trim($condition['brand_name']);
             $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '
@@ -177,6 +178,7 @@ class SupplierBrandModel extends PublicModel {
                     ->where($where)
                     ->group('B.brand_id')
                     ->select();
+            echo $this->_sql();
             return count($result);
         } catch (Exception $ex) {
             Log::write($ex->getMessage());

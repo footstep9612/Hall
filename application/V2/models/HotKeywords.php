@@ -35,10 +35,10 @@ class HotKeywordsModel extends PublicModel {
         $this->_getValue($data, $condition, 'keywords', 'string');
         $this->_getValue($data, $condition, 'keywords', 'string');
         $this->_getValue($data, $condition, 'show_cat_no', 'string');
-        $this->_getValue($data, $condition, 'search_time', 'range');
-        $this->_getValue($data, $condition, 'created_at', 'range');
+        $this->_getValue($data, $condition, 'search_time', 'between');
+        $this->_getValue($data, $condition, 'created_at', 'between');
         $this->_getValue($data, $condition, 'created_by', 'string');
-        $this->_getValue($data, $condition, 'updated_at', 'range');
+        $this->_getValue($data, $condition, 'updated_at', 'between');
         $this->_getValue($data, $condition, 'updated_by', 'string');
         return $data;
     }
