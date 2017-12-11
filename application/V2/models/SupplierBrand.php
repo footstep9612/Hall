@@ -178,7 +178,7 @@ class SupplierBrandModel extends PublicModel {
                     ->where($where)
                     ->group('B.brand_id')
                     ->select();
-            echo $this->_sql();
+
             return count($result);
         } catch (Exception $ex) {
             Log::write($ex->getMessage());
