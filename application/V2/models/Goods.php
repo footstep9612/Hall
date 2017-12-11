@@ -2380,7 +2380,7 @@ class GoodsModel extends PublicModel {
                                 continue;
                             } else {
                                 if (!empty($input_sku)) {
-                                    $exist_sku = $this->field('id')->where(['sku' => $input_sku])->find();
+                                    $exist_sku = $this->field('id,spu')->where(['sku' => $input_sku])->find();
                                     if (!$exist_sku) {
                                         $faild++;
                                         $this->rollback();
@@ -2390,10 +2390,20 @@ class GoodsModel extends PublicModel {
                                         fclose($fp);
                                         continue;
                                     }
+                                    if($exist_sku['spu'] !== $spu){
+                                        $faild++;
+                                        $this->rollback();
+                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[所选SPU可能不正确]');
+                                        $start_row++;
+                                        flock($fp, LOCK_UN);
+                                        fclose($fp);
+                                        continue;
+                                    }
                                     $exist_langsku = $this->field('id')->where(['sku' => $input_sku, 'lang' => $lang, 'deleted_flag' => 'N'])->find();
                                     if ($exist_langsku) {
                                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                                         $data['updated_at'] = date('Y-m-d H:i:s');
+                                        $data['spu'] = $exist_sku['spu'];
                                         $workType = '更新';
                                         $condition_update = array(
                                             'sku' => $input_sku,
@@ -2404,6 +2414,7 @@ class GoodsModel extends PublicModel {
                                         $data['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                                         $data['created_at'] = date('Y-m-d H:i:s');
                                         $workType = '添加';
+                                        $data['spu'] = $exist_sku['spu'];
                                         $data['status'] = $this::STATUS_DRAFT;
                                         $data['sku'] = $input_sku;
                                         $data['lang'] = $lang;
@@ -3024,11 +3035,20 @@ class GoodsModel extends PublicModel {
                                 continue;
                             } else {
                                 if (!empty($input_sku)) {
-                                    $exist_sku = $this->field('id')->where(['sku' => $input_sku])->find();
+                                    $exist_sku = $this->field('id,spu')->where(['sku' => $input_sku])->find();
                                     if (!$exist_sku) {
                                         $faild++;
                                         $this->rollback();
                                         $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '更新失败[SKU不存在]');
+                                        $start_row++;
+                                        flock($fp, LOCK_UN);
+                                        fclose($fp);
+                                        continue;
+                                    }
+                                    if($exist_sku['spu'] !== $spu){
+                                        $faild++;
+                                        $this->rollback();
+                                        $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[所选SPU可能不正确]');
                                         $start_row++;
                                         flock($fp, LOCK_UN);
                                         fclose($fp);
