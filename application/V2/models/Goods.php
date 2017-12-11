@@ -636,7 +636,7 @@ class GoodsModel extends PublicModel {
                             'name' => $value[ 'name' ] ,
                             'model' => $checkout[ 'model' ] ,
                             'deleted_flag' => 'N' ,
-                            'status' => array( 'neq' , 'DRAFT' )
+                            //'status' => array( 'neq' , 'DRAFT' )
                         );
                         if ( !empty( $input[ 'sku' ] ) && $input[ 'sku' ] !== 'false' ) {
                             $exist_condition[ 'sku' ] = array( 'neq' , $input[ 'sku' ] );
