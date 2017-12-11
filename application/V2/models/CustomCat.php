@@ -51,6 +51,7 @@ class CustomCatModel extends PublicModel
         }
     }
 
+
     /**
      * 新增
      */
@@ -60,6 +61,9 @@ class CustomCatModel extends PublicModel
         }
         if (isset($create['lang'])) {
             $arr['lang'] = trim($create['lang']);
+        }
+        if (isset($create['cat_no'])) {
+            $arr['cat_no'] = trim($create['cat_no']);
         }
         if (isset($create['cat_name'])) {
             $arr['cat_name'] = trim($create['cat_name']);

@@ -103,6 +103,7 @@ class BuyerLogisticsModel extends PublicModel
      * 更新
      */
     public function update_data($data, $where) {
+        $data = $this->create($data);
         if (isset($data['trade_terms_bn'])) {
             $arr['trade_terms_bn'] = trim($data['trade_terms_bn']);
         }
@@ -142,8 +143,7 @@ class BuyerLogisticsModel extends PublicModel
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where['buyer_id'])) {
-            $data = $this->create($arr);
-            $res = $this->where($where)->save($data);
+            $res = $this->where($where)->save($arr);
         } else {
             return false;
         }

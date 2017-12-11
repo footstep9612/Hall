@@ -39,7 +39,7 @@ class CustomCatModel extends PublicModel
         $where["deleted_flag"] =  'N';
         if ($where) {
             $customcatInfo = $this->where($where)
-                                  ->order('custom_cat.id asc')
+                                  ->order('id asc')
                                   ->select();
 
             return $customcatInfo ? $customcatInfo : false;
@@ -57,6 +57,9 @@ class CustomCatModel extends PublicModel
         }
         if (isset($create['lang'])) {
             $arr['lang'] = trim($create['lang']);
+        }
+        if (isset($create['cat_no'])) {
+            $arr['cat_no'] = trim($create['cat_no']);
         }
         if (isset($create['cat_name'])) {
             $arr['cat_name'] = trim($create['cat_name']);

@@ -42,8 +42,8 @@ class CustomCatItemModel extends PublicModel
 
         if ($where) {
             $customitemInfo = $this->where($where)
-                                  ->group('custom_cat_item.item_name')
-                                  ->order('custom_cat_item.id asc')
+                                  ->group('item_name')
+                                  ->order('id asc')
                                   ->select();
             $data = array();
             if($customitemInfo) {
@@ -81,6 +81,12 @@ class CustomCatItemModel extends PublicModel
         } else{
             jsonReturn(null ,-202, 'cat_id不能为空!');
         }
+        if (isset($create['item_no'])) {
+            $arr['item_no'] = trim($create['item_no']);
+        }
+        if (isset($create['item_name'])) {
+            $arr['item_name'] = trim($create['item_name']);
+        }
         if (isset($create['sort_order'])) {
             $arr['sort_order'] = trim($create['sort_order']);
         }
@@ -110,6 +116,9 @@ class CustomCatItemModel extends PublicModel
         }
         if (isset($data['cat_id'])) {
             $arr['cat_id'] = trim($data['cat_id']);
+        }
+        if (isset($create['item_name'])) {
+            $arr['item_name'] = trim($create['item_name']);
         }
         if (isset($data['sort_order'])) {
             $arr['sort_order'] = trim($data['sort_order']);
