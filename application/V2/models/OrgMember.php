@@ -158,7 +158,7 @@ class OrgMemberModel extends PublicModel {
 		if(empty($condition['role_no'])){
 			return ['code'=>'-104','message'=>'角色编码必填'];
 		}else{
-			$where['c.role_no'] = ['in',explode(',',$condition['role_no'])];
+			$where['c.role_no'] = $condition['role_no'];
 		}
 		if(!empty($condition['country_bn'])){
 		    $where['e.country_bn'] = $condition['country_bn'];
@@ -186,6 +186,7 @@ class OrgMemberModel extends PublicModel {
 					->where($where)
 					->page($page, $pagesize)
 					->order('a.id DESC')
+					->group('d.id')
 					->select();
 			$count = $this->alias('a')
 					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
@@ -193,6 +194,7 @@ class OrgMemberModel extends PublicModel {
 					->join('erui_sys.employee d ON a.employee_id = d.id','left')
 					->join('erui_sys.country_member e ON a.employee_id = e.employee_id','left')
 					->where($where)
+					->group('d.id')
 					->count('a.id');
 
 			if($list){
