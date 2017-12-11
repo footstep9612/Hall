@@ -28,23 +28,25 @@ class CustomCatItemModel extends PublicModel
      * @author klp
      */
     public function info($lang,$cat_id, $item_id) {
-
         if(isset($cat_id) && !empty($cat_id)) {
-            $where["cat_id"] = $cat_id;
+            $where["custom_cat_item.cat_id"] = $cat_id;
         }
         if(isset($item_id) && !empty($item_id)) {
-            $where["id"] = $item_id;
+            $where["custom_cat_item.id"] = $item_id;
         }
         if(isset($lang) && !empty($lang)) {
-            $where["lang"] = $lang;
+            $where["custom_cat_item.lang"] = $lang;
         }
-        $where["deleted_flag"] =  'N';
-
+        $where = [
+            "custom_cat_item.deleted_flag" =>  'N',
+        ];
         if ($where) {
             $customitemInfo = $this->where($where)
-                                  ->group('custom_cat_item.item_name')
-                                  ->order('custom_cat_item.id asc')
-                                  ->select();
+                                   ->field('custom_cat_item.*,em.name as created_name')
+                                   ->join('erui_sys.employee em on em.id=custom_cat_item.created_by', 'left')
+                                   ->group('custom_cat_item.item_name')
+                                   ->order('custom_cat_item.id asc')
+                                   ->select();
             $data = array();
             if($customitemInfo) {
                 $j = 0;

@@ -40,17 +40,20 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function tree($condition = []) {
+    public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
         $redis_key = md5(json_encode($where));
         if (redisHashExist($this->tableName, $redis_key)) {
             return json_decode(redisHashGet($this->tableName, $redis_key), true);
         }
         try {
-            $result = $this->where($where)
+            $this->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
-                    ->select();
+                    ->field('cat_no as value,name as label,parent_cat_no');
+            if ($limit) {
+                $this->limit(0, 10);
+            }
+            $result = $this->select();
 
             redisHashSet($this->tableName, $redis_key, json_encode($result));
             return $result;

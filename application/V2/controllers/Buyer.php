@@ -44,9 +44,9 @@ class BuyerController extends PublicController {
             if ($country_bns) {
 
                 foreach ($country_bns as $country_bn) {
-                    $where['country_bns'] = $where['country_bn'] . '\'' . $country_bn . '\',';
+                    $where['country_bns'] = $where['country_bns'] . '\'' . $country_bn . '\',';
                 }
-                $where['country_bns'] = rtrim($where['country_bn'], ',');
+                $where['country_bns'] = rtrim($where['country_bns'], ',');
             } else {
                 $datajson['code'] = -104;
                 $datajson['data'] = "";

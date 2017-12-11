@@ -30,7 +30,7 @@ class ShowcatController extends PublicController {
         $jsondata['country_bn'] = $country_bn;
 
         $show_model = new ShowCatModel();
-        $arr = $show_model->tree($jsondata);
+        $arr = $show_model->tree($jsondata, 10);
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
