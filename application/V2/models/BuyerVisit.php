@@ -406,4 +406,47 @@ class BuyerVisitModel extends PublicModel {
         $arr['quarter'] = $quarter;
         return $arr;
     }
+
+    /**
+     * @param $data
+     */
+    public function buyerVisitStatisList($data){
+        $cond = "1=1";
+        if(!empty($data['buyer_name'])){
+            $cond .= " and buyer.name like '%$data[buyer_name]%'";  //客户名称
+        }
+        if(!empty($data['buyer_code'])){
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";  //客户代码
+        }
+        if(!empty($data['visit_level'])){
+            $cond .= " and visit.visit_level=$data[visit_level]";  //拜访级别=
+        }
+        if(!empty($data['visit_position'])){
+            $cond .= " and visit.visit_position=$data[visit_position]";  //职位拜访类型=
+        }
+        if(!empty($data['visit_start_date'])){
+            $cond .= " and visit.visit_at >= '$data[visit_start_date]'";  //拜访开始时间=
+        }
+        if(!empty($data['visit_end_date'])){
+            $cond .= " and visit.visit_at <= '$data[visit_end_date]'";  //拜访结束时间=
+        }
+        $field = 'buyer.id,buyer.name,buyer.buyer_code';
+        $fieldArr = array(
+            'visit_at', //拜访时间
+            'visit_type', //目的拜访类型
+            'visit_position', //职位拜访类型
+            'visit_level', //拜访级别
+            'demand_type', //客户需求类别
+        );
+        foreach($fieldArr as $v){
+            $field .= ',visit.'.$v;
+        }
+        $info = $this->alias('visit')
+            ->join('erui_buyer.buyer buyer on visit.buyer_id=buyer.id','inner')
+            ->field($field)
+            ->where($cond)
+            ->order('buyer.id desc,visit.id desc')
+            ->select();
+        return $info;
+    }
 }

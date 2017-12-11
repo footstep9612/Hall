@@ -864,4 +864,29 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
+    /**
+     * 客户管理模块
+     * 统计--客户拜访记录统计列表
+     * wangs
+     */
+    public function buyerVisitStatisListAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerVisitModel();
+        $ststisList = $model->buyerVisitStatisList($data);
+        if($ststisList === false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'请求参数错误'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'统计模块，访问记录统计数据',
+            'data'=>$ststisList
+        );
+        $this->jsonReturn($dataJson);
+    }
 }

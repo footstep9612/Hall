@@ -76,6 +76,7 @@ class BuyerPurchasingModel extends PublicModel
         $fieldArr = array(
             'id as purchasing_id',   //采购计划id
             'buyer_id',   //采购商id
+            'purchasing_at',   //采购计划日期
             'purchasing_budget',   //采购预算
             'purchasing_plan',   //采购计划
             'created_by',   //创建人
@@ -90,6 +91,9 @@ class BuyerPurchasingModel extends PublicModel
             ->field($field)
             ->where($map)
             -> select();
+        foreach($info as $k => $v){
+            $info[$k]['purchasing_at'] = substr($v['purchasing_at'],0,4);
+        }
         return $info;
     }
 }
