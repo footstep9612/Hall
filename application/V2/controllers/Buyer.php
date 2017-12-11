@@ -837,16 +837,17 @@ class BuyerController extends PublicController {
             $buerInfo['attach_name'] = $finance['attach_name'];
             $buerInfo['attach_url'] = $finance['attach_url'];
         }
+        $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (!empty($contactInfo)) {
-            $buerInfo['contact'] = $contactInfo;
+        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
+        if(!empty($contactInfo)){
+            $arr['contact'] = $contactInfo;
         }
         $dataJson = array(
-            'code' => 1,
-            'message' => '返回数据',
-            'data' => $buerInfo
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$arr
         );
         $this->jsonReturn($dataJson);
     }
