@@ -111,14 +111,11 @@ class InquiryModel extends PublicModel {
                 $where['status'] = ['notin', ['QUOTE_SENT', 'CONFIRM']];
                 break;
             case'quotation_finished':
-
                 $where['status'] = ['in', ['QUOTE_SENT', 'CONFIRM']];
-
                 break;
             default :
                 break;
         }
-
 
         if (!empty($condition['term'])) {
             $where['trade_terms_bn'] = $condition['term'];    //贸易术语简称
@@ -180,7 +177,7 @@ class InquiryModel extends PublicModel {
         $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
 
         try {
-            $count = $this->where($where)->getCount();
+            $count = $this->where($where)->count('id');
 
             $list = $this->where($where)->page($page, $pagesize)->order('id desc')->select();
 

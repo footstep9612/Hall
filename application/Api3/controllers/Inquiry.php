@@ -9,6 +9,7 @@
 class InquiryController extends PublicController {
 
     public function init() {
+        $this->token = false;
         parent::init();
     }
 
@@ -91,15 +92,28 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //明细列表
-    public function getInfoItemAction() {
-        $Item = new InquiryItemModel();
+    /* id转换为姓名
+         * @author  zhongyg
+         */
 
-        $where = $this->getPut();
+    private function _setAgent(&$arr) {
 
-        $results = $Item->getinfo($where);
-        $this->jsonReturn($results);
+        if ($arr && $arr['agent_id']) {
+            $buyer_model = new EmployeeModel();
+            $agent_ids = $arr['agent_id'];
+
+            $usernames = $buyer_model->getUserNamesByUserids($agent_ids, false);
+            if ($arr['agent_id'] && isset($usernames[$arr['agent_id']])) {
+                $arr['agent'] = $usernames[$arr['agent_id']]['name'];
+                $arr['agent_email'] = strval($usernames[$arr['agent_id']]['email']);
+            } else {
+                $arr['agent'] = '';
+                $arr['agent_email'] = '';
+            }
+        } else {
+            $arr['agent'] = '';
+            $arr['agent_email'] = '';
+        }
     }
-
 
 }

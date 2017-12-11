@@ -9,7 +9,7 @@ class MallController extends PublicController
 {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 

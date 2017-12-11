@@ -25,7 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
-        $result = $buyerModel->getinfo($buyer_data);
+        $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');
         } else {
@@ -171,15 +171,10 @@ class MembercenterController extends PublicController {
      * @time 2017-9-14
      * @author klp
      */
-    /*public function agentlistAction() {
-
-        if (!empty($this->user['buyer_id'])) {
-            $array['buyer_id'] = $this->user['buyer_id'];
-        } else {
-            jsonReturn('', -1001, '用户ID缺失!');
-        }
+    public function agentlistAction() {
+        $where['buyer_id'] = $this->user['buyer_id'];
         $model = new BuyerAgentModel();
-        $res = $model->getlist($array);
+        $res = $model->getlist($where);
         if (!empty($res)) {
             $datajson['code'] = 1;
             $datajson['data'] = $res;
@@ -187,8 +182,8 @@ class MembercenterController extends PublicController {
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
+            $datajson['message'] = '数据获取失败!';
         }
         $this->jsonReturn($datajson);
-    }*/
+    }
 }
