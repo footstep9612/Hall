@@ -39,7 +39,7 @@ class BuyerbusinessController extends PublicController
             $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
             if($purchaseRes === false){
                 $dataJson = array(
-                    'code'=>0,
+                    'code'=>1,
                     'message'=>'业务信息创建成功，采购计划创建失败',
                 );
                 $this -> jsonReturn($dataJson);

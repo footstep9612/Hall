@@ -40,17 +40,20 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function tree($condition = []) {
+    public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
         $redis_key = md5(json_encode($where));
         if (redisHashExist($this->tableName, $redis_key)) {
             return json_decode(redisHashGet($this->tableName, $redis_key), true);
         }
         try {
-            $result = $this->where($where)
+            $this->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
-                    ->select();
+                    ->field('cat_no as value,name as label,parent_cat_no');
+            if ($limit) {
+                $this->limit(0, 10);
+            }
+            $result = $this->select();
 
             redisHashSet($this->tableName, $redis_key, json_encode($result));
             return $result;
@@ -402,6 +405,9 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
+        $show_material_cat_model = new ShowMaterialCatModel();
+        $show_cat_goods_model = new ShowCatGoodsModel();
+        $show_cat_product_model = new ShowCatProductModel();
         $info = $this->where($where)->find();
         if ($info['level_no'] == 3) {
             $flag = $this->where($where)
@@ -410,24 +416,13 @@ class ShowCatModel extends PublicModel {
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
 
-            $this->Table('erui_goods.show_material_cat')->where([
+            $show_material_cat_model->where([
                         'show_cat_no' => $cat_no])
-                    ->save(['status' => self::STATUS_DELETED,
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
-            $this->Table('erui_goods.show_cat_goods')->where($where)
-                    ->save(['status' => self::STATUS_DELETED,
-                        'onshelf_flag' => 'N',
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
-            $this->Table('erui_goods.show_cat_product')->where($where)
-                    ->save(['status' => self::STATUS_DELETED,
-                        'onshelf_flag' => 'N',
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
+                    ->delete();
+            $show_cat_goods_model->where($where)
+                    ->delete();
+            $show_cat_product_model->where($where)
+                    ->delete();
         } else {
             if ($info['level_no'] == 2) {
                 $where['cat_no'] = ['like', substr($cat_no, 0, 4) . '%'];
@@ -442,26 +437,15 @@ class ShowCatModel extends PublicModel {
                 'deleted_flag' => 'Y',
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0]);
-            $show_material_cat_model = new ShowMaterialCatModel();
+
             $show_material_cat_model->where($pwhere)
-                    ->save(['status' => self::STATUS_DELETED,
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
-            $show_cat_goods_model = new ShowCatGoodsModel();
+                    ->delete();
+
             $show_cat_goods_model->where($where)
-                    ->save(['status' => self::STATUS_DELETED,
-                        'onshelf_flag' => 'N',
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
-            $show_cat_product_model = new ShowCatProductModel();
+                    ->delete();
+
             $show_cat_product_model->where($where)
-                    ->save(['status' => self::STATUS_DELETED,
-                        'onshelf_flag' => 'N',
-                        'updated_at' => date('Y-m-d H:i:s'),
-                        'updated_by' => defined('UID') ? UID : 0
-            ]);
+                    ->delete();
         }
         $es_product_model = new EsProductModel();
         if ($lang) {
@@ -570,7 +554,7 @@ class ShowCatModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $old_info = [];
         foreach ($langs as $lang) {
-            if (isset($condition[$lang]) && $condition[$lang]['name']) {
+            if (isset($condition[$lang]) && !empty($condition[$lang]['name'])) {
                 $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
                 $data['name'] = $condition[$lang]['name'];
@@ -919,7 +903,7 @@ class ShowCatModel extends PublicModel {
         $this->startTrans();
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
-            if (isset($createcondition[$lang])) {
+            if (isset($createcondition[$lang]) && !empty($createcondition[$lang]['name'])) {
                 $data['lang'] = $lang;
                 $data['name'] = $createcondition[$lang]['name'];
                 $flag = $this->add($data);
