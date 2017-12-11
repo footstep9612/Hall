@@ -479,6 +479,42 @@ class ProductController extends PublicController {
     }
 
     /**
+     * 产品导入
+     * Usage:
+     *
+     */
+    public function import2Action() {
+
+        if (empty($this->put_data)) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM);
+        }
+        if (empty($this->put_data['xls'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '请上传导入数据');
+        }
+        if (!in_array($this->put_data['lang'], array('zh', 'en', 'es', 'ru'))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '语言错误');
+        }
+
+        $process = isset($this->put_data['process']) ? 1 : '';
+        $name = $this->getPut('name');
+        ini_set('memory_limit', '1G');
+        $productModel = new ProductModel();
+        $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process, $name);
+        if ($result) {
+            if (is_array($result) && isset($result['success']) && $result['success'] == 0) {
+                jsonReturn($result, ErrorMsg::SUCCESS, '导入失败');
+            }
+            $message = '成功' . $result['success'] . '条';
+            if (isset($result['faild']) && $result['faild'] > 0) {
+                $message = $message . ',失败' . $result['faild'] . '条。';
+            }
+            jsonReturn($result, ErrorMsg::SUCCESS, $message);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
      * 压缩包导入
      */
     public function zipImportAction() {
