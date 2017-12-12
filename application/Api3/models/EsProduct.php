@@ -184,7 +184,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition, $lang = 'en') {
+    private function getCondition(&$condition, $lang = 'en') {
         $body = [];
         if ($lang == 'zh') {
             $analyzer = 'ik';
@@ -521,6 +521,7 @@ class EsProductModel extends Model {
     public function getCatList($condition, $lang) {
         unset($condition['show_cat_no']);
         $body = $this->getCondition($condition);
+
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
@@ -571,7 +572,7 @@ class EsProductModel extends Model {
             $newshow_cats = [];
             if (!$newshowcats) {
                 $showcatmodel = new ShowCatModel();
-                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false);
+                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false, $condition['country_bn']);
                 foreach ($showcats as $showcat) {
                     $newshow_cats[$showcat['cat_no']] = $showcat['name'];
                 }
@@ -585,14 +586,15 @@ class EsProductModel extends Model {
                 } else {
                     continue;
                 }
+                $childs = [];
                 foreach ($show_cat['childs'] as $key => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
-                        $show_cat['childs'][$key] = $child_showcat;
-                    } else {
-                        unset($show_cat['childs'][$key]);
+
+                        $childs[] = $child_showcat;
                     }
                 }
+                $show_cat['childs'] = $childs;
                 rsort($show_cat['childs']);
                 $newshowcats[] = $show_cat;
             }
