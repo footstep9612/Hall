@@ -20,7 +20,8 @@ class BuyerLogisticsModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
-
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     /**
      * 获取列表
@@ -38,15 +39,14 @@ class BuyerLogisticsModel extends PublicModel
      */
     public function info($buyer_id) {
         $where = [
-            "buyer_logistics.created_by" => $buyer_id,
+            "buyer_logistics.buyer_id" => $buyer_id,
             "buyer_logistics.deleted_flag" => 'N',
         ];
         if ($where) {
             $LogisticsInfo = $this->where($where)
                                   ->field('buyer_logistics.*,em.name as created_name')
-                                  ->join('erui_sys.employee em on em.id=buyer_logistics.buyer_id', 'left')
+                                  ->join('erui_sys.employee em on em.id=buyer_logistics.created_by', 'left')
                                   ->select();
-
 
             return $LogisticsInfo ? $LogisticsInfo : false;
         } else {
@@ -68,6 +68,9 @@ class BuyerLogisticsModel extends PublicModel
         }
         if (isset($create['country_bn'])) {
             $arr['country_bn'] = trim($create['country_bn']);
+        }
+        if (isset($create['city'])) {
+            $arr['city'] = trim($create['city']);
         }
         if (isset($create['to_country_bn'])) {
             $arr['to_country_bn'] = trim($create['to_country_bn']);
@@ -100,11 +103,15 @@ class BuyerLogisticsModel extends PublicModel
      * 更新
      */
     public function update_data($data, $where) {
+        $data = $this->create($data);
         if (isset($data['trade_terms_bn'])) {
             $arr['trade_terms_bn'] = trim($data['trade_terms_bn']);
         }
         if (isset($data['country_bn'])) {
             $arr['country_bn'] = trim($data['country_bn']);
+        }
+        if (isset($create['city'])) {
+            $arr['city'] = trim($create['city']);
         }
         if (isset($data['to_country_bn'])) {
             $arr['to_country_bn'] = trim($data['to_country_bn']);
@@ -136,8 +143,7 @@ class BuyerLogisticsModel extends PublicModel
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where['buyer_id'])) {
-            $data = $this->create($arr);
-            $res = $this->where($where)->save($data);
+            $res = $this->where($where)->save($arr);
         } else {
             return false;
         }
@@ -150,6 +156,6 @@ class BuyerLogisticsModel extends PublicModel
      删除
      */
     public function delete_data($where) {
-        return $this->where($where)->save(['deleted_flag'=> 'Y']);
+        return $this->where($where)->save(['deleted_flag'=> self::DELETE_Y]);
     }
 }

@@ -35,7 +35,35 @@ class SupplierBrandModel extends PublicModel {
         $this->_getValue($where, $condition, 'brand_id', 'string', 'B.brand_id'); //按品牌ID 搜索
         $this->_getValue($where, $condition, 'status', 'string', 'B.status', 'VALID');
         $this->_getValue($where, $condition, 'supplier_name', 'string', 'S.name');
-        $this->_getValue($where, $condition, 'created_at', 'string', 'S.created_at');
+        $this->_getValue($where, $condition, 'created_at', 'between', 'S.created_at');
+
+        if (!empty($condition['brand_name'])) {
+            $brand_name = trim($condition['brand_name']);
+            $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '
+                    . 'B.brand_en like \'%' . $brand_name . '%\' or '
+                    . 'B.brand_es like \'%' . $brand_name . '%\' or '
+                    . 'B.brand_ru like \'%' . $brand_name . '%\'  ';
+        }
+        return $where;
+    }
+
+    /**
+     * 条件解析
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    private function _getBrandcondition($condition) {
+
+        $where = ['S.deleted_flag' => 'N',
+        ];
+        $this->_getValue($where, $condition, 'supplier_id', 'string', 'B.supplier_id'); //按供应商ID 搜索
+        $this->_getValue($where, $condition, 'brand_id', 'string', 'B.brand_id'); //按品牌ID 搜索
+        $this->_getValue($where, $condition, 'status', 'string', 'B.status', 'VALID');
+        $this->_getValue($where, $condition, 'supplier_name', 'string', 'S.name');
+        $this->_getValue($where, $condition, 'created_at', 'between', 'B.created_at');
+
         if (!empty($condition['brand_name'])) {
             $brand_name = trim($condition['brand_name']);
             $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '
@@ -168,7 +196,7 @@ class SupplierBrandModel extends PublicModel {
      */
     public function getBrandsCount($condition) {
 
-        $where = $this->_getcondition($condition);
+        $where = $this->_getBrandcondition($condition);
         try {
 
             $result = $this->alias('B')
@@ -177,6 +205,7 @@ class SupplierBrandModel extends PublicModel {
                     ->where($where)
                     ->group('B.brand_id')
                     ->select();
+
             return count($result);
         } catch (Exception $ex) {
             Log::write($ex->getMessage());

@@ -5,7 +5,7 @@
  * Date: 2017/12/8
  * Time: 10:18
  */
-class CustomCatItemController extends PublicModel
+class CustomCatItemModel extends PublicModel
 {
     protected $tableName = 'custom_cat_item';
     protected $dbName = 'erui_mall'; //数据库名称
@@ -27,20 +27,35 @@ class CustomCatItemController extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info() {
-        $where = [
-            "custom_cat_item.deleted_flag" => 'N',
-        ];
+    public function info($lang,$cat_id, $item_id) {
+
+        if(isset($cat_id) && !empty($cat_id)) {
+            $where["cat_id"] = $cat_id;
+        }
+        if(isset($item_id) && !empty($item_id)) {
+            $where["id"] = $item_id;
+        }
+        if(isset($lang) && !empty($lang)) {
+            $where["lang"] = $lang;
+        }
+        $where["deleted_flag"] =  'N';
+
         if ($where) {
             $customitemInfo = $this->where($where)
-                                  ->field('custom_cat_item.*,em.name as created_name')
-                                  ->join('erui_sys.employee em on em.id=custom_cat_item.created_by', 'left')
+                                  ->group('item_name')
+                                  ->order('id asc')
                                   ->select();
             $data = array();
             if($customitemInfo) {
-                foreach ($customitemInfo as $item) {
-                    //按语言分组
-                    $data[$item['lang']] = $item;
+                $j = 0;
+                for($i=0; $i<=count($customitemInfo)-1;) {
+                    $data[$j][0] = $customitemInfo[$i];
+                    //$data[$j][1] = $customitemInfo[$i+1];
+                    if($customitemInfo[$i+1]) {
+                        $data[$j][1] = $customitemInfo[$i+1];
+                    }
+                    $j++;
+                    $i +=2;
                 }
                 return $data;
             } else{
@@ -65,6 +80,12 @@ class CustomCatItemController extends PublicModel
             $arr['cat_id'] = trim($create['cat_id']);
         } else{
             jsonReturn(null ,-202, 'cat_id不能为空!');
+        }
+        if (isset($create['item_no'])) {
+            $arr['item_no'] = trim($create['item_no']);
+        }
+        if (isset($create['item_name'])) {
+            $arr['item_name'] = trim($create['item_name']);
         }
         if (isset($create['sort_order'])) {
             $arr['sort_order'] = trim($create['sort_order']);
@@ -96,6 +117,9 @@ class CustomCatItemController extends PublicModel
         if (isset($data['cat_id'])) {
             $arr['cat_id'] = trim($data['cat_id']);
         }
+        if (isset($create['item_name'])) {
+            $arr['item_name'] = trim($create['item_name']);
+        }
         if (isset($data['sort_order'])) {
             $arr['sort_order'] = trim($data['sort_order']);
         }
@@ -108,7 +132,7 @@ class CustomCatItemController extends PublicModel
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::STATUS_DRAFT:
                     $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_DELETED:
@@ -121,8 +145,7 @@ class CustomCatItemController extends PublicModel
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where)) {
-            $data = $this->create($arr);
-            $res = $this->where($where)->save($data);
+            $res = $this->where($where)->save($arr);
         } else {
             return false;
         }

@@ -1,10 +1,29 @@
 <?php
-//客户管理---业务信息--王帅
+//客户管理-框架协议--业务信息--王帅
 class BuyeragreementController extends PublicController
 {
     public function __init()
     {
         parent::__init();
+    }
+    //统计-excel导出-框架协议数据
+    public function exportStatisAgreeAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $agree = new BuyerAgreementModel();
+        $res = $agree->exportAgree($data);
+        if($res['code'] == 1){
+            $excel = new BuyerExcelModel();
+            $excel->saveExcel($res['name'],$res['url'],$created_by);
+            $this->jsonReturn($res);
+        }else{
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'excel导出失败'
+            );
+            $this->jsonReturn($dataJson);
+        }
     }
     //框架协议管理index-wangs//
     public function manageAgreeAction(){

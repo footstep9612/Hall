@@ -5,11 +5,12 @@
  * Date: 2017/12/6
  * Time: 16:28
  */
-class BuyerServiceModel extends PublicModel
+class BuyerCustomModel extends PublicModel
 {
 
     protected $tableName = 'buyer_custom';
     protected $dbName = 'erui_mall'; //数据库名称
+    protected $g_table = 'erui_mall.buyer_custom';
 
     public function __construct()
     {
@@ -20,6 +21,147 @@ class BuyerServiceModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getList($condition = []) {
+
+        $where = $this->_getCondition($condition);
+        $condition['current_no'] = $condition['currentPage'];
+
+        list($start_no, $pagesize) = $this->_getPage($condition);
+        $field = 'id,buyer_id,service_no,title,cat_name,item_id,content,remarks,add_desc';
+        $field .= ',email,contact_name,company,country_bn,tel,status';
+        return $this->field($field)
+                     ->where($where)
+                     ->limit($start_no, $pagesize)
+                     ->order('id desc')
+                     ->select();
+    }
+
+    /**
+    *获取定制数量
+    * @param array $condition
+    * @author  klp
+    */
+    public function getCount($condition) {
+
+        $where = $this->_getCondition($condition);
+
+        return $this->where($where)->count();
+    }
+
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    /*
+    public function getlist($condition = [],$limit, $order = " id desc") {
+
+        $sql = 'SELECT `erui_mall`.`buyer_custom`.`id`, `erui_mall`.`buyer_custom`.`buyer_id`,
+                 `erui_mall`.`buyer_custom`.`service_no`, `erui_mall`.`buyer_custom`.`title`,
+                 `erui_mall`.`buyer_custom`.`cat_id`, `erui_mall`.`buyer_custom`.`item_id`,
+                 `erui_mall`.`buyer_custom`.`content`, `erui_mall`.`buyer_custom`.`remarks`,
+                 `erui_mall`.`buyer_custom`.`add_desc`, `erui_mall`.`buyer_custom`.`email`,
+                 `erui_mall`.`buyer_custom`.`contact_name`, `erui_mall`.`buyer_custom`.`company`,
+                 `erui_mall`.`buyer_custom`.`country_bn`, `erui_mall`.`buyer_custom`.`tel`,
+                 `erui_mall`.`buyer_custom`.`status`, `erui_mall`.`buyer_custom`.`created_at`,
+                 `erui_mall`.`buyer_custom`.`created_by`, `erui_mall`.`buyer_custom`.`updated_at`,
+                 `erui_mall`.`buyer_custom`.`updated_by`,';
+        $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
+        $sql .= '`erui_buyer`.`buyer_agent`.`agent_id`,';
+        $sql .= '`erui_sys`.`employee`.`name` as `agent_name`';
+        $str = ' FROM ' . $this->g_table;
+        $sql .= $str;
+
+        $sql .= " LEFT JOIN `erui_buyer`.`buyer_agent` ON `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_mall`.`buyer_custom`.`buyer_id` ";
+        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
+        $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
+
+        $sql_count = 'SELECT count(`erui_mall`.`buyer_custom`.`id`) as num ';
+        $sql_count .= $str;
+        $where = " WHERE 1 = 1";
+        if (isset($condition['buyer_id']) && !empty($condition['buyer_id'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`buyer_id` ="' . $condition['buyer_id'] . '"';
+        }
+        if (isset($condition['country_bn']) && !empty($condition['country_bn'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`country_bn` ="' . $condition['country_bn'] . '"';
+        }
+        if (isset($condition['company']) && !empty($condition['company'])) {
+            $where .= " And `erui_mall`.`buyer_custom`.`company` like '%" . $condition['company'] . "%'";
+        }
+        if (isset($condition['cat_id']) && !empty($condition['cat_id'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`cat_id` = "' . $condition['cat_id'] .'"';
+        }
+        if (isset($condition['official_phone']) && !empty($condition['official_phone'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`official_phone`  = " ' . $condition['official_phone'] . '"';
+        }
+        if (isset($condition['email']) && !empty($condition['email'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`email` ="' . $condition['email'] . '"';
+        }
+
+        if ($where) {
+            $sql .= $where;
+            $sql_count .= $where;
+        }
+        $sql .= ' Order By ' . $order;
+        if (!empty($limit['num'])) {
+            $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
+        }
+        $count = $this->query($sql_count);
+        $res['count'] = $count[0]['num'];
+        $res['data'] = $this->query($sql);
+        return $res;
+    }*/
+
+    /**
+     * 根据条件获取查询条件.
+     * @param Array $condition
+     * @return mix
+     * @author klp
+     */
+    protected function _getCondition($condition = []) {
+        $where = [];
+        /*if (isset($condition['status']) && $condition['status']) {
+            switch ($condition['status']) {
+                case 'unsent':
+                    $where['status'] = 'UNSENT';
+                    break;
+                case 'sented':
+                    $where['status'] = 'SENTED';
+                    break;
+                default :
+                    break;
+            }
+        }*/
+
+        if (isset($condition['lang']) && $condition['lang']) {
+            $where['lang'] = $condition['lang'];                  //语言
+        }
+        if (isset($condition['buyer_id']) && $condition['buyer_id']) {
+            $where['buyer_id'] = $condition['buyer_id'];                  //客户ID
+        }
+        if (isset($condition['cat_id']) && $condition['cat_id']) {
+            $where['cat_id'] = $condition['cat_id'];                 //服务类型名称
+        }
+
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
+            $where['created_at'] = array(
+                array('gt', $condition['start_time']),
+                array('lt', $condition['end_time'])
+            );
+        }
+        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
+        return $where;
+    }
 
 
     /**
@@ -28,18 +170,33 @@ class BuyerServiceModel extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info($buyer_id) {
-
+    public function info($custom_id, $lang) {
+        if(isset($lang) && !empty($lang)) {
+            $where["lang"] = $lang;
+        }
         $where = [
-            "buyer_id"  => $buyer_id,
+            "id"           => $custom_id,
             "deleted_flag" => 'N',
         ];
         if ($where) {
-            $customInfo = $this->where($where)->field('buyer.*,em.name as created_name')->select();
-//            $sql = "SELECT  `id`,  `service_id`,  `attach_type`,  `attach_name`,  `default_flag`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`service_attach` where deleted_flag ='N' and service_id = " . $customInfo['id'];
-//            $row = $this->query($sql);     ==>>扩展加附件使用(后期加)
-
-            return $customInfo;
+            $customInfo = $this->where($where)->find();
+//            $sql = "SELECT  `id`,  `service_id`,  `attach_type`,  `attach_name`,  `default_flag`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_mall`.`service_attach` where deleted_flag ='N' and service_id = " . $customInfo['id'];
+//            $row = $this->query($sql);     //==>>扩展加附件使用(后期加)
+            $data = array();
+            if($customInfo) {
+                $catModel = new CustomCatModel();
+                $catInfo = $catModel->info($lang, $customInfo['cat_id']);
+                $customInfo['cat_name'] = $catInfo[0]['cat_name'];
+                $itemModel = new CustomCatItemModel();
+                $item = json_decode($customInfo['item_id'], true);
+                foreach($item as $v) {
+                    $itemInfo = $itemModel->info($lang, $customInfo['cat_id'], $v);
+                    $customInfo['item_name'][] = $itemInfo[0][0]['item_name'];
+                }
+                return $customInfo;
+            } else {
+                return false;
+            }
         } else {
             return false;
         }
@@ -54,6 +211,9 @@ class BuyerServiceModel extends PublicModel
         } else {
             jsonReturn(null ,-201, '用户ID不能为空!');
         }
+        if (isset($create['lang'])) {
+            $arr['lang'] = strtolower(trim($create['lang']));
+        }
         if (isset($create['service_no'])) {
             $arr['service_no'] = trim($create['service_no']);
         }
@@ -61,10 +221,10 @@ class BuyerServiceModel extends PublicModel
             $arr['title'] = $create['title'];
         }
         if (isset($create['cat_id'])) {
-            $arr['cat_id'] = json_encode(trim($create['cat_id']));
+            $arr['cat_id'] = trim($create['cat_id']);
         }
-        if (isset($create['term_id'])) {
-            $arr['term_id'] = json_encode(trim($create['term_id']));
+        if (isset($create['item_id'])) {
+            $arr['item_id'] = json_encode(trim($create['item_id']));
         }
         if (isset($create['content'])) {
             $arr['content'] = trim($create['content']);
@@ -109,17 +269,20 @@ class BuyerServiceModel extends PublicModel
      */
     public function update_data($data, $where) {
         $arr = [];
+        if (isset($data['lang'])) {
+            $arr['lang'] = strtolower(trim($data['lang']));
+        }
         if (isset($data['service_no'])) {
             $arr['service_no'] = trim($data['service_no']);
         }
         if (isset($data['title'])) {
-            $arr['title'] = $data['title'];
+            $arr['title'] = trim($data['title']);
         }
         if (isset($data['cat_id'])) {
-            $arr['cat_id'] = json_encode(trim($data['cat_id']));
+            $arr['cat_id'] = trim($data['cat_id']);
         }
-        if (isset($data['term_id'])) {
-            $arr['term_id'] = trim($data['term_id']);
+        if (isset($data['item_id'])) {
+            $arr['item_id'] = json_encode(trim($data['item_id']));
         }
         if (isset($data['content'])) {
             $arr['content'] = trim($data['content']);
@@ -150,7 +313,7 @@ class BuyerServiceModel extends PublicModel
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
                     break;
-                case self::STATUS_INVALID:
+                case self::STATUS_DRAFT:
                     $arr['status'] = $data['status'];
                     break;
                 case self::STATUS_DELETED:
@@ -177,7 +340,7 @@ class BuyerServiceModel extends PublicModel
     删除
      */
     public function delete_data($where) {
-        return $this->where($where)->save(['deleted_flag'=> 'Y']);
+        return $this->where($where)->save(['deleted_flag'=> self::DELETE_Y]);
     }
 
 

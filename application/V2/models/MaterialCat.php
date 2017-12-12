@@ -54,7 +54,7 @@ class MaterialCatModel extends PublicModel {
         $this->_getValue($where, $condition, 'lang', 'string');
         $this->_getValue($where, $condition, 'name', 'like');
         $this->_getValue($where, $condition, 'sort_order', 'string');
-        $this->_getValue($where, $condition, 'created_at', 'string');
+        $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'created_by', 'string');
         if (isset($condition['status'])) {
             switch ($condition['status']) {

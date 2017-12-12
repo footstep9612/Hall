@@ -28,7 +28,7 @@ class CountryModel extends PublicModel {
      * 条件id,lang,bn,name,time_zone,region,pinyin
      */
 
-    private function _getCondition(&$condition) {
+  /*  private function _getCondition(&$condition) {
         $data = [];
         getValue($data, $condition, 'lang', 'string', 'c.lang');
         if (isset($condition['bn']) && $condition['bn']) {
@@ -47,7 +47,7 @@ class CountryModel extends PublicModel {
         getValue($data, $condition, 'market_area_bn', 'like', 'mac.market_area_bn');
 
         return $data;
-    }
+    }*/
 
     /**
      * 获取列表
@@ -78,7 +78,7 @@ class CountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getCountrybynameandlang($name, $lang = 'en') {
+    /*public function getCountrybynameandlang($name, $lang = 'en') {
 
         try {
             $data = ['country.name' => $name,
@@ -103,30 +103,8 @@ class CountryModel extends PublicModel {
             Log::write($ex->getMessage());
             return 'China';
         }
-    }
+    }*/
 
-    /**
-     * 获取国家对应营销区域
-     * @author klp
-     */
-    public function getMarketArea($country, $lang) {
-        $where = array(
-            'name' => $country,
-            'lang' => $lang
-        );
-        $country_bn = $this->field('bn')->where($where)->find();
-
-        $MarketAreaCountry = new MarketAreaCountryModel(); //对应表的营销区域简写bn
-        $market_area_bn = $MarketAreaCountry->field('market_area_bn')->where(array('country_bn' => $country_bn['bn']))->find();
-        $MarketArea = new MarketAreaModel();
-        $market_area = $MarketArea->field('name,bn')->where(array('bn' => $market_area_bn['market_area_bn'], 'lang' => $lang))->find();
-        if ($market_area) {
-            $market_area['country_bn'] = $country_bn;
-            return $market_area;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * 国家地区列表,按首字母分组排序
@@ -266,7 +244,7 @@ class CountryModel extends PublicModel {
      * @param string $lang 语言
      * @param string
      */
-    public function getCountryByBn($bn = '', $lang = '') {
+    /*public function getCountryByBn($bn = '', $lang = '') {
         if (empty($bn) || empty($lang))
             return '';
 
@@ -288,7 +266,7 @@ class CountryModel extends PublicModel {
         } catch (Exception $e) {
             return '';
         }
-    }
+    }*/
 
     /**
      * 根据简称与语言获取国家名称
@@ -296,7 +274,7 @@ class CountryModel extends PublicModel {
      * @param string $lang 语言
      * @param string
      */
-    public function getCountryByBns($bns = [], $lang = '') {
+     public function getCountryByBns($bns = [], $lang = '') {
         if (empty($bns) || empty($lang))
             return '';
 
