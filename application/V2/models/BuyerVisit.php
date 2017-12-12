@@ -37,6 +37,9 @@ class BuyerVisitModel extends PublicModel {
         $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 20;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $condition = [];
+        if(!empty($_input['all_id'])){
+            $condition['id']=['in', $_input['all_id']];
+        }
         $cond = "1=1";
         //客户名称，客户编码为条件
         if(isset($_input['buyer_name']) || !empty($_input['buyer_name'])){
@@ -67,9 +70,9 @@ class BuyerVisitModel extends PublicModel {
             $condition['visit_at']=['ELT', $_input['visit_at_end']];
         }
         try{
-             //总记录数
-             $total = $this->field('id')->where($condition)->count();
-             $data = [
+            //总记录数
+            $total = $this->field('id')->where($condition)->count();
+            $data = [
                  'current_no' => $current_no,
                  'pagesize' => $length,
                  'total' => $total,
@@ -86,12 +89,6 @@ class BuyerVisitModel extends PublicModel {
              $ids = substr($ids,1);
              $condition['id'] = ['in', $ids];
              $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->select();
-//             $vtModel = new VisitTypeModel();
-//             $vpModel = new VisitPositionModel();
-//             $vlModel = new VisitLevelModel();
-//             $buyerModel = new BuyerModel();
-//             $dpModel = new VisitDemadTypeModel();
-//             $bvrModel = new BuyerVisitReplyModel();
              foreach($result as $index => $r){
                  //客户信息
                  $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
@@ -470,5 +467,84 @@ class BuyerVisitModel extends PublicModel {
             ->order('buyer.id desc,visit.id desc')
             ->select();
         return $info;
+    }
+    /**
+     * sheet名称 $sheetName
+     * execl导航头 $tableheader
+     * execl导出的数据 $data
+     * wangs
+     */
+    public function exportModel($sheetName,$tableheader,$data){
+        //创建对象
+        $excel = new PHPExcel();
+        $objActSheet = $excel->getActiveSheet();
+        $letter = range(A,Z);
+        //设置当前的sheet
+        $excel->setActiveSheetIndex(0);
+        //设置sheet的name
+        $objActSheet->setTitle($sheetName);
+        //填充表头信息
+        for($i = 0;$i < count($tableheader);$i++) {
+            //单独设置D列宽度为15
+            $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
+            $objActSheet->setCellValue("$letter[$i]1","$tableheader[$i]");
+            //设置表头字体样式
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
+            //设置表头字体大小
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setSize(10);
+            //设置表头字体是否加粗
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setBold(true);
+            //设置表头文字垂直居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            //设置文字上下居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            //设置表头外的文字垂直居中
+            $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+        //填充表格信息
+        for ($i = 2;$i <= count($data) + 1;$i++) {
+            $j = 0;
+            foreach ($data[$i - 2] as $key => $value) {
+                $objActSheet->setCellValue("$letter[$j]$i","$value");
+                $j++;
+            }
+        }
+        //创建Excel输入对象
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $time = date('YmdHis');
+        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $url = $server . '/V2/Uploadfile/upload';
+
+        $data['tmp_name'] = $time.$sheetName.'.xlsx';
+        $data['type'] = 'application/excel';
+        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
+        $fileId = postfile($data, $url);
+        return $fileId;
+    }
+    //excel导出
+    public function exportStatisVisit($data){
+        $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+        $arr = $this->getList($data);
+        $info = $this->getVisitStatisData($arr['result']);
+        $res = $this->exportModel('visitstatis',$tableheader,$info);
+        return $res;
+    }
+    //获取excel导出的数据
+    public function getVisitStatisData($data){
+        //整合数据
+        $arr=array();
+        foreach($data as $k => $v){
+            $arr[$k]['id'] = $v['id'];    //序号
+            $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
+            $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
+            $arr[$k]['visit_at'] = $v['visit_at'];    //拜访时间
+            $arr[$k]['visit_type'] = $v['visit_type'];    //目的拜访类型
+            $arr[$k]['visit_position'] = $v['visit_position'];    //职位拜访类型
+            $arr[$k]['visit_level'] = $v['visit_level'];    //拜访级别
+            $arr[$k]['demand_type'] = $v['demand_type'];    //客户需求类别
+        }
+        return $arr;
     }
 }

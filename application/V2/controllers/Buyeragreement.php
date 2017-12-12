@@ -14,6 +14,8 @@ class BuyeragreementController extends PublicController
         $agree = new BuyerAgreementModel();
         $res = $agree->exportAgree($data);
         if($res['code'] == 1){
+            $excel = new BuyerExcelModel();
+            $excel->saveExcel($res['name'],$res['url'],$created_by);
             $this->jsonReturn($res);
         }else{
             $dataJson = array(
