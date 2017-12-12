@@ -1272,4 +1272,24 @@ class BuyerModel extends PublicModel {
             ->find();
         return $info;
     }
+
+    /**
+     * 客户管理-客户信息的统计数据
+     * wangs
+     */
+    public function showBuyerStatis($data){
+        if(empty($data['buyer_id']) || empty($data['created_by'])){
+            return false;
+        }
+//        print_r($data);die;
+        $cond = array(
+            'id'=>$data['buyer_id'],
+            'created_by'=>$data['created_by']
+        );
+
+        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
+            ->where($cond)
+            ->find();
+        return $info;
+    }
 }
