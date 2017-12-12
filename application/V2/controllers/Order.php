@@ -37,7 +37,7 @@ class OrderController extends PublicController {
                     $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
                 } else {
                     //查询是否是市场人员
-                    if($groupid){
+                    if(is_numeric($groupid)){
                         $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
                     }
                 }
