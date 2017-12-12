@@ -607,7 +607,7 @@ class EsProductModel extends Model {
     }
 
     public function getBrandsList($condition, $lang = 'en') {
-        unset($condition['brand_name']);
+        unset($condition['brand']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
