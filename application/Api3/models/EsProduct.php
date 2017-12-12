@@ -341,11 +341,13 @@ class EsProductModel extends Model {
             }
             $showcat = $show_cat_model->field('id')
                             ->where(['lang' => $lang,
-                                'country_bn' => $country_bn,
+                                'country_bn' => $condition['country_bn'],
                                 'name' => $keyword,
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
                             ])->find();
+
+
             if (empty($showcat)) {
 
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
@@ -489,6 +491,7 @@ class EsProductModel extends Model {
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
