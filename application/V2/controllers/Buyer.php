@@ -900,10 +900,19 @@ class BuyerController extends PublicController {
         //客户需求反馈
         $reply = new BuyerVisitReplyModel();
         $replyInfo = $reply->singleVisitReplyInfo($data['buyer_id'],$data['created_by']);
+        //客户与kr/er业务量
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+        $inquiry = new InquiryModel();
+        $inquiryInfo = $inquiry->statisInquiry($data['buyer_id']);
         //整合数据
         $arr['credit'] = $ststisInfo;
         $arr['visit'] = $visitInfo;
         $arr['reply'] = $replyInfo;
+        $arr['order']['count'] = $orderInfo['countaccount']['count'];
+        $arr['order']['account'] = $orderInfo['countaccount']['account'];
+        $arr['order']['range'] = $orderInfo['range'];
+        $arr['inquiry'] = $inquiryInfo;
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',

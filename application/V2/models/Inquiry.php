@@ -912,9 +912,35 @@ class InquiryModel extends PublicModel {
      * @return mixed
      * @author 买买提
      */
-    public function getSerialNoById($id){
-
-        return $this->where(['id'=>$id])->getField('serial_no');
-
+    public function getSerialNoById($id)
+    {
+        return $this->where(['id' => $id])->getField('serial_no');
+    }
+     /* @param $buyer_id
+     * 获取询单数量
+     * wangs
+     */
+    public function statisInquiry($buyer_id){
+        $arr = $this->field('id')
+            ->where(array('buyer_id'=>$buyer_id))
+            ->select();
+        $count = count($arr);
+        $str = '';
+        foreach($arr as $v){
+            $str.=','.$v['id'];
+        }
+        $str = substr($str,1);
+        $quote = new QuoteModel();
+        $sql = "select total_purchase from erui_rfq.quote where inquiry_id in ($str)";
+        $info = $quote->query($sql);
+        $account = 0;
+        foreach($info as $v){
+            $account += $v['total_purchase'];
+        }
+        $data = array(
+            'count'=>$count,
+            'account'=>$account
+        );
+        return $data;
     }
 }
