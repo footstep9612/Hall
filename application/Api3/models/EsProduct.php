@@ -351,29 +351,29 @@ class EsProductModel extends Model {
             if (empty($showcat)) {
 
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_name.all' => ['value' => $keyword, 'boost' => 9]]],
-                            [ESClient::TERM => ['name.all' => ['value' => $keyword, 'boost' => 9]]],
-                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 8]]],
-                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword, 'boost' => 8]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword, 'boost' => 7]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword, 'boost' => 6.8]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword, 'boost' => 6.7]]],
-                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 6.5]]],
-                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 6.5]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
-                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword . '*', 'boost' => 5]]],
-                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 5]]],
+                            [ESClient::TERM => ['show_name.all' => ['value' => $keyword, 'boost' => 99]]],
+                            [ESClient::TERM => ['name.all' => ['value' => $keyword, 'boost' => 99]]],
+                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
+                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword, 'boost' => 70]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword, 'boost' => 69]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword, 'boost' => 68]]],
+                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
+                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 20]]],
+                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 20]]],
                             [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
                             [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 99]]],
                 ]]];
             } else {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 9]]],
-                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 9]]],
-                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
+                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
+                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
                 ]]];
             }
         }
@@ -485,7 +485,7 @@ class EsProductModel extends Model {
             }
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
-                $es->setsort('_score');
+                $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
                 $es->setpreference('_primary_first');
             }
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
