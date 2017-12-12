@@ -143,9 +143,10 @@ class BuyervisitController extends PublicController {
     /**
      * 提交反馈内容
      */
-    public function replayAddAction(){
+    public function replayAddAction()
+    {
         $data = $this->getPut();
-        if(!isset($data['visit_id']) || empty($data['visit_id'])){
+        if (!isset($data['visit_id']) || empty($data['visit_id'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
@@ -153,8 +154,23 @@ class BuyervisitController extends PublicController {
         $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
-        }else{
+        } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
+    }
+     /*
+     * 统计:拜访记录excel 导出
+     */
+    public function exportStatisVisitAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerVisitModel();
+        $arr = $model->exportStatisVisit($data);
+        if($arr['code']==1){
+            $model = new BuyerExcelModel();
+            $model->saveExcel($arr['name'],$arr['url'],$created_by);
+        }
+        $this->jsonReturn($arr);
     }
 }

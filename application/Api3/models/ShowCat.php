@@ -38,8 +38,10 @@ class ShowCatModel extends PublicModel {
                     'cat_no' => ['in', $show_cat_nos],
                     'status' => 'VALID',
                     'lang' => $lang,
-                    'country_bn' => $country_bn
+                    'country_bn' => $country_bn,
+                    0 => '`name` is not null and `name`<>\'\''
                 ];
+
                 $this
                         ->where($where)
                         ->field('cat_no,name')
