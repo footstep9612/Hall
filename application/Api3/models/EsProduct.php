@@ -336,46 +336,61 @@ class EsProductModel extends Model {
 
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
-            if (empty($show_cat_model)) {
-                $show_cat_model = new ShowCatModel();
-            }
-            $showcat = $show_cat_model->field('id')
-                            ->where(['lang' => $lang,
-                                'country_bn' => $condition['country_bn'],
-                                'name' => $keyword,
-                                'status' => 'VALID',
-                                'deleted_flag' => 'N'
-                            ])->find();
 
-
-            if (empty($showcat)) {
-
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_name.all' => ['value' => $keyword, 'boost' => 99]]],
-                            [ESClient::TERM => ['name.all' => ['value' => $keyword, 'boost' => 99]]],
-                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
-                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword, 'boost' => 70]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword, 'boost' => 69]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword, 'boost' => 68]]],
-                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
-                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
-                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
-                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 20, 'minimum_should_match' => '75%']]],
-                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 20, 'minimum_should_match' => '75%']]],
-                            [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
-                            [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 99]]],
-                ]]];
-            } else {
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
-                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
-                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
-                ]]];
-            }
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
+                        //  [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
+                        // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
+                        [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::TERM => ['spu' => $keyword]],
+            ]]];
+//
+//            if (empty($show_cat_model)) {
+//                $show_cat_model = new ShowCatModel();
+//            }
+//            $showcat = $show_cat_model->field('id')
+//                            ->where(['lang' => $lang,
+//                                'country_bn' => $condition['country_bn'],
+//                                'name' => $keyword,
+//                                'status' => 'VALID',
+//                                'deleted_flag' => 'N'
+//                            ])->find();
+//
+//
+//            if (empty($showcat)) {
+//
+//                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+//                            [ESClient::TERM => ['show_name.all' => ['value' => $keyword, 'boost' => 99]]],
+//                            [ESClient::TERM => ['name.all' => ['value' => $keyword, 'boost' => 99]]],
+//                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
+//                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword, 'boost' => 80]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword, 'boost' => 70]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword, 'boost' => 69]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword, 'boost' => 68]]],
+//                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
+//                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 60]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+//                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword . '*', 'boost' => 50]]],
+//                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 20, 'minimum_should_match' => '75%']]],
+//                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 20, 'minimum_should_match' => '75%']]],
+//                            [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
+//                            [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+//                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 99]]],
+//                ]]];
+//            } else {
+//                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+//                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
+//                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
+//                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
+//                ]]];
+//            }
         }
         return $body;
     }
