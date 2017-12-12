@@ -197,14 +197,14 @@ class BuyerVisitModel extends PublicModel {
             if($total<=0){
                 return $data;
             }
-            $id_ary = $this->field('id')->where($condition)->order('id')->limit(($current_no-1)*$length,$length)->select();
+            $id_ary = $this->field('id')->where($condition)->order('id desc')->limit(($current_no-1)*$length,$length)->select();
             $ids = '';
             foreach($id_ary as $r){
                 $ids.= ','.$r['id'];
             }
             $ids = substr($ids,1);
             $condition['id'] = ['in', $ids];
-            $result = $this->field('id,created_by,created_at')->where($condition)->select();
+            $result = $this->field('id,created_by,created_at')->order('id desc')->where($condition)->select();
             if($result){
                 $userModel = new UserModel();
                 $bvrModel = new BuyerVisitReplyModel();
@@ -217,7 +217,7 @@ class BuyerVisitModel extends PublicModel {
                     }
                     $result[$index]['reply'] = 'N';
                     $result[$index]['reply_time'] = null;
-                    $bvrInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+                    $bvrInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at desc')->find();
                     if($bvrInfo){
                         $result[$index]['reply'] = 'Y';
                         $result[$index]['reply_time'] = $bvrInfo['created_at'];
