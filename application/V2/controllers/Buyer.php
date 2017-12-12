@@ -876,4 +876,39 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
+    /**
+     * 客户管理-客户档案--统计
+     * wangs
+     */
+    public function showBuyerStatisAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        //客户信用评价
+        $model = new BuyerModel();
+        $ststisInfo = $model->showBuyerStatis($data);
+        if($ststisInfo === false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'请求缺少规定参数'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        //客户信用评价
+        $visit = new BuyerVisitModel();
+        $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
+        //客户需求反馈
+        $reply = new BuyerVisitReplyModel();
+        $replyInfo = $reply->singleVisitReplyInfo($data['buyer_id'],$data['created_by']);
+        //整合数据
+        $arr['credit'] = $ststisInfo;
+        $arr['visit'] = $visitInfo;
+        $arr['reply'] = $replyInfo;
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$arr
+        );
+        $this->jsonReturn($dataJson);
+    }
 }
