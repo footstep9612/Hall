@@ -582,12 +582,16 @@ class EsProductModel extends Model {
 
                 if (isset($newshow_cats[$show_cat['cat_no']])) {
                     $show_cat['name'] = $newshow_cats[$show_cat['cat_no']];
+                } else {
+                    continue;
                 }
                 foreach ($show_cat['childs'] as $key => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
+                        $show_cat['childs'][$key] = $child_showcat;
+                    } else {
+                        unset($show_cat['childs'][$key]);
                     }
-                    $show_cat['childs'][$key] = $child_showcat;
                 }
                 rsort($show_cat['childs']);
                 $newshowcats[] = $show_cat;
