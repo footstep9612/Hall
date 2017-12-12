@@ -336,13 +336,16 @@ class EsProductModel extends Model {
 
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
-
-            $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
-                        'country_bn' => $country_bn,
-                        'name' => $keyword,
-                        'status' => 'VALID',
-                        'deleted_flag' => 'N'
-                    ])->find();
+            if (empty($show_cat_model)) {
+                $show_cat_model = new ShowCatModel();
+            }
+            $showcat = $show_cat_model->field('id')
+                            ->where(['lang' => $lang,
+                                'country_bn' => $country_bn,
+                                'name' => $keyword,
+                                'status' => 'VALID',
+                                'deleted_flag' => 'N'
+                            ])->find();
             if (empty($showcat)) {
 
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
@@ -362,13 +365,13 @@ class EsProductModel extends Model {
                             [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 5]]],
                             [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
                             [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                            [ESClient::TERM => ['spu' => $keyword, 'boost' => 9]],
+                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 9]]],
                 ]]];
             } else {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_cats.cat_name3.all' => $keyword, 'boost' => 9]],
-                            [ESClient::TERM => ['show_cats.cat_name2.all' => $keyword, 'boost' => 7]],
-                            [ESClient::TERM => ['show_cats.cat_name1.all' => $keyword, 'boost' => 5]],
+                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 9]]],
                 ]]];
             }
         }
