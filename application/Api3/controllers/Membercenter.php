@@ -14,7 +14,7 @@
 class MembercenterController extends PublicController {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
     }
 
@@ -25,6 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
+        //$this->user['buyer_id'] = 955;//测试
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');
@@ -148,25 +149,6 @@ class MembercenterController extends PublicController {
     }
 
     /**
-     * 分页处理
-     * @param array $condition 条件
-     * @return array
-     * @author zyg
-     *
-     */
-    protected function _getPage($condition) {
-        $pagesize = 10;
-        $start_no = 0;
-        if (isset($condition['pagesize'])) {
-            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
-        }
-        if (isset($condition['current_no'])) {
-            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
-        }
-        return [$start_no, $pagesize];
-    }
-
-    /**
      * 采购商负责人
      * @time 2017-9-14
      * @author klp
@@ -186,4 +168,46 @@ class MembercenterController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+    /**
+     * 会员等级列表
+     * @time 2017-10-25
+     * @author klp
+     */
+    public function listLevelAction() {
+
+        $model = new BuyerLevelModel();
+        $res = $model->getlist();
+        if (!empty($res)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 分页处理
+     * @param array $condition 条件
+     * @return array
+     * @author zyg
+     *
+     */
+    protected function _getPage($condition) {
+        $pagesize = 10;
+        $start_no = 0;
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        return [$start_no, $pagesize];
+    }
+
+
 }

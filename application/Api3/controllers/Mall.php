@@ -9,7 +9,7 @@ class MallController extends PublicController
 {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
     }
 
@@ -110,11 +110,11 @@ class MallController extends PublicController
      */
     public function getUlogisticsInfoAction() {
         $data = $this->getPut();
-        if(!isset($data['buyer_id']) || empty($data['buyer_id'])) {
-            jsonReturn(null, -203, '用户ID不能为空!');
-        }
+//        if(!isset($data['buyer_id']) || empty($data['buyer_id'])) {
+//            jsonReturn(null, -203, '用户ID不能为空!');
+//        }
         $logisticsModel = new BuyerLogisticsModel();
-        $logisticsInfo = $logisticsModel->info($data['buyer_id']);
+        $logisticsInfo = $logisticsModel->info($this->user['buyer_id']);
         if($logisticsInfo) {
             jsonReturn($logisticsInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
@@ -128,11 +128,12 @@ class MallController extends PublicController
      */
     public function createUlogisticsAction() {
         $data = $this->getPut();
-        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
-            $where['buyer_id'] = trim($data['buyer_id']);
-        } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
-        }
+//        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
+//            $where['buyer_id'] = trim($data['buyer_id']);
+//        } else {
+//            jsonReturn(null ,-201, '用户ID不能为空!');
+//        }
+        $where['buyer_id'] = $this->user['buyer_id'];
         $logisticsModel = new BuyerLogisticsModel();
         $add = $logisticsModel->create_data($data, $where);
         if($add) {
@@ -146,11 +147,7 @@ class MallController extends PublicController
      */
     public function updateUlogisticsAction() {
         $data = $this->getPut();
-        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
-            $where['buyer_id'] = trim($data['buyer_id']);
-        } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
-        }
+        $where['buyer_id'] = $this->user['buyer_id'];
         $logisticsModel = new BuyerLogisticsModel();
         $update = $logisticsModel->update_data($data, $where);
         if($update) {
@@ -169,11 +166,7 @@ class MallController extends PublicController
      */
     public function createUcustomAction() {
         $data = $this->getPut();
-        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
-            $where['buyer_id'] = trim($data['buyer_id']);
-        } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
-        }
+        $where['buyer_id'] = $this->user['buyer_id'];
         $limit['pagesize'] = 1;
         $limit['current_no'] = 0;
         $buyer_custom_model = new BuyerCustomModel();
@@ -203,11 +196,7 @@ class MallController extends PublicController
      */
     public function updateUcustomAction() {
         $data = $this->getPut();
-        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
-            $where['buyer_id'] = trim($data['buyer_id']);
-        } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
-        }
+        $where['buyer_id'] = $this->user['buyer_id'];
         $buyer_custom_model = new BuyerCustomModel();
         $res = $buyer_custom_model->update_data($data, $where);
         if($res) {

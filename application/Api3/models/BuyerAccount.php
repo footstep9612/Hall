@@ -102,31 +102,20 @@ class BuyerAccountModel extends PublicModel {
      */
     public function getinfo($data) {
         $buyer_model = new BuyerModel();
-        $buyeragent_model = new BuyerAgentModel();
-
         $buyer_table = $buyer_model->getTableName();
+
+        $buyeragent_model = new BuyerAgentModel();
         $agent_table = $buyeragent_model->getTableName();
 
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName();
         if (!empty($data['buyer_id'])) {
-             $row = $this->field('b.*,c.*,ag.*')->alias('c')
+             $row = $this->field('b.*,c.*,ag.*,b.status as ustatus,country.name as country_name')->alias('c')
                          ->join($agent_table . ' as ag on ag.buyer_id=c.buyer_id', 'left')
                          ->join($buyer_table . ' as b on b.id=c.buyer_id', 'left')
+                         ->join($country_table . ' as country on b.lang=country.lang and b.country_bn=country.bn', 'left')
                          ->where(['c.buyer_id' => $data['buyer_id'], 'c.deleted_flag' => 'N'])
                          ->find();
-            if (!empty($row['buyer_level'])) {
-                $BuyerLevelModel = new BuyerLevelModel();
-                $res = $BuyerLevelModel->field('buyer_level')->where(['id' => $row['buyer_level']])->find();
-                if ($res) {
-                    if (!is_null(json_decode($res['buyer_level'], true))) {
-                        $level = json_decode($res['buyer_level'], true);
-                        foreach ($level as $item) {
-                            $info[$item['lang']] = $item;
-                        }
-                        $row['buyer_level'] = $info['en']['name'];
-                        $row['level_info'] = $info;
-                    }
-                }
-            }
 
             return $row;
         } else {

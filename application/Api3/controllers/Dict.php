@@ -180,10 +180,10 @@ class DictController extends PublicController {
 
             $where['lang'] = $lang;
             if (redisHashExist('TradeTerms', 'TradeTerms'.$lang)) {
-//                $arr = json_decode(redisHashGet('TradeTerms', 'TradeTerms'.$lang), true);
-//                return $arr;
+                $arr = json_decode(redisHashGet('TradeTerms', 'TradeTerms'.$lang), true);
+                return $arr;
             }
-            $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
+            $arr = $trade_terms->getlist($where, $limit);
             if ($arr) {
                 redisHashSet('TradeTerms', 'TradeTerms'.$lang, json_encode($arr));
             }
@@ -191,7 +191,7 @@ class DictController extends PublicController {
             if (!empty($data['lang'])) {
                 $where['lang'] = $data['lang'];
             }
-            $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
+            $arr = $trade_terms->getlist($where, $limit);
         }
         if (!empty($arr)) {
             $datajson['code'] = 1;
