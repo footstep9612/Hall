@@ -842,10 +842,12 @@ class InquiryModel extends PublicModel {
                 ['elt', $condition['creat_at_end']]
             ];
             
-            $where['_complex']['a.updated_at'] = [
-                ['egt', $condition['creat_at_start']],
-                ['elt', $condition['creat_at_end']]
-            ];
+            if (!empty($condition['update_at_start']) && !empty($condition['update_at_end'])) {
+                $where['_complex']['a.updated_at'] = [
+                    ['egt', $condition['update_at_start']],
+                    ['elt', $condition['update_at_end']]
+                ];
+            }
             
             $where['_complex']['_logic'] = 'or';
             
