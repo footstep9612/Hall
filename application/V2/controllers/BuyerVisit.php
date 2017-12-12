@@ -9,7 +9,7 @@ class BuyerVisitController extends PublicController {
 
     //put your code here
     public function init() {
-       // parent::init();
+        parent::init();
     }
 
     /**
@@ -135,5 +135,21 @@ class BuyerVisitController extends PublicController {
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
+    }
+
+    /**
+     * 统计:拜访记录excel 导出
+     */
+    public function exportStatisVisitAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerVisitModel();
+        $arr = $model->exportStatisVisit($data);
+        if($arr['code']==1){
+            $model = new BuyerExcelModel();
+            $model->saveExcel($arr['name'],$arr['url'],$created_by);
+        }
+        $this->jsonReturn($arr);
     }
 }
