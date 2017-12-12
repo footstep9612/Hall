@@ -138,20 +138,36 @@ class BuyerAgreementModel extends PublicModel
     }
     //框架协议管理
     public function manageAgree($data){
-        $cond = "buyer_id='$data[buyer_id]' and agree.created_by='$data[created_by]'";
-        if(!empty($data['execute_start_at'])){  //执行时间
-            $cond .= " and execute_start_at='$data[execute_start_at]'";
+        $cond = " 1=1";
+        if(!empty($data['buyer_id'])){  //客户id
+            $cond .= " and buyer_id='$data[buyer_id]'";
         }
+        if(!empty($data['created_by'])){  //执行创建人
+            $cond .= " and agree.created_by='$data[created_by]'";
+        }
+        if(!empty($data['area_bn'])){  //所属地区
+            $cond .= " and agree.area_bn='$data[area_bn]'";
+        }
+        if(!empty($data['execute_start_at'])){    //执行时间
+            $cond .= " and execute_start_at='$data[execute_start_at]'";
+}
         if(!empty($data['org_id'])){    //事业部
             $cond .= " and org_id='$data[org_id]'";
         }
+
+        if(!empty($data['buyer_name'])){  //客户名称
+            $cond .= " and buyer.name like '%$data[buyer_name]%'";
+        }
+        if(!empty($data['buyer_code'])){  //客户代码
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
         if(!empty($data['execute_no'])){    //执行单号txt
             $cond .= " and execute_no like '%$data[execute_no]%'";
-
         }
         if(!empty($data['execute_company'])){   //执行分公司txt
             $cond .= " and execute_company like '%$data[execute_company]%'";
         }
+
         $page = 1;
         if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0   ){    //事业部
             $page = ceil($data['page']);
