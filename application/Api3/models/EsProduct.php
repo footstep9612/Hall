@@ -336,19 +336,41 @@ class EsProductModel extends Model {
 
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
-                        // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        //  [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
-                        [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::TERM => ['spu' => $keyword]],
-            ]]];
+
+            $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
+                        'country_bn' => $country_bn,
+                        'name' => $keyword,
+                        'status' => 'VALID',
+                        'deleted_flag' => 'N'
+                    ])->find();
+            if (empty($showcat)) {
+
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::TERM => ['show_name.all' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::TERM => ['name.all' => ['value' => $keyword, 'boost' => 9]]],
+                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 8]]],
+                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword, 'boost' => 8]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword, 'boost' => 7]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword, 'boost' => 6.8]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword, 'boost' => 6.7]]],
+                            [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword, 'boost' => 6.5]]],
+                            [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 6.5]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name3.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name2.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
+                            [ESClient::WILDCARD => ['show_cats.cat_name1.all' => ['value' => '*' . $keyword . '*', 'boost' => 6]]],
+                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword . '*', 'boost' => 5]]],
+                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 5]]],
+                            [ESClient::WILDCARD => ['tech_paras.all' => ['value' => '*' . $keyword . '*', 'boost' => 2]]],
+                            [ESClient::WILDCARD => ['exe_standard.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                            [ESClient::TERM => ['spu' => $keyword, 'boost' => 9]],
+                ]]];
+            } else {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::TERM => ['show_cats.cat_name3.all' => $keyword, 'boost' => 9]],
+                            [ESClient::TERM => ['show_cats.cat_name2.all' => $keyword, 'boost' => 7]],
+                            [ESClient::TERM => ['show_cats.cat_name1.all' => $keyword, 'boost' => 5]],
+                ]]];
+            }
         }
         return $body;
     }
