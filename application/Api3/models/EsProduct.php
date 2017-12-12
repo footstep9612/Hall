@@ -492,8 +492,6 @@ class EsProductModel extends Model {
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
 
-            echo json_encode($es->body, 256);
-            die;
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
