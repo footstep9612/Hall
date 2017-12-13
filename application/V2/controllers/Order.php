@@ -751,11 +751,11 @@ class OrderController extends PublicController {
 
     //put your code here
     public function listAction() {
-        $auth = $this->checkAuthAction();
+        //$auth = $this->checkAuthAction();
         $condition = $this->getPut(); //查询条件
-        if ($auth['code'] == '2') {
-            $condition['agent_id'] = $this->user['id'];
-        }
+//        if ($auth['code'] == '2') {
+//            $condition['agent_id'] = $this->user['id'];
+//        }
         $oder_moder = new OrderModel();
         $data = $oder_moder->getList($condition);
         $count = $oder_moder->getCount($condition);
@@ -800,7 +800,7 @@ class OrderController extends PublicController {
      * @desc   订单未出库时可删除
      **/
     public function deleteAction() {
-        $auth = $this->checkAuthAction();
+        //$auth = $this->checkAuthAction();
         $data = file_get_contents('php://input');
         $data = @json_decode($data, true);
         
