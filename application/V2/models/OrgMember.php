@@ -190,14 +190,14 @@ class OrgMemberModel extends PublicModel {
 						->group('d.id')
 						->select();
 				$count = $this->alias('a')
-						->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
-						->join('erui_sys.role c ON b.role_id = c.id','left')
-						->join('erui_sys.employee d ON a.employee_id = d.id','left')
+						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
+						->join('erui_sys.role c ON c.id = b.role_id','left')
+						->join('erui_sys.employee d ON d.id = a.employee_id','left')
 						->join('erui_sys.country_member e ON e.employee_id = a.employee_id','left')
-						->field('a.id')
+						->field($fields)
 						->where($where)
 						->group('d.id')
-						->count('a.id');
+						->select();
 
 			}else{
 				$list = $this->alias('a')
@@ -214,16 +214,16 @@ class OrgMemberModel extends PublicModel {
 						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
 						->join('erui_sys.role c ON c.id = b.role_id','left')
 						->join('erui_sys.employee d ON  d.id = a.employee_id','left')
-						->field('a.id')
+						->field($fields)
 						->where($where)
 						->group('d.id')
-						->count('a.id');
+						->select();
 			}
 
 			if($list){
 				$results['code'] = '1';
 				$results['message'] = '成功！';
-				$results['count'] = $count;
+				$results['count'] = count($count);
 				$results['data'] = $list;
 			}else{
 				$results['code'] = '-101';
