@@ -17,11 +17,12 @@ class ShoppingCarModel extends publicModel{
     /**
      * 我的购物车
      */
-    public function myShoppingCar($lang,$country_bn){
-        $userInfo = getLoinInfo();
-        $userInfo['id'] = 1;
-        $lang = 'en';
-        $condition = ['buyer_id'=>$userInfo['id'], 'type'=>0, 'deleted_flag'=>'N'];
+    public function myShoppingCar($condition){
+        if(empty($condition) || !isset($condition['lang'])){
+            return false;
+        }
+        $condition['type'] = $condition['type'] ? $condition['type'] : 0;
+        $condition['deleted_flag'] = 'N';
         try{
             $goodsModel= new GoodsModel();
             $goodsTable = $goodsModel->getTableName();
@@ -39,7 +40,7 @@ class ShoppingCarModel extends publicModel{
                 $productModel = new ProductModel();
                 $productTable =$productModel->getTableName();
                 $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status")
-                    ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$lang, "$goodsTable.deleted_flag"=>'N'])->select();
+                    ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$condition['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
 				$goodsAry = [];
 				foreach($goods as $r){
 					$r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
@@ -48,7 +49,7 @@ class ShoppingCarModel extends publicModel{
 					
                 //扩展属性
                 $gattrModel = new GoodsAttrModel();
-                $condition_attr = ['sku'=>['in', $skus], 'lang'=>$lang, 'deleted_flag'=>'N'];
+                $condition_attr = ['sku'=>['in', $skus], 'lang'=>$condition['lang'], 'deleted_flag'=>'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
                 $attrAry = [];
                 foreach($attrs as $attr){
