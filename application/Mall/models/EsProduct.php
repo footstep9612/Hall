@@ -184,7 +184,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition, $lang = 'en') {
+    private function getCondition($condition, $lang = 'en', &$country_bn = null) {
         $body = [];
         if ($lang == 'zh') {
             $analyzer = 'ik';
@@ -219,7 +219,7 @@ class EsProductModel extends Model {
                 $condition['country_bn'] = 'China';
             }
         } else {
-            $condition['country_bn'] = 'China';
+            $country_bn = $condition['country_bn'] = 'China';
         }
 
         // $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
@@ -520,51 +520,71 @@ class EsProductModel extends Model {
 
     public function getCatList($condition, $lang) {
         unset($condition['show_cat_no']);
-        $body = $this->getCondition($condition);
+        $country_bn = null;
+        $body = $this->getCondition($condition, $lang, $country_bn);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->body['aggs']['cat_no2'] = [
+        $es->body['aggs']['country_bn'] = [
             'terms' => [
-                'field' => 'show_cats.cat_no2',
+                'field' => 'show_cats.country_bn',
+                // 'values' => 'China',
                 'size' => 10,
-                'order' => ['_count' => 'desc']
+                'order' => ['_count' => 'desc'],
             ],
-            'aggs' => ['cat_no3' => [
+            'aggs' => ['cat_no2' =>
+                [
                     'terms' => [
-                        'field' => 'show_cats.cat_no3',
+                        'field' => 'show_cats.cat_no2',
                         'size' => 10,
                         'order' => ['_count' => 'desc']
+                    ],
+                    'aggs' => ['cat_no3' => [
+                            'terms' => [
+                                'field' => 'show_cats.cat_no3',
+                                'size' => 10,
+                                'order' => ['_count' => 'desc']
+                            ]
+                        ]
                     ]
-                ]
-            ]
-        ];
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        ]]];
+        $es->body['size'] = 0;
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $show_cat_nos = [];
         $show_cats = [];
-        if (isset($ret['aggregations']['cat_no2']['buckets'])) {
-            foreach ($ret['aggregations']['cat_no2']['buckets'] as $cats) {
-                $show_cat_nos[] = $cats['key'];
-                $show_cats[$cats['key']] = [
-                    'name' => '',
-                    'cat_no' => $cats['key'],
-                    'count' => $cats['doc_count'],
-                    'childs' => []
-                ];
-                if (isset($cats['cat_no3']['buckets'])) {
-                    $child_cats = [];
-                    foreach ($cats['cat_no3']['buckets'] as $cat) {
-                        $show_cat_nos[] = $cat['key'];
-                        $child_cats[$cat['key']] = [
+        if (isset($ret['aggregations']['country_bn']['buckets'])) {
+            foreach ($ret['aggregations']['country_bn']['buckets'] as $countrys) {
+
+                if ($countrys['key'] != $country_bn) {
+                    continue;
+                }
+                if (isset($countrys['cat_no2']['buckets'])) {
+                    foreach ($countrys['cat_no2']['buckets'] as $cats) {
+                        $show_cat_nos[] = $cats['key'];
+                        $show_cats[$cats['key']] = [
                             'name' => '',
-                            'cat_no' => $cat['key'],
-                            'count' => $cat['doc_count'],
+                            'cat_no' => $cats['key'],
+                            'count' => $cats['doc_count'],
+                            'childs' => []
                         ];
+                        if (isset($cats['cat_no3']['buckets'])) {
+                            $child_cats = [];
+                            foreach ($cats['cat_no3']['buckets'] as $cat) {
+                                $show_cat_nos[] = $cat['key'];
+                                $child_cats[$cat['key']] = [
+                                    'name' => '',
+                                    'cat_no' => $cat['key'],
+                                    'count' => $cat['doc_count'],
+                                ];
+                            }
+                            $show_cats[$cats['key']]['childs'] = $child_cats;
+                        }
                     }
-                    $show_cats[$cats['key']]['childs'] = $child_cats;
                 }
             }
         }
+
         if ($show_cat_nos) {
             $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $lang;
             $newshowcats = json_decode(redisGet($catno_key), true);
@@ -611,7 +631,8 @@ class EsProductModel extends Model {
         $es->setbody($body);
         $es->setfields(['spu']);
         $es->setaggs('brand.name.all', 'brand_name', 'terms', 10);
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $es->body['size'] = 0;
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
         $brand_names = [];
         if (isset($ret['aggregations']['brand_name']['buckets'])) {
             foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
@@ -643,7 +664,8 @@ class EsProductModel extends Model {
                 ]
             ]
         ];
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $es->body['size'] = 0;
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
         $spec_names = [];
         if (isset($ret['aggregations']['spec_name']['buckets'])) {
             foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
