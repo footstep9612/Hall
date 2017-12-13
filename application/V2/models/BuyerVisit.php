@@ -547,4 +547,86 @@ class BuyerVisitModel extends PublicModel {
         }
         return $arr;
     }
+
+    /**
+     * @param array $_input
+     * 统计excel导出数据
+     */
+//    public function getExcelList($_input = []){
+//        $vtModel = new VisitTypeModel();
+//        $vpModel = new VisitPositionModel();
+//        $vlModel = new VisitLevelModel();
+//        $buyerModel = new BuyerModel();
+//        $dpModel = new VisitDemadTypeModel();
+//        $bvrModel = new BuyerVisitReplyModel();
+//        $condition = [];
+//        if(!empty($_input['all_id'])){
+//            $condition['id']=['in', $_input['all_id']];
+//        }
+//        try{
+//            //总记录数
+//            $total = $this->field('id')->where($condition)->count();
+//            $id_ary = $this->field('id')->where($condition)->select();
+//            $ids = '';
+//            foreach($id_ary as $r){
+//                $ids.= ','.$r['id'];
+//            }
+//            $ids = substr($ids,1);
+//            $condition['id'] = ['in', $ids];
+//            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->select();
+//            foreach($result as $index => $r){
+//                //客户信息
+//                $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
+//                $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
+//                $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
+//                $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
+//
+//                //业务部门反馈时间
+//                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+//                $result[$index]['reply_time'] =$replyInfo['created_at'];
+//
+//                //目的拜访类型
+//                $vtype = json_decode($r['visit_type']);
+//                $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+//                $visit_type = '';
+//                foreach($visitTypeInfo as $info){
+//                    $visit_type.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
+//
+//                //职位拜访类型
+//                $vposition = json_decode($r['visit_position']);
+//                $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+//                $visit_position = '';
+//                foreach($vpInfo as $info){
+//                    $visit_position.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
+//
+//                //拜访级别
+//                $vlevel = json_decode($r['visit_level']);
+//                $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+//                $visit_level = '';
+//                foreach($vlInfo as $info){
+//                    $visit_level.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
+//
+//                //客户需求类型
+//                $dtype = json_decode($r['demand_type']);
+//                $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+//                $demand_type = '';
+//                foreach($dpInfo as $info){
+//                    $demand_type.= '、'.$info['name'];
+//                }
+//                $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
+//            }
+//            $data['result'] = $result ? $result : [];
+//            return $data;
+//        }catch (Exception $e){
+//            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】getList:' . $e , Log::ERR);
+//            return false;
+//        }
+//    }
+
 }

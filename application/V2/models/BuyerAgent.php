@@ -415,4 +415,24 @@ class BuyerAgentModel extends PublicModel {
         );
         return $arr;
     }
+    /**
+     * 客户管理首页-获取客户经理
+     * wangs
+     */
+    public function getMarketAgent($ids){
+        $arr = [];
+        foreach($ids as $k => $v){
+            $arr[$k]=$this->getBuyerAgentFind($v);
+        }
+        return $arr;
+    }
+    //buyer_id 获取 客户经理wangs
+    public function getBuyerAgentFind($buyer_id){
+        $info = $this->alias('agent')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id')
+            ->field('employee.name')
+            ->where(array('agent.buyer_id'=>$buyer_id))
+            ->find();
+        return $info['name'];
+    }
 }

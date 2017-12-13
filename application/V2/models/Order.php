@@ -183,6 +183,13 @@ class OrderModel extends PublicModel {
         $sql = "select count(id) as count,SUM(amount) as account from `erui_order`.`order` where buyer_id=$buyer_id GROUP BY amount
 ";
         $info = $this->query($sql);
+        if(empty($info)){
+            $data = array(
+                'countaccount'=>array('count'=>0,'account'=>0),
+                'range'=>array('max'=>0,'min'=>0)
+            );
+            return $data;
+        }
         $sqlm = "select max(amount) as max,min(amount) as min from `erui_order`.`order` where buyer_id=$buyer_id";
         $arr = $this->query($sqlm);
         $data = array(
@@ -190,6 +197,17 @@ class OrderModel extends PublicModel {
             'range'=>$arr[0]
         );
         return $data;
+    }
+    /**
+     * 客户首页订单，金额展示数据
+     * wangs
+     */
+    public function getOrderStatis($ids){
+        $arr = [];
+        foreach($ids as $k => $v){
+            $arr[$k]=$this->statisOrder($v);
+        }
+        return $arr;
     }
 
 }
