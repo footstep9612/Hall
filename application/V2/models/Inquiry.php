@@ -924,6 +924,13 @@ class InquiryModel extends PublicModel {
         $arr = $this->field('id')
             ->where(array('buyer_id'=>$buyer_id))
             ->select();
+        if(empty($arr)){
+            $data = array(
+                'count'=>0,
+                'account'=>0
+            );
+            return $data;
+        }
         $count = count($arr);
         $str = '';
         foreach($arr as $v){
@@ -942,5 +949,16 @@ class InquiryModel extends PublicModel {
             'account'=>$account
         );
         return $data;
+    }
+    /**
+     * 客户管理首页获取询单数量和金额
+     * wnags
+     */
+    public function getInquiryStatis($ids){
+        $arr=[];
+        foreach($ids as $k => $v){
+            $arr[$k]=$this->statisInquiry($v);
+        }
+        return $arr;
     }
 }
