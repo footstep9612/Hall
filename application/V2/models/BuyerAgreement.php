@@ -329,7 +329,7 @@ class BuyerAgreementModel extends PublicModel
             'org_id',   //所属事业部
             'execute_company',  //执行分公司
             'country_bn',  //所属国家
-            'agent',    //市场经办人
+//            'agent',    //市场经办人
             'technician',   //商务技术经办人
             'execute_start_at', //框架开始时间
             'execute_end_at',   //框架结束时间
