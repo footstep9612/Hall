@@ -1072,10 +1072,37 @@ class BuyerModel extends PublicModel {
             $page = $totalPage;
         }
         $offset = ($page - 1) * $pageSize;
-        $field = 'buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,';
-        $field .= 'buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.reg_capital_cur,buyer.created_by,';
-        $field .= 'buyer.created_at,business.is_local_settlement,business.is_purchasing_relationship,';
-        $field .= 'business.is_net,business.net_at,business.net_invalid_at,business.product_type';
+        $field ='buyer.id';
+        $fieldBuyerArr = array(
+//            'id',   //客户id
+            'area_bn',   //客地区
+            'country_bn',   //国家
+            'buyer_code',   //客户编码
+            'name as buyer_name',   //客户名称
+            'created_at',   //创建时间
+            'is_oilgas',   //是否油气
+            'buyer_level',   //客户等级
+            'level_at',   //等级设置时间
+            'reg_capital',   //注册资金
+            'reg_capital_cur',   //货币
+            'credit_level',   //采购商信用等级
+            'credit_type',   //授信类型
+            'line_of_credit',   //授信额度
+        );
+        foreach($fieldBuyerArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $fieldBusiness = array(
+            'is_net', //是否入网
+            'net_at', //入网时间
+            'net_invalid_at', //失效时间
+            'product_type', //产品类型
+            'is_local_settlement', //本地结算
+            'is_purchasing_relationship', //采购关系
+        );
+        foreach($fieldBusiness as $v){
+            $field .= ',business.'.$v;
+        }
         $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id', 'left')
                 ->field($field)
