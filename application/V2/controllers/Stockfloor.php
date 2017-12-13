@@ -279,11 +279,12 @@ class StockfloorController extends PublicController {
 
 
         $flag = $stock_floor_model->addGoods($floor_id, $country_bn, $lang, $skus);
+
         if ($flag) {
             $message = '添加产品成功!';
             $this->setMessage($message);
             $this->jsonReturn();
-        } elseif ($list === false) {
+        } elseif ($flag === false) {
             $this->setCode(MSG::ERROR_EMPTY);
             $message = '添加产品失败!';
             $this->setMessage($message);
