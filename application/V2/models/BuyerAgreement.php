@@ -290,7 +290,6 @@ class BuyerAgreementModel extends PublicModel
             return false;
         }
         $info = $this -> showAgree($data['execute_no']);
-        print_r($info);die;
         if(empty($info)){
             return false;
         }
