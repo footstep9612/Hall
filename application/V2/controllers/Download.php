@@ -185,7 +185,6 @@ class DownloadController extends PublicController {
                 case 'REJECTED' : $data[$k]['status'] = '已驳回'; break;
             }
         }
-
         return $data;
 
     }
@@ -232,13 +231,16 @@ class DownloadController extends PublicController {
             $rowNum++;
 
         }
-
+        $path = "public/tmp/";
+        if(!file_exists($path)){
+            mkdir($path,0777,true);
+        }
         //保存文件
         ob_end_clean();
         ob_start();
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $fileName = "BL_".date('Ymd-His'). '.xls';
-        $fullFileName = $_SERVER['DOCUMENT_ROOT'] . "/public/tmp/".$fileName;
+        $fullFileName = $_SERVER['DOCUMENT_ROOT'] .'/'.$path .$fileName;
         $objWriter->save($fullFileName);
         return $fullFileName;
 

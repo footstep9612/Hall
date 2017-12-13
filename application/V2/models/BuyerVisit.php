@@ -582,6 +582,11 @@ class BuyerVisitModel extends PublicModel {
         }
         //总记录数
         $total = $this->field('id')->where($condition)->count();
+//
+//        do {
+//
+//        } while ($total > $length);
+
         if($total <= $length){
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->limit($length)->select();
         }else{
