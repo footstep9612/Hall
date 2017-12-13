@@ -134,7 +134,7 @@ class StockModel extends PublicModel {
 
                 $goods_name = $this->getSpu($sku, $lang);
                 if (empty($goods_name['spu'])) {
-
+                    echo 3;
                     return false;
                 }
                 $data = [
@@ -150,13 +150,14 @@ class StockModel extends PublicModel {
                 $flag = $this->add($data);
                 if (!$flag) {
 
+                    echo 1;
                     $this->rollback();
                     return false;
                 }
 
                 $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
                 if (!$flag_price) {
-
+                    echo 2;
                     $this->rollback();
                     return false;
                 }
