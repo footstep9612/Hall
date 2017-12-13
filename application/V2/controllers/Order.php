@@ -817,7 +817,8 @@ class OrderController extends PublicController {
         $OrderLog = new OrderLogModel();
         $logCond = [
             'log_group'=>'OUTBOUND',
-            'order_id' => $order_id
+            'order_id' => $order_id ,
+            'deleted_flag'=>'N',
         ];
         $logs = $OrderLog->where($logCond)->count();
         if($logs >0){
