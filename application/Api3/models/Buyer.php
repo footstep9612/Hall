@@ -785,8 +785,8 @@ class BuyerModel extends PublicModel {
 
         $buyercontactModel = new BuyerContactModel();
         $tableAcon = $buyercontactModel->getTableName();
-//        $buyeraddress_model = new BuyerAddressModel();
-//        $tableAddr = $buyeraddress_model->getTableName();
+        $buyeraddress_model = new BuyerAddressModel();
+        $tableAddr = $buyeraddress_model->getTableName();
 //        $BuyerreginfoModel = new BuyerreginfoModel();
 //        $tableReg = $BuyerreginfoModel->getTableName();
         try {
@@ -798,7 +798,7 @@ class BuyerModel extends PublicModel {
             $buyerInfo = $this->alias('b')
                 ->field($fields)
                 ->join($tableAcon . ' as ba on ba.buyer_id=b.id ', 'left')
-               // ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
+                ->join($tableAddr . ' as bd on bd.buyer_id=b.id', 'left')
 //                ->join($tableReg . ' as br on br.buyer_id=b.id', 'left')
                 ->where($where)
                 ->find();

@@ -52,32 +52,6 @@ class EsproductController extends PublicController {
     }
 
     /*
-     * 门户新需求 产品列表
-     */
-
-    public function listNewAction() {
-        $model = new EsProductModel();
-        $condition = $this->getPut();
-        $ret = $model->getNewProducts($condition, null, $this->getLang());
-
-        if ($ret) {
-            $data = $ret[0];
-            $list = $this->getdata($data, $this->getLang());
-            $this->setvalue('count', intval($data['hits']['total']));
-            $this->setvalue('current_no', intval($ret[1]));
-            $this->setvalue('pagesize', intval($ret[2]));
-            $sku_count = $model->getSkuCountByCondition($condition, $this->getLang());
-            $this->setvalue('sku_count', $sku_count);
-            $this->update_keywords();
-            $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($list);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
-        }
-    }
-
-    /*
      * 数据处理
      */
 
