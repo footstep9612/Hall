@@ -1117,7 +1117,10 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+        }
         $ids = array();
         foreach($info as $k => $v){
             $ids[$v['id']] = $v['id'];
