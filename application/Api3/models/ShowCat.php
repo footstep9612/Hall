@@ -38,10 +38,8 @@ class ShowCatModel extends PublicModel {
                     'cat_no' => ['in', $show_cat_nos],
                     'status' => 'VALID',
                     'lang' => $lang,
-                    'country_bn' => $country_bn,
-                    0 => '`name` is not null and `name`<>\'\''
+                    'country_bn' => $country_bn
                 ];
-
                 $this
                         ->where($where)
                         ->field('cat_no,name')
@@ -228,35 +226,6 @@ class ShowCatModel extends PublicModel {
         $data = $this->where($condition)
                 ->field('id, cat_no, lang, name, status, sort_order')
                 ->order('sort_order DESC')
-                ->select();
-
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
-        return $data;
-    }
-
-    public function getListByLetter($country_bn, $letter = '', $lang = 'en') {
-
-        if ($country_bn) {
-            $condition['country_bn'] = trim($country_bn);
-        }
-        if ($letter) {
-            $condition['name'] = ['like', trim($letter) . '%'];
-        } else {
-            return [];
-        }
-        $condition['status'] = self::STATUS_VALID;
-        $condition['deleted_flag'] = 'N';
-        $condition['level_no'] = 3;
-        $condition['lang'] = trim($lang);
-        $redis_key = 'GETLISTBYLETTER_' . $country_bn . '_' . $letter . '_' . $lang;
-
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
-        $data = $this->where($condition)
-                ->field(' cat_no,name')
-                ->order('sort_order DESC,id asc')
                 ->select();
 
         redisHashSet($this->tableName, $redis_key, json_encode($data));
