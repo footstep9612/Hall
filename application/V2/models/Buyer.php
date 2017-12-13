@@ -1104,13 +1104,16 @@ class BuyerModel extends PublicModel {
             $field .= ',business.'.$v;
         }
         $info = $this->alias('buyer')
-                ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id', 'left')
-                ->field($field)
-                ->where($cond)
-                ->order('buyer.id desc')
-                ->limit($offset, $pageSize)
-                ->select();
-
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->field($field)
+            ->where($cond)
+            ->order('buyer.id desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+        }
         $ids = array();
         foreach ($info as $k => $v) {
             $ids[$v['id']] = $v['id'];

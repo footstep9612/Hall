@@ -655,7 +655,7 @@ class BuyerVisitModel extends PublicModel {
 //            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
             $res = $this->exportModel('visitstatis'.($i/$length+1),$info);
             $i = $i+$length;
-        } while ($total > $length);
+        } while ($total > 0);
         return $res;
     }
 
