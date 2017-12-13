@@ -89,6 +89,12 @@ class InquiryController extends PublicController {
         $where = $this->getPut();
 
         $results = $Item->getlist($where);
+//        if($results) {
+//            $good_model = new GoodsModel();
+//            foreach($results['data'] as $item) {
+//
+//            }
+//        }
         $this->jsonReturn($results);
     }
 

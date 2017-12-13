@@ -56,4 +56,86 @@ class StockfloorController extends PublicController {
         }
     }
 
+    /**
+     * Description of 获取现货楼层列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function getKeywordsAction() {
+
+        $condition = $this->getPut();
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+        }
+
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+        }
+
+        if (empty($condition['floor_id'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+        }
+        $stock_floor_keyword_model = new StockFloorKeywordModel();
+
+        $list = $stock_floor_keyword_model->getList($condition);
+        if ($list) {
+
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 获取现货楼层列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function getCatsAction() {
+
+        $condition = $this->getPut();
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+        }
+
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+        }
+
+        if (empty($condition['floor_id'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+        }
+        $stock_floor_show_cat_model = new StockFloorShowCatModel();
+
+        $list = $stock_floor_show_cat_model->getList($condition);
+        if ($list) {
+
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
 }

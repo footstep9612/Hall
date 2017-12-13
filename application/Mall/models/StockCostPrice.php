@@ -36,7 +36,7 @@ class StockCostPriceModel extends PublicModel {
             'price_validity_end' => ['gt', date('Y-m-d H:i:s')],
             'status' => 'VALID'
         );
-        $field = 'sku,supplier_id,min_price,max_price,max_promotion_price,min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end';
+        $field = 'sku,supplier_id,min_price,price_symbol,max_price,max_promotion_price,min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end';
         $result = $this->field($field)->where($where)
                 ->order('id asc')
                 ->select();

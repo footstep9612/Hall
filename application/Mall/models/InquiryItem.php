@@ -68,7 +68,7 @@ class InquiryitemModel extends PublicModel {
         $goods_model = new GoodsModel();
         $goods_table = $goods_model->getTableName();
         try {
-            $list = $this->field('t.id,t.model,t.remarks,t.inquiry_id,t.qty,g.exw_days')
+            $list = $this->field('t.*,g.exw_days')
                             ->alias('t')
                             ->join($goods_table . ' as g on g.sku=t.sku and g.lang=\'en\'', 'left')
                             ->where($where)->order('t.created_at desc')->select();

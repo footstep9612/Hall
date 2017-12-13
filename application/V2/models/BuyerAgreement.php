@@ -145,8 +145,8 @@ class BuyerAgreementModel extends PublicModel
         if(!empty($data['created_by'])){  //执行创建人
             $cond .= " and agree.created_by='$data[created_by]'";
         }
-        if(!empty($data['area_bn'])){  //所属地区
-            $cond .= " and agree.area_bn='$data[area_bn]'";
+        if(!empty($data['country_bn'])){  //所属地区----------国家
+            $cond .= " and agree.country_bn='$data[country_bn]'";
         }
         if(!empty($data['execute_start_at'])){    //执行时间
             $cond .= " and execute_start_at='$data[execute_start_at]'";
@@ -194,7 +194,7 @@ class BuyerAgreementModel extends PublicModel
             'execute_no',       //框架执行单号
             'org_id',           //事业部
             'execute_company',  //执行分公司
-            'area_bn',          //所属地区
+            'country_bn',          //所属国家
 //            'name',       //客户名称  buyer
 //            'buyer_code',       //客户代码  buyer
             'product_name',     //品名中文
@@ -217,6 +217,10 @@ class BuyerAgreementModel extends PublicModel
             ->order('agree.id desc')
             ->limit($offset,$pageSize)
             ->select();
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+        }
         $arr = array(
             'info'=>$info,
             'page'=>$page,
@@ -297,8 +301,10 @@ class BuyerAgreementModel extends PublicModel
             ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
             ->join('erui_sys.org org on agree.org_id=org.id','left')
             ->field('agree.*,attach.attach_name,attach.attach_url,org.name as org_name')
-            ->where(array('execute_no'=>$execute_no,'attach.deleted_flag'=>'N'))
+            ->where(array('agree.execute_no'=>$execute_no,'attach.deleted_flag'=>'N'))
             ->find();
+        $country = new CountryModel();
+        $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
         return $info;
     }
     //添加数据
@@ -329,7 +335,7 @@ class BuyerAgreementModel extends PublicModel
             'org_id',   //所属事业部
             'execute_company',  //执行分公司
             'country_bn',  //所属国家
-            'agent',    //市场经办人
+//            'agent',    //市场经办人
             'technician',   //商务技术经办人
             'execute_start_at', //框架开始时间
             'execute_end_at',   //框架结束时间

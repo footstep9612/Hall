@@ -177,30 +177,53 @@ class OrgMemberModel extends PublicModel {
 
 		try {
 			$fields = 'd.id,d.user_no,d.name,c.name as role_name';
-			$list = $this->alias('a')
-					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
-					->join('erui_sys.role c ON b.role_id = c.id','left')
-					->join('erui_sys.employee d ON a.employee_id = d.id','left')
-					->join('erui_sys.country_member e ON a.employee_id = e.employee_id','left')
-					->field($fields)
-					->where($where)
-					->page($page, $pagesize)
-					->order('a.id DESC')
-					->group('d.id')
-					->select();
-			$count = $this->alias('a')
-					->join('erui_sys.role_member b ON a.employee_id = b.employee_id','left')
-					->join('erui_sys.role c ON b.role_id = c.id','left')
-					->join('erui_sys.employee d ON a.employee_id = d.id','left')
-					->join('erui_sys.country_member e ON a.employee_id = e.employee_id','left')
-					->where($where)
-					->group('d.id')
-					->count('a.id');
+			if(!empty($condition['country_bn'])){
+				$list = $this->alias('a')
+						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
+						->join('erui_sys.role c ON c.id = b.role_id','left')
+						->join('erui_sys.employee d ON d.id = a.employee_id','left')
+						->join('erui_sys.country_member e ON e.employee_id = a.employee_id','left')
+						->field($fields)
+						->where($where)
+						->page($page, $pagesize)
+						->order('a.id DESC')
+						->group('d.id')
+						->select();
+				$count = $this->alias('a')
+						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
+						->join('erui_sys.role c ON c.id = b.role_id','left')
+						->join('erui_sys.employee d ON d.id = a.employee_id','left')
+						->join('erui_sys.country_member e ON e.employee_id = a.employee_id','left')
+						->field($fields)
+						->where($where)
+						->group('d.id')
+						->select();
+
+			}else{
+				$list = $this->alias('a')
+						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
+						->join('erui_sys.role c ON c.id = b.role_id','left')
+						->join('erui_sys.employee d ON d.id = a.employee_id','left')
+						->field($fields)
+						->where($where)
+						->page($page, $pagesize)
+						->order('a.id DESC')
+						->group('d.id')
+						->select();
+				$count = $this->alias('a')
+						->join('erui_sys.role_member b ON b.employee_id = a.employee_id','left')
+						->join('erui_sys.role c ON c.id = b.role_id','left')
+						->join('erui_sys.employee d ON  d.id = a.employee_id','left')
+						->field($fields)
+						->where($where)
+						->group('d.id')
+						->select();
+			}
 
 			if($list){
 				$results['code'] = '1';
 				$results['message'] = '成功！';
-				$results['count'] = $count;
+				$results['count'] = count($count);
 				$results['data'] = $list;
 			}else{
 				$results['code'] = '-101';
