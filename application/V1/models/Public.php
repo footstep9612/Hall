@@ -36,6 +36,7 @@ class PublicModel extends Model {
 //put your code here
 // 数据表前缀
     // protected $tablePrefix = 't_';
+
     protected $tableName = '';
 
     public function __construct($str = '') {
@@ -146,10 +147,10 @@ class PublicModel extends Model {
                 $where[$field] = ['between', $created_at_start, $created_at_end,];
             } elseif (isset($condition[$name . '_start']) && $condition[$field . '_start']) {
                 $created_at_start = $condition[$name . '_start'];
-                $where[$field] = ['egt', $created_at_start,];
+                $where[$field] = ['egt', $created_at_start];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = $condition[$name . '_end'];
-                $where[$field] = ['elt', $created_at_end,];
+                $where[$field] = ['elt', $created_at_end];
             }
         }
     }
