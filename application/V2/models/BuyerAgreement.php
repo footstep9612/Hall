@@ -42,6 +42,8 @@ class BuyerAgreementModel extends PublicModel
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
+        $objActSheet->getStyle('B')->getNumberFormat()
+            ->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
         //填充表格信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
