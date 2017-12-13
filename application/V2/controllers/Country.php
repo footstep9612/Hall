@@ -397,5 +397,4 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
-
 }

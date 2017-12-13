@@ -279,13 +279,136 @@ class StockfloorController extends PublicController {
 
 
         $flag = $stock_floor_model->addGoods($floor_id, $country_bn, $lang, $skus);
+
         if ($flag) {
             $message = '添加产品成功!';
             $this->setMessage($message);
             $this->jsonReturn();
-        } elseif ($list === false) {
+        } elseif ($flag === false) {
             $this->setCode(MSG::ERROR_EMPTY);
             $message = '添加产品失败!';
+            $this->setMessage($message);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 添加楼层关键词
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function addKeywordsAction() {
+
+        $floor_id = $this->getPut('floor_id');
+        if (empty($floor_id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
+        }
+
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $keywords = $this->getPut('keywords');
+        if (empty($keywords)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请添加关键词!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        if (!in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('您选择的语言不正确!');
+            $this->jsonReturn();
+        }
+        $stock_floor_keyword_model = new StockFloorKeywordModel();
+
+
+        $flag = $stock_floor_keyword_model->addKeywords($floor_id, $country_bn, $lang, $keywords);
+
+        if ($flag) {
+            $message = '添加关键词成功!';
+            $this->setMessage($message);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $message = '添加关键词失败!';
+            $this->setMessage($message);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 更新现货楼层
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function addCatsAction() {
+
+        $floor_id = $this->getPut('floor_id');
+        if (empty($floor_id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
+        }
+
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $cat_nos = $this->getPut('cat_nos');
+        if (empty($cat_nos)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择分类!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        if (!in_array($lang, ['zh', 'en', 'es', 'ru'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('您选择的语言不正确!');
+            $this->jsonReturn();
+        }
+        $stock_floor_show_cat_model = new StockFloorShowCatModel();
+
+
+        $flag = $stock_floor_show_cat_model->addCats($floor_id, $country_bn, $lang, $cat_nos);
+
+        if ($flag) {
+            $message = '添加分类成功!';
+            $this->setMessage($message);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $message = '添加分类失败!';
             $this->setMessage($message);
             $this->jsonReturn(null);
         } else {
