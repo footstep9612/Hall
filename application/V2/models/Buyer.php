@@ -1048,13 +1048,13 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.id in ($str)";
         }
         if(!empty($data['area_bn'])){
-            $cond .= " and buyer.area_bn=$data[area_bn]";
+            $cond .= " and buyer.area_bn='$data[area_bn]'";
         }
         if(!empty($data['country_bn'])){
-            $cond .= " and buyer.country_bn=$data[country_bn]";
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
         }
         if(!empty($data['buyer_level'])){
-            $cond .= " and buyer.buyer_level=$data[buyer_level]";
+            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
         if(!empty($data['buyer_code'])){
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
