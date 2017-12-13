@@ -1040,14 +1040,14 @@ class BuyerModel extends PublicModel {
     public function buyerList($data) {
         //条件
         $cond = "buyer.created_by=$data[created_by]";
-        if (!empty($data['area_bn'])) {
-            $cond .= " and buyer.area_bn=$data[area_bn]";
+        if(!empty($data['area_bn'])){
+            $cond .= " and buyer.area_bn='$data[area_bn]'";
         }
-        if (!empty($data['country_bn'])) {
-            $cond .= " and buyer.country_bn=$data[country_bn]";
+        if(!empty($data['country_bn'])){
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
         }
-        if (!empty($data['buyer_level'])) {
-            $cond .= " and buyer.buyer_level=$data[buyer_level]";
+        if(!empty($data['buyer_level'])){
+            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
         if (!empty($data['buyer_code'])) {
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
@@ -1072,10 +1072,37 @@ class BuyerModel extends PublicModel {
             $page = $totalPage;
         }
         $offset = ($page - 1) * $pageSize;
-        $field = 'buyer.id,buyer.buyer_code,buyer.name,buyer.area_bn,buyer.country_bn,buyer.line_of_credit,buyer.credit_available,';
-        $field .= 'buyer.buyer_level,buyer.level_at,buyer.credit_level,buyer.reg_capital,buyer.reg_capital_cur,buyer.created_by,';
-        $field .= 'buyer.created_at,business.is_local_settlement,business.is_purchasing_relationship,';
-        $field .= 'business.is_net,business.net_at,business.net_invalid_at,business.product_type';
+        $field ='buyer.id';
+        $fieldBuyerArr = array(
+//            'id',   //客户id
+            'area_bn',   //客地区
+            'country_bn',   //国家
+            'buyer_code',   //客户编码
+            'name as buyer_name',   //客户名称
+            'created_at',   //创建时间
+            'is_oilgas',   //是否油气
+            'buyer_level',   //客户等级
+            'level_at',   //等级设置时间
+            'reg_capital',   //注册资金
+            'reg_capital_cur',   //货币
+            'credit_level',   //采购商信用等级
+            'credit_type',   //授信类型
+            'line_of_credit',   //授信额度
+        );
+        foreach($fieldBuyerArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $fieldBusiness = array(
+            'is_net', //是否入网
+            'net_at', //入网时间
+            'net_invalid_at', //失效时间
+            'product_type', //产品类型
+            'is_local_settlement', //本地结算
+            'is_purchasing_relationship', //采购关系
+        );
+        foreach($fieldBusiness as $v){
+            $field .= ',business.'.$v;
+        }
         $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id', 'left')
                 ->field($field)
@@ -1274,4 +1301,250 @@ class BuyerModel extends PublicModel {
         return $info;
     }
 
+
+    /**
+     * 客户管理-客户信息的统计数据
+     * wangs
+     */
+    public function showBuyerStatis($data){
+        if(empty($data['buyer_id']) || empty($data['created_by'])){
+            return false;
+        }
+        $cond = array(
+            'id'=>$data['buyer_id'],
+            'created_by'=>$data['created_by']
+        );
+
+        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
+            ->where($cond)
+            ->find();
+        return $info;
+    }
+
+    /**
+     * @param $data
+     * 客户管理列表excel导出
+     */
+    public function exportBuyerExcel($data){
+        $tableheader = array('序号','地区','国家','客户代码（CRM）','客户名称','档案创建日期','是否油气','客户级别','定级日期','注册资金','货币','是否已入网','入网时间','入网失效时间','客户产品类型','客户信用等级','授信类型','授信额度','是否本地币结算','是否与KERUI有采购关系','KERUI/ERUI客户服务经理','拜访总次数','拜访季度累计次数','拜访月度累计次数','拜访周累计次数','询报价数量','询报价金额（美元）','订单数量','订单金额（美元）','单笔金额偏重区间');
+        $arr = $this->exportBuyerListData($data);
+        $info = $this->exportBuyerListDataFull($arr);
+        $res = $this->packageBuyerExcelData($info);
+        $result = $this->exportModel('buyerlist',$tableheader,$res);
+        return $result;
+    }
+
+    /**
+     * 打包，客户管理数据列表
+     * wangs
+     */
+    public function packageBuyerExcelData($data){
+        $arr = [];
+        foreach($data as $k => $v){
+            $arr[$k]['id'] = $v['id'];  //客户id
+            $arr[$k]['area_bn'] = $v['area_bn'];    //地区
+            $arr[$k]['country_bn'] = $v['country_bn'];  //国家
+            $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
+            $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
+            $arr[$k]['created_at'] = $v['created_at'];  //创建时间
+            $arr[$k]['is_oilgas'] = $v['is_oilgas'];    //是否油气
+            $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
+            $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
+            $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
+            $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
+            $arr[$k]['is_net'] = $v['is_net'];  //是否入网
+            $arr[$k]['net_at'] = $v['net_at'];  //入网时间
+            $arr[$k]['net_invalid_at'] = $v['net_invalid_at'];  //失效时间
+            $arr[$k]['product_type'] = $v['product_type'];  //产品类型
+            $arr[$k]['credit_level'] = $v['credit_level'];  //采购商信用等级
+            $arr[$k]['credit_type'] = $v['credit_type'];    //授信类型
+            $arr[$k]['line_of_credit'] = $v['line_of_credit'];  //授信额度
+            $arr[$k]['is_local_settlement'] = $v['is_local_settlement'];    //本地结算
+            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship'];  //采购关系
+            $arr[$k]['market_agent'] = $v['market_agent'];  //kerui/erui客户服务经理
+            $arr[$k]['total_visit'] = $v['total_visit'];    //总访问次数
+            $arr[$k]['quarter_visit'] = $v['quarter_visit'];    //季度访问次数
+            $arr[$k]['month_visit'] = $v['month_visit'];    //月访问次数
+            $arr[$k]['week_visit'] = $v['week_visit'];      //周访问次数
+            $arr[$k]['inquiry_count'] = $v['inquiry_count'];    //询报价数量
+            $arr[$k]['inquiry_account'] = $v['inquiry_account'];    //询报价金额
+            $arr[$k]['order_count'] = $v['order_count'];    //订单数量
+            $arr[$k]['order_account'] = $v['order_account'];    //订单金额
+            $arr[$k]['min-max_range'] = $v['max_range'].'-'.$v['min_range'];    //单笔金额偏重区间
+        }
+        return $arr;
+    }
+
+    /**
+     * @param $arr
+     * 获取客户管理所有数据
+     */
+    public function exportBuyerListDataFull($arr){
+        $info = $arr['info'];
+        //客户服务经理
+        $agentModel = new BuyerAgentModel();
+        $agentRes = $agentModel->getMarketAgent($arr['ids']);
+        foreach($info as $key => $value){
+            foreach($agentRes as $k => $v){
+                if($value['id']==$k){
+                    $info[$key]['market_agent']=$v;
+                }
+            }
+        }
+        //访问
+        $visitModel = new BuyerVisitModel();
+        $visitRes = $visitModel->getVisitCount($arr['ids']);
+        foreach($info as $key => $value){
+            foreach($visitRes as $k => $v){
+                if($value['id']==$k){
+                    $info[$key]['total_visit']=$v['totalVisit'];
+                    $info[$key]['week_visit']=$v['week'];
+                    $info[$key]['month_visit']=$v['month'];
+                    $info[$key]['quarter_visit']=$v['quarter'];
+                }
+            }
+        }
+        //询报价
+        $inquiryModel = new InquiryModel();
+        $inquiryRes = $inquiryModel->getInquiryStatis($arr['ids']);
+        foreach($info as $key => $value){
+            foreach($inquiryRes as $k => $v){
+                if($value['id']==$k){
+                    $info[$key]['inquiry_count']=$v['count'];
+                    $info[$key]['inquiry_account']=$v['account'];
+                }
+            }
+        }
+        //订单
+        $orderModel = new OrderModel();
+        $orderRes = $orderModel->getOrderStatis($arr['ids']);
+        foreach($info as $key => $value){
+            foreach($orderRes as $k => $v){
+                if($value['id']==$k){
+                    $info[$key]['order_count']=$v['countaccount']['count'];
+                    $info[$key]['order_account']=$v['countaccount']['account'];
+                    $info[$key]['max_range']=$v['range']['max'];
+                    $info[$key]['min_range']=$v['range']['min'];
+                }
+            }
+        }
+        return $info;
+    }
+    /**
+     * 客户档案管理excel数据
+     * wangs
+     */
+    public function exportBuyerListData($data)
+    {
+        //条件
+        $cond = "buyer.created_by=$data[created_by]";
+        if(!empty($data['all_id'])){
+            $str = implode(',',$data['all_id']);
+            $cond .= " and buyer.id in ($str)";
+        }
+        $field ='buyer.id';
+        $fieldBuyerArr = array(
+//            'id',   //客户id
+            'area_bn',   //客地区
+            'country_bn',   //国家
+            'buyer_code',   //客户编码
+            'name as buyer_name',   //客户名称
+            'created_at',   //创建时间
+            'is_oilgas',   //是否油气
+            'buyer_level',   //客户等级
+            'level_at',   //等级设置时间
+            'reg_capital',   //注册资金
+            'reg_capital_cur',   //货币
+            'credit_level',   //采购商信用等级
+            'credit_type',   //授信类型
+            'line_of_credit',   //授信额度
+        );
+        foreach($fieldBuyerArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $fieldBusiness = array(
+            'is_net', //是否入网
+            'net_at', //入网时间
+            'net_invalid_at', //失效时间
+            'product_type', //产品类型
+            'is_local_settlement', //本地结算
+            'is_purchasing_relationship', //采购关系
+        );
+        foreach($fieldBusiness as $v){
+            $field .= ',business.'.$v;
+        }
+        $info = $this->alias('buyer')
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->field($field)
+            ->where($cond)
+            ->order('buyer.id desc')
+            ->limit($offset,$pageSize)
+            ->select();
+
+        $ids = array();
+        foreach($info as $k => $v){
+            $ids[$v['id']] = $v['id'];
+        }
+        $res = array(
+            'ids' => $ids,
+            'info' => $info,
+        );
+        return $res;
+    }
+    /**
+     * sheet名称 $sheetName
+     * execl导航头 $tableheader
+     * execl导出的数据 $data
+     * wangs
+     */
+    public function exportModel($sheetName,$tableheader,$data){
+        //创建对象
+        $excel = new PHPExcel();
+        $objActSheet = $excel->getActiveSheet();
+        $letter = range(A,Z);
+        $letter = array_merge($letter,array('AA','BB','CC','DD','EE','FF','GG','HH','II'));
+        //设置当前的sheet
+        $excel->setActiveSheetIndex(0);
+        //设置sheet的name
+        $objActSheet->setTitle($sheetName);
+        //填充表头信息
+        for($i = 0;$i < count($tableheader);$i++) {
+            //单独设置D列宽度为15
+            $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
+            $objActSheet->setCellValue("$letter[$i]1","$tableheader[$i]");
+            //设置表头字体样式
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
+            //设置表头字体大小
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setSize(10);
+            //设置表头字体是否加粗
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setBold(true);
+            //设置表头文字垂直居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            //设置文字上下居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            //设置表头外的文字垂直居中
+            $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+        //填充表格信息
+        for ($i = 2;$i <= count($data) + 1;$i++) {
+            $j = 0;
+            foreach ($data[$i - 2] as $key => $value) {
+                $objActSheet->setCellValue("$letter[$j]$i","$value");
+                $j++;
+            }
+        }
+        //创建Excel输入对象
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $time = date('YmdHis');
+        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
+        //把导出的文件上传到文件服务器上
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $url = $server . '/V2/Uploadfile/upload';
+
+        $data['tmp_name'] = $time.$sheetName.'.xlsx';
+        $data['type'] = 'application/excel';
+        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
+        $fileId = postfile($data, $url);
+        return $fileId;
+    }
 }

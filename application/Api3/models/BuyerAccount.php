@@ -83,11 +83,11 @@ class BuyerAccountModel extends PublicModel {
     public function info($data) {
         if (!empty($data['buyer_id'])) {
             $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
-                        ->find();
+                    ->find();
             return $row;
         } elseif (!empty($data['id'])) {
             $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
-                        ->find();
+                    ->find();
             return $row;
         } else {
             return false;
@@ -101,18 +101,20 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function getinfo($data) {
-        $buyer_model = new BuyerModel();
+        $model = new BuyerModel();
+        $table = $model->getTableName();
+       // $Account_model = new BuyerAccountModel();
         $buyeragent_model = new BuyerAgentModel();
 
-        $buyer_table = $buyer_model->getTableName();
-        $agent_table = $buyeragent_model->getTableName();
-
+       // $Account_table = $Account_model->getTableName();
+        $buyeragent_table = $buyeragent_model->getTableName();
         if (!empty($data['buyer_id'])) {
-             $row = $this->field('b.*,c.*,ag.*')->alias('c')
-                         ->join($agent_table . ' as ag on ag.buyer_id=c.buyer_id', 'left')
-                         ->join($buyer_table . ' as b on b.id=c.buyer_id', 'left')
-                         ->where(['c.buyer_id' => $data['buyer_id'], 'c.deleted_flag' => 'N'])
-                         ->find();
+             $row = $this->field('b.*,ba.*,bag.*')->alias('b')
+                 ->join($table . ' as ba on b.buyer_id=ba.id', 'left')
+                 ->join($buyeragent_table . ' as bag on b.buyer_id=bag.buyer_id', 'left')
+                 //->join($Account_table . ' as ac on b.buyer_id=ac.buyer_id', 'left')
+                 ->where(['b.buyer_id' => $data['buyer_id'], 'b.deleted_flag' => 'N'])
+                 ->find();
             if (!empty($row['buyer_level'])) {
                 $BuyerLevelModel = new BuyerLevelModel();
                 $res = $BuyerLevelModel->field('buyer_level')->where(['id' => $row['buyer_level']])->find();
@@ -120,10 +122,9 @@ class BuyerAccountModel extends PublicModel {
                     if (!is_null(json_decode($res['buyer_level'], true))) {
                         $level = json_decode($res['buyer_level'], true);
                         foreach ($level as $item) {
-                            $info[$item['lang']] = $item;
+                            $dat[$item['lang']] = $item;
                         }
-                        $row['buyer_level'] = $info['en']['name'];
-                        $row['level_info'] = $info;
+                        $row['buyer_level'] = $dat['en']['name'];
                     }
                 }
             }
@@ -157,7 +158,6 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
-        $where['deleted_flag'] = 'N';
         //$where['status'] = 'VALID';
         $row = $this->where($where)->find();
         return $row;
@@ -250,9 +250,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data) {
-        if (!empty($data['buyer_id'])) {
-            $where['buyer_id'] = $data['buyer_id'];
+    public function checkPassword($data, $userId) {
+        if (!empty($userId['buyer_id'])) {
+            $where['buyer_id'] = $userId['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
@@ -273,10 +273,10 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data) {
+    public function update_pwd($data, $token) {
 
-        if (!empty($data['buyer_id'])) {
-            $where['buyer_id'] = $data['buyer_id'];
+        if (!empty($token['buyer_id'])) {
+            $where['buyer_id'] = $token['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
@@ -310,11 +310,10 @@ class BuyerAccountModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('buyer_id,show_name,first_name,last_name')->select();
+            $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
             $buyer_names = [];
             foreach ($buyers as $buyer) {
                 $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
-                $buyer_names['show_name'] = $buyer['show_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

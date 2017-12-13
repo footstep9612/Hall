@@ -290,17 +290,20 @@ class ExcelmanagerController extends PublicController {
 
         $quoteItemModel = new QuoteItemModel();
         $list = $quoteItemModel->alias('a')
-                                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id=b.id')
-                                ->field('b.id,b.remarks,b.qty,a.purchase_unit_price')
+                                ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id=b.id','LEFT')
+                                ->join('erui_rfq.final_quote_item c ON a.id=c.quote_item_id','LEFT')
+                                ->field('b.id,b.remarks,a.quote_qty qty,a.purchase_unit_price,c.quote_unit_price')
                                 ->where(['a.inquiry_id' => $inquiry_id,'a.deleted_flag'=>'N'])
                                 ->select();
+
         $final_total_price = [];
         $final_total_qty = [];
         foreach ($list as $k=>$v){
-            $list[$k]['purchase_unit_price'] = intval($v['purchase_unit_price']);
-            $list[$k]['total_purchase_unit_price'] = sprintf("%.2f", $v['qty'] * $v['purchase_unit_price']);
-            $final_total_price[] = $list[$k]['total_purchase_unit_price'];
+
+            $list[$k]['total_quote_unit_price'] = sprintf("%.2f", $v['qty'] * $v['quote_unit_price']);
+            $final_total_price[] = $list[$k]['total_quote_unit_price'];
             $final_total_qty[] = $v['qty'];
+
         }
 
         $final_total_price = array_sum($final_total_price);
@@ -615,8 +618,8 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("B".$startRow, $v['remarks']);
                 $objSheet->setCellValue("C".$startRow, "");
                 $objSheet->setCellValue("D".$startRow, $v['qty']);
-                $objSheet->setCellValue("E".$startRow, $v['purchase_unit_price']);
-                $objSheet->setCellValue("F".$startRow, $v['total_purchase_unit_price']);
+                $objSheet->setCellValue("E".$startRow, $v['quote_unit_price']);
+                $objSheet->setCellValue("F".$startRow, $v['total_quote_unit_price']);
 
                $objSheet->getCell("A".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                $objSheet->getCell("B".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);

@@ -35,7 +35,7 @@ class BuyerCustomModel extends PublicModel
 
         $sql = 'SELECT `erui_mall`.`buyer_custom`.`id`, `erui_mall`.`buyer_custom`.`buyer_id`,
                  `erui_mall`.`buyer_custom`.`service_no`, `erui_mall`.`buyer_custom`.`title`,
-                 `erui_mall`.`buyer_custom`.`cat_name`, `erui_mall`.`buyer_custom`.`term_id`,
+                 `erui_mall`.`buyer_custom`.`cat_id`, `erui_mall`.`buyer_custom`.`item_id`,
                  `erui_mall`.`buyer_custom`.`content`, `erui_mall`.`buyer_custom`.`remarks`,
                  `erui_mall`.`buyer_custom`.`add_desc`, `erui_mall`.`buyer_custom`.`email`,
                  `erui_mall`.`buyer_custom`.`contact_name`, `erui_mall`.`buyer_custom`.`company`,
@@ -44,37 +44,35 @@ class BuyerCustomModel extends PublicModel
                  `erui_mall`.`buyer_custom`.`created_by`, `erui_mall`.`buyer_custom`.`updated_at`,
                  `erui_mall`.`buyer_custom`.`updated_by`,';
         $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
-        $sql .= '`erui_sys`.`employee`.`name` as `created_name`';
+        $sql .= '`erui_buyer`.`buyer_agent`.`agent_id`,';
+        $sql .= '`erui_sys`.`employee`.`name` as `agent_name`';
         $str = ' FROM ' . $this->g_table;
         $sql .= $str;
 
-       // $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
-        $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_mall`.`buyer_custom`.`created_by` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
+        $sql .= " LEFT JOIN `erui_buyer`.`buyer_agent` ON `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_mall`.`buyer_custom`.`buyer_id` ";
+        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
+        $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
 
         $sql_count = 'SELECT count(`erui_mall`.`buyer_custom`.`id`) as num ';
         $sql_count .= $str;
         $where = " WHERE 1 = 1";
         if (isset($condition['buyer_id']) && !empty($condition['buyer_id'])) {
-            $where .= ' And buyer_id ="' . $condition['buyer_id'] . '"';
+            $where .= ' And `erui_mall`.`buyer_custom`.`buyer_id` ="' . $condition['buyer_id'] . '"';
         }
         if (isset($condition['country_bn']) && !empty($condition['country_bn'])) {
-            $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
+            $where .= ' And `erui_mall`.`buyer_custom`.`country_bn` ="' . $condition['country_bn'] . '"';
         }
         if (isset($condition['company']) && !empty($condition['company'])) {
-            $where .= " And company like '%" . $condition['company'] . "%'";
+            $where .= " And `erui_mall`.`buyer_custom`.`company` like '%" . $condition['company'] . "%'";
         }
-        if (isset($condition['contact_name']) && !empty($condition['contact_name'])) {
-            $where .= " And `contact_name` like '%" . $condition['contact_name'] . "%'";
+        if (isset($condition['cat_id']) && !empty($condition['cat_id'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`cat_id` = "' . $condition['cat_id'] .'"';
         }
         if (isset($condition['official_phone']) && !empty($condition['official_phone'])) {
-            $where .= ' And official_phone  = " ' . $condition['official_phone'] . '"';
+            $where .= ' And `erui_mall`.`buyer_custom`.`official_phone`  = " ' . $condition['official_phone'] . '"';
         }
         if (isset($condition['email']) && !empty($condition['email'])) {
-            $where .= ' And `email` ="' . $condition['email'] . '"';
-        }
-
-        if (isset($condition['cat_name']) && !empty($condition['cat_name'])) {
-            $where .= " And `erui_mall`.`custom_cat`.cat_name like '%" . $condition['cat_name'] . "%'";
+            $where .= ' And `erui_mall`.`buyer_custom`.`email` ="' . $condition['email'] . '"';
         }
 
         if ($where) {
@@ -97,23 +95,27 @@ class BuyerCustomModel extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info($custom_id) {
+    public function info($custom_id, $lang) {
+        if(isset($lang) && !empty($lang)) {
+            $where["lang"] = $lang;
+        }
         $where = [
-            "buyer_custom.id"     => $custom_id,
-            "buyer_custom.deleted_flag" => 'N',
+            "id"           => $custom_id,
+            "deleted_flag" => 'N',
         ];
         if ($where) {
-            $customInfo = $this->where($where)->field('buyer_custom.*,em.name as created_name')
-                                              ->join('erui_sys.employee em on em.id=buyer_custom.buyer_id', 'left')
-                                              ->find();
+            $customInfo = $this->where($where)->find();
 //            $sql = "SELECT  `id`,  `service_id`,  `attach_type`,  `attach_name`,  `default_flag`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_mall`.`service_attach` where deleted_flag ='N' and service_id = " . $customInfo['id'];
 //            $row = $this->query($sql);     //==>>扩展加附件使用(后期加)
             $data = array();
             if($customInfo) {
+                $catModel = new CustomCatModel();
+                $catInfo = $catModel->info($lang, $customInfo['cat_id']);
+                $customInfo['cat_name'] = $catInfo[0]['cat_name'];
                 $itemModel = new CustomCatItemModel();
                 $item = json_decode($customInfo['item_id'], true);
                 foreach($item as $v) {
-                    $itemInfo = $itemModel->info('','', $v);
+                    $itemInfo = $itemModel->info($lang, $customInfo['cat_id'], $v);
                     $customInfo['item_name'][] = $itemInfo[0][0]['item_name'];
                 }
                 return $customInfo;
@@ -133,6 +135,9 @@ class BuyerCustomModel extends PublicModel
             $arr['buyer_id'] = trim($where['buyer_id']);
         } else {
             jsonReturn(null ,-201, '用户ID不能为空!');
+        }
+        if (isset($create['lang'])) {
+            $arr['lang'] = strtolower(trim($create['lang']));
         }
         if (isset($create['service_no'])) {
             $arr['service_no'] = trim($create['service_no']);
@@ -189,6 +194,9 @@ class BuyerCustomModel extends PublicModel
      */
     public function update_data($data, $where) {
         $arr = [];
+        if (isset($data['lang'])) {
+            $arr['lang'] = strtolower(trim($data['lang']));
+        }
         if (isset($data['service_no'])) {
             $arr['service_no'] = trim($data['service_no']);
         }

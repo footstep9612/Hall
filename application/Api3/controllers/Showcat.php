@@ -11,6 +11,7 @@ class ShowcatController extends PublicController {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
+        $this->_model = new ShowCatModel();
     }
 
     public function treeAction() {
@@ -29,8 +30,8 @@ class ShowcatController extends PublicController {
 
         $jsondata['country_bn'] = $country_bn;
 
-        $show_model = new ShowCatModel();
-        $arr = $show_model->tree($jsondata, 10);
+
+        $arr = $this->_model->tree($jsondata);
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -38,12 +39,12 @@ class ShowcatController extends PublicController {
                 $children_data = $jsondata;
                 $children_data['level_no'] = 2;
                 $children_data['parent_cat_no'] = $val['value'];
-                $arr[$key]['children'] = $show_model->tree($children_data);
+                $arr[$key]['children'] = $this->_model->tree($children_data);
                 if ($arr[$key]['children']) {
                     foreach ($arr[$key]['children'] as $k => $item) {
                         $children_data['level_no'] = 3;
                         $children_data['parent_cat_no'] = $item['value'];
-                        $arr[$key]['children'][$k]['children'] = $show_model->tree($children_data);
+                        $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
                     }
                 }
             }
@@ -74,14 +75,14 @@ class ShowcatController extends PublicController {
         $countData = ['lang' => $lang,
             'country_bn' => $country_bn,
         ];
-        $show_model = new ShowCatModel();
+
         $countData['level_no'] = 1;
-        $count1 = $show_model->getCount($countData); //一级分类数据
+        $count1 = $this->_model->getCount($countData); //一级分类数据
 
         $countData['level_no'] = 2;
-        $count2 = $show_model->getCount($countData); //二级分类数据
+        $count2 = $this->_model->getCount($countData); //二级分类数据
         $countData['level_no'] = 3;
-        $count3 = $show_model->getCount($countData); //三级分类数据
+        $count3 = $this->_model->getCount($countData); //三级分类数据
         $this->setvalue('count1', intval($count1));
         $this->setvalue('count2', intval($count2));
         $this->setvalue('count3', intval($count3));
@@ -107,57 +108,61 @@ class ShowcatController extends PublicController {
         $jsondata['cat_no3'] = $this->getPut('cat_no3', '');
         $condition = $jsondata;
 
-        $show_model = new ShowCatModel();
 
-        $arr = $show_model->getlist($jsondata);
-        if ($arr) {
-            $this->setCode(MSG::MSG_SUCCESS);
-            foreach ($arr as $key => $val) {
-                $arr[$key]['childs'] = $show_model->getlist(
-                        ['parent_cat_no' => $val['cat_no'],
-                            'level_no' => 2,
-                            'country_bn' => $country_bn,
-                            'lang' => $lang]);
-
-                if ($arr[$key]['childs']) {
-                    foreach ($arr[$key]['childs'] as $k => $item) {
-                        $arr[$key]['childs'][$k]['childs'] = $show_model->getlist(['parent_cat_no' => $item['cat_no'],
-                            'level_no' => 3,
-                            'country_bn' => $country_bn,
-                            'lang' => $lang]);
-                    }
-                }
-            }
-
-            $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($arr);
-        } else {
-            $condition['level_no'] = 2;
-            $arr = $show_model->getlist($condition);
+        if (!$data) {
+            $arr = $this->_model->getlist($jsondata);
             if ($arr) {
-
-                foreach ($arr[$key]['childs'] as $k => $item) {
-                    $arr[$key]['childs'][$k]['childs'] = $show_model->getlist(
-                            ['parent_cat_no' => $item['cat_no'], 'level_no' => 3,
+                $this->setCode(MSG::MSG_SUCCESS);
+                foreach ($arr as $key => $val) {
+                    $arr[$key]['childs'] = $this->_model->getlist(
+                            ['parent_cat_no' => $val['cat_no'],
+                                'level_no' => 2,
                                 'country_bn' => $country_bn,
                                 'lang' => $lang]);
+
+                    if ($arr[$key]['childs']) {
+                        foreach ($arr[$key]['childs'] as $k => $item) {
+                            $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(['parent_cat_no' => $item['cat_no'],
+                                'level_no' => 3,
+                                'country_bn' => $country_bn,
+                                'lang' => $lang]);
+                        }
+                    }
                 }
 
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } else {
-                $condition['level_no'] = 3;
-                $arr = $show_model->getlist($condition);
+                $condition['level_no'] = 2;
+                $arr = $this->_model->getlist($condition);
                 if ($arr) {
+
+                    foreach ($arr[$key]['childs'] as $k => $item) {
+                        $arr[$key]['childs'][$k]['childs'] = $this->_model->getlist(
+                                ['parent_cat_no' => $item['cat_no'], 'level_no' => 3,
+                                    'country_bn' => $country_bn,
+                                    'lang' => $lang]);
+                    }
 
                     $this->setCode(MSG::MSG_SUCCESS);
                     $this->jsonReturn($arr);
                 } else {
-                    $this->setCode(MSG::MSG_FAILED);
-                    $this->jsonReturn();
+                    $condition['level_no'] = 3;
+                    $arr = $this->_model->getlist($condition);
+                    if ($arr) {
+
+                        $this->setCode(MSG::MSG_SUCCESS);
+                        $this->jsonReturn($arr);
+                    } else {
+                        $this->setCode(MSG::MSG_FAILED);
+                        $this->jsonReturn();
+                    }
                 }
             }
         }
+
+
+        $this->jsonReturn($data);
     }
 
     public function getlistAction() {
@@ -167,44 +172,14 @@ class ShowcatController extends PublicController {
         $country_bn = $this->getPut('country_bn', '');
 
 
-        $show_model = new ShowCatModel();
+
         if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
 
-        $arr = $show_model->get_list($country_bn, $show_cat_no, $lang);
-        if ($arr) {
-
-            $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($arr);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
-        }
-
-        $this->jsonReturn($arr);
-    }
-
-    public function getListByLetterAction() {
-
-        $lang = $this->getPut('lang', 'en');
-        $letter = $this->getPut('letter', '');
-        $country_bn = $this->getPut('country_bn', '');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('国家简称不能为空!');
-            $this->jsonReturn();
-        }
-
-        if (empty($letter)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('首字母不能为空!');
-            $this->jsonReturn();
-        }
-        $show_model = new ShowCatModel();
-        $arr = $show_model->getListByLetter($country_bn, $letter, $lang);
+        $arr = $this->_model->get_list($country_bn, $show_cat_no, $lang);
         if ($arr) {
 
             $this->setCode(MSG::MSG_SUCCESS);

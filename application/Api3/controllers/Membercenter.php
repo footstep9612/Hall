@@ -14,7 +14,6 @@
 class MembercenterController extends PublicController {
 
     public function init() {
-        //$this->token = false;
         parent::init();
     }
 
@@ -23,13 +22,18 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function getUserInfoAction() {
-        $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
+        $buyer_data = $this->getPut();
         $result = $buyerModel->getinfo($buyer_data);
         if (!empty($result)) {
-            jsonReturn($result, 1, 'success!');
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
         } else {
-            jsonReturn('', '-1002', 'failed!');
+            jsonReturn('', '-1002', '获取失败');
         }
         exit;
     }
@@ -39,42 +43,69 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upUserInfoAction() {
-        $buyer_data = $this->getPut();
-        if (!empty($buyer_data['buyer_id'])) {
-            $where['id'] = $buyer_data['buyer_id'];
+        if (!empty($this->user['buyer_id'])) {
+            $where['id'] = $this->user['buyer_id'];
         } else {
             jsonReturn('', '-1001', '参数[id]不能为空');
         }
-        $lang = $buyer_data['lang'] ? $buyer_data['lang'] : 'en';
-
+        $buyer_data = $this->getPut();
         $buyerModel = new BuyerModel();
         $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
         if ($checkname) {
-            jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+            jsonReturn('', -125,  ShopMsg::getMessage('-125','en'));
         }
-        $result = $buyerModel->upUserInfo($buyer_data, $where);
+        $buyer = new BuyerModel();
+        $result = $buyer->upUserInfo($this->getPut(), $where);
 
         if ($result !==false) {
-            jsonReturn('', 1, 'success!');
+            jsonReturn('', 1, '保存成功');
         } else {
-            jsonReturn('', '-1002', 'failed!');
+            jsonReturn('', '-1002', '保存失败');
         }
         exit;
     }
 
-
+    /**
+     * 会员服务  --门户(new)
+     * @author klp
+     */
+    public function LevelInfoAction() {
+        $BuyerLevelModel = new BuyerLevelModel();
+        $result = $BuyerLevelModel->getLevelService();
+        if (!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
 
     /**
      * 源密码校验
      * @author klp
      */
     public function checkOldPwdAction() {
+
         $buyerAccount = new BuyerAccountModel();
         $result = $buyerAccount->checkPassword($this->getPut());
         if ($result) {
-            jsonReturn('', 1, '原密码输入正确!');
+            jsonReturn('', 1, '原密码输入正确');
         } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
+            jsonReturn('', '-1003', '原密码输入错误');
+        }
+        exit;
+    }
+
+    /**
+     * 新密码校验
+     * @author klp
+     */
+    public function checkNewPwdAction() {
+
+        $result = preg_match("/(?![^a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,12}$/", $this->user['password']);
+        if ($result) {
+            jsonReturn('', 1, '密码格式正确');
+        } else {
+            jsonReturn('', '-1003', '密码格式错误');
         }
         exit;
     }
@@ -84,11 +115,11 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upPasswordAction() {
-        $data = $this->getPut();
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($data);
+        $result = $buyerAccount->checkPassword($this->getPut(), $this->user);
         if ($result) {
-            $res = $buyerAccount->update_pwd($data);
+            $buyerAccount = new BuyerAccountModel();
+            $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
             if ($res) {
                 jsonReturn('', 1, '修改密码成功!');
             } else {
@@ -97,6 +128,82 @@ class MembercenterController extends PublicController {
         } else {
             jsonReturn('', '-1003', '原密码输入错误!');
         }
+    }
+
+    /**
+     * 个人会员等级服务详情
+     * @author klp
+     */
+    public function getServiceAction() {
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->getService($this->getPut(), $this->user);
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1002', '获取失败');
+        }
+        exit;
+    }
+
+    /**
+     * 会员等级服务详情列表
+     * @author klp
+     */
+    public function listServiceAction() {
+        $MemberServiceModel = new MemberServiceModel();
+        $result = $MemberServiceModel->levelService($this->user);
+//        $ServiceCatModel = new ServiceCatModel();
+//        $result = $ServiceCatModel->getAllService($this->user);
+        if (!empty($result)) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    /**
+     * 获取付款方式
+     * @author klp
+     */
+    public function payMethodAction() {
+        $CurrencyModel = new CurrencyModel();
+        $result = $CurrencyModel->getPayMethod();
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1003', '失败');
+        }
+        exit;
+    }
+
+    /**
+     * 询单信息国家简称,地区简称
+     * @author klp
+     */
+    public function getInquiryBnAction() {
+        $BuyerModel = new BuyerModel();
+        $result = $BuyerModel->getInquiryInfo($this->user);
+        if ($result) {
+            $data = array(
+                'code' => 1,
+                'message' => '数据获取成功',
+                'data' => $result
+            );
+            jsonReturn($data);
+        } else {
+            jsonReturn('', '-1003', '失败');
+        }
+        exit;
     }
 
     /**
@@ -171,7 +278,7 @@ class MembercenterController extends PublicController {
      * @time 2017-9-14
      * @author klp
      */
-    /*public function agentlistAction() {
+    public function agentlistAction() {
 
         if (!empty($this->user['buyer_id'])) {
             $array['buyer_id'] = $this->user['buyer_id'];
@@ -190,5 +297,26 @@ class MembercenterController extends PublicController {
             $datajson['message'] = '数据操作失败!';
         }
         $this->jsonReturn($datajson);
-    }*/
+    }
+
+    /**
+     * 会员等级列表
+     * @time 2017-10-25
+     * @author klp
+     */
+    public function listLevelAction() {
+
+        $model = new BuyerLevelModel();
+        $res = $model->getlist();
+        if (!empty($res)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
 }

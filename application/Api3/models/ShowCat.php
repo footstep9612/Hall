@@ -232,33 +232,4 @@ class ShowCatModel extends PublicModel {
         return $data;
     }
 
-    public function getListByLetter($country_bn, $letter = '', $lang = 'en') {
-
-        if ($country_bn) {
-            $condition['country_bn'] = trim($country_bn);
-        }
-        if ($letter) {
-            $condition['name'] = ['like', trim($letter) . '%'];
-        } else {
-            return [];
-        }
-        $condition['status'] = self::STATUS_VALID;
-        $condition['deleted_flag'] = 'N';
-        $condition['level_no'] = 3;
-        $condition['lang'] = trim($lang);
-        $redis_key = 'GETLISTBYLETTER_' . $country_bn . '_' . $letter . '_' . $lang;
-
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
-        $data = $this->where($condition)
-                ->field(' cat_no,name')
-                ->order('sort_order DESC,id asc')
-                ->select();
-
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
-        return $data;
-    }
-
 }

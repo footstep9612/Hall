@@ -837,16 +837,17 @@ class BuyerController extends PublicController {
             $buerInfo['attach_name'] = $finance['attach_name'];
             $buerInfo['attach_url'] = $finance['attach_url'];
         }
+        $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (!empty($contactInfo)) {
-            $buerInfo['contact'] = $contactInfo;
+        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
+        if(!empty($contactInfo)){
+            $arr['contact'] = $contactInfo;
         }
         $dataJson = array(
-            'code' => 1,
-            'message' => '返回数据',
-            'data' => $buerInfo
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$arr
         );
         $this->jsonReturn($dataJson);
     }
@@ -875,5 +876,48 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
-
+    /**
+     * 客户管理-客户档案--统计
+     * wangs
+     */
+    public function showBuyerStatisAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        //客户信用评价
+        $model = new BuyerModel();
+        $ststisInfo = $model->showBuyerStatis($data);
+        if($ststisInfo === false){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'请求缺少规定参数'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        //客户信用评价
+        $visit = new BuyerVisitModel();
+        $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
+        //客户需求反馈
+        $reply = new BuyerVisitReplyModel();
+        $replyInfo = $reply->singleVisitReplyInfo($data['buyer_id'],$data['created_by']);
+        //客户与kr/er业务量
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+        $inquiry = new InquiryModel();
+        $inquiryInfo = $inquiry->statisInquiry($data['buyer_id']);
+        //整合数据
+        $arr['credit'] = $ststisInfo;
+        $arr['visit'] = $visitInfo;
+        $arr['reply'] = $replyInfo;
+        $arr['order']['count'] = $orderInfo['countaccount']['count'];
+        $arr['order']['account'] = $orderInfo['countaccount']['account'];
+        $arr['order']['range'] = $orderInfo['range'];
+        $arr['inquiry'] = $inquiryInfo;
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回数据',
+            'data'=>$arr
+        );
+        $this->jsonReturn($dataJson);
+    }
 }

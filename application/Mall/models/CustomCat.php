@@ -3,11 +3,11 @@
  * Created by PhpStorm.
  * User: klp
  * Date: 2017/12/8
- * Time: 10:18
+ * Time: 10:17
  */
-class CustomCatItemModel extends PublicModel
+class CustomCatModel extends PublicModel
 {
-    protected $tableName = 'custom_cat_item';
+    protected $tableName = 'custom_cat';
     protected $dbName = 'erui_mall'; //数据库名称
 
     public function __construct()
@@ -20,6 +20,8 @@ class CustomCatItemModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const DELETE_Y = 'Y';
+    const DELETE_N = 'N';
 
     /**
      * 获取详情
@@ -27,40 +29,20 @@ class CustomCatItemModel extends PublicModel
      * @return mix
      * @author klp
      */
-    public function info($lang,$cat_id, $item_id) {
-
+    public function info($lang, $cat_id) {
         if(isset($cat_id) && !empty($cat_id)) {
-            $where["cat_id"] = $cat_id;
-        }
-        if(isset($item_id) && !empty($item_id)) {
-            $where["id"] = $item_id;
+            $where["id"] = $cat_id;
         }
         if(isset($lang) && !empty($lang)) {
             $where["lang"] = $lang;
         }
         $where["deleted_flag"] =  'N';
-
         if ($where) {
-            $customitemInfo = $this->where($where)
-                                  ->group('custom_cat_item.item_name')
-                                  ->order('custom_cat_item.id asc')
+            $customcatInfo = $this->where($where)
+                                  ->order('id asc')
                                   ->select();
-            $data = array();
-            if($customitemInfo) {
-                $j = 0;
-                for($i=0; $i<=count($customitemInfo)-1;) {
-                    $data[$j][0] = $customitemInfo[$i];
-                    //$data[$j][1] = $customitemInfo[$i+1];
-                    if($customitemInfo[$i+1]) {
-                        $data[$j][1] = $customitemInfo[$i+1];
-                    }
-                    $j++;
-                    $i +=2;
-                }
-                return $data;
-            } else{
-                return  false;
-            }
+
+            return $customcatInfo ? $customcatInfo : false;
         } else {
             return false;
         }
@@ -76,17 +58,16 @@ class CustomCatItemModel extends PublicModel
         if (isset($create['lang'])) {
             $arr['lang'] = trim($create['lang']);
         }
-        if (isset($create['cat_id']) && !empty($create['cat_id'])) {
-            $arr['cat_id'] = trim($create['cat_id']);
-        } else{
-            jsonReturn(null ,-202, 'cat_id不能为空!');
+        if (isset($create['cat_no'])) {
+            $arr['cat_no'] = trim($create['cat_no']);
+        }
+        if (isset($create['cat_name'])) {
+            $arr['cat_name'] = trim($create['cat_name']);
         }
         if (isset($create['sort_order'])) {
             $arr['sort_order'] = trim($create['sort_order']);
         }
-        if (isset($create['sort_order'])) {
-            $arr['sort_order'] = trim($create['sort_order']);
-        }
+
         $arr['created_at'] = Date("Y-m-d H:i:s");
         try {
             $arr['created_by'] = $where['buyer_id'];
@@ -108,16 +89,12 @@ class CustomCatItemModel extends PublicModel
         if (isset($data['lang'])) {
             $arr['lang'] = strtolower(trim($data['lang']));
         }
-        if (isset($data['cat_id'])) {
-            $arr['cat_id'] = trim($data['cat_id']);
+        if (isset($data['cat_name'])) {
+            $arr['cat_name'] = trim($data['cat_name']);
         }
         if (isset($data['sort_order'])) {
             $arr['sort_order'] = trim($data['sort_order']);
         }
-        if (isset($data['sort_order'])) {
-            $arr['sort_order'] = trim($data['sort_order']);
-        }
-
         if ($data['status']) {
             switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
@@ -150,6 +127,6 @@ class CustomCatItemModel extends PublicModel
     删除
      */
     public function delete_data($where) {
-        return $this->where($where)->save(['deleted_flag'=> 'Y']);
+        return $this->where($where)->save(['deleted_flag'=> self::DELETE_Y]);
     }
 }

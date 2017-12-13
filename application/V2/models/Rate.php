@@ -86,10 +86,10 @@ class RateModel extends PublicModel {
         if (!isset($data['status'])) {
             $data['status'] = 'VALID';
         }
-        $this->_getValue($data, $condition, 'created_at', 'range'); //创建时间
+        $this->_getValue($data, $condition, 'created_at', 'between'); //创建时间
         $this->_getValue($data, $condition, 'created_by', 'string'); //创建人
         $this->_getValue($data, $condition, 'updated_by', 'string'); //修改人
-        $this->_getValue($data, $condition, 'updated_at', 'range'); //修改时间
+        $this->_getValue($data, $condition, 'updated_at', 'between'); //修改时间
         return $data;
     }
 

@@ -287,11 +287,11 @@ class EsGoodsModel extends Model {
                         [ESClient::WILDCARD => ['attrs.other_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
-        if (isset($condition['attrs']) && $condition['attrs']) {
-            $attrs = trim($condition['attrs']);
+        if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
+            $spec_attrs = trim($condition['spec_attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $spec_attrs . '*']],
+                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $spec_attrs . '*']],
             ]]];
         }
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
