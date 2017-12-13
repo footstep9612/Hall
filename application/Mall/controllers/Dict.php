@@ -14,7 +14,7 @@
 class DictController extends PublicController {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
         $this->input = $this->getPut();
     }
@@ -304,10 +304,15 @@ class DictController extends PublicController {
      * 支付方式列表
      */
     public function paymentmodelistAction() {
-        $lang = isset($this->input['lang']) ? $this->input['lang'] : '';
+        $data = $this->getPut();
+        $lang = $data['lang'] ? strtolower($data['lang']) : 'en';
         $pModel = new PaymentmodeModel();
         $payment = $pModel->getPaymentmode($lang);
-        jsonReturn(array('data' => $payment));
+        if ($payment) {
+            jsonReturn($payment);
+        } else {
+            jsonReturn('', -104, '数据为空!');
+        }
     }
 
     /**

@@ -25,7 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
-        //$this->user['buyer_id'] = 955;//测试
+        $this->user['buyer_id'] = 955;//测试
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');

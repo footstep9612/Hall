@@ -106,16 +106,19 @@ class InquiryModel extends PublicModel {
      */
     protected function getCondition($condition = []) {
         $where = [];
-        switch ($condition['status']) {
-            case'waiting_for_quotation':
-                $where['status'] = ['notin', ['QUOTE_SENT', 'CONFIRM']];
-                break;
-            case'quotation_finished':
-                $where['status'] = ['in', ['QUOTE_SENT', 'CONFIRM']];
-                break;
-            default :
-                break;
-        }
+//        switch ($condition['status']) {
+//            case'unpaid':
+//                $where['status'] = ['notin', ['QUOTE_SENT', 'CONFIRM']];
+//                break;
+//            case'payment_part':
+//                $where['status'] = ['in', ['QUOTE_SENT', 'CONFIRM']];
+//                break;
+//            case'payment_completed':
+//                $where['status'] = ['in', ['QUOTE_SENT', 'CONFIRM']];
+//                break;
+//            default :
+//                break;
+//        }
 
         if (!empty($condition['term'])) {
             $where['trade_terms_bn'] = $condition['term'];    //贸易术语简称
