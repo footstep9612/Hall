@@ -37,7 +37,9 @@ class OrderController extends PublicController {
                     $agent = $maketareateam->where('market_org_id in(' . implode(',', $groupid) . ')')->count('id');
                 } else {
                     //查询是否是市场人员
-                    $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+                    if(is_numeric($groupid)){
+                        $agent = $maketareateam->where('market_org_id=' . $groupid)->count('id');
+                    }
                 }
             }
             if ($agent > 0) {
@@ -815,7 +817,8 @@ class OrderController extends PublicController {
         $OrderLog = new OrderLogModel();
         $logCond = [
             'log_group'=>'OUTBOUND',
-            'order_id' => $order_id
+            'order_id' => $order_id ,
+            'deleted_flag'=>'N',
         ];
         $logs = $OrderLog->where($logCond)->count();
         if($logs >0){
