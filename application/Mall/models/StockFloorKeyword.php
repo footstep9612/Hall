@@ -26,6 +26,7 @@ class StockFloorKeywordModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
+        $this->_getValue($where, $condition, 'floor_id');
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'keyword', 'like');
         $this->_getValue($where, $condition, 'created_by');
