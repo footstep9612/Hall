@@ -71,7 +71,7 @@ class StockCostPriceModel extends PublicModel {
         $where['sku'] = $sku;
         $where['country_bn'] = $country_bn;
         $this->where($where)->save(['deleted_flag' => 'Y']);
-
+        $current_model = new CurrencyModel();
         foreach ($cost_prices as $cost_price) {
 
             $id = empty($cost_price['id']) ? null : $cost_price['id'];
@@ -79,6 +79,9 @@ class StockCostPriceModel extends PublicModel {
                 unset($cost_price['id']);
             }
 
+            if ($cost_price['price_cur_bn']) {
+                $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
+            }
             $data = $this->create($cost_price);
             $data['spu'] = $this->getSpu($sku, $lang);
             $data['sku'] = $sku;
