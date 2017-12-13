@@ -56,19 +56,14 @@ class BuyerVisitModel extends PublicModel {
             }
             $condition['buyer_id']=['in', $buyer_id];
         }
-
         if(isset($_input['visit_level']) && !empty($_input['visit_level'])){
             $condition['visit_level']=['exp', 'regexp \'"'.$_input['visit_level'].'"\''];
         }
         if(isset($_input['visit_position']) && !empty($_input['visit_position'])){
             $condition['visit_position']=['exp', 'regexp \'"'.$_input['visit_position'].'"\''];
         }
-        if(isset($_input['visit_at_start']) && !empty($_input['visit_at_start'])){
-            $condition['visit_at']=['EGT', $_input['visit_at_start']];
-        }
-        if(isset($_input['visit_at_end']) && !empty($_input['visit_at_end'])){
-            $condition['visit_at']=['ELT', $_input['visit_at_end']];
-        }
+        //	visit_at_start开始时间   visit_at_end结束时间
+        $this->_getValue($condition, $_input,'visit_at','between');
         try{
             //总记录数
             $total = $this->field('id')->where($condition)->count();
@@ -95,48 +90,59 @@ class BuyerVisitModel extends PublicModel {
                  $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
                  $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
                  $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-
+             }
+             foreach($result as $index => $r){
                  //业务部门反馈时间
                  $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
                  $result[$index]['reply_time'] =$replyInfo['created_at'];
-
-                 //目的拜访类型
-                 $vtype = json_decode($r['visit_type']);
-                 $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
-                 $visit_type = '';
-                 foreach($visitTypeInfo as $info){
-                     $visit_type.= '、'.$info['name'];
-                 }
-                 $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
-
-                 //职位拜访类型
-                 $vposition = json_decode($r['visit_position']);
-                 $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
-                 $visit_position = '';
-                 foreach($vpInfo as $info){
-                     $visit_position.= '、'.$info['name'];
-                 }
-                 $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
-
-                 //拜访级别
-                 $vlevel = json_decode($r['visit_level']);
-                 $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
-                 $visit_level = '';
-                 foreach($vlInfo as $info){
-                     $visit_level.= '、'.$info['name'];
-                 }
-                 $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
-
-                 //客户需求类型
-                 $dtype = json_decode($r['demand_type']);
-                 $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
-                 $demand_type = '';
-                 foreach($dpInfo as $info){
-                     $demand_type.= '、'.$info['name'];
-                 }
-                 $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
              }
-             $data['result'] = $result ? $result : [];
+            foreach($result as $index => $r){
+                //业务部门反馈时间
+                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+                $result[$index]['reply_time'] =$replyInfo['created_at'];
+            }
+            foreach($result as $index => $r){
+                //目的拜访类型
+                $vtype = json_decode($r['visit_type']);
+                $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+                $visit_type = '';
+                foreach($visitTypeInfo as $info){
+                    $visit_type.= '、'.$info['name'];
+                }
+                $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
+            }
+            foreach($result as $index => $r){
+                //职位拜访类型
+                $vposition = json_decode($r['visit_position']);
+                $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+                $visit_position = '';
+                foreach($vpInfo as $info){
+                    $visit_position.= '、'.$info['name'];
+                }
+                $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
+
+            }
+            foreach($result as $index => $r){
+                //拜访级别
+                $vlevel = json_decode($r['visit_level']);
+                $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+                $visit_level = '';
+                foreach($vlInfo as $info){
+                    $visit_level.= '、'.$info['name'];
+                }
+                $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
+            }
+            foreach($result as $index => $r){
+                //客户需求类型
+                $dtype = json_decode($r['demand_type']);
+                $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+                $demand_type = '';
+                foreach($dpInfo as $info){
+                    $demand_type.= '、'.$info['name'];
+                }
+                $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
+            }
+            $data['result'] = $result ? $result : [];
              return $data;
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】getList:' . $e , Log::ERR);

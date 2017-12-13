@@ -158,7 +158,7 @@ class PublicModel extends Model {
                 $where[$field] = ['egt', $created_at_start,];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = trim($condition[$name . '_end']);
-                $where[$field] = ['elt', $created_at_start,];
+                $where[$field] = ['elt', $created_at_end,];
             }
         }
     }
