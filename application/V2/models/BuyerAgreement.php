@@ -71,8 +71,11 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportAgree($data){
-        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','执行金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
+        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
         $arr = $this->getAgreeStatisData($data);
+        if(empty($arr)){
+            return false;
+        }
         $res = $this->exportModel('agreestatis',$tableheader,$arr);
         return $res;
     }
@@ -131,7 +134,6 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
             $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
-            $arr[$k]['execute_amount'] = $v['amount'];    //执行金额（美元
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
