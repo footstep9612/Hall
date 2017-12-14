@@ -1231,19 +1231,20 @@ class BuyerModel extends PublicModel {
         $expiry_at = str_replace($year_at, $year_end, $level_at);
         //必须数据
         $arr = array(
-            'created_by' => $created_by, //客户id
-            'created_at' => date('Y-m-d H:i:s'), //客户id
-            'id' => $data['buyer_id'], //客户id
-            'name' => $data['buyer_name'], //客户名称
-            'official_phone' => $data['official_phone'], //公司固话
-            'official_email' => $data['official_email'], //公司邮箱
-            'official_website' => $data['official_website'], //公司网址
-            'company_reg_date' => $data['company_reg_date'], //成立日期
-            'reg_capital' => $data['reg_capital'], //注册资金
-            'reg_capital_cur' => $data['reg_capital_cur'], //注册资金货币
-            'profile' => $data['profile'], //公司介绍txt
-            'level_at' => $level_at, //定级日期
-            'expiry_at' => $expiry_at  //有效期
+            'created_by'    => $created_by, //客户id
+            'created_at'    => date('Y-m-d H:i:s'), //客户id
+            'id'    => $data['buyer_id'], //客户id
+            'name'  => $data['buyer_name'], //客户名称
+            'official_phone'    => $data['official_phone'],    //公司固话
+            'official_email'    => $data['official_email'],    //公司邮箱
+            'official_website'  => $data['official_website'],  //公司网址
+            'company_reg_date'  => $data['company_reg_date'],  //成立日期
+            'reg_capital'   => $data['reg_capital'],   //注册资金
+            'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
+            'profile'   => $data['profile'],   //公司介绍txt
+            'level_at' =>  $level_at,  //定级日期
+            'expiry_at' =>  $expiry_at  //有效期
+            'status' =>  'APPROVING'  //待审核状态
         );
         //非必须数据
         $baseArr = array(
