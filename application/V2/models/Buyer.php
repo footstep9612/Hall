@@ -1248,6 +1248,7 @@ class BuyerModel extends PublicModel {
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at  //有效期
+            'status' =>  'APPROVING'  //待审核状态
         );
         //非必须数据
         $baseArr = array(
