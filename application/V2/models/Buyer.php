@@ -61,9 +61,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
-        if (!empty($condition['buyer_no'])) {
-            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
-        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -115,6 +112,9 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['credit_checked_name'])) {
             $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
+        }
+        if (!empty($condition['buyer_no'])) {
+            $where .= ' And buyer_no  like "%' . $condition['buyer_no'] . '%"';
         }
         if (!empty($condition['buyer_code'])) {
             $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
