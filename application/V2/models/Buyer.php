@@ -40,7 +40,7 @@ class BuyerModel extends PublicModel {
 
     public function getlist($condition = [], $order = " id desc") {
         $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
-        $sql .= '`official_email`,`official_phone`,`official_fax`,`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
+        $sql .= '`is_oilgas`,`official_email`,`official_phone`,`official_fax`,`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
         $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
         $sql .= '`erui_buyer`.`buyer`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
         $str = ' FROM ' . $this->g_table;
