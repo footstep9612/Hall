@@ -1243,7 +1243,7 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at,  //有效期
+            'expiry_at' =>  $expiry_at,//有效期
             'status' =>  'APPROVING'  //待审核状态
         );
         //非必须数据
@@ -1306,8 +1306,12 @@ class BuyerModel extends PublicModel {
             'created_by' => $data['created_by']
         );
         $info = $this->field($field)
-                ->where($cond)
-                ->find();
+            ->where($cond)
+            ->find();
+        if(!empty($info)){
+            $country = new CountryModel();
+            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+        }
         return $info;
     }
 
