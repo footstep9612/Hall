@@ -1287,13 +1287,13 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function showBuyerBaseInfo($data){
-        $cond = [];
+        $cond = ['recommend_flag'=>'Y'];
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
         }
-        if(!empty($data['buyer_id'])){
-            $cond['created_by'] = $data['created_by'];
-        }
+//        if(!empty($data['buyer_id'])){
+//            $cond['created_by'] = $data['created_by'];
+//        }
         $buyerArr = array(
             'id as buyer_id', //客户id
             'buyer_type', //客户类型
