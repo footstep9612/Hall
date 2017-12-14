@@ -120,6 +120,9 @@ class BuyercontactModel extends PublicModel
         if (!empty($data['last_name'])) {
             $where['last_name'] =  ['like',"%".$data['last_name']."%"];
         }
+        if (!empty($data['name'])) {
+            $where['name'] =  ['like',"%".$data['name']."%"];
+        }
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
