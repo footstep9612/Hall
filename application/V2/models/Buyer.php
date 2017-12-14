@@ -1197,8 +1197,6 @@ class BuyerModel extends PublicModel {
      * 采购商客户管理，基本信息的创建
      * wangs
      */
-    public function createBuyerBaseInfo($data) {
-        //验证数据
     public function createBuyerBaseInfo($data){
         if(empty($data['base_info']) || empty($data['contact'])){
             return false;
