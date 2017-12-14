@@ -338,8 +338,8 @@ class EsProductModel extends Model {
                         [ESClient::TERM => ['brand.name.all' => $keyword]],
 //                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
 //                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::MATCH => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
-                        [ESClient::MATCH => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.name.' . $analyzer => ['query' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.value.' . $analyzer => ['query' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }

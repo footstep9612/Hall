@@ -341,7 +341,7 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '25%', 'operator' => 'or']]],
                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '25%', 'operator' => 'or']]],
                         // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        //  [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::TERM => ['brand.name.all' => $keyword]],
                         // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         [ESClient::MATCH => ['tech_paras.' . $analyzer => ['value' => $keyword, 'boost' => 2, 'operator' => 'and']]],
