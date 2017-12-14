@@ -133,7 +133,7 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
-            $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
+            $arr[$k]['amount'] = sprintf("%.2f",$v['amount']);    //项目金额（美元）
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
