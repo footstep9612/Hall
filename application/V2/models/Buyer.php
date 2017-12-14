@@ -1152,9 +1152,6 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'=>'注册资金货币',
             'profile'=>'公司介绍txt'
         );
-        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
-            return '公司邮箱';
-        }
         foreach($baseArr as $k => $v){
             if(empty($data['base_info'][$k])){
                 return $v;
@@ -1163,6 +1160,15 @@ class BuyerModel extends PublicModel {
             if(strlen($data['base_info'][$k]) > 100 || strlen($data['profile']) > 1000){
                 return $v;
             }
+        }
+        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
+            return '公司邮箱';
+        }
+        if($data['base_info']['reg_capital'] < 0){
+            return '注册资金';
+        }
+        if(!empty($data['base_info']['employee_count']) && !is_int($data['base_info']['employee_count'])){
+            return '雇员数量';
         }
         //联系人
         $contactArr = array(//buyer_attach   buyer_contact
