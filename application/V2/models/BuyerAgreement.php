@@ -279,7 +279,7 @@ class BuyerAgreementModel extends PublicModel
         $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
         if(!empty($exRes)){
-            return false;
+            return 'exsit';
         }
         //添加
         $res = $this -> addAgree($arr);
