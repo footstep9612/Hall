@@ -288,7 +288,7 @@ class BuyerModel extends PublicModel {
             $data['checked_by'] = $create['checked_by'];
         }
         $data['created_at'] = date('Y-m-d H:i:s');
-        $data['status'] = 'APPROVED';
+        $data['status'] = 'APPROVING';
         if (isset($create['created_by'])) {
             $data['checked_by']  = $create['created_by'];
             $data['checked_at'] = date('Y-m-d H:i:s');
@@ -299,7 +299,7 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             if($res){
                 $checked_log_arr['id'] = $res;
-                $checked_log_arr['status'] = 'APPROVED';
+                $checked_log_arr['status'] = 'APPROVING';
                 $checked_log_arr['checked_by'] = $create['created_by'];
                 $checked_log = new BuyerCheckedLogModel();
                 $checked_log->create_data($checked_log_arr);
@@ -1253,8 +1253,7 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at,//有效期
-            'status' =>  'APPROVING'  //待审核状态
+            'expiry_at' =>  $expiry_at//有效期
         );
         //非必须数据
         $baseArr = array(
