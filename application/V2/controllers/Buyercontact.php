@@ -119,6 +119,9 @@ class BuyercontactController extends PublicController {
         if(isset($data['last_name'])){
             $arr['last_name'] = $data['last_name'];
         }
+        if(isset($data['name'])){
+            $arr['name'] = $data['name'];
+        }
         if(isset($data['gender'])){
             $arr['gender'] = $data['gender'];
         }

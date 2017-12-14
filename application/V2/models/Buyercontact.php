@@ -40,6 +40,9 @@ class BuyercontactModel extends PublicModel
         if(isset($create['last_name'])){
             $arr['last_name'] = $create['last_name'];
         }
+        if(isset($create['name'])){
+            $arr['name'] = $create['name'];
+        }
         if(isset($create['gender'])){
             $arr['gender'] = $create['gender'];
         }
