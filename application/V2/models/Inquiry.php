@@ -826,7 +826,7 @@ class InquiryModel extends PublicModel {
     public function getInquiryIssueUserId($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
         $country = $this->getInquiryCountry($id);
         
-        return $this->getCountryRoleUserId($country, $groupId, $roleNo1, $roleNo2, $orgNode);
+        return $this->getCountryIssueUserId($country, $groupId, $roleNo1, $roleNo2, $orgNode);
     }
     
     /**
