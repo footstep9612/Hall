@@ -301,15 +301,23 @@ class BuyerAgreementModel extends PublicModel
     }
     //按单号查看数据及附件信息详情
     public function showAgree($execute_no){
-        $info = $this ->alias('agree')
-            ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
-            ->join('erui_sys.org org on agree.org_id=org.id','left')
-            ->field('agree.*,attach.attach_name,attach.attach_url,org.name as org_name')
-            ->where(array('agree.execute_no'=>$execute_no,'attach.deleted_flag'=>'N'))
-            ->find();
-        $country = new CountryModel();
-        $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
-        return $info;
+        $agree = $this->where(array('execute_no'=>$execute_no))->find();
+        if(!empty($agree)){
+            //附件
+            $attach = new AgreementAttachModel();
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id']))->find();
+            $agree['attach_name'] = $attachInfo['attach_name'];
+            $agree['attach_url'] = $attachInfo['attach_url'];
+            //组织
+            $org = new OrgModel();
+            $orgInfo = $org->getNameById($agree['org_id']);
+            $agree['org_name'] = $orgInfo;
+            //
+            $country = new CountryModel();
+            $countryInfo = $country->getCountryByBn($agree['country_bn'],'zh');
+            $agree['country_name'] = $countryInfo;
+        }
+        return $agree;
     }
     //添加数据
     public function addAgree($data){
