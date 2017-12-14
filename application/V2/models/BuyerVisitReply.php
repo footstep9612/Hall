@@ -117,12 +117,19 @@ class BuyerVisitReplyModel extends PublicModel{
      * wangs
      */
     public function singleVisitReplyInfo($buyer_id,$created_by){
-        $cond = "reply.created_by=$created_by";
+        $cond = "visit.buyer_id=$buyer_id and reply.created_by=$created_by";
         $info = $this->alias('reply')
             ->join('erui_buyer.buyer_visit visit on visit.id=reply.visit_id','inner')
             ->field('reply.reply_at')
             ->where($cond)
             ->select();
+        if(empty($info)){
+            $arr['totalReply'] = 0;
+            $arr['week'] = 0;
+            $arr['month'] = 0;
+            $arr['quarter'] = 0;
+            return $arr;
+        }
         foreach($info as $k => $v){
             $info[$k]['reply_at'] = substr($v['reply_at'],0,10);
         }

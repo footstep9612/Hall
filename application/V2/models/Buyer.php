@@ -1354,10 +1354,15 @@ class BuyerModel extends PublicModel {
             'id'=>$data['buyer_id'],
             'created_by'=>$data['created_by']
         );
-
         $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
             ->where($cond)
             ->find();
+        if(empty($info)){
+            $info['credit_level'] = "";
+            $info['credit_type'] = "";
+            $info['line_of_credit'] = 0;
+            $info['credit_available'] = 0;
+        }
         return $info;
     }
 
