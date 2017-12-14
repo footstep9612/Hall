@@ -139,6 +139,9 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
         }
+        if (!empty($data['filter'])) {
+            $where['filter'] = $data['filter'];
+        }
         $model = new BuyerModel();
         $data = $model->getlist($where);
         $this->_setArea($data['data'], 'area');

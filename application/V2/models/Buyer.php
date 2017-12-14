@@ -78,6 +78,10 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['status'])) {
             $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
+        if(!empty($condition['filter'])){
+            $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
+        }
+
         if (!empty($condition['user_name'])) {
             $where .= ' And `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
         }

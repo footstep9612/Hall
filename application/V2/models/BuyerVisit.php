@@ -183,11 +183,23 @@ class BuyerVisitModel extends PublicModel {
                     return [];
                 }
             }
+            //	visit_at_start开始时间   visit_at_end结束时间
+//            if(!empty($_input['created_at_start']) && !empty($_input['created_at_start'])){
+//                $this->_getValue($condition, $_input,'created_at','between');
+//                $ex = $condition['created_at'][1];
+//                $exArr = explode(',',$ex);
+//                $a = date('Y-m-d H:i:s', strtotime($exArr[0]));
+//                $b = date('Y-m-d H:i:s', strtotime($exArr[1])+86400);
+//                $condition['created_at']=array(
+//                    'between',
+//                    "$a,$b"
+//                );
+//            }
             if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
                 $condition['created_at']=['EGT', $_input['created_at_start']];
             }
             if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
-                $condition['created_at']=['ELT', $_input['created_at_end']];
+                $condition['created_at']=['EGT', $_input['created_at_end']];
             }
             //总记录数
             $total = $this->field('id')->where($condition)->count();
@@ -248,12 +260,14 @@ class BuyerVisitModel extends PublicModel {
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->find();
 
             if($result){
+                //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
                 $result['created_by_name'] = $userInfo['name'];
-
+                //回复
                 $reply = new BuyerVisitReplyModel();
                 $replyInfo = $reply->field('visit_reply')->where(['visit_id'=>$result['id']])->find();
+                //客户
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->field('buyer_no,buyer_code,name')->where(['id'=>$result['buyer_id']])->find();
                 $result['buyer_name'] = $buyerInfo['name'];
