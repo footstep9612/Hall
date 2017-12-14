@@ -246,6 +246,7 @@ class BuyerVisitModel extends PublicModel {
         ];
         try{
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->find();
+
             if($result){
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
@@ -256,7 +257,7 @@ class BuyerVisitModel extends PublicModel {
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
                 $result['buyer_code'] = $buyerInfo['buyer_code'];
-
+                $result['demand_content'] = $result['demand_content'];
                 $result['visit_type'] = json_decode( $result['visit_type']);
                 $result['visit_level'] = json_decode( $result['visit_level']);
                 $result['visit_position'] = json_decode( $result['visit_position']);
