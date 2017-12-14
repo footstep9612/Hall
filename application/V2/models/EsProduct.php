@@ -440,10 +440,10 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
-        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
-        if (redisExist($redis_key)) {
-            return redisGet($redis_key);
-        }
+//        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
+//        if (redisExist($redis_key)) {
+//            return redisGet($redis_key);
+//        }
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['sku_count']);
@@ -459,7 +459,7 @@ class EsProductModel extends Model {
 
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-        redisSet($redis_key, $sku_count, 180);
+        // redisSet($redis_key, $sku_count, 180);
         return $sku_count;
         /*         * **************************sku_count 报错 可以恢复这段************************** */
         /* $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
