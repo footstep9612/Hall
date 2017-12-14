@@ -252,6 +252,8 @@ class BuyerVisitModel extends PublicModel {
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
                 $result['created_by_name'] = $userInfo['name'];
 
+                $reply = new BuyerVisitReplyModel();
+                $replyInfo = $reply->field('visit_reply')->where(['visit_id'=>$result['id']])->find();
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->field('buyer_no,buyer_code,name')->where(['id'=>$result['buyer_id']])->find();
                 $result['buyer_name'] = $buyerInfo['name'];
@@ -262,6 +264,7 @@ class BuyerVisitModel extends PublicModel {
                 $result['visit_level'] = json_decode( $result['visit_level']);
                 $result['visit_position'] = json_decode( $result['visit_position']);
                 $result['demand_type'] = json_decode( $result['demand_type']);
+                $result['visit_reply'] = $replyInfo['visit_reply'];
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
                     $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
