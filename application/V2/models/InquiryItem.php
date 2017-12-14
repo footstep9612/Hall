@@ -11,6 +11,7 @@ class InquiryitemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
+    protected $joinTable = 'erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'';
     public $isOil = [
         '石油专用管材',
         '钻修井设备',
@@ -291,6 +292,41 @@ class InquiryitemModel extends PublicModel {
     }
     
     /**
+     * @desc 获取关联询单SKU查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-12-13
+     */
+    public function getJoinWhere($condition = []) {
+        $where['a.deleted_flag'] = 'N';
+         
+        if(!empty($condition['inquiry_id'])) {
+            $where['a.inquiry_id'] = $condition['inquiry_id'];
+        }
+         
+        return $where;
+    }
+    
+    /**
+     * @desc 获取关联询单SKU记录总数
+     *
+     * @param array $condition
+     * @return int
+     * @author liujf
+     * @time 2017-12-13
+     */
+    public function getJoinCount($condition = []) {
+        $where = $this->getJoinWhere($condition);
+        
+        return $this->alias('a')
+                            ->join($this->joinTable, 'LEFT')
+                            ->where($where)
+                            ->count('a.id');
+    }
+    
+    /**
      * @desc 获取关联询单SKU列表
      *
      * @param array $condition
@@ -299,20 +335,14 @@ class InquiryitemModel extends PublicModel {
      * @time 2017-12-07
      */
     public function getJoinList($condition = []) {
-        if (!empty($condition['inquiry_id'])) {
-            $where['a.deleted_flag'] = 'N';
-            
-            $where['a.inquiry_id'] = $condition['inquiry_id'];
-            
-            return $this->alias('a')
-                                ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
-                                ->join('erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'', 'LEFT')
-                                ->where($where)
-                                ->order('a.id DESC')
-                                ->select();
-        } else {
-            return false;
-        }
+        $where = $this->getJoinWhere($condition);
+        
+        return $this->alias('a')
+                            ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
+                            ->join($this->joinTable, 'LEFT')
+                            ->where($where)
+                            ->order('a.id DESC')
+                            ->select();
     }
 
 }

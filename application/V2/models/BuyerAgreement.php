@@ -42,6 +42,8 @@ class BuyerAgreementModel extends PublicModel
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
+        $objActSheet->getStyle('B')->getNumberFormat()
+            ->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
         //填充表格信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
@@ -69,8 +71,11 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportAgree($data){
-        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属地区','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','执行金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
+        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
         $arr = $this->getAgreeStatisData($data);
+        if(empty($arr)){
+            return false;
+        }
         $res = $this->exportModel('agreestatis',$tableheader,$arr);
         return $res;
     }
@@ -92,7 +97,7 @@ class BuyerAgreementModel extends PublicModel
             'execute_no',       //框架执行单号
             'org_id',           //事业部
             'execute_company',  //执行分公司
-            'area_bn',          //所属地区
+            'country_bn',          //所属地区
             'product_name',     //品名中文
             'number',           // 数量
             'unit',             //单位
@@ -112,6 +117,10 @@ class BuyerAgreementModel extends PublicModel
             ->where($cond)
             ->order('agree.id desc')
             ->select();
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+        }
         $res = array(
             'info'=>$info,
             'totalCount'=>$totalCount
@@ -123,13 +132,12 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['execute_no'] = $v['execute_no'];    //框架执行单号
             $arr[$k]['org_name'] = $v['org_name'];    //事业部
             $arr[$k]['execute_company'] = $v['execute_company'];    //执行分公司
-            $arr[$k]['area_bn'] = $v['area_bn'];    //所属地区
+            $arr[$k]['country_name'] = $v['country_name'];    //所属地区
             $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
-            $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
-            $arr[$k]['execute_amount'] = $v['amount'];    //执行金额（美元
+            $arr[$k]['amount'] = sprintf("%.2f",$v['amount']);    //项目金额（美元）
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
@@ -271,7 +279,7 @@ class BuyerAgreementModel extends PublicModel
         $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
         if(!empty($exRes)){
-            return false;
+            return 'exsit';
         }
         //添加
         $res = $this -> addAgree($arr);
@@ -297,15 +305,23 @@ class BuyerAgreementModel extends PublicModel
     }
     //按单号查看数据及附件信息详情-------
     public function showAgree($execute_no){
-        $info = $this ->alias('agree')
-            ->join('erui_buyer.agreement_attach attach on agree.id=attach.agreement_id','inner')
-            ->join('erui_sys.org org on agree.org_id=org.id','left')
-            ->field('agree.*,attach.attach_name,attach.attach_url,org.name as org_name')
-            ->where(array('agree.execute_no'=>$execute_no,'attach.deleted_flag'=>'N'))
-            ->find();
-        $country = new CountryModel();
-        $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
-        return $info;
+        $agree = $this->where(array('execute_no'=>$execute_no))->find();
+        if(!empty($agree)){
+            //附件
+            $attach = new AgreementAttachModel();
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id']))->find();
+            $agree['attach_name'] = $attachInfo['attach_name'];
+            $agree['attach_url'] = $attachInfo['attach_url'];
+            //组织
+            $org = new OrgModel();
+            $orgInfo = $org->getNameById($agree['org_id']);
+            $agree['org_name'] = $orgInfo;
+            //
+            $country = new CountryModel();
+            $countryInfo = $country->getCountryByBn($agree['country_bn'],'zh');
+            $agree['country_name'] = $countryInfo;
+        }
+        return $agree;
     }
     //添加数据
     public function addAgree($data){

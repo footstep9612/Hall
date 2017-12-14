@@ -409,6 +409,9 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '名称不能为空!');
         }
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
+        }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
@@ -602,6 +605,9 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
+        }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
@@ -665,7 +671,7 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED'  || $data['status'] == 'FIRST_REJECTED'  || $data['status'] == 'FIRST_APPROVED'  ) {
                 $arr['checked_by'] = $this->user['id'];
                 $arr['checked_at'] = Date("Y-m-d H:i:s");
             }
@@ -751,10 +757,10 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->createBuyerBaseInfo($data);  //创建基本信息
-        if ($res == false) {
+        if($res !== true){
             $valid = array(
-                'code' => 0,
-                'message' => '请输入规范数据',
+                'code'=>0,
+                'message'=>'请输入'.$res.'规范数据',
             );
             $this->jsonReturn($valid);
         }
@@ -814,22 +820,19 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
-        if (empty($buerInfo) || $buerInfo == false) {
-            $dataJson = array(
-                'code' => 0,
-                'message' => '该客户暂无数据请添加',
-            );
-            $this->jsonReturn($dataJson);
-        }
         //获取客户账号
         $account = new BuyerAccountModel();
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
-        $buerInfo['buyer_account'] = $accountInfo['email'];
+        if(!empty($accountInfo)){
+            $buerInfo['buyer_account'] = $accountInfo['email'];
+        }
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
         $agentInfo = $agent->buyerMarketAgent($data);
-        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        if(!empty($agentInfo)){
+            $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+            $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        }
         //获取财务报表
         $attach = new BuyerattachModel();
         $finance = $attach->showBuyerExistAttach($data['buyer_id'], $data['created_by']);

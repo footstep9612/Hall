@@ -15,9 +15,34 @@ class ShoppingcarController extends PublicController{
      */
     public function listAction(){
         $input = $this->getPut();
+        if(empty($input['buyer_id']) || empty($input['lang'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM , '语言跟用户id不能为空');
+        }
+
+        $condition = ['buyer_id' => $input['buyer_id'], 'lang' => $input['lang']];
 
         $scModel = new ShoppingCarModel();
-        $result = $scModel->myShoppingCar();
+        $result = $scModel->myShoppingCar($condition);
+        if($result !== false){
+            jsonReturn($result);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * sku列表信息
+     */
+    public function skusAction(){
+        $input = $this->getPut();
+        if(empty($input['skus']) || !is_array($input['skus']) || empty($input['lang'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM , '语言跟skus不能为空');
+        }
+
+        $condition = ['sku' => ['in', $input['skus']], 'lang' => $input['lang']];
+
+        $scModel = new ShoppingCarModel();
+        $result = $scModel->myShoppingCar($condition);
         if($result !== false){
             jsonReturn($result);
         }else{

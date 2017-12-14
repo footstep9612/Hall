@@ -234,24 +234,26 @@ class ReportController extends PublicController {
             $inquiryList = $inquiryModel->getTimeIntervalList($condition);
 
             foreach ($inquiryList as &$inquiry) {
+                $where['inquiry_id'] = $inquiry['id'];
                 $createdTime = strtotime($inquiry['created_at']);
 
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
                 $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
 
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'QUOTE_SENT'])->getField('out_at');
+                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'MARKET_CONFIRMING'])->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $createdTime;
                 }
 
-                $inquiryItemList = $inquiryItemModel->getJoinList(['inquiry_id' => $inquiry['id']]);
+                $inquiryItemList = $inquiryItemModel->getJoinList($where);
 
                 foreach ($inquiryItemList as &$inquiryItem) {
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
                 }
-
+                
+                $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);
             }

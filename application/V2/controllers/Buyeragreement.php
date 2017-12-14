@@ -20,7 +20,7 @@ class BuyeragreementController extends PublicController
         }else{
             $dataJson = array(
                 'code'=>0,
-                'message'=>'excel导出失败'
+                'message'=>'excel导出异常或数据为空'
             );
             $this->jsonReturn($dataJson);
         }
@@ -50,9 +50,14 @@ class BuyeragreementController extends PublicController
         }
         $agree = new BuyerAgreementModel();
         $agreement_id = $agree->createAgree($data);
-        if($agreement_id == false){
+        if($agreement_id === false){
             $dataJson['code'] = 0;
             $dataJson['message'] = '创建协议失败,请输入规范数据';
+            $this -> jsonReturn($dataJson);
+        }
+        if($agreement_id === 'exsit'){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '该框架协议单号已存在,请重新输入';
             $this -> jsonReturn($dataJson);
         }
         $data['agreement_id'] = $agreement_id;

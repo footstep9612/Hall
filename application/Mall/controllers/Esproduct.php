@@ -32,7 +32,10 @@ class EsproductController extends PublicController {
     public function listAction() {
         $model = new EsProductModel();
         $condition = $this->getPut();
-        $ret = $model->getNewProducts($condition, null, $this->getLang());
+
+        $country_bn = $this->getPut('country_bn');
+        $is_show_cat = false;
+        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat);
 
         if ($ret) {
             $data = $ret[0];
@@ -42,7 +45,8 @@ class EsproductController extends PublicController {
             $this->setvalue('pagesize', intval($ret[2]));
             $sku_count = $model->getSkuCountByCondition($condition, $this->getLang());
             $this->setvalue('sku_count', $sku_count);
-
+            $this->setvalue('country_bn', $country_bn);
+            $this->setvalue('is_show_cat', $is_show_cat);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($list);
         } else {
@@ -58,7 +62,9 @@ class EsproductController extends PublicController {
     public function listNewAction() {
         $model = new EsProductModel();
         $condition = $this->getPut();
-        $ret = $model->getNewProducts($condition, null, $this->getLang());
+        $country_bn = $this->getPut('country_bn');
+        $is_show_cat = false;
+        $ret = $model->getNewProducts($condition, $this->getLang());
 
         if ($ret) {
             $data = $ret[0];
@@ -68,6 +74,8 @@ class EsproductController extends PublicController {
             $this->setvalue('pagesize', intval($ret[2]));
             $sku_count = $model->getSkuCountByCondition($condition, $this->getLang());
             $this->setvalue('sku_count', $sku_count);
+            $this->setvalue('country_bn', $country_bn);
+            $this->setvalue('is_show_cat', $is_show_cat);
             $this->update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($list);

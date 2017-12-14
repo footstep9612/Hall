@@ -107,4 +107,25 @@ class CurrencyModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取根据bn币种名称
+
+     * @return array|mixed
+     * @author  zhongyg
+     */
+    public function getSymbolByBns($bn) {
+
+        try {
+            if ($bn) {
+                $where = ['bn' => $bn, 'deleted_flag' => 'N'];
+                $price_symbol = $this->where($where)->getField('symbol');
+                return $price_symbol ? $price_symbol : '';
+            } else {
+                return '';
+            }
+        } catch (Exception $e) {
+            return '';
+        }
+    }
+
 }

@@ -1265,6 +1265,7 @@ class GoodsModel extends PublicModel {
                 foreach ($skus as $del) {
                     $where = [
                         "sku" => $del,
+                        "deleted_flag" => 'N'
                     ];
                     if (!empty($lang)) {
                         $where["lang"] = $lang;
@@ -2788,6 +2789,8 @@ class GoodsModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
+
+                        /*
                         $data['min_pack_naked_qty'] = $data_tmp['最小包装内裸货商品数量'];    //最小包装内裸货商品数量
                         if (empty($data['min_pack_naked_qty']) || !is_numeric($data['min_pack_naked_qty'])) {
                             $faild++;
@@ -2797,6 +2800,7 @@ class GoodsModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
+
                         $data['nude_cargo_unit'] = $data_tmp['商品裸货单位'];    //商品裸货单位
                         if (empty($data['nude_cargo_unit'])) {
                             $faild++;
@@ -2806,6 +2810,8 @@ class GoodsModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
+                        */
+
                         $data['min_pack_unit'] = $data_tmp['最小包装单位'];    //最小包装单位
                         if (empty($data['min_pack_unit'])) {
                             $faild++;
