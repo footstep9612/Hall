@@ -332,14 +332,14 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = $condition['keyword'];
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '75%', 'operator' => 'and']]],
-                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '75%', 'operator' => 'and']]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '25%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '25%', 'operator' => 'or']]],
 //                        [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 40]]],
+                        [ESClient::TERM => ['brand.name.all' => $keyword]],
 //                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
 //                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::MATCH => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1, 'minimum_should_match' => '25%', 'operator' => 'or']]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
