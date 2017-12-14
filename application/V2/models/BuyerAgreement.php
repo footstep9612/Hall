@@ -97,7 +97,7 @@ class BuyerAgreementModel extends PublicModel
             'execute_no',       //框架执行单号
             'org_id',           //事业部
             'execute_company',  //执行分公司
-            'area_bn',          //所属地区
+            'country_bn',          //所属地区
             'product_name',     //品名中文
             'number',           // 数量
             'unit',             //单位
@@ -117,6 +117,10 @@ class BuyerAgreementModel extends PublicModel
             ->where($cond)
             ->order('agree.id desc')
             ->select();
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+        }
         $res = array(
             'info'=>$info,
             'totalCount'=>$totalCount
@@ -128,7 +132,7 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['execute_no'] = $v['execute_no'];    //框架执行单号
             $arr[$k]['org_name'] = $v['org_name'];    //事业部
             $arr[$k]['execute_company'] = $v['execute_company'];    //执行分公司
-            $arr[$k]['area_bn'] = $v['area_bn'];    //所属地区
+            $arr[$k]['country_name'] = $v['country_name'];    //所属地区
             $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
