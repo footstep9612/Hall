@@ -70,55 +70,55 @@ class BuyerVisitReplyModel extends PublicModel{
      * 客户管理-客户信息的统计数据
      * wangs
      */
-    public function singleVisitReplyInfo($buyer_id,$created_by){
-        $cond = "visit.buyer_id=$buyer_id and reply.created_by=$created_by";
-        $info = $this->alias('reply')
-            ->join('erui_buyer.buyer_visit visit on visit.id=reply.visit_id','inner')
-            ->field('reply.reply_at')
-            ->where($cond)
-            ->select();
-        if(empty($info)){
-            $arr['totalReply'] = 0;
-            $arr['week'] = 0;
-            $arr['month'] = 0;
-            $arr['quarter'] = 0;
-            return $arr;
-        }
-        foreach($info as $k => $v){
-            $info[$k]['reply_at'] = substr($v['reply_at'],0,10);
-        }
-        //本周
-        $weekStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("w")+1,date("Y")));
-        $weekEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("w")+7,date("Y")));
-        //本月
-        $monthStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),1,date("Y")));
-        $monthEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("t"),date("Y")));
-        //本季度
-        $quarterStart = date('Y-m-d H:i:s', mktime(0, 0, 0,$season*3-3+1,1,date('Y')+1));
-        $quarterEnd = date('Y-m-d H:i:s', mktime(23,59,59,$season*3,date('t',mktime(0, 0 , 0,$season*3,1,date("Y"))),date('Y')+1));
-        //整合数据
-        $weekArr = [];
-        $monthArr = [];
-        $quarterArr = [];
-        foreach($info as $v){
-            if($weekStart <= $v['reply_at'] && $v['reply_at'] <= $weekEnd){
-                $weekArr[]=$v['reply_at'];
-            }
-            if($monthStart <= $v['reply_at'] && $v['reply_at'] <= $monthEnd){
-                $monthArr[]=$v['reply_at'];
-            }
-            if($quarterStart <= $v['reply_at'] && $v['reply_at'] <= $quarterEnd){
-                $quarterArr[]=$v['reply_at'];
-            }
-        }
-        $totalVisit=count($info);    //本周
-        $week=count($weekArr);    //本周
-        $month=count($monthArr);    //本月
-        $quarter=count($quarterArr);    //本季
-        $arr['totalReply'] = $totalVisit;
-        $arr['week'] = $week;
-        $arr['month'] = $month;
-        $arr['quarter'] = $quarter;
-        return $arr;
-    }
+//    public function singleVisitReplyInfo($buyer_id,$created_by){
+//        $cond = "visit.buyer_id=$buyer_id and reply.created_by=$created_by";
+//        $info = $this->alias('reply')
+//            ->join('erui_buyer.buyer_visit visit on visit.id=reply.visit_id','inner')
+//            ->field('reply.reply_at')
+//            ->where($cond)
+//            ->select();
+//        if(empty($info)){
+//            $arr['totalReply'] = 0;
+//            $arr['week'] = 0;
+//            $arr['month'] = 0;
+//            $arr['quarter'] = 0;
+//            return $arr;
+//        }
+//        foreach($info as $k => $v){
+//            $info[$k]['reply_at'] = substr($v['reply_at'],0,10);
+//        }
+//        //本周
+//        $weekStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("w")+1,date("Y")));
+//        $weekEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("w")+7,date("Y")));
+//        //本月
+//        $monthStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),1,date("Y")));
+//        $monthEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("t"),date("Y")));
+//        //本季度
+//        $quarterStart = date('Y-m-d H:i:s', mktime(0, 0, 0,$season*3-3+1,1,date('Y')+1));
+//        $quarterEnd = date('Y-m-d H:i:s', mktime(23,59,59,$season*3,date('t',mktime(0, 0 , 0,$season*3,1,date("Y"))),date('Y')+1));
+//        //整合数据
+//        $weekArr = [];
+//        $monthArr = [];
+//        $quarterArr = [];
+//        foreach($info as $v){
+//            if($weekStart <= $v['reply_at'] && $v['reply_at'] <= $weekEnd){
+//                $weekArr[]=$v['reply_at'];
+//            }
+//            if($monthStart <= $v['reply_at'] && $v['reply_at'] <= $monthEnd){
+//                $monthArr[]=$v['reply_at'];
+//            }
+//            if($quarterStart <= $v['reply_at'] && $v['reply_at'] <= $quarterEnd){
+//                $quarterArr[]=$v['reply_at'];
+//            }
+//        }
+//        $totalVisit=count($info);    //本周
+//        $week=count($weekArr);    //本周
+//        $month=count($monthArr);    //本月
+//        $quarter=count($quarterArr);    //本季
+//        $arr['totalReply'] = $totalVisit;
+//        $arr['week'] = $week;
+//        $arr['month'] = $month;
+//        $arr['quarter'] = $quarter;
+//        return $arr;
+//    }
 }
