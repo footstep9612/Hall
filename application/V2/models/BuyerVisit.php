@@ -162,7 +162,6 @@ class BuyerVisitModel extends PublicModel {
         $condition = [
             'is_demand' => self::DEMAND_Y
         ];
-
         //根据条件查询用户信息
         $condition_user = [];
         if(isset($_input['name']) && !empty($_input['name'])){
@@ -174,7 +173,6 @@ class BuyerVisitModel extends PublicModel {
         if(isset($_input['mobile']) && !empty($_input['mobile'])){
             $condition_user['mobile'] = trim($_input['mobile']);
         }
-
         try{
             if(!empty($condition_user)){
                 $userModel = new UserModel();
@@ -191,7 +189,6 @@ class BuyerVisitModel extends PublicModel {
             if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
                 $condition['created_at']=['ELT', $_input['created_at_end']];
             }
-
             //总记录数
             $total = $this->field('id')->where($condition)->count();
             $data = [
