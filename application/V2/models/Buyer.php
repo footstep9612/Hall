@@ -1141,30 +1141,33 @@ class BuyerModel extends PublicModel {
     public function validBuyerBaseData($data){
         //验证必填数据非空
         $baseArr = array(
-            'buyer_id', //采购商客户id
-            'buyer_name', //采购商客户名称
-//            'buyer_code', //客户代码
-//            'buyer_level', //客户级别
-//            'level_at', //定级日期
-//            'expiry_at', //有效期
-//            'country_bn', //国家
-//            'area_bn', //地区
-//            'employee_count', //雇员数量
-            'official_phone', //公司固话
-            'official_email', //公司邮箱
-            'official_website', //公司网址
-            'company_reg_date', //成立日期
-            'reg_capital', //注册资金
-            'reg_capital_cur', //注册资金货币
-            'profile', //公司介绍txt
+            'buyer_id'=>'采购商客户id',
+            'buyer_name'=>'采购商客户名称',
+//            'buyer_code', //客户代码,
+//            'buyer_level', //客户级别,
+//            'level_at', //定级日期,
+//            'expiry_at', //有效期,
+//            'country_bn', //国家,
+//            'area_bn', //地区,
+//            'employee_count', //雇员数量,
+            'official_phone'=>'公司固话',
+            'official_email'=>'公司邮箱',
+            'official_website'=>'公司网址',
+            'company_reg_date'=>'成立日期',
+            'reg_capital'=>'注册资金',
+            'reg_capital_cur'=>'注册资金货币',
+            'profile'=>'公司介绍txt'
         );
-        foreach($baseArr as $v){
-            if(empty($data['base_info'][$v])){
-                return false;
+        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
+            return '公司邮箱';
+        }
+        foreach($baseArr as $k => $v){
+            if(empty($data['base_info'][$k])){
+                return $v;
             }
             unset($baseArr['profile']);
-            if(strlen($data['base_info'][$v]) > 100 || strlen($data['profile']) > 1000){
-                return false;
+            if(strlen($data['base_info'][$k]) > 100 || strlen($data['profile']) > 1000){
+                return $v;
             }
         }
         //联系人
@@ -1172,24 +1175,24 @@ class BuyerModel extends PublicModel {
 //            'role', //购买角色
 //            'email',    //邮箱
 //            'hobby',    //喜好
-            'address', //详细地址
-            'experience',    //工作经历
-            'social_relations',    //社会关系
+            'address'=>'详细地址',
+            'experience'=>'工作经历',
+            'social_relations'=>'社会关系'
         );
         $contactNeed = array(
-            'name', //联系人姓名
-            'title',    //联系人职位
-            'phone',    //联系人电话
+            'name'=>'联系人姓名',
+            'title'=>'联系人职位',
+            'phone'=>'联系人电话'
         );
         foreach($data['contact'] as $value){
-            foreach($contactNeed as $v){
-                if(empty($value[$v]) || strlen($value[$v]) > 50){
-                    return false;
+            foreach($contactNeed as $k=>$v){
+                if(empty($value[$k]) || strlen($value[$k]) > 50){
+                    return $v;
                 }
             }
             foreach($contactArr as $v){
-                if(!empty($value[$v]) && strlen($value[$v]) > 100){
-                    return false;
+                if(!empty($value[$k]) && strlen($value[$k]) > 100){
+                    return $v;
                 }
             }
         }
@@ -1200,10 +1203,13 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function createBuyerBaseInfo($data){
+        if(empty($data['base_info']) || empty($data['contact'])){
+            return false;
+        }
         //验证数据
         $info = $this->validBuyerBaseData($data);
-        if($info == false){
-            return false;
+        if($info !== true){
+            return $info;
         }
         //组装基本信息数据
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);
