@@ -751,10 +751,10 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->createBuyerBaseInfo($data);  //创建基本信息
-        if ($res == false) {
+        if($res !== true){
             $valid = array(
-                'code' => 0,
-                'message' => '请输入规范数据',
+                'code'=>0,
+                'message'=>'请输入<<'.$res.'>>规范数据',
             );
             $this->jsonReturn($valid);
         }
