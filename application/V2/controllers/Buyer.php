@@ -595,6 +595,9 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
+        }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
