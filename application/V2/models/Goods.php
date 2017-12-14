@@ -1265,6 +1265,7 @@ class GoodsModel extends PublicModel {
                 foreach ($skus as $del) {
                     $where = [
                         "sku" => $del,
+                        "deleted_flag" => 'N'
                     ];
                     if (!empty($lang)) {
                         $where["lang"] = $lang;
