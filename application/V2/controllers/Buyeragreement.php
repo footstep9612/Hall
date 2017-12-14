@@ -20,7 +20,7 @@ class BuyeragreementController extends PublicController
         }else{
             $dataJson = array(
                 'code'=>0,
-                'message'=>'excel导出失败'
+                'message'=>'excel导出异常或数据为空'
             );
             $this->jsonReturn($dataJson);
         }
