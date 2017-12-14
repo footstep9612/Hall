@@ -1045,7 +1045,11 @@ class BuyerModel extends PublicModel {
      */
     public function buyerList($data) {
         //条件
-        $cond = "buyer.created_by=$data[created_by]";
+        $cond = "buyer.created_by=$data[created_by] and recommend_flag='Y'";
+        if(!empty($data['all_id'])){
+            $str = implode(',',$data['all_id']);
+            $cond .= " and buyer.id in ($str)";
+        }
         if(!empty($data['area_bn'])){
             $cond .= " and buyer.area_bn='$data[area_bn]'";
         }
@@ -1255,7 +1259,8 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at//有效期
+            'expiry_at' =>  $expiry_at, //有效期
+            'recommend_flag' =>'Y'//有效期
         );
         //非必须数据
         $baseArr = array(
@@ -1278,9 +1283,13 @@ class BuyerModel extends PublicModel {
      * 展示客户管理客户基本信息详情
      * wangs
      */
-    public function showBuyerBaseInfo($data) {
-        if (empty($data['buyer_id']) || empty($data['created_by'])) {
-            return false;
+    public function showBuyerBaseInfo($data){
+        $cond = [];
+        if(!empty($data['buyer_id'])){
+            $cond['id'] = $data['buyer_id'];
+        }
+        if(!empty($data['buyer_id'])){
+            $cond['created_by'] = $data['created_by'];
         }
         $buyerArr = array(
             'id as buyer_id', //客户id
@@ -1311,11 +1320,7 @@ class BuyerModel extends PublicModel {
         foreach ($buyerArr as $v) {
             $field .= ',' . $v;
         }
-        $field = substr($field, 1);
-        $cond = array(
-            'id' => $data['buyer_id'],
-            'created_by' => $data['created_by']
-        );
+        $field = substr($field,1);
         $info = $this->field($field)
             ->where($cond)
             ->find();
