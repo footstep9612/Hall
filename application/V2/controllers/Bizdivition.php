@@ -60,8 +60,7 @@ class BizdivitionController extends PublicController{
         $inquiry = new InquiryModel();
         $orgModel = new OrgModel();
         $erui_id = $orgModel->where(['org_node'=>'erui'])->getField('id');
-        $country = $inquiry->getInquiryCountry($request['inquiry_id']);
-        $userId = $inquiry->getCountryIssueUserId($country, [$erui_id], $inquiry::inquiryIssueAuxiliaryRole, $inquiry::inquiryIssueRole, 'erui');
+        $userId = $inquiry->getInquiryIssueUserId($request['inquiry_id'], [$erui_id], $inquiry::inquiryIssueAuxiliaryRole, $inquiry::inquiryIssueRole, 'erui');
 
         $response = $inquiry->updateData([
             'id'=>$request['inquiry_id'],

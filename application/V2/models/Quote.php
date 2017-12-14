@@ -212,12 +212,11 @@ class QuoteModel extends PublicModel {
         $orgId = $org->where(['org_node' => 'lg', 'deleted_flag' => 'N'])->getField('id');
 
         $time = date('Y-m-d H:i:s',time());
-        $country = $inquiry->getInquiryCountry($request['inquiry_id']);
         $inquiryResult = $inquiry->updateData([
             'id'           => $request['inquiry_id'],
             'status'       => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id'  => $orgId,
-            'now_agent_id' => $inquiry->getCountryIssueUserId($country, [$orgId], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
+            'now_agent_id' => $inquiry->getInquiryIssueUserId($request['inquiry_id'], [$orgId], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
             'inflow_time'   => $time,
             'updated_by'   => $user['id'],
             'updated_at'   => $time

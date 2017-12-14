@@ -322,11 +322,10 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id']) && !empty($condition['org_id'])) {
             $inquiryModel = new InquiryModel();
 
-            $country = $inquiryModel->getInquiryCountry($condition['inquiry_id']);
             $data = [
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
-                'now_agent_id' => $inquiryModel->getCountryIssueUserId($country, [$condition['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]),
+                'now_agent_id' => $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$condition['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]),
                 'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
@@ -587,8 +586,7 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         if ($data['status'] == 'BIZ_DISPATCHING') {
-            $country = $inquiry->getInquiryCountry($data['id']);
-            $data['now_agent_id'] = $inquiry->getCountryIssueUserId($country, [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+            $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         }
 
         $results = $inquiry->updateStatus($data);
