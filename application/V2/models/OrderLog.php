@@ -102,7 +102,7 @@ class OrderLogModel extends PublicModel {
             $where['a.log_group'] = $condition['log_group'];    //工作分组
         }
         if (!empty($condition['execute_no'])) {
-            $where['b.execute_no'] = $condition['execute_no'];  //执行单号
+            $where['b.execute_no'] = ['like', '%' . trim($condition['execute_no']) . '%'];  //执行单号
         }
         if (!empty($condition['out_no'])) {
             $where['a.out_no'] = $condition['out_no'];    //出库单号

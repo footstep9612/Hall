@@ -113,7 +113,7 @@ class OrderModel extends PublicModel {
         $where['order.deleted_flag'] = 'N';
         $this->_getValue($where, $condition, 'order_no'); //平台订单号
         $this->_getValue($where, $condition, 'po_no'); //po编号
-        $this->_getValue($where, $condition, 'execute_no'); //执行编号
+        $this->_getValue($where, $condition, 'execute_no', 'like'); //执行编号
         if (isset($condition['show_status']) && $condition['show_status']) {
             if (in_array($condition['show_status'], ['UNCONFIRM', 'GOING', 'COMPLETED'])) {
                 $where['show_status'] = $condition['show_status'];
