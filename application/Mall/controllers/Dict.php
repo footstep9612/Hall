@@ -9,7 +9,7 @@
 /**
  * Description of UserController
  *
- * @author jhw
+ * @author
  */
 class DictController extends PublicController {
 
