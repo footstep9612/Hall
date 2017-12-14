@@ -1363,7 +1363,7 @@ class BuyerModel extends PublicModel {
      * 客户管理列表excel导出
      */
     public function exportBuyerExcel($data){
-        $tableheader = array('序号','地区','国家','客户代码（CRM）','客户名称','档案创建日期','是否油气','客户级别','定级日期','注册资金','货币','是否已入网','入网时间','入网失效时间','客户产品类型','客户信用等级','授信类型','授信额度','是否本地币结算','是否与KERUI有采购关系','KERUI/ERUI客户服务经理','拜访总次数','拜访季度累计次数','拜访月度累计次数','拜访周累计次数','询报价数量','询报价金额（美元）','订单数量','订单金额（美元）','单笔金额偏重区间');
+        $tableheader = array('序号','国家','客户代码（CRM）','客户名称','档案创建日期','是否油气','客户级别','定级日期','注册资金','货币','是否已入网','入网时间','入网失效时间','客户产品类型','客户信用等级','授信类型','授信额度','是否本地币结算','是否与KERUI有采购关系','KERUI/ERUI客户服务经理','拜访总次数','拜访季度累计次数','拜访月度累计次数','拜访周累计次数','询报价数量','询报价金额（美元）','订单数量','订单金额（美元）','单笔金额偏重区间');
         $arr = $this->exportBuyerListData($data);
         $info = $this->exportBuyerListDataFull($arr);
         $res = $this->packageBuyerExcelData($info);
@@ -1379,25 +1379,25 @@ class BuyerModel extends PublicModel {
         $arr = [];
         foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];  //客户id
-            $arr[$k]['area_bn'] = $v['area_bn'];    //地区
-            $arr[$k]['country_bn'] = $v['country_bn'];  //国家
+//            $arr[$k]['area_bn'] = $v['area_bn'];    //地区
+            $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
             $arr[$k]['created_at'] = $v['created_at'];  //创建时间
-            $arr[$k]['is_oilgas'] = $v['is_oilgas'];    //是否油气
+            $arr[$k]['is_oilgas'] = $v['is_oilgas']='Y'?'是':'否';    //是否油气
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
-            $arr[$k]['is_net'] = $v['is_net'];  //是否入网
+            $arr[$k]['is_net'] = $v['is_net']='Y'?'是':'否';  //是否入网
             $arr[$k]['net_at'] = $v['net_at'];  //入网时间
             $arr[$k]['net_invalid_at'] = $v['net_invalid_at'];  //失效时间
             $arr[$k]['product_type'] = $v['product_type'];  //产品类型
             $arr[$k]['credit_level'] = $v['credit_level'];  //采购商信用等级
             $arr[$k]['credit_type'] = $v['credit_type'];    //授信类型
             $arr[$k]['line_of_credit'] = $v['line_of_credit'];  //授信额度
-            $arr[$k]['is_local_settlement'] = $v['is_local_settlement'];    //本地结算
-            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship'];  //采购关系
+            $arr[$k]['is_local_settlement'] = $v['is_local_settlement']='Y'?'是':'否';    //本地结算
+            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']='Y'?'是':'否';  //采购关系
             $arr[$k]['market_agent'] = $v['market_agent'];  //kerui/erui客户服务经理
             $arr[$k]['total_visit'] = $v['total_visit'];    //总访问次数
             $arr[$k]['quarter_visit'] = $v['quarter_visit'];    //季度访问次数
@@ -1474,7 +1474,7 @@ class BuyerModel extends PublicModel {
     public function exportBuyerListData($data)
     {
         //条件
-        $cond = "buyer.created_by=$data[created_by]";
+        $cond = "buyer.created_by=$data[created_by] and recommend_flag='Y'";
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
@@ -1517,7 +1517,12 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-
+        if(!empty($info)){
+            $country = new CountryModel();
+            foreach($info as $k => $v){
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+            }
+        }
         $ids = array();
         foreach($info as $k => $v){
             $ids[$v['id']] = $v['id'];
