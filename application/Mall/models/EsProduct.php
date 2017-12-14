@@ -344,9 +344,9 @@ class EsProductModel extends Model {
                         [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
                         // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
                         //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::MATCH => ['tech_paras.' . $analyzer => ['value' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['exe_standard.' . $analyzer => ['value' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-                        [ESClient::TERM => ['spu' => $keyword]],
+                        [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
+                        [ESClient::MATCH_PHRASE => ['spu' => ['query' => $keyword, 'boost' => 100]]],
             ]]];
 //
 //            if (empty($show_cat_model)) {
@@ -417,6 +417,7 @@ class EsProductModel extends Model {
 
 
             $body = $this->getCondition($condition, $lang);
+
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
@@ -479,6 +480,7 @@ class EsProductModel extends Model {
                 $analyzer = 'ik';
             }
             $body = $this->getCondition($condition, $lang);
+
             $pagesize = 10;
             $current_no = 1;
             if (isset($condition['current_no'])) {
