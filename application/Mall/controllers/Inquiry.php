@@ -49,7 +49,8 @@ class InquiryController extends PublicController {
 
         foreach ($results['data'] as $key => $val) {
             $test['inquiry_id'] = $val['id'];
-            $results['data'][$key]['quantity'] = $item->getcount($test);
+            $results['data'][$key]['quantity'] = $item->getSkusCount($test);    //sku数量总和
+            //$results['data'][$key]['quantity'] = $item->getCount($test);      //sku下商品件数数量总和
         }
 
         $this->jsonReturn($results);
@@ -87,14 +88,8 @@ class InquiryController extends PublicController {
         $Item = new InquiryItemModel();
 
         $where = $this->getPut();
-
         $results = $Item->getlist($where);
-//        if($results) {
-//            $good_model = new GoodsModel();
-//            foreach($results['data'] as $item) {
-//
-//            }
-//        }
+
         $this->jsonReturn($results);
     }
 

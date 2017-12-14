@@ -16,6 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
+        $this->token = false;
         parent::init();
     }
 
@@ -103,7 +104,7 @@ class OrderController extends PublicController {
      * @param int $order_id // 订单ID
      * @desc   交收信息
      */
-    public function ListAdressAction() {
+    public function LastAdressAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {

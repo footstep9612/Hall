@@ -53,6 +53,25 @@ class InquiryitemModel extends PublicModel {
     }
 
     /**
+     * 获取sku总数.
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function getSkusCount($condition = []) {
+        $where = $this->getCondition($condition);
+        $res = $this->where($where)->field('sku,qty')->select();
+        $counts = 0;
+        if($res) {
+            foreach($res as $item) {
+                $counts += $item['qty'];
+            }
+        }
+        return $counts;
+
+    }
+
+    /**
      * 获取列表.
      * @param Array $condition
      * @return Array
