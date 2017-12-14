@@ -356,6 +356,9 @@ class BuyerModel extends PublicModel {
         if (isset($create['name'])) {
             $data['name'] = $create['name'];
         }
+        if (isset($create['first_name'])) {
+            $data['first_name'] = $create['first_name'];
+        }
         if (isset($create['bn'])) {
             $data['bn'] = $create['bn'];
         }
