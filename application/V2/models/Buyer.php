@@ -1604,6 +1604,7 @@ class BuyerModel extends PublicModel {
         $data['type'] = 'application/excel';
         $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
         $fileId = postfile($data, $url);
+        unlink($time.$sheetName.'.xlsx');
         return $fileId;
     }
 }
