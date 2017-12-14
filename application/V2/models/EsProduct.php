@@ -333,7 +333,7 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['attr.spec_attrs.value.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                         [ESClient::TERM => ['spu' => $keyword]],
                         [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 40]]],
+                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
