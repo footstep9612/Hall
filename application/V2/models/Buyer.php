@@ -1167,7 +1167,7 @@ class BuyerModel extends PublicModel {
         //联系人
         $contactArr = array(//buyer_attach   buyer_contact
 //            'role', //购买角色
-//            'email',    //邮箱
+//            'email',    //邮箱////////
 //            'hobby',    //喜好
             'address'=>'详细地址',
             'experience'=>'工作经历',
