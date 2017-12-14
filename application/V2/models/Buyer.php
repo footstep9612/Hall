@@ -452,6 +452,7 @@ class BuyerModel extends PublicModel {
                         $checked_log_arr['id'] = $where['id'];
                         $checked_log_arr['status'] = self::STATUS_APPROVED;
                         $checked_log_arr['checked_by'] = $create['checked_by'];
+                        $checked_log_arr['remarks'] = $create['remarks'];//?
                         $checked_log = new BuyerCheckedLogModel();
                         $checked_log->create_data($checked_log_arr);
                     }
@@ -1287,7 +1288,7 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function showBuyerBaseInfo($data){
-        $cond = ['recommend_flag'=>'Y'];
+        $cond = [];
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
         }
