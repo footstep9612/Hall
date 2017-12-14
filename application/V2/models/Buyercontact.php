@@ -139,7 +139,7 @@ class BuyercontactModel extends PublicModel
     }
     public function getlist($data) {
         $where =$this -> getCondition($data);
-        $sql = $this->field('buyer_contact.id,buyer_id,first_name,last_name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
+        $sql = $this->field('buyer_contact.id,buyer_id,first_name,last_name,buyer_contact.name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
   province,city,address,zipcode,buyer_contact.remarks,buyer_contact.created_by,buyer_contact.created_at,area.name as area_name,country.name as country_name')
                 ->where($where)
                 ->join('`erui_operation`.`market_area` area on area.lang="zh" and area.bn=erui_buyer.`buyer_contact`.`area_bn` ', 'left')

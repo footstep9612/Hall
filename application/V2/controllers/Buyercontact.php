@@ -36,6 +36,9 @@ class BuyercontactController extends PublicController {
         if (!empty($data['last_name'])) {
             $where['last_name'] = $data['last_name'];
         }
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
