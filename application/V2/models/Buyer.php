@@ -1253,7 +1253,8 @@ class BuyerModel extends PublicModel {
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at//有效期
+            'expiry_at' =>  $expiry_at, //有效期
+            'recommend_flag' =>'Y'//有效期
         );
         //非必须数据
         $baseArr = array(
