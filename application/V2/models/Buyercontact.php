@@ -40,6 +40,9 @@ class BuyercontactModel extends PublicModel
         if(isset($create['last_name'])){
             $arr['last_name'] = $create['last_name'];
         }
+        if(isset($create['name'])){
+            $arr['name'] = $create['name'];
+        }
         if(isset($create['gender'])){
             $arr['gender'] = $create['gender'];
         }
@@ -117,6 +120,9 @@ class BuyercontactModel extends PublicModel
         if (!empty($data['last_name'])) {
             $where['last_name'] =  ['like',"%".$data['last_name']."%"];
         }
+        if (!empty($data['name'])) {
+            $where['name'] =  ['like',"%".$data['name']."%"];
+        }
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
@@ -136,7 +142,7 @@ class BuyercontactModel extends PublicModel
     }
     public function getlist($data) {
         $where =$this -> getCondition($data);
-        $sql = $this->field('buyer_contact.id,buyer_id,first_name,last_name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
+        $sql = $this->field('buyer_contact.id,buyer_id,first_name,last_name,buyer_contact.name,gender,title,phone,fax,email,country_code,country_bn,area_bn,
   province,city,address,zipcode,buyer_contact.remarks,buyer_contact.created_by,buyer_contact.created_at,area.name as area_name,country.name as country_name')
                 ->where($where)
                 ->join('`erui_operation`.`market_area` area on area.lang="zh" and area.bn=erui_buyer.`buyer_contact`.`area_bn` ', 'left')

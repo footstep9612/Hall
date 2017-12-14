@@ -36,6 +36,9 @@ class BuyercontactController extends PublicController {
         if (!empty($data['last_name'])) {
             $where['last_name'] = $data['last_name'];
         }
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = $data['country_bn'];
         }
@@ -118,6 +121,9 @@ class BuyercontactController extends PublicController {
         }
         if(isset($data['last_name'])){
             $arr['last_name'] = $data['last_name'];
+        }
+        if(isset($data['name'])){
+            $arr['name'] = $data['name'];
         }
         if(isset($data['gender'])){
             $arr['gender'] = $data['gender'];

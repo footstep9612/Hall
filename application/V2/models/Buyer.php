@@ -66,9 +66,6 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
-        if (!empty($condition['buyer_no'])) {
-            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
-        }
         if (!empty($condition['employee_name'])) {
             $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
         }
@@ -120,6 +117,9 @@ class BuyerModel extends PublicModel {
         }
         if (!empty($condition['credit_checked_name'])) {
             $where .= " And `em`.`name`  like '%" . $condition['credit_checked_name'] . "%'";
+        }
+        if (!empty($condition['buyer_no'])) {
+            $where .= ' And buyer_no  like "%' . $condition['buyer_no'] . '%"';
         }
         if (!empty($condition['buyer_code'])) {
             $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
@@ -1135,55 +1135,58 @@ class BuyerModel extends PublicModel {
     public function validBuyerBaseData($data) {
         //验证必填数据非空
         $baseArr = array(
-            'buyer_id', //采购商客户id
-            'buyer_name', //采购商客户名称
-//            'buyer_code', //客户代码
-//            'buyer_level', //客户级别
-//            'level_at', //定级日期
-//            'expiry_at', //有效期
-//            'country_bn', //国家
-//            'area_bn', //地区
-//            'employee_count', //雇员数量
-            'official_phone', //公司固话
-            'official_email', //公司邮箱
-            'official_website', //公司网址
-            'company_reg_date', //成立日期
-            'reg_capital', //注册资金
-            'reg_capital_cur', //注册资金货币
-            'profile', //公司介绍txt
+            'buyer_id'=>'采购商客户id',
+            'buyer_name'=>'采购商客户名称',
+//            'buyer_code', //客户代码,
+//            'buyer_level', //客户级别,
+//            'level_at', //定级日期,
+//            'expiry_at', //有效期,
+//            'country_bn', //国家,
+//            'area_bn', //地区,
+//            'employee_count', //雇员数量,
+            'official_phone'=>'公司固话',
+            'official_email'=>'公司邮箱',
+            'official_website'=>'公司网址',
+            'company_reg_date'=>'成立日期',
+            'reg_capital'=>'注册资金',
+            'reg_capital_cur'=>'注册资金货币',
+            'profile'=>'公司介绍txt'
         );
-        foreach ($baseArr as $v) {
-            if (empty($data['base_info'][$v])) {
-                return false;
+        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
+            return '公司邮箱';
+        }
+        foreach($baseArr as $k => $v){
+            if(empty($data['base_info'][$k])){
+                return $v;
             }
             unset($baseArr['profile']);
-            if (strlen($data['base_info'][$v]) > 100 || strlen($data['profile']) > 1000) {
-                return false;
+            if(strlen($data['base_info'][$k]) > 100 || strlen($data['profile']) > 1000){
+                return $v;
             }
         }
         //联系人
         $contactArr = array(//buyer_attach   buyer_contact
 //            'role', //购买角色
-//            'email',    //邮箱
+//            'email',    //邮箱////////
 //            'hobby',    //喜好
-            'address', //详细地址
-            'experience', //工作经历
-            'social_relations', //社会关系
+            'address'=>'详细地址',
+            'experience'=>'工作经历',
+            'social_relations'=>'社会关系'
         );
         $contactNeed = array(
-            'name', //联系人姓名
-            'title', //联系人职位
-            'phone', //联系人电话
+            'name'=>'联系人姓名',
+            'title'=>'联系人职位',
+            'phone'=>'联系人电话'
         );
-        foreach ($data['contact'] as $value) {
-            foreach ($contactNeed as $v) {
-                if (empty($value[$v]) || strlen($value[$v]) > 50) {
-                    return false;
+        foreach($data['contact'] as $value){
+            foreach($contactNeed as $k=>$v){
+                if(empty($value[$k]) || strlen($value[$k]) > 50){
+                    return $v;
                 }
             }
-            foreach ($contactArr as $v) {
-                if (!empty($value[$v]) && strlen($value[$v]) > 100) {
-                    return false;
+            foreach($contactArr as $v){
+                if(!empty($value[$k]) && strlen($value[$k]) > 100){
+                    return $v;
                 }
             }
         }
@@ -1194,11 +1197,14 @@ class BuyerModel extends PublicModel {
      * 采购商客户管理，基本信息的创建
      * wangs
      */
-    public function createBuyerBaseInfo($data) {
+    public function createBuyerBaseInfo($data){
+        if(empty($data['base_info']) || empty($data['contact'])){
+            return false;
+        }
         //验证数据
         $info = $this->validBuyerBaseData($data);
-        if ($info == false) {
-            return false;
+        if($info !== true){
+            return $info;
         }
         //组装基本信息数据
         $arr = $this->packageBaseData($data['base_info'], $data['created_by']);
@@ -1225,19 +1231,20 @@ class BuyerModel extends PublicModel {
         $expiry_at = str_replace($year_at, $year_end, $level_at);
         //必须数据
         $arr = array(
-            'created_by' => $created_by, //客户id
-            'created_at' => date('Y-m-d H:i:s'), //客户id
-            'id' => $data['buyer_id'], //客户id
-            'name' => $data['buyer_name'], //客户名称
-            'official_phone' => $data['official_phone'], //公司固话
-            'official_email' => $data['official_email'], //公司邮箱
-            'official_website' => $data['official_website'], //公司网址
-            'company_reg_date' => $data['company_reg_date'], //成立日期
-            'reg_capital' => $data['reg_capital'], //注册资金
-            'reg_capital_cur' => $data['reg_capital_cur'], //注册资金货币
-            'profile' => $data['profile'], //公司介绍txt
-            'level_at' => $level_at, //定级日期
-            'expiry_at' => $expiry_at  //有效期
+            'created_by'    => $created_by, //客户id
+            'created_at'    => date('Y-m-d H:i:s'), //客户id
+            'id'    => $data['buyer_id'], //客户id
+            'name'  => $data['buyer_name'], //客户名称
+            'official_phone'    => $data['official_phone'],    //公司固话
+            'official_email'    => $data['official_email'],    //公司邮箱
+            'official_website'  => $data['official_website'],  //公司网址
+            'company_reg_date'  => $data['company_reg_date'],  //成立日期
+            'reg_capital'   => $data['reg_capital'],   //注册资金
+            'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
+            'profile'   => $data['profile'],   //公司介绍txt
+            'level_at' =>  $level_at,  //定级日期
+            'expiry_at' =>  $expiry_at,  //有效期
+            'status' =>  'APPROVING'  //待审核状态
         );
         //非必须数据
         $baseArr = array(
