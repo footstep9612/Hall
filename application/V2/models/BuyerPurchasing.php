@@ -95,9 +95,9 @@ class BuyerPurchasingModel extends PublicModel
             $info[$k]['purchasing_at'] = substr($v['purchasing_at'],0,4);
         }
         if(empty($info)){
-            $info['purchasing_budget']='';
-            $info['purchasing_plan']='';
-            $info['purchasing_at']='';
+            $info[0]['purchasing_budget']='';
+            $info[0]['purchasing_plan']='';
+            $info[0]['purchasing_at']='';
         }
         return $info;
     }
