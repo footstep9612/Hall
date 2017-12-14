@@ -1183,8 +1183,12 @@ class BuyerModel extends PublicModel {
         if($data['base_info']['reg_capital'] < 0){
             return '注册资金';
         }
-        if(!empty($data['base_info']['employee_count']) && !is_int($data['base_info']['employee_count'])){
-            return '雇员数量';
+        if(!empty($data['base_info']['employee_count'])){
+            if(is_numeric($data['base_info']['employee_count']) && $data['base_info']['employee_count'] > 0){
+                $data['base_info']['employee_count'] = ceil($data['base_info']['employee_count']);
+            }else{
+                return '雇员数量';
+            }
         }
         //联系人
         $contactArr = array(//buyer_attach   buyer_contact
