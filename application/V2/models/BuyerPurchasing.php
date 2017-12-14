@@ -97,6 +97,7 @@ class BuyerPurchasingModel extends PublicModel
         if(empty($info)){
             $info['purchasing_budget']='';
             $info['purchasing_plan']='';
+            $info['purchasing_at']='';
         }
         return $info;
     }
