@@ -21,7 +21,7 @@ class NotificationController extends PublicController
 
         $inquiry = new InquiryModel();
 
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status,country_bn')->page($page, $pagesize)->select();
+        $list = $inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status,country_bn')->page($page, $pagesize)->select();
 
         foreach ($list as &$item){
             $item['remind_count'] = count($this->remindList($item['id']));
@@ -32,7 +32,7 @@ class NotificationController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功!',
-            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id']])->where("status !='INQUIRY_CLOSED' ")->field('id')->select()),
+            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' ")->field('id')->select()),
             'data'    => $list
         ]);
 
