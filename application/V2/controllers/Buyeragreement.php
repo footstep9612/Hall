@@ -48,6 +48,11 @@ class BuyeragreementController extends PublicController
             $dataJson['message'] = '请选择协议附件';
             $this -> jsonReturn($dataJson);
         }
+        if(empty($data['amount']) || !is_numeric($data['amount'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '请数字金额';
+            $this -> jsonReturn($dataJson);
+        }
         $agree = new BuyerAgreementModel();
         $agreement_id = $agree->createAgree($data);
         if($agreement_id === false){
