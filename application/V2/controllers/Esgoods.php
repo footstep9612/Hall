@@ -248,9 +248,10 @@ class EsgoodsController extends PublicController {
             //$lang = 'zh';
             set_time_limit(0);
             ini_set('memory_limi', '1G');
+            $skus = $this->getPut('skus');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsGoodsModel();
-                $espoductmodel->importgoodss($lang);
+                $espoductmodel->importgoodss($lang, $skus);
             }
             $es = new ESClient();
             $es->refresh($this->index);

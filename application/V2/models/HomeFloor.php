@@ -13,10 +13,10 @@
  * @version V2.0
  * @desc
  */
-class StockFloorModel extends PublicModel {
+class HomeFloorModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'stock_floor';
+    protected $tableName = 'home_floor';
     protected $dbName = 'erui_stock';
 
     public function __construct() {
@@ -106,7 +106,7 @@ class StockFloorModel extends PublicModel {
         $condition['country_bn'] = trim($condition['country_bn']);
         $condition['floor_name'] = trim($condition['floor_name']);
         $condition['onshelf_flag'] = trim($condition['onshelf_flag']) == 'Y' ? 'Y' : 'N';
-        $condition['sku_count'] = intval($condition['sku_count']);
+        $condition['spu_count'] = intval($condition['spu_count']);
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
@@ -163,8 +163,7 @@ class StockFloorModel extends PublicModel {
     public function ChangeSkuCount($floor_id, $count = 1) {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-
-        $data['sku_count'] = ['exp', 'sku_count+' . $count];
+        $data['spu_count'] = ['exp', 'spu_count+' . $count];
         return $this->where(['id' => $floor_id])->save($data);
     }
 
@@ -175,22 +174,25 @@ class StockFloorModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addGoods($floor_id, $country_bn, $lang, $skus) {
+    public function addProducts($floor_id, $country_bn, $lang, $spus) {
 
         $this->startTrans();
-        $stock_model = new StockModel();
-        foreach ($skus as $sku) {
-            $flag = $stock_model->where(['lang' => $lang,
+        $home_floor_product_model = new HomeFloorProductModel();
+        foreach ($spus as $spu) {
+            $flag = $home_floor_product_model->where(['lang' => $lang,
                         'country_bn' => $country_bn,
-                        'sku' => $sku])->save(['floor_id' => $floor_id,
+                        'spu' => $spu])
+                    ->save(['floor_id' => $floor_id,
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0
             ]);
-            if (!$flag) {
-                $this->rollback();
-                return false;
+            if ($flag) {
+
+                $this->ChangeSkuCount($floor_id, 1);
+            } else {
+                echo $home_floor_product_model->_sql(), PHP_EOL;
             }
-            $this->ChangeSkuCount($floor_id, 1);
+            //$this->ChangeSkuCount($floor_id, 1);
         }
         $this->commit();
         return true;

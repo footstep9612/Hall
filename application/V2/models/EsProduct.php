@@ -793,11 +793,14 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function importproducts($lang = 'en') {
+    public function importproducts($lang = 'en', $product_spus = []) {
         try {
             $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]
-                    ])->count('id');
+            $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
+            if ($product_spus) {
+                $where_count['spu'] = ['in', $product_spus];
+            }
+            $count = $this->where($where_count)->count('id');
 
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -811,16 +814,17 @@ class EsProductModel extends Model {
                     $i = $count;
                 }
 
-
+                $where = ['lang' => $lang,];
                 if ($max_id === 0) {
-                    $products = $this->where(['lang' => $lang, 'id' => ['gt', 0]
-                                    ])->limit(0, 100)
-                                    ->order('id ASC')->select();
+                    $where['id'] = ['gt', 0];
                 } else {
-                    $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
-                                    ])->limit(0, 100)
-                                    ->order('id ASC')->select();
+                    $where['id'] = ['gt', $max_id];
                 }
+                if ($product_spus) {
+                    $where['spu'] = ['in', $product_spus];
+                }
+                $products = $this->where($where)->limit(0, 100)
+                                ->order('id ASC')->select();
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
