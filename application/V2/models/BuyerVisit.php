@@ -357,13 +357,13 @@ class BuyerVisitModel extends PublicModel {
         }
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
+
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;
                 $where[ 'id' ] = intval( $_input[ 'id' ] );
-                if ( $this->where( $where )->save( $data ) ) {
-                    $result = $_input[ 'id' ];
-                }
+                $this->where( $where )->save( $data );
+                $result = $_input[ 'id' ];
             }else{
                 $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
                 $data['created_at'] = date('Y-m-d H:i:s',time());

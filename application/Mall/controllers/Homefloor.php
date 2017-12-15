@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc
  */
-class StockfloorController extends PublicController {
+class HomefloorController extends PublicController {
 
     //put your code here
     public function init() {
@@ -39,9 +39,9 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
         }
-        $stock_floor_model = new StockFloorModel();
+        $home_floor_model = new HomeFloorModel();
 
-        $list = $stock_floor_model->getList($condition);
+        $list = $home_floor_model->getList($condition);
         if ($list) {
 
             $this->jsonReturn($list);
@@ -80,9 +80,9 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
         }
-        $stock_floor_keyword_model = new StockFloorKeywordModel();
+        $home_floor_keyword_model = new HomeFloorKeywordModel();
 
-        $list = $stock_floor_keyword_model->getList($condition);
+        $list = $home_floor_keyword_model->getList($condition);
         if ($list) {
 
             $this->jsonReturn($list);
@@ -121,9 +121,9 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
         }
-        $stock_floor_show_cat_model = new StockFloorShowCatModel();
+        $home_floor_show_cat_model = new HomeFloorShowCatModel();
 
-        $list = $stock_floor_show_cat_model->getList($condition);
+        $list = $home_floor_show_cat_model->getList($condition);
         if ($list) {
 
             $this->jsonReturn($list);
@@ -162,9 +162,9 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
         }
-        $stock_floor_ads_model = new StockFloorAdsModel();
+        $home_floor_ads_model = new HomeFloorAdsModel();
 
-        $list = $stock_floor_ads_model->getList($condition);
+        $list = $home_floor_ads_model->getList($condition);
         if ($list) {
 
             $this->jsonReturn($list);
