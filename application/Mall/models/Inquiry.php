@@ -16,6 +16,8 @@ class InquiryModel extends PublicModel {
         parent::__construct();
     }
 
+
+
     /**
      * @param  int $inquiryNo 询单号.
      * 验证询单号是否存在

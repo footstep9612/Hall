@@ -80,37 +80,60 @@ class ShoppingCarModel extends publicModel{
     /**
      * 添加/编辑车
      * @param $input
+     * @param type 0 询单车  1购物车
      */
     public function edit($input){
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
 
-        if(!isset($input['sku']) || empty($input['sku'])){
+        if(!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])){
             jsonReturn('',ErrorMsg::NOTNULL_SKU);
         }
-        $userInfo = getLoinInfo();
-        $data = [
-            'buyer_id' => $userInfo['id'],
-            'spu' => $input['spu'],
-            'sku' => $input['sku'],
-            'buyer_id' => $input['buyer_id'],
-            'buy_number' => $input['buy_number'],
-            'type'=>$input['type'] ? $input['type'] : 0,
-            'deleted_flag' => 'N'
-        ];
-        if(isset($_input['id']) && !empty($input['id'])){
-            $condition = ['id' => $_input['id']];
-            $data['updated_at'] = date('Y-m-d H:i:s');
-            $result = $this->where($condition)->save($data);
-            if($result){
-                $result = $input['id'];
-            }
-        }else{
-            $data['created_at'] = date('Y-m-d H:i:s');
-            $result = $this->add($this->create($data));
+
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
         }
-        return $result ? $result : false;
+
+        try{
+            $userInfo = getLoinInfo();
+            $this->startTrans();
+            foreach($input['skus'] as $sku => $count){
+                $data = [
+                    'lang' => $input['lang'],
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id'],
+                    'spu' => trim($input['spu']),
+                    'sku' => trim($sku),
+                    'buy_number' => trim($count),
+                    'type'=>$input['type'] ? $input['type'] : 0,
+                    'deleted_flag' => 'N'
+                ];
+
+                $condition = [
+                    'spu' => trim($input['spu']),
+                    'sku' => trim($sku),
+                    'lang' => $input['lang'],
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id']
+                ];
+                $result = $this->field('id')->where($condition)->find();
+                if($result){
+                    $data['updated_at'] = date('Y-m-d H:i:s');
+                    $result = $this->where(['id'=>$result['id']])->save($data);
+                }else{
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $result = $this->add($this->create($data));
+                }
+                if(!$result) {
+                    $this->rollback();
+                    return false;
+                }
+            }
+            $this->commit();
+            return true;
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】edit:' . $e , Log::ERR);
+            return false;
+        }
     }
 	
 	/**
@@ -135,7 +158,7 @@ class ShoppingCarModel extends publicModel{
 			return $result ? $result : false;
 		}catch(Exception $e){
 			 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】del:' . $e , Log::ERR);
-            return false;
+             return false;
 		}
 	}
 

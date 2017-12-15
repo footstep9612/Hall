@@ -2727,34 +2727,6 @@ class GoodsModel extends PublicModel {
                     }
 
                     if ($col_value > 0) {    //非空行进行数据验证与处理
-                        $supplie = $data_tmp['供应商名称'];    //先处理供应商 必填
-                        if (empty($data_tmp['供应商名称'])) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入供应商]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
-                        $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag' => 'N', 'name' => $supplie))->find();
-                        if (!$supplierInfo) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[供应商不存在]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
-                        $input_sku = $data_tmp['订货号'];    //输入的sku  订货号
-                        if (!empty($input_sku) && strlen($input_sku) != 16) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[商品编码有误]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
-
                         $data['spu'] = $spu;
                         $data['lang'] = $lang;
                         $data['name'] = $data_tmp['名称'];    //名称
@@ -2771,6 +2743,7 @@ class GoodsModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
+
                         $data['model'] = $data_tmp['型号'];    //型号
                         if (!isset($data['model']) || empty($data['model'])) {
                             $faild++;
@@ -2780,10 +2753,36 @@ class GoodsModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
+
                         $data['exw_days'] = $data_tmp['出货周期(天)'];    //出货周期
                         if (empty($data['exw_days']) || !is_numeric($data['exw_days'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[出货周期有误]');
+                            $start_row++;
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            continue;
+                        }
+
+                        $supplie = $data_tmp['供应商名称'];    //先处理供应商 必填
+                        if (empty($data_tmp['供应商名称'])) {
+                            $faild++;
+                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入供应商]');
+                            $start_row++;
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            continue;
+                        }
+                        $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag' => 'N', 'name' => $supplie))->find();
+                        if (!$supplierInfo) {
+                            $supplier_data = ['lang'=>'zh','country_bn'=>'China','is_erui'=>'N','name'=>$supplie,'org_id'=>'9756','created_at'=>date('Y-m-d H:i:s',time()),'status'=>'DRAFT'];
+                            $supplierInfo['id'] = $supplierModel->add($supplierModel->create($supplier_data));
+                        }
+
+                        $input_sku = $data_tmp['订货号'];    //输入的sku  订货号
+                        if (!empty($input_sku) && strlen($input_sku) != 16) {
+                            $faild++;
+                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[商品编码格式有误]');
                             $start_row++;
                             flock($fp, LOCK_UN);
                             fclose($fp);
@@ -2845,6 +2844,16 @@ class GoodsModel extends PublicModel {
                             $data['purchase_price'] = $price_ary[0];
                         }
 
+                        $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
+                        if (empty($data['purchase_price_cur_bn']) || !in_array(array('bn' => $data['purchase_price_cur_bn']), $currencyList)) {
+                            $faild++;
+                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
+                            $start_row++;
+                            flock($fp, LOCK_UN);
+                            fclose($fp);
+                            continue;
+                        }
+
                         if (empty($data_tmp['有效期开始时间']) && empty($data_tmp['有效期结束时间'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期开始与结束时间必填一项]');
@@ -2887,23 +2896,15 @@ class GoodsModel extends PublicModel {
                                 continue;
                             }
                         }
-                        $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
-                        if (empty($data['purchase_price_cur_bn']) || !in_array(array('bn' => $data['purchase_price_cur_bn']), $currencyList)) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
-                        if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
+
+                      /*  if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入非固定属性]');
                             $start_row++;
                             flock($fp, LOCK_UN);
                             fclose($fp);
                             continue;
-                        }
+                        }*/
                         $data['nude_cargo_l_mm'] = $data_tmp['裸货尺寸长(mm)'];    //裸货尺寸长(mm)
                         if (!empty($data['nude_cargo_l_mm']) && !is_numeric($data['nude_cargo_l_mm'])) {
                             $faild++;
