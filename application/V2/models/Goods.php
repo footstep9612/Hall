@@ -566,19 +566,19 @@ class GoodsModel extends PublicModel {
         }
 
         //检测语言是否规范
-        if(isset($input['activename']) && !empty($input['activename']) && !in_array($input['activename'], ['zh','en','es','ru'])){
+        if (isset($input['activename']) && !empty($input['activename']) && !in_array($input['activename'], ['zh', 'en', 'es', 'ru'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '语言有误');
         }
 
         $datas = [];
         //取数据
-        if(!isset($input['activename']) || empty($input['activename'])){
-            foreach(['zh','en','es','ru'] as $lang){
-                if(isset($input[$lang])){
+        if (!isset($input['activename']) || empty($input['activename'])) {
+            foreach (['zh', 'en', 'es', 'ru'] as $lang) {
+                if (isset($input[$lang])) {
                     $datas[$lang] = $input[$lang];
                 }
             }
-        }else{
+        } else {
             $datas[$input['activename']] = $input[$input['activename']];
         }
 
@@ -600,129 +600,129 @@ class GoodsModel extends PublicModel {
                 $spuModel = new ProductModel();
                 foreach ($datas as $lang => $value) {
                     //字段校验
-                    $checkout = $this->checkParam( $value , $this->field , $input[ 'supplier_cost' ] );
-                    $attr = $this->attrGetInit( $checkout[ 'attrs' ] );    //格式化属性
-                    if ( empty( $value[ 'name' ] ) && empty( $attr[ 'spec_attrs' ] ) ) {    //这里主要以名称为主判断
+                    $checkout = $this->checkParam($value, $this->field, $input['supplier_cost']);
+                    $attr = $this->attrGetInit($checkout['attrs']);    //格式化属性
+                    if (empty($value['name']) && empty($attr['spec_attrs'])) {    //这里主要以名称为主判断
                         continue;
                     }
 
-                    $spuName = $spuModel->field( 'name' )->where( [ 'spu' => $spu , 'lang' => $lang , 'deleted_flag' => 'N' ] )->find();
-                    if ( $spuName ) {
-                        if ( empty( $value[ 'name' ] ) ) {
-                            $value[ 'name' ] = $spuName[ 'name' ];
+                    $spuName = $spuModel->field('name')->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->find();
+                    if ($spuName) {
+                        if (empty($value['name'])) {
+                            $value['name'] = $spuName['name'];
                         }
-                    } elseif ( !empty( $value[ 'name' ] ) ) {
+                    } elseif (!empty($value['name'])) {
                         $this->rollback();
-                        flock( $fp , LOCK_UN );
-                        fclose( $fp );
-                        jsonReturn( '' , ErrorMsg::FAILED , $this->lang_ary[ $lang ] . 'SPU不存在' );
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        jsonReturn('', ErrorMsg::FAILED, $this->lang_ary[$lang] . 'SPU不存在');
                     }
 
                     //状态校验 增加中文验证  --前端vue无法处理改为后端处理验证
-                    $status = $this->checkSkuStatus( isset( $value[ 'status' ] ) && !empty( $value[ 'status' ] ) ? $value[ 'status' ] : ( ( isset( $input[ 'status' ] ) && !empty( $input[ 'status' ] ) ) ? $input[ 'status' ] : 'DRAFT' ) );
+                    $status = $this->checkSkuStatus(isset($value['status']) && !empty($value['status']) ? $value['status'] : ( ( isset($input['status']) && !empty($input['status']) ) ? $input['status'] : 'DRAFT' ));
                     //除暂存外都进行校验     这里存在暂存重复加的问题，此问题暂时预留。
                     //校验sku名称/型号/扩展属性
                     //if ( $status != 'DRAFT' ) {   //去掉暂存不进行校验，张玉良-2017-12-11 15:50:00
-                        if ( empty( $attr[ 'spec_attrs' ] ) ) {
-                            $this->rollback();
-                            flock( $fp , LOCK_UN );
-                            fclose( $fp );
-                            jsonReturn( '' , ErrorMsg::FAILED , '请输入扩展属性' );
-                        }
+                    if (empty($attr['spec_attrs'])) {
+                        $this->rollback();
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
+                        jsonReturn('', ErrorMsg::FAILED, '请输入扩展属性');
+                    }
 
-                        $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
-                            'lang' => $lang ,
-                            'spu' => $spu ,
-                            'name' => $value[ 'name' ] ,
-                            'model' => $checkout[ 'model' ] ,
-                            'deleted_flag' => 'N' ,
+                    $exist_condition = array(//添加时判断同一语言，name,meterial_cat_no,model是否存在
+                        'lang' => $lang,
+                        'spu' => $spu,
+                        'name' => $value['name'],
+                        'model' => $checkout['model'],
+                        'deleted_flag' => 'N',
                             //'status' => array( 'neq' , 'DRAFT' )
-                        );
-                        if ( !empty( $input[ 'sku' ] ) && $input[ 'sku' ] !== 'false' ) {
-                            $exist_condition[ 'sku' ] = array( 'neq' , $input[ 'sku' ] );
-                        }
-                        $this->_checkExit( $exist_condition , $attr );
+                    );
+                    if (!empty($input['sku']) && $input['sku'] !== 'false') {
+                        $exist_condition['sku'] = array('neq', $input['sku']);
+                    }
+                    $this->_checkExit($exist_condition, $attr);
                     //}//去掉暂存不进行校验
 
                     $data = [
-                        'lang' => $lang ,
-                        'spu' => $spu ,
-                        'name' => $checkout[ 'name' ] ,
-                        'show_name' => isset( $checkout[ 'show_name' ] ) ? $checkout[ 'show_name' ] : '' ,
-                        'model' => !empty( $checkout[ 'model' ] ) ? $checkout[ 'model' ] : '' ,
-                        'description' => !empty( $checkout[ 'description' ] ) ? $checkout[ 'description' ] : '' ,
-                        'source' => !empty( $checkout[ 'source' ] ) ? $checkout[ 'source' ] : '' ,
-                        'source_detail' => !empty( $checkout[ 'source_detail' ] ) ? $checkout[ 'source_detail' ] : '' ,
+                        'lang' => $lang,
+                        'spu' => $spu,
+                        'name' => $checkout['name'],
+                        'show_name' => isset($checkout['show_name']) ? $checkout['show_name'] : '',
+                        'model' => !empty($checkout['model']) ? $checkout['model'] : '',
+                        'description' => !empty($checkout['description']) ? $checkout['description'] : '',
+                        'source' => !empty($checkout['source']) ? $checkout['source'] : '',
+                        'source_detail' => !empty($checkout['source_detail']) ? $checkout['source_detail'] : '',
                         //固定商品  属性
-                        'exw_days' => isset( $attr[ 'const_attr' ][ 'exw_days' ] ) ? $attr[ 'const_attr' ][ 'exw_days' ] : null ,
-                        'min_pack_naked_qty' => ( isset( $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_naked_qty' ] : null ,
-                        'nude_cargo_unit' => isset( $attr[ 'const_attr' ][ 'nude_cargo_unit' ] ) ? $attr[ 'const_attr' ][ 'nude_cargo_unit' ] : null ,
-                        'min_pack_unit' => isset( $attr[ 'const_attr' ][ 'min_pack_unit' ] ) ? $attr[ 'const_attr' ][ 'min_pack_unit' ] : null ,
-                        'min_order_qty' => ( isset( $attr[ 'const_attr' ][ 'min_order_qty' ] ) && !empty( $attr[ 'const_attr' ][ 'min_order_qty' ] ) ) ? $attr[ 'const_attr' ][ 'min_order_qty' ] : null ,
-                        'purchase_price' => ( isset( $attr[ 'const_attr' ][ 'purchase_price' ] ) && !empty( $attr[ 'const_attr' ][ 'purchase_price' ] ) ) ? $attr[ 'const_attr' ][ 'purchase_price' ] : null ,
-                        'purchase_price_cur_bn' => isset( $attr[ 'const_attr' ][ 'purchase_price_cur_bn' ] ) ? $attr[ 'const_attr' ][ 'purchase_price_cur_bn' ] : null ,
-                        'nude_cargo_l_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_l_mm' ] : null ,
+                        'exw_days' => isset($attr['const_attr']['exw_days']) ? $attr['const_attr']['exw_days'] : null,
+                        'min_pack_naked_qty' => ( isset($attr['const_attr']['min_pack_naked_qty']) && !empty($attr['const_attr']['min_pack_naked_qty']) ) ? $attr['const_attr']['min_pack_naked_qty'] : null,
+                        'nude_cargo_unit' => isset($attr['const_attr']['nude_cargo_unit']) ? $attr['const_attr']['nude_cargo_unit'] : null,
+                        'min_pack_unit' => isset($attr['const_attr']['min_pack_unit']) ? $attr['const_attr']['min_pack_unit'] : null,
+                        'min_order_qty' => ( isset($attr['const_attr']['min_order_qty']) && !empty($attr['const_attr']['min_order_qty']) ) ? $attr['const_attr']['min_order_qty'] : null,
+                        'purchase_price' => ( isset($attr['const_attr']['purchase_price']) && !empty($attr['const_attr']['purchase_price']) ) ? $attr['const_attr']['purchase_price'] : null,
+                        'purchase_price_cur_bn' => isset($attr['const_attr']['purchase_price_cur_bn']) ? $attr['const_attr']['purchase_price_cur_bn'] : null,
+                        'nude_cargo_l_mm' => ( isset($attr['const_attr']['nude_cargo_l_mm']) && !empty($attr['const_attr']['nude_cargo_l_mm']) ) ? $attr['const_attr']['nude_cargo_l_mm'] : null,
                         //固定物流属性
-                        'nude_cargo_w_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_w_mm' ] : null ,
-                        'nude_cargo_h_mm' => ( isset( $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] ) ) ? $attr[ 'const_attr' ][ 'nude_cargo_h_mm' ] : null ,
-                        'min_pack_l_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_l_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_l_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_l_mm' ] : null ,
-                        'min_pack_w_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_w_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_w_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_w_mm' ] : null ,
-                        'min_pack_h_mm' => ( isset( $attr[ 'const_attr' ][ 'min_pack_h_mm' ] ) && !empty( $attr[ 'const_attr' ][ 'min_pack_h_mm' ] ) ) ? $attr[ 'const_attr' ][ 'min_pack_h_mm' ] : null ,
-                        'net_weight_kg' => ( isset( $attr[ 'const_attr' ][ 'net_weight_kg' ] ) && !empty( $attr[ 'const_attr' ][ 'net_weight_kg' ] ) ) ? $attr[ 'const_attr' ][ 'net_weight_kg' ] : null ,
-                        'gross_weight_kg' => ( isset( $attr[ 'const_attr' ][ 'gross_weight_kg' ] ) && !empty( $attr[ 'const_attr' ][ 'gross_weight_kg' ] ) ) ? $attr[ 'const_attr' ][ 'gross_weight_kg' ] : null ,
-                        'compose_require_pack' => isset( $attr[ 'const_attr' ][ 'compose_require_pack' ] ) ? $attr[ 'const_attr' ][ 'compose_require_pack' ] : '' ,
-                        'pack_type' => isset( $attr[ 'const_attr' ][ 'pack_type' ] ) ? $attr[ 'const_attr' ][ 'pack_type' ] : '' ,
+                        'nude_cargo_w_mm' => ( isset($attr['const_attr']['nude_cargo_w_mm']) && !empty($attr['const_attr']['nude_cargo_w_mm']) ) ? $attr['const_attr']['nude_cargo_w_mm'] : null,
+                        'nude_cargo_h_mm' => ( isset($attr['const_attr']['nude_cargo_h_mm']) && !empty($attr['const_attr']['nude_cargo_h_mm']) ) ? $attr['const_attr']['nude_cargo_h_mm'] : null,
+                        'min_pack_l_mm' => ( isset($attr['const_attr']['min_pack_l_mm']) && !empty($attr['const_attr']['min_pack_l_mm']) ) ? $attr['const_attr']['min_pack_l_mm'] : null,
+                        'min_pack_w_mm' => ( isset($attr['const_attr']['min_pack_w_mm']) && !empty($attr['const_attr']['min_pack_w_mm']) ) ? $attr['const_attr']['min_pack_w_mm'] : null,
+                        'min_pack_h_mm' => ( isset($attr['const_attr']['min_pack_h_mm']) && !empty($attr['const_attr']['min_pack_h_mm']) ) ? $attr['const_attr']['min_pack_h_mm'] : null,
+                        'net_weight_kg' => ( isset($attr['const_attr']['net_weight_kg']) && !empty($attr['const_attr']['net_weight_kg']) ) ? $attr['const_attr']['net_weight_kg'] : null,
+                        'gross_weight_kg' => ( isset($attr['const_attr']['gross_weight_kg']) && !empty($attr['const_attr']['gross_weight_kg']) ) ? $attr['const_attr']['gross_weight_kg'] : null,
+                        'compose_require_pack' => isset($attr['const_attr']['compose_require_pack']) ? $attr['const_attr']['compose_require_pack'] : '',
+                        'pack_type' => isset($attr['const_attr']['pack_type']) ? $attr['const_attr']['pack_type'] : '',
                         //固定申报要素属性
-                        'name_customs' => isset( $attr[ 'const_attr' ][ 'name_customs' ] ) ? $attr[ 'const_attr' ][ 'name_customs' ] : '' ,
-                        'hs_code' => isset( $attr[ 'const_attr' ][ 'hs_code' ] ) ? $attr[ 'const_attr' ][ 'hs_code' ] : '' ,
-                        'tx_unit' => isset( $attr[ 'const_attr' ][ 'tx_unit' ] ) ? $attr[ 'const_attr' ][ 'tx_unit' ] : '' ,
-                        'tax_rebates_pct' => ( isset( $attr[ 'const_attr' ][ 'tax_rebates_pct' ] ) && !empty( $attr[ 'const_attr' ][ 'tax_rebates_pct' ] ) ) ? $attr[ 'const_attr' ][ 'tax_rebates_pct' ] : null ,
-                        'regulatory_conds' => isset( $attr[ 'const_attr' ][ 'regulatory_conds' ] ) ? $attr[ 'const_attr' ][ 'regulatory_conds' ] : '' ,
-                        'commodity_ori_place' => isset( $attr[ 'const_attr' ][ 'commodity_ori_place' ] ) ? $attr[ 'const_attr' ][ 'commodity_ori_place' ] : '' ,
+                        'name_customs' => isset($attr['const_attr']['name_customs']) ? $attr['const_attr']['name_customs'] : '',
+                        'hs_code' => isset($attr['const_attr']['hs_code']) ? $attr['const_attr']['hs_code'] : '',
+                        'tx_unit' => isset($attr['const_attr']['tx_unit']) ? $attr['const_attr']['tx_unit'] : '',
+                        'tax_rebates_pct' => ( isset($attr['const_attr']['tax_rebates_pct']) && !empty($attr['const_attr']['tax_rebates_pct']) ) ? $attr['const_attr']['tax_rebates_pct'] : null,
+                        'regulatory_conds' => isset($attr['const_attr']['regulatory_conds']) ? $attr['const_attr']['regulatory_conds'] : '',
+                        'commodity_ori_place' => isset($attr['const_attr']['commodity_ori_place']) ? $attr['const_attr']['commodity_ori_place'] : '',
                     ];
 
                     //存在修改，不存在新增
                     $where = [
-                        'lang' => $lang ,
+                        'lang' => $lang,
                         'sku' => $sku
                     ];
-                    $exist = $this->field( 'id' )->where( $where )->find();
-                    if ( $exist ) {
-                        $data[ 'updated_by' ] = $userInfo[ 'id' ];
-                        $data[ 'updated_at' ] = date( 'Y-m-d H:i:s' , time() );
-                        $data[ 'deleted_flag' ] = 'N';
-                        $data[ 'status' ] = $status;
-                        $res = $this->where( $where )->save( $data );
+                    $exist = $this->field('id')->where($where)->find();
+                    if ($exist) {
+                        $data['updated_by'] = $userInfo['id'];
+                        $data['updated_at'] = date('Y-m-d H:i:s', time());
+                        $data['deleted_flag'] = 'N';
+                        $data['status'] = $status;
+                        $res = $this->where($where)->save($data);
                     } else {
-                        $data[ 'sku' ] = $sku;
-                        $data[ 'created_by' ] = $userInfo[ 'id' ];
-                        $data[ 'created_at' ] = date( 'Y-m-d H:i:s' , time() );
-                        $data[ 'deleted_flag' ] = 'N';
-                        $data[ 'status' ] = $status;
-                        if ( $lang == 'zh' ) {
-                            $data[ 'show_name_loc' ] = $datas[ 'en' ][ 'name' ];
+                        $data['sku'] = $sku;
+                        $data['created_by'] = $userInfo['id'];
+                        $data['created_at'] = date('Y-m-d H:i:s', time());
+                        $data['deleted_flag'] = 'N';
+                        $data['status'] = $status;
+                        if ($lang == 'zh') {
+                            $data['show_name_loc'] = $datas['en']['name'];
                         } else {
-                            $data[ 'show_name_loc' ] = $datas[ 'zh' ][ 'name' ];
+                            $data['show_name_loc'] = $datas['zh']['name'];
                         }
-                        $res = $this->add( $data );
-                        if ( $res ) {
+                        $res = $this->add($data);
+                        if ($res) {
                             $pModel = new ProductModel();
-                            $skucount = $this->where( [ 'spu' => $spu , 'lang' => $lang , 'deleted_flag' => 'N' ] )->count( 'id' );
-                            $sku_count = intval( $skucount ) ? intval( $skucount ) : 0;
-                            $presult = $pModel->where( [ 'spu' => $spu , 'lang' => $lang ] )
-                                ->save( [ 'sku_count' => $sku_count ] );
-                            if ( $presult === false ) {
+                            $skucount = $this->where(['spu' => $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count('id');
+                            $sku_count = intval($skucount) ? intval($skucount) : 0;
+                            $presult = $pModel->where(['spu' => $spu, 'lang' => $lang])
+                                    ->save(['sku_count' => $sku_count]);
+                            if ($presult === false) {
                                 $this->rollback();
-                                flock( $fp , LOCK_UN );
-                                fclose( $fp );
+                                flock($fp, LOCK_UN);
+                                fclose($fp);
                                 return false;
                             }
                         }
                     }
-                    if ( !$res ) {
+                    if (!$res) {
                         $this->rollback();
-                        flock( $fp , LOCK_UN );
-                        fclose( $fp );
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
                         return false;
                     }
 
@@ -731,21 +731,21 @@ class GoodsModel extends PublicModel {
                      */
                     $gattr = new GoodsAttrModel();
                     $attr_obj = array(
-                        'lang' => $lang ,
-                        'spu' => $spu ,
-                        'sku' => $sku ,
-                        'spec_attrs' => !empty( $attr[ 'spec_attrs' ] ) ? json_encode( $attr[ 'spec_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
-                        'other_attrs' => !empty( $attr[ 'other_attrs' ] ) ? json_encode( $attr[ 'other_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
-                        'ex_goods_attrs' => !empty( $attr[ 'ex_goods_attrs' ] ) ? json_encode( $attr[ 'ex_goods_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
-                        'ex_hs_attrs' => !empty( $attr[ 'ex_hs_attrs' ] ) ? json_encode( $attr[ 'ex_hs_attrs' ] , JSON_UNESCAPED_UNICODE ) : null ,
-                        'status' => $gattr::STATUS_VALID ,
-                        'deleted_flag' => 'N' ,
+                        'lang' => $lang,
+                        'spu' => $spu,
+                        'sku' => $sku,
+                        'spec_attrs' => !empty($attr['spec_attrs']) ? json_encode($attr['spec_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'other_attrs' => !empty($attr['other_attrs']) ? json_encode($attr['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_goods_attrs' => !empty($attr['ex_goods_attrs']) ? json_encode($attr['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'ex_hs_attrs' => !empty($attr['ex_hs_attrs']) ? json_encode($attr['ex_hs_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                        'status' => $gattr::STATUS_VALID,
+                        'deleted_flag' => 'N',
                     );
-                    $resAttr = $gattr->editAttr( $attr_obj );        //属性新增
-                    if ( !$resAttr || $resAttr === false ) {
+                    $resAttr = $gattr->editAttr($attr_obj);        //属性新增
+                    if (!$resAttr || $resAttr === false) {
                         $this->rollback();
-                        flock( $fp , LOCK_UN );
-                        fclose( $fp );
+                        flock($fp, LOCK_UN);
+                        fclose($fp);
                         return false;
                     }
                     $success++;
@@ -770,7 +770,7 @@ class GoodsModel extends PublicModel {
                 $supplierCost = isset($input['supplier_cost']) ? $input['supplier_cost'] : [];
                 if (is_array($supplierCost) && !empty($supplierCost)) {
                     $gcostprice = new GoodsCostPriceModel();
-                    $resCost = $gcostprice->editCostprice($supplierCost, $sku,$editer);  //供应商/价格策略
+                    $resCost = $gcostprice->editCostprice($supplierCost, $sku, $editer);  //供应商/价格策略
                     if (!$resCost || $resCost['code'] != 1) {
                         $this->rollback();
                         flock($fp, LOCK_UN);
@@ -865,13 +865,13 @@ class GoodsModel extends PublicModel {
                             jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在' . '; 扩展属性重复!');
                         }
                     } else {
-                        /*if(isset($attr['supplier'])){
-                            $gs_model = new GoodsSupplierModel();
-                            $result3 = $gs_model->field('id')->where(['supplier_id'=>$attr['supplier']['id']])->find();
-                            if($result3){
-                                jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在');
-                            }
-                        }*/
+                        /* if(isset($attr['supplier'])){
+                          $gs_model = new GoodsSupplierModel();
+                          $result3 = $gs_model->field('id')->where(['supplier_id'=>$attr['supplier']['id']])->find();
+                          if($result3){
+                          jsonReturn('', ErrorMsg::EXIST, '名称：[' . $condition['name'] . '], 型号：[' . $condition['model'] . ']已存在');
+                          }
+                          } */
                         continue;
                     }
                 }
@@ -2031,7 +2031,7 @@ class GoodsModel extends PublicModel {
         $goodsCostPriceModel = new GoodsCostPriceModel();
         $goodsAttrModel = new GoodsAttrModel();
         $currencyModel = new CurrencyModel();
-        $currencyList = $currencyModel->field('bn')->where(['deleted_flag'=>'N'])->select();
+        $currencyList = $currencyModel->field('bn')->where(['deleted_flag' => 'N'])->select();
 
         /** 处理数据 */
         $start_row = 3;    //从第三行开始取
@@ -2176,7 +2176,7 @@ class GoodsModel extends PublicModel {
                             continue;
                         }
                         $data['purchase_price'] = $data_tmp['供应商供货价'];    //进货价格
-                        if (!empty($data['purchase_price']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data['purchase_price'])) {
+                        if (!empty($data['purchase_price']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/', $data['purchase_price'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[供应商供货价有误]');
                             $start_row++;
@@ -2185,20 +2185,20 @@ class GoodsModel extends PublicModel {
                             continue;
                         } elseif ($data['purchase_price'] == '') {
                             $data['purchase_price'] = null;
-                        }else{
-                            $price_ary = explode('-',$data['purchase_price']);
+                        } else {
+                            $price_ary = explode('-', $data['purchase_price']);
                             $data['purchase_price'] = $price_ary[0];
                         }
 
-                        if(isset($data_tmp['有效期开始时间']) && !empty($data_tmp['有效期开始时间'])){
-                            if($data_tmp['有效期开始时间']=='永久有效'){
-                                $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                        if (isset($data_tmp['有效期开始时间']) && !empty($data_tmp['有效期开始时间'])) {
+                            if ($data_tmp['有效期开始时间'] == '永久有效') {
+                                $data_tmp['有效期开始时间'] = date('Y-m-d', time());
                                 $data_tmp['有效期'] = null;
-                            }else{
-                                if(is_numeric($data_tmp['有效期开始时间'])){
+                            } else {
+                                if (is_numeric($data_tmp['有效期开始时间'])) {
                                     $data_tmp['有效期开始时间'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期开始时间']));
                                 }
-                                if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期开始时间'])){
+                                if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $data_tmp['有效期开始时间'])) {
                                     $faild++;
                                     $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期开始时间有误]');
                                     $start_row++;
@@ -2207,18 +2207,18 @@ class GoodsModel extends PublicModel {
                                     continue;
                                 }
                             }
-                        }else{
-                            $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                        } else {
+                            $data_tmp['有效期开始时间'] = date('Y-m-d', time());
                         }
 
-                        if(isset($data_tmp['有效期结束时间']) && !empty($data_tmp['有效期结束时间'])){
+                        if (isset($data_tmp['有效期结束时间']) && !empty($data_tmp['有效期结束时间'])) {
                             $data_tmp['有效期'] = $data_tmp['有效期结束时间'];
                         }
-                        if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
-                            if(is_numeric($data_tmp['有效期'])){
+                        if (isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])) {
+                            if (is_numeric($data_tmp['有效期'])) {
                                 $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
                             }
-                            if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期'])){
+                            if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $data_tmp['有效期'])) {
                                 $faild++;
                                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期有误]');
                                 $start_row++;
@@ -2228,7 +2228,7 @@ class GoodsModel extends PublicModel {
                             }
                         }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
-                        if(!empty($data['purchase_price_cur_bn']) && !in_array(array('bn'=>$data['purchase_price_cur_bn']),$currencyList)){
+                        if (!empty($data['purchase_price_cur_bn']) && !in_array(array('bn' => $data['purchase_price_cur_bn']), $currencyList)) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
                             $start_row++;
@@ -2391,7 +2391,7 @@ class GoodsModel extends PublicModel {
                                         fclose($fp);
                                         continue;
                                     }
-                                    if($exist_sku['spu'] !== $spu){
+                                    if ($exist_sku['spu'] !== $spu) {
                                         $faild++;
                                         $this->rollback();
                                         $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[SKU与SPU编码规则不符]');
@@ -2471,7 +2471,7 @@ class GoodsModel extends PublicModel {
 
                             try {    //商品供应商关系与供应商价格
                                 $data_supplier = array(
-                                    'spu'=>$spu,
+                                    'spu' => $spu,
                                     'sku' => $input_sku,
                                     'supplier_id' => $supplierInfo['id'],
                                     'brand' => $supplierInfo['brand'],
@@ -2499,7 +2499,7 @@ class GoodsModel extends PublicModel {
                                     'price_cur_bn' => $data['purchase_price_cur_bn'],
                                     'min_purchase_qty' => $data['min_order_qty'],
                                     'pricing_date' => date('Y-m-d H:i:s', time()),
-                                    'price_validity_start' => isset($data_tmp['有效期开始时间']) ? $data_tmp['有效期开始时间'] : date('Y-m-d',time()),
+                                    'price_validity_start' => isset($data_tmp['有效期开始时间']) ? $data_tmp['有效期开始时间'] : date('Y-m-d', time()),
                                     'price_validity' => isset($data_tmp['有效期']) ? $data_tmp['有效期'] : null,
                                     'status' => 'VALID'
                                 );
@@ -2673,7 +2673,7 @@ class GoodsModel extends PublicModel {
         $goodsCostPriceModel = new GoodsCostPriceModel();
         $goodsAttrModel = new GoodsAttrModel();
         $currencyModel = new CurrencyModel();
-        $currencyList = $currencyModel->field('bn')->where(['deleted_flag'=>'N'])->select();
+        $currencyList = $currencyModel->field('bn')->where(['deleted_flag' => 'N'])->select();
 
         /** 处理数据 */
         $start_row = 3;    //从第三行开始取
@@ -2791,26 +2791,26 @@ class GoodsModel extends PublicModel {
                         }
 
                         /*
-                        $data['min_pack_naked_qty'] = $data_tmp['最小包装内裸货商品数量'];    //最小包装内裸货商品数量
-                        if (empty($data['min_pack_naked_qty']) || !is_numeric($data['min_pack_naked_qty'])) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[最小包装内裸货商品数量有误]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
+                          $data['min_pack_naked_qty'] = $data_tmp['最小包装内裸货商品数量'];    //最小包装内裸货商品数量
+                          if (empty($data['min_pack_naked_qty']) || !is_numeric($data['min_pack_naked_qty'])) {
+                          $faild++;
+                          $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[最小包装内裸货商品数量有误]');
+                          $start_row++;
+                          flock($fp, LOCK_UN);
+                          fclose($fp);
+                          continue;
+                          }
 
-                        $data['nude_cargo_unit'] = $data_tmp['商品裸货单位'];    //商品裸货单位
-                        if (empty($data['nude_cargo_unit'])) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入商品裸货单位]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }
-                        */
+                          $data['nude_cargo_unit'] = $data_tmp['商品裸货单位'];    //商品裸货单位
+                          if (empty($data['nude_cargo_unit'])) {
+                          $faild++;
+                          $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入商品裸货单位]');
+                          $start_row++;
+                          flock($fp, LOCK_UN);
+                          fclose($fp);
+                          continue;
+                          }
+                         */
 
                         $data['min_pack_unit'] = $data_tmp['最小包装单位'];    //最小包装单位
                         if (empty($data['min_pack_unit'])) {
@@ -2831,7 +2831,7 @@ class GoodsModel extends PublicModel {
                             continue;
                         }
                         $data['purchase_price'] = $data_tmp['供应商供货价'];    //进货价格
-                        if (empty($data['purchase_price']) || !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data['purchase_price'])) {
+                        if (empty($data['purchase_price']) || !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/', $data['purchase_price'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[供应商供货价有误]');
                             $start_row++;
@@ -2840,12 +2840,12 @@ class GoodsModel extends PublicModel {
                             continue;
                         } elseif ($data['purchase_price'] == '') {
                             $data['purchase_price'] = null;
-                        }else{
-                            $price_ary = explode('-',$data['purchase_price']);
+                        } else {
+                            $price_ary = explode('-', $data['purchase_price']);
                             $data['purchase_price'] = $price_ary[0];
                         }
 
-                        if(empty($data_tmp['有效期开始时间']) && empty($data_tmp['有效期结束时间'])){
+                        if (empty($data_tmp['有效期开始时间']) && empty($data_tmp['有效期结束时间'])) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期开始与结束时间必填一项]');
                             $start_row++;
@@ -2854,15 +2854,15 @@ class GoodsModel extends PublicModel {
                             continue;
                         }
 
-                        if(isset($data_tmp['有效期开始时间']) && !empty($data_tmp['有效期开始时间'])){
-                            if($data_tmp['有效期开始时间']=='永久有效'){
-                                $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                        if (isset($data_tmp['有效期开始时间']) && !empty($data_tmp['有效期开始时间'])) {
+                            if ($data_tmp['有效期开始时间'] == '永久有效') {
+                                $data_tmp['有效期开始时间'] = date('Y-m-d', time());
                                 $data_tmp['有效期结束时间'] = null;
-                            }else{
-                                if(is_numeric($data_tmp['有效期开始时间'])){
+                            } else {
+                                if (is_numeric($data_tmp['有效期开始时间'])) {
                                     $data_tmp['有效期开始时间'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期开始时间']));
                                 }
-                                if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期开始时间'])){
+                                if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $data_tmp['有效期开始时间'])) {
                                     $faild++;
                                     $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期开始时间有误]');
                                     $start_row++;
@@ -2871,14 +2871,14 @@ class GoodsModel extends PublicModel {
                                     continue;
                                 }
                             }
-                        }else{
-                            $data_tmp['有效期开始时间'] = date('Y-m-d',time());
+                        } else {
+                            $data_tmp['有效期开始时间'] = date('Y-m-d', time());
                         }
-                        if(isset($data_tmp['有效期结束时间']) && !empty($data_tmp['有效期结束时间'])){
-                            if(is_numeric($data_tmp['有效期结束时间'])){
+                        if (isset($data_tmp['有效期结束时间']) && !empty($data_tmp['有效期结束时间'])) {
+                            if (is_numeric($data_tmp['有效期结束时间'])) {
                                 $data_tmp['有效期结束时间'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期结束时间']));
                             }
-                            if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期结束时间'])){
+                            if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $data_tmp['有效期结束时间'])) {
                                 $faild++;
                                 $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期结束时间有误]');
                                 $start_row++;
@@ -2888,7 +2888,7 @@ class GoodsModel extends PublicModel {
                             }
                         }
                         $data['purchase_price_cur_bn'] = $data_tmp['币种'];    //进货价格币种
-                        if(empty($data['purchase_price_cur_bn']) || !in_array(array('bn'=>$data['purchase_price_cur_bn']),$currencyList)){
+                        if (empty($data['purchase_price_cur_bn']) || !in_array(array('bn' => $data['purchase_price_cur_bn']), $currencyList)) {
                             $faild++;
                             $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[币种有误]');
                             $start_row++;
@@ -3051,7 +3051,7 @@ class GoodsModel extends PublicModel {
                                         fclose($fp);
                                         continue;
                                     }
-                                    if($exist_sku['spu'] !== $spu){
+                                    if ($exist_sku['spu'] !== $spu) {
                                         $faild++;
                                         $this->rollback();
                                         $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[SKU与SPU编码规则不符]');
@@ -3552,14 +3552,14 @@ class GoodsModel extends PublicModel {
         }
     }
 
-
-    /************************************
+    /*     * **********************************
      * 到期导入更新
      * 只更新价格，有效期，pn码
      * @param array $input
      * @return array|bool
      */
-    public function expireImport($input = []){
+
+    public function expireImport($input = []) {
         set_time_limit(0);  # 设置执行时间最大值
         //$localFile = $_SERVER['DOCUMENT_ROOT'] . "/public/file/tmp.xlsx";
         $localFile = ExcelHelperTrait::download2local($input['xls']);
@@ -3602,7 +3602,7 @@ class GoodsModel extends PublicModel {
                 for ($index = 0; $index < $columnsIndex; $index++) {
                     $col_name = PHPExcel_Cell::stringFromColumnIndex($index); //由列数反转列名(0->'A')
                     $value = trim($objPHPExcel->getSheet(0)->getCell($col_name . $start_row)->getValue()); //转码
-                    if($objPHPExcel->getSheet(0)->getCellByColumnAndRow($col_name, $start_row)->getDataType()==PHPExcel_Cell_DataType::TYPE_NUMERIC){
+                    if ($objPHPExcel->getSheet(0)->getCellByColumnAndRow($col_name, $start_row)->getDataType() == PHPExcel_Cell_DataType::TYPE_NUMERIC) {
                         $value = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
                     }
                     if (!empty($value)) {
@@ -3612,32 +3612,32 @@ class GoodsModel extends PublicModel {
                         $data_tmp[$title_ary[$index]] = $value;
                     }
                 }
-                if($col_value == 0){
+                if ($col_value == 0) {
                     continue;
                 }
 
-                if(!isset($data_tmp['供应商名称'])){
+                if (!isset($data_tmp['供应商名称'])) {
                     $faild++;
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '供应商名称不能为空');
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '供应商名称不能为空');
                     flock($fp, LOCK_UN);
                     fclose($fp);
                     $start_row++;
                     continue;
                 }
 
-                $supplierInfo = $supplierModel->field('id')->where(['name'=>$data_tmp['供应商名称'], 'deleted_flag'=>'N'])->find();
-                if(!$supplierInfo){
+                $supplierInfo = $supplierModel->field('id')->where(['name' => $data_tmp['供应商名称'], 'deleted_flag' => 'N'])->find();
+                if (!$supplierInfo) {
                     $faild++;
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '供应商不存在，请检查是否正确');
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '供应商不存在，请检查是否正确');
                     flock($fp, LOCK_UN);
                     fclose($fp);
                     $start_row++;
                     continue;
                 }
 
-                if(isset($data_tmp['价格']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/',$data_tmp['价格'])){
+                if (isset($data_tmp['价格']) && !preg_match('/(^\d+(\.\d{1,4})?\s*)+(\-\s*\d+(\.\d{1,4})?)?$/', $data_tmp['价格'])) {
                     $faild++;
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '价格有误');
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '价格有误');
                     flock($fp, LOCK_UN);
                     fclose($fp);
                     $start_row++;
@@ -3645,11 +3645,11 @@ class GoodsModel extends PublicModel {
                 }
                 $price_ary = isset($data_tmp['价格']) ? explode('-', $data_tmp['价格']) : [];
 
-                if(isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])){
-                    if(is_numeric($data_tmp['有效期'])){
+                if (isset($data_tmp['有效期']) && !empty($data_tmp['有效期'])) {
+                    if (is_numeric($data_tmp['有效期'])) {
                         $data_tmp['有效期'] = gmdate("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($data_tmp['有效期']));
                     }
-                    if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$data_tmp['有效期'])){
+                    if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $data_tmp['有效期'])) {
                         $faild++;
                         $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[有效期有误]');
                         $start_row++;
@@ -3657,39 +3657,39 @@ class GoodsModel extends PublicModel {
                         fclose($fp);
                         continue;
                     }
-                }else{
+                } else {
                     $data_tmp['有效期'] = null;
                 }
 
                 $data = [
-                    'price_validity' => $data_tmp['有效期'],    //价格有效期
-                    'price' => $price_ary[0] ? $price_ary[0] : null,    //最小采购单价
+                    'price_validity' => $data_tmp['有效期'], //价格有效期
+                    'price' => $price_ary[0] ? $price_ary[0] : null, //最小采购单价
                     'max_price' => $price_ary[1] ? $price_ary[1] : null,
                     'updated_by' => $userInfo['id'],
-                    'updated_at' => date('Y-m-d H:i:s',time())
+                    'updated_at' => date('Y-m-d H:i:s', time())
                 ];
-                $result = $gcpModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id'] ,'deleted_flag'=>'N'])->save($data);
+                $result = $gcpModel->where(['sku' => $data_tmp['sku编码'], 'supplier_id' => $supplierInfo['id'], 'deleted_flag' => 'N'])->save($data);
 
                 $data_pn = [
                     'pn' => isset($data_tmp['PN']) ? $data_tmp['PN'] : null,
                     'updated_by' => $userInfo['id'],
-                    'updated_at' => date('Y-m-d H:i:s',time())
+                    'updated_at' => date('Y-m-d H:i:s', time())
                 ];
-                $result_pn = $gsupplierModel->where(['sku'=>$data_tmp['sku编码'],'supplier_id'=>$supplierInfo['id']])->save($data_pn);
-                if($result && $result_pn){
+                $result_pn = $gsupplierModel->where(['sku' => $data_tmp['sku编码'], 'supplier_id' => $supplierInfo['id']])->save($data_pn);
+                if ($result && $result_pn) {
                     $success++;
                     //更新ES
-                    foreach(['zh','en','es','ru'] as $lang){
+                    foreach (['zh', 'en', 'es', 'ru'] as $lang) {
                         $es_goods_model->create_data($data_tmp['sku编码'], $lang);
                     }
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新成功');
-                }else{
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '更新成功');
+                } else {
                     $faild++;
                     $tit = 'price:';
-                    $tit.=$result ? 'ok' : 'no';
-                    $tit.= ' pn:';
-                    $tit.= $result_pn ? 'ok' : 'no';
-                    $objPHPExcel->getSheet(0)->setCellValue($maxCol .$start_row, '更新失败'.$tit);
+                    $tit .= $result ? 'ok' : 'no';
+                    $tit .= ' pn:';
+                    $tit .= $result_pn ? 'ok' : 'no';
+                    $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '更新失败' . $tit);
                 }
                 flock($fp, LOCK_UN);
             }
@@ -3719,7 +3719,7 @@ class GoodsModel extends PublicModel {
      * @param array $input
      * @return array|bool|mixed
      */
-    public function expireTemp($input = []){
+    public function expireTemp($input = []) {
         if (redisHashExist('sku', 'expireTemp')) {
             return json_decode(redisHashGet('sku', 'expireTemp'), true);
         } else {
@@ -3748,7 +3748,7 @@ class GoodsModel extends PublicModel {
     /**
      * 到期导出
      */
-    public function expireExport($input = []){
+    public function expireExport($input = []) {
         set_time_limit(0);  # 设置执行时间最大值
 
         $data_title = [
@@ -3793,32 +3793,32 @@ class GoodsModel extends PublicModel {
         $input['pagesize'] = 100;
         $spec_ary = $hs_ary = [];
         $goods = [];
-        do{
-            $input['current_no']++;
+        do {
+            $input['current_no'] ++;
             $ret = $model->getgoods($input, null, $input['lang']);
             $list = $this->_getdata($ret[0]);
-            foreach($list as $r){
-                foreach($r['attrs']['spec_attrs'] as $k=>$v){
-                    if(!isset($spec_ary[$v['name']])){
+            foreach ($list as $r) {
+                foreach ($r['attrs']['spec_attrs'] as $k => $v) {
+                    if (!isset($spec_ary[$v['name']])) {
                         $spec_ary[$v['name']] = $v['name'];
                     }
                     $r[$v['name']] = $v['value'];
                 }
 
-                $r['brand'] = $r['brand']['name'];//品牌
+                $r['brand'] = $r['brand']['name']; //品牌
                 $r['supplier'] = $r['suppliers'][0]['supplier_name'];    //供应商
-                $r['purchase_price'] = empty($r['costprices'][0]['max_price']) ? $r['costprices'][0]['price'] : $r['costprices'][0]['price'].'-'.$r['costprices'][0]['max_price'];    //进货价
+                $r['purchase_price'] = empty($r['costprices'][0]['max_price']) ? $r['costprices'][0]['price'] : $r['costprices'][0]['price'] . '-' . $r['costprices'][0]['max_price'];    //进货价
                 $r['price_validity'] = $r['costprices'][0]['price_validity'];
                 $goods[] = $r;
             }
             array_splice($data_title[0], 15, 0, $spec_ary);
             array_splice($data_title[1], 15, 0, $spec_ary);
-        }while(count($list)==$input['pagesize']);
-        if(empty($goods)){
-            jsonReturn('', ErrorMsg::FAILED , '无数据可导');
+        } while (count($list) == $input['pagesize']);
+        if (empty($goods)) {
+            jsonReturn('', ErrorMsg::FAILED, '无数据可导');
         }
 
-        $return = $this->_createExcel($data_title,$goods);
+        $return = $this->_createExcel($data_title, $goods);
         return $return ? $return : false;
     }
 
@@ -3827,62 +3827,62 @@ class GoodsModel extends PublicModel {
      * @param array $input
      * @return bool
      */
-    public function expireUpdate($input = []){
-        if(!isset($input['sku']) || empty($input['sku'])){
-            jsonReturn('' , ErrorMsg::ERROR_PARAM, 'SKU不能为空');
+    public function expireUpdate($input = []) {
+        if (!isset($input['sku']) || empty($input['sku'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'SKU不能为空');
         }
 
         $userInfo = getLoinInfo();
 
-        if(isset($input['supplier_cost']) && $input['supplier_cost']){
+        if (isset($input['supplier_cost']) && $input['supplier_cost']) {
             $this->startTrans();
-            foreach($input['supplier_cost'] as $r){
-                $where = ['sku'=>$input['sku']];
-                if(isset($r['id'])){
+            foreach ($input['supplier_cost'] as $r) {
+                $where = ['sku' => $input['sku']];
+                if (isset($r['id'])) {
                     $where['id'] = $r['id'];
-                }else{
+                } else {
                     $this->rollback();
-                    jsonReturn('' , ErrorMsg::ERROR_PARAM, '供应商价格有效期ID不能为空');
+                    jsonReturn('', ErrorMsg::ERROR_PARAM, '供应商价格有效期ID不能为空');
                 }
                 $data = [];
-                if(isset($r['price'])){
-                    if(!preg_match('/^\d+(\.\d{1,4})?$/', $r['price'])){
+                if (isset($r['price'])) {
+                    if (!preg_match('/^\d+(\.\d{1,4})?$/', $r['price'])) {
                         $this->rollback();
                         jsonReturn('', ErrorMsg::FAILED, '最小价格有误');
                     }
                     $data['price'] = $r['price'];
                 }
-                if(isset($r['max_price'])){
-                    if(!preg_match('/^\d+(\.\d{1,4})?$/', $r['max_price'])){
+                if (isset($r['max_price'])) {
+                    if (!preg_match('/^\d+(\.\d{1,4})?$/', $r['max_price'])) {
                         $this->rollback();
                         jsonReturn('', ErrorMsg::FAILED, '最大价格有误');
                     }
                     $data['max_price'] = $r['max_price'];
                 }
-                if(isset($r['price_validity']) && !empty($r['price_validity'])){
-                    if(!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/',$r['price_validity'])){
+                if (isset($r['price_validity']) && !empty($r['price_validity'])) {
+                    if (!preg_match('/^\d{4}(\-|\/|\.)\d{1,2}\1\d{1,2}$/', $r['price_validity'])) {
                         $this->rollback();
                         jsonReturn('', ErrorMsg::FAILED, '有效期有误');
                     }
                     $data['price_validity'] = $r['price_validity'];
                 }
-                if(!empty($data)){
+                if (!empty($data)) {
                     $gcpModel = new GoodsCostPriceModel();
                     $data['updated_by'] = $userInfo['id'];
-                    $data['updated_at'] = date('Y-m-d H:i:s',time());
+                    $data['updated_at'] = date('Y-m-d H:i:s', time());
                     $result = $gcpModel->where($where)->save($data);
-                    if(!$result){
+                    if (!$result) {
                         $this->rollback();
                         return false;
                     }
-                }else{
+                } else {
                     $this->rollback();
                     return false;
                 }
             }
             $this->commit();
             $es_goods_model = new EsGoodsModel();
-            foreach(['zh','en','es','ru'] as $lang){
+            foreach (['zh', 'en', 'es', 'ru'] as $lang) {
                 $es_goods_model->create_data($input['sku'], $lang);
             }
             return true;
@@ -3898,7 +3898,7 @@ class GoodsModel extends PublicModel {
      *  ]
      * @param array $datas
      */
-    private function _createExcel($data_title=[],$datas=[]){
+    private function _createExcel($data_title = [], $datas = []) {
         //目录
         $tmpDir = MYPATH . '/public/tmp/';
         $dirName = $tmpDir . time();
@@ -3915,10 +3915,10 @@ class GoodsModel extends PublicModel {
         //设置表头
         $excel_index = 0;
         foreach ($data_title[0] as $title_key => $title_value) {
-            $colname = PHPExcel_Cell::stringFromColumnIndex( $excel_index ); //由列数反转列名(0->'A')
-            $objPHPExcel->getSheet( 0 )->setCellValue( $colname . '1' , $title_value );
-            if ( count( $data_title ) > 1 ){
-                $objPHPExcel->getSheet( 0 )->setCellValue( $colname . '2' , $data_title[ 1 ][ $title_key ] );
+            $colname = PHPExcel_Cell::stringFromColumnIndex($excel_index); //由列数反转列名(0->'A')
+            $objPHPExcel->getSheet(0)->setCellValue($colname . '1', $title_value);
+            if (count($data_title) > 1) {
+                $objPHPExcel->getSheet(0)->setCellValue($colname . '2', $data_title[1][$title_key]);
             }
             $excel_index++;
             $row = 3;    //内容起始行
