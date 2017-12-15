@@ -95,7 +95,7 @@ class OrderLogModel extends PublicModel {
      * @return Array
      * @author zhangyuliang
      */
-    protected function getJionCondition($condition = []) {
+    protected function getJoinCondition($condition = []) {
 
         $where = [];
         if (!empty($condition['log_group'])) {
@@ -244,17 +244,21 @@ class OrderLogModel extends PublicModel {
             return $results;
         }
 
-        $where = $this->getJionCondition($condition);
+        $where = $this->getJoinCondition($condition);
 
         $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
         $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
 
+        $joinTable = 'erui_order.order b ON a.order_id = b.id';
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 
         try {
-            $count = $this->getCount($condition);
+            $count = $this->alias('a')
+                                     ->join($joinTable, 'LEFT')
+                                     ->where($where)
+                                     ->count('a.id');
             $list = $this->alias('a')
-                    ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
+                    ->join($joinTable, 'LEFT')
                     ->field($field)
                     ->where($where)
                     ->page($page, $pagesize)
