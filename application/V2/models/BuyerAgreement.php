@@ -291,9 +291,13 @@ class BuyerAgreementModel extends PublicModel
         }
         return false;
     }
-    //查询框架协议单号唯一
+    //查询框架协议单号唯一添加
     public function showAgreeBrief($execute_no){
         return $this->where(array('execute_no'=>$execute_no))->find();
+    }
+    //查询框架协议单号唯一
+    public function showAgreeBriefUpdate($id,$execute_no){
+        return $this->where(array('id'=>$id,'execute_no'=>$execute_no))->find();
     }
     //查看框架协议详情
     public function showAgreeDesc($data){
@@ -379,9 +383,10 @@ class BuyerAgreementModel extends PublicModel
         }
         //组装数据
         $arr = $this -> packageData($data);
-        $exRes = $this -> showAgreeBrief($arr['execute_no']);
+        $exRes = $this -> showAgreeBriefUpdate($data['id'],$arr['execute_no']);
         if($exRes){
             //保存数据
+            unset($arr['execute_no']);
             $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
             if($res){
                 return $exRes['id'];
