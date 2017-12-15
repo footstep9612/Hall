@@ -1188,7 +1188,8 @@ class BuyerModel extends PublicModel {
         if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
             return '公司邮箱';
         }
-        if($data['base_info']['reg_capital'] < 0){
+        if(is_numeric($data['base_info']['reg_capital'])  && $data['base_info']['reg_capital']>0){
+        }else{
             return '注册资金';
         }
         if(!empty($data['base_info']['employee_count'])){

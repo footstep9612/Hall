@@ -355,7 +355,7 @@ class BuyerController extends PublicController {
 
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if (!empty($data['user_name'])) {
+        if (!empty($data['user_name'])  && strlen($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
         } else {
             jsonReturn('', -101, '用户名不可以为空!');
@@ -766,7 +766,7 @@ class BuyerController extends PublicController {
         if($res !== true){
             $valid = array(
                 'code'=>0,
-                'message'=>'请输入'.$res.'规范数据',
+                'message'=>'请输入'.$res,
             );
             $this->jsonReturn($valid);
         }
