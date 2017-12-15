@@ -183,12 +183,24 @@ class BuyerVisitModel extends PublicModel {
                     return [];
                 }
             }
-            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
-                $condition['created_at']=['EGT', $_input['created_at_start']];
-            }
-            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
-                $condition['created_at']=['ELT', $_input['created_at_end']];
-            }
+            //	visit_at_start开始时间   visit_at_end结束时间
+//            if(!empty($_input['created_at_start']) && !empty($_input['created_at_start'])){
+                $this->_getValue($condition, $_input,'created_at','between');
+//                $ex = $condition['created_at'][1];
+//                $exArr = explode(',',$ex);
+//                $a = date('Y-m-d H:i:s', strtotime($exArr[0]));
+//                $b = date('Y-m-d H:i:s', strtotime($exArr[1])+86400);
+//                $condition['created_at']=array(
+//                    'between',
+//                    "$a,$b"
+//                );
+//            }
+//            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
+//                $condition['created_at']=['EGT', $_input['created_at_start']];
+//            }
+//            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
+//                $condition['created_at']=['EGT', $_input['created_at_end']];
+//            }
             //总记录数
             $total = $this->field('id')->where($condition)->count();
             $data = [
@@ -246,21 +258,27 @@ class BuyerVisitModel extends PublicModel {
         ];
         try{
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->find();
+
             if($result){
+                //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
                 $result['created_by_name'] = $userInfo['name'];
-
+                //回复
+                $reply = new BuyerVisitReplyModel();
+                $replyInfo = $reply->field('visit_reply')->where(['visit_id'=>$result['id']])->find();
+                //客户
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->field('buyer_no,buyer_code,name')->where(['id'=>$result['buyer_id']])->find();
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
                 $result['buyer_code'] = $buyerInfo['buyer_code'];
-
+                $result['demand_content'] = $result['demand_content'];
                 $result['visit_type'] = json_decode( $result['visit_type']);
                 $result['visit_level'] = json_decode( $result['visit_level']);
                 $result['visit_position'] = json_decode( $result['visit_position']);
                 $result['demand_type'] = json_decode( $result['demand_type']);
+                $result['visit_reply'] = $replyInfo['visit_reply'];
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
                     $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
@@ -423,6 +441,56 @@ class BuyerVisitModel extends PublicModel {
         $month=count($monthArr);    //本月
         $quarter=count($quarterArr);    //本季
         $arr['totalVisit'] = $totalVisit;
+        $arr['week'] = $week;
+        $arr['month'] = $month;
+        $arr['quarter'] = $quarter;
+        return $arr;
+    }
+    public function singleVisitDemandInfo($buyer_id){
+        $cond = "buyer_id=$buyer_id  and is_demand='Y'";
+        $info = $this
+            ->field('visit_at')
+            ->where($cond)
+            ->select();
+        if(empty($info)){
+            $arr['totalDemand'] = 0;
+            $arr['week'] = 0;
+            $arr['month'] = 0;
+            $arr['quarter'] = 0;
+            return $arr;
+        }
+        foreach($info as $k => $v){
+            $info[$k]['visit_at'] = substr($v['visit_at'],0,10);
+        }
+        //本周
+        $weekStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("w")+1,date("Y")));
+        $weekEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("w")+7,date("Y")));
+        //本月
+        $monthStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),1,date("Y")));
+        $monthEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("t"),date("Y")));
+        //本季度
+        $quarterStart = date('Y-m-d H:i:s', mktime(0, 0, 0,$season*3-3+1,1,date('Y')+1));
+        $quarterEnd = date('Y-m-d H:i:s', mktime(23,59,59,$season*3,date('t',mktime(0, 0 , 0,$season*3,1,date("Y"))),date('Y')+1));
+        //整合数据
+        $weekArr = [];
+        $monthArr = [];
+        $quarterArr = [];
+        foreach($info as $v){
+            if($weekStart <= $v['visit_at'] && $v['visit_at'] <= $weekEnd){
+                $weekArr[]=$v['visit_at'];
+            }
+            if($monthStart <= $v['visit_at'] && $v['visit_at'] <= $monthEnd){
+                $monthArr[]=$v['visit_at'];
+            }
+            if($quarterStart <= $v['visit_at'] && $v['visit_at'] <= $quarterEnd){
+                $quarterArr[]=$v['visit_at'];
+            }
+        }
+        $totalVisit=count($info);    //本周
+        $week=count($weekArr);    //本周
+        $month=count($monthArr);    //本月
+        $quarter=count($quarterArr);    //本季
+        $arr['totalDemand'] = $totalVisit;
         $arr['week'] = $week;
         $arr['month'] = $month;
         $arr['quarter'] = $quarter;

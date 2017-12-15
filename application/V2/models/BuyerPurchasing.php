@@ -94,6 +94,11 @@ class BuyerPurchasingModel extends PublicModel
         foreach($info as $k => $v){
             $info[$k]['purchasing_at'] = substr($v['purchasing_at'],0,4);
         }
+        if(empty($info)){
+            $info[0]['purchasing_budget']='';
+            $info[0]['purchasing_plan']='';
+            $info[0]['purchasing_at']='';
+        }
         return $info;
     }
 }

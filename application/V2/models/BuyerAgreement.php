@@ -44,6 +44,8 @@ class BuyerAgreementModel extends PublicModel
         }
         $objActSheet->getStyle('B')->getNumberFormat()
             ->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
+        $objActSheet->getStyle('J')->getNumberFormat()
+            ->setFormatCode('0.00');
         //填充表格信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
@@ -64,6 +66,7 @@ class BuyerAgreementModel extends PublicModel
         $data['type'] = 'application/excel';
         $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
         $fileId = postfile($data, $url);
+        unlink($time.$sheetName.'.xlsx');
         return $fileId;
     }
     /**
@@ -81,7 +84,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //获取excel导出的数据
     public function getAgreeStatisData($data){
-        $cond = '1=1';
+        $cond = '1=1 and agree.created_by='.$data['created_by'];
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
@@ -137,7 +140,7 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
-            $arr[$k]['amount'] = sprintf("%.2f",$v['amount']);    //项目金额（美元）
+            $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
@@ -377,14 +380,14 @@ class BuyerAgreementModel extends PublicModel
         //组装数据
         $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
-        if(empty($exRes)){
-            return false;
+        if($exRes){
+            //保存数据
+            $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
+            if($res){
+                return $exRes['id'];
+            }
+        }else{
+            return 'no_error';
         }
-        //保存数据
-        $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
-        if($res){
-            return $exRes['id'];
-        }
-        return false;
     }
 }

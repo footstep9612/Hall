@@ -139,6 +139,12 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
         }
+        if (!empty($data['filter'])) {  //过滤状态
+            $where['filter'] = $data['filter'];
+        }
+        if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
+            $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
+        }
         $model = new BuyerModel();
         $data = $model->getlist($where);
         $this->_setArea($data['data'], 'area');
@@ -901,8 +907,8 @@ class BuyerController extends PublicController {
         $visit = new BuyerVisitModel();
         $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
         //客户需求反馈
-        $reply = new BuyerVisitReplyModel();
-        $replyInfo = $reply->singleVisitReplyInfo($data['buyer_id'],$data['created_by']);
+//        $reply = new BuyerVisitReplyModel();
+        $demandInfo = $visit->singleVisitDemandInfo($data['buyer_id']);
         //客户与kr/er业务量
         $order = new OrderModel();
         $orderInfo = $order->statisOrder($data['buyer_id']);
@@ -911,7 +917,7 @@ class BuyerController extends PublicController {
         //整合数据
         $arr['credit'] = $ststisInfo;
         $arr['visit'] = $visitInfo;
-        $arr['reply'] = $replyInfo;
+        $arr['demand'] = $demandInfo;
         $arr['order']['count'] = $orderInfo['countaccount']['count'];
         $arr['order']['account'] = $orderInfo['countaccount']['account'];
         $arr['order']['range'] = $orderInfo['range'];

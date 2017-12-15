@@ -78,6 +78,13 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['status'])) {
             $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
+        if(!empty($condition['filter'])){   //过滤状态
+            $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
+        }
+        if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
+            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'N\' ';
+        }
+
         if (!empty($condition['user_name'])) {
             $where .= ' And `erui_buyer`.`buyer_account`.`user_name`  ="' . $condition['user_name'] . '"';
         }
@@ -1553,7 +1560,7 @@ class BuyerModel extends PublicModel {
         $excel = new PHPExcel();
         $objActSheet = $excel->getActiveSheet();
         $letter = range(A,Z);
-        $letter = array_merge($letter,array('AA','BB','CC','DD','EE','FF','GG','HH','II'));
+        $letter = array_merge($letter,array('AA','AB','AC','AD','AE','AF','AG','AH','AI'));
         //设置当前的sheet
         $excel->setActiveSheetIndex(0);
         //设置sheet的name
@@ -1576,6 +1583,10 @@ class BuyerModel extends PublicModel {
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
+        $objActSheet->getStyle('I')->getNumberFormat()
+            ->setFormatCode('0.00');
+        $objActSheet->getStyle('Z')->getNumberFormat()
+            ->setFormatCode('0.00');
         //填充表格信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
@@ -1596,6 +1607,7 @@ class BuyerModel extends PublicModel {
         $data['type'] = 'application/excel';
         $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
         $fileId = postfile($data, $url);
+        unlink($time.$sheetName.'.xlsx');
         return $fileId;
     }
 }
