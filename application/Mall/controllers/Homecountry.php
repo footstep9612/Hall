@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc
  */
-class StockcountryController extends PublicController {
+class HomecountryController extends PublicController {
 
     //put your code here
     public function init() {
@@ -35,9 +35,9 @@ class StockcountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn(null);
         }
-        $stock_country_model = new StockCountryModel();
+        $home_country_model = new HomeCountryModel();
 
-        $list = $stock_country_model->getExit($country_bn);
+        $list = $home_country_model->getExit($country_bn);
 
         if ($list) {
             $this->jsonReturn($list);
@@ -71,13 +71,9 @@ class StockcountryController extends PublicController {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
         }
-
-
-        $stock_country_ads_model = new StockCountryAdsModel();
-
-        $list = $stock_country_ads_model->getList($condition);
+        $home_country_ads_model = new HomeCountryAdsModel();
+        $list = $home_country_ads_model->getList($condition);
         if ($list) {
-
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
