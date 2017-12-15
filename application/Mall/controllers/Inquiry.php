@@ -13,6 +13,20 @@ class InquiryController extends PublicController {
         parent::init();
     }
 
+    //返回询价单流水号
+    public function getInquiryNoAction() {
+        $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
+        if (!empty($data)) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('生成流水号错误!');
+            $this->jsonReturn();
+        }
+    }
+
     //添加询价单
     public function addAction() {
         $inquiry = new InquiryModel();
