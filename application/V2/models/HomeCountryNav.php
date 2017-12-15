@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of 现货楼层关键词
+ * Description of 导航关键词
  * @author  zhongyg
  * @date    2017-12-6 9:12:49
  * @version V2.0
@@ -35,11 +35,11 @@ class HomeCountryNavModel extends PublicModel {
     }
 
     /**
-     * Description of 判断现货楼层是否存在
+     * Description of 判断导航是否存在
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货国家
+     * @desc  导航
      */
     public function getExit($condition, $id = null) {
 
@@ -47,6 +47,7 @@ class HomeCountryNavModel extends PublicModel {
         $where['nav_name'] = trim($condition['nav_name']);
         $where['nav_url'] = trim($condition['nav_url']);
         $where['lang'] = trim($condition['lang']);
+        $this->_getValue($where, $condition, 'created_at', 'between');
         if ($id) {
             $where['id'] = ['neq', $id];
         }
@@ -54,11 +55,11 @@ class HomeCountryNavModel extends PublicModel {
     }
 
     /**
-     * Description of 获取现货楼层列表
+     * Description of 获取导航列表
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货楼层
+     * @desc  导航
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
@@ -83,11 +84,11 @@ class HomeCountryNavModel extends PublicModel {
     }
 
     /**
-     * Description of 获取现货楼层详情
+     * Description of 获取导航详情
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货楼层
+     * @desc  导航
      */
     public function getInfo($id) {
         $where['id'] = $id;
@@ -96,18 +97,18 @@ class HomeCountryNavModel extends PublicModel {
     }
 
     /**
-     * Description of 新加现货楼层
+     * Description of 新加导航
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货楼层
+     * @desc  导航
      */
     public function createData($condition) {
         $condition['country_bn'] = trim($condition['country_bn']);
         $condition['nav_name'] = trim($condition['nav_name']);
         $condition['nav_url'] = trim($condition['nav_url']);
         $condition['sort_order'] = intval($condition['sort_order']);
-
+        $condition['lang'] = trim($condition['lang']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -116,11 +117,11 @@ class HomeCountryNavModel extends PublicModel {
     }
 
     /**
-     * Description of 更新现货楼层
+     * Description of 更新导航
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货楼层
+     * @desc  导航
      */
     public function updateData($condition, $id) {
         $condition['country_bn'] = trim($condition['country_bn']);
@@ -128,10 +129,28 @@ class HomeCountryNavModel extends PublicModel {
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['nav_name'] = trim($condition['nav_name']);
         $condition['nav_url'] = trim($condition['nav_url']);
+        $condition['lang'] = trim($condition['lang']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
+
+        return $this->where(['id' => $id])->save($data);
+    }
+
+    /**
+     * Description of 删除广告
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function DeletedData($id) {
+
+
+        $data['deleted_flag'] = 'Y';
+        $data['deleted_at'] = date('Y-m-d H:i:s');
+        $data['deleted_by'] = defined('UID') ? UID : 0;
 
         return $this->where(['id' => $id])->save($data);
     }

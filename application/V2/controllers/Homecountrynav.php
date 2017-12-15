@@ -7,7 +7,7 @@
  */
 
 /**
- * Description of 首页显示国家
+ * Description of 首页显示导航
  * @author  zhongyg
  * @date    2017-12-6 9:12:49
  * @version V2.0
@@ -21,11 +21,11 @@ class HomecountrynavController extends PublicController {
     }
 
     /**
-     * Description of 获取现货国家列表
+     * Description of 获取导航列表
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货国家
+     * @desc  导航
      */
     public function ListAction() {
 
@@ -87,22 +87,22 @@ class HomecountrynavController extends PublicController {
     }
 
     /**
-     * Description of 获取现货国家详情
+     * Description of 获取导航详情
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货国家
+     * @desc  导航
      */
     public function InfoAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
+        $id = $this->getPut('id');
+        if (empty($id)) {
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('请选择导航!');
             $this->jsonReturn();
         }
         $home_country_nav_model = new HomeCountryNavModel();
 
-        $list = $home_country_nav_model->getInfo($country_bn);
+        $list = $home_country_nav_model->getInfo($id);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -117,11 +117,11 @@ class HomecountrynavController extends PublicController {
     }
 
     /**
-     * Description of 新加现货国家
+     * Description of 新加导航
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货国家
+     * @desc  导航
      */
     public function CreateAction() {
         $condition = $this->getPut();
@@ -136,7 +136,11 @@ class HomecountrynavController extends PublicController {
             $this->setMessage('导航名称不能为空!');
             $this->jsonReturn();
         }
-
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
         if (empty($condition['nav_url'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('导航名称链接不能为空!');
@@ -166,11 +170,11 @@ class HomecountrynavController extends PublicController {
     }
 
     /**
-     * Description of 更新现货国家
+     * Description of 更新导航
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
-     * @desc  现货国家
+     * @desc  导航
      */
     public function UpdateAction() {
         $id = $this->getPut('id');
@@ -197,7 +201,11 @@ class HomecountrynavController extends PublicController {
             $this->setMessage('导航名称链接不能为空!');
             $this->jsonReturn();
         }
-
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
         $home_country_nav_model = new HomeCountryNavModel();
 
         if ($home_country_nav_model->getExit($condition, $id)) {
@@ -209,6 +217,37 @@ class HomecountrynavController extends PublicController {
 
 
         $list = $home_country_nav_model->updateData($condition, $id);
+        if ($list) {
+            $this->jsonReturn($list);
+        } elseif ($list === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('更新失败!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 更新导航
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  导航
+     */
+    public function DeletedAction() {
+        $id = $this->getPut('id');
+        if (empty($id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('ID不能为空!');
+            $this->jsonReturn();
+        }
+
+        $home_country_nav_model = new HomeCountryNavModel();
+
+        $list = $home_country_nav_model->DeletedData($id);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
