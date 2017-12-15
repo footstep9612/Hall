@@ -1401,20 +1401,20 @@ class BuyerModel extends PublicModel {
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
             $arr[$k]['created_at'] = $v['created_at'];  //创建时间
-            $arr[$k]['is_oilgas'] = $v['is_oilgas']='Y'?'是':'否';    //是否油气
+            $arr[$k]['is_oilgas'] = $v['is_oilgas']==='Y'?'是':'否';    //是否油气
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
-            $arr[$k]['is_net'] = $v['is_net']='Y'?'是':'否';  //是否入网
+            $arr[$k]['is_net'] = $v['is_net']==='Y'?'是':'否';  //是否入网
             $arr[$k]['net_at'] = $v['net_at'];  //入网时间
             $arr[$k]['net_invalid_at'] = $v['net_invalid_at'];  //失效时间
             $arr[$k]['product_type'] = $v['product_type'];  //产品类型
             $arr[$k]['credit_level'] = $v['credit_level'];  //采购商信用等级
             $arr[$k]['credit_type'] = $v['credit_type'];    //授信类型
             $arr[$k]['line_of_credit'] = $v['line_of_credit'];  //授信额度
-            $arr[$k]['is_local_settlement'] = $v['is_local_settlement']='Y'?'是':'否';    //本地结算
-            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']='Y'?'是':'否';  //采购关系
+            $arr[$k]['is_local_settlement'] = $v['is_local_settlement']==='Y'?'是':'否';    //本地结算
+            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']==='Y'?'是':'否';  //采购关系
             $arr[$k]['market_agent'] = $v['market_agent'];  //kerui/erui客户服务经理
             $arr[$k]['total_visit'] = $v['total_visit'];    //总访问次数
             $arr[$k]['quarter_visit'] = $v['quarter_visit'];    //季度访问次数
@@ -1587,6 +1587,8 @@ class BuyerModel extends PublicModel {
         $objActSheet->getStyle('I')->getNumberFormat()
             ->setFormatCode('0.00');
         $objActSheet->getStyle('Z')->getNumberFormat()
+            ->setFormatCode('0.00');
+        $objActSheet->getStyle('AB')->getNumberFormat()
             ->setFormatCode('0.00');
         //填充表格信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
