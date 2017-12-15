@@ -139,6 +139,12 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
         }
+        if (!empty($data['filter'])) {  //过滤状态
+            $where['filter'] = $data['filter'];
+        }
+        if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
+            $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
+        }
         $model = new BuyerModel();
         $data = $model->getlist($where);
         $this->_setArea($data['data'], 'area');
@@ -349,7 +355,7 @@ class BuyerController extends PublicController {
 
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if (!empty($data['user_name'])) {
+        if (!empty($data['user_name'])  && strlen($data['user_name'])) {
             $buyer_account_data['user_name'] = $data['user_name'];
         } else {
             jsonReturn('', -101, '用户名不可以为空!');
@@ -408,6 +414,9 @@ class BuyerController extends PublicController {
             $arr['name'] = $data['name'];
         } else {
             jsonReturn('', -101, '名称不能为空!');
+        }
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -602,6 +611,9 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         }
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];
+        }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
@@ -665,7 +677,7 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED'  || $data['status'] == 'FIRST_REJECTED'  || $data['status'] == 'FIRST_APPROVED'  ) {
                 $arr['checked_by'] = $this->user['id'];
                 $arr['checked_at'] = Date("Y-m-d H:i:s");
             }
@@ -751,10 +763,10 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->createBuyerBaseInfo($data);  //创建基本信息
-        if ($res == false) {
+        if($res !== true){
             $valid = array(
-                'code' => 0,
-                'message' => '请输入规范数据',
+                'code'=>0,
+                'message'=>'请输入'.$res,
             );
             $this->jsonReturn($valid);
         }
@@ -814,22 +826,19 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
-        if (empty($buerInfo) || $buerInfo == false) {
-            $dataJson = array(
-                'code' => 0,
-                'message' => '该客户暂无数据请添加',
-            );
-            $this->jsonReturn($dataJson);
-        }
         //获取客户账号
         $account = new BuyerAccountModel();
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
-        $buerInfo['buyer_account'] = $accountInfo['email'];
+        if(!empty($accountInfo)){
+            $buerInfo['buyer_account'] = $accountInfo['email'];
+        }
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
         $agentInfo = $agent->buyerMarketAgent($data);
-        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        if(!empty($agentInfo)){
+            $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+            $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        }
         //获取财务报表
         $attach = new BuyerattachModel();
         $finance = $attach->showBuyerExistAttach($data['buyer_id'], $data['created_by']);
@@ -898,8 +907,8 @@ class BuyerController extends PublicController {
         $visit = new BuyerVisitModel();
         $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
         //客户需求反馈
-        $reply = new BuyerVisitReplyModel();
-        $replyInfo = $reply->singleVisitReplyInfo($data['buyer_id'],$data['created_by']);
+//        $reply = new BuyerVisitReplyModel();
+        $demandInfo = $visit->singleVisitDemandInfo($data['buyer_id']);
         //客户与kr/er业务量
         $order = new OrderModel();
         $orderInfo = $order->statisOrder($data['buyer_id']);
@@ -908,7 +917,7 @@ class BuyerController extends PublicController {
         //整合数据
         $arr['credit'] = $ststisInfo;
         $arr['visit'] = $visitInfo;
-        $arr['reply'] = $replyInfo;
+        $arr['demand'] = $demandInfo;
         $arr['order']['count'] = $orderInfo['countaccount']['count'];
         $arr['order']['account'] = $orderInfo['countaccount']['account'];
         $arr['order']['range'] = $orderInfo['range'];

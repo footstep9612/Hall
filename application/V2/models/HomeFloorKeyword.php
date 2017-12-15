@@ -7,16 +7,16 @@
  */
 
 /**
- * Description of 现货楼层
+ * Description of 现货楼层关键词
  * @author  zhongyg
  * @date    2017-12-6 9:12:49
  * @version V2.0
  * @desc
  */
-class StockFloorModel extends PublicModel {
+class HomeFloorKeywordModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'stock_floor';
+    protected $tableName = 'home_floor_keyword';
     protected $dbName = 'erui_stock';
 
     public function __construct() {
@@ -27,9 +27,8 @@ class StockFloorModel extends PublicModel {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getValue($where, $condition, 'floor_name', 'like');
+        $this->_getValue($where, $condition, 'keyword', 'like');
         $this->_getValue($where, $condition, 'created_by');
-        $this->_getValue($where, $condition, 'onshelf_flag', 'bool');
         $this->_getValue($where, $condition, 'lang');
 
         return $where;
@@ -42,10 +41,10 @@ class StockFloorModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $floor_name, $lang, $id = null) {
+    public function getExit($country_bn, $keyword, $lang, $id = null) {
 
         $where['country_bn'] = trim($country_bn);
-        $where['floor_name'] = trim($floor_name);
+        $where['keyword'] = trim($keyword);
         $where['lang'] = trim($lang);
         if ($id) {
             $where['id'] = ['neq', $id];
@@ -104,10 +103,9 @@ class StockFloorModel extends PublicModel {
      */
     public function createData($condition) {
         $condition['country_bn'] = trim($condition['country_bn']);
-        $condition['floor_name'] = trim($condition['floor_name']);
-        $condition['onshelf_flag'] = trim($condition['onshelf_flag']) == 'Y' ? 'Y' : 'N';
-        $condition['sku_count'] = intval($condition['sku_count']);
+        $condition['keyword'] = trim($condition['keyword']);
         $condition['sort_order'] = intval($condition['sort_order']);
+        $condition['floor_id'] = intval($condition['floor_id']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -124,27 +122,9 @@ class StockFloorModel extends PublicModel {
      */
     public function updateData($id, $condition) {
         $condition['country_bn'] = trim($condition['country_bn']);
-        $condition['floor_name'] = trim($condition['floor_name']);
-        $condition['onshelf_flag'] = trim($condition['onshelf_flag']) == 'Y' ? 'Y' : 'N';
+        $condition['keyword'] = trim($condition['keyword']);
         $condition['sort_order'] = intval($condition['sort_order']);
-        $condition['deleted_flag'] = 'N';
-        $data = $this->create($condition);
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        $data['updated_by'] = defined('UID') ? UID : 0;
-
-        return $this->where(['id' => $id])->save($data);
-    }
-
-    /**
-     * Description of 更新现货楼层上下架状态
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  现货楼层
-     */
-    public function onshelfData($id, $onshelf_flag) {
-
-        $condition['onshelf_flag'] = trim($onshelf_flag) == 'Y' ? 'Y' : 'N';
+        $condition['floor_id'] = intval($condition['floor_id']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
@@ -160,39 +140,24 @@ class StockFloorModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function ChangeSkuCount($floor_id, $count = 1) {
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        $data['updated_by'] = defined('UID') ? UID : 0;
+    public function addKeywords($floor_id, $country_bn, $lang, $keywords) {
 
-        $data['sku_count'] = ['exp', 'sku_count+' . $count];
-        return $this->where(['id' => $floor_id])->save($data);
-    }
 
-    /**
-     * Description of 更新产品数量
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  现货楼层
-     */
-    public function addGoods($floor_id, $country_bn, $lang, $skus) {
+        foreach ($keywords as $keyword) {
+            $condition = [
+                'floor_id' => $floor_id,
+                'country_bn' => $country_bn,
+                'lang' => $lang,
+                'keyword' => $keyword
+            ];
+            $flag = $this->createData($condition);
 
-        $this->startTrans();
-        $stock_model = new StockModel();
-        foreach ($skus as $sku) {
-            $flag = $stock_model->where(['lang' => $lang,
-                        'country_bn' => $country_bn,
-                        'sku' => $sku])->save(['floor_id' => $floor_id,
-                'updated_at' => date('Y-m-d H:i:s'),
-                'updated_by' => defined('UID') ? UID : 0
-            ]);
             if (!$flag) {
                 $this->rollback();
                 return false;
             }
-            $this->ChangeSkuCount($floor_id, 1);
         }
-        $this->commit();
+
         return true;
     }
 

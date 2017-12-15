@@ -16,6 +16,7 @@
 class OrderController extends PublicController {
 
     public function init() {
+        $this->token = false;
         parent::init();
     }
 
@@ -103,7 +104,7 @@ class OrderController extends PublicController {
      * @param int $order_id // 订单ID
      * @desc   交收信息
      */
-    public function ListAdressAction() {
+    public function LastAdressAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
@@ -291,12 +292,14 @@ class OrderController extends PublicController {
     public function ListLogAction() {
 
         $order_id = $this->getPut('order_id');
+        $order_id = 912;
         if (!$order_id) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         }
         $workflow_model = new OrderLogModel();
         $workflows = $workflow_model->getlist($order_id);
+
         if ($workflows) {
 
             $this->jsonReturn($workflows);

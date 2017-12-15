@@ -111,9 +111,8 @@ class QuoteController extends PublicController{
         $request   = $this->validateRequests('inquiry_id');
 
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $country = $inquiryModel->getInquiryCountry($request['inquiry_id']);
         $org_id = $inquiryModel->where(['id'=>$condition['inquiry_id']])->getField('org_id',true);
-        $condition['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+        $condition['now_agent_id'] = $inquiryModel->getInquiryIssueUserId($request['inquiry_id'], $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
         $response  = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
 
         $this->jsonReturn($response);

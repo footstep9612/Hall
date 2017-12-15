@@ -77,9 +77,8 @@ class PortModel extends PublicModel {
             $where['port_type'] = $condition['port_type'];
         }
         if (isset($condition['trans_mode']) && $condition['trans_mode']) {
-            $where['trans_mode'] = $condition['trans_mode'];
+            $where['trans_mode'] = str_replace("+"," ",$condition['trans_mode']);
         }
-
         $this->_getValue($where, $condition, 'status', 'string', 'VALID');
         if (isset($condition['name']) && $condition['name']) {
             $where['name'] = ['like', '%' . $condition['name'] . '%'];

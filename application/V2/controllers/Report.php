@@ -241,7 +241,7 @@ class ReportController extends PublicController {
                 $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
 
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'QUOTE_SENT'])->getField('out_at');
+                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'MARKET_CONFIRMING'])->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $createdTime;
@@ -253,7 +253,7 @@ class ReportController extends PublicController {
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
                 }
                 
-                $inquiry['count'] = $inquiryItemModel->getJoinCount($where);
+                $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);
             }

@@ -101,6 +101,28 @@ class BuyerAccountModel extends PublicModel {
      * @author jhw
      */
     public function getinfo($data) {
+        $buyer_model = new BuyerModel();
+        $buyer_table = $buyer_model->getTableName();
+
+        $buyeragent_model = new BuyerAgentModel();
+        $agent_table = $buyeragent_model->getTableName();
+
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName();
+        if (!empty($data['buyer_id'])) {
+            $row = $this->field('b.*,c.*,ag.*,b.status as ustatus,country.name as country_name')->alias('c')
+                ->join($agent_table . ' as ag on ag.buyer_id=c.buyer_id', 'left')
+                ->join($buyer_table . ' as b on b.id=c.buyer_id', 'left')
+                ->join($country_table . ' as country on b.lang=country.lang and b.country_bn=country.bn', 'left')
+                ->where(['c.buyer_id' => $data['buyer_id'], 'c.deleted_flag' => 'N'])
+                ->find();
+
+            return $row;
+        } else {
+            return false;
+        }
+    }
+    /*public function getinfo($data) {
         $model = new BuyerModel();
         $table = $model->getTableName();
        // $Account_model = new BuyerAccountModel();
@@ -133,7 +155,7 @@ class BuyerAccountModel extends PublicModel {
         } else {
             return false;
         }
-    }
+    }*/
 
     /**
      * 登录

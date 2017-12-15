@@ -25,7 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
-        $this->user['buyer_id'] = 955;//测试
+        //$this->user['buyer_id'] = 955;//测试
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');
@@ -41,11 +41,7 @@ class MembercenterController extends PublicController {
      */
     public function upUserInfoAction() {
         $buyer_data = $this->getPut();
-        if (!empty($buyer_data['buyer_id'])) {
-            $where['id'] = $buyer_data['buyer_id'];
-        } else {
-            jsonReturn('', '-1001', '参数[id]不能为空');
-        }
+        $where['id'] = $this->user['buyer_id'];
         $lang = $buyer_data['lang'] ? $buyer_data['lang'] : 'en';
 
         $buyerModel = new BuyerModel();

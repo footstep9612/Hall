@@ -167,10 +167,20 @@ class BuyervisitController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
-        if($arr['code']==1){
+        if(!empty($arr)){
+            $dataJson=array(
+                'code'=>1,
+                'name'=>$arr['name'],
+                'url'=>$arr['url']
+            );
             $model = new BuyerExcelModel();
             $model->saveExcel($arr['name'],$arr['url'],$created_by);
+        }else{
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'excel导出失败'
+            );
         }
-        $this->jsonReturn($arr);
+        $this->jsonReturn($dataJson);
     }
 }

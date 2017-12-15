@@ -772,7 +772,8 @@ class OrderController extends PublicController {
                 $OrderLog = new OrderLogModel();
                 $logCond = [
                     'log_group'=>'OUTBOUND',
-                    'order_id' => ['in',array_keys($order_ids)]
+                    'order_id' => ['in',array_keys($order_ids)],
+                    'deleted_flag'=>'N'
                 ];
                 $logs = $OrderLog->field('distinct(order_id) as order_id')->where($logCond)->select();
                 foreach($logs as $item){

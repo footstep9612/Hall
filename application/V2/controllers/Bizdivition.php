@@ -59,22 +59,15 @@ class BizdivitionController extends PublicController{
 
         $inquiry = new InquiryModel();
         $orgModel = new OrgModel();
-        $roleModel = new RoleModel();
-        $roleUserModel = new RoleUserModel();
         $erui_id = $orgModel->where(['org_node'=>'erui'])->getField('id');
-        $role_id = $roleModel->where(['role_no'=>$inquiry::inquiryIssueRole])->getField('id');
-        $roleUser = $roleUserModel->where(['role_id'=>$role_id])->getField('employee_id');
-
-        //发送短信通知
-        $employee = new EmployeeModel();
-        $this->sendSms($employee->getMobileByUserId($roleUser),"REJECT",$employee->getUserNameById($roleUser),$inquiry->getSerialNoById($request['inquiry_id']),$this->user['name'],"BIZ_DISPATCHING","CC_DISPATCHING");
+        $userId = $inquiry->getInquiryIssueUserId($request['inquiry_id'], [$erui_id], $inquiry::inquiryIssueAuxiliaryRole, $inquiry::inquiryIssueRole, 'erui');
 
         $response = $inquiry->updateData([
             'id'=>$request['inquiry_id'],
             'status'       => 'CC_DISPATCHING', //易瑞客户中心
             'erui_id'      => $erui_id,
             'org_id'      => $erui_id,
-            'now_agent_id' => $roleUser,
+            'now_agent_id' => $userId,
             'inflow_time'  => date('Y-m-d H:i:s',time()),
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())

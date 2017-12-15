@@ -755,8 +755,7 @@ class LogisticsController extends PublicController {
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING'; 
                     $inquiryModel = $this->inquiryModel;
-                    $country = $inquiryModel->getInquiryCountry($condition['inquiry_id']);
-                    $data['now_agent_id'] = $inquiryModel->getCountryIssueUserId($country, $this->user['group_id'], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, 'lg');
+                    $data['now_agent_id'] = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], $this->user['group_id'], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, 'lg');
                     break;
                 case 'check' :
                     $status = 'LOGI_QUOTING'; 

@@ -64,14 +64,14 @@ class BuyerBusinessModel extends PublicModel
     public function createBusiness($data)
     {
         //验证
-        $validRes = $this -> validData($data);
-        if($validRes == false){
-            return false;
-        }
+//        $validRes = $this -> validData($data);
+//        if($validRes == false){
+//            return false;
+//        }
         //组装数据
         $optArr = array(
-            'buyer_id', //客户id
-            'created_by',   // 创建人
+//            'buyer_id', //客户id
+//            'created_by',   // 创建人
 //            'created_at' => date('Y-m-d H:i:s'),
             'product_type',    //产品类型-------业务基础信息
             'purchasing_model',    //采购模式
@@ -94,8 +94,12 @@ class BuyerBusinessModel extends PublicModel
         foreach($optArr as $v){
             if(!empty($data[$v])){
                 $arr[$v] = $data[$v];
+            }else{
+                $arr[$v]=null;
             }
         }
+        $arr['buyer_id'] = $data['buyer_id'];
+        $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
         //数据存在，删除，重新添加
         $this->startTrans();    //开启事务：

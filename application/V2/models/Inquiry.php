@@ -812,6 +812,24 @@ class InquiryModel extends PublicModel {
     }
     
     /**
+     * @desc 获取询单的辅分单员用户ID，如果没有就获取主分单员用户ID
+     *
+     * @param mixed $id 询单ID
+     * @param array $groupId 当前用户的全部组ID
+     * @param mixed $roleNo1 辅分单员角色编号
+     * @param mixed $roleNo2 主分单员角色编号
+     * @param mixed $orgNode 部门节点
+     * @return string
+     * @author liujf
+     * @time 2017-12-14
+     */
+    public function getInquiryIssueUserId($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+        $country = $this->getInquiryCountry($id);
+        
+        return $this->getCountryIssueUserId($country, $groupId, $roleNo1, $roleNo2, $orgNode);
+    }
+    
+    /**
      * @desc 获取询单所在国家简称
      *
      * @param string $id 询单ID

@@ -950,9 +950,13 @@ class EsproductModel extends Model {
      * @return mix
      */
 
-    public function importproducts($lang = 'en') {
+    public function importproducts($lang = 'en', $spus = []) {
         try {
-            $count = $this->where(['lang' => $lang])->count('id');
+            $where_count = ['lang' => $lang];
+            if ($spus) {
+                $where_count['spu'] = ['in', $spus];
+            }
+            $count = $this->where($where_count)->count('id');
             $max_id = 0;
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
             $k = 1;
@@ -963,6 +967,10 @@ class EsproductModel extends Model {
                     $i = $count;
                 }
 
+                $where = ['lang' => $lang, 'id' => ['gt', $max_id]];
+                if ($spus) {
+                    $where['spu'] = ['in', $spus];
+                }
                 $products = $this->where([
                                     'lang' => $lang,
                                     //  'status' => 'VALID',

@@ -386,9 +386,10 @@ class EsproductController extends PublicController {
         try {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
+            $spus = $this->getPut('spus');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsProductModel();
-                $espoductmodel->importproducts($lang);
+                $espoductmodel->importproducts($lang, $spus);
             }
             $es = new ESClient();
             $es->refresh($this->index);

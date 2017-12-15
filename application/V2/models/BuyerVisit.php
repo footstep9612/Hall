@@ -162,7 +162,6 @@ class BuyerVisitModel extends PublicModel {
         $condition = [
             'is_demand' => self::DEMAND_Y
         ];
-
         //根据条件查询用户信息
         $condition_user = [];
         if(isset($_input['name']) && !empty($_input['name'])){
@@ -174,7 +173,6 @@ class BuyerVisitModel extends PublicModel {
         if(isset($_input['mobile']) && !empty($_input['mobile'])){
             $condition_user['mobile'] = trim($_input['mobile']);
         }
-
         try{
             if(!empty($condition_user)){
                 $userModel = new UserModel();
@@ -185,13 +183,24 @@ class BuyerVisitModel extends PublicModel {
                     return [];
                 }
             }
-            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
-                $condition['created_at']=['EGT', $_input['created_at_start']];
-            }
-            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
-                $condition['created_at']=['ELT', $_input['created_at_end']];
-            }
-
+            //	visit_at_start开始时间   visit_at_end结束时间
+//            if(!empty($_input['created_at_start']) && !empty($_input['created_at_start'])){
+                $this->_getValue($condition, $_input,'created_at','between');
+//                $ex = $condition['created_at'][1];
+//                $exArr = explode(',',$ex);
+//                $a = date('Y-m-d H:i:s', strtotime($exArr[0]));
+//                $b = date('Y-m-d H:i:s', strtotime($exArr[1])+86400);
+//                $condition['created_at']=array(
+//                    'between',
+//                    "$a,$b"
+//                );
+//            }
+//            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
+//                $condition['created_at']=['EGT', $_input['created_at_start']];
+//            }
+//            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
+//                $condition['created_at']=['EGT', $_input['created_at_end']];
+//            }
             //总记录数
             $total = $this->field('id')->where($condition)->count();
             $data = [
@@ -249,21 +258,27 @@ class BuyerVisitModel extends PublicModel {
         ];
         try{
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->find();
+
             if($result){
+                //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
                 $result['created_by_name'] = $userInfo['name'];
-
+                //回复
+                $reply = new BuyerVisitReplyModel();
+                $replyInfo = $reply->field('visit_reply')->where(['visit_id'=>$result['id']])->find();
+                //客户
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->field('buyer_no,buyer_code,name')->where(['id'=>$result['buyer_id']])->find();
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
                 $result['buyer_code'] = $buyerInfo['buyer_code'];
-
+                $result['demand_content'] = $result['demand_content'];
                 $result['visit_type'] = json_decode( $result['visit_type']);
                 $result['visit_level'] = json_decode( $result['visit_level']);
                 $result['visit_position'] = json_decode( $result['visit_position']);
                 $result['demand_type'] = json_decode( $result['demand_type']);
+                $result['visit_reply'] = $replyInfo['visit_reply'];
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
                     $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
@@ -431,6 +446,56 @@ class BuyerVisitModel extends PublicModel {
         $arr['quarter'] = $quarter;
         return $arr;
     }
+    public function singleVisitDemandInfo($buyer_id){
+        $cond = "buyer_id=$buyer_id  and is_demand='Y'";
+        $info = $this
+            ->field('visit_at')
+            ->where($cond)
+            ->select();
+        if(empty($info)){
+            $arr['totalDemand'] = 0;
+            $arr['week'] = 0;
+            $arr['month'] = 0;
+            $arr['quarter'] = 0;
+            return $arr;
+        }
+        foreach($info as $k => $v){
+            $info[$k]['visit_at'] = substr($v['visit_at'],0,10);
+        }
+        //本周
+        $weekStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),date("d")-date("w")+1,date("Y")));
+        $weekEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("d")-date("w")+7,date("Y")));
+        //本月
+        $monthStart = date("Y-m-d H:i:s",mktime(0, 0 , 0,date("m"),1,date("Y")));
+        $monthEnd = date("Y-m-d H:i:s",mktime(23,59,59,date("m"),date("t"),date("Y")));
+        //本季度
+        $quarterStart = date('Y-m-d H:i:s', mktime(0, 0, 0,$season*3-3+1,1,date('Y')+1));
+        $quarterEnd = date('Y-m-d H:i:s', mktime(23,59,59,$season*3,date('t',mktime(0, 0 , 0,$season*3,1,date("Y"))),date('Y')+1));
+        //整合数据
+        $weekArr = [];
+        $monthArr = [];
+        $quarterArr = [];
+        foreach($info as $v){
+            if($weekStart <= $v['visit_at'] && $v['visit_at'] <= $weekEnd){
+                $weekArr[]=$v['visit_at'];
+            }
+            if($monthStart <= $v['visit_at'] && $v['visit_at'] <= $monthEnd){
+                $monthArr[]=$v['visit_at'];
+            }
+            if($quarterStart <= $v['visit_at'] && $v['visit_at'] <= $quarterEnd){
+                $quarterArr[]=$v['visit_at'];
+            }
+        }
+        $totalVisit=count($info);    //本周
+        $week=count($weekArr);    //本周
+        $month=count($monthArr);    //本月
+        $quarter=count($quarterArr);    //本季
+        $arr['totalDemand'] = $totalVisit;
+        $arr['week'] = $week;
+        $arr['month'] = $month;
+        $arr['quarter'] = $quarter;
+        return $arr;
+    }
 
     /**
      * @param $data
@@ -480,14 +545,14 @@ class BuyerVisitModel extends PublicModel {
      * execl导出的数据 $data
      * wangs
      */
-    public function exportModel($sheetName,$tableheader,$data){
+    public function exportModel($sheetName,$data){
+        $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
         //目录
-        $dirName = date('YmdHisVisit');
+        $dirName = MYPATH.DS.'public'.DS.'temp'.DS.'exportdata';
         if (!file_exists($dirName)) {
             mkdir($dirName,0777,true);
-            chmod($dirName,0755);
         }
         //创建对象
         $excel = new PHPExcel();
@@ -526,28 +591,32 @@ class BuyerVisitModel extends PublicModel {
         //创建Excel输入对象
         $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
         $time = date('YmdHis');
-        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
-        //把导出的文件上传到文件服务器上
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        $url = $server . '/V2/Uploadfile/upload';
-
-        $data['tmp_name'] = $time.$sheetName.'.xlsx';
-        $data['type'] = 'application/excel';
-        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
-        $fileId = postfile($data, $url);
-        return $fileId;
+        $objWriter->save($dirName.'/'.$time.$sheetName.'.xlsx');    //文件保存
+        return $dirName;
     }
     //excel导出
     public function exportStatisVisit($data){
-        $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+
 //        $arr = $this->getList($data);
-        $arr = $this->getVisitStatiaList($data);
-//        print_r($arr);die;
-        $info = $this->getVisitStatisData($arr['result']);
-        $res = $this->exportModel('visitstatis',$tableheader,$info);
-        return $res;
+        $dirName = $this->getVisitStatiaList($data);
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);    //清除目录
+        if (file_exists($dirName . '.zip')) {
+            //把导出的文件上传到文件服务器上
+            $server = Yaf_Application::app()->getConfig()->myhost;
+            $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+            $url = $server . '/V2/Uploadfile/upload';
+            $data['tmp_name'] = $dirName . '.zip';
+            $data['type'] = 'application/excel';
+            $data['name'] = pathinfo($dirName . '.zip', PATHINFO_BASENAME);
+            $fileId = postfile($data, $url);
+            unlink($dirName . '.zip');
+            if ($fileId) {
+                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            }
+        }
     }
-    //获取excel导出的数据
+    //整合获取excel导出的数据
     public function getVisitStatisData($data){
         //整合数据
         $arr=array();
@@ -582,76 +651,77 @@ class BuyerVisitModel extends PublicModel {
         }
         //总记录数
         $total = $this->field('id')->where($condition)->count();
-//
-//        do {
-//
-//        } while ($total > $length);
+        $i = 0;
+        do {
+            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')
+                ->where($condition)
+                ->limit($i,$length)
+                ->select();
+            foreach($result as $index => $r){
+                //客户信息
+                $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
+                $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
+                $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
+                $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
+            }
+            foreach($result as $index => $r){
+                //业务部门反馈时间
+                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+                $result[$index]['reply_time'] =$replyInfo['created_at'];
+            }
+            foreach($result as $index => $r){
+                //业务部门反馈时间
+                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+                $result[$index]['reply_time'] =$replyInfo['created_at'];
+            }
+            foreach($result as $index => $r){
+                //目的拜访类型
+                $vtype = json_decode($r['visit_type']);
+                $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+                $visit_type = '';
+                foreach($visitTypeInfo as $info){
+                    $visit_type.= '、'.$info['name'];
+                }
+                $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
+            }
+            foreach($result as $index => $r){
+                //职位拜访类型
+                $vposition = json_decode($r['visit_position']);
+                $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+                $visit_position = '';
+                foreach($vpInfo as $info){
+                    $visit_position.= '、'.$info['name'];
+                }
+                $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
 
-        if($total <= $length){
-            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->limit($length)->select();
-        }else{
-            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->limit(1000)->select();
-        }
-        foreach($result as $index => $r){
-            //客户信息
-            $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
-            $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
-            $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
-            $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-        }
-        foreach($result as $index => $r){
-            //业务部门反馈时间
-            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-            $result[$index]['reply_time'] =$replyInfo['created_at'];
-        }
-        foreach($result as $index => $r){
-            //业务部门反馈时间
-            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-            $result[$index]['reply_time'] =$replyInfo['created_at'];
-        }
-        foreach($result as $index => $r){
-            //目的拜访类型
-            $vtype = json_decode($r['visit_type']);
-            $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
-            $visit_type = '';
-            foreach($visitTypeInfo as $info){
-                $visit_type.= '、'.$info['name'];
             }
-            $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
-        }
-        foreach($result as $index => $r){
-            //职位拜访类型
-            $vposition = json_decode($r['visit_position']);
-            $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
-            $visit_position = '';
-            foreach($vpInfo as $info){
-                $visit_position.= '、'.$info['name'];
+            foreach($result as $index => $r){
+                //拜访级别
+                $vlevel = json_decode($r['visit_level']);
+                $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+                $visit_level = '';
+                foreach($vlInfo as $info){
+                    $visit_level.= '、'.$info['name'];
+                }
+                $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
             }
-            $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
-
-        }
-        foreach($result as $index => $r){
-            //拜访级别
-            $vlevel = json_decode($r['visit_level']);
-            $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
-            $visit_level = '';
-            foreach($vlInfo as $info){
-                $visit_level.= '、'.$info['name'];
+            foreach($result as $index => $r){
+                //客户需求类型
+                $dtype = json_decode($r['demand_type']);
+                $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+                $demand_type = '';
+                foreach($dpInfo as $info){
+                    $demand_type.= '、'.$info['name'];
+                }
+                $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
             }
-            $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
-        }
-        foreach($result as $index => $r){
-            //客户需求类型
-            $dtype = json_decode($r['demand_type']);
-            $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
-            $demand_type = '';
-            foreach($dpInfo as $info){
-                $demand_type.= '、'.$info['name'];
-            }
-            $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
-        }
-        $data['result'] = $result ? $result : [];
-        return $data;
+            $total =$total-$length;
+            $info = $this->getVisitStatisData($result);
+//            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+            $res = $this->exportModel('visitstatis'.($i/$length+1),$info);
+            $i = $i+$length;
+        } while ($total > 0);
+        return $res;
     }
 
 }

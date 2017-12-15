@@ -37,7 +37,7 @@ class BuyerCustomModel extends PublicModel
 
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,buyer_id,service_no,title,cat_name,item_id,content,remarks,add_desc';
-        $field .= ',email,contact_name,company,country_bn,tel,status';
+        $field .= ',email,contact_name,company,country_bn,tel,status,created_by,created_at';
         return $this->field($field)
                      ->where($where)
                      ->limit($start_no, $pagesize)
@@ -184,15 +184,15 @@ class BuyerCustomModel extends PublicModel
 //            $row = $this->query($sql);     //==>>扩展加附件使用(后期加)
             $data = array();
             if($customInfo) {
-                $catModel = new CustomCatModel();
-                $catInfo = $catModel->info($lang, $customInfo['cat_id']);
-                $customInfo['cat_name'] = $catInfo[0]['cat_name'];
-                $itemModel = new CustomCatItemModel();
-                $item = json_decode($customInfo['item_id'], true);
-                foreach($item as $v) {
-                    $itemInfo = $itemModel->info($lang, $customInfo['cat_id'], $v);
-                    $customInfo['item_name'][] = $itemInfo[0][0]['item_name'];
-                }
+//                $catModel = new CustomCatModel();
+//                $catInfo = $catModel->info($lang, $customInfo['cat_id']);
+//                $customInfo['cat_name'] = $catInfo[0]['cat_name'];
+//                $itemModel = new CustomCatItemModel();
+//                $item = json_decode($customInfo['item_id'], true);
+//                foreach($item as $v) {
+//                    $itemInfo = $itemModel->info($lang, $customInfo['cat_id'], $v);
+//                    $customInfo['item_name'][] = $itemInfo[0][0]['item_name'];
+//                }
                 return $customInfo;
             } else {
                 return false;
@@ -219,6 +219,12 @@ class BuyerCustomModel extends PublicModel
         }
         if (isset($create['title'])) {
             $arr['title'] = $create['title'];
+        }
+        if (isset($create['cat_name'])) {
+            $arr['cat_name'] = trim($create['cat_name']);
+        }
+        if (isset($create['item_name'])) {
+            $arr['item_name'] = json_encode(trim($create['item_name']));
         }
         if (isset($create['cat_id'])) {
             $arr['cat_id'] = trim($create['cat_id']);

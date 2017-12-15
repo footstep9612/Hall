@@ -295,18 +295,12 @@ class EsProductModel extends Model {
         }
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['show_name.' . $analyzer => $show_name]],
-                        [ESClient::WILDCARD => ['show_name.all' => '*' . $show_name . '*']],
-            ]]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
         }
 
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-// [ESClient::MATCH => ['name.'.$analyzer => $name]],
-                        [ESClient::WILDCARD => ['name.all' => '*' . $name . '*']],
-            ]]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
         }
         if (isset($condition['attrs']) && $condition['attrs']) {
             $attrs = trim($condition['attrs']);
@@ -333,14 +327,13 @@ class EsProductModel extends Model {
         if (isset($condition['keyword']) && $condition['keyword']) {
             $keyword = trim($condition['keyword']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
-                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 7]]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '75%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '75%', 'operator' => 'or']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.name.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.value.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
+                        [ESClient::TERM => ['spu' => $keyword]],
                         [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
+                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
                         [ESClient::TERM => ['spu' => $keyword]],
             ]]];
         }
@@ -447,10 +440,10 @@ class EsProductModel extends Model {
 
     public function getSkuCountByCondition($condition, $lang) {
         $body = $this->getCondition($condition);
-        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
-        if (redisExist($redis_key)) {
-            return redisGet($redis_key);
-        }
+//        $redis_key = 'spu_' . md5(json_encode($body)) . '_' . $lang;
+//        if (redisExist($redis_key)) {
+//            return redisGet($redis_key);
+//        }
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['sku_count']);
@@ -466,7 +459,7 @@ class EsProductModel extends Model {
 
         $ret1 = $ret = $es = null;
         unset($ret1, $ret, $es);
-        redisSet($redis_key, $sku_count, 180);
+        // redisSet($redis_key, $sku_count, 180);
         return $sku_count;
         /*         * **************************sku_count 报错 可以恢复这段************************** */
         /* $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1000);
@@ -800,11 +793,14 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function importproducts($lang = 'en') {
+    public function importproducts($lang = 'en', $product_spus = []) {
         try {
             $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]
-                    ])->count('id');
+            $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
+            if ($product_spus) {
+                $where_count['spu'] = ['in', $product_spus];
+            }
+            $count = $this->where($where_count)->count('id');
 
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
@@ -818,16 +814,17 @@ class EsProductModel extends Model {
                     $i = $count;
                 }
 
-
+                $where = ['lang' => $lang,];
                 if ($max_id === 0) {
-                    $products = $this->where(['lang' => $lang, 'id' => ['gt', 0]
-                                    ])->limit(0, 100)
-                                    ->order('id ASC')->select();
+                    $where['id'] = ['gt', 0];
                 } else {
-                    $products = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]
-                                    ])->limit(0, 100)
-                                    ->order('id ASC')->select();
+                    $where['id'] = ['gt', $max_id];
                 }
+                if ($product_spus) {
+                    $where['spu'] = ['in', $product_spus];
+                }
+                $products = $this->where($where)->limit(0, 100)
+                                ->order('id ASC')->select();
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {

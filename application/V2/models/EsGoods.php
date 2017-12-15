@@ -353,15 +353,15 @@ class EsGoodsModel extends Model {
                         //  [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => $show_name]],
-                        [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
+                        [ESClient::MATCH => ['model.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
                         [ESClient::TERM => ['spu' => $show_name]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 1]]],
-                        [ESClient::WILDCARD => ['brand.name.all' => ['value' => '*' . $show_name . '*', 'boost' => 5]]],
-                        [ESClient::WILDCARD => ['model.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $show_name . '*', 'boost' => 9]]],
-                        [ESClient::WILDCARD => ['name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 7]]],
-                        [ESClient::WILDCARD => ['show_name_loc.all' => ['value' => '*' . $show_name . '*', 'boost' => 7]]],
+                        [ESClient::MATCH => ['attr.spec_attrs.value.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['attr.spec_attrs.name.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['brand.name.' . $analyzer => ['query' => $show_name, 'boost' => 5, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['model.' . $analyzer => ['query' => $show_name, 'boost' => 9, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 9, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['name_loc.' . $analyzer => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['show_name_loc.' . $analyzer => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
             ]]];
         }
 
@@ -620,11 +620,15 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    public function importgoodss($lang = 'en') {
+    public function importgoodss($lang = 'en', $goods_skus = []) {
         try {
             ob_clean();
             $max_id = 0;
-            $count = $this->where(['lang' => $lang, 'id' => ['gt', 0]])->count('id');
+            $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
+            if ($goods_skus) {
+                $where_count['sku'] = ['in', $goods_skus];
+            }
+            $count = $this->where($where_count)->count('id');
 
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
             for ($i = 0; $i < $count; $i += 100) {
@@ -638,14 +642,17 @@ class EsGoodsModel extends Model {
                 flush();
 
                 $time1 = microtime(true);
-                if ($max_id === 0) {
-                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', 0]])
-                                    ->limit(0, 100)->order('id ASC')->select();
-                } else {
-                    $goods = $this->where(['lang' => $lang, 'id' => ['gt', $max_id]])
-                                    ->limit(0, 100)->order('id ASC')->select();
-                }
+                $where = ['lang' => $lang];
 
+                if ($max_id === 0) {
+                    $where['id'] = ['gt', 0];
+                } else {
+                    $where['id'] = ['gt', $max_id];
+                }
+                if ($goods_skus) {
+                    $where['sku'] = ['in', $goods_skus];
+                }
+                $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
                 $spus = $skus = [];
 
                 if ($goods) {

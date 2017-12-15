@@ -66,6 +66,7 @@ class IndustrychainModel extends PublicModel
         $chainExist = $this -> showChain($buyer_id,$created_by);
         $arr = array();
         foreach($chainExist as $key => $value){
+            unset($value['id']);
             if($value['industry_group']=='up'){
                 $arr['up'][]=$value;
             }else{

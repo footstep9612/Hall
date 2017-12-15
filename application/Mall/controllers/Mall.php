@@ -22,6 +22,7 @@ class MallController extends PublicController
     public function getListAction() {
         $data = $this->getPut();
         $model = new BuyerCustomModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
@@ -91,11 +92,11 @@ class MallController extends PublicController
     public function getUcustomInfoAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        if(!isset($data['custom_id']) || empty($data['custom_id'])) {
+        if(!isset($data['id']) || empty($data['id'])) {
             jsonReturn(null, -203, '定制服务ID不能为空!');
         }
         $buyer_custom_model = new BuyerCustomModel();
-        $customInfo = $buyer_custom_model->info($data['custom_id'],$lang);
+        $customInfo = $buyer_custom_model->info($data['id'],$lang);
         $this->_setBuyerName($customInfo);
         if($customInfo) {
             jsonReturn($customInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
