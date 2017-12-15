@@ -362,7 +362,7 @@ class BuyerVisitModel extends PublicModel {
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;
                 $where[ 'id' ] = intval( $_input[ 'id' ] );
-                $this->where( $where )->save( $data )
+                $this->where( $where )->save( $data );
                 $result = $_input[ 'id' ];
             }else{
                 $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
