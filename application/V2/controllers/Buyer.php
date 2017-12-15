@@ -139,8 +139,11 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $data['credit_status'];
         }
-        if (!empty($data['filter'])) {
+        if (!empty($data['filter'])) {  //过滤状态
             $where['filter'] = $data['filter'];
+        }
+        if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
+            $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
         }
         $model = new BuyerModel();
         $data = $model->getlist($where);
