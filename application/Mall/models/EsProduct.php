@@ -632,7 +632,7 @@ class EsProductModel extends Model {
     }
 
     public function getSpecsList($condition, $lang = 'en') {
-        unset($condition['show_cat_no']);
+        unset($condition['spec_name'], $condition['spec_value']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
