@@ -84,7 +84,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //获取excel导出的数据
     public function getAgreeStatisData($data){
-        $cond = '1=1';
+        $cond = '1=1 and agree.created_by='.$data['created_by'];
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
