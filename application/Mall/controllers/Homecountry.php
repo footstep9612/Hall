@@ -35,9 +35,9 @@ class HomecountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn(null);
         }
-        $stock_country_model = new StockCountryModel();
+        $home_country_model = new HomeCountryModel();
 
-        $list = $stock_country_model->getExit($country_bn);
+        $list = $home_country_model->getExit($country_bn);
 
         if ($list) {
             $this->jsonReturn($list);
