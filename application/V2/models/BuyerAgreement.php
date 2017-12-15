@@ -380,14 +380,14 @@ class BuyerAgreementModel extends PublicModel
         //组装数据
         $arr = $this -> packageData($data);
         $exRes = $this -> showAgreeBrief($arr['execute_no']);
-        if(empty($exRes)){
-            return false;
+        if($exRes){
+            //保存数据
+            $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
+            if($res){
+                return $exRes['id'];
+            }
+        }else{
+            return 'no_error';
         }
-        //保存数据
-        $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
-        if($res){
-            return $exRes['id'];
-        }
-        return false;
     }
 }
