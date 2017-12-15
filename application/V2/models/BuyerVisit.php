@@ -185,7 +185,7 @@ class BuyerVisitModel extends PublicModel {
             }
             //	visit_at_start开始时间   visit_at_end结束时间
 //            if(!empty($_input['created_at_start']) && !empty($_input['created_at_start'])){
-//                $this->_getValue($condition, $_input,'created_at','between');
+                $this->_getValue($condition, $_input,'created_at','between');
 //                $ex = $condition['created_at'][1];
 //                $exArr = explode(',',$ex);
 //                $a = date('Y-m-d H:i:s', strtotime($exArr[0]));
@@ -195,12 +195,12 @@ class BuyerVisitModel extends PublicModel {
 //                    "$a,$b"
 //                );
 //            }
-            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
-                $condition['created_at']=['EGT', $_input['created_at_start']];
-            }
-            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
-                $condition['created_at']=['EGT', $_input['created_at_end']];
-            }
+//            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
+//                $condition['created_at']=['EGT', $_input['created_at_start']];
+//            }
+//            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
+//                $condition['created_at']=['EGT', $_input['created_at_end']];
+//            }
             //总记录数
             $total = $this->field('id')->where($condition)->count();
             $data = [

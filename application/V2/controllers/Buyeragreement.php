@@ -106,6 +106,11 @@ class BuyeragreementController extends PublicController
             $dataJson['message'] = '保存协议失败,请输入规范数据';
             $this -> jsonReturn($dataJson);
         }
+        if($res === 'no_error'){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '框架协议单号错误';
+            $this -> jsonReturn($dataJson);
+        }
         $attach = new AgreementAttachModel();
         $attachRes = $attach->updateAgreeAttach($res,$data);
         if($attachRes){
