@@ -357,6 +357,7 @@ class BuyerVisitModel extends PublicModel {
         }
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
+
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;
