@@ -315,21 +315,17 @@ class EsProductModel extends Model {
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::MATCH => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
         if (isset($condition['spec_name']) && $condition['spec_name']) {
             $spec_name = trim($condition['spec_name']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $spec_name . '*']],
-            ]]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 2, 'operator' => 'and']]];
         }
         if (isset($condition['spec_value']) && $condition['spec_value']) {
             $spec_value = trim($condition['spec_value']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.value.all' => '*' . $spec_value . '*']],
-            ]]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 2, 'operator' => 'and']]];
         }
 
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
@@ -438,6 +434,7 @@ class EsProductModel extends Model {
 
             $es->setaggs('show_cats.cat_no3', 'show_cat_no3', 'terms', 30);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
