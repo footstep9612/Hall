@@ -1560,7 +1560,7 @@ class BuyerModel extends PublicModel {
         $excel = new PHPExcel();
         $objActSheet = $excel->getActiveSheet();
         $letter = range(A,Z);
-        $letter = array_merge($letter,array('AA','BB','CC','DD','EE','FF','GG','HH','II'));
+        $letter = array_merge($letter,array('AA','AB','AC','AD','AE','AF','AG','AH','AI'));
         //设置当前的sheet
         $excel->setActiveSheetIndex(0);
         //设置sheet的name
