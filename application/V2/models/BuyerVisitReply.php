@@ -103,7 +103,6 @@ class BuyerVisitReplyModel extends PublicModel{
                 $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 //$data['deleted_flag'] =  self::DELETED_N;
-                print_r($data);die;
                 $result = $this->add($data);
             }
             return $result ? $result : false;
