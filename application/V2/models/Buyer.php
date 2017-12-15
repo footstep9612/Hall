@@ -77,7 +77,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'Y\' ';
+            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'N\' ';
         }
 
         if (!empty($condition['user_name'])) {
