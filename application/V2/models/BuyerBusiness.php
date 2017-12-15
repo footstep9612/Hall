@@ -64,10 +64,10 @@ class BuyerBusinessModel extends PublicModel
     public function createBusiness($data)
     {
         //验证
-        $validRes = $this -> validData($data);
-        if($validRes == false){
-            return false;
-        }
+//        $validRes = $this -> validData($data);
+//        if($validRes == false){
+//            return false;
+//        }
         //组装数据
         $optArr = array(
             'buyer_id', //客户id
@@ -92,9 +92,7 @@ class BuyerBusinessModel extends PublicModel
             'net_goods'   //入网商品
         );
         foreach($optArr as $v){
-            if(!empty($data[$v])){
-                $arr[$v] = $data[$v];
-            }
+            $arr[$v] = $data[$v];
         }
         $arr['created_at'] = date('Y-m-d H:i:s');
         //数据存在，删除，重新添加
