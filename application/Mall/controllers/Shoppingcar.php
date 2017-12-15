@@ -52,9 +52,25 @@ class ShoppingcarController extends PublicController{
 
     /**
      * 创建
+     * @param string spu
+     * @param array skus     ['sku' => 数量]
+     * @param string lang
+     * @param string buyer_id
      */
     public function createAction(){
         $input = $this->getPut();
+        if(!isset($input['spu']) || empty($input['spu'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SPU);
+        }
+
+        if(!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])){
+            jsonReturn('',ErrorMsg::NOTNULL_SKU);
+        }
+
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('',ErrorMsg::NOTNULL_LANG);
+        }
+
         $scModel = new ShoppingCarModel();
         $result = $scModel->edit($input);
         if($result !== false){

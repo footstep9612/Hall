@@ -499,7 +499,7 @@ class ProductController extends PublicController {
         $name = $this->getPut('name');
         ini_set('memory_limit', '1G');
         $productModel = new ProductModel();
-        $result = $productModel->import($this->put_data['xls'], $this->put_data['lang'], $process, $name);
+        $result = $productModel->import2($this->put_data['xls'], $this->put_data['lang'], $process, $name);
         if ($result) {
             if (is_array($result) && isset($result['success']) && $result['success'] == 0) {
                 jsonReturn($result, ErrorMsg::SUCCESS, '导入失败');
