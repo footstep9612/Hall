@@ -25,7 +25,8 @@ class HomeFloorProductModel extends PublicModel {
 
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
-        $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
+        $this->_getValue($where, $condition, 'floor_id', 'string', 'floor_id');
+        $this->_getValue($where, $condition, 'lang', 'string', 'lang');
         return $where;
     }
 
@@ -36,15 +37,21 @@ class HomeFloorProductModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function getList($condition, $lang) {
+    public function getList($condition) {
 
 
         $where = $this->_getCondition($condition);
 
-        $where['s.lang'] = $lang;
-        return $this->field('spu')
-                        ->where($where)
-                        ->select();
+        $data = $this->field('spu')
+                ->where($where)
+                ->order('sort_order desc')
+                ->limit(0, 8)
+                ->select();
+        $spus = [];
+        foreach ($data as $spu) {
+            $spus[] = $spu['spu'];
+        }
+        return $spus;
     }
 
 }

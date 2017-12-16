@@ -33,11 +33,13 @@ class StockfloorController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
         $stock_floor_model = new StockFloorModel();
 
@@ -69,16 +71,19 @@ class StockfloorController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['floor_id'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
         }
         $stock_floor_keyword_model = new StockFloorKeywordModel();
 
@@ -110,16 +115,19 @@ class StockfloorController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['floor_id'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
         }
         $stock_floor_show_cat_model = new StockFloorShowCatModel();
 
@@ -151,16 +159,19 @@ class StockfloorController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['floor_id'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
+            $this->jsonReturn();
         }
         $stock_floor_ads_model = new StockFloorAdsModel();
 

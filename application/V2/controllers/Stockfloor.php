@@ -33,11 +33,13 @@ class StockfloorController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
         $stock_floor_model = new StockFloorModel();
 

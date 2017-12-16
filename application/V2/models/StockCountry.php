@@ -24,7 +24,7 @@ class StockCountryModel extends PublicModel {
     }
 
     private function _getCondition($condition) {
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'display_position');
