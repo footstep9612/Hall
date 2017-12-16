@@ -44,6 +44,11 @@ class ShopMsg {
             '102' => '登陆成功',
             '103' => '注册成功',
             '104' => '邮箱验证码发送成功',
+            '135' => '恭喜您，订单提交成功！',
+            '136' => '验证成功！',
+            '137' => '邮箱激活成功!',
+            '138' => '恭喜您，登录成功并提交定制!',
+            '139' => '恭喜您，注册成功并提交定制！',
 
             '-101' => '失败',
             '-105' => '注册失败',
@@ -66,9 +71,16 @@ class ShopMsg {
             '-123' => '请输入正确格式的内容',
             '-124' => '账号或密码错误',
             '-125' => '公司名字已存在',
+            '-126' => '抱歉，提交失败',
+
         ),
         'en' => array(
             '130' => 'Password retrieval on ERUI platform',
+            '135' => 'Congratulations, the order was submitted successfully！',
+            '136' => 'The verification is successful！',
+            '137' => 'E-mail activation success!',
+            '138' => 'Congratulations, login successfully and submit your request!',
+            '139' => 'Congratulations, register successfully and submit your request!',
 
             '103' => 'Registered successfully',
 
@@ -90,6 +102,7 @@ class ShopMsg {
             '-123' => 'Please enter the content in the correct format',
             '-124' => 'Account or password error',
             '-125' => 'Company name already exists',
+            '-126' => 'Sorry, the submission failed',
         ),
         'es' => array(
             '130' => 'Recuperación de contraseña en la plataforma ERUI',

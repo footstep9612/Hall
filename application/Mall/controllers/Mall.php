@@ -125,38 +125,54 @@ class MallController extends PublicController
     }
 
     /**
-     * 物流信息新增
+     * 物流信息编辑(新增/更新)--(暂用一个接口)
      */
-    public function createUlogisticsAction() {
+    public function editUlogisticsAction() {
         $data = $this->getPut();
-//        if (isset($data['buyer_id']) && !empty($data['buyer_id'])) {
-//            $where['buyer_id'] = trim($data['buyer_id']);
-//        } else {
-//            jsonReturn(null ,-201, '用户ID不能为空!');
-//        }
         $where['buyer_id'] = $this->user['buyer_id'];
         $logisticsModel = new BuyerLogisticsModel();
-        $add = $logisticsModel->create_data($data, $where);
-        if($add) {
-            jsonReturn($add, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        $check = $logisticsModel->where(['buyer_id'=>$where['buyer_id'],'deleted_flag'=>'N'])->find();
+        if($check) {
+            $res = $logisticsModel->update_data($data, $where);
+        } else {
+            $res = $logisticsModel->create_data($data, $where);
+        }
+        if($res) {
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
         }
+        exit;
     }
+
+    /**
+     * 物流信息新增
+     */
+//    public function createUlogisticsAction() {
+//        $data = $this->getPut();
+//        $where['buyer_id'] = $this->user['buyer_id'];
+//        $logisticsModel = new BuyerLogisticsModel();
+//        $add = $logisticsModel->create_data($data, $where);
+//        if($add) {
+//            jsonReturn($add, ShopMsg::CUSTOM_SUCCESS, 'success!');
+//        } else {
+//            jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
+//        }
+//    }
     /**
      * 物流信息更新
      */
-    public function updateUlogisticsAction() {
-        $data = $this->getPut();
-        $where['buyer_id'] = $this->user['buyer_id'];
-        $logisticsModel = new BuyerLogisticsModel();
-        $update = $logisticsModel->update_data($data, $where);
-        if($update) {
-            jsonReturn('', ShopMsg::CUSTOM_SUCCESS, 'success!');
-        } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED, 'failed!');
-        }
-    }
+//    public function updateUlogisticsAction() {
+//        $data = $this->getPut();
+//        $where['buyer_id'] = $this->user['buyer_id'];
+//        $logisticsModel = new BuyerLogisticsModel();
+//        $update = $logisticsModel->update_data($data, $where);
+//        if($update) {
+//            jsonReturn('', ShopMsg::CUSTOM_SUCCESS, 'success!');
+//        } else {
+//            jsonReturn('', ShopMsg::CUSTOM_FAILED, 'failed!');
+//        }
+//    }
 
 
     /**
@@ -233,7 +249,7 @@ class MallController extends PublicController
         }
     }
 
-    //获取采购商信息
+    //获取采购商name
     private function _setBuyerName(&$info) {
         if ($info['buyer_id']) {
             $buyer_model = new BuyerAccountModel();
