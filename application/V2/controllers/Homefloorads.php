@@ -131,6 +131,12 @@ class HomeflooradsController extends PublicController {
             $this->setMessage('请输入输入广告名称!');
             $this->jsonReturn();
         }
+
+        if (empty($condition['link'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $home_floor_ads_model = new HomeFloorAdsModel();
 
         if ($home_floor_ads_model->getExit($condition)) {

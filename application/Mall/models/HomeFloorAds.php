@@ -42,10 +42,21 @@ class HomeFloorAdsModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        return $this->field('img_name,img_url,group')
-                        ->where($where)
-                        ->order('sort_order desc')
-                        ->select();
+        $start_no = 0;
+
+        $this->field('img_name,img_url,group,link')
+                ->where($where)
+                ->order('sort_order desc');
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        if ($pagesize) {
+            $this->limit($start_no, $pagesize);
+        }
+        return $this->select();
     }
 
 }

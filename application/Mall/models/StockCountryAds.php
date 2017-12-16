@@ -39,7 +39,7 @@ class StockCountryAdsModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        return $this->field('img_name,img_url,group')
+        return $this->field('img_name,img_url,group,link')
                         ->where($where)
                         ->order('sort_order desc')
                         ->select();
