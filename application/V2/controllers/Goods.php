@@ -156,8 +156,8 @@ class GoodsController extends PublicController {
         }
         $langs = ['en', 'zh', 'es', 'ru'];
         foreach ($langs as $lang) {
-            if ($this->put_data[$lang]['spu']) {
-                $this->updateEsproduct([$lang => $lang], $this->put_data[$lang]['spu']);
+            if ($this->put_data['spu']) {
+                $this->updateEsproduct([$lang => $lang], $this->put_data['spu']);
             }
         }
         if (!$result || $result === false) {
