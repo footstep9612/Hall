@@ -24,12 +24,8 @@ class HomeFloorModel extends PublicModel {
     }
 
     private function _getCondition($condition) {
-        $where = ['deleted_flag' => 'N'];
+        $where = ['deleted_flag' => 'N', 'onshelf_flag' => 'Y'];
         $this->_getValue($where, $condition, 'country_bn');
-        $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getValue($where, $condition, 'floor_name', 'like');
-        $this->_getValue($where, $condition, 'created_by');
-        $this->_getValue($where, $condition, 'onshelf_flag', 'bool');
         $this->_getValue($where, $condition, 'lang');
 
         return $where;
@@ -44,10 +40,11 @@ class HomeFloorModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
+
 
         return $this->where($where)
-                        ->limit($from, $size)
+                        ->field('floor_name,id')
+                        ->order('sort_order desc')
                         ->select();
     }
 

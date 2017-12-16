@@ -148,7 +148,12 @@ class StockcountryadsController extends PublicController {
             $this->setMessage('请选择广告语言!');
             $this->jsonReturn();
         }
-
+        $link = $this->getPut('link');
+        if (empty($link)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $stock_country_ads_model = new StockCountryAdsModel();
 
         if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang)) {
@@ -156,7 +161,7 @@ class StockcountryadsController extends PublicController {
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
-        $list = $stock_country_ads_model->createData($country_bn, $img_name, $img_url, $group, $lang);
+        $list = $stock_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -215,6 +220,12 @@ class StockcountryadsController extends PublicController {
             $this->setMessage('请选择广告语言!');
             $this->jsonReturn();
         }
+        $link = $this->getPut('link');
+        if (empty($link)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $stock_country_model = new StockCountryModel();
 
         if ($stock_country_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
@@ -222,7 +233,7 @@ class StockcountryadsController extends PublicController {
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
-        $list = $stock_country_model->updateData($id, $country_bn, $img_name, $group, $lang);
+        $list = $stock_country_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

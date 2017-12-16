@@ -65,11 +65,13 @@ class HomecountryController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
         $home_country_ads_model = new HomeCountryAdsModel();
         $list = $home_country_ads_model->getList($condition);
@@ -99,11 +101,13 @@ class HomecountryController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
         $home_country_nav_model = new HomeCountryNavModel();
         $list = $home_country_nav_model->getList($condition);

@@ -14,4 +14,37 @@ class GoodsModel extends PublicModel{
         parent::__construct();
     }
 
+    /**
+     * 根据sku获取信息
+     * @param $sku
+     * @param $lang
+     * @return array|bool|mixed
+     */
+    public function getInfoBySku($sku,$lang){
+        if(empty($sku) || empty($lang)){
+            return false;
+        }
+
+        try{
+            if(is_array($sku)){
+                $condition = ['sku' => ['in',$sku]];
+            }else{
+                $condition = ['sku' => $sku];
+            }
+            $condition['lang'] = $lang;
+            $condition['status'] = 'VALID';
+            $condition['deleted_flag'] = 'N';
+
+            $productModel = new ProductModel();
+            $productTable = $productModel->getTableName();
+
+            $result = $this->field("spu,sku,name,show_name_loc,model,lang,min_pack_unit,$productTable.brand")
+                ->join($productTable." ON spu=$productTable.spu AND lang=$productTable.lang")->where($condition)->select();
+            return $result ? $result : [];
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
 }

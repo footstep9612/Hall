@@ -35,10 +35,12 @@ class StockflooradsController extends PublicController {
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
+            $this->jsonReturn();
         }
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
+            $this->jsonReturn();
         }
 
         if (empty($condition['floor_id'])) {
@@ -128,6 +130,12 @@ class StockflooradsController extends PublicController {
             $this->setMessage('请上传输入广告名称!');
             $this->jsonReturn();
         }
+
+        if (empty($condition['link'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $stock_floor_ads_model = new StockFloorAdsModel();
 
         if ($stock_floor_ads_model->getExit($condition['country_bn'], $condition['floor_id'], $condition['img_name'], $condition['lang'])) {
@@ -189,6 +197,12 @@ class StockflooradsController extends PublicController {
         if (empty($condition['img_name'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请上传输入广告名称!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['link'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
             $this->jsonReturn();
         }
         $stock_floor_ads_model = new StockFloorAdsModel();

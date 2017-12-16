@@ -1456,6 +1456,8 @@ class ProductModel extends PublicModel {
                             $brand_ary = array('name' => trim($r[7]), 'style' => 'TEXT', 'label' => trim($r[7]), 'logo' => '');
                             ksort($brand_ary);
                             $data_tmp['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                        }else{
+                            $data_tmp['brand'] = '{}';
                         }
                         $data_tmp['description'] = trim($r[8]);    //产品介绍
                         $data_tmp['tech_paras'] = trim($r[9]);    //技术参数

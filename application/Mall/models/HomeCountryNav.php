@@ -26,9 +26,6 @@ class HomeCountryNavModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
-        $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getValue($where, $condition, 'nav_name', 'like');
-        $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'lang');
 
         return $where;
@@ -43,10 +40,9 @@ class HomeCountryNavModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
-
-        return $this->where($where)
-                        ->limit($from, $size)
+        return $this->field('nav_name,nav_url')
+                        ->where($where)
+                        ->order('sort_order desc')
                         ->select();
     }
 
