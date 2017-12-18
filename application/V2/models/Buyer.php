@@ -1055,96 +1055,18 @@ class BuyerModel extends PublicModel {
      */
     public function buyerList($data)
     {
-        //条件
-        $cond = "buyer.created_by=$data[created_by] and recommend_flag='Y'";
-        if(!empty($data['all_id'])){
-            $str = implode(',',$data['all_id']);
-            $cond .= " and buyer.id in ($str)";
-        }
-        if(!empty($data['area_bn'])){
-            $cond .= " and buyer.area_bn='$data[area_bn]'";
-        }
-        if(!empty($data['country_bn'])){
-            $cond .= " and buyer.country_bn='$data[country_bn]'";
-        }
-        if(!empty($data['buyer_level'])){
-            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
-        }
-        if(!empty($data['buyer_code'])){
-            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
-        }
-        if(!empty($data['name'])){
-            $cond .= " and buyer.name like '%$data[name]%'";
-        }
-        if(!empty($data['reg_capital'])){
-            $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
-        }
-        if(!empty($data['line_of_credit'])){
-            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
-        }
-        $totalCount = $this->alias('buyer')
-            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-            ->where($cond)
-            ->count();
+        $page = isset($data['page'])?$data['page']:1;
         $pageSize = 10;
-        $totalPage = ceil($totalCount/$pageSize);
-        $page = isset($data['page'])&&!empty($data['page'])&& $data['page']>0 ? ceil($data['page']) : 1;
-        if($page > $totalPage && $totalPage > 0){
-            $page = $totalPage;
-        }
         $offset = ($page-1)*$pageSize;
-        $field ='buyer.id';
-        $fieldBuyerArr = array(
-//            'id',   //客户id
-            'area_bn',   //客地区
-            'country_bn',   //国家
-            'buyer_code',   //客户编码
-            'name as buyer_name',   //客户名称
-            'created_at',   //创建时间
-            'is_oilgas',   //是否油气
-            'buyer_level',   //客户等级
-            'level_at',   //等级设置时间
-            'reg_capital',   //注册资金
-            'reg_capital_cur',   //货币
-            'credit_level',   //采购商信用等级
-            'credit_type',   //授信类型
-            'line_of_credit',   //授信额度
-        );
-        foreach($fieldBuyerArr as $v){
-            $field .= ',buyer.'.$v;
-        }
-        $fieldBusiness = array(
-            'is_net', //是否入网
-            'net_at', //入网时间
-            'net_invalid_at', //失效时间
-            'product_type', //产品类型
-            'is_local_settlement', //本地结算
-            'is_purchasing_relationship', //采购关系
-        );
-        foreach($fieldBusiness as $v){
-            $field .= ',business.'.$v;
-        }
-        $info = $this->alias('buyer')
-            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-            ->field($field)
-            ->where($cond)
-            ->order('buyer.id desc')
-            ->limit($offset,$pageSize)
-            ->select();
-        $country = new CountryModel();
-        foreach($info as $k => $v){
-            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
-        }
-        $ids = array();
-        foreach($info as $k => $v){
-            $ids[$v['id']] = $v['id'];
-        }
+        $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
+        $totalCount = $arr['totalCount'];
+        $totalPage = ceil($totalCount/$pageSize);
+        $info = $arr['info'];
         $res = array(
-            'ids' => $ids,
-            'info' => $info,
             'page'=>$page,
             'totalCount'=>$totalCount,
             'totalPage'=>$totalPage,
+            'info' => $info
         );
         return $res;
     }
@@ -1310,7 +1232,7 @@ class BuyerModel extends PublicModel {
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
-            'recommend_flag' =>'Y'//有效期
+            'is_build' =>'1'//有效期
         );
         //非必须数据
         $baseArr = array(
@@ -1409,12 +1331,39 @@ class BuyerModel extends PublicModel {
      * 客户管理列表excel导出
      */
     public function exportBuyerExcel($data){
-        $tableheader = array('序号','国家','客户代码（CRM）','客户名称','档案创建日期','是否油气','客户级别','定级日期','注册资金','货币','是否已入网','入网时间','入网失效时间','客户产品类型','客户信用等级','授信类型','授信额度','是否本地币结算','是否与KERUI有采购关系','KERUI/ERUI客户服务经理','拜访总次数','拜访季度累计次数','拜访月度累计次数','拜访周累计次数','询报价数量','询报价金额（美元）','订单数量','订单金额（美元）','单笔金额偏重区间');
-        $arr = $this->exportBuyerListData($data);
-        $info = $this->exportBuyerListDataFull($arr);
-        $res = $this->packageBuyerExcelData($info);
-        $result = $this->exportModel('buyerlist',$tableheader,$res);
-        return $result;
+        //获取数据,上传本地
+        $excelArr = $this->getBuyerManageDataByCond($data,0,10,true);
+        if(count($excelArr)==1){    //单文件
+            $excelName = $excelArr[0];
+            $arr['tmp_name'] = $excelName;
+            $arr['type'] = 'application/excel';
+            $arr['name'] = pathinfo($excelName, PATHINFO_BASENAME);
+        }else{
+            $excelDir = dirname($excelArr[0]);  //获取目录,多个excel文件,压缩打包
+            ZipHelper::zipDir($excelDir, $excelDir . '.zip');   //压缩文件
+            $arr['tmp_name'] = $excelDir . '.zip';
+            $arr['type'] = 'application/excel';
+            $arr['name'] = pathinfo($excelDir . '.zip', PATHINFO_BASENAME);
+        }
+    //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelName)){
+            unlink($excelName); //删除文件
+            ZipHelper::removeDir(dirname($excelName));    //清除目录
+        }
+        if(file_exists($excelDir . '.zip')){
+            unlink($excelDir . '.zip'); //删除压缩包
+            ZipHelper::removeDir($excelDir);    //清除目录
+        }
+        if ($fileId) {
+
+//            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return $fileId;
+        }
     }
 
     /**
@@ -1461,6 +1410,7 @@ class BuyerModel extends PublicModel {
     /**
      * @param $arr
      * 获取客户管理所有数据
+     * wangs
      */
     public function exportBuyerListDataFull($arr){
         $info = $arr['info'];
@@ -1513,93 +1463,155 @@ class BuyerModel extends PublicModel {
         }
         return $info;
     }
+
     /**
-     * 客户档案管理excel数据
+     * 客户档案管理的条件
      * wangs
      */
-    public function exportBuyerListData($data)
-    {
+    public function getBuyerManageCond($data){
         //条件
-        $cond = "buyer.created_by=$data[created_by] and recommend_flag='Y'";
+        $cond = "buyer.created_by=$data[created_by] and is_build=1";
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
         }
-        $field ='buyer.id';
-        $fieldBuyerArr = array(
-//            'id',   //客户id
-            'area_bn',   //客地区
-            'country_bn',   //国家
-            'buyer_code',   //客户编码
-            'name as buyer_name',   //客户名称
-            'created_at',   //创建时间
-            'is_oilgas',   //是否油气
-            'buyer_level',   //客户等级
-            'level_at',   //等级设置时间
-            'reg_capital',   //注册资金
-            'reg_capital_cur',   //货币
-            'credit_level',   //采购商信用等级
-            'credit_type',   //授信类型
-            'line_of_credit',   //授信额度
-        );
-        foreach($fieldBuyerArr as $v){
-            $field .= ',buyer.'.$v;
+        if(!empty($data['area_bn'])){
+            $cond .= " and buyer.area_bn='$data[area_bn]'";
         }
-        $fieldBusiness = array(
-            'is_net', //是否入网
-            'net_at', //入网时间
-            'net_invalid_at', //失效时间
-            'product_type', //产品类型
-            'is_local_settlement', //本地结算
-            'is_purchasing_relationship', //采购关系
-        );
-        foreach($fieldBusiness as $v){
-            $field .= ',business.'.$v;
+        if(!empty($data['country_bn'])){
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
         }
-        $info = $this->alias('buyer')
-            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-            ->field($field)
-            ->where($cond)
-            ->order('buyer.id desc')
-            ->limit($offset,$pageSize)
-            ->select();
-        if(!empty($info)){
-            $country = new CountryModel();
-            foreach($info as $k => $v){
-                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
-            }
+        if(!empty($data['buyer_level'])){
+            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
-        $ids = array();
-        foreach($info as $k => $v){
-            $ids[$v['id']] = $v['id'];
+        if(!empty($data['buyer_code'])){
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
         }
-        $res = array(
-            'ids' => $ids,
-            'info' => $info,
-        );
-        return $res;
+        if(!empty($data['name'])){
+            $cond .= " and buyer.name like '%$data[name]%'";
+        }
+        if(!empty($data['reg_capital'])){
+            $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
+        }
+        if(!empty($data['line_of_credit'])){
+            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
+        }
+        return $cond;
     }
+    /**
+     * 客户档案管理根据条件获取数据
+     * wangs
+     * @param $cond
+     * @param $offset
+     * @param $pageSize
+     */
+    public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
+        $cond = $this->getBuyerManageCond($data);
+        $totalCount = $this->alias('buyer')
+            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->where($cond)
+            ->count();
+        if($totalCount <= 0){
+            return false;   //空数据
+        }
+        //开始----------------------------------------------------------------------------
+        do{
+            $field ='buyer.id'; //获取查询字段
+            $fieldBuyerArr = array(
+//            'id',   //客户id
+                'area_bn',   //客地区
+                'country_bn',   //国家
+                'buyer_code',   //客户编码
+                'name as buyer_name',   //客户名称
+                'created_at',   //创建时间
+                'is_oilgas',   //是否油气
+                'buyer_level',   //客户等级
+                'level_at',   //等级设置时间
+                'reg_capital',   //注册资金
+                'reg_capital_cur',   //货币
+                'credit_level',   //采购商信用等级
+                'credit_type',   //授信类型
+                'line_of_credit',   //授信额度
+            );
+            foreach($fieldBuyerArr as $v){
+                $field .= ',buyer.'.$v;
+            }
+            $fieldBusiness = array(
+                'is_net', //是否入网
+                'net_at', //入网时间
+                'net_invalid_at', //失效时间
+                'product_type', //产品类型
+                'is_local_settlement', //本地结算
+                'is_purchasing_relationship', //采购关系
+            );
+            foreach($fieldBusiness as $v){
+                $field .= ',business.'.$v;
+            }
+            $info = $this->alias('buyer')
+                ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+                ->field($field)
+                ->where($cond)
+                ->order('buyer.id desc')
+                ->limit($i,$pageSize)
+                ->select();
+            if(!empty($info)){
+                $country = new CountryModel();
+                foreach($info as $k => $v){
+                    $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+                }
+            }
+            $ids = array();
+            foreach($info as $k => $v){
+                $ids[$v['id']] = $v['id'];
+            }
+            $res = array(
+                'ids' => $ids,
+                'info' => $info,
+            );
+            $full = $this->exportBuyerListDataFull($res);
+            $need = $this->packageBuyerExcelData($full);
+            if($excel==false){   //excel导出
+                return array('info'=>$need,'totalCount'=>$totalCount);
+            }
+            $excelName = 'buyerlist'.($i/$pageSize+1);
+            $excel = $this->exportModel($excelName,$need);  //导入excel
+            $excelArr[] = $excel;
+            $i=$i+$pageSize;
+            $totalCount=$totalCount-$pageSize;
+        }while($totalCount>0);   //结束-----------------------------------------------------------------------------------
+        return $excelArr;  //文件数组
+    }
+
     /**
      * sheet名称 $sheetName
      * execl导航头 $tableheader
      * execl导出的数据 $data
      * wangs
      */
-    public function exportModel($sheetName,$tableheader,$data){
+    public function exportModel($sheetName,$data)
+    {
+        ini_set("memory_limit", "1024M"); // 设置php可使用内存
+        set_time_limit(0);  # 设置执行时间最大值
+        //存放excel文件目录
+        $excelDir = MYPATH . DS . 'public' . DS . 'tmp' . DS . 'buyerlist';
+        if (!is_dir($excelDir)) {
+            mkdir($excelDir, 0777, true);
+        }
+        $tableheader = array('序号', '国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '拜访季度累计次数', '拜访月度累计次数', '拜访周累计次数', '询报价数量', '询报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         //创建对象
         $excel = new PHPExcel();
         $objActSheet = $excel->getActiveSheet();
-        $letter = range(A,Z);
-        $letter = array_merge($letter,array('AA','AB','AC','AD','AE','AF','AG','AH','AI'));
+        $letter = range(A, Z);
+        $letter = array_merge($letter, array('AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'));
         //设置当前的sheet
         $excel->setActiveSheetIndex(0);
         //设置sheet的name
         $objActSheet->setTitle($sheetName);
         //填充表头信息
-        for($i = 0;$i < count($tableheader);$i++) {
+        for ($i = 0; $i < count($tableheader); $i++) {
             //单独设置D列宽度为15
             $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
-            $objActSheet->setCellValue("$letter[$i]1","$tableheader[$i]");
+            $objActSheet->setCellValue("$letter[$i]1", "$tableheader[$i]");
             //设置表头字体样式
             $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
             //设置表头字体大小
@@ -1613,31 +1625,19 @@ class BuyerModel extends PublicModel {
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
-        $objActSheet->getStyle('I')->getNumberFormat()
-            ->setFormatCode('0.00');
-        $objActSheet->getStyle('Z')->getNumberFormat()
-            ->setFormatCode('0.00');
+        $objActSheet->getStyle('I')->getNumberFormat()->setFormatCode('0.00');
+        $objActSheet->getStyle('Z')->getNumberFormat()->setFormatCode('0.00');
         //填充表格信息
-        for ($i = 2;$i <= count($data) + 1;$i++) {
+        for ($i = 2; $i <= count($data) + 1; $i++) {
             $j = 0;
             foreach ($data[$i - 2] as $key => $value) {
-                $objActSheet->setCellValue("$letter[$j]$i","$value");
+                $objActSheet->setCellValue("$letter[$j]$i", "$value");
                 $j++;
             }
         }
         //创建Excel输入对象
         $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
-        $time = date('YmdHis');
-        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
-        //把导出的文件上传到文件服务器上
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        $url = $server . '/V2/Uploadfile/upload';
-
-        $data['tmp_name'] = $time.$sheetName.'.xlsx';
-        $data['type'] = 'application/excel';
-        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
-        $fileId = postfile($data, $url);
-        unlink($time.$sheetName.'.xlsx');
-        return $fileId;
+        $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
+        return $excelDir . DS. $sheetName . '.xlsx';
     }
 }
