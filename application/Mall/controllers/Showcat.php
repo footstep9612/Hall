@@ -198,11 +198,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn();
         }
 
-        if (empty($letter)) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('首字母不能为空!');
-            $this->jsonReturn();
-        }
+
         $show_model = new ShowCatModel();
         $arr = $show_model->getListByLetter($country_bn, $letter, $lang);
         if ($arr) {
