@@ -1156,72 +1156,81 @@ class BuyerModel extends PublicModel {
      * 专用采购商客户基本创建 ----数据验证
      * wangs
      */
-    public function validBuyerBaseData($data) {
-        //验证必填数据非空
-        $baseArr = array(
-            'buyer_id'=>'采购商客户id',
-            'buyer_name'=>'采购商客户名称',
-//            'buyer_code', //客户代码,
-//            'buyer_level', //客户级别,
-//            'level_at', //定级日期,
-//            'expiry_at', //有效期,
-//            'country_bn', //国家,
-//            'area_bn', //地区,
-//            'employee_count', //雇员数量,
+    public function validBuyerBaseData($arr){
+        $base = $arr['base_info'];  //基本信息
+        $contact = $arr['contact']; //联系人
+        $baseArr = array(   //创建客户基本信息必须数据
+            'buyer_id'=>'客户id',
+            'buyer_name'=>'客户名称',
+//            'buyer_account'=>'客户账号',
+//            'buyer_code'=>'客户CRM编码',
+//            'buyer_level'=>'客户级别',
+//            'country_bn'=>'国家',
+//            'area_bn'=>'地区',
+//            'market_agent_name'=>'erui客户服务经理（市场经办人)',
+//            'market_agent_mobile'=>'服务经理联系方式',
+//            'level_at'=>'定级日期',
+//            'expiry_at'=>'有效期',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
             'company_reg_date'=>'成立日期',
             'reg_capital'=>'注册资金',
             'reg_capital_cur'=>'注册资金货币',
-            'profile'=>'公司介绍txt'
+            'profile'=>'公司介绍',
+
         );
         foreach($baseArr as $k => $v){
-            if(empty($data['base_info'][$k])){
-                return $v;
-            }
-            unset($baseArr['profile']);
-            if(strlen($data['base_info'][$k]) > 100 || strlen($data['profile']) > 1000){
+            if(empty($base[$k])){
                 return $v;
             }
         }
-        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$data['base_info']['official_email'])){
-            return '公司邮箱';
+        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$base['official_email'])){
+            return $baseArr['official_email'];
         }
-        if(is_numeric($data['base_info']['reg_capital'])  && $data['base_info']['reg_capital']>0){
+        if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
         }else{
-            return '注册资金';
+            return $baseArr['reg_capital'];
         }
-        if(!empty($data['base_info']['employee_count'])){
-            if(is_numeric($data['base_info']['employee_count']) && $data['base_info']['employee_count'] > 0){
-                $data['base_info']['employee_count'] = ceil($data['base_info']['employee_count']);
+
+        //基本信息可选数据
+        $baseExtra = array( //创建客户基本信息可选数据
+            'buyer_type'=>'客户类型',
+            'type_remarks'=>'类型备注',
+            'is_oilgas'=>'是否油气',
+            'employee_count'=>'雇员数量',
+            'attach_name'=>'附件名称',
+            'attach_url'=>'附件url地址',
+        );
+        if(!empty($baseExtra['employee_count'])){
+            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
             }else{
-                return '雇员数量';
+                return $baseExtra['employee_count'];
             }
         }
-        //联系人
-        $contactArr = array(//buyer_attach   buyer_contact
-//            'role', //购买角色
-//            'email',    //邮箱////////
-//            'hobby',    //喜好
-            'address'=>'详细地址',
-            'experience'=>'工作经历',
-            'social_relations'=>'社会关系'
-        );
-        $contactNeed = array(
+        //联系人【contact】
+        $contactArr = array(    //创建客户信息联系人必须数据
             'name'=>'联系人姓名',
             'title'=>'联系人职位',
-            'phone'=>'联系人电话'
+            'phone'=>'联系人电话',
         );
-        foreach($data['contact'] as $value){
-            foreach($contactNeed as $k=>$v){
+        $contactExtra = array(  //创建客户信息联系人可选数据
+            'role'=>'购买角色',
+            'email'=>'联系人邮箱',
+            'hobby'=>'喜好',
+            'address'=>'详细地址',
+            'experience'=>'工作经历',
+            'social_relations'=>'社会关系',
+        );
+        foreach($contact as $value){
+            foreach($contactArr as $k => $v){
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
                     return $v;
                 }
             }
-            foreach($contactArr as $v){
-                if(!empty($value[$k]) && strlen($value[$k]) > 100){
-                    return $v;
+            if(!empty($value['email'])){
+                if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$value['email'])){
+                    return $contactExtra['email'];
                 }
             }
         }
@@ -1241,15 +1250,41 @@ class BuyerModel extends PublicModel {
         if($info !== true){
             return $info;
         }
-        //组装基本信息数据
-        $arr = $this->packageBaseData($data['base_info'], $data['created_by']);
-        $res = $this->where(array('id' => $arr['id']))->save($arr);
-        if ($res) {
-            return true;
+        $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
+
+        try{
+            $base = $this->where(array('id'=>$arr['id']))->save($arr);
+            if($base){
+                //创建财务报表附件
+                if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+                    $this -> createAttchData($data);
+                }
+                //创建联系人信息
+                $model = new BuyercontactModel();
+                $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+                if($conn){
+                    return true;
+                }
+            }
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
+            return false;   //新建客户基本信息失败
         }
-        return false;   //新建客户基本信息失败
     }
 
+    /**
+     * @param $data
+     * @return创建财务报表附件
+     */
+    public function createAttchData($data){
+        $attach_name = $data['base_info']['attach_name'];
+        $attach_url = $data['base_info']['attach_url'];
+        $buyer_id = $data['base_info']['buyer_id'];
+        $created_by = $data['created_by'];
+        $model = new BuyerattachModel();
+        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
+        return $financeRes;
+    }
     /**
      * 组装客户基本信息创建所需数据
      * wangs
