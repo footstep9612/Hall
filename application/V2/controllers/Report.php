@@ -241,7 +241,7 @@ class ReportController extends PublicController {
                 $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
 
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'out_node' => 'MARKET_CONFIRMING'])->getField('out_at');
+                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'in_node' => 'MARKET_CONFIRMING'])->getField('into_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $createdTime;
