@@ -752,7 +752,6 @@ class BuyerController extends PublicController {
             );
         }
     }
-
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
