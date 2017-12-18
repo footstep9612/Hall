@@ -744,6 +744,92 @@ class BuyerController extends PublicController {
             );
         }
     }
+
+    /**
+     * 验证客户管理基本信息创建数据的有效性
+     * wangs
+     * @param array $data
+     */
+//    protected function validCreateBuyerBaseInfo($arr=[]){
+//        $base = $arr['base_info'];  //基本信息
+//        $contact = $arr['contact']; //联系人
+//        $baseArr = array(   //创建客户基本信息必须数据
+//            'buyer_id'=>'客户id',
+//            'buyer_name'=>'客户名称',
+////            'buyer_account'=>'客户账号',
+////            'buyer_code'=>'客户CRM编码',
+////            'buyer_level'=>'客户级别',
+////            'country_bn'=>'国家',
+////            'area_bn'=>'地区',
+////            'market_agent_name'=>'erui客户服务经理（市场经办人)',
+////            'market_agent_mobile'=>'服务经理联系方式',
+////            'level_at'=>'定级日期',
+////            'expiry_at'=>'有效期',
+//            'official_phone'=>'公司固话',
+//            'official_email'=>'公司邮箱',
+//            'official_website'=>'公司网址',
+//            'company_reg_date'=>'成立日期',
+//            'reg_capital'=>'注册资金',
+//            'reg_capital_cur'=>'注册资金货币',
+//            'profile'=>'公司介绍',
+//
+//        );
+//        foreach($baseArr as $k => $v){
+//            if(empty($base[$k])){
+//                return $v;
+//            }
+//        }
+//        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$base['official_email'])){
+//            return $baseArr['official_email'];
+//        }
+//        if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
+//        }else{
+//            return $baseArr['reg_capital'];
+//        }
+//
+//        //基本信息可选数据
+//        $baseExtra = array( //创建客户基本信息可选数据
+//            'buyer_type'=>'客户类型',
+//            'type_remarks'=>'类型备注',
+//            'is_oilgas'=>'是否油气',
+//            'employee_count'=>'雇员数量',
+//            'attach_name'=>'附件名称',
+//            'attach_url'=>'附件url地址',
+//        );
+//        if(!empty($baseExtra['employee_count'])){
+//            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
+//            }else{
+//                return $baseExtra['employee_count'];
+//            }
+//        }
+//        //联系人【contact】
+//        $contactArr = array(    //创建客户信息联系人必须数据
+//            'name'=>'联系人姓名',
+//            'title'=>'联系人职位',
+//            'phone'=>'联系人电话',
+//        );
+//        $contactExtra = array(  //创建客户信息联系人可选数据
+//            'role'=>'购买角色',
+//            'email'=>'联系人邮箱',
+//            'hobby'=>'喜好',
+//            'address'=>'详细地址',
+//            'experience'=>'工作经历',
+//            'social_relations'=>'社会关系',
+//        );
+//        foreach($arr['contact'] as $value){
+//            foreach($contactArr as $k => $v){
+//                if(empty($value[$k]) || strlen($value[$k]) > 50){
+//                    return $v;
+//                }
+//            }
+//            if(!empty($value['email'])){
+//                if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$value['email'])){
+//                    return $contactExtra['email'];
+//                }
+//            }
+//        }
+//        return true;
+//    }
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
@@ -754,56 +840,25 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->createBuyerBaseInfo($data);  //创建基本信息
-        if($res !== true){
+        if($res !== true && $res !==false){
             $valid = array(
                 'code'=>0,
                 'message'=>'请输入'.$res,
             );
             $this -> jsonReturn($valid);
-        }
-        //创建联系人信息
-        $model = new BuyercontactModel();
-        $contactRes = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$created_by);
-        if($contactRes == false){
+        }elseif ($res === false){
             $valid = array(
-                'code'=>1,
-                'message'=>'基本信息，公司介绍，创建成功,联系人创建失败',
+                'code'=>0,
+                'message'=>'客户基本信息创建失败',
             );
             $this -> jsonReturn($valid);
         }
-        //创建财务报表
-        if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-            //创建采购商客户证书-财务表附件
-            $financeRes = $this->_createBuyerFinanceTable($data);
-            if($financeRes == false){
-                $valid = array(
-                    'code'=>1,
-                    'message'=>'基本信息，公司介绍，联系人,创建成功，财务报表创建失败',
-                );
-            }else{
-                $valid = array(
-                    'code'=>1,
-                    'message'=>'基本信息，公司介绍，联系人，财务报表,创建成功',
-                );
-            }
-            $this -> jsonReturn($valid);
-        }
+
         $valid = array(
             'code'=>1,
-            'message'=>'基本信息，公司介绍，联系人,创建成功,财务报表为空',
+            'message'=>'基本信息创建成功',
         );
         $this -> jsonReturn($valid);
-    }
-    //添加财务报表
-    private function _createBuyerFinanceTable($data){
-        //创建采购商客户证书-财务表附件
-        $attach_name = $data['base_info']['attach_name'];
-        $attach_url = $data['base_info']['attach_url'];
-        $buyer_id = $data['base_info']['buyer_id'];
-        $created_by = $data['created_by'];
-        $model = new BuyerattachModel();
-        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
-        return $financeRes;
     }
     /**
      * 客户管理：客户基本信息展示详情
@@ -815,19 +870,23 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
+        if(empty($buerInfo)){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'返回数据',
+                'data'=>$buerInfo
+            );
+            $this->jsonReturn($dataJson);
+        }
         //获取客户账号
         $account = new BuyerAccountModel();
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
-        if(!empty($accountInfo)){
-            $buerInfo['buyer_account'] = $accountInfo['email'];
-        }
+        $buerInfo['buyer_account'] = $accountInfo['email'];
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
         $agentInfo = $agent->buyerMarketAgent($data);
-        if(!empty($agentInfo)){
-            $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-            $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
-        }
+        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
         //获取财务报表
         $attach = new BuyerattachModel();
         $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
