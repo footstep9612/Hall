@@ -28,126 +28,146 @@ class BuyerVisitModel extends PublicModel {
      * @return array|bool|mixed
      */
     public function getList($_input = []){
-        $vtModel = new VisitTypeModel();
-        $vpModel = new VisitPositionModel();
-        $vlModel = new VisitLevelModel();
-        $buyerModel = new BuyerModel();
-        $dpModel = new VisitDemadTypeModel();
-        $bvrModel = new BuyerVisitReplyModel();
-        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 20;
-        $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
-        $condition = [];
-        if(!empty($_input['all_id'])){
-            $condition['id']=['in', $_input['all_id']];
+        $condition = $this->getVisitOfCond($data);
+        if($condition === false){
+            return false;   //该条件下客户信息为空数据返回空
         }
-        $cond = "1=1";
-        //客户名称，客户编码为条件
-        if(isset($_input['buyer_name']) || !empty($_input['buyer_name'])){
-            $cond .= " and name like '%$_input[buyer_name]%'";
+        if(!empty($data['current_no']) && $data['current_no']>0){
+            $current_no = ceil($data['current_no']);
+        }else{
+            $current_no = 1;
         }
-        if(isset($_input['buyer_code']) && !empty($_input['buyer_code'])){
-            $cond .= " and buyer_code like '%$_input[buyer_code]%'";
-        }
-        if(!empty($_input['buyer_name']) || !empty($_input['buyer_code'])){
-            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
-            $buyer_id = [];
-            foreach($buyer_ids as $v){
-                $buyer_id[]=$v['id'];
-            }
-            $condition['buyer_id']=['in', $buyer_id];
-        }
-        if(isset($_input['visit_level']) && !empty($_input['visit_level'])){
-            $condition['visit_level']=['exp', 'regexp \'"'.$_input['visit_level'].'"\''];
-        }
-        if(isset($_input['visit_position']) && !empty($_input['visit_position'])){
-            $condition['visit_position']=['exp', 'regexp \'"'.$_input['visit_position'].'"\''];
-        }
-        //	visit_at_start开始时间   visit_at_end结束时间
-        $this->_getValue($condition, $_input,'visit_at','between');
-        try{
-            //总记录数
-            $total = $this->field('id')->where($condition)->count();
-            $data = [
+        $total = $this->field('id')->where($condition)->count();
+        //按条件获取拜访记录数据
+        $result = $this->condGetVisitData($condition,$i=0,$length=10);
+        $arr = [
                  'current_no' => $current_no,
                  'pagesize' => $length,
                  'total' => $total,
-                 'result' => []
+                 'result' => $result
              ];
-             if($total<=0){
-                 return $data;
-             }
-             $id_ary = $this->field('id')->where($condition)->order('id desc')->limit(($current_no-1)*$length,$length)->select();
-             $ids = '';
-             foreach($id_ary as $r){
-                 $ids.= ','.$r['id'];
-             }
-             $ids = substr($ids,1);
-             $condition['id'] = ['in', $ids];
-             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->order('id desc')->select();
-             foreach($result as $index => $r){
-                 //客户信息
-                 $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
-                 $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
-                 $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
-                 $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-             }
-             foreach($result as $index => $r){
-                 //业务部门反馈时间
-                 $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-                 $result[$index]['reply_time'] =$replyInfo['created_at'];
-             }
-            foreach($result as $index => $r){
-                //业务部门反馈时间
-                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-                $result[$index]['reply_time'] =$replyInfo['created_at'];
-            }
-            foreach($result as $index => $r){
-                //目的拜访类型
-                $vtype = json_decode($r['visit_type']);
-                $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
-                $visit_type = '';
-                foreach($visitTypeInfo as $info){
-                    $visit_type.= '、'.$info['name'];
-                }
-                $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
-            }
-            foreach($result as $index => $r){
-                //职位拜访类型
-                $vposition = json_decode($r['visit_position']);
-                $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
-                $visit_position = '';
-                foreach($vpInfo as $info){
-                    $visit_position.= '、'.$info['name'];
-                }
-                $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
+        return $arr;
 
-            }
-            foreach($result as $index => $r){
-                //拜访级别
-                $vlevel = json_decode($r['visit_level']);
-                $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
-                $visit_level = '';
-                foreach($vlInfo as $info){
-                    $visit_level.= '、'.$info['name'];
-                }
-                $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
-            }
-            foreach($result as $index => $r){
-                //客户需求类型
-                $dtype = json_decode($r['demand_type']);
-                $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
-                $demand_type = '';
-                foreach($dpInfo as $info){
-                    $demand_type.= '、'.$info['name'];
-                }
-                $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
-            }
-            $data['result'] = $result ? $result : [];
-             return $data;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】getList:' . $e , Log::ERR);
-            return false;
-        }
+//        $vtModel = new VisitTypeModel();
+//        $vpModel = new VisitPositionModel();
+//        $vlModel = new VisitLevelModel();
+//        $buyerModel = new BuyerModel();
+//        $dpModel = new VisitDemadTypeModel();
+//        $bvrModel = new BuyerVisitReplyModel();
+//        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 20;
+//        $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
+//        $condition = [];
+//        if(!empty($_input['all_id'])){
+//            $condition['id']=['in', $_input['all_id']];
+//        }
+//        $cond = "1=1";
+//        //客户名称，客户编码为条件
+//        if(isset($_input['buyer_name']) || !empty($_input['buyer_name'])){
+//            $cond .= " and name like '%$_input[buyer_name]%'";
+//        }
+//        if(isset($_input['buyer_code']) && !empty($_input['buyer_code'])){
+//            $cond .= " and buyer_code like '%$_input[buyer_code]%'";
+//        }
+//        if(!empty($_input['buyer_name']) || !empty($_input['buyer_code'])){
+//            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
+//            $buyer_id = [];
+//            foreach($buyer_ids as $v){
+//                $buyer_id[]=$v['id'];
+//            }
+//            $condition['buyer_id']=['in', $buyer_id];
+//        }
+//        if(isset($_input['visit_level']) && !empty($_input['visit_level'])){
+//            $condition['visit_level']=['exp', 'regexp \'"'.$_input['visit_level'].'"\''];
+//        }
+//        if(isset($_input['visit_position']) && !empty($_input['visit_position'])){
+//            $condition['visit_position']=['exp', 'regexp \'"'.$_input['visit_position'].'"\''];
+//        }
+//        //	visit_at_start开始时间   visit_at_end结束时间
+//        $this->_getValue($condition, $_input,'visit_at','between');
+//        try{
+//            //总记录数
+//            $total = $this->field('id')->where($condition)->count();
+//            $data = [
+//                 'current_no' => $current_no,
+//                 'pagesize' => $length,
+//                 'total' => $total,
+//                 'result' => []
+//             ];
+//             if($total<=0){
+//                 return $data;
+//             }
+//             $id_ary = $this->field('id')->where($condition)->order('id desc')->limit(($current_no-1)*$length,$length)->select();
+//             $ids = '';
+//             foreach($id_ary as $r){
+//                 $ids.= ','.$r['id'];
+//             }
+//             $ids = substr($ids,1);
+//             $condition['id'] = ['in', $ids];
+//             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->order('id desc')->select();
+//             foreach($result as $index => $r){
+//                 //客户信息
+//                 $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
+//                 $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
+//                 $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
+//                 $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
+//             }
+//             foreach($result as $index => $r){
+//                 //业务部门反馈时间
+//                 $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+//                 $result[$index]['reply_time'] =$replyInfo['created_at'];
+//             }
+//            foreach($result as $index => $r){
+//                //业务部门反馈时间
+//                $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+//                $result[$index]['reply_time'] =$replyInfo['created_at'];
+//            }
+//            foreach($result as $index => $r){
+//                //目的拜访类型
+//                $vtype = json_decode($r['visit_type']);
+//                $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+//                $visit_type = '';
+//                foreach($visitTypeInfo as $info){
+//                    $visit_type.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
+//            }
+//            foreach($result as $index => $r){
+//                //职位拜访类型
+//                $vposition = json_decode($r['visit_position']);
+//                $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+//                $visit_position = '';
+//                foreach($vpInfo as $info){
+//                    $visit_position.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
+//
+//            }
+//            foreach($result as $index => $r){
+//                //拜访级别
+//                $vlevel = json_decode($r['visit_level']);
+//                $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+//                $visit_level = '';
+//                foreach($vlInfo as $info){
+//                    $visit_level.= '、'.$info['name'];
+//                }
+//                $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
+//            }
+//            foreach($result as $index => $r){
+//                //客户需求类型
+//                $dtype = json_decode($r['demand_type']);
+//                $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+//                $demand_type = '';
+//                foreach($dpInfo as $info){
+//                    $demand_type.= '、'.$info['name'];
+//                }
+//                $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
+//            }
+//            $data['result'] = $result ? $result : [];
+//             return $data;
+//        }catch (Exception $e){
+//            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】getList:' . $e , Log::ERR);
+//            return false;
+//        }
     }
 
 
