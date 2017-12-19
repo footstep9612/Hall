@@ -834,7 +834,7 @@ class ESClient {
 
     public function sethighlight($fields) {
 
-        $this->body['highlight']['require_field_match'] = false;
+        $this->body['highlight']['require_field_match'] = true;
         $this->body['highlight']['fields'] = $fields;
         return $this;
     }
