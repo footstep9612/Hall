@@ -256,8 +256,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'customization_flag', 'customization_flag.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku_count');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'customization_flag', 'customization_flag.all');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'sku_count');
 
 
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
@@ -272,7 +272,7 @@ class EsProductModel extends Model {
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
             foreach ($userids as $checked_by) {
-                $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
+                $checked_by_bool[] = [ESClient::TERM => ['checked_by' => $checked_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
@@ -315,7 +315,7 @@ class EsProductModel extends Model {
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::MATCH_PHRASE => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $attrs, 'boost' => 99]]],
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
@@ -362,7 +362,7 @@ class EsProductModel extends Model {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                             [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                            [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
+                            [ESClient::MATCH_PHRASE => ['brand.name' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                             [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                             [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                             [ESClient::MATCH_PHRASE => ['spu' => ['query' => $keyword, 'boost' => 100]]],
@@ -371,9 +371,9 @@ class EsProductModel extends Model {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
-                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
-                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
+                            [ESClient::MATCH_PHRASE => ['show_cats.cat_name3.' . $analyzer => ['query' => $keyword, 'boost' => 99]]],
+                            [ESClient::MATCH_PHRASE => ['show_cats.cat_name2.' . $analyzer => ['query' => $keyword, 'boost' => 95]]],
+                            [ESClient::MATCH_PHRASE => ['show_cats.cat_name1.' . $analyzer => ['query' => $keyword, 'boost' => 90]]],
                 ]]];
             }
         }
