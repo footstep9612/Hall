@@ -67,6 +67,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportAgree($data){
+        $cond = $this->getAgreeCond($data,true);
         if(!empty($data['page'])){
             $page = $data['page'];
         }else{
@@ -78,9 +79,9 @@ class BuyerAgreementModel extends PublicModel
                 $excelPage=true;
             }
         }
-        $pageSize = 12;
+        $pageSize = 10;
         $offset = ($page-1)*$pageSize;
-        $info = $this->getAgreeStatisData($data,$offset,$pageSize,true,$excelPage);
+        $info = $this->getAgreeStatisData($cond,$offset,$pageSize,true,$excelPage);
         if(!is_array($info) || $info==false){
             return false;   //空数据
         }
@@ -121,17 +122,22 @@ class BuyerAgreementModel extends PublicModel
 
     /**
      * @param $data
+     * $excel bool true: excel 导出数据用; false:管理列表用
      * 框架协议首页列表的条件
      */
-    public function getAgreeCond($data = []){
-        $cond = '1=1 and agree.created_by='.$data['created_by'];
+    public function getAgreeCond($data = [],$excel=true){
+        if($excel==true){
+            $cond = '1=1';
+        }else{
+            $cond = ' buyer_id='.$data['buyer_id']." and agree.created_by=".$data['created_by'];
+        }
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
-        if(!empty($data['buyer_id'])){  //客户id
-            $cond .= " and buyer_id='$data[buyer_id]'";
-        }
+//        if(!empty($data['buyer_id'])){  //客户id
+//            $cond .= " and buyer_id='$data[buyer_id]'";
+//        }
 //        if(!empty($data['created_by'])){  //执行创建人
 //            $cond .= " and agree.created_by='$data[created_by]'";
 //        }
@@ -193,8 +199,7 @@ class BuyerAgreementModel extends PublicModel
      * @param bool $excelPage true:导出当前页excel false:导出所有数据excel
      * @return array|bool
      */
-    public function getAgreeStatisData($data,$offset=0,$pageSize=10,$excel=true,$excelPage=true){
-        $cond = $this->getAgreeCond($data);
+    public function getAgreeStatisData($cond,$offset=0,$pageSize=10,$excel=true,$excelPage=true){
         //条件
         $totalCount = $this ->alias('agree')
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
@@ -223,7 +228,7 @@ class BuyerAgreementModel extends PublicModel
             $field .= ',agree.'.$v;
         }   //获取字段end
         $i = 1;
-        $length = 20;
+        $length = 100;
         if($excelPage==true){  //导出当前页数据长度
             $length = $pageSize;
         }
@@ -260,44 +265,25 @@ class BuyerAgreementModel extends PublicModel
         }while($totalCount>0);
             return $result;
     }
-    //框架协议管理
+    //框架协议管理入口
     public function manageAgree($data){
-        $cond = " 1=1";
-        if(!empty($data['buyer_id'])){  //客户id
-            $cond .= " and buyer_id='$data[buyer_id]'";
+        $cond = $this->getAgreeCond($data,false);
+        if(!empty($data['page'])){
+            $page = $data['page'];
+        }else{
+            $page = 1;
         }
-        if(!empty($data['created_by'])){  //执行创建人
-            $cond .= " and agree.created_by='$data[created_by]'";
-        }
-        if(!empty($data['country_bn'])){  //所属地区----------国家
-            $cond .= " and agree.country_bn='$data[country_bn]'";
-        }
-        if(!empty($data['execute_start_at'])){    //执行时间
-            $cond .= " and execute_start_at='$data[execute_start_at]'";
-}
-        if(!empty($data['org_id'])){    //事业部
-            $cond .= " and org_id='$data[org_id]'";
-        }
-
-        if(!empty($data['buyer_name'])){  //客户名称
-            $cond .= " and buyer.name like '%$data[buyer_name]%'";
-        }
-        if(!empty($data['buyer_code'])){  //客户代码
-            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
-        }
-        if(!empty($data['execute_no'])){    //执行单号txt
-            $cond .= " and execute_no like '%$data[execute_no]%'";
-        }
-        if(!empty($data['execute_company'])){   //执行分公司txt
-            $cond .= " and execute_company like '%$data[execute_company]%'";
-        }
-
-        $page = 1;
-        if(!empty($data['page']) && is_numeric($data['page']) && $data['page'] >0   ){    //事业部
-            $page = ceil($data['page']);
-        }
-        $info = $this -> manageAgreeList($page,$cond);
-        return $info;
+        $pageSize = 10;
+        $offset = ($page-1)*$pageSize;
+        $info = $this -> getAgreeStatisData($cond,$offset,$pageSize,$excel=false,true);
+        $totalPage = ceil($info['totalCount']/$pageSize);
+        $arr = array(
+            'page'=>$page,
+            'totalPage'=>$totalPage,
+            'totalCount'=>$info['totalCount'],
+            'info'=>$info['info'],
+        );
+        return $arr;
     }
     //框架协议管理数据列表
     public function manageAgreeList($page=1,$cond){
