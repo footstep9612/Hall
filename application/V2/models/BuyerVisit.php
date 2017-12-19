@@ -544,6 +544,9 @@ class BuyerVisitModel extends PublicModel {
     public function exportStatisVisit($data){
         //整理数据,获取文件路径
         $excelDir = $this->getVisitStatiaList($data,$length = 1000);
+        if(!is_array($excelDir)){
+            return false;
+        }
         if(count($excelDir)==1){    //单个excel文件
             $excelName = $excelDir[0];
             $data['tmp_name'] = $excelName;

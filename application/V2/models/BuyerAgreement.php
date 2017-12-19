@@ -113,8 +113,8 @@ class BuyerAgreementModel extends PublicModel
         }
         if ($fileId) {
 
-//            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
-            return $fileId;
+            return array('url' => $fastDFSServer . $fileId['url'] ,'name'=>$fileId['name']);
+//            return $fileId;
         }
 
 
