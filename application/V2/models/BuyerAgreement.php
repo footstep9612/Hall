@@ -72,8 +72,11 @@ class BuyerAgreementModel extends PublicModel
         }else{
             $page = 1;
         }
+        $excelPage=false;
         if(!empty($data['excelPage'])){
-            $excelPage = $data['excelPage'];
+            if($data['excelPage']==true){
+                $excelPage=true;
+            }
         }
         $pageSize = 12;
         $offset = ($page-1)*$pageSize;
