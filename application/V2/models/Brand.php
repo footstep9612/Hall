@@ -130,10 +130,10 @@ class BrandModel extends PublicModel {
         list($row_start, $pagesize) = $this->_getPage($condition);
 
 
-        // $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
-//        if (redisHashExist('Brand', $redis_key)) {
-//            return json_decode(redisHashGet('Brand', $redis_key), true);
-//        }
+        $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Brand', $redis_key), true);
+        }
         try {
             $item = $this->where($where)
                     ->field('id, brand, status, created_by, '
@@ -141,8 +141,8 @@ class BrandModel extends PublicModel {
                     ->order('id desc')
                     ->limit($row_start, $pagesize)
                     ->select();
-            echo $this->_sql();
-            //  redisHashSet('Brand', $redis_key, json_encode($item));
+
+            redisHashSet('Brand', $redis_key, json_encode($item));
             return $item;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
