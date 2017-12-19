@@ -15,7 +15,12 @@ class BuyerAgreementModel extends PublicModel
      * execl导出的数据 $data
      * wangs
      */
-    public function exportModel($sheetName,$tableheader,$data){
+    public function exportModel($excelName,$sheetName,$data){
+        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
+        $excelDir = MYPATH.DS.'public'.DS.'tmp'.DS.'excelagree';
+        if(!is_dir($excelDir)){
+            mkdir($excelDir,0777,true);
+        }
         //创建对象
         $excel = new PHPExcel();
         $objActSheet = $excel->getActiveSheet();
@@ -54,81 +59,112 @@ class BuyerAgreementModel extends PublicModel
         }
         //创建Excel输入对象
         $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
-        $time = date('YmdHis');
-        $objWriter->save($time.$sheetName.'.xlsx');    //文件保存
-        //把导出的文件上传到文件服务器上
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        $url = $server . '/V2/Uploadfile/upload';
-
-        $data['tmp_name'] = $time.$sheetName.'.xlsx';
-        $data['type'] = 'application/excel';
-        $data['name'] = pathinfo($time.$sheetName.'.xlsx', PATHINFO_BASENAME);
-        $fileId = postfile($data, $url);
-        unlink($time.$sheetName.'.xlsx');
-        return $fileId;
+        $objWriter->save($excelDir.DS.$excelName.'.xlsx');    //文件保存
+        return $excelDir.DS.$excelName.'.xlsx';
     }
     /**
-     * 数据excel导出
+     * 客户管理-框架协议数据excel导出入口
      * wangs
      */
     public function exportAgree($data){
-        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
-        $arr = $this->getAgreeStatisData($data);
-        if(empty($arr)){
-            return false;
+        if(!empty($data['page'])){
+            $page = $data['page'];
+        }else{
+            $page = 1;
         }
-        $res = $this->exportModel('agreestatis',$tableheader,$arr);
-        return $res;
+        if(!empty($data['excelPage'])){
+            $excelPage = $data['excelPage'];
+        }
+        $pageSize = 12;
+        $offset = ($page-1)*$pageSize;
+        $info = $this->getAgreeStatisData($data,$offset,$pageSize,true,$excelPage);
+        if(!is_array($info) || $info==false){
+            return false;   //空数据
+        }
+        if(count($info)==1){
+            $excelPath = $info[0];
+            $arr['tmp_name'] = $excelPath;
+            $arr['type'] = 'application/excel';
+            $arr['name'] = pathinfo($excelPath,PATHINFO_BASENAME );
+        }else{
+            $excelDir = pathinfo($info[0],PATHINFO_DIRNAME );
+            ZipHelper::zipDir($excelDir, $excelDir . '.zip');   //压缩文件
+            $arr['tmp_name'] = $excelDir . '.zip';
+            $arr['type'] = 'application/excel';
+            $arr['name'] = pathinfo($excelDir . '.zip',PATHINFO_BASENAME );
+        }
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelPath)){
+//            unlink($excelPath); //删除文件
+            ZipHelper::removeDir(dirname($excelPath));    //清除目录
+        }
+        if(file_exists($excelDir . '.zip')){
+            unlink($excelDir . '.zip'); //删除压缩包
+            ZipHelper::removeDir($excelDir);    //清除目录
+        }
+        if ($fileId) {
+
+//            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return $fileId;
+        }
+
+
     }
-    //获取excel导出的数据
-    public function getAgreeStatisData($data){
+
+    /**
+     * @param $data
+     * 框架协议首页列表的条件
+     */
+    public function getAgreeCond($data = []){
         $cond = '1=1 and agree.created_by='.$data['created_by'];
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
-        //条件
-        $totalCount = $this ->alias('agree')
-            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
-            -> where($cond)
-            ->count();
-        $fields = array(
-            'buyer_id',
-            'id',
-            'execute_no',       //框架执行单号
-            'org_id',           //事业部
-            'execute_company',  //执行分公司
-            'country_bn',          //所属地区
-            'product_name',     //品名中文
-            'number',           // 数量
-            'unit',             //单位
-            'amount',           //项目金额
-            'execute_start_at', //项目开始执行时间
-            'agent',            //市场经办人
-            'technician'        //商务技术经办人
-        );
-        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name';
-        foreach($fields as $v){
-            $field .= ',agree.'.$v;
+        if(!empty($data['buyer_id'])){  //客户id
+            $cond .= " and buyer_id='$data[buyer_id]'";
         }
-        $info = $this ->alias('agree')
-            ->field($field)
-            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
-            ->join('erui_sys.org org on agree.org_id=org.id','left')
-            ->where($cond)
-            ->order('agree.id desc')
-            ->select();
-        $country = new CountryModel();
-        foreach($info as $k => $v){
-            $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+//        if(!empty($data['created_by'])){  //执行创建人
+//            $cond .= " and agree.created_by='$data[created_by]'";
+//        }
+        if(!empty($data['country_bn'])){  //所属地区----------国家
+            $cond .= " and agree.country_bn='$data[country_bn]'";
         }
-        $res = array(
-            'info'=>$info,
-            'totalCount'=>$totalCount
-        );
+        if(!empty($data['execute_start_at'])){    //执行时间
+            $cond .= " and execute_start_at='$data[execute_start_at]'";
+        }
+        if(!empty($data['org_id'])){    //事业部
+            $cond .= " and org_id='$data[org_id]'";
+        }
+        if(!empty($data['buyer_name'])){  //客户名称
+            $cond .= " and buyer.name like '%$data[buyer_name]%'";
+        }
+        if(!empty($data['buyer_code'])){  //客户代码
+            $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['execute_no'])){    //执行单号txt
+            $cond .= " and execute_no like '%$data[execute_no]%'";
+        }
+        if(!empty($data['execute_company'])){   //执行分公司txt
+            $cond .= " and execute_company like '%$data[execute_company]%'";
+        }
+        return $cond;
+    }
+
+    /**
+     * @param $data框架写列表数据
+     * @return array框架协议excel导出数据
+     * wangs
+     */
+    public function packageAgreeStatisData($data){
         //整合数据
         $arr=array();
-        foreach($res['info'] as $k => $v){
+        foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];    //序号
             $arr[$k]['execute_no'] = $v['execute_no'];    //框架执行单号
             $arr[$k]['org_name'] = $v['org_name'];    //事业部
@@ -144,6 +180,82 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
         }
         return $arr;
+    }
+
+    /**
+     * @param $data框架协议列表展示的条件数据
+     * @param int $i 偏移量/页码
+     * @param int $pageSize 每页的数据条数
+     * @param bool $excel true:导出excel false:框架协议列表展示
+     * @param bool $excelPage true:导出当前页excel false:导出所有数据excel
+     * @return array|bool
+     */
+    public function getAgreeStatisData($data,$offset=0,$pageSize=10,$excel=true,$excelPage=true){
+        $cond = $this->getAgreeCond($data);
+        //条件
+        $totalCount = $this ->alias('agree')
+            ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+            -> where($cond)
+            ->count();
+        if($totalCount <= 0){
+            return false;   //数据为空
+        }
+        $fields = array(
+            'buyer_id',
+            'id',
+            'execute_no',       //框架执行单号
+            'org_id',           //事业部
+            'execute_company',  //执行分公司
+            'country_bn',          //所属地区
+            'product_name',     //品名中文
+            'number',           // 数量
+            'unit',             //单位
+            'amount',           //项目金额
+            'execute_start_at', //项目开始执行时间
+            'agent',            //市场经办人
+            'technician'        //商务技术经办人
+        );  //获取字段start
+        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name';
+        foreach($fields as $v){
+            $field .= ',agree.'.$v;
+        }   //获取字段end
+        $i = 1;
+        $length = 20;
+        if($excelPage==true){  //导出当前页数据长度
+            $length = $pageSize;
+        }
+        do{
+            $info = $this ->alias('agree')
+                ->field($field)
+                ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
+                ->join('erui_sys.org org on agree.org_id=org.id','left')
+                ->where($cond)
+                ->order('agree.id desc')
+                ->limit($offset,$length)
+                ->select();
+            if(empty($info)){
+                return false;
+            }
+            $country = new CountryModel();
+            foreach($info as $k => $v){
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+            }
+            if($excel==false){
+                return array('info'=>$info,'totalCount'=>$totalCount);
+            }
+            $arr = $this->packageAgreeStatisData($info);    //整合框架协议excel导出的数据
+            $excelName = 'agree'.($i);
+            $sheetName = '框架协议统计';
+            $dir = $this->exportModel($excelName,$sheetName,$arr);    //excel导入模型
+            $result[]= $dir;
+            $totalCount -= $length; //导出数据剩余数据量
+            $offset += $length; //导出数据偏移量
+            $i++;
+            if($excelPage==true){
+                break;  //当前页数据
+            }
+        }while($totalCount>0);
+            return $result;
     }
     //框架协议管理
     public function manageAgree($data){

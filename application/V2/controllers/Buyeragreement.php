@@ -6,7 +6,7 @@ class BuyeragreementController extends PublicController
     {
         parent::__init();
     }
-    //统计-excel导出-框架协议数据
+    //统计-excel导出-框架协议数据-wangs
     public function exportStatisAgreeAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
