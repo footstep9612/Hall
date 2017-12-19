@@ -213,6 +213,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['agent_name'])) {
             $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
         }
+        
+        // 报价人
+        if (!empty($condition['quote_name'])) {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        }
 
         // 当前用户的所有角色编号
         $condition['role_no'] = $this->user['role_no'];
@@ -267,6 +272,11 @@ class InquiryController extends PublicController {
         // 市场经办人
         if (!empty($condition['agent_name'])) {
             $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        }
+        
+        // 报价人
+        if (!empty($condition['quote_name'])) {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
         }
 
         // 是否显示列表
