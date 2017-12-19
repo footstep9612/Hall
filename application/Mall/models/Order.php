@@ -97,6 +97,8 @@ class OrderModel extends PublicModel {
         }
         if (isset($condition['buyer_id']) && $condition['buyer_id']) {
             $where['buyer_id'] = $condition['buyer_id'];
+        } else {
+            jsonReturn(null,-1,'用户ID不能为空!');
         }
         if (isset($condition['buyername']) && $condition['buyername']) {
 

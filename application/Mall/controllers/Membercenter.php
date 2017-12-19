@@ -50,7 +50,7 @@ class MembercenterController extends PublicController {
                 jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
             }
         }
-        $result = $buyerModel->update_data($buyer_data, $where);jsonReturn($result);
+        $result = $buyerModel->update_data($buyer_data, $where);
 
         if ($result !==false) {
             jsonReturn('', 1, 'success!');

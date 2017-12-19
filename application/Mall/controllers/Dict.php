@@ -113,6 +113,7 @@ class DictController extends PublicController {
 
 
         $model_group = new CityModel();
+
         if (redisHashExist('City_List', md5(json_encode($where)) . $where['lang'])) {
             $arr = json_decode(redisHashGet('City_List', md5(json_encode($where))), true);
         } else {
@@ -121,6 +122,7 @@ class DictController extends PublicController {
                 redisHashSet('City_List', md5(json_encode($where)), json_encode($arr));
             }
         }
+        $arr = $model_group->getlist($where, $limit, 'bn asc');
         if ($arr) {
             jsonReturn($arr);
         } else {
