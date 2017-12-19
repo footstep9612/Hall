@@ -205,11 +205,11 @@ class BuyerCustomModel extends PublicModel
     /**
      * 新增
      */
-    public function create_data($create, $where) {
-        if (isset($where['buyer_id']) && !empty($where['buyer_id'])) {
-            $arr['buyer_id'] = trim($where['buyer_id']);
+    public function create_data($create) {
+        if (isset($create['buyer_id']) && !empty($create['buyer_id'])) {
+            $arr['buyer_id'] = trim($create['buyer_id']);
         } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
+            jsonReturn(null,-1,'用户ID不能为空!');
         }
         if (isset($create['lang']) && !empty($create['lang'])) {
             $arr['lang'] = strtolower(trim($create['lang']));
@@ -224,14 +224,17 @@ class BuyerCustomModel extends PublicModel
             $arr['cat_name'] = trim($create['cat_name']);
         }
         if (isset($create['item_name']) && !empty($create['item_name'])) {
-            $arr['item_name'] = json_encode(trim($create['item_name']));
+            $arr['item_name'] = trim($create['item_name']);
         }
+//        if (isset($create['item_name']) && !empty($create['item_name'])) {
+//            $arr['item_name'] = json_encode(trim($create['item_name']));
+//        }
         if (isset($create['cat_id']) && !empty($create['cat_id'])) {
             $arr['cat_id'] = trim($create['cat_id']);
         }
-        if (isset($create['item_id']) && !empty($create['item_id'])) {
-            $arr['item_id'] = json_encode(trim($create['item_id']));
-        }
+//        if (isset($create['item_id']) && !empty($create['item_id'])) {
+//            $arr['item_id'] = json_encode(trim($create['item_id']));
+//        }
         if (isset($create['content']) && !empty($create['content'])) {
             $arr['content'] = trim($create['content']);
         }
@@ -244,13 +247,13 @@ class BuyerCustomModel extends PublicModel
         if (isset($create['email']) && !empty($create['email'])) {
             $arr['email'] = trim($create['email']);
         }
-        if (isset($create['contact_name']) && !empty($create['contact_name'])) {
-            $arr['contact_name'] = trim($create['contact_name']);
+        if (isset($create['show_name']) && !empty($create['show_name'])) {
+            $arr['contact_name'] = trim($create['show_name']);
         }
         if (isset($create['company']) && !empty($create['company'])) {
             $arr['company'] = trim($create['company']);
         }
-        if (isset($create['country_bn']) && !empty($create['country_bn'])) {
+        if (isset($create['country']) && !empty($create['country'])) {
             $arr['country_bn'] = trim($create['country_bn']);
         }
         if (isset($create['city']) && !empty($create['city'])) {
@@ -261,7 +264,7 @@ class BuyerCustomModel extends PublicModel
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         try {
-            $arr['created_by'] = $where['buyer_id'];
+            $arr['created_by'] = $arr['buyer_id'];
             $data = $this->create($arr);
             $res = $this->add($data);
             return $res;

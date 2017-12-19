@@ -43,16 +43,15 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upUserInfoAction() {
-        if (!empty($this->user['buyer_id'])) {
-            $where['id'] = $this->user['buyer_id'];
-        } else {
-            jsonReturn('', '-1001', '参数[id]不能为空');
-        }
         $buyer_data = $this->getPut();
+        $where['id'] = $this->user['buyer_id'];
+        $lang = $buyer_data['lang'] ? $buyer_data['lang'] : 'en';
         $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
-        if ($checkname) {
-            jsonReturn('', -125,  ShopMsg::getMessage('-125','en'));
+        if(isset($buyer_data['name']) && !empty($buyer_data['name'])) {
+            $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
+            if ($checkname) {
+                jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+            }
         }
         $buyer = new BuyerModel();
         $result = $buyer->upUserInfo($this->getPut(), $where);

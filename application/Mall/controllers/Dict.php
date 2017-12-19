@@ -112,14 +112,15 @@ class DictController extends PublicController {
         $where['lang'] = $data['lang'] ? $data['lang'] : 'en'; //默认英文
 
         $model_group = new CityModel();
-        if (redisHashExist('City_List', $where['lang'])) {
-//            $arr = json_decode(redisHashGet('City_List', $where['lang']), true);
-//        } else {
+        if (redisHashExist('CityList', $where['lang'].$where['country_bn'])) {
+            $arr = json_decode(redisHashGet('CountryList', $where['lang'].$where['country_bn']), true);
+        } else {
             $arr = $model_group->getlist($where, $limit, 'bn asc');
             if ($arr) {
-                redisHashSet('City_List', $where['lang'], json_encode($arr));
+                redisHashSet('CityList', $where['lang'].$where['country_bn'], json_encode($arr));
             }
         }
+        $arr = $model_group->getlist($where, $limit, 'bn asc');
         if ($arr) {
             jsonReturn($arr);
         } else {
