@@ -17,6 +17,7 @@ class LoginController extends PublicController {
         $this->token = false;
         parent::init();
     }
+
     /*
      * 用户登录
      * @created_date 2017-06-15
@@ -27,35 +28,35 @@ class LoginController extends PublicController {
     public function loginAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        /*if (!empty($data['email'])) {
-            if (!isEmail($data['email'])) {
-                jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
-            }
-            $arr['email'] = trim($data['email']);
-        } else {
-            jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
-        }*/
+        /* if (!empty($data['email'])) {
+          if (!isEmail($data['email'])) {
+          jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
+          }
+          $arr['email'] = trim($data['email']);
+          } else {
+          jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+          } */
         if (!empty($data['email'])) {
-            $data['email']=trim($data['email']);
+            $data['email'] = trim($data['email']);
             if (isEmail($data['email'])) {
                 $arr['email'] = $data['email'];
             } else {
                 $arr['user_name'] = $data['email'];
             }
         } else {
-            jsonReturn(null, -124, ShopMsg::getMessage('-124',$lang));
+            jsonReturn(null, -124, ShopMsg::getMessage('-124', $lang));
             exit();
         }
         if (!empty($data['password'])) {
             $arr['password'] = trim($data['password']);
         } else {
-            jsonReturn(null, -110, ShopMsg::getMessage('-110',$lang));
+            jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
             $buyer_model = new BuyerModel();
-            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']]);
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['buyer_id'] = $info['buyer_id'];
@@ -73,12 +74,12 @@ class LoginController extends PublicController {
             exit();
         } else {
             $datajson = [];
-            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124',$lang)));
+            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124', $lang)));
         }
     }
 
     // 验证邮件
-    /*public function checkEmailAction() {
+    public function checkEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if (empty($data['key'])) {
             jsonReturn('', -101, '邮箱不可以为空!');
@@ -98,7 +99,7 @@ class LoginController extends PublicController {
         } else {
             jsonReturn('', -104, '验证失败');
         }
-    }*/
+    }
 
     //获取部门信息
     public function groupListAction() {
@@ -137,10 +138,10 @@ class LoginController extends PublicController {
         if (!empty($data['email'])) {
             $retrieval_arr['email'] = trim($data['email']);
             if (!isEmail($retrieval_arr['email'])) {
-                jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
+                jsonReturn(null, -112, ShopMsg::getMessage('-112', $lang));
             }
         } else {
-            jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+            jsonReturn(null, -111, ShopMsg::getMessage('-111', $lang));
         }
         $buyer_account_model = new BuyerAccountModel();
         $check_arr['email'] = trim($data['email']);
@@ -157,12 +158,12 @@ class LoginController extends PublicController {
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
             $email_arr['name'] = $check[0]['name'];
-            $body = $this->getView()->render('login/retrieve_email_'.$lang.'.html', $email_arr);
+            $body = $this->getView()->render('login/retrieve_email_' . $lang . '.html', $email_arr);
             $title = 'Erui.com';
             send_Mail($data_key['email'], $title, $body, $data_key['name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
-            jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang));//'The company email is not registered yet'
+            jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang)); //'The company email is not registered yet'
         }
     }
 
@@ -170,12 +171,12 @@ class LoginController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? $data['lang'] : 'en';
         if (empty($data['key'])) {
-            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));//key不可以为空!'
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang)); //key不可以为空!'
         }
         if (redisHashExist('reset_password_key', $data['key'])) {
             jsonReturn('', 1, redisHashGet('reset_password_key', $data['key']));
         } else {
-            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));//'未获取到key!'
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang)); //'未获取到key!'
         }
     }
 
@@ -185,37 +186,37 @@ class LoginController extends PublicController {
         if (!empty($data['password'])) {
             $user_arr['password_hash'] = trim($data['password']);
         } else {
-            jsonReturn(null, -110, ShopMsg::getMessage('-110',$lang));
+            jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
         if (empty($data['key'])) {
-            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));// 'Key is required'
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang)); // 'Key is required'
         }
         $account_id = redisHashGet('reset_password_key', $data['key']);
         if ($account_id) {
             $buyer_account_model = new BuyerAccountModel();
-            $info = $buyer_account_model ->info(['id' => $account_id]);
-            if($info) {
+            $info = $buyer_account_model->info(['id' => $account_id]);
+            if ($info) {
                 $user_arr['status'] = 'VALID';
             }
             $check = $buyer_account_model->update_data($user_arr, ['id' => $account_id]);
             redisHashDel('rest_password_key', $data['key']);
 
             $buyer_model = new BuyerModel();
-            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']]);
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['buyer_id'];
             $jwt['buyer_id'] = $info['buyer_id'];
             $jwt['ext'] = time();
             $jwt['iat'] = time();
             $jwt['show_name'] = $info['show_name'];
-            $datajson['buyer_no']   =   $buyer_info['buyer_no'];
-            $datajson['email']      =   $info['email'];
-            $datajson['buyer_id']   =   $info['buyer_id'];
-            $datajson['show_name']  =   $info['show_name'];
-            $datajson['user_name']  =   $info['user_name'];
-            $datajson['country']    =   $buyer_info['country_bn'];
-            $datajson['phone']      =   $buyer_info['official_phone'];
-            $datajson['token']      =   $jwtclient->encode($jwt); //加密
+            $datajson['buyer_no'] = $buyer_info['buyer_no'];
+            $datajson['email'] = $info['email'];
+            $datajson['buyer_id'] = $info['buyer_id'];
+            $datajson['show_name'] = $info['show_name'];
+            $datajson['user_name'] = $info['user_name'];
+            $datajson['country'] = $buyer_info['country_bn'];
+            $datajson['phone'] = $buyer_info['official_phone'];
+            $datajson['token'] = $jwtclient->encode($jwt); //加密
             redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($datajson), 18000);
 
             jsonReturn($datajson, 1, 'success!');
@@ -235,28 +236,28 @@ class LoginController extends PublicController {
             $buyer_account_data['email'] = trim($data['email']);
             $arr['official_email'] = trim($data['email']);
             if (!isEmail($buyer_account_data['email'])) {
-                jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
+                jsonReturn(null, -112, ShopMsg::getMessage('-112', $lang));
             }
         } else {
-            jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+            jsonReturn(null, -111, ShopMsg::getMessage('-111', $lang));
         }
         if (!empty($data['password'])) {
             $buyer_account_data['password_hash'] = md5(trim($data['password']));
         } else {
-            jsonReturn(null, -110, ShopMsg::getMessage('-110',$lang));
+            jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
         if (!empty($data['phone']) && is_numeric($data['phone'])) {
             $arr['official_phone'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $arr['official_phone'] = $data['tel_code'].' '.$data['phone'];
+                $arr['official_phone'] = $data['tel_code'] . ' ' . $data['phone'];
             }
         } else {
-            jsonReturn(null, -113, ShopMsg::getMessage('-113',$lang));
+            jsonReturn(null, -113, ShopMsg::getMessage('-113', $lang));
         }
         if (!empty($data['country'])) {
             $arr['country_bn'] = $data['country'];
         } else {
-            jsonReturn(null, -114, ShopMsg::getMessage('-114',$lang));
+            jsonReturn(null, -114, ShopMsg::getMessage('-114', $lang));
         }
         if (isset($data['city'])) {
             $arr['city'] = trim($data['city']);
@@ -264,7 +265,7 @@ class LoginController extends PublicController {
         if (isset($data['show_name'])) {
             $buyer_account_data['show_name'] = trim($data['show_name']);
         } else {
-            jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
+            jsonReturn(null, -115, ShopMsg::getMessage('-115', $lang));
         }
 
         $model = new BuyerModel();
@@ -273,7 +274,7 @@ class LoginController extends PublicController {
         //$register_arr['user_name'] = $data['user_name'];
         $check = $buyer_account_model->Exist($register_arr);
         if ($check) {
-            jsonReturn('', -117, ShopMsg::getMessage('-117',$lang));
+            jsonReturn('', -117, ShopMsg::getMessage('-117', $lang));
         }
         // 生成用户编码
         $condition['page'] = 0;
@@ -294,9 +295,9 @@ class LoginController extends PublicController {
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;
             $account_id = $buyer_account_model->create_data($buyer_account_data);
-            if($account_id){
-                $datajson['key'] =  md5(uniqid());
-                redisSet('improve_info_key'.$datajson['key'], $id, 7200);
+            if ($account_id) {
+                $datajson['key'] = md5(uniqid());
+                redisSet('improve_info_key' . $datajson['key'], $id, 7200);
 
                 $jwtclient = new JWTClient();
                 $jwt['id'] = $id;
@@ -304,22 +305,55 @@ class LoginController extends PublicController {
                 $jwt['ext'] = time();
                 $jwt['iat'] = time();
                 $jwt['show_name'] = $buyer_account_data['show_name'];
-                $datajson['buyer_no']   =   $arr['buyer_no'];
-                $datajson['email']      =   $buyer_account_data['email'];
-                $datajson['buyer_id']   =   $id;
-                $datajson['show_name']  =   $buyer_account_data['show_name'];
-                $datajson['user_name']  =   '';
-                $datajson['country']    =   $arr['country_bn'];
-                $datajson['phone']      =   $arr['official_phone'];
-                $datajson['token']      =   $jwtclient->encode($jwt); //加密
+                $datajson['buyer_no'] = $arr['buyer_no'];
+                $datajson['email'] = $buyer_account_data['email'];
+                $datajson['buyer_id'] = $id;
+                $datajson['show_name'] = $buyer_account_data['show_name'];
+                $datajson['user_name'] = '';
+                $datajson['country'] = $arr['country_bn'];
+                $datajson['phone'] = $arr['official_phone'];
+                $datajson['token'] = $jwtclient->encode($jwt); //加密
                 redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
                 jsonReturn($datajson, 1, 'Success!');
             }
             $where['id'] = $id;
             $model->delete_data($where);
-            jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));
+            jsonReturn('', -105, ShopMsg::getMessage('-105', $lang));
         }
-        jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));
+        jsonReturn('', -105, ShopMsg::getMessage('-105', $lang));
+    }
+
+    // 发送邮件
+    public function sendEmailAction() {
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        if (!empty($data['email'])) {
+            $arr['email'] = $data['email'];
+        } else {
+            jsonReturn('', -101, '邮箱不可以为空!');
+        }
+        if (!empty($data['key'])) {
+            $arr['key'] = $data['key'];
+        } else {
+            jsonReturn('', -101, '邮箱不可以为空!');
+        }
+        if (!empty($data['name'])) {
+            $arr['name'] = $data['name'];
+        } else {
+            jsonReturn('', -101, '收件人姓名不可以为空!');
+        }
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        $email_arr['key'] = $arr['key'];
+        $email_arr['name'] = $arr['name'];
+        $body = $this->getView()->render('login/email.html', $email_arr);
+        $res = send_Mail($arr['email'], 'Activation email for your registration on ERUI platform', $body, $arr['name']);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, '发送成功');
+        } else {
+            jsonReturn('', -104, $res['msg']);
+        }
     }
 
     /**
@@ -328,43 +362,43 @@ class LoginController extends PublicController {
      */
     public function improveInfoAction() {
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang']  : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         $where = $buyer_data = [];
-        if (redisExist('improve_info_key'.$data['key'])) {
-            $where['id'] = redisGet('improve_info_key'.$data['key']);
+        if (redisExist('improve_info_key' . $data['key'])) {
+            $where['id'] = redisGet('improve_info_key' . $data['key']);
         } else {
-            jsonReturn('', -117, ShopMsg::getMessage('-117',$lang) );//'key不存在'
+            jsonReturn('', -117, ShopMsg::getMessage('-117', $lang)); //'key不存在'
         }
         if (!empty($data['name'])) {
             $buyer_data['name'] = trim($data['name']);
         } else {
-            jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
+            jsonReturn(null, -118, ShopMsg::getMessage('-118', $lang));
         }
         if (!empty($data['biz_scope'])) {
             $buyer_data['biz_scope'] = trim($data['biz_scope']);
         } else {
-            jsonReturn('', -123,  ShopMsg::getMessage('-123',$lang));
+            jsonReturn('', -123, ShopMsg::getMessage('-123', $lang));
         }
         if (!empty($data['intent_product'])) {
             $buyer_data['intent_product'] = trim($data['intent_product']);
         } else {
-            jsonReturn('', -123,  ShopMsg::getMessage('-123',$lang));
+            jsonReturn('', -123, ShopMsg::getMessage('-123', $lang));
         }
         if (isset($data['purchase_amount'])) {
             $buyer_data['purchase_amount'] = trim($data['purchase_amount']);
         }
 
         $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
+        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != " . $where['id'])->find();
         if ($checkname) {
-            jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+            jsonReturn('', -125, ShopMsg::getMessage('-125', $lang));
         }
-        $res = $buyerModel->update_data($buyer_data,$where);
-        if($res) {
-            redisDel('improve_info_key'.$data['key']);
+        $res = $buyerModel->update_data($buyer_data, $where);
+        if ($res) {
+            redisDel('improve_info_key' . $data['key']);
             jsonReturn('', 1, 'Success!');
-        } else{
-            jsonReturn('',-121, ShopMsg::getMessage('-121',$lang));//Failed to update your buyerinfo!
+        } else {
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang)); //Failed to update your buyerinfo!
         }
     }
 
@@ -374,49 +408,49 @@ class LoginController extends PublicController {
      */
     public function exitEmailAction() {
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang']  : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         if (!empty($data['email'])) {
             $register_arr['email'] = trim($data['email']);
             if (!isEmail($register_arr['email'])) {
-                jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
+                jsonReturn(null, -112, ShopMsg::getMessage('-112', $lang));
             }
         } else {
-            jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+            jsonReturn(null, -111, ShopMsg::getMessage('-111', $lang));
         }
         $buyer_account_model = new BuyerAccountModel();
         $exit = $buyer_account_model->Exist($register_arr);
         if ($exit) {
-            jsonReturn('', -117, ShopMsg::getMessage('-117',$lang));
+            jsonReturn('', -117, ShopMsg::getMessage('-117', $lang));
         }
     }
 
     // 激活邮箱
-     public function activeEmailAction() {
-         $data = $this->getPut();
-         $lang = $data['lang'] ? $data['lang']  : 'en';
-         if (!empty($data['buyer_id'])) {
-             $where['buyer_id'] = trim($data['buyer_id']);
-         }
-         if (!empty($data['email'])) {
-             $check['email'] = trim($data['email']);
-         }
-         $data_key['key'] = md5(uniqid());
-         $data_key['email'] = $check['email'];
+    public function activeEmailAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = trim($data['buyer_id']);
+        }
+        if (!empty($data['email'])) {
+            $check['email'] = trim($data['email']);
+        }
+        $data_key['key'] = md5(uniqid());
+        $data_key['email'] = $check['email'];
 
-         redisHashSet('set_active_key', $data_key['key'], $where['buyer_id'], 86400);
-         $config_obj = Yaf_Registry::get("config");
-         $config_shop = $config_obj->shop->toArray();
-         $email_arr['url'] = $config_shop['url'];
-         $email_arr['key'] = $data_key['key'];
-         $body = $this->getView()->render('login/active_email.html', $email_arr);
-         $title = 'Erui.com';
-         $res = send_Mail($data_key['email'], $title, $body);
-         if ($res['code'] == 1) {
-             jsonReturn('', 1, '发送成功!');
-         } else {
-             jsonReturn('', -130, '发送失败!');
-         }
-     }
+        redisHashSet('set_active_key', $data_key['key'], $where['buyer_id'], 86400);
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        $email_arr['key'] = $data_key['key'];
+        $body = $this->getView()->render('login/active_email.html', $email_arr);
+        $title = 'Erui.com';
+        $res = send_Mail($data_key['email'], $title, $body);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, '发送成功!');
+        } else {
+            jsonReturn('', -130, '发送失败!');
+        }
+    }
 
     function setActiveAction() {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -429,10 +463,10 @@ class LoginController extends PublicController {
             $buyer_account_model = new BuyerAccountModel();
             $user_arr['status'] = 'VALID';
             $check = $buyer_account_model->update_data($user_arr, ['buyer_id' => $buyer_id]);
-            if($check) {
+            if ($check) {
                 redisHashDel('rest_password_key', $data['key']);
                 jsonReturn('', 1, 'success!');
-            } else{
+            } else {
                 jsonReturn('', -131, 'failed!');
             }
         } else {
