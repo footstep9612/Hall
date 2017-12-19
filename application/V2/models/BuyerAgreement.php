@@ -129,15 +129,15 @@ class BuyerAgreementModel extends PublicModel
         if($excel==true){
             $cond = '1=1';
         }else{
-            $cond = ' buyer_id='.$data['buyer_id']." and agree.created_by=".$data['created_by'];
+            $cond = " agree.created_by=".$data['created_by'];
         }
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
-//        if(!empty($data['buyer_id'])){  //客户id
-//            $cond .= " and buyer_id='$data[buyer_id]'";
-//        }
+        if(!empty($data['buyer_id'])){  //客户id
+            $cond .= " and buyer_id='$data[buyer_id]'";
+        }
 //        if(!empty($data['created_by'])){  //执行创建人
 //            $cond .= " and agree.created_by='$data[created_by]'";
 //        }
