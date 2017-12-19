@@ -13,17 +13,21 @@ class BuyeragreementController extends PublicController
         $data['created_by'] = $created_by;
         $agree = new BuyerAgreementModel();
         $res = $agree->exportAgree($data);
-        if($res['code'] == 1){
-            $excel = new BuyerExcelModel();
-            $excel->saveExcel($res['name'],$res['url'],$created_by);
-            $this->jsonReturn($res);
-        }else{
+        if($res==false){
             $dataJson = array(
                 'code'=>0,
                 'message'=>'excel导出异常或数据为空'
             );
-            $this->jsonReturn($dataJson);
+        }else{
+            $excel = new BuyerExcelModel();
+            $excel->saveExcel($res['name'],$res['url'],$created_by);
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'导出成功',
+                'data'=>$res
+            );
         }
+        $this->jsonReturn($dataJson);
     }
     //框架协议管理index-wangs//
     public function manageAgreeAction(){
