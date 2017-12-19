@@ -359,22 +359,22 @@ class EsProductModel extends Model {
 
 
             if (empty($showcats)) {
-                $brand_model = new BrandModel();
-                $brands = $brand_model->getlist(['name' => $keyword], $lang);
-                if (empty($brands)) {
-                    $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                                [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
-                                [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-                                [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-                                [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
-                    ]]];
-                } else {
-                    $brand_name = $keyword;
-                    $is_brand = true;
-                    $this->_getEsBrand($brands, $keyword, $body, $lang, $brand_name);
-                }
+//                $brand_model = new BrandModel();
+//                $brands = $brand_model->getlist(['name' => $keyword], $lang);
+//                if (empty($brands)) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                            [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
+                            [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
+                            [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
+                            [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
+                            [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
+                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
+                ]]];
+//                } else {
+//                    $brand_name = $keyword;
+//                    $is_brand = true;
+//                    $this->_getEsBrand($brands, $keyword, $body, $lang, $brand_name);
+//                }
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
