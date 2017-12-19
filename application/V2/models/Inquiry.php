@@ -125,6 +125,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
         }
+        
+        if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
@@ -242,6 +246,10 @@ class InquiryModel extends PublicModel {
     
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        }
+        
+        if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
         }
         
         /*if (!empty($condition['org_id'])) {
