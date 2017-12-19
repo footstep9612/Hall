@@ -434,9 +434,8 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
-        } else {
-            jsonReturn('', -101, 'crm编码为必填项!');
-        }
+        } //去掉了CRM编码必填项验证 买买提 2017-12-19
+
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "' AND deleted_flag='N'")->find();
