@@ -241,8 +241,6 @@ class ShowCatModel extends PublicModel {
         }
         if ($letter) {
             $condition['name'] = ['like', trim($letter) . '%'];
-        } else {
-            return [];
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['deleted_flag'] = 'N';

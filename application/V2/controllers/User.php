@@ -24,7 +24,7 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $where = [];
+        $where['deleted_flag'] = "N";
         if (!empty($data['username'])) {
             $username = trim($data['username']);
             $where['username'] = $username;
@@ -88,6 +88,29 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+
+    public function userredislistAction() {
+        if(!redisExist(user_redis_list)){
+            $user_modle = new UserModel();
+            $data = $user_modle->getlist();
+            $user_arr = [];
+            foreach ($data as $k => $value){
+                $user_arr[$value['id']] =  $value['name'];
+            }
+            redisSet('user_redis_list',json_encode($user_arr), 600);
+        }else{
+            $user_arr = json_decode(redisGet("user_redis_list"),true);
+        }
+        if (!empty($user_arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $user_arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户角色列表
      *

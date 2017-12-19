@@ -32,7 +32,10 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     protected function getCondition($condition = []) {
-        $sql = ' WHERE `employee`.`deleted_flag` = "N" ';
+        $sql = ' WHERE 1 = 1 ';
+        if (isset($condition['deleted_flag'])) {
+            $sql .= ' AND `employee`.`deleted_flag`= \'' . $condition['deleted_flag'] . '\'';
+        }
         if (!empty($condition['status'])) {
             $sql .= ' AND `employee`.`status`= \'' . $condition['status'] . '\'';
         }
@@ -93,7 +96,8 @@ class UserModel extends PublicModel {
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
-        return $this->query($sql);
+        $list =  $this->query($sql);
+        return $list;
     }
 
     public function getcount($condition = [], $order = " employee.id desc") {

@@ -39,10 +39,13 @@ class SupplierBrandModel extends PublicModel {
 
         if (!empty($condition['brand_name'])) {
             $brand_name = trim($condition['brand_name']);
-            $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_en like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_es like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_ru like \'%' . $brand_name . '%\'  ';
+
+            $map1['B.brand_zh'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_en'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_es'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_ru'] = ['like', '%' . $brand_name . '%'];
+            $map1['_logic'] = 'or';
+            $where['_complex'] = $map1;
         }
         return $where;
     }
@@ -66,10 +69,12 @@ class SupplierBrandModel extends PublicModel {
 
         if (!empty($condition['brand_name'])) {
             $brand_name = trim($condition['brand_name']);
-            $where[] = 'B.brand_zh like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_en like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_es like \'%' . $brand_name . '%\' or '
-                    . 'B.brand_ru like \'%' . $brand_name . '%\'  ';
+            $map1['B.brand_zh'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_en'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_es'] = ['like', '%' . $brand_name . '%'];
+            $map1['B.brand_ru'] = ['like', '%' . $brand_name . '%'];
+            $map1['_logic'] = 'or';
+            $where['_complex'] = $map1;
         }
         return $where;
     }
@@ -119,7 +124,12 @@ class SupplierBrandModel extends PublicModel {
             $where[] = 'B.id not in (select brand_id from ' . $table . ' where `status`=\'VALID\' AND supplier_id=\'' . $supplier_id . '\')';
         }
         if ($brand_name) {
-            $where['brand'] = ['like', '%"name":"%' . trim($brand_name) . '%'];
+
+            $map2['B.`brand`'] = ['like', '%"name":"' . trim($brand_name) . '"%'];
+            $map2['brand'] = ['like', '%"name": "' . trim($brand_name) . '"%'];
+            $map2['_logic'] = 'or';
+            $where[]['_complex'] = $map2;
+//            $where['brand'] = ['like', '%"name":"%' . trim($brand_name) . '%'];
         }
 
         try {
