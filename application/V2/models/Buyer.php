@@ -1340,6 +1340,9 @@ class BuyerModel extends PublicModel {
     public function exportBuyerExcel($data){
         //获取数据,上传本地
         $excelArr = $this->getBuyerManageDataByCond($data,0,10,true);
+        if(!is_array($excelArr)){
+            return false;
+        }
         if(count($excelArr)==1){    //单文件
             $excelName = $excelArr[0];
             $arr['tmp_name'] = $excelName;
