@@ -33,6 +33,20 @@ class OrderModel extends PublicModel {
         parent::__construct();
     }
 
+    private $_field = [
+        'order_no',    //订单编号
+        'po_no',    //po编号
+        'buyer_id',    //采购商id
+        'contract_date',    //签约日期
+        'execute_no',     //execute_no
+        'order_contact_id',    //订单（采购商）联系人
+    ];
+
+    public function createOrder($data){
+        $data['po_no'] = isset($input['po_no']) ? trim($input['po_no']) : null;
+        $data['buyer_id'] ='';
+    }
+
     /* 获取订单详情
      * @param int $order_id // 订单ID
      * @author  zhongyg

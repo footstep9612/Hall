@@ -34,6 +34,12 @@ class OrderlogController extends PublicController{
         $where = $this->put_data;
 
         $results = $OrderLog->getLogiList($where);
+        
+        foreach ($results['data'] as &$res) {
+            $waybillNo = $OrderLog->where(['order_id' => $res['order_id'], 'log_group' => 'LOGISTICS', 'deleted_flag' => 'N'])->getField('waybill_no', true);
+            $res['waybill_no'] = implode(',', $waybillNo);
+        }
+        
         $this->jsonReturn($results);
     }
 
@@ -77,11 +83,13 @@ class OrderlogController extends PublicController{
 
         $data = $this->put_data;
         $data['created_by'] = $this->user['id'];
+        $where = ['id' => $data['order_id'], 'deleted_flag' => 'N'];
+        $logWhere = ['order_id' => $data['order_id'], 'deleted_flag' => 'N'];
 
         $OrderLog->startTrans();
         if($data['log_group']=="CREDIT"&&isset($data["order_id"])&&$data["order_id"]) {
             $order_model = new OrderModel();
-            $order_info = $order_model->where(['id'=>$data["order_id"]])->find();
+            $order_info = $order_model->where($where)->find();
             if($order_info){
                 if($order_info['buyer_id']){
                     $buyer_model = new BuyerModel();
@@ -125,10 +133,22 @@ class OrderlogController extends PublicController{
                 $this->jsonReturn($results);
             }
         }
+        if($data['log_group'] == 'OUTBOUND') {
+            $hasOut = $OrderLog->where($logWhere)->getField('id');
+            if (!$hasOut) {
+                $order_model->where($where)->setField(['pay_status'=>'OUTGOING']);
+            }
+        }
+        if($data['log_group'] == 'LOGISTICS') {
+            $hasLogi = $OrderLog->where($logWhere)->getField('id');
+            if (!$hasLogi) {
+                $order_model->where($where)->setField(['pay_status'=>'DISPATCHED']);
+            }
+        }
         $results = $OrderLog->addData($data);
         if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
             $order_model = new OrderModel();
-            $order_model->where(['id'=>$data["order_id"]])->setField(['pay_status'=>'PARTPAY']);
+            $order_model->where($where)->setField(['pay_status'=>'PARTPAY']);
         }
         if($results['code'] == 1){
             //如果有附件，添加附件

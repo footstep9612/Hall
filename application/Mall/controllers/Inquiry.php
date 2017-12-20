@@ -31,15 +31,11 @@ class InquiryController extends PublicController {
     public function addAction() {
         $inquiry = new InquiryModel();
         $data = $this->getPut();
-
-        $inquiryNo = $inquiry->checkInquiryNo($data['inquiry_no']);
-        if ($inquiryNo['code'] == 1) {
+        if ($inquiry->checkSerialNo($data['serial_no'])) {
             $data['buyer_id'] = $this->user['buyer_id'];
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
-            $buyerInfo = $this->user['buyer_id'];
-
-            $results = $inquiry->addInquiry($data, $buyerInfo);
+            $results = $inquiry->addInquiry($data);
             if (!$results) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
@@ -48,9 +44,8 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $results = $inquiryNo;
+           jsonReturn('', MSG::MSG_FAILED, '已存在');
         }
-        $this->jsonReturn($results);
     }
 
     //询价单列表
