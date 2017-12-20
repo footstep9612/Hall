@@ -17,7 +17,7 @@ class ShoppingCarModel extends publicModel{
     /**
      * 我的购物车
      */
-    public function myShoppingCar($condition){
+    public function myShoppingCar($condition,$country_bn = ''){
         if(empty($condition) || !isset($condition['lang'])){
             return false;
         }
@@ -30,9 +30,11 @@ class ShoppingCarModel extends publicModel{
             if($result){
                 $skus = [];
                 $spus = [];
-                foreach($result as $item){
+                foreach($result as $index =>$item){
                     $skus[] = $item['sku'];
                     $spus[] = $item['spu'];
+                    $result[$item['sku']] = $item;
+                    unset($result[$index]);
                 }
 
                 $goodsModel= new GoodsModel();
@@ -44,8 +46,17 @@ class ShoppingCarModel extends publicModel{
 				$goodsAry = [];
 				foreach($goods as $r){
 					$r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
+                    if($condition['type']){
+                        $r['price'] = $productModel->getSkuPriceByCount($r['sku'], $country_bn, $result[$r['sku']]['buy_number']);
+                    }
 					$goodsAry[$r['sku']] = $r;
 				}
+
+                //库存
+                $stockAry = [];
+                if($condition['type']) {
+                    $stockAry = $productModel->getSkuStockBySku( $skus , $country_bn , $condition[ 'lang' ] );
+                }
 					
                 //扩展属性
                 $gattrModel = new GoodsAttrModel();
@@ -70,7 +81,7 @@ class ShoppingCarModel extends publicModel{
                     $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
                 }
             }
-            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry] : [];
+            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
             return false;
@@ -143,12 +154,17 @@ class ShoppingCarModel extends publicModel{
 		if(!isset($input['idAry']) || empty($input['idAry'])){
             jsonReturn('','请选择要删除的ID');
         }
+        if(!isset($input['type'])){
+            jsonReturn('','type不能为空');
+        }
 		
 		$userInfo = getLoinInfo();
-		$condition = [
-			'id' => ['in',$input['idAry']],
-			//'buyer_id' => $userInfo['id']
-		];
+        $condition['type'] = $input['type'] ? 1 : 0;
+        if(is_array($input['idAry'])){
+            $condition['id'] = ['in',$input['idAry']];
+        }else{
+            $condition['id'] = $input['idAry'];
+        }
 		try{
 			$data = [
 				'deleted_flag' => 'Y',

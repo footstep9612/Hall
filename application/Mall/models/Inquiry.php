@@ -16,44 +16,34 @@ class InquiryModel extends PublicModel {
         parent::__construct();
     }
 
-
-
-    /**
-     * @param  int $inquiryNo 询单号.
-     * 验证询单号是否存在
-     * @author zhangyuliang
+    /*
+     * 检查流程编码是否存在　－在用
+     * @param string $serial_no  流水号
+     * @return true/false
+     * @author link    2017-12-19
      */
-    public function checkInquiryNo($inquiryNo) {
-        if (!empty($inquiryNo)) {
-            $where['inquiry_no'] = $inquiryNo;
+
+    public function checkSerialNo($serial_no) {
+        if (!empty($serial_no)) {
+            $where['serial_no'] = $serial_no;
         } else {
             return false;
         }
 
         try {
-            $info = $this->field('id')->where($where)->find();
-            if (!empty($info)) {
-                $results['code'] = '-101';
-                $results['message'] = '询单号已经存在！';
-            } else {
-                $results['code'] = '1';
-                $results['message'] = '没有找到询单号!';
-            }
-            return $results;
+            $id = $this->field('id')->where($where)->find();
+            return $id ? false : true ;
         } catch (Exception $e) {
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
-            return $results;
+            return false;
         }
     }
 
     /**
-     * @param  添加询单/添加sku询单项明细.
+     * @param  添加询单/添加sku询单项明细.　　－在用
      * 验证询单号是否存在
      * @author zhangyuliang
      */
-    public function addInquiry($data, $buyerInfo) {
-
+    public function addInquiry($data) {
         $this->startTrans();
         try {
             $res = $this->addData($data);
@@ -69,10 +59,9 @@ class InquiryModel extends PublicModel {
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
                 foreach ($data['arr_sku'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
-                    $item['created_by'] = $buyerInfo;
+                    $item['created_by'] = $data['buyer_id'];
                     $resItem = $InquiryItemModel->addData($item);
                     if (!$resItem || $resItem['code'] != 1) {
-
                         $this->rollback();
                         return false;
                     }
@@ -83,7 +72,7 @@ class InquiryModel extends PublicModel {
             if ($res['code'] == 1 && isset($data['files_attach']) && !empty($data['files_attach'])) {
                 foreach ($data['files_attach'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
-                    $item['created_by'] = $buyerInfo;
+                    $item['created_by'] = $data['buyer_id'];
                     $resAttach = $inquiryAttachModel->addData($item);
                     if (!$resAttach || $resAttach['code'] != 1) {
 
@@ -247,8 +236,8 @@ class InquiryModel extends PublicModel {
         if (empty($data['est_delivery_date']) || !strtotime($data['est_delivery_date'])) {
             unset($data['est_delivery_date']);
         }
-        if (!empty($condition['buyer_no'])) {
-            $data['buyer_code'] = $condition['buyer_no'];
+        if (!empty($condition['buyer_code'])) {
+            $data['buyer_code'] = $condition['buyer_code'];
         } else {
             $results['code'] = '-103';
             $results['message'] = '没有采购商编号!';

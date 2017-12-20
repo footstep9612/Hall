@@ -26,20 +26,21 @@ class GoodsModel extends PublicModel{
         }
 
         try{
+            $thisTable = $this->getTableName();
             if(is_array($sku)){
-                $condition = ['sku' => ['in',$sku]];
+                $condition = ["$thisTable.sku" => ['in',$sku]];
             }else{
-                $condition = ['sku' => $sku];
+                $condition = ["$thisTable.sku" => $sku];
             }
-            $condition['lang'] = $lang;
-            $condition['status'] = 'VALID';
-            $condition['deleted_flag'] = 'N';
+            $condition["$thisTable.lang"] = $lang;
+            $condition["$thisTable.status"] = 'VALID';
+            $condition["$thisTable.deleted_flag"] = 'N';
 
             $productModel = new ProductModel();
             $productTable = $productModel->getTableName();
+            $result = $this->field("$thisTable.spu,$thisTable.sku,$thisTable.name,$thisTable.show_name_loc,$thisTable.model,$thisTable.lang,$thisTable.min_pack_unit,$productTable.brand")
+                ->join($productTable." ON $thisTable.spu=$productTable.spu AND $thisTable.lang=$productTable.lang")->where($condition)->select();
 
-            $result = $this->field("spu,sku,name,show_name_loc,model,lang,min_pack_unit,$productTable.brand")
-                ->join($productTable." ON spu=$productTable.spu AND lang=$productTable.lang")->where($condition)->select();
             return $result ? $result : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);
