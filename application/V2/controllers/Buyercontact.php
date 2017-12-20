@@ -157,7 +157,7 @@ class BuyercontactController extends PublicController {
             $arr['province'] =$data['province'];
         }
         if(isset($data['city'])){
-            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的邮编超出长度!');
+            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的市超出长度!');
             $arr['city'] =$data['city'];
         }
         if(isset($data['address'])){
