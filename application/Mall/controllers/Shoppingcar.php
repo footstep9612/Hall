@@ -29,6 +29,7 @@ class ShoppingcarController extends PublicController{
                 jsonReturn( '' , ErrorMsg::ERROR_PARAM , 'country_bn不能为空' );
             }
         }
+        jsonReturn($condition);
         $scModel = new ShoppingCarModel();
         $result = $scModel->myShoppingCar($condition,$input[ 'country_bn' ] ? $input[ 'country_bn' ] : '');
         if($result !== false){
