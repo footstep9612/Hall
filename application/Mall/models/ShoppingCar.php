@@ -18,6 +18,7 @@ class ShoppingCarModel extends publicModel{
      * 我的购物车
      */
     public function myShoppingCar($condition,$country_bn = ''){
+        jsonReturn(34434);
         if(empty($condition) || !isset($condition['lang'])){
             return false;
         }
