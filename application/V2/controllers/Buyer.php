@@ -161,6 +161,25 @@ class BuyerController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /**
+     * CRM系统优化客户统计列表
+     * wangs
+     */
+    public function buyerStatisListAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $ststisInfo = $model->buyerStatisList($data);
+        $dataJson = array(
+            'code'=>0,
+            'message'=>'返回数据',
+            'data'=>$ststisInfo
+        );
+        $this->jsonReturn($dataJson);
+
+    }
+
     /*
      * 统计各状态数量 jhw
      * */
