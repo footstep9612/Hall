@@ -6,7 +6,7 @@
  * Date: 2017/12/9
  * Time: 21:16
  */
-class ShoppingCarModel extends publicModel{
+class ShoppingCarModel extends PublicModel{
     protected $tableName = 'shopping_car';
     protected $dbName = 'erui_mall';
 
@@ -18,18 +18,15 @@ class ShoppingCarModel extends publicModel{
      * 我的购物车
      */
     public function myShoppingCar($condition,$country_bn = ''){
-        jsonReturn(34434);
         if(empty($condition) || !isset($condition['lang'])){
             return false;
         }
         $condition['type'] = $condition['type'] ? $condition['type'] : 0;
         $condition['deleted_flag'] = 'N';
-        //try{
+        try{
             $goodsModel= new GoodsModel();
             $goodsTable = $goodsModel->getTableName();
-            jsonReturn($condition);
             $result = $this->field('id,lang,sku,spu,buy_number')->where($condition)->select();
-            jsonReturn($result);
             if($result){
                 $skus = [];
                 $spus = [];
@@ -85,11 +82,10 @@ class ShoppingCarModel extends publicModel{
                 }
             }
             return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
-        /*}catch (Exception $e){
-            jsonReturn($e);
+        }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
             return false;
-        }*/
+        }
     }
 
     /**
