@@ -783,7 +783,7 @@ class BuyerController extends PublicController {
         if($res !== true && $res !==false){
             $valid = array(
                 'code'=>0,
-                'message'=>'请输入'.$res,
+                'message'=>'请输入规范'.$res,
             );
             $this -> jsonReturn($valid);
         }elseif ($res === false){
