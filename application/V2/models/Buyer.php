@@ -216,6 +216,13 @@ class BuyerModel extends PublicModel {
         $cond .=" and country.lang='zh'";
         $currentPage = 1;
         $pageSize = 10;
+        $totalCount = $this->alias('buyer')
+            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
+            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->where($cond)
+            ->count();
+        $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
             $currentPage = ceil($data['currentPage']);
         }
@@ -245,7 +252,11 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-        return $info;
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
