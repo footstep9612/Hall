@@ -65,11 +65,9 @@ class OrderModel extends PublicModel {
         if (isset($condition['status']) && $condition['status']) {
             switch ($condition['status']) {
                 case 'to_be_confirmed':
-
                     $where['show_status'] = 'UNCONFIRM';
                     break;
                 case 'proceeding':
-
                     $where['show_status'] = 'GOING';
                     break;
                 case 'finished':
