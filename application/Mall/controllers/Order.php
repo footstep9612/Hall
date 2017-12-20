@@ -20,6 +20,14 @@ class OrderController extends PublicController {
         parent::init();
     }
 
+    public function createAction(){
+        $input = $this->getPut();
+        $order_moder = new OrderModel();
+        $order_moder->createOrder($input);
+        $data['po_no'] = isset($input['po_no']) ? trim($input['po_no']) : null;
+    }
+
+
     /* 获取订单列表
      * @date    2017-8-1 16:50:09
      * @version V2.0

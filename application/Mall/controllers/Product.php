@@ -7,7 +7,7 @@
  */
 class ProductController extends PublicController{
     public function init() {
-        //parent::init();
+        parent::init();
     }
 
     /**
@@ -68,6 +68,38 @@ class ProductController extends PublicController{
     }
 
     /**
+     * 价格库存
+     */
+    public function priceStockAction(){
+        $input = $this->getPut();
+        if(!isset($input['sku']) || empty($input['sku'])){
+            jsonReturn('', ErrorMsg::NOTNULL_SKU);
+        }
+
+        if(!isset($input['country_bn']) || empty($input['country_bn'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'Country_bn 不能为空');
+        }
+
+        if(!isset($input['count']) || empty($input['count'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'Count 不能为空');
+        }
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('', ErrorMsg::NOTNULL_LANG);
+        }
+
+        $productModel = new ProductModel();
+        $priceInfo = $productModel->getSkuPriceByCount($input['sku'],$input['country_bn'],$input['count']);
+
+        $productModel = new ProductModel();
+        $stockInfo = $productModel->getSkuStockBySku($input['sku'],$input['country_bn'],$input['lang']);
+        $data = [
+            'price' => ($priceInfo !== false) ? $priceInfo : '',
+            'stock' => ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']]['stock'] : 0
+        ];
+        jsonReturn($data);
+    }
+
+    /**
      * 根据数量获取sku价格
      */
     public function priceAction(){
@@ -86,6 +118,30 @@ class ProductController extends PublicController{
 
         $productModel = new ProductModel();
         $result = $productModel->getSkuPriceByCount($input['sku'],$input['country_bn'],$input['count']);
+        if ($result !== false) {
+            jsonReturn($result);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
+     * sku库存
+     */
+    public function stockAction(){
+        $input = $this->getPut();
+        if(!isset($input['sku']) || empty($input['sku'])){
+            jsonReturn('', ErrorMsg::NOTNULL_SKU);
+        }
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('', ErrorMsg::NOTNULL_LANG);
+        }
+        if(!isset($input['country_bn']) || empty($input['country_bn'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'Country_bn 不能为空');
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel->getSkuStockBySku($input['sku'],$input['country_bn'],$input['lang']);
         if ($result !== false) {
             jsonReturn($result);
         }else{

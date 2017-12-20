@@ -230,4 +230,43 @@ class ProductModel extends PublicModel{
         }
     }
 
+    /**
+     * 根据sku跟国家获取库存
+     * @param string $sku
+     * @param string $country_bn
+     * @return array
+     */
+    public function getSkuStockBySku($sku,$country_bn='',$lang=''){
+        if(!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($lang) || empty($lang)){
+            return [];
+        }
+
+        if(is_array($sku)){
+            $condition['sku'] = ['in',$sku];
+        }else{
+            $condition['sku'] = $sku;
+        }
+        $condition['country_bn'] = $country_bn;
+        $condition['lang'] = $lang;
+        $condition['deleted_flag'] = 'N';
+        $condition['status'] = 'VALID';
+        try{
+            $sModel = new StockModel();
+            $stockInfo = $sModel->field('stock,sku,spu,country_bn,lang')->where($condition)->order('stock DESC')->select();
+            $data = [];
+            if($stockInfo){
+                foreach($stockInfo as $item){
+                    if(isset($data[$item['sku']])){
+                        continue;
+                    }
+                    $data[$item['sku']] = $item;
+                }
+            }
+            return $data;
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuStockBySku:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
 }
