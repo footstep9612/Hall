@@ -14,7 +14,7 @@
 class MembercenterController extends PublicController {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 
@@ -84,6 +84,7 @@ class MembercenterController extends PublicController {
     public function upPasswordAction() {
         $data = $this->getPut();
         $buyerAccount = new BuyerAccountModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
         $result = $buyerAccount->checkPassword($data);
         if ($result) {
             $res = $buyerAccount->update_pwd($data);
@@ -186,6 +187,55 @@ class MembercenterController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+    // 发送激活邮件
+    public function sendActiveEmailAction() {
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        if (!empty($data['email'])) {
+            $arr['email'] = $data['email'];
+        } else {
+            jsonReturn('', -101, '邮箱不可以为空!');
+        }
+        $arr['key'] = md5(uniqid());
+        redisHashSet('mall_active_email', $arr['key'], $this->user['buyer_id'], 86400);
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        $email_arr['key'] = $arr['key'];
+        $body = $this->getView()->render('login/active_email_en.html', $email_arr);
+        $title = 'Erui.com';
+        $res = send_Mail($arr['email'], $title, $body);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, '发送成功');
+        } else {
+            jsonReturn('', -104, $res['msg']);
+        }
+    }
+
+    //验证邮件
+    public function checkActiveEmailAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        if (empty($data['key'])) {
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
+        }
+        if (redisHashExist('mall_active_email', $data['key'])) {
+            $buyer_id = redisHashGet('mall_active_email', $data['key']);
+            $buyer_account_model = new BuyerAccountModel();
+            $user_arr['status'] = 'VALID';
+            $check = $buyer_account_model->update_data($user_arr, ['buyer_id' => $buyer_id]);
+            if ($check) {
+                redisHashDel('mall_active_email', $data['key']);
+                jsonReturn('', 1, 'success!');
+            } else {
+                jsonReturn('', -131, 'failed!');
+            }
+        } else {
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
+        }
+    }
+
 
     /**
      * 分页处理
