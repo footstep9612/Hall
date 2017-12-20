@@ -577,7 +577,7 @@ class EsproductController extends PublicController {
             'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'name' => $ik_analyzed,
                     'name_en' => $ik_analyzed,
@@ -585,7 +585,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'costprices' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'contact_first_name' => $not_analyzed,
@@ -622,7 +622,7 @@ class EsproductController extends PublicController {
             // 'brand' => $ik_analyzed, //品牌
             // 'suppliers' => $ik_analyzed, //供应商数组 json
             'brand' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -634,7 +634,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'suppliers' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
@@ -647,7 +647,7 @@ class EsproductController extends PublicController {
             //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -660,35 +660,35 @@ class EsproductController extends PublicController {
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
             'attrs' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [//属性数组 json
                     'spec_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_goods_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_hs_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'other_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]]
                 ]],
             'material_cat' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -698,7 +698,7 @@ class EsproductController extends PublicController {
                     'cat_name3' => $ik_analyzed,
                 ]], // $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -805,7 +805,7 @@ class EsproductController extends PublicController {
             'view_count' => ['type' => $type], //浏览数量
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'name' => $ik_analyzed,
                     'name_en' => $ik_analyzed,
@@ -832,7 +832,7 @@ class EsproductController extends PublicController {
             //  'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -845,28 +845,28 @@ class EsproductController extends PublicController {
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
             'attrs' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'spec_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_goods_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_hs_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'other_attrs' => [
-                        'type' => 'nested',
+                        // 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
@@ -874,7 +874,7 @@ class EsproductController extends PublicController {
                 ]], //$ik_analyzed, //属性数组 json
             // 'suppliers' => $ik_analyzed, //供应商数组 json
             'brand' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -886,7 +886,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'suppliers' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
@@ -896,7 +896,7 @@ class EsproductController extends PublicController {
             'supplier_count' => $not_analyzed,
             'image_count' => $int_analyzed,
             'material_cat' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -906,7 +906,7 @@ class EsproductController extends PublicController {
                     'cat_name3' => $ik_analyzed,
                 ]], // $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => [
-                'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
