@@ -125,6 +125,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['buyer_id'])) {
             $where['buyer_id'] = $condition['buyer_id'];  //客户名称
+        } else {
+            jsonReturn('',-104,'用户ID不能为空!');
         }
 
         if (!empty($condition['agent_id'])) {

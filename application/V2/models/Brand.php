@@ -64,18 +64,30 @@ class BrandModel extends PublicModel {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'id', 'string');
 
-
+        $brand_table = $this->getTableName();
         $this->_getValue($where, $condition, 'status', 'string', 'status', 'VALID');
-// $this->_getValue($where, $condition, 'manufacturer', 'like', 'brand');
+
         if (!empty($condition['name']) && $lang) {
             $name = trim($condition['name']);
-            $where[] = ' brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\'  ';
-            $where[] = ' brand like \'%"name":"%' . $name . '%"%\' or brand like \'%"name": "%' . $name . '%"%\' ';
+            $map1[$brand_table . '.`brand`'] = ['like', '%"lang":"' . $lang . '"%'];
+            $map1['brand'] = ['like', '%"lang": "' . $lang . '"%'];
+            $map1['_logic'] = 'or';
+            $where[]['_complex'] = $map1;
+            $map2[$brand_table . '.`brand`'] = ['like', '%"name":"' . $name . '"%'];
+            $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+            $map2['_logic'] = 'or';
+            $where[]['_complex'] = $map2;
         } elseif ($lang) {
-            $where[] = ' brand like \'%"lang":"' . $lang . '"%\' or brand like \'%"lang": "' . $lang . '"%\' ';
+            $map1['brand.brand'] = ['like', '%"lang":"' . $lang . '"%'];
+            $map1['brand'] = ['like', '%"lang": "' . $lang . '"%'];
+            $map1['_logic'] = 'or';
+            $where[]['_complex'] = $map1;
         } elseif (!empty($condition['name'])) {
             $name = trim($condition['name']);
-            $where[] = ' brand like \'%"name":"%' . $name . '%"%\' or brand like \'%"name": "%' . $name . '%"%\' ';
+            $map2['brand.brand'] = ['like', '%"name":"' . $name . '"%'];
+            $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+            $map2['_logic'] = 'or';
+            $where[]['_complex'] = $map2;
         }
         return $where;
     }
@@ -117,10 +129,11 @@ class BrandModel extends PublicModel {
         $where = $this->_getcondition($condition, $lang);
         list($row_start, $pagesize) = $this->_getPage($condition);
 
+
         $redis_key = md5(json_encode($where) . $lang . $row_start . $pagesize);
-//        if (redisHashExist('Brand', $redis_key)) {
-//            return json_decode(redisHashGet('Brand', $redis_key), true);
-//        }
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Brand', $redis_key), true);
+        }
         try {
             $item = $this->where($where)
                     ->field('id, brand, status, created_by, '

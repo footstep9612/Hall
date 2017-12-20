@@ -37,7 +37,7 @@ class BuyerCustomModel extends PublicModel
 
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,buyer_id,service_no,title,cat_name,item_id,content,remarks,add_desc';
-        $field .= ',email,contact_name,company,country_bn,tel,status,created_by,created_at';
+        $field .= ',email,contact_name,company,country_bn,city,tel,status,created_by,created_at';
         return $this->field($field)
                      ->where($where)
                      ->limit($start_no, $pagesize)
@@ -205,60 +205,66 @@ class BuyerCustomModel extends PublicModel
     /**
      * 新增
      */
-    public function create_data($create, $where) {
-        if (isset($where['buyer_id']) && !empty($where['buyer_id'])) {
-            $arr['buyer_id'] = trim($where['buyer_id']);
+    public function create_data($create) {
+        if (isset($create['buyer_id']) && !empty($create['buyer_id'])) {
+            $arr['buyer_id'] = trim($create['buyer_id']);
         } else {
-            jsonReturn(null ,-201, '用户ID不能为空!');
+            jsonReturn(null,-1,'用户ID不能为空!');
         }
-        if (isset($create['lang'])) {
+        if (isset($create['lang']) && !empty($create['lang'])) {
             $arr['lang'] = strtolower(trim($create['lang']));
         }
-        if (isset($create['service_no'])) {
+        if (isset($create['service_no']) && !empty($create['service_no'])) {
             $arr['service_no'] = trim($create['service_no']);
         }
-        if (isset($create['title'])) {
+        if (isset($create['title']) && !empty($create['title'])) {
             $arr['title'] = $create['title'];
         }
-        if (isset($create['cat_name'])) {
+        if (isset($create['cat_name']) && !empty($create['cat_name'])) {
             $arr['cat_name'] = trim($create['cat_name']);
         }
-        if (isset($create['item_name'])) {
-            $arr['item_name'] = json_encode(trim($create['item_name']));
+        if (isset($create['item_name']) && !empty($create['item_name'])) {
+            $arr['item_name'] = trim($create['item_name']);
         }
-        if (isset($create['cat_id'])) {
+//        if (isset($create['item_name']) && !empty($create['item_name'])) {
+//            $arr['item_name'] = json_encode(trim($create['item_name']));
+//        }
+        if (isset($create['cat_id']) && !empty($create['cat_id'])) {
             $arr['cat_id'] = trim($create['cat_id']);
         }
-        if (isset($create['item_id'])) {
-            $arr['item_id'] = json_encode(trim($create['item_id']));
-        }
-        if (isset($create['content'])) {
+//        if (isset($create['item_id']) && !empty($create['item_id'])) {
+//            $arr['item_id'] = json_encode(trim($create['item_id']));
+//        }
+        if (isset($create['content']) && !empty($create['content'])) {
             $arr['content'] = trim($create['content']);
         }
-        if (isset($create['remarks'])) {
+        if (isset($create['remarks']) && !empty($create['remarks'])) {
             $arr['remarks'] = trim($create['remarks']);
         }
-        if (isset($create['add_desc'])) {
+        if (isset($create['add_desc']) && !empty($create['add_desc'])) {
             $arr['add_desc'] = trim($create['add_desc']);
         }
-        if (isset($create['email'])) {
+        if (isset($create['email']) && !empty($create['email'])) {
             $arr['email'] = trim($create['email']);
         }
-        if (isset($create['contact_name'])) {
-            $arr['contact_name'] = trim($create['contact_name']);
+        if (isset($create['show_name']) && !empty($create['show_name'])) {
+            $arr['contact_name'] = trim($create['show_name']);
         }
-        if (isset($create['company'])) {
+        if (isset($create['company']) && !empty($create['company'])) {
             $arr['company'] = trim($create['company']);
         }
-        if (isset($create['country_bn'])) {
+        if (isset($create['country']) && !empty($create['country'])) {
             $arr['country_bn'] = trim($create['country_bn']);
         }
-        if (isset($create['tel'])) {
+        if (isset($create['city']) && !empty($create['city'])) {
+            $arr['city'] = trim($create['city']);
+        }
+        if (isset($create['tel']) && !empty($create['tel'])) {
             $arr['tel'] = trim($create['tel']);
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         try {
-            $arr['created_by'] = $where['buyer_id'];
+            $arr['created_by'] = $arr['buyer_id'];
             $data = $this->create($arr);
             $res = $this->add($data);
             return $res;
@@ -275,46 +281,49 @@ class BuyerCustomModel extends PublicModel
      */
     public function update_data($data, $where) {
         $arr = [];
-        if (isset($data['lang'])) {
+        if (isset($data['lang']) && !empty($where['lang'])) {
             $arr['lang'] = strtolower(trim($data['lang']));
         }
-        if (isset($data['service_no'])) {
+        if (isset($data['service_no']) && !empty($where['service_no'])) {
             $arr['service_no'] = trim($data['service_no']);
         }
-        if (isset($data['title'])) {
+        if (isset($data['title']) && !empty($where['title'])) {
             $arr['title'] = trim($data['title']);
         }
-        if (isset($data['cat_id'])) {
+        if (isset($data['cat_id']) && !empty($where['cat_id'])) {
             $arr['cat_id'] = trim($data['cat_id']);
         }
-        if (isset($data['item_id'])) {
+        if (isset($data['item_id']) && !empty($where['item_id'])) {
             $arr['item_id'] = json_encode(trim($data['item_id']));
         }
-        if (isset($data['content'])) {
+        if (isset($data['content']) && !empty($where['content'])) {
             $arr['content'] = trim($data['content']);
         }
-        if (isset($data['remarks'])) {
+        if (isset($data['remarks']) && !empty($where['remarks'])) {
             $arr['remarks'] = trim($data['remarks']);
         }
-        if (isset($data['add_desc'])) {
+        if (isset($data['add_desc']) && !empty($where['add_desc'])) {
             $arr['add_desc'] = trim($data['add_desc']);
         }
-        if (isset($data['email'])) {
+        if (isset($data['email']) && !empty($where['email'])) {
             $arr['email'] = trim($data['email']);
         }
-        if (isset($data['contact_name'])) {
+        if (isset($data['contact_name']) && !empty($where['contact_name'])) {
             $arr['contact_name'] = trim($data['contact_name']);
         }
-        if (isset($data['company'])) {
+        if (isset($data['company']) && !empty($where['company'])) {
             $arr['company'] = trim($data['company']);
         }
-        if (isset($data['country_bn'])) {
+        if (isset($data['country_bn']) && !empty($where['country_bn'])) {
             $arr['country_bn'] = trim($data['country_bn']);
         }
-        if (isset($data['tel'])) {
+        if (isset($create['city']) && !empty($where['city'])) {
+            $arr['city'] = trim($create['city']);
+        }
+        if (isset($data['tel']) && !empty($where['tel'])) {
             $arr['tel'] = trim($data['tel']);
         }
-        if ($data['status']) {
+        if (isset($data['status']) && !empty($data['status'])) {
             switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
@@ -327,8 +336,8 @@ class BuyerCustomModel extends PublicModel
                     break;
             }
         }
-        if (isset($create['updated_by'])) {
-            $arr['updated_by'] = trim($create['updated_by']);
+        if (isset($data['updated_by']) && !empty($data['updated_by'])) {
+            $arr['updated_by'] = trim($data['updated_by']);
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");
         if (!empty($where['buyer_id'])) {

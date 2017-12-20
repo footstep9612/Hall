@@ -159,7 +159,9 @@ class BuyervisitController extends PublicController {
         }
     }
      /*
+     * CRM模块
      * 统计:拜访记录excel 导出
+     * wangs
      */
     public function exportStatisVisitAction(){
         $created_by = $this -> user['id'];
@@ -167,19 +169,22 @@ class BuyervisitController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
+        if($arr === false){
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'暂无数据'
+            );
+            $this->jsonReturn($dataJson);
+        }
         if(!empty($arr)){
             $dataJson=array(
                 'code'=>1,
+                'message'=>'下载成功',
                 'name'=>$arr['name'],
                 'url'=>$arr['url']
             );
             $model = new BuyerExcelModel();
             $model->saveExcel($arr['name'],$arr['url'],$created_by);
-        }else{
-            $dataJson=array(
-                'code'=>0,
-                'message'=>'excel导出失败'
-            );
         }
         $this->jsonReturn($dataJson);
     }

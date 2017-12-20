@@ -249,25 +249,25 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'supplier_id', 'suppliers.supplier_id');
+        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'supplier_name', 'suppliers.supplier_name.' . $analyzer);
+        $this->_getQurey($condition, $body, ESClient::TERM, 'created_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'updated_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'checked_by');
 
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         $employee_model = new EmployeeModel();
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
             foreach ($userids as $updated_by) {
-                $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
+                $updated_by_bool[] = [ESClient::TERM => ['updated_by' => $updated_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
             foreach ($userids as $checked_by) {
-                $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
+                $checked_by_bool[] = [ESClient::TERM => ['checked_by' => $checked_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
@@ -335,7 +335,7 @@ class EsProductModel extends Model {
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
 //                        [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
+                        [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
 //                        [ESClient::WILDCARD => ['show_name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
 //                        [ESClient::WILDCARD => ['name.all' => ['value' => '*' . $keyword . '*', 'boost' => 9]]],
                         [ESClient::MATCH => ['attr.spec_attrs.name.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],

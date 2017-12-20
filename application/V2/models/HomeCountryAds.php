@@ -86,11 +86,12 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $img_name, $img_url, $group, $lang) {
+    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang) {
 
         $data['country_bn'] = $country_bn;
         $data['img_name'] = $img_name;
         $data['img_url'] = $img_url;
+        $data['link'] = trim($link);
         $data['group'] = $group;
         $data['lang'] = $lang;
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -106,7 +107,7 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $img_name, $img_url, $group, $lang) {
+    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang) {
 
 
 
@@ -115,7 +116,7 @@ class HomeCountryAdsModel extends PublicModel {
         $data['img_url'] = $img_url;
         $data['group'] = $group;
         $data['lang'] = $lang;
-
+        $data['link'] = trim($link);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 

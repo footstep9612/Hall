@@ -113,16 +113,16 @@ class EsProductModel extends Model {
 
             if ($status == 'ALL') {
                 $body['query']['bool']['must_not'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::MATCH_PHRASE => [$field => self::STATUS_DELETED]],
-                            [ESClient::MATCH_PHRASE => [$field => 'CLOSED']]]
+                            [ESClient::TERM => [$field => self::STATUS_DELETED]],
+                            [ESClient::TERM => [$field => 'CLOSED']]]
                 ]];
             } elseif (in_array($status, $array)) {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $status]];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $default]];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+            $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $default]];
         }
     }
 
@@ -140,7 +140,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $names = '', $field = '') {
+    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::TERM, $names = '', $field = '') {
         if (!$field) {
             $field = [$names];
         }
@@ -173,7 +173,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getQureyByBool(&$condition, &$body, $qurey_type = ESClient::MATCH_PHRASE, $name = '', $field = '', $default = 'N') {
+    private function _getQureyByBool(&$condition, &$body, $qurey_type = ESClient::TERM, $name = '', $field = '', $default = 'N') {
         if (!$field) {
             $field = $name;
         }
@@ -249,9 +249,9 @@ class EsProductModel extends Model {
 
 
 
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'created_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'updated_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'checked_by');
         if (empty($condition['deleted_flag'])) {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         } else {
@@ -262,14 +262,14 @@ class EsProductModel extends Model {
             $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
 
             foreach ($userids as $created_by) {
-                $created_by_bool[] = [ESClient::MATCH_PHRASE => ['created_by' => $created_by]];
+                $created_by_bool[] = [ESClient::TERM => ['created_by' => $created_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $created_by_bool]];
         }
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName(trim($condition['updated_by_name']));
             foreach ($userids as $updated_by) {
-                $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
+                $updated_by_bool[] = [ESClient::TERM => ['updated_by' => $updated_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
         }
@@ -277,7 +277,7 @@ class EsProductModel extends Model {
             $userids = $employee_model->getUseridsByUserName(trim($condition['checked_by_name']));
 
             foreach ($userids as $checked_by) {
-                $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
+                $checked_by_bool[] = [ESClient::TERM => ['checked_by' => $checked_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
@@ -295,12 +295,12 @@ class EsProductModel extends Model {
         }
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['show_name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
         }
 
         if (isset($condition['name']) && $condition['name']) {
             $name = trim($condition['name']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
+            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
         }
         if (isset($condition['attrs']) && $condition['attrs']) {
             $attrs = trim($condition['attrs']);

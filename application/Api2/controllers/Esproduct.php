@@ -131,9 +131,9 @@ class EsproductController extends PublicController {
             } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['name.' . $analyzer][0]) {
                 $list[$key]['highlight_show_name'] = $item['highlight']['name.' . $analyzer][0];
             } elseif ($list[$key]['show_name']) {
-                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
+                $list[$key]['highlight_show_name'] = str_ireplace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             } else {
-                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
+                $list[$key]['highlight_show_name'] = str_ireplace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
             }
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {

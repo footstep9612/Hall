@@ -85,12 +85,13 @@ class StockCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $img_name, $img_url, $group, $lang) {
+    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang) {
 
         $data['country_bn'] = $country_bn;
         $data['img_name'] = $img_name;
         $data['img_url'] = $img_url;
         $data['group'] = $group;
+        $data['link'] = $link;
         $data['lang'] = $lang;
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
@@ -105,7 +106,7 @@ class StockCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $img_name, $img_url, $group, $lang) {
+    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang) {
 
 
 
@@ -114,7 +115,7 @@ class StockCountryAdsModel extends PublicModel {
         $data['img_url'] = $img_url;
         $data['group'] = $group;
         $data['lang'] = $lang;
-
+        $data['link'] = $link;
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 

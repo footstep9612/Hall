@@ -26,9 +26,6 @@ class StockCountryAdsModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
-        $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getValue($where, $condition, 'created_by');
-        $this->_getValue($where, $condition, 'img_name', 'like');
         $this->_getValue($where, $condition, 'group');
         return $where;
     }
@@ -42,7 +39,10 @@ class StockCountryAdsModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        return $this->where($where)->select();
+        return $this->field('img_name,img_url,group,link')
+                        ->where($where)
+                        ->order('sort_order desc')
+                        ->select();
     }
 
 }

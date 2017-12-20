@@ -11,31 +11,36 @@
  *
  * @author  jhw
  */
-class LoginController extends PublicController {
+class SpecloginController extends PublicController {
 
     public function init() {
         $this->token = false;
         parent::init();
     }
 
+    public function addUcustomAction() {
+        $data = $this->getPut();
+        if($data['sign'] == 'login') {
+            $this->login($data);
+        } elseif($data['sign'] == 'register') {
+            $this->register($data);
+        } elseif($data['sign'] == 'contact'){
+            $data['buyer_id'] = $this->user['buyer_id'];
+            $res = $this->createUcustom($data);
+            if($res) {
+                jsonReturn($res,1,'提交成功!');
+            } else{
+                jsonReturn('',-1,'提交失败!');
+            }
+        }
+    }
+
     /*
-     * 用户登录
-     * @created_date 2017-06-15
-     * @update_date 2017-06-15
-     * @author jhw
+     * 用户登录并提交定制服务
      */
 
-    public function loginAction() {
-        $data = $this->getPut();
+    public function login($data) {
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        /* if (!empty($data['email'])) {
-          if (!isEmail($data['email'])) {
-          jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
-          }
-          $arr['email'] = trim($data['email']);
-          } else {
-          jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
-          } */
         if (!empty($data['email'])) {
             $data['email'] = trim($data['email']);
             if (isEmail($data['email'])) {
@@ -56,81 +61,78 @@ class LoginController extends PublicController {
         $info = $model->login($arr, $lang);
         if ($info) {
             $buyer_model = new BuyerModel();
-            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']]);
-            $jwtclient = new JWTClient();
-            $jwt['id'] = $info['id'];
-            $jwt['buyer_id'] = $info['buyer_id'];
-            $jwt['ext'] = time();
-            $jwt['iat'] = time();
-            $jwt['show_name'] = $info['show_name'];
-            $datajson['buyer_no'] = $buyer_info['buyer_no'];
-            $datajson['email'] = $info['email'];
-            $datajson['buyer_id'] = $info['buyer_id'];
-            $datajson['show_name'] = $info['show_name'];
-            $datajson['user_name'] = $info['user_name'];
-            $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
-            echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
-            exit();
+
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
+
+            $data['buyer_id'] = $info['buyer_id'];
+            $data['show_name'] = $info['show_name'];
+            $data['phone'] = $buyer_info['official_phone'];
+            $data['company'] = $buyer_info['name'];
+            $data['country'] = $buyer_info['country_bn'];
+
+            $result= $this->createUcustom($data);
+            if($result) {
+                $jwtclient = new JWTClient();
+                $jwt['id'] = $info['id'];
+                $jwt['buyer_id'] = $info['buyer_id'];
+                $jwt['ext'] = time();
+                $jwt['iat'] = time();
+                $jwt['show_name'] = $info['show_name'];
+                $datajson['buyer_no'] = $buyer_info['buyer_no'];
+                $datajson['email'] = $info['email'];
+                $datajson['buyer_id'] = $info['buyer_id'];
+                $datajson['show_name'] = $info['show_name'];
+                $datajson['user_name'] = $info['user_name'];
+                $datajson['token'] = $jwtclient->encode($jwt); //加密
+                redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
+                echo json_encode(array("code" => "1", "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
+                exit();
+            }
+            echo json_encode(array("code" => "-124", "data" => [], "message" => ShopMsg::getMessage('-124',$lang)));
         } else {
-            $datajson = [];
-            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124', $lang)));
+            echo json_encode(array("code" => "-124", "data" => [], "message" => ShopMsg::getMessage('-124',$lang)));
         }
     }
 
-    // 验证邮件
-    public function checkEmailAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        if (empty($data['key'])) {
-            jsonReturn('', -101, '邮箱不可以为空!');
-        }
-        if (redisHashExist('login_reg_key', $data['key'])) {
-            $arr['id'] = redisHashGet('login_reg_key', $data['key']);
+    /**
+     * 用户定制信息新增
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function createUcustom($data) {
+        $limit['pagesize'] = 1;
+        $limit['current_no'] = 0;
+        $buyer_custom_model = new BuyerCustomModel();
+        $data_t_custom = $buyer_custom_model->getlist($limit);
+        if ($data_t_custom && substr($data_t_custom[0]['service_no'], 1, 8) == date("Ymd")) {
+            $no = substr($data_t_custom[0]['service_no'], 9, 6);
+            $no++;
         } else {
-            jsonReturn('', -104, 'key不存在');
+            $no = 1;
         }
-        $buyer_account_model = new BuyerAccountModel();
-        $list = $buyer_account_model->Exist($arr);
-        $buyer_data['status'] = 'VALID';
-        $res = $buyer_account_model->update_data($buyer_data, $arr);
-        if ($res) {
-            redisHashDel('login_reg_key', $data['key']);
-            jsonReturn('', 1, '验证成功');
+        $temp_num = 1000000;
+        $new_num = $no + $temp_num;
+        $real_num = "S" . date("Ymd") . substr($new_num, 1, 6);
+        $data['service_no'] = $real_num;
+
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        if (isset($data['phone']) && $data['phone']) {
+            $data['tel'] = $data['phone'];
+            if (!empty($data['tel_code'])) {
+                $data['tel'] = $data['tel_code'].' '.$data['phone'];
+            }
+        }
+        $res = $buyer_custom_model->create_data($data);
+        if($res) {
+            return $res;
         } else {
-            jsonReturn('', -104, '验证失败');
+            return false;
         }
     }
 
-    //获取部门信息
-    public function groupListAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $limit = [];
-        $where = [];
-        if (!empty($data['parent_id'])) {
-            $where['parent_id'] = $data['parent_id'];
-        }
-        if (!empty($data['name'])) {
-            $where['name'] = $data['name'];
-        }
-        if (!empty($data['page'])) {
-            $limit['page'] = $data['page'];
-        }
-        if (!empty($data['countPerPage'])) {
-            $limit['num'] = $data['countPerPage'];
-        }
-        $model_group = new GroupModel();
-        $data = $model_group->getlist($where, $limit); //($this->put_data);
-        if (!empty($data)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $data;
-        } else {
-            $datajson['code'] = -101;
-            $datajson['data'] = $data;
-            $datajson['message'] = '数据为空!';
-        }
-        echo json_encode($datajson);
-        exit();
-    }
+
+
 
     function retrievalEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -229,8 +231,7 @@ class LoginController extends PublicController {
      * 用户注册--new
      * @author
      */
-    public function registerAction() {
-        $data = $this->getPut();
+    public function register($data) {
         $lang = $data['lang'] ? $data['lang'] : 'en';
         if (!empty($data['email'])) {
             $buyer_account_data['email'] = trim($data['email']);
@@ -293,28 +294,32 @@ class LoginController extends PublicController {
 
         $id = $model->create_data($arr);
         if ($id) {
-            $buyer_account_data['buyer_id'] = $id;
-            $account_id = $buyer_account_model->create_data($buyer_account_data);
-            if ($account_id) {
-                $datajson['key'] = md5(uniqid());
-                redisSet('improve_info_key' . $datajson['key'], $id, 7200);
 
-                $jwtclient = new JWTClient();
-                $jwt['id'] = $id;
-                $jwt['buyer_id'] = $id;
-                $jwt['ext'] = time();
-                $jwt['iat'] = time();
-                $jwt['show_name'] = $buyer_account_data['show_name'];
-                $datajson['buyer_no'] = $arr['buyer_no'];
-                $datajson['email'] = $buyer_account_data['email'];
-                $datajson['buyer_id'] = $id;
-                $datajson['show_name'] = $buyer_account_data['show_name'];
-                $datajson['user_name'] = '';
-                $datajson['country'] = $arr['country_bn'];
-                $datajson['phone'] = $arr['official_phone'];
-                $datajson['token'] = $jwtclient->encode($jwt); //加密
-                redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
-                jsonReturn($datajson, 1, 'Success!');
+            $data['buyer_id'] = $id;
+            $result= $this->createUcustom($data);
+            if($result) {
+                $buyer_account_data['buyer_id'] = $id;
+                $account_id = $buyer_account_model->create_data($buyer_account_data);
+                if($account_id){
+
+                    $jwtclient = new JWTClient();
+                    $jwt['id'] = $id;
+                    $jwt['buyer_id'] = $id;
+                    $jwt['ext'] = time();
+                    $jwt['iat'] = time();
+                    $jwt['show_name'] = $buyer_account_data['show_name'];
+                    $datajson['buyer_no']   =   $arr['buyer_no'];
+                    $datajson['email']      =   $buyer_account_data['email'];
+                    $datajson['buyer_id']   =   $id;
+                    $datajson['show_name']  =   $buyer_account_data['show_name'];
+                    $datajson['user_name']  =   '';
+                    $datajson['country']    =   $arr['country_bn'];
+                    $datajson['phone']      =   $arr['official_phone'];
+                    $datajson['token']      =   $jwtclient->encode($jwt); //加密
+                    redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                    jsonReturn($datajson, 1, ShopMsg::getMessage('139',$lang));
+                }
+                jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));
             }
             $where['id'] = $id;
             $model->delete_data($where);
@@ -353,52 +358,6 @@ class LoginController extends PublicController {
             jsonReturn('', 1, '发送成功');
         } else {
             jsonReturn('', -104, $res['msg']);
-        }
-    }
-
-    /**
-     * 用户注册企业信息完善--new
-     * @author
-     */
-    public function improveInfoAction() {
-        $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
-        $where = $buyer_data = [];
-        if (redisExist('improve_info_key' . $data['key'])) {
-            $where['id'] = redisGet('improve_info_key' . $data['key']);
-        } else {
-            jsonReturn('', -117, ShopMsg::getMessage('-117', $lang)); //'key不存在'
-        }
-        if (!empty($data['name'])) {
-            $buyer_data['name'] = trim($data['name']);
-        } else {
-            jsonReturn(null, -118, ShopMsg::getMessage('-118', $lang));
-        }
-        if (!empty($data['biz_scope'])) {
-            $buyer_data['biz_scope'] = trim($data['biz_scope']);
-        } else {
-            jsonReturn('', -123, ShopMsg::getMessage('-123', $lang));
-        }
-        if (!empty($data['intent_product'])) {
-            $buyer_data['intent_product'] = trim($data['intent_product']);
-        } else {
-            jsonReturn('', -123, ShopMsg::getMessage('-123', $lang));
-        }
-        if (isset($data['purchase_amount'])) {
-            $buyer_data['purchase_amount'] = trim($data['purchase_amount']);
-        }
-
-        $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != " . $where['id'])->find();
-        if ($checkname) {
-            jsonReturn('', -125, ShopMsg::getMessage('-125', $lang));
-        }
-        $res = $buyerModel->update_data($buyer_data, $where);
-        if ($res) {
-            redisDel('improve_info_key' . $data['key']);
-            jsonReturn('', 1, 'Success!');
-        } else {
-            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang)); //Failed to update your buyerinfo!
         }
     }
 

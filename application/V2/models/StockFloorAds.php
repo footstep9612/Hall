@@ -116,6 +116,7 @@ class StockFloorAdsModel extends PublicModel {
         $condition['floor_id'] = trim($condition['floor_id']);
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['group'] = trim($condition['group']);
+        $condition['link'] = trim($condition['link']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -137,6 +138,7 @@ class StockFloorAdsModel extends PublicModel {
         $condition['floor_id'] = trim($condition['floor_id']);
         $condition['lang'] = trim($condition['lang']);
         $condition['group'] = trim($condition['group']);
+        $condition['link'] = trim($condition['link']);
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);

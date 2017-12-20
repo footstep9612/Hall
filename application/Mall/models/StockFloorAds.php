@@ -26,14 +26,9 @@ class StockFloorAdsModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
-        $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'floor_id');
-        $this->_getValue($where, $condition, 'created_by');
-        $this->_getValue($where, $condition, 'img_name', 'like');
-
-
+        $this->_getValue($where, $condition, 'group');
         $this->_getValue($where, $condition, 'lang');
-
         return $where;
     }
 
@@ -46,24 +41,22 @@ class StockFloorAdsModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
 
-        return $this->where($where)
-                        ->limit($from, $size)
-                        ->select();
-    }
+        $start_no = 0;
 
-    /**
-     * Description of 获取SPU关联列表
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  SPU关联
-     */
-    public function getCont($condition) {
-        $where = $this->_getCondition($condition);
-        return $this->where($where)
-                        ->count();
+        $this->field('img_name,img_url,group,link')
+                ->where($where)
+                ->order('sort_order desc');
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+        if (isset($condition['current_no'])) {
+            $start_no = intval($condition['current_no']) > 0 ? (intval($condition['current_no']) * $pagesize - $pagesize) : 0;
+        }
+        if ($pagesize) {
+            $this->limit($start_no, $pagesize);
+        }
+        return $this->select();
     }
 
 }

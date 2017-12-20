@@ -113,6 +113,7 @@ class HomeFloorAdsModel extends PublicModel {
         $condition['img_url'] = trim($condition['img_url']);
         $condition['lang'] = trim($condition['lang']);
         $condition['img_name'] = trim($condition['img_name']);
+        $condition['link'] = trim($condition['link']);
         $condition['floor_id'] = trim($condition['floor_id']);
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['deleted_flag'] = 'N';
@@ -133,6 +134,7 @@ class HomeFloorAdsModel extends PublicModel {
         $condition['country_bn'] = trim($condition['country_bn']);
         $condition['img_url'] = trim($condition['img_url']);
         $condition['img_name'] = trim($condition['img_name']);
+        $condition['link'] = trim($condition['link']);
         $condition['floor_id'] = trim($condition['floor_id']);
         $condition['lang'] = trim($condition['lang']);
         $condition['sort_order'] = intval($condition['sort_order']);

@@ -26,9 +26,7 @@ class HomeFloorKeywordModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
-        $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getValue($where, $condition, 'keyword', 'like');
-        $this->_getValue($where, $condition, 'created_by');
+        $this->_getValue($where, $condition, 'floor_id');
         $this->_getValue($where, $condition, 'lang');
 
         return $where;
@@ -43,10 +41,11 @@ class HomeFloorKeywordModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
 
-        return $this->where($where)
-                        ->limit($from, $size)
+
+        return $this->field('keyword')
+                        ->where($where)
+                        ->order('sort_order desc')
                         ->select();
     }
 

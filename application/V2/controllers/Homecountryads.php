@@ -148,6 +148,12 @@ class HomecountryadsController extends PublicController {
             $this->setMessage('请选择广告语言!');
             $this->jsonReturn();
         }
+        $link = $this->getPut('link');
+        if (empty($link)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $home_country_ads_model = new HomeCountryAdsModel();
         if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
@@ -155,7 +161,7 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $group, $lang);
+        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -214,7 +220,12 @@ class HomecountryadsController extends PublicController {
             $this->setMessage('请选择广告分组!');
             $this->jsonReturn();
         }
-
+        $link = $this->getPut('link');
+        if (empty($link)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请输入广告链接地址!');
+            $this->jsonReturn();
+        }
         $home_country_ads_model = new HomeCountryAdsModel();
 
         if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
@@ -223,7 +234,7 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $group, $lang);
+        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

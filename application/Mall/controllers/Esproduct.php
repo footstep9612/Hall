@@ -35,7 +35,10 @@ class EsproductController extends PublicController {
 
         $country_bn = $this->getPut('country_bn');
         $is_show_cat = false;
-        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat);
+        $show_cat_name = null;
+        $is_brand = false;
+        $brand_name = null;
+        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name);
 
         if ($ret) {
             $data = $ret[0];
@@ -47,6 +50,9 @@ class EsproductController extends PublicController {
             $this->setvalue('sku_count', $sku_count);
             $this->setvalue('country_bn', $country_bn);
             $this->setvalue('is_show_cat', $is_show_cat);
+            $this->setvalue('is_brand', $is_brand);
+            $this->setvalue('show_cat_name', $show_cat_name);
+            $this->setvalue('brand_name', $brand_name);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($list);
         } else {
@@ -64,7 +70,11 @@ class EsproductController extends PublicController {
         $condition = $this->getPut();
         $country_bn = $this->getPut('country_bn');
         $is_show_cat = false;
-        $ret = $model->getNewProducts($condition, $this->getLang());
+        $show_cat_name = null;
+        $is_brand = false;
+        $brand_name = null;
+        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name);
+
 
         if ($ret) {
             $data = $ret[0];
@@ -76,6 +86,9 @@ class EsproductController extends PublicController {
             $this->setvalue('sku_count', $sku_count);
             $this->setvalue('country_bn', $country_bn);
             $this->setvalue('is_show_cat', $is_show_cat);
+            $this->setvalue('is_brand', $is_brand);
+            $this->setvalue('show_cat_name', $show_cat_name);
+            $this->setvalue('brand_name', $brand_name);
             $this->update_keywords();
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($list);
@@ -106,9 +119,9 @@ class EsproductController extends PublicController {
             } elseif (!$list[$key]['show_name'] && isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['name.' . $analyzer][0]) {
                 $list[$key]['highlight_show_name'] = $item['highlight']['name.' . $analyzer][0];
             } elseif ($list[$key]['show_name']) {
-                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
+                $list[$key]['highlight_show_name'] = str_ireplace($keyword, '<em>' . $keyword . '</em>', $list[$key]['show_name']);
             } else {
-                $list[$key]['highlight_show_name'] = str_replace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
+                $list[$key]['highlight_show_name'] = str_ireplace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
             }
             $attachs = json_decode($item["_source"]['attachs'], true);
             if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
