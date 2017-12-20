@@ -365,7 +365,7 @@ class EsProductModel extends Model {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                                 [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
+                                //  [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                                 [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
