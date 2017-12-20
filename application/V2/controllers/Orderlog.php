@@ -35,7 +35,7 @@ class OrderlogController extends PublicController{
 
         $results = $OrderLog->getLogiList($where);
         
-        foreach ($results as &$res) {
+        foreach ($results['data'] as &$res) {
             $waybillNo = $OrderLog->where(['order_id' => $data['order_id'], 'log_group' => 'LOGISTICS', 'deleted_flag' => 'N'])->getField('waybill_no', true);
             $res['waybill_no'] = implode(',', $waybillNo);
         }
