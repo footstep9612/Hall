@@ -41,7 +41,7 @@ class BuyercontactModel extends PublicModel
             $arr['last_name'] = $create['last_name'];
         }
         if(isset($create['name'])){
-            if (strlen($data['name']) > 70) jsonReturn('', -101, '您输入的收货人（公司）超出长度!');
+            if (strlen($create['name']) > 70) jsonReturn('', -101, '您输入的收货人（公司）超出长度!');
             $arr['name'] = $create['name'];
         }
         if(isset($create['gender'])){
@@ -51,11 +51,11 @@ class BuyercontactModel extends PublicModel
             $arr['title'] = $create['title'];
         }
         if(isset($create['phone'])){
-            if (strlen($data['phone']) > 50) jsonReturn('', -101, '您输入的电话超出长度!');
+            if (strlen($create['phone']) > 50) jsonReturn('', -101, '您输入的电话超出长度!');
             $arr['phone'] = $create['phone'];
         }
         if(isset($create['email'])){
-            if (strlen($data['email']) > 50) jsonReturn('', -101, '您输入的邮箱超出长度!');
+            if (strlen($create['email']) > 50) jsonReturn('', -101, '您输入的邮箱超出长度!');
             $arr['email'] = $create['email'];
         }
         if(isset($create['remarks'])){
@@ -66,7 +66,7 @@ class BuyercontactModel extends PublicModel
         }
         $arr['created_at'] =date("Y-m-d H:i:s");
         if(isset($create['fax'])){
-            if (strlen($data['fax']) > 40) jsonReturn('', -101, '您输入的传真超出长度!');
+            if (strlen($create['fax']) > 40) jsonReturn('', -101, '您输入的传真超出长度!');
             $arr['fax'] =$create['fax'];
         }
         if(isset($create['country_code'])){
@@ -79,18 +79,18 @@ class BuyercontactModel extends PublicModel
             $arr['province'] =$create['province'];
         }
         if(isset($create['city'])){
-            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的市超出长度!');
+            if (strlen($create['city']) > 30) jsonReturn('', -101, '您输入的市超出长度!');
             $arr['city'] =$create['city'];
         }
         if(isset($create['area_bn'])){
             $arr['area_bn'] =$create['area_bn'];
         }
         if(isset($create['address'])){
-            if (strlen($data['address']) > 200) jsonReturn('', -101, '您输入的详细地址超出长度!');
+            if (strlen($create['address']) > 200) jsonReturn('', -101, '您输入的详细地址超出长度!');
             $arr['address'] =$create['address'];
         }
         if(isset($create['zipcode'])){
-            if (strlen($data['zipcode']) > 10) jsonReturn('', -101, '您输入的邮编超出长度!');
+            if (strlen($create['zipcode']) > 10) jsonReturn('', -101, '您输入的邮编超出长度!');
             $arr['zipcode'] =$create['zipcode'];
         }
         try{
