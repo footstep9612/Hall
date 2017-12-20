@@ -229,7 +229,7 @@ class BuyerModel extends PublicModel {
         $offset = ($currentPage-1)*$pageSize;
         $fieldArr = array(
             'id',
-            'buyer_no',     //客户编号buy
+            'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
             'name',   //客户名称buy
             'status',   //审核状态
