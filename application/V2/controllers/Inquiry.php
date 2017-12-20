@@ -213,6 +213,11 @@ class InquiryController extends PublicController {
         if (!empty($condition['agent_name'])) {
             $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
         }
+        
+        // 报价人
+        if (!empty($condition['quote_name'])) {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        }
 
         // 当前用户的所有角色编号
         $condition['role_no'] = $this->user['role_no'];
@@ -262,9 +267,16 @@ class InquiryController extends PublicController {
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
         $buyerModel = new BuyerModel();
+        $countryUserModel = new CountryUserModel();
+        
         // 市场经办人
         if (!empty($condition['agent_name'])) {
             $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        }
+        
+        // 报价人
+        if (!empty($condition['quote_name'])) {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
         }
 
         // 是否显示列表
@@ -277,7 +289,8 @@ class InquiryController extends PublicController {
             }
             if ($roleNo == $inquiryModel::viewBizDeptRole) {
                 $isShow = true;
-                $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
+                //$condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
+                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : ['-1'];
                 break;
             }
         }

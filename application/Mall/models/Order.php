@@ -79,11 +79,9 @@ class OrderModel extends PublicModel {
         if (isset($condition['status']) && $condition['status']) {
             switch ($condition['status']) {
                 case 'to_be_confirmed':
-
                     $where['show_status'] = 'UNCONFIRM';
                     break;
                 case 'proceeding':
-
                     $where['show_status'] = 'GOING';
                     break;
                 case 'finished':
@@ -111,6 +109,8 @@ class OrderModel extends PublicModel {
         }
         if (isset($condition['buyer_id']) && $condition['buyer_id']) {
             $where['buyer_id'] = $condition['buyer_id'];
+        } else {
+            jsonReturn(null,-1,'用户ID不能为空!');
         }
         if (isset($condition['buyername']) && $condition['buyername']) {
 

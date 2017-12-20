@@ -46,7 +46,7 @@ class BuyerLogisticsModel extends PublicModel
             $LogisticsInfo = $this->where($where)
                                   ->field('buyer_logistics.*,em.name as created_name')
                                   ->join('erui_sys.employee em on em.id=buyer_logistics.created_by', 'left')
-                                  ->select();
+                                  ->find();
 
             return $LogisticsInfo ? $LogisticsInfo : false;
         } else {
@@ -63,25 +63,25 @@ class BuyerLogisticsModel extends PublicModel
         } else {
             jsonReturn(null ,-201, '用户ID不能为空!');
         }
-        if (isset($create['trade_terms_bn'])) {
+        if (isset($create['trade_terms_bn']) && !empty($create['trade_terms_bn'])) {
             $arr['trade_terms_bn'] = trim($create['trade_terms_bn']);
         }
-        if (isset($create['country_bn'])) {
+        if (isset($create['country_bn']) && !empty($create['country_bn'])) {
             $arr['country_bn'] = trim($create['country_bn']);
         }
-        if (isset($create['city'])) {
+        if (isset($create['city']) && !empty($create['city'])) {
             $arr['city'] = trim($create['city']);
         }
-        if (isset($create['to_country_bn'])) {
+        if (isset($create['to_country_bn']) && !empty($create['to_country_bn'])) {
             $arr['to_country_bn'] = trim($create['to_country_bn']);
         }
-        if (isset($create['to_port_bn'])) {
+        if (isset($create['to_port_bn']) && !empty($create['to_port_bn'])) {
             $arr['to_port_bn'] = trim($create['to_port_bn']);
         }
-        if (isset($create['currency_bn'])) {
+        if (isset($create['currency_bn']) && !empty($create['currency_bn'])) {
             $arr['currency_bn'] = trim($create['currency_bn']);
         }
-        if (isset($create['payment_mode'])) {
+        if (isset($create['payment_mode']) && !empty($create['payment_mode'])) {
             $arr['payment_mode'] = trim($create['payment_mode']);
         }
 
@@ -104,28 +104,28 @@ class BuyerLogisticsModel extends PublicModel
      */
     public function update_data($data, $where) {
         $data = $this->create($data);
-        if (isset($data['trade_terms_bn'])) {
+        if (isset($data['trade_terms_bn']) && !empty($data['trade_terms_bn'])) {
             $arr['trade_terms_bn'] = trim($data['trade_terms_bn']);
         }
-        if (isset($data['country_bn'])) {
+        if (isset($data['country_bn']) && !empty($data['country_bn'])) {
             $arr['country_bn'] = trim($data['country_bn']);
         }
-        if (isset($create['city'])) {
-            $arr['city'] = trim($create['city']);
+        if (isset($data['city']) && !empty($data['city'])) {
+            $arr['city'] = trim($data['city']);
         }
-        if (isset($data['to_country_bn'])) {
+        if (isset($data['to_country_bn']) && !empty($data['to_country_bn'])) {
             $arr['to_country_bn'] = trim($data['to_country_bn']);
         }
-        if (isset($data['to_port_bn'])) {
+        if (isset($data['to_port_bn']) && !empty($data['to_port_bn'])) {
             $arr['to_port_bn'] = trim($data['to_port_bn']);
         }
-        if (isset($data['currency_bn'])) {
+        if (isset($data['currency_bn']) && !empty($data['currency_bn'])) {
             $arr['currency_bn'] = trim($data['currency_bn']);
         }
-        if (isset($data['payment_mode'])) {
+        if (isset($data['payment_mode']) && !empty($data['payment_mode'])) {
             $arr['payment_mode'] = trim($data['payment_mode']);
         }
-        if ($data['status']) {
+        if (isset($data['status']) && !empty($data['status'])) {
             switch (strtoupper($data['status'])) {
                 case self::STATUS_VALID:
                     $arr['status'] = $data['status'];
@@ -138,7 +138,7 @@ class BuyerLogisticsModel extends PublicModel
                     break;
             }
         }
-        if (isset($data['updated_by'])) {
+        if (isset($data['updated_by']) && !empty($data['payment_mode'])) {
             $arr['updated_by'] = trim($data['updated_by']);
         }
         $arr['updated_at'] = Date("Y-m-d H:i:s");

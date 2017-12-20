@@ -15,7 +15,7 @@ class LoginController extends PublicController {
 
     public function init() {
         $this->token = false;
-        parent::init();
+       // parent::init();
     }
     /*
      * 用户登录

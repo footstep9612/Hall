@@ -114,12 +114,12 @@ class EsProductModel extends Model {
 
             } elseif (in_array($status, $array)) {
 
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $status]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $status]];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $default]];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => [$field => $default]];
+            $body['query']['bool']['must'][] = [ESClient::TERM => [$field => $default]];
         }
     }
 
@@ -184,7 +184,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function getCondition($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null) {
+    private function getCondition($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null) {
         $body = [];
         if ($lang == 'zh') {
             $analyzer = 'ik';
@@ -194,8 +194,8 @@ class EsProductModel extends Model {
             $analyzer = 'ik';
         }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
-        $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
+        $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
             $show_cat_no = trim($condition['show_cat_no']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
@@ -234,7 +234,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::RANGE, 'checked_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'updated_at');
         $this->_getQurey($condition, $body, ESClient::RANGE, 'onshelf_at');
-        $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
+        $this->_getStatus($condition, $body, ESClient::TERM, 'status', 'status', ['NORMAL', 'VALID', 'TEST', 'CHECKING', 'CLOSED', 'DELETED']);
         if (isset($condition['recommend_flag']) && $condition['recommend_flag']) {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
             $body['query']['bool']['must'][] = [ESClient::TERM => ['recommend_flag' => $recommend_flag]];
@@ -243,7 +243,7 @@ class EsProductModel extends Model {
 // $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'source');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'app_scope', 'app_scope.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'advantages', 'advantages.' . $analyzer);
@@ -253,11 +253,11 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_id', 'suppliers.all');
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'supplier_name', 'suppliers.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'created_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'updated_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'checked_by');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'customization_flag', 'customization_flag.all');
-        $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'sku_count');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'created_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'updated_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'checked_by');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'customization_flag', 'customization_flag.all');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'sku_count');
 
 
         $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
@@ -265,14 +265,14 @@ class EsProductModel extends Model {
         if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['updated_by_name']);
             foreach ($userids as $updated_by) {
-                $updated_by_bool[] = [ESClient::MATCH_PHRASE => ['updated_by' => $updated_by]];
+                $updated_by_bool[] = [ESClient::TERM => ['updated_by' => $updated_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $updated_by_bool]];
         }
         if (isset($condition['checked_by_name']) && $condition['checked_by_name']) {
             $userids = $employee_model->getUseridsByUserName($condition['checked_by_name']);
             foreach ($userids as $checked_by) {
-                $checked_by_bool[] = [ESClient::MATCH_PHRASE => ['checked_by' => $checked_by]];
+                $checked_by_bool[] = [ESClient::TERM => ['checked_by' => $checked_by]];
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
@@ -315,7 +315,7 @@ class EsProductModel extends Model {
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH => ['attrs.spec_attrs.value.all' => '*' . $attrs . '*']],
+                        [ESClient::MATCH_PHRASE => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $attrs, 'boost' => 99]]],
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
@@ -348,36 +348,100 @@ class EsProductModel extends Model {
             if (empty($show_cat_model)) {
                 $show_cat_model = new ShowCatModel();
             }
-            $showcat = $show_cat_model->field('id')
+
+            $showcats = $show_cat_model->field('cat_no')
                             ->where(['lang' => $lang,
                                 'country_bn' => $condition['country_bn'],
                                 'name' => $keyword,
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
-                            ])->find();
+                            ])->select();
 
 
-            if (empty($showcat)) {
-
+            if (empty($showcats)) {
+//                $brand_model = new BrandModel();
+//                $brands = $brand_model->getlist(['name' => $keyword], $lang);
+//                if (empty($brands)) {
                 $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                             [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                             [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                            [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
+                            [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                             [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                             [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-                            [ESClient::MATCH_PHRASE => ['spu' => ['query' => $keyword, 'boost' => 100]]],
+                            [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
                 ]]];
+//                } else {
+//                    $brand_name = $keyword;
+//                    $is_brand = true;
+//                    $this->_getEsBrand($brands, $keyword, $body, $lang, $brand_name);
+//                }
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                            [ESClient::TERM => ['show_cats.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
-                            [ESClient::TERM => ['show_cats.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
-                            [ESClient::TERM => ['show_cats.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
-                ]]];
+                $this->_getEsShowCats($showcats, $keyword, $body);
             }
         }
         return $body;
+    }
+
+    /* 获取品牌组合
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _getEsBrand($brands, $keyword, &$body, $lang = 'en', &$brand_name = null) {
+        $brand_bool = [];
+        foreach ($brands as $brand) {
+            $brand_langs = json_decode($brand['brand'], true);
+
+
+            foreach ($brand_langs as $brand_lang) {
+                if ($brand_lang['lang'] === $lang && $brand_lang['name']) {
+                    $brand_name = $brand_lang['name'];
+                    $brand_bool[] = [ESClient::TERM => ['brand.name.all' => ['value' => $brand_lang['name'], 'boost' => 99]]];
+                }
+            }
+        }
+        if ($brand_bool) {
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $brand_bool]];
+        } else {
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => $keyword, 'boost' => 99]]];
+        }
+    }
+
+    /* 获取分类组合
+     * @param mix $condition // 搜索条件
+     * @param string $lang // 语言
+     * @param mix  $_source //要搜索的字段
+     * @return mix
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _getEsShowCats($showcats, $keyword, &$body) {
+        $show_cat_bool = [];
+        foreach ($showcats as $showcat) {
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
+        }
+        if ($show_cat_bool) {
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
+        } else {
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
+                        [ESClient::TERM => ['show_cats.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
+                        [ESClient::TERM => ['show_cats.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
+            ]]];
+        }
     }
 
     /* 通过搜索条件获取数据列表
@@ -457,7 +521,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null) {
+    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null) {
 
         try {
             if ($lang == 'zh') {
@@ -468,7 +532,7 @@ class EsProductModel extends Model {
                 $analyzer = 'ik';
             }
 
-            $body = $this->getCondition($condition, $lang, $country_bn, $is_show_cat, $show_cat_name);
+            $body = $this->getCondition($condition, $lang, $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name);
 
             $pagesize = 10;
             $current_no = 1;

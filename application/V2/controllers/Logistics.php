@@ -947,28 +947,28 @@ class LogisticsController extends PublicController {
 	     
 	    switch (true) {
 	        case $trade == 'EXW' :
-	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8);
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FCA' || $trade == 'FAS' :
-	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8);
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FOB' :
-	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8);
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CPT' || $trade == 'CFR' :
-	            $totalQuotePrice = round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8);
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CIF' || $trade == 'CIP' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
-	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	            break;
 	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
-	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	            break;
 	        case $trade == 'DDP' || $trade == '快递' :
 	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
-	            $totalQuotePrice = $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2);
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	    }
 	     
 	    $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);

@@ -43,13 +43,14 @@ class MembercenterController extends PublicController {
         $buyer_data = $this->getPut();
         $where['id'] = $this->user['buyer_id'];
         $lang = $buyer_data['lang'] ? $buyer_data['lang'] : 'en';
-
         $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
-        if ($checkname) {
-            jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+        if(isset($buyer_data['name']) && !empty($buyer_data['name'])) {
+            $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
+            if ($checkname) {
+                jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+            }
         }
-        $result = $buyerModel->upUserInfo($buyer_data, $where);
+        $result = $buyerModel->update_data($buyer_data, $where);
 
         if ($result !==false) {
             jsonReturn('', 1, 'success!');

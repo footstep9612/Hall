@@ -125,6 +125,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
         }
+        
+        if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
@@ -223,6 +227,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];    //报价状态
         }
+        
+        if (!empty($condition['user_country'])) {
+            $where['country_bn'] = ['in', $condition['user_country']];    //查看事业部询单角色国家
+        }
     
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];    //国家
@@ -240,9 +248,13 @@ class InquiryModel extends PublicModel {
             $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
         }
         
-        if (!empty($condition['org_id'])) {
-            $where['org_id'] = ['in', $condition['org_id']]; //事业部
+        if (!empty($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
         }
+        
+        /*if (!empty($condition['org_id'])) {
+            $where['org_id'] = ['in', $condition['org_id']]; //事业部
+        }*/
     
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
