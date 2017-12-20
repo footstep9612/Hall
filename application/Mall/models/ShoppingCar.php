@@ -26,6 +26,7 @@ class ShoppingCarModel extends publicModel{
         try{
             $goodsModel= new GoodsModel();
             $goodsTable = $goodsModel->getTableName();
+            jsonReturn($condition);
             $result = $this->field('id,lang,sku,spu,buy_number')->where($condition)->select();
             jsonReturn($result);
             if($result){
