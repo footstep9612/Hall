@@ -79,7 +79,7 @@ class BuyercontactModel extends PublicModel
             $arr['province'] =$create['province'];
         }
         if(isset($create['city'])){
-            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的邮编超出长度!');
+            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的市超出长度!');
             $arr['city'] =$create['city'];
         }
         if(isset($create['area_bn'])){
