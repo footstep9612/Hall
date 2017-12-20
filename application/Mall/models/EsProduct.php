@@ -683,9 +683,9 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->setaggs('brand.name.all', 'brand_name', 'terms', 0);
+        $es->setaggs('brand.name.all', 'brand_name', 'terms', 10);
         $es->body['size'] = 0;
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 10);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
         $brand_names = [];
         if (isset($ret['aggregations']['brand_name']['buckets'])) {
             foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
