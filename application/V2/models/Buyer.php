@@ -157,6 +157,98 @@ class BuyerModel extends PublicModel {
     }
 
     /**
+     * @param $data
+     * 客户管理-客户统计-获取所有客户的搜索列表条件
+     * wangs
+     */
+    public function getBuyerStatisListCond($data){
+        $cond = ' 1=1';
+        if(!empty($data['buyer_no'])){  //客户编号buy
+            $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
+        }
+        if(!empty($data['buyer_code'])){    //客户CRM代码buy
+            $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
+        }
+        if(!empty($data['name'])){    //客户名称buy
+            $cond .= " and buyer.name like '%".$data['name']."%'";
+        }
+        if(!empty($data['status'])){    //审核状态===buy
+            $cond .= ' and buyer.status='.$data['status'];
+        }
+        if(!empty($data['source'])){  //客户来源===buy
+            if($data['source']==1){ //后台
+                $cond .= ' and buyer.created_by is not NULL';
+            }else{
+                $cond .= ' and buyer.created_by is NULL';
+            }
+        }
+        if(!empty($data['buyer_level'])){  //客户等级===buy
+            $cond .= ' and buyer.buyer_level='.$data['buyer_level'];
+        }
+        if(!empty($data['country_bn'])){  //国家===buy
+            $cond .= " and country.bn='".$data['country_bn']."'";
+        }
+        if(!empty($data['employee_name'])){  //经办人名称
+            $cond .= " and employee.name like '%".$data['employee_name']."%'";
+        }
+        if(!empty($data['checked_at_start'])){  //审核时间===buy
+            $cond .= ' and buyer.checked_at >= '.$data['checked_at_start'];
+        }
+        if(!empty($data['checked_at_end'])){  //审核时间===buy
+            $cond .= ' and buyer.checked_at <= '.$data['checked_at_end'];
+        }
+
+        if(!empty($data['created_at_start'])){  //注册时间===buy
+            $cond .= ' and buyer.created_at >= '.$data['created_at_start'];
+        }
+        if(!empty($data['checked_at_end'])){  //审核时间===buy
+            $cond .= ' and buyer.created_at <= '.$data['checked_at_end'];
+        }
+        return $cond;
+    }
+    /**
+     * @param $data
+     * 客户管理-客户统计-所有客户的搜索列表
+     * wangs
+     */
+    public function buyerStatisList($data){
+        $cond = $this->getBuyerStatisListCond($data);
+        $cond .=" and country.lang='zh'";
+        $currentPage = 1;
+        $pageSize = 10;
+        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+            $currentPage = ceil($data['page']);
+        }
+        $offset = ($currentPage-1)*$pageSize;
+        $fieldArr = array(
+            'id',
+            'buyer_no',     //客户编号buy
+            'buyer_code',   //客户CRM代码buy
+            'name',   //客户名称buy
+            'status',   //审核状态
+            'created_by',   //客户来源
+            'buyer_level',  //客户等级
+            'country_bn',    //国家
+            'checked_at',   //审核时间
+            'created_at',   //注册时间/创建时间
+        );
+        $field = 'employee.name as employee_name,country.name as country_name';
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $info = $this->alias('buyer')
+            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
+            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->field($field)
+            ->where($cond)
+            ->order('buyer.id desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        return $info;
+    }
+
+    /**
      * 判断用户是否存在
      * @param  string $name 用户名
      * @param  string$enc_password 密码
