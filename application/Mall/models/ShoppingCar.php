@@ -23,7 +23,7 @@ class ShoppingCarModel extends publicModel{
         }
         $condition['type'] = $condition['type'] ? $condition['type'] : 0;
         $condition['deleted_flag'] = 'N';
-        try{
+        //try{
             $goodsModel= new GoodsModel();
             $goodsTable = $goodsModel->getTableName();
             jsonReturn($condition);
@@ -84,11 +84,11 @@ class ShoppingCarModel extends publicModel{
                 }
             }
             return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
-        }catch (Exception $e){
+        /*}catch (Exception $e){
             jsonReturn($e);
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
             return false;
-        }
+        }*/
     }
 
     /**
