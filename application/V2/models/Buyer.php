@@ -1274,6 +1274,7 @@ class BuyerModel extends PublicModel {
                 if($conn){
                     return true;
                 }
+                return false;
             }
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
