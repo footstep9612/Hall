@@ -52,6 +52,8 @@ class OrderModel extends PublicModel {
         'address',    //地址'
         'created_by',    //创建人    这里可能不需要填写
         'created_at',    //创建时间
+        'expected_receipt_date',    //期望收货日期
+        'remark',    //订单备注
     ];
 
     /**
@@ -128,14 +130,14 @@ class OrderModel extends PublicModel {
                     }
                 }
                 //添加订单联系人信息
-                if(isset($data['contactAry']) && !empty($data['contactAry'])){
+                /*if(isset($data['contactAry']) && !empty($data['contactAry'])){
                     $data['contactAry']['order_id'] = $result;
                     $ocModel = new OrderContactModel();
                     if(!$ocModel->add($data['contactAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单联系人添加失败');
                     }
-                }
+                }*/
                 $this->commit();
                 return $orerNo;
             }

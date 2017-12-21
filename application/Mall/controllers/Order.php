@@ -50,9 +50,6 @@ class OrderController extends PublicController {
         if(!isset($input['addrAry']) || empty($input['addrAry'])){
             jsonReturn('', MSG::ERROR_PARAM, 'addrAry not null');
         }
-        if(!isset($input['contactAry']) || empty($input['contactAry'])){
-            jsonReturn('', MSG::ERROR_PARAM, 'contactAry not null');
-        }
         $input['buyer_id'] = $this->user['buyer_id'];
         $order_moder = new OrderModel();
         $orderNo = $order_moder->add($input);

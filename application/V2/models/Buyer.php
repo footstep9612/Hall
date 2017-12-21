@@ -1197,6 +1197,7 @@ class BuyerModel extends PublicModel {
 //            'market_agent_mobile'=>'服务经理联系方式',
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
+            'is_oilgas'=>'是否油气',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
@@ -1341,13 +1342,14 @@ class BuyerModel extends PublicModel {
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
-            'is_build' =>'1'//有效期
+            'is_build' =>'1',//有效期
+            'is_oilgas' =>$data['is_oilgas']//有效期
         );
         //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
-            'is_oilgas', //是否油气
+//            'is_oilgas', //是否油气
             'employee_count', //雇员数量
         );
         foreach ($data as $value) {
