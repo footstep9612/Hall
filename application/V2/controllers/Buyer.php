@@ -172,7 +172,7 @@ class BuyerController extends PublicController {
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
-            'code'=>0,
+            'code'=>1,
             'message'=>'返回数据',
             'data'=>$ststisInfo
         );
