@@ -166,7 +166,7 @@ class BuyerController extends PublicController {
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',
-            'count'=>$ststisInfo['totalCount'],
+            'count'=>intval($ststisInfo['totalCount']),
             'currentPage'=>$ststisInfo['currentPage'],
             'data'=>$ststisInfo['info']
         );
