@@ -63,7 +63,7 @@ class ProductRelationModel extends PublicModel {
             'pr.deleted_flag' => 'N',
             'p.deleted_flag' => 'N'];
         return $this->alias('pr')
-                        ->field('p.id,p.lang,p.spu,p.name,p.brand,p.material_cat_no,p.status')
+                        ->field('pr.id,p.lang,p.spu,p.name,p.brand,p.material_cat_no,p.status')
                         ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=\'zh\' ')
                         //  ->join($show_cat_product_table . ' sp on sp.spu=pr.relation_spu and sp.lang=\'zh\' ')
                         ->where($where)
@@ -154,8 +154,6 @@ class ProductRelationModel extends PublicModel {
      * @desc  SPU关联
      */
     public function deletedData($id) {
-
-
         return $this->where(['id' => $id])->save(['deleted_flag' => 'Y']);
     }
 

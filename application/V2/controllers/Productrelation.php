@@ -166,7 +166,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('添加成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('添加失败!');
             $this->jsonReturn(null);
@@ -198,7 +198,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('删除失败!');
             $this->jsonReturn(null);
