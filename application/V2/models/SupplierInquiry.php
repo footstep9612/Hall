@@ -349,10 +349,11 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_check_log_model = new InquiryCheckLogModel();
         $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+
         $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_APPROVING\' group by inquiry_id) as la_time,'; //物流报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'MARKET_CONFIRMING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
         $field .= '(UNIX_TIMESTAMP(i.updated_at)-UNIX_TIMESTAMP(i.created_at))/86400 as quoted_time,'; //报价用时

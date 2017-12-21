@@ -90,7 +90,6 @@ class ProductController extends PublicController{
         $productModel = new ProductModel();
         $priceInfo = $productModel->getSkuPriceByCount($input['sku'],$input['country_bn'],$input['count']);
 
-        $productModel = new ProductModel();
         $stockInfo = $productModel->getSkuStockBySku($input['sku'],$input['country_bn'],$input['lang']);
         $data = [
             'price' => ($priceInfo !== false) ? $priceInfo : '',

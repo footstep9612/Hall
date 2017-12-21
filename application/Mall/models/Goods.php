@@ -38,9 +38,15 @@ class GoodsModel extends PublicModel{
 
             $productModel = new ProductModel();
             $productTable = $productModel->getTableName();
-            $result = $this->field("$thisTable.spu,$thisTable.sku,$thisTable.name,$thisTable.show_name_loc,$thisTable.model,$thisTable.lang,$thisTable.min_pack_unit,$productTable.brand")
-                ->join($productTable." ON $thisTable.spu=$productTable.spu AND $thisTable.lang=$productTable.lang")->where($condition)->select();
-
+            $gaModel = new GoodsAttrModel();
+            $gaTable = $gaModel->getTableName();
+            $result = $this->field("$thisTable.spu,$thisTable.sku,$thisTable.name,$thisTable.show_name,$thisTable.show_name_loc,$thisTable.model,$thisTable.lang,$thisTable.min_pack_unit,$thisTable.min_pack_naked_qty,$thisTable.nude_cargo_unit,$productTable.brand,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$gaTable.spec_attrs")
+                ->join($productTable." ON $thisTable.spu=$productTable.spu AND $thisTable.lang=$productTable.lang")->join($gaTable." ON $thisTable.sku=$gaTable.sku AND $thisTable.lang=$gaTable.lang")->where($condition)->select();
+            if($result){
+                foreach($result as $index =>$item){
+                    $result[$item['sku']] = $item;
+                }
+            }
             return $result ? $result : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);

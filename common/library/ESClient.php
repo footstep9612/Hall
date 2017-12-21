@@ -78,6 +78,8 @@ class ESClient {
      * }}}}
      */
     const MATCH_PHRASE = 'match_phrase';
+    const NESTED = 'nested';
+
 
     /*
      * 主要根据fuzziniess和prefix_length进行匹配distance查询。

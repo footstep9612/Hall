@@ -184,7 +184,7 @@ class ProductrelationController extends PublicController {
      * @version V2.0
      * @desc  SPU关联
      */
-    public function DeleteAction() {
+    public function DeletedAction() {
         $id = $this->getPut('id');
         if (empty($id)) {
             $this->setCode(MSG::MSG_EXIST);

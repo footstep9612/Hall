@@ -9,6 +9,7 @@
 class InquiryController extends PublicController {
 
     public function init() {
+        //$this->token = false;
         parent::init();
     }
 

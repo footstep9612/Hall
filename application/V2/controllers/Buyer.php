@@ -172,7 +172,7 @@ class BuyerController extends PublicController {
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
-            'code'=>0,
+            'code'=>1,
             'message'=>'返回数据',
             'data'=>$ststisInfo
         );
@@ -783,7 +783,7 @@ class BuyerController extends PublicController {
         if($res !== true && $res !==false){
             $valid = array(
                 'code'=>0,
-                'message'=>'请输入'.$res,
+                'message'=>'请输入规范'.$res,
             );
             $this -> jsonReturn($valid);
         }elseif ($res === false){

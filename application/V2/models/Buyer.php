@@ -178,7 +178,7 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         if(!empty($data['status'])){    //审核状态===buy
-            $cond .= ' and buyer.status='.$data['status'];
+            $cond .= " and buyer.status='".$data['status']."'";
         }
         if(!empty($data['source'])){  //客户来源===buy
             if($data['source']==1){ //后台
@@ -188,7 +188,7 @@ class BuyerModel extends PublicModel {
             }
         }
         if(!empty($data['buyer_level'])){  //客户等级===buy
-            $cond .= ' and buyer.buyer_level='.$data['buyer_level'];
+            $cond .= " and buyer.buyer_level='".$data['buyer_level']."'";
         }
         if(!empty($data['country_bn'])){  //国家===buy
             $cond .= " and country.bn='".$data['country_bn']."'";
@@ -197,17 +197,17 @@ class BuyerModel extends PublicModel {
             $cond .= " and employee.name like '%".$data['employee_name']."%'";
         }
         if(!empty($data['checked_at_start'])){  //审核时间===buy
-            $cond .= ' and buyer.checked_at >= '.$data['checked_at_start'];
+            $cond .= " and buyer.checked_at >= '".$data['checked_at_start']."'";
         }
         if(!empty($data['checked_at_end'])){  //审核时间===buy
-            $cond .= ' and buyer.checked_at <= '.$data['checked_at_end'];
+            $cond .= " and buyer.checked_at <= '".$data['checked_at_end']."'";
         }
 
         if(!empty($data['created_at_start'])){  //注册时间===buy
-            $cond .= ' and buyer.created_at >= '.$data['created_at_start'];
+            $cond .= " and buyer.created_at >= '".$data['created_at_start']."'";
         }
         if(!empty($data['checked_at_end'])){  //审核时间===buy
-            $cond .= ' and buyer.created_at <= '.$data['checked_at_end'];
+            $cond .= " and buyer.created_at <= '".$data['checked_at_end']."'";
         }
         return $cond;
     }
@@ -221,13 +221,20 @@ class BuyerModel extends PublicModel {
         $cond .=" and country.lang='zh'";
         $currentPage = 1;
         $pageSize = 10;
+        $totalCount = $this->alias('buyer')
+            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
+            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->where($cond)
+            ->count();
+        $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
-            $currentPage = ceil($data['page']);
+            $currentPage = ceil($data['currentPage']);
         }
         $offset = ($currentPage-1)*$pageSize;
         $fieldArr = array(
             'id',
-            'buyer_no',     //客户编号buy
+            'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
             'name',   //客户名称buy
             'status',   //审核状态
@@ -250,7 +257,11 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-        return $info;
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
