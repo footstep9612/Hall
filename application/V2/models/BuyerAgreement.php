@@ -415,7 +415,7 @@ class BuyerAgreementModel extends PublicModel
         if(!empty($agree)){
             //附件
             $attach = new AgreementAttachModel();
-            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id']))->find();
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id'],'deleted_flag'=>'N'))->find();
             $agree['attach_name'] = $attachInfo['attach_name'];
             $agree['attach_url'] = $attachInfo['attach_url'];
             //组织
