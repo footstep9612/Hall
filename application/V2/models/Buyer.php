@@ -182,14 +182,12 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.status='".$data['status']."'";
         }
 
-        if(!empty($condition['filter'])){   //过滤状态
-            $cond .= ' And buyer.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
+        if(!empty($data['filter'])){   //过滤状态
+            $cond .= ' And buyer.status !=\'APPROVING\' and buyer.status !=\'FIRST_REJECTED\' ';
         }
-        if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
+        if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $cond .= ' buyer.is_build=0';
         }
-
-
         if(!empty($data['source'])){  //客户来源===buy
             if($data['source']==1){ //后台
                 $cond .= ' and buyer.created_by is not NULL';
