@@ -172,9 +172,19 @@ class BuyerModel extends PublicModel {
         if(!empty($data['name'])){    //客户名称buy
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
+
         if(!empty($data['status'])){    //审核状态===buy
             $cond .= " and buyer.status='".$data['status']."'";
         }
+
+        if(!empty($condition['filter'])){   //过滤状态
+            $cond .= ' And buyer.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
+        }
+        if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
+            $cond .= ' buyer.is_build=0';
+        }
+
+
         if(!empty($data['source'])){  //客户来源===buy
             if($data['source']==1){ //后台
                 $cond .= ' and buyer.created_by is not NULL';
@@ -1224,12 +1234,6 @@ class BuyerModel extends PublicModel {
             'attach_name'=>'附件名称',
             'attach_url'=>'附件url地址',
         );
-        if(!empty($base['employee_count'])){
-            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
-            }else{
-                return $baseExtra['employee_count'];
-            }
-        }
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
             'name'=>'联系人姓名',
@@ -1256,6 +1260,13 @@ class BuyerModel extends PublicModel {
                 }
             }
         }
+        if(!empty($base['employee_count'])){
+            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
+                return true;
+            }else{
+                return $baseExtra['employee_count'];
+            }
+        }
         return true;
     }
     /**
@@ -1272,7 +1283,6 @@ class BuyerModel extends PublicModel {
             return $info;
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
-
         try{
             $base = $this->where(array('id'=>$arr['id']))->save($arr);
             if($base){
