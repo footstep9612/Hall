@@ -69,6 +69,9 @@ class OrderModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
@@ -120,6 +123,7 @@ class OrderModel extends PublicModel {
                         jsonReturn('', MSG::MSG_FAILED, '订单商品添加失败');
                     }
                 }
+                jsonReturn(22332);
                 //添加订单地址信息
                 if(isset($data['addrAry']) && !empty($data['addrAry'])){
                     $data['addrAry']['order_id'] = $result;
