@@ -68,7 +68,6 @@ class ProductRelationModel extends PublicModel {
                         //  ->join($show_cat_product_table . ' sp on sp.spu=pr.relation_spu and sp.lang=\'zh\' ')
                         ->where($where)
                         ->limit($offset, $size)
-                        ->group('sp.spu')
                         ->select();
     }
 
