@@ -487,7 +487,7 @@ class EsproductController extends PublicController {
                     '_all' => ['enabled' => true]
             ]];
             logs(json_encode($product_mapParam));
-            logs(json_encode($goods_mapParam));
+            //logs(json_encode($goods_mapParam));
             $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
             $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
         }
@@ -899,6 +899,12 @@ class EsproductController extends PublicController {
                     'pn' => $ik_analyzed,
                 ],
             ],
+            'spec_attrs' => [
+                'type' => 'nested',
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'value' => $ik_analyzed,
+                ]],
             'supplier_count' => $not_analyzed,
             'image_count' => $int_analyzed,
             'material_cat' => [

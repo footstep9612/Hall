@@ -295,8 +295,6 @@ class EsProductModel extends Model {
         if (!empty($condition['minimumorderouantity']) && intval($condition['minimumorderouantity']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['minimumorderouantity' => ['lte' => intval($condition['minimumorderouantity']),]]];
         }
-
-
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
         if (isset($condition['attrs']) && $condition['attrs']) {
@@ -319,14 +317,41 @@ class EsProductModel extends Model {
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
-        if (isset($condition['spec_name']) && $condition['spec_name']) {
-            $spec_name = trim($condition['spec_name']);
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $spec_name, 'boost' => 2]]];
-        }
-        if (isset($condition['spec_value']) && $condition['spec_value']) {
+
+        if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
             $spec_value = trim($condition['spec_value']);
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $spec_value, 'boost' => 2]]];
+            $spec_name = trim($condition['spec_name']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_name']) && $condition['spec_name']) {
+            $spec_name = trim($condition['spec_name']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_value']) && $condition['spec_value']) {
+            $spec_value = trim($condition['spec_value']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
         }
+
 
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
