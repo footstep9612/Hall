@@ -907,6 +907,7 @@ class EsproductController extends PublicController {
                 ]],
             'supplier_count' => $not_analyzed,
             'image_count' => $int_analyzed,
+            'relation_flag' => $not_analyzed,
             'material_cat' => [
                 // 'type' => 'nested',
                 'properties' => [
