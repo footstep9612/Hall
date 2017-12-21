@@ -69,6 +69,9 @@ class OrderModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
@@ -83,7 +86,7 @@ class OrderModel extends PublicModel {
         try {
             $orderNoInfo = $this->field( 'order_no' )->order( 'order_no DESC' )->find();
             if($orderNoInfo){
-                $orderNo = substr($orderNoInfo['order_no'],0,8).(substr($orderNoInfo['order_no'],8)+1);
+                $orderNo = substr($orderNoInfo['order_no'],0,8).str_pad(substr($orderNoInfo['order_no'],8)+1, 4, '0', STR_PAD_LEFT);
             }
             return $orderNo;
         }catch (Exception $e){
@@ -109,17 +112,19 @@ class OrderModel extends PublicModel {
         $this->startTrans();
         try{
             $data['infoAry']['order_no'] = $orerNo;
-            $dataInfo = $this->_getData($data['infoAry']);
+            $data['infoAry']['buyer_id'] = $data['buyer_id'];
             $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
+            $dataInfo = $this->_getData($data['infoAry']);
             $result = $this->add($this->create($dataInfo));
             if($result){
                 //添加订单商品信息
                 if(isset($data['skuAry']) && !empty($data['skuAry'])){
-                    if(!$this->addGoods($result,$data['skuAry'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
+                    if(!$this->addGoods($orerNo,$data['skuAry'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单商品添加失败');
                     }
                 }
+
                 //添加订单地址信息
                 if(isset($data['addrAry']) && !empty($data['addrAry'])){
                     $data['addrAry']['order_id'] = $result;
@@ -160,14 +165,18 @@ class OrderModel extends PublicModel {
         $data_insert = [];
         $amount = 0;
         $currency_bn = '';
-        foreach($data as $sku=>$number){
+        foreach($data as $sku => $number){
             $number = intval($number);
             $data_temp = [];
             //获取库存信息
             $stockInfo = $productModel->getSkuStockBySku($sku,$country_bn,$lang);
-            $stock = ($stockInfo && isset($stockInfo[$sku])) ? $stockInfo[$sku]['stock'] : 0;
-            if($number>$stock){
-                jsonReturn('', 1099, '库存不足');
+            if($stockInfo){
+                $stock = ($stockInfo && isset($stockInfo[$sku])) ? $stockInfo[$sku]['stock'] : 0;
+                if($number>$stock){
+                    jsonReturn('', 1099, '库存不足');
+                }
+            }else{
+                jsonReturn('', 1044, '已经下架');
             }
 
             //获取价格信息
@@ -175,7 +184,7 @@ class OrderModel extends PublicModel {
             $currency_bn = $priceInfo ? $priceInfo['price_cur_bn'] : null;
 
             //获取商品基本信息
-            $goodsInfo = $goodsModel->getInfoBySku();
+            $goodsInfo = $goodsModel->getInfoBySku($sku,$lang);
 
             //商品附件图
             $condition_attach = ['sku'=>$sku, 'attach_type'=>'BIG_IMAGE', 'status'=>'VALID'];
@@ -194,6 +203,7 @@ class OrderModel extends PublicModel {
                 'min_pack_unit' => $goodsInfo[$sku]['min_pack_unit'],    //最小包装单位
                 'thumb'=> $attach ? json_encode($attach): null,    //商品图
                 'buyer_id' => $buyer_id,    //采购商id
+                'created_at' => date('Y-m-d H:i:s',time())
             ];
             $amount = $amount + $data_temp['price'] * $data_temp['buy_number'];
             $data_insert[] = $data_temp;

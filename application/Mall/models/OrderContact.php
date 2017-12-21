@@ -53,6 +53,9 @@ class OrderContactModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
