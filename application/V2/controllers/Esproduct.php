@@ -707,6 +707,12 @@ class EsproductController extends PublicController {
                     'cat_name2' => $ik_analyzed,
                     'cat_name3' => $ik_analyzed,
                 ]], //物料中文分类对象 json
+            'spec_attrs' => [
+                'type' => 'nested',
+                'properties' => [
+                    'name' => $ik_analyzed,
+                    'value' => $ik_analyzed,
+                ]],
             'onshelf_flag' => $not_analyzed, //上架状态
             'onshelf_by' => $not_analyzed, //上架人
             'onshelf_at' => $not_analyzed, //上架时间
