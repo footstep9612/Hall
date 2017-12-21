@@ -54,6 +54,7 @@ class OrderModel extends PublicModel {
         'created_at',    //创建时间
         'expected_receipt_date',    //期望收货日期
         'remark',    //订单备注
+        'source',    //源
     ];
 
     /**
@@ -113,7 +114,8 @@ class OrderModel extends PublicModel {
         try{
             $data['infoAry']['order_no'] = $orerNo;
             $data['infoAry']['buyer_id'] = $data['buyer_id'];
-            $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
+            $data['created_at'] = date('Y-m-d H:i:s',time());
+            $data['infoAry']['source'] = 'MALL';
             $dataInfo = $this->_getData($data['infoAry']);
             $result = $this->add($this->create($dataInfo));
             if($result){
