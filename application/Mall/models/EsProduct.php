@@ -733,27 +733,34 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-
-        $es->body['aggs']['spec_name'] = [
-            'terms' => [
-                'field' => 'attrs.spec_attrs.name.all',
-                'size' => 20,
-                'order' => ['_count' => 'desc']
+        $es->body['aggs']['spec_attrs'] = [
+            'nested' => [
+                'path' => 'spec_attrs'
             ],
-            'aggs' => ['spec_value' => [
+            'aggs' => [
+                'spec_name' => [
                     'terms' => [
-                        'field' => 'attrs.spec_attrs.value.all',
-                        'size' => 10,
+                        'field' => 'spec_attrs.name.all',
+                        'size' => 20,
                         'order' => ['_count' => 'desc']
+                    ],
+                    'aggs' => ['spec_value' => [
+                            'terms' => [
+                                'field' => 'spec_attrs.value.all',
+                                'size' => 10,
+                                'order' => ['_count' => 'desc']
+                            ]
+                        ]
                     ]
                 ]
             ]
         ];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $spec_names = [];
-        if (isset($ret['aggregations']['spec_name']['buckets'])) {
-            foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
+        if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
+            foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
 
                 foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
