@@ -49,7 +49,7 @@ class ProductrelationController extends PublicController {
         $data = $product_relation_model->getList($spu, $lang, ($current_no - 1) * $pagesize, $pagesize);
 
         if ($data) {
-            $this->_setMaterialCat($data);
+            $this->_setMaterialCat($data, $lang);
             $this->_setOnshelfFlag($data);
 
             $count = $product_relation_model->getCont($spu, $lang);
@@ -75,7 +75,7 @@ class ProductrelationController extends PublicController {
      * @desc
      */
 
-    private function _setMaterialCat(&$arr) {
+    private function _setMaterialCat(&$arr, $lang) {
         if ($arr) {
             $material_cat_model = new MaterialCatModel();
             $catnos = [];
@@ -83,7 +83,7 @@ class ProductrelationController extends PublicController {
                 $catnos[] = $val['material_cat_no'];
             }
 
-            $catnames = $material_cat_model->getNameByCatNos($catnos, 'zh');
+            $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
 
             foreach ($arr as $key => $val) {
                 if ($val['material_cat_no'] && isset($catnames[$val['material_cat_no']])) {
