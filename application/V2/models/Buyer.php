@@ -82,7 +82,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'N\' ';
+            $where .= ' And `erui_buyer`.`buyer`.is_build=0';
         }
 
         if (!empty($condition['user_name'])) {
@@ -1228,7 +1228,7 @@ class BuyerModel extends PublicModel {
             'attach_name'=>'附件名称',
             'attach_url'=>'附件url地址',
         );
-        if(!empty($baseExtra['employee_count'])){
+        if(!empty($base['employee_count'])){
             if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
             }else{
                 return $baseExtra['employee_count'];
@@ -1329,7 +1329,7 @@ class BuyerModel extends PublicModel {
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
-            'created_at'    => date('Y-m-d H:i:s'), //客户id
+//            'created_at'    => date('Y-m-d H:i:s'), //客户id
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
             'official_phone'    => $data['official_phone'],    //公司固话
@@ -1369,9 +1369,6 @@ class BuyerModel extends PublicModel {
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
         }
-//        if(!empty($data['buyer_id'])){
-//            $cond['created_by'] = $data['created_by'];
-//        }
         $buyerArr = array(
             'id as buyer_id', //客户id
             'buyer_type', //客户类型
