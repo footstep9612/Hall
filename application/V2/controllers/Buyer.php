@@ -21,7 +21,7 @@ class BuyerController extends PublicController {
      * 用户列表
      * */
 
-    public function buyerStatisListAction() {
+    public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
