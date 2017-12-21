@@ -26,6 +26,65 @@ class OrderAddressModel extends PublicModel {
         parent::__construct();
     }
 
+    /**
+     * 数据字典
+     * @var array
+     * @author link 2017-12-20
+     */
+    private $_field = [
+        'order_id',    //订单id
+        'log_id',    //工作流id
+        'address',    //办公地址
+        'zipcode',    //邮编
+        'tel_number', //本地号码
+        'area_bn',    //区域
+        'consignee_id',    //
+        'name',    //联系人姓名
+        'country',    //国家
+        'city',    //城市
+        'email',    //邮箱
+        'fax',    //传真
+        'created_at',    //创建时间
+        'created_by',    //创建人
+        'deleted_flag',    //
+    ];
+
+    /**
+     * 格式化数据
+     * @var $data
+     * @author link 2017-12-20
+     */
+    private function _getData($data){
+        if(empty($data)){
+            return [];
+        }
+        foreach($data as $key =>$value){
+            if(!in_array($key,$this->_field)){
+                unset($data[$key]);
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 添加
+     * @var $data
+     * @author link 2017-12-20
+     */
+    public function add($data){
+        if(!isset($data['order_id'])){
+            jsonReturn('订单地址添加，orer_id不能为空');
+        }
+        try{
+            $data = $this->_getData($data);
+            $result = $this->add($this->create($data));
+            return $result ? $result : false;
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderAddressModel】 add:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
     /* 获取订单详情
      * @param int $order_id // 订单ID
      * @author  zhongyg
