@@ -251,6 +251,7 @@ class ReportController extends PublicController {
 
                 foreach ($inquiryItemList as &$inquiryItem) {
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
                 
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
