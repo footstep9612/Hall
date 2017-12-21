@@ -176,10 +176,15 @@ class BuyerModel extends PublicModel {
         if(!empty($data['status'])){    //审核状态===buy
             $cond .= " and buyer.status='".$data['status']."'";
         }
-
         if(!empty($data['filter'])){   //过滤状态
             $cond .= ' And buyer.status !=\'APPROVING\' and buyer.status !=\'FIRST_REJECTED\' ';
         }
+
+        if(!empty($data['is_agent']) && $data['is_agent']){   //是否是代理人
+            $cond .= ' And buyer.created_by='.$data['created_by'];
+        }
+
+
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $cond .= ' buyer.is_build=0';
         }
