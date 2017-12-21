@@ -1288,20 +1288,18 @@ class BuyerModel extends PublicModel {
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
         try{
-            $base = $this->where(array('id'=>$arr['id']))->save($arr);
-            if($base){
-                //创建财务报表附件
-                if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                    $this -> createAttchData($data);
-                }
-                //创建联系人信息
-                $model = new BuyercontactModel();
-                $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-                if($conn){
-                    return true;
-                }
-                return false;
+            $this->where(array('id'=>$arr['id']))->save($arr);
+            //创建财务报表附件
+            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+                $this -> createAttchData($data);
             }
+            //创建联系人信息
+            $model = new BuyercontactModel();
+            $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+            if($conn){
+                return true;
+            }
+
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;   //新建客户基本信息失败
