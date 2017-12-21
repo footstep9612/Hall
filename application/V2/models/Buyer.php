@@ -152,7 +152,8 @@ class BuyerModel extends PublicModel {
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
+//            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
 
         //$count = $this->query($sql_count);
@@ -185,7 +186,7 @@ class BuyerModel extends PublicModel {
             $cond .= ' And buyer.status !=\'APPROVING\' and buyer.status !=\'FIRST_REJECTED\' ';
         }
 
-        if(!empty($data['is_agent']) && $data['is_agent']){   //是否是代理人
+        if(!empty($data['is_agent']) && $data['is_agent']=='Y'){   //是否是代理人
             $cond .= ' And buyer.created_by='.$data['created_by'];
         }
 

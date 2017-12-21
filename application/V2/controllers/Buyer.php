@@ -21,7 +21,7 @@ class BuyerController extends PublicController {
      * 用户列表
      * */
 
-    public function listAction() {
+    public function buyerStatisListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
@@ -165,7 +165,7 @@ class BuyerController extends PublicController {
      * CRM系统优化客户统计列表
      * wangs
      */
-    public function buyerStatisListAction(){
+    public function buyersStatisListAction(){
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
