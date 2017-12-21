@@ -919,7 +919,7 @@ class InquiryController extends PublicController {
         $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
 
         $employeeModel = new EmployeeModel();
-        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile')->find();
+        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
 
         //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
         if( !in_array($data['out_node'],['QUOTE_SENT','INQUIRY_CLOSED'])){
@@ -935,19 +935,20 @@ class InquiryController extends PublicController {
 
                 $body = <<< Stilly
                     <h2>【{$role_name}】{$this->user['name']}</h2>
-                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统及时进行处理。</p>
+                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
 Stilly;
             }else{
 
                 $title = '【询报价】退回通知';
                 $body = <<< Stilly
                     <h2>【{$role_name}】{$this->user['name']}</h2>
-                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统及时进行处理。</p>
+                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
 Stilly;
 
             }
 
-            MailHelper::sendEmail('maimt@keruigroup.com', $title, $body, $receiverInfo['name']);
+            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
+
 
         }
 
