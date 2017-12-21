@@ -63,7 +63,7 @@ class ProductRelationModel extends PublicModel {
             'pr.deleted_flag' => 'N',
             'p.deleted_flag' => 'N'];
         return $this->alias('pr')
-                        ->field('pr.id,p.lang,p.spu,p.name,p.brand,p.material_cat_no,p.status')
+                        ->field('pr.id,pr.lang,pr.spu,p.name,p.brand,p.material_cat_no,p.status')
                         ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=\'zh\' ')
                         //  ->join($show_cat_product_table . ' sp on sp.spu=pr.relation_spu and sp.lang=\'zh\' ')
                         ->where($where)
