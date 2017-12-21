@@ -927,27 +927,27 @@ class InquiryController extends PublicController {
             $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
 
             //发送邮件通知
-            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
-
-            if ($data['action'] =='CREATE'){
-
-                $title = '【询报价】办理通知';
-
-                $body = <<< Stilly
-                    <h2>【{$role_name}】{$this->user['name']}</h2>
-                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
-Stilly;
-            }else{
-
-                $title = '【询报价】退回通知';
-                $body = <<< Stilly
-                    <h2>【{$role_name}】{$this->user['name']}</h2>
-                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
-Stilly;
-
-            }
-
-            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
+//            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
+//
+//            if ($data['action'] =='CREATE'){
+//
+//                $title = '【询报价】办理通知';
+//
+//                $body = <<< Stilly
+//                    <h2>【{$role_name}】{$this->user['name']}</h2>
+//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
+//Stilly;
+//            }else{
+//
+//                $title = '【询报价】退回通知';
+//                $body = <<< Stilly
+//                    <h2>【{$role_name}】{$this->user['name']}</h2>
+//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
+//Stilly;
+//
+//            }
+//
+//            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
 
 
         }
