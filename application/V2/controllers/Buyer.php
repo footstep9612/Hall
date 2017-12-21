@@ -21,7 +21,7 @@ class BuyerController extends PublicController {
      * 用户列表
      * */
 
-    public function listAction() {
+    public function buyerStatisListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
@@ -165,16 +165,18 @@ class BuyerController extends PublicController {
      * CRM系统优化客户统计列表
      * wangs
      */
-    public function buyerStatisListAction(){
+    public function buyersStatisListAction(){
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
-            'code'=>0,
+            'code'=>1,
             'message'=>'返回数据',
-            'data'=>$ststisInfo
+            'count'=>intval($ststisInfo['totalCount']),
+            'currentPage'=>$ststisInfo['currentPage'],
+            'data'=>$ststisInfo['info']
         );
         $this->jsonReturn($dataJson);
 
@@ -783,7 +785,7 @@ class BuyerController extends PublicController {
         if($res !== true && $res !==false){
             $valid = array(
                 'code'=>0,
-                'message'=>'请输入'.$res,
+                'message'=>'请输入规范'.$res,
             );
             $this -> jsonReturn($valid);
         }elseif ($res === false){

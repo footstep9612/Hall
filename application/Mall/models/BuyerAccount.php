@@ -25,6 +25,7 @@ class BuyerAccountModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
+    const STATUS_DRAFT = 'DRAFT'; //草稿；
 
     /**
      * 判断用户是否存在
@@ -229,6 +230,8 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($create['status'])) {
             $arr['status'] = $create['status'];
+        } else {
+            $arr['status'] = self::STATUS_DRAFT;
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         $data = $this->create($arr);

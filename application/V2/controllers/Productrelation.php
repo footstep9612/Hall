@@ -49,7 +49,7 @@ class ProductrelationController extends PublicController {
         $data = $product_relation_model->getList($spu, $lang, ($current_no - 1) * $pagesize, $pagesize);
 
         if ($data) {
-            $this->_setMaterialCat($data);
+            $this->_setMaterialCat($data, $lang);
             $this->_setOnshelfFlag($data);
 
             $count = $product_relation_model->getCont($spu, $lang);
@@ -75,7 +75,7 @@ class ProductrelationController extends PublicController {
      * @desc
      */
 
-    private function _setMaterialCat(&$arr) {
+    private function _setMaterialCat(&$arr, $lang) {
         if ($arr) {
             $material_cat_model = new MaterialCatModel();
             $catnos = [];
@@ -83,7 +83,7 @@ class ProductrelationController extends PublicController {
                 $catnos[] = $val['material_cat_no'];
             }
 
-            $catnames = $material_cat_model->getNameByCatNos($catnos, 'zh');
+            $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
 
             foreach ($arr as $key => $val) {
                 if ($val['material_cat_no'] && isset($catnames[$val['material_cat_no']])) {
@@ -166,7 +166,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('添加成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('添加失败!');
             $this->jsonReturn(null);
@@ -184,7 +184,7 @@ class ProductrelationController extends PublicController {
      * @version V2.0
      * @desc  SPU关联
      */
-    public function DeleteAction() {
+    public function DeletedAction() {
         $id = $this->getPut('id');
         if (empty($id)) {
             $this->setCode(MSG::MSG_EXIST);
@@ -198,7 +198,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('删除失败!');
             $this->jsonReturn(null);

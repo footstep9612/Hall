@@ -9,8 +9,8 @@
 class ShowcatController extends PublicController {
 
     public function init() {
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
+        $this->token = false;
+        parent::init();
     }
 
     public function treeAction() {

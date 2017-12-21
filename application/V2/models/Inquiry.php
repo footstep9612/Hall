@@ -785,6 +785,32 @@ class InquiryModel extends PublicModel {
     
         return $data;
     }
+
+    /**
+     * 设置角色名称
+     * @param $data
+     *
+     * @author maimaiti
+     * @return string
+     */
+    public function setRoleName($data)
+    {
+        if ($data['is_agent'] == 'Y') {
+            return '市场经办人';
+        }elseif ($data['is_erui'] == 'Y') {
+            return '易瑞事业部';
+        }elseif ($data['is_issue'] == 'Y') {
+            return '事业部分单员';
+        }elseif ($data['is_quote'] == 'Y') {
+            return '报价人';
+        }elseif ($data['is_check'] == 'Y') {
+            return '报价审核人';
+        }elseif ($data['is_country_agent'] == 'Y') {
+            return '区域负责人或国家负责人';
+        }else{
+            return '';
+        }
+    }
     
     /**
      * @desc 获取指定国家的角色用户ID

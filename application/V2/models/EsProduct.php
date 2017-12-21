@@ -954,7 +954,14 @@ class EsProductModel extends Model {
             $attrs = $product_attrs[$spu];
             $attrs = $this->_setattrs($attrs);
             $body['attrs'] = $attrs;
+            if ($attrs['spec_attrs']) {
+                $body['spec_attrs'] = $attrs['spec_attrs'];
+            } else {
+                $body['spec_attrs'] = [];
+            }
         } else {
+            $body['spec_attrs'] = [];
+
             $body['attrs'] = new stdClass();
         }
         if (isset($minimumorderouantitys[$id])) {

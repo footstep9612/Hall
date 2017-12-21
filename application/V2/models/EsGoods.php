@@ -795,8 +795,14 @@ class EsGoodsModel extends Model {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
             $body['attrs'] = $attrs;
+            if ($attrs['spec_attrs']) {
+                $body['spec_attrs'] = $attrs['spec_attrs'];
+            } else {
+                $body['spec_attrs'] = [];
+            }
         } else {
             $body['attrs'] = new stdClass();
+            $body['spec_attrs'] = [];
             //json_encode([], JSON_UNESCAPED_UNICODE);
         }
 

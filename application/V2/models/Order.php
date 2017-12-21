@@ -115,7 +115,7 @@ class OrderModel extends PublicModel {
         $this->_getValue($where, $condition, 'po_no'); //po编号
         $this->_getValue($where, $condition, 'execute_no', 'like'); //执行编号
         if (isset($condition['show_status']) && $condition['show_status']) {
-            if (in_array($condition['show_status'], ['UNCONFIRM', 'GOING', 'COMPLETED'])) {
+            if (in_array($condition['show_status'], ['UNCONFIRM', 'GOING', 'COMPLETED', 'OUTGOING', 'DISPATCHED'])) {
                 $where['show_status'] = $condition['show_status'];
             }
         }

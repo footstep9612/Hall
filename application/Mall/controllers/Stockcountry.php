@@ -17,7 +17,8 @@ class StockcountryController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        $this->token = false;
+        parent::init();
     }
 
     /**
