@@ -62,6 +62,9 @@ class OrderAddressModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
@@ -77,6 +80,7 @@ class OrderAddressModel extends PublicModel {
         }
         try{
             $data = $this->_getData($data);
+            $data['created_at'] = date('Y-m-d H:i:s', time());
             $result = $this->add($this->create($data));
             return $result ? $result : false;
         }catch (Exception $e){
