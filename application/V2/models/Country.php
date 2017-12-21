@@ -73,7 +73,7 @@ class CountryModel extends PublicModel {
                     ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang and ma.deleted_flag=\'N\'', 'left')
                     ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang and r.deleted_flag=\'N\'', 'left')
-                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
+                    ->field('c.id,c.lang,c.bn,c.name,c.int_tel_code,c.time_zone,c.region_bn,r.name as region_name,'
                             . 'ma.name as market_area_name ,mac.market_area_bn,c.int_tel_code')
                     ->where($where);
             if ($type) {
