@@ -92,7 +92,9 @@ class ProductController extends PublicController{
 
         $stockInfo = $productModel->getSkuStockBySku($input['sku'],$input['country_bn'],$input['lang']);
         $data = [
-            'price' => ($priceInfo !== false) ? $priceInfo : '',
+            'price' => $priceInfo ? $priceInfo['price'] : '',
+            'price_cur_bn' => $priceInfo ? $priceInfo['price_cur_bn'] : '',
+            'price_symbol' => $priceInfo ? $priceInfo['price_symbol'] : '',
             'stock' => ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']]['stock'] : 0
         ];
         jsonReturn($data);

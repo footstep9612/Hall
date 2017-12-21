@@ -96,7 +96,7 @@ class OrderModel extends PublicModel {
      * @param array $data['country_bn','buyer_id','lang','skuAry'=[sku:number],'infoAry'=>[],'addrAry'=>[],'contactAry'=>[]]
      * @return bool|mixed
      */
-    public function add($data){
+    public function addOrder($data){
         if(!isset($data['infoAry'])){
             jsonReturn('', MSG::MSG_FAILED, '订单信息不能为空');
         }
@@ -124,7 +124,7 @@ class OrderModel extends PublicModel {
                 if(isset($data['addrAry']) && !empty($data['addrAry'])){
                     $data['addrAry']['order_id'] = $result;
                     $oaModel = new OrderAddressModel();
-                    if(!$oaModel->add($data['addrAry'])){
+                    if(!$oaModel->addInfo($data['addrAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单地址添加失败');
                     }
@@ -133,7 +133,7 @@ class OrderModel extends PublicModel {
                 /*if(isset($data['contactAry']) && !empty($data['contactAry'])){
                     $data['contactAry']['order_id'] = $result;
                     $ocModel = new OrderContactModel();
-                    if(!$ocModel->add($data['contactAry'])){
+                    if(!$ocModel->addInfo($data['contactAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单联系人添加失败');
                     }
@@ -159,6 +159,7 @@ class OrderModel extends PublicModel {
         $ogModel = new OrderGoodsModel();
         $data_insert = [];
         $amount = 0;
+        $currency_bn = '';
         foreach($data as $sku=>$number){
             $number = intval($number);
             $data_temp = [];
@@ -171,6 +172,7 @@ class OrderModel extends PublicModel {
 
             //获取价格信息
             $priceInfo = $productModel->getSkuPriceByCount($sku,$country_bn,$number);
+            $currency_bn = $priceInfo ? $priceInfo['price_cur_bn'] : null;
 
             //获取商品基本信息
             $goodsInfo = $goodsModel->getInfoBySku();
@@ -183,7 +185,7 @@ class OrderModel extends PublicModel {
                 'sku' => $sku,
                 'name' => $goodsInfo[$sku]['show_name'] ? $goodsInfo[$sku]['show_name'] : ($goodsInfo[$sku]['name'] ? $goodsInfo[$sku]['name'] : ($goodsInfo[$sku]['spu_show_name'] ? $goodsInfo[$sku]['spu_show_name'] :($goodsInfo[$sku]['spu_name'] ? $goodsInfo[$sku]['spu_name'] : ''))),    //商品名称
                 'spec_attrs' => $goodsInfo[$sku]['spec_attrs'],    //规格属性
-                'price' => ($priceInfo !== false) ? $priceInfo : null,
+                'price' => $priceInfo ? $priceInfo['price'] : null,
                 'buy_number' => $number,
                 'lang' => $lang,    //语言
                 'model' => $goodsInfo[$sku]['model'] ? $goodsInfo[$sku]['model'] : null,    //型号
@@ -201,7 +203,7 @@ class OrderModel extends PublicModel {
 
             //更新订单金额
             $orderModel = new OrderModel();
-            $result_order = $orderModel->where(['order_no'=>$order_no])->save(['amount'=>$amount]);
+            $result_order = $orderModel->where(['order_no'=>$order_no])->save(['amount'=>$amount, 'currency_bn'=>$currency_bn]);
             return ($result && $result_order) ? true : false;
         }
         return false;

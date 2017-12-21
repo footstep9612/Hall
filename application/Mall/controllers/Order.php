@@ -52,7 +52,7 @@ class OrderController extends PublicController {
         }
         $input['buyer_id'] = $this->user['buyer_id'];
         $order_moder = new OrderModel();
-        $orderNo = $order_moder->add($input);
+        $orderNo = $order_moder->addOrder($input);
         jsonReturn($orderNo,$orderNo ? MSG::MSG_SUCCESS : MSG::MSG_FAILED);
     }
 

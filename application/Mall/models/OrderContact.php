@@ -62,7 +62,7 @@ class OrderContactModel extends PublicModel {
      * @var $data
      * @author link 2017-12-20
      */
-    public function add($data){
+    public function addInfo($data){
         if(!isset($data['order_id'])){
             jsonReturn('订单联系人添加，orer_id不能为空');
         }

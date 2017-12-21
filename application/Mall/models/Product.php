@@ -146,7 +146,10 @@ class ProductModel extends PublicModel{
                 if($stock){
                     //现货价格
                     foreach($result as $index =>$item){
-                        $result[$index]['price'] = self::getSkuPriceByCount($item['sku'],$input['country_bn'],$item['min_order_qty']);
+                        $priceInfo = self::getSkuPriceByCount($item['sku'],$input['country_bn'],$item['min_order_qty']);
+                        $result[$index]['price'] = $priceInfo['price'];
+                        $result[$index]['price_cur_bn'] = $priceInfo['price_cur_bn'];
+                        $result[$index]['price_symbol'] = $priceInfo['price_symbol'];
                     }
                 }
             }
@@ -214,11 +217,11 @@ class ProductModel extends PublicModel{
         $condition = ['sku'=>$sku, 'country_bn'=>$country_bn, 'price_validity_start'=>['elt',date('Y-m-d',time())], 'min_purchase_qty'=>['elt',$count]];
         try{
             $scpModel = new StockCostPriceModel();
-            $priceInfo = $scpModel->field('min_price,min_purchase_qty,max_purchase_qty,price_validity_end')->where($condition)->order('min_purchase_qty DESC')->select();
+            $priceInfo = $scpModel->field('min_price as price,min_purchase_qty,max_purchase_qty,price_validity_end,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty DESC')->select();
             if($priceInfo){
                 foreach($priceInfo as $item){
                     if(($item['price_validity_end'] >= date('Y-m-d',time()) || empty($item['price_validity_end'])) && (empty($item['max_purchase_qty']) || $item['max_purchase_qty']>= $count)){
-                        return $item['min_price'];
+                        return $item;
                         break;
                     }
                 }
