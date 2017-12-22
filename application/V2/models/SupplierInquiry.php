@@ -354,7 +354,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
         $field .= 'i.created_at,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
@@ -444,8 +444,8 @@ class SupplierInquiryModel extends PublicModel {
             'Y' => ['bq_time', '事业部报出日期'],
             'Z' => ['ld_time', '物流接收日期'],
             'AA' => ['la_time', '物流报出日期'],
-            'AB' => ['qs_time', '报出日期(小时)'],
-            'AC' => ['quoted_time', '报价用时'],
+            'AB' => ['qs_time', '报出日期'],
+            'AC' => ['quoted_time', '报价用时(小时)'],
             'AD' => ['agent_name', '市场负责人'],
             'AE' => ['quote_name', '商务技术部报价人'],
             'AF' => ['check_org_name', '事业部负责人'],
@@ -469,11 +469,11 @@ class SupplierInquiryModel extends PublicModel {
             'AX' => ['istatus', '最新进度及解决方案'],
             'AY' => ['iquote_status', '报价后状态'],
             'AZ' => ['quote_notes', '备注'],
-            'BA' => [null, '报价超48小时原因类型'],
+            /*'BA' => [null, '报价超48小时原因类型'],
             'BB' => [null, '报价超48小时分析'],
             'BC' => [null, '成单或失单'],
             'BD' => [null, '失单原因类型'],
-            'BE' => [null, '失单原因分析'],
+            'BE' => [null, '失单原因分析'],*/ //没用
         ];
     }
 
@@ -581,7 +581,7 @@ class SupplierInquiryModel extends PublicModel {
      */
 
     private function _setConstPrice(&$list) {
-        if ($arr) {
+        if ($list) {
 
             $skus = [];
             foreach ($list as $key => $val) {
@@ -616,10 +616,10 @@ class SupplierInquiryModel extends PublicModel {
     }
 
     private function date_diff($datetime1, $datetime2) {
-        $date_time2 = new DateTime($datetime2);
-        $date_time1 = new DateTime($datetime1);
-        $interval = $date_time2->diff($date_time1);
-        return $interval->format('%R%a') * 24;
+        $date_time2 = strtotime($datetime2);
+        $date_time1 = strtotime($datetime1);
+        $interval = ($date_time1-$date_time2)/3600;
+        return $interval;
     }
 
     private function _setquoted_time(&$list) {
