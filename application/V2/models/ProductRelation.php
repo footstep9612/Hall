@@ -110,11 +110,14 @@ class ProductRelationModel extends PublicModel {
         $where['spu'] = $spu;
         $product_model = new ProductModel();
 
-        $this->where($where)->save(['deleted_flag' => 'Y']);
+        // $this->where($where)->save(['deleted_flag' => 'Y']);
         $this->startTrans();
         $product_model->where($where)->save(['relation_flag' => 'N']);
         foreach ($spus as $relation_spu) {
             $data['lang'] = $lang;
+            if ($spu == $relation_spu) {
+                continue;
+            }
             $data['spu'] = $spu;
             $data['relation_spu'] = $relation_spu;
 
