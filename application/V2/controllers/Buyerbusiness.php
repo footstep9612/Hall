@@ -40,7 +40,7 @@ class BuyerbusinessController extends PublicController
             if($purchaseRes === false){
                 $dataJson = array(
                     'code'=>1,
-                    'message'=>'业务信息创建成功，采购计划创建失败',
+                    'message'=>'业务信息创建成功，采购计划创建为空',
                 );
                 $this -> jsonReturn($dataJson);
             }
@@ -51,7 +51,7 @@ class BuyerbusinessController extends PublicController
                 if($purchaseResult == false){
                     $dataJson = array(
                         'code'=>1,
-                        'message'=>'业务信息，采购计划创建成功，采购计划附件失败',
+                        'message'=>'业务信息，采购计划创建成功，采购计划附件为空',
                     );
                 }else{
                     $dataJson = array(

@@ -684,7 +684,7 @@ class BuyerVisitModel extends PublicModel {
         }
         if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
             $buyerModel= new BuyerModel();
-            $buyer_ids = $buyerModel->field('id,buyer_code')->where($cond)->order('id desc')->select();
+            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
             if (empty($buyer_ids)) {
                 return false;   //数据为空
             }

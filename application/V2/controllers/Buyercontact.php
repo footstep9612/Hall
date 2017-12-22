@@ -42,9 +42,6 @@ class BuyercontactController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['area_bn'])) {
-            $where['area_bn'] = $data['area_bn'];
-        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
