@@ -37,9 +37,11 @@ class BuyerVisitModel extends PublicModel {
         }else{
             $current_no = 1;
         }
+        $length = 10;
+        $offset = ($current_no-1)*$length;
         $total = $this->field('id')->where($condition)->count();
         //按条件获取拜访记录数据
-        $result = $this->condGetVisitData($condition,$i=0,$length=10);
+        $result = $this->condGetVisitData($condition,$offset,$length);
         $arr = [
                  'current_no' => $current_no,
                  'pagesize' => $length,
