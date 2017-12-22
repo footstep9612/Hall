@@ -141,7 +141,7 @@ class ProductrelationController extends PublicController {
      * @desc  SPU关联
      */
     public function CreateAction() {
-        $spu = $this->getPut('spu');
+        $spu = $this->getPut('current_spu');
         if (empty($spu)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择SPU!');
