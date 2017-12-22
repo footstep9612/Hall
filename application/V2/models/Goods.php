@@ -2775,7 +2775,7 @@ class GoodsModel extends PublicModel {
                         }
                         $supplierInfo = $supplierModel->field('id,supplier_no,brand')->where(array('deleted_flag' => 'N', 'name' => $supplie))->find();
                         if (!$supplierInfo) {
-                            $supplier_data = ['lang'=>'zh','country_bn'=>'China','is_erui'=>'N','name'=>$supplie,'org_id'=>'9756','created_at'=>date('Y-m-d H:i:s',time()),'status'=>'DRAFT'];
+                            $supplier_data = ['lang' => 'zh', 'country_bn' => 'China', 'is_erui' => 'N', 'name' => $supplie, 'org_id' => '9756', 'created_at' => date('Y-m-d H:i:s', time()), 'status' => 'DRAFT'];
                             $supplierInfo['id'] = $supplierModel->add($supplierModel->create($supplier_data));
                         }
 
@@ -2897,14 +2897,14 @@ class GoodsModel extends PublicModel {
                             }
                         }
 
-                      /*  if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
-                            $faild++;
-                            $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入非固定属性]');
-                            $start_row++;
-                            flock($fp, LOCK_UN);
-                            fclose($fp);
-                            continue;
-                        }*/
+                        /*  if (!isset($data_tmp['spec_attrs']) || empty($data_tmp['spec_attrs'])) {
+                          $faild++;
+                          $objPHPExcel->getSheet(0)->setCellValue($maxCol . $start_row, '操作失败[请输入非固定属性]');
+                          $start_row++;
+                          flock($fp, LOCK_UN);
+                          fclose($fp);
+                          continue;
+                          } */
                         $data['nude_cargo_l_mm'] = $data_tmp['裸货尺寸长(mm)'];    //裸货尺寸长(mm)
                         if (!empty($data['nude_cargo_l_mm']) && !is_numeric($data['nude_cargo_l_mm'])) {
                             $faild++;
@@ -4049,6 +4049,41 @@ class GoodsModel extends PublicModel {
             $list[$key] = $val;
         }
         return $list;
+    }
+
+    /*
+     * 根据skus 获取产品名称
+     */
+
+    public function getProductNamesBySkus($skus, $lang = 'zh') {
+        $where = ['g.deleted_flag' => 'N'];
+        $product_model = new ProductModel();
+        $product_table = $product_model->getTableName();
+        if (is_array($skus) && $skus) {
+            $where['g.sku'] = ['in', $skus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['g.lang'] = 'zh';
+        } else {
+            $where['g.lang'] = $lang;
+        }
+        $where[] = '(p.name is not null and p.name <>\'\' )  ';
+        $result = $this->alias('g')
+                        ->join($product_table . ' p on p.spu=g.spu and p.lang=g.lang and p.deleted_flag=\'N\'')
+                        ->where($where)->field('p.name as product_name,g.sku')->select();
+
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['sku']] = $item['product_name'];
+            }
+
+            return $data;
+        } else {
+            return [];
+        }
     }
 
 }
