@@ -82,7 +82,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'N\' ';
+            $where .= ' And `erui_buyer`.`buyer`.is_build=0';
         }
 
         if (!empty($condition['user_name'])) {
@@ -152,7 +152,8 @@ class BuyerModel extends PublicModel {
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
+//            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
 
         //$count = $this->query($sql_count);
@@ -177,8 +178,21 @@ class BuyerModel extends PublicModel {
         if(!empty($data['name'])){    //客户名称buy
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
+
         if(!empty($data['status'])){    //审核状态===buy
             $cond .= " and buyer.status='".$data['status']."'";
+        }
+        if(!empty($data['filter'])){   //过滤状态
+            $cond .= ' And buyer.status !=\'APPROVING\' and buyer.status !=\'FIRST_REJECTED\' ';
+        }
+
+        if(!empty($data['is_agent']) && $data['is_agent']=='Y'){   //是否是代理人
+            $cond .= ' And buyer.created_by='.$data['created_by'];
+        }
+
+
+        if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
+            $cond .= ' buyer.is_build=0';
         }
         if(!empty($data['source'])){  //客户来源===buy
             if($data['source']==1){ //后台
@@ -221,14 +235,20 @@ class BuyerModel extends PublicModel {
         $cond .=" and country.lang='zh'";
         $currentPage = 1;
         $pageSize = 10;
+        $totalCount = $this->alias('buyer')
+            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
+            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->where($cond)
+            ->count();
+        $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
-//            print_r($data['currentPage']);die;
             $currentPage = ceil($data['currentPage']);
         }
         $offset = ($currentPage-1)*$pageSize;
         $fieldArr = array(
             'id',
-            'buyer_no',     //客户编号buy
+            'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
             'name',   //客户名称buy
             'status',   //审核状态
@@ -251,7 +271,11 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-        return $info;
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
@@ -1187,6 +1211,7 @@ class BuyerModel extends PublicModel {
 //            'market_agent_mobile'=>'服务经理联系方式',
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
+            'is_oilgas'=>'是否油气',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
@@ -1218,12 +1243,6 @@ class BuyerModel extends PublicModel {
             'attach_name'=>'附件名称',
             'attach_url'=>'附件url地址',
         );
-        if(!empty($baseExtra['employee_count'])){
-            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
-            }else{
-                return $baseExtra['employee_count'];
-            }
-        }
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
             'name'=>'联系人姓名',
@@ -1250,6 +1269,13 @@ class BuyerModel extends PublicModel {
                 }
             }
         }
+        if(!empty($base['employee_count'])){
+            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
+                return true;
+            }else{
+                return $baseExtra['employee_count'];
+            }
+        }
         return true;
     }
 
@@ -1267,22 +1293,19 @@ class BuyerModel extends PublicModel {
             return $info;
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
-
         try{
-            $base = $this->where(array('id'=>$arr['id']))->save($arr);
-            if($base){
-                //创建财务报表附件
-                if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                    $this -> createAttchData($data);
-                }
-                //创建联系人信息
-                $model = new BuyercontactModel();
-                $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-                if($conn){
-                    return true;
-                }
-                return false;
+            $this->where(array('id'=>$arr['id']))->save($arr);
+            //创建财务报表附件
+            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+                $this -> createAttchData($data);
             }
+            //创建联系人信息
+            $model = new BuyercontactModel();
+            $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+            if($conn){
+                return true;
+            }
+
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;   //新建客户基本信息失败
@@ -1319,7 +1342,7 @@ class BuyerModel extends PublicModel {
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
-            'created_at'    => date('Y-m-d H:i:s'), //客户id
+//            'created_at'    => date('Y-m-d H:i:s'), //客户id
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
             'official_phone'    => $data['official_phone'],    //公司固话
@@ -1331,13 +1354,14 @@ class BuyerModel extends PublicModel {
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
-            'is_build' =>'1'//有效期
+            'is_build' =>'1',//有效期
+            'is_oilgas' =>$data['is_oilgas']//有效期
         );
         //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
-            'is_oilgas', //是否油气
+//            'is_oilgas', //是否油气
             'employee_count', //雇员数量
         );
         foreach ($data as $value) {
@@ -1359,9 +1383,6 @@ class BuyerModel extends PublicModel {
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
         }
-//        if(!empty($data['buyer_id'])){
-//            $cond['created_by'] = $data['created_by'];
-//        }
         $buyerArr = array(
             'id as buyer_id', //客户id
             'buyer_type', //客户类型

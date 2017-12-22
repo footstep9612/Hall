@@ -295,8 +295,6 @@ class EsProductModel extends Model {
         if (!empty($condition['minimumorderouantity']) && intval($condition['minimumorderouantity']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['minimumorderouantity' => ['lte' => intval($condition['minimumorderouantity']),]]];
         }
-
-
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
         if (isset($condition['attrs']) && $condition['attrs']) {
@@ -315,18 +313,45 @@ class EsProductModel extends Model {
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH_PHRASE => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $attrs, 'boost' => 99]]],
+                        [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
                         [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
             ]]];
         }
-        if (isset($condition['spec_name']) && $condition['spec_name']) {
-            $spec_name = trim($condition['spec_name']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 2, 'operator' => 'and']]];
-        }
-        if (isset($condition['spec_value']) && $condition['spec_value']) {
+
+        if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
             $spec_value = trim($condition['spec_value']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 2, 'operator' => 'and']]];
+            $spec_name = trim($condition['spec_name']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_name']) && $condition['spec_name']) {
+            $spec_name = trim($condition['spec_name']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_value']) && $condition['spec_value']) {
+            $spec_value = trim($condition['spec_value']);
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
         }
+
 
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
@@ -365,7 +390,7 @@ class EsProductModel extends Model {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                                 [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
+                                //  [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                                 [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
@@ -708,27 +733,34 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-
-        $es->body['aggs']['spec_name'] = [
-            'terms' => [
-                'field' => 'attrs.spec_attrs.name.all',
-                'size' => 20,
-                'order' => ['_count' => 'desc']
+        $es->body['aggs']['spec_attrs'] = [
+            'nested' => [
+                'path' => 'spec_attrs'
             ],
-            'aggs' => ['spec_value' => [
+            'aggs' => [
+                'spec_name' => [
                     'terms' => [
-                        'field' => 'attrs.spec_attrs.value.all',
-                        'size' => 10,
+                        'field' => 'spec_attrs.name.all',
+                        'size' => 20,
                         'order' => ['_count' => 'desc']
+                    ],
+                    'aggs' => ['spec_value' => [
+                            'terms' => [
+                                'field' => 'spec_attrs.value.all',
+                                'size' => 10,
+                                'order' => ['_count' => 'desc']
+                            ]
+                        ]
                     ]
                 ]
             ]
         ];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $spec_names = [];
-        if (isset($ret['aggregations']['spec_name']['buckets'])) {
-            foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
+        if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
+            foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
 
                 foreach ($spec_name['spec_value']['buckets'] as $spec_value) {

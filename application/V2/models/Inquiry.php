@@ -785,6 +785,32 @@ class InquiryModel extends PublicModel {
     
         return $data;
     }
+
+    /**
+     * 设置角色名称
+     * @param $data
+     *
+     * @author maimaiti
+     * @return string
+     */
+    public function setRoleName($data)
+    {
+        if ($data['is_agent'] == 'Y') {
+            return '市场经办人';
+        }elseif ($data['is_erui'] == 'Y') {
+            return '易瑞事业部';
+        }elseif ($data['is_issue'] == 'Y') {
+            return '事业部分单员';
+        }elseif ($data['is_quote'] == 'Y') {
+            return '报价人';
+        }elseif ($data['is_check'] == 'Y') {
+            return '报价审核人';
+        }elseif ($data['is_country_agent'] == 'Y') {
+            return '区域负责人或国家负责人';
+        }else{
+            return '';
+        }
+    }
     
     /**
      * @desc 获取指定国家的角色用户ID
@@ -884,7 +910,7 @@ class InquiryModel extends PublicModel {
             $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
             
             return $this->alias('a')
-                                ->field('a.id, a.serial_no, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                                ->field('a.id, a.serial_no, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
                                 ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')

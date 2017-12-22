@@ -25,7 +25,7 @@ class ShoppingcarController extends PublicController{
         $condition = ['buyer_id' =>$this->user['buyer_id'], 'lang' => $input['lang']];
         $condition['type'] = $input['type'];
         if($condition['type']) {
-            if ( empty( $input[ 'country_bn' ] ) || empty( $input[ 'country_bn' ] ) ) {
+            if ( !isset( $input[ 'country_bn' ] ) || empty( $input[ 'country_bn' ] ) ) {
                 jsonReturn( '' , ErrorMsg::ERROR_PARAM , 'country_bn不能为空' );
             }
         }
@@ -49,13 +49,18 @@ class ShoppingcarController extends PublicController{
         if(!isset($this->user['buyer_id']) || empty($this->user['buyer_id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM , '语言跟buyer_id不能为空');
         }
+        if(isset($input['type']) && $input['type']) {
+            if ( !isset( $input[ 'country_bn' ] ) || empty( $input[ 'country_bn' ] ) ) {
+                jsonReturn( '' , ErrorMsg::ERROR_PARAM , 'country_bn不能为空' );
+            }
+        }
 
         $condition = ['sku' => ['in', $input['skus']],'buyer_id'=>$this->user['buyer_id'], 'lang' => $input['lang']];
         if(isset($input['type'])){
             $condition['type'] = $input['type'];
         }
         $scModel = new ShoppingCarModel();
-        $result = $scModel->myShoppingCar($condition);
+        $result = $scModel->myShoppingCar($condition,$input[ 'country_bn' ] ? $input[ 'country_bn' ] : '');
         if($result !== false){
             jsonReturn($result);
         }else{

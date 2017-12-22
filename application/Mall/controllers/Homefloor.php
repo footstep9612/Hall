@@ -17,7 +17,8 @@ class HomefloorController extends PublicController {
 
     //put your code here
     public function init() {
-
+        $this->token = false;
+        parent::init();
     }
 
     /**

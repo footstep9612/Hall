@@ -80,6 +80,7 @@ class OrderlogController extends PublicController{
 
     public function addAction() {
         $OrderLog = new OrderLogModel();
+        $order_model = new OrderModel();
 
         $data = $this->put_data;
         $data['created_by'] = $this->user['id'];
@@ -88,7 +89,6 @@ class OrderlogController extends PublicController{
 
         $OrderLog->startTrans();
         if($data['log_group']=="CREDIT"&&isset($data["order_id"])&&$data["order_id"]) {
-            $order_model = new OrderModel();
             $order_info = $order_model->where($where)->find();
             if($order_info){
                 if($order_info['buyer_id']){
@@ -134,20 +134,19 @@ class OrderlogController extends PublicController{
             }
         }
         if($data['log_group'] == 'OUTBOUND') {
-            $hasOut = $OrderLog->where($logWhere)->getField('id');
+            $hasOut = $OrderLog->where(array_merge($logWhere, ['log_group' => 'OUTBOUND']))->getField('id');
             if (!$hasOut) {
-                $order_model->where($where)->setField(['pay_status'=>'OUTGOING']);
+                $order_model->where($where)->setField(['show_status'=>'OUTGOING']);
             }
         }
         if($data['log_group'] == 'LOGISTICS') {
-            $hasLogi = $OrderLog->where($logWhere)->getField('id');
+            $hasLogi = $OrderLog->where(array_merge($logWhere, ['log_group' => 'LOGISTICS']))->getField('id');
             if (!$hasLogi) {
-                $order_model->where($where)->setField(['pay_status'=>'DISPATCHED']);
+                $order_model->where($where)->setField(['show_status'=>'DISPATCHED']);
             }
         }
         $results = $OrderLog->addData($data);
         if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
-            $order_model = new OrderModel();
             $order_model->where($where)->setField(['pay_status'=>'PARTPAY']);
         }
         if($results['code'] == 1){

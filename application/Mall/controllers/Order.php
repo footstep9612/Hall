@@ -20,11 +20,40 @@ class OrderController extends PublicController {
         parent::init();
     }
 
+    /**
+     * 订单添加
+     * @example:
+     * createAction($data[
+     *      'country_bn',
+     *      'lang',
+     *      'skuAry' =>[sku=>数量，sku=>数量....]
+     *      'infoAry'=>[],
+     *      'addrAry'=>[],
+     *      'contactAry'=>[]
+     * ])
+     * @author link 2017-12-20
+     */
     public function createAction(){
         $input = $this->getPut();
+        if(!isset($input['country_bn']) || empty($input['country_bn'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'country_bn not null');
+        }
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'lang not null');
+        }
+        if(!isset($input['skuAry']) || empty($input['skuAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'skuAry not null');
+        }
+        if(!isset($input['infoAry']) || empty($input['infoAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'infoAry not null');
+        }
+        if(!isset($input['addrAry']) || empty($input['addrAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'addrAry not null');
+        }
+        $input['buyer_id'] = $this->user['buyer_id'];
         $order_moder = new OrderModel();
-        $order_moder->createOrder($input);
-        $data['po_no'] = isset($input['po_no']) ? trim($input['po_no']) : null;
+        $orderNo = $order_moder->addOrder($input);
+        jsonReturn($orderNo,$orderNo ? MSG::MSG_SUCCESS : MSG::MSG_FAILED);
     }
 
 

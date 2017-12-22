@@ -45,9 +45,6 @@ class BuyercontactController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['area_bn'])) {
-            $where['area_bn'] = $data['area_bn'];
-        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
@@ -123,6 +120,7 @@ class BuyercontactController extends PublicController {
             $arr['last_name'] = $data['last_name'];
         }
         if(isset($data['name'])){
+            if (strlen($data['name']) > 70) jsonReturn('', -101, '您输入的收货人（公司）超出长度!');
             $arr['name'] = $data['name'];
         }
         if(isset($data['gender'])){
@@ -132,15 +130,18 @@ class BuyercontactController extends PublicController {
             $arr['title'] = $data['title'];
         }
         if(isset($data['phone'])){
+            if (strlen($data['phone']) > 50) jsonReturn('', -101, '您输入的电话超出长度!');
             $arr['phone'] = $data['phone'];
         }
         if(isset($data['email'])){
+            if (strlen($data['email']) > 50) jsonReturn('', -101, '您输入的邮箱超出长度!');
             $arr['email'] = $data['email'];
         }
         if(isset($data['remarks'])){
             $arr['remarks'] = $data['remarks'];
         }
         if(isset($data['fax'])){
+            if (strlen($data['fax']) > 40) jsonReturn('', -101, '您输入的传真超出长度!');
             $arr['fax'] =$data['fax'];
         }
         if(isset($data['country_code'])){
@@ -153,15 +154,18 @@ class BuyercontactController extends PublicController {
             $arr['province'] =$data['province'];
         }
         if(isset($data['city'])){
+            if (strlen($data['city']) > 30) jsonReturn('', -101, '您输入的市超出长度!');
             $arr['city'] =$data['city'];
         }
         if(isset($data['address'])){
+            if (strlen($data['address']) > 200) jsonReturn('', -101, '您输入的详细地址超出长度!');
             $arr['address'] =$data['address'];
         }
         if(isset($data['area_bn'])){
             $arr['area_bn'] =$data['area_bn'];
         }
         if(isset($data['zipcode'])){
+            if (strlen($data['zipcode']) > 10) jsonReturn('', -101, '您输入的邮编超出长度!');
             $arr['zipcode'] =$data['zipcode'];
         }
         $model = new BuyercontactModel();
@@ -194,6 +198,23 @@ class BuyercontactController extends PublicController {
                 'message' => '用户验证失败',
             );
         }
+    }
+    /**
+     * 客户拜访记录-选择获取客户联系人列表
+     * wangs
+     */
+    public function buyerContactListAction() {
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyercontactModel();
+        $res = $model->showBuyerExistContact($data['buyer_id'],$created_by);  //获取客户联系人列表
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回客户联系人列表',
+            'data'=>$res
+        );
+        $this -> jsonReturn($dataJson);
     }
 
 }

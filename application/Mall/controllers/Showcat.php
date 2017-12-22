@@ -9,8 +9,112 @@
 class ShowcatController extends PublicController {
 
     public function init() {
-        ini_set("display_errors", "On");
-        error_reporting(E_ERROR | E_STRICT);
+        $this->token = false;
+        parent::init();
+    }
+
+    public function InfoAction() {
+
+
+        $lang = $this->getPut('lang', 'en');
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('语言不能为空');
+            $this->jsonReturn();
+        }
+        $country_bn = $this->getPut('country_bn', '');
+
+        if (empty($country_bn)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空');
+            $this->jsonReturn();
+        }
+        $cat_no = $this->getPut('cat_no', '');
+        if (empty($cat_no)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('分类编码不能为空!');
+            $this->jsonReturn();
+        }
+
+
+        $show_model = new ShowCatModel();
+        $data = [];
+        $arr = $show_model->info($cat_no, $country_bn, $lang);
+        if ($arr) {
+            $data[] = $arr;
+        }
+        if (!empty($arr['parent_cat_no'])) {
+            $arr_top = $show_model->info($arr['parent_cat_no'], $country_bn, $lang);
+            if ($arr_top) {
+                array_unshift($data, $arr_top);
+            }
+        }
+        if (!empty($arr_top['parent_cat_no'])) {
+            $arr_top_top = $show_model->info($arr_top['parent_cat_no'], $country_bn, $lang);
+            if ($arr_top_top) {
+                array_unshift($data, $arr_top_top);
+            }
+        }
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn($arr);
+        }
+    }
+
+    public function InfoBySpuAction() {
+
+
+        $lang = $this->getPut('lang', 'en');
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('语言不能为空');
+            $this->jsonReturn();
+        }
+        $country_bn = $this->getPut('country_bn', '');
+
+        if (empty($country_bn)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空');
+            $this->jsonReturn();
+        }
+        $spu = $this->getPut('spu', '');
+        if (empty($spu)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('产品编码不能为空!');
+            $this->jsonReturn();
+        }
+
+        $show_model = new ShowCatModel();
+        $show_product_model = new ShowCatProductModel();
+        $data = [];
+        $arr = $show_product_model->getShowcatnosByspu($spu, $country_bn, $lang);
+        if ($arr) {
+            $data[] = $arr;
+        }
+        if (!empty($arr['parent_cat_no'])) {
+            $arr_top = $show_model->info($arr['parent_cat_no'], $country_bn, $lang);
+            if ($arr_top) {
+                array_unshift($data, $arr_top);
+            }
+        }
+        if (!empty($arr_top['parent_cat_no'])) {
+            $arr_top_top = $show_model->info($arr_top['parent_cat_no'], $country_bn, $lang);
+            if ($arr_top_top) {
+                array_unshift($data, $arr_top_top);
+            }
+        }
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data);
+        } else {
+
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn($arr);
+        }
     }
 
     public function treeAction() {

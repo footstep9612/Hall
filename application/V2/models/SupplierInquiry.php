@@ -327,7 +327,7 @@ class SupplierInquiryModel extends PublicModel {
         $employee_table = $employee_model->getTableName(); //管理员表
         $org_model = new OrgModel(); //
         $org_table = $org_model->getTableName(); //组织表
-        $field = 'i.serial_no,';
+        $field = 'i.serial_no,qt.sku,';
         $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
         $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
                 . ' on mac.country_bn=c.bn '
@@ -337,7 +337,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'i.buyer_code,it.remarks,it.name_zh,it.name,it.model,it.qty,it.unit,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,';
+        $field .= 'i.quote_deadline,qt.supplier_id,';
 
 
         /*         * *************-----------询单项明细开始------------------- */
@@ -349,13 +349,14 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_check_log_model = new InquiryCheckLogModel();
         $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+
         $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_APPROVING\' group by inquiry_id) as la_time,'; //物流报出日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'MARKET_CONFIRMING\' group by inquiry_id) as qs_time,'; //报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
-        $field .= '(UNIX_TIMESTAMP(i.updated_at)-UNIX_TIMESTAMP(i.created_at))/86400 as quoted_time,'; //报价用时
+        $field .= 'i.created_at,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
         $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
@@ -402,6 +403,11 @@ class SupplierInquiryModel extends PublicModel {
                 ->where(['i.deleted_flag' => 'N', 'i.status' => ['neq', 'DRAFT']])
                 ->select();
 
+        $this->_setSupplierName($list);
+        $this->_setquoted_time($list);
+        $this->_setProductName($list);
+        $this->_setConstPrice($list);
+
         return $this->_createXls($list);
     }
 
@@ -420,51 +426,54 @@ class SupplierInquiryModel extends PublicModel {
             'G' => ['remarks', '客户及项目背景描述'],
             'H' => ['name_zh', '品名中文'],
             'I' => ['name', '品名外文'],
-            'J' => ['model', '规格'],
-            'K' => [null, '图号'],
-            'L' => ['qty', '数量'],
-            'M' => ['unit', '单位'],
-            'N' => [null, '油气or非油气'],
-            'O' => [null, '平台产品分类'],
-            'P' => [null, '产品分类'],
-            'Q' => ['keruiflag', '是否科瑞设备用配件'],
-            'R' => ['bidflag', '是否投标'],
-            'S' => ['inflow_time', '转入日期'],
-            'T' => ['quote_deadline', '需用日期'],
-            'U' => [null, '澄清完成日期'],
-            'V' => ['bq_time', '事业部报出日期'],
-            'W' => ['ld_time', '物流接收日期'],
-            'X' => ['la_time', '物流报出日期'],
-            'Y' => ['qs_time', '报出日期'],
-            'Z' => ['quoted_time', '报价用时'],
-            'AA' => ['agent_name', '市场负责人'],
-            'AB' => ['quote_name', '商务技术部报价人'],
-            'AC' => ['check_org_name', '事业部负责人'],
-            'AD' => ['brand', '产品品牌'],
-            'AE' => ['quote_unit', '报价单位'],
-            'AF' => [null, '供应商报价人'],
-            'AG' => [null, '报价人联系方式'],
-            'AH' => ['purchase_unit_price', '厂家单价（元）'],
-            'AI' => ['total', '厂家总价（元）'],
-            'AJ' => [null, '利润率'],
-            'AK' => ['quote_unit_price', '报价单价（元）'],
-            'AL' => ['total_quote_price', '报价总价（元）'],
-            'AM' => ['total_quoted_price', '报价总金额（美金）'],
-            'AN' => ['gross_weight_kg', '单重(kg)'],
-            'AO' => ['total_kg', '总重(kg)'],
-            'AP' => ['package_size', '包装体积(mm)'],
-            'AQ' => ['package_mode', '包装方式'],
-            'AR' => ['delivery_days', '交货期（天）'],
-            'AS' => ['period_of_validity', '有效期（天）'],
-            'AT' => ['trade_terms_bn', '贸易术语'],
-            'AU' => ['istatus', '最新进度及解决方案'],
-            'AV' => ['iquote_status', '报价后状态'],
-            'AW' => ['quote_notes', '备注'],
-            'AX' => [null, '报价超48小时原因类型'],
-            'AY' => [null, '报价超48小时分析'],
-            'AZ' => [null, '成单或失单'],
-            'BA' => [null, '失单原因类型'],
-            'BB' => [null, '失单原因分析'],
+            'J' => ['product_name', '产品名称'],
+            'K' => ['supplier_name', '供应商'],
+            'L' => ['model', '规格'],
+            'M' => [null, '图号'],
+            'N' => ['costprices', '价格'],
+            'O' => ['qty', '数量'],
+            'P' => ['unit', '单位'],
+            'Q' => [null, '油气or非油气'],
+            'R' => [null, '平台产品分类'],
+            'S' => [null, '产品分类'],
+            'T' => ['keruiflag', '是否科瑞设备用配件'],
+            'U' => ['bidflag', '是否投标'],
+            'V' => ['inflow_time', '转入日期'],
+            'W' => ['quote_deadline', '需用日期'],
+            'X' => [null, '澄清完成日期'],
+            'Y' => ['bq_time', '事业部报出日期'],
+            'Z' => ['ld_time', '物流接收日期'],
+            'AA' => ['la_time', '物流报出日期'],
+            'AB' => ['qs_time', '报出日期'],
+            'AC' => ['quoted_time', '报价用时(小时)'],
+            'AD' => ['agent_name', '市场负责人'],
+            'AE' => ['quote_name', '商务技术部报价人'],
+            'AF' => ['check_org_name', '事业部负责人'],
+            'AG' => ['brand', '产品品牌'],
+            'AH' => ['supplier_name', '报价单位'],
+            'AI' => [null, '供应商报价人'],
+            'AI' => [null, '报价人联系方式'],
+            'AK' => ['purchase_unit_price', '厂家单价（元）'],
+            'AL' => ['total', '厂家总价（元）'],
+            'AM' => [null, '利润率'],
+            'AN' => ['quote_unit_price', '报价单价（元）'],
+            'AO' => ['total_quote_price', '报价总价（元）'],
+            'AP' => ['total_quoted_price', '报价总金额（美金）'],
+            'AQ' => ['gross_weight_kg', '单重(kg)'],
+            'AR' => ['total_kg', '总重(kg)'],
+            'AS' => ['package_size', '包装体积(mm)'],
+            'AT' => ['package_mode', '包装方式'],
+            'AU' => ['delivery_days', '交货期（天）'],
+            'AV' => ['period_of_validity', '有效期（天）'],
+            'AW' => ['trade_terms_bn', '贸易术语'],
+            'AX' => ['istatus', '最新进度及解决方案'],
+            'AY' => ['iquote_status', '报价后状态'],
+            'AZ' => ['quote_notes', '备注'],
+            /*'BA' => [null, '报价超48小时原因类型'],
+            'BB' => [null, '报价超48小时分析'],
+            'BC' => [null, '成单或失单'],
+            'BD' => [null, '失单原因类型'],
+            'BE' => [null, '失单原因分析'],*/ //没用
         ];
     }
 
@@ -500,9 +509,9 @@ class SupplierInquiryModel extends PublicModel {
                 }
             }
         }
-        $objSheet->freezePaneByColumnAndRow(2, 1);
+        $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BB' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BD' . ($j + 2))->applyFromArray($styleArray);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . '导出的询报价单' . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -524,6 +533,105 @@ class SupplierInquiryModel extends PublicModel {
             return false;
         }
         return false;
+    }
+
+    //产品名称、规格、价格、供应商等信息
+
+    private function _setSupplierName(&$list) {
+        $supplier_ids = [];
+        foreach ($list as $item) {
+            if ($item['supplier_id']) {
+                $supplier_ids[] = $item['supplier_id'];
+            }
+        }
+        $suppliers_model = new SuppliersModel();
+        $supplier_names = $suppliers_model->getSupplierNameByIds($supplier_ids);
+
+        foreach ($list as $key => $item) {
+            if ($item['supplier_id'] && isset($supplier_names[$item['supplier_id']])) {
+                $list[$key]['supplier_name'] = $supplier_names[$item['supplier_id']]['name'];
+            }
+        }
+    }
+
+    private function _setProductName(&$list) {
+        $skus = [];
+        foreach ($list as $item) {
+            if ($item['sku']) {
+                $skus[] = $item['sku'];
+            }
+        }
+        $goods_model = new GoodsModel();
+        $product_names = $goods_model->getProductNamesBySkus($skus);
+
+        foreach ($list as $key => $item) {
+            if ($item['sku'] && isset($product_names[$item['sku']])) {
+                $list[$key]['product_name'] = $product_names[$item['sku']];
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setConstPrice(&$list) {
+        if ($list) {
+
+            $skus = [];
+            foreach ($list as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+
+            $goods_cost_price_model = new GoodsCostPriceModel();
+            $stockcostprices = $goods_cost_price_model->getCostPricesBySkus($skus);
+
+            foreach ($list as $key => $val) {
+
+                if ($val['spu'] && isset($stockcostprices[$val['sku']])) {
+                    if (isset($stockcostprices[$val['sku']])) {
+                        $price = '';
+                        foreach ($stockcostprices[$val['sku']] as $stockcostprice) {
+                            if ($stockcostprice['price'] && $stockcostprice['max_price']) {
+                                $price = $stockcostprice['price'] . '-' . $stockcostprice['max_price'];
+                            } elseif ($stockcostprice['price']) {
+                                $price = $stockcostprice['price'];
+                            } else {
+                                $price = '';
+                            }
+                        }
+                        $val['costprices'] = $price;
+                    }
+                } else {
+                    $val['costprices'] = '';
+                }
+                $list[$key] = $val;
+            }
+        }
+    }
+
+    private function date_diff($datetime1, $datetime2) {
+        $date_time2 = strtotime($datetime2);
+        $date_time1 = strtotime($datetime1);
+        $interval = ($date_time1-$date_time2)/3600;
+        return $interval;
+    }
+
+    private function _setquoted_time(&$list) {
+
+
+        foreach ($list as $key => $item) {
+            if ($item['qs_time']) {
+                $list[$key]['quoted_time'] = $this->date_diff($item['qs_time'], $item['created_at']);
+            } else {
+                $list[$key]['quoted_time'] = $this->date_diff(date('Y-m-d H:i:s'), $item['created_at']);
+            }
+        }
     }
 
 }

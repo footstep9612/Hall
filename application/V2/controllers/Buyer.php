@@ -165,16 +165,18 @@ class BuyerController extends PublicController {
      * CRM系统优化客户统计列表
      * wangs
      */
-    public function buyerStatisListAction(){
+    public function buyersStatisListAction(){
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
-            'code'=>0,
+            'code'=>1,
             'message'=>'返回数据',
-            'data'=>$ststisInfo
+            'count'=>intval($ststisInfo['totalCount']),
+            'currentPage'=>$ststisInfo['currentPage'],
+            'data'=>$ststisInfo['info']
         );
         $this->jsonReturn($dataJson);
 
@@ -891,7 +893,7 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-        //客户信用评价
+        //拜访记录
         $visit = new BuyerVisitModel();
         $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
         //客户需求反馈
