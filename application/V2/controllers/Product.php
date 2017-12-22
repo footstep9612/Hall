@@ -155,6 +155,7 @@ class ProductController extends PublicController {
      * @param string $lang 语言  选填 不填将处理全部语言
      */
     public function updateAction() {
+
         if (!isset($this->put_data['update_type'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM);
         }
@@ -181,6 +182,23 @@ class ProductController extends PublicController {
                 break;
             case 'verifyok':    //SPU审核通过
                 $productModel = new ProductModel();
+
+                //是否已审核 避免重复审核 maimaiti 2017-12-22
+                $spu_arr = explode(',', $this->put_data['spu']);
+                foreach ($spu_arr as $spu_item){
+                    $flag = $productModel->where(['spu'=>$spu_item,'status'=>'VALID','lang'=>$lang])->find();
+                    if ($flag){
+                        $result = 'SPU : ' .$spu_item. ' 已审核过,不能重复审核 ';
+                        $this->jsonReturn([
+                            'code' => -1,
+                            'message' => $result
+                        ]);
+                        break;
+                    }
+                }
+
+
+
                 $result = $productModel->updateStatus($this->put_data['spu'], $lang, $productModel::STATUS_VALID, $remark);
                 break;
             case 'verifyno':    //SPU审核驳回
