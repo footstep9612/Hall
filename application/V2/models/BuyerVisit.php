@@ -685,7 +685,7 @@ class BuyerVisitModel extends PublicModel {
             $cond .= " and buyer_code like '%$data[buyer_code]%'";
         }
         if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
-            $buyerModel = new BuyerModel();
+            $buyerModel= new BuyerModel();
             $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
             if (empty($buyer_ids)) {
                 return false;   //数据为空
