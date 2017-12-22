@@ -114,7 +114,7 @@ class BuyeragreementController extends PublicController
         $res = $agree->updateAgree($data);
         if($res == false || empty($data['attach_name']) || empty($data['attach_url'])){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '保存协议失败,请输入规范数据';
+            $dataJson['message'] = '请输入规范数据';
             $this -> jsonReturn($dataJson);
         }
         if($res === 'no_error'){
