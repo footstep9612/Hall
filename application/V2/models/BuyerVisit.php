@@ -681,7 +681,7 @@ class BuyerVisitModel extends PublicModel {
         if (isset($data['buyer_name']) || !empty($data['buyer_name'])) {  //客户名称
             $cond .= " and name like '%$data[buyer_name]%'";
         }
-        if (isset($data['buyer_code']) && !empty($data['buyer_code'])) {  //客户code
+        if (!empty($data['buyer_code'])) {  //客户code
             $cond .= " and buyer_code like '%$data[buyer_code]%'";
         }
         if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
