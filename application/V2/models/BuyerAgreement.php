@@ -468,7 +468,7 @@ class BuyerAgreementModel extends PublicModel
                 return false;
             }
         }
-        if($data['execute_start_at'] >= $data['execute_end_at']){
+        if($data['execute_start_at'] > $data['execute_end_at']){
             return false;
         }
         return true;
@@ -486,10 +486,8 @@ class BuyerAgreementModel extends PublicModel
         if($exRes){
             //保存数据
             unset($arr['execute_no']);
-            $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
-            if($res){
-                return $exRes['id'];
-            }
+            $this ->where(array('id'=>$exRes['id']))-> save($arr);
+            return $exRes['id'];
         }else{
             return 'no_error';
         }
