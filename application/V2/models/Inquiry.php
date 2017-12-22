@@ -24,6 +24,7 @@ class InquiryModel extends PublicModel {
     const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
     const viewAllRole = 'A012'; //查看全部询单角色编号
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
+    const viewCountryRole = 'A014'; //查看国家角色编号
     const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
     public $inquiryStatus = [
         'DRAFT' => '草稿',
@@ -252,9 +253,9 @@ class InquiryModel extends PublicModel {
             $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
         }
         
-        /*if (!empty($condition['org_id'])) {
+        if (!empty($condition['org_id'])) {
             $where['org_id'] = ['in', $condition['org_id']]; //事业部
-        }*/
+        }
     
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
