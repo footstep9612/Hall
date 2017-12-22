@@ -112,7 +112,7 @@ class OrderController extends PublicController {
      * @param int $order_id // 订单ID
      * @desc   交收信息
      */
-    public function LastAdressAction() {
+    public function ListAdressAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
@@ -128,6 +128,34 @@ class OrderController extends PublicController {
 
             $this->jsonReturn($order_address);
         } elseif ($order_address === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+
+            $this->jsonReturn(null);
+        }
+    }
+
+    /* 订单商品信息
+    * @param int $order_id // 订单ID
+    * @desc   商品信息
+    */
+    public function ListGoodsAction() {
+
+        $order_no = $this->getPut('order_no');
+        if (!$order_no) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        }
+
+        $order_goods_model = new OrderGoodsModel();
+        $order_goods = $order_goods_model->getList($order_no);
+
+        if ($order_goods) {
+            $order_goods['spec_attrs'] = json_decode($order_goods['spec_attrs'], true);
+            $this->jsonReturn($order_goods);
+        } elseif ($order_goods === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
@@ -207,7 +235,7 @@ class OrderController extends PublicController {
     }
 
     //订单评论
-    public function AddAction() {
+    public function AddCommentAction() {
         $condition = $this->getPut(); //查询条件
 
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {

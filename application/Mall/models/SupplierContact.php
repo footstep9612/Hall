@@ -40,6 +40,9 @@ class SupplierContactModel extends PublicModel
         if(isset($create['last_name'])){
             $arr['last_name'] = $create['last_name'];
         }
+        if(isset($create['contact_name'])){
+            $arr['contact_name'] = $create['contact_name'];
+        }
         if(isset($create['gender'])){
             $arr['gender'] = $create['gender'];
         }

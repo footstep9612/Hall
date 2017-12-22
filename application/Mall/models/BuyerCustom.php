@@ -130,19 +130,21 @@ class BuyerCustomModel extends PublicModel
      */
     protected function _getCondition($condition = []) {
         $where = [];
-        /*if (isset($condition['status']) && $condition['status']) {
-            switch ($condition['status']) {
-                case 'unsent':
-                    $where['status'] = 'UNSENT';
+        if (isset($condition['cat_name']) && $condition['cat_name']) {
+            switch ($condition['cat_name']) {
+                case 'Technology':
+                    $where['cat_name'] = 'Technology consulting and comprehensive solutions';
                     break;
-                case 'sented':
-                    $where['status'] = 'SENTED';
+                case 'Talent':
+                    $where['cat_name'] = 'Talent training';
+                    break;
+                case 'Humen':
+                    $where['cat_name'] = 'Humen resources';
                     break;
                 default :
                     break;
             }
-        }*/
-
+        }
         if (isset($condition['lang']) && $condition['lang']) {
             $where['lang'] = $condition['lang'];                  //语言
         }
@@ -155,8 +157,8 @@ class BuyerCustomModel extends PublicModel
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
             $where['created_at'] = array(
-                array('gt', $condition['start_time']),
-                array('lt', $condition['end_time'])
+                array('egt', $condition['start_time']),
+                array('elt', $condition['end_time'])
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态

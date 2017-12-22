@@ -277,7 +277,11 @@ class BuyerAccountModel extends PublicModel {
         } else {
             jsonReturn('', '-1001', '新密码不可以为空');
         }
-        return $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
 
     /*
