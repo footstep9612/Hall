@@ -121,6 +121,7 @@ class BuyercontactModel extends PublicModel
      * @author jhw
      */
     protected function getCondition($data = []) {
+        $where['deleted_flag'] = 'N';   //wangs 2017-12-22
         if (!empty($data['first_name'])) {
             $where['first_name'] =  ['like',"%".$data['first_name']."%"];
         }

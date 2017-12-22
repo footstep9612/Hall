@@ -84,7 +84,7 @@ class BuyeragreementController extends PublicController
             $dataJson['message'] = '协议，附件，创建成功';
         }else{
             $dataJson['code'] = 0;
-            $dataJson['message'] = '创建协议成功，附件创建失败';
+            $dataJson['message'] = '创建协议成功，附件创建为空';
         }
         $this -> jsonReturn($dataJson);
     }
@@ -129,7 +129,7 @@ class BuyeragreementController extends PublicController
             $dataJson['message'] = '保存协议成功';
         }else{
             $dataJson['code'] = 1;
-            $dataJson['message'] = '保存协议成功,附件失败';
+            $dataJson['message'] = '保存协议成功,附件为空';
         }
         $this -> jsonReturn($dataJson);
     }
