@@ -92,6 +92,36 @@ class ShowCatModel extends PublicModel {
     }
 
     /**
+     * 分类详情
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function info($cat_no, $country_bn, $lang) {
+        $where['deleted_flag'] = 'N';
+        if (empty($cat_no)) {
+            return [];
+        } else {
+            $where['cat_no'] = $cat_no;
+        }
+        if (empty($country_bn)) {
+            return [];
+        } else {
+            $where['country_bn'] = $country_bn;
+        }
+        if (empty($lang)) {
+            return [];
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)
+                ->order('sort_order DESC')
+                ->field('cat_no,name ,parent_cat_no')
+                ->find();
+        return $result;
+    }
+
+    /**
      * 根据条件获取查询条件
      * @param mix $condition
      * @return mix
