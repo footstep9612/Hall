@@ -53,19 +53,16 @@ class ProductRelationModel extends PublicModel {
      * @version V2.0
      * @desc  SPU关联
      */
-    public function getList($spu, $lang, $offset, $size, $condition = null) {
+    public function getList($spu, $lang, $offset, $size) {
         $product_model = new ProductModel();
         $product_table = $product_model->getTableName();
-//        $show_cat_product_model = new ShowCatProductModel();
-//        $show_cat_product_table = $show_cat_product_model->getTableName();
         $where = ['pr.spu' => $spu,
             'pr.lang' => $lang,
             'pr.deleted_flag' => 'N',
             'p.deleted_flag' => 'N'];
         return $this->alias('pr')
-                        ->field('pr.id,pr.lang,pr.spu,p.name,p.brand,p.material_cat_no,p.status')
+                        ->field('pr.id,pr.lang,pr.relation_spu,p.name,p.brand,p.material_cat_no,p.status')
                         ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=pr.lang ')
-                        //  ->join($show_cat_product_table . ' sp on sp.spu=pr.relation_spu and sp.lang=\'zh\' ')
                         ->where($where)
                         ->limit($offset, $size)
                         ->select();
@@ -93,8 +90,15 @@ class ProductRelationModel extends PublicModel {
      * @desc  SPU关联
      */
     public function getCont($spu, $lang) {
-        $where = ['spu' => $spu, 'lang' => $lang];
-        return $this->where($where)
+        $product_model = new ProductModel();
+        $product_table = $product_model->getTableName();
+        $where = ['pr.spu' => $spu,
+            'pr.lang' => $lang,
+            'pr.deleted_flag' => 'N',
+            'p.deleted_flag' => 'N'];
+        return $this->alias('pr')
+                        ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=pr.lang ')
+                        ->where($where)
                         ->count();
     }
 
