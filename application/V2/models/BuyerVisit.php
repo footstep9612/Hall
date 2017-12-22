@@ -679,11 +679,12 @@ class BuyerVisitModel extends PublicModel {
         if (isset($data['buyer_name']) || !empty($data['buyer_name'])) {  //客户名称
             $cond .= " and name like '%$data[buyer_name]%'";
         }
-        if (isset($data['buyer_code']) && !empty($data['buyer_code'])) {  //客户code
+        if (!empty($data['buyer_code'])) {  //客户code
             $cond .= " and buyer_code like '%$data[buyer_code]%'";
         }
         if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
-            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
+            $buyerModel= new BuyerModel();
+            $buyer_ids = $buyerModel->field('id,buyer_code')->where($cond)->order('id desc')->select();
             if (empty($buyer_ids)) {
                 return false;   //数据为空
             }

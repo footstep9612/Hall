@@ -910,7 +910,7 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-        //客户信用评价
+        //拜访记录
         $visit = new BuyerVisitModel();
         $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
         //客户需求反馈
