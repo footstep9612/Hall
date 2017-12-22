@@ -246,8 +246,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
-
-
+        $this->_getQureyByBool($condition, $body, ESClient::TERM, 'relation_flag', 'relation_flag');
+        $this->_getQureyByBool($condition, $body, ESClient::TERM, 'recommend_flag', 'recommend_flag');
 
         $this->_getQurey($condition, $body, ESClient::TERM, 'created_by');
         $this->_getQurey($condition, $body, ESClient::TERM, 'updated_by');
@@ -291,8 +291,10 @@ class EsProductModel extends Model {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
+
+
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
             $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['show_name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
