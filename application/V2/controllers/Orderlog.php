@@ -133,13 +133,13 @@ class OrderlogController extends PublicController{
                 $this->jsonReturn($results);
             }
         }
-        if($data['log_group'] == 'OUTBOUND') {
+        if($data['log_group'] == 'OUTGOING') {
             $hasOut = $OrderLog->where($logWhere)->getField('id');
             if (!$hasOut) {
                 $order_model->where($where)->setField(['pay_status'=>'OUTGOING']);
             }
         }
-        if($data['log_group'] == 'LOGISTICS') {
+        if($data['log_group'] == 'DISPATCHED') {
             $hasLogi = $OrderLog->where($logWhere)->getField('id');
             if (!$hasLogi) {
                 $order_model->where($where)->setField(['pay_status'=>'DISPATCHED']);
