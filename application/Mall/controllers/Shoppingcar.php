@@ -39,7 +39,7 @@ class ShoppingcarController extends PublicController{
     }
 
     /**
-     * sku列表信息
+     * 购物车/询单车的sku列表信息
      */
     public function skusAction(){
         $input = $this->getPut();
