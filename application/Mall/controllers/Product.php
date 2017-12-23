@@ -10,7 +10,7 @@ class ProductController extends PublicController {
 
     public function init() {
         $this->token = false;
-        parent::init();
+       // parent::init();
         $this->input = $this->getPut();
     }
 
@@ -27,7 +27,7 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
-        $stock = (isset($input['stock']) && !empty($input['stock'])) ? true : false;
+        $stock = (isset($input['type']) && !empty($input['type'])) ? true : false;
         if ($stock && (!isset($input['country_bn']) || empty($input['country_bn']))) {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '现货国家不能为开');
         }
@@ -49,6 +49,21 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $result = $productModel->getRelationSpu($input);
+        if ($result !== false) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    public function getSkusAction(){
+        $input = $this->getPut();
+        if (!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])) {
+            jsonReturn('', ErrorMsg::NOTNULL_SKU);
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel->getSkusList($input);
         if ($result !== false) {
             jsonReturn($result);
         } else {
