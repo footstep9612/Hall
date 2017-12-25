@@ -127,25 +127,23 @@ class BuyerattachModel extends PublicModel {
             'attach_group'=>'FINANCE',
             'deleted_flag'=>'N',
         );
-        $this->startTrans();    //开启事务
-        $exist = $this->where($cond)->find();
-        if(!empty($exist)){
-            $this->where($cond)->save(array('deleted_flag'=>'Y'));
-        }
-        $arr = array(
-            'buyer_id'=>$buyer_id,
-            'attach_group'=>'FINANCE',
-            'attach_name'=>$attach_name,
-            'attach_url'=>$attach_url,
-            'created_by'=>$created_by,
-            'created_at'=>date('Y-m-d H:i:s'),
-        );
-        $res = $this -> add($arr);
-        if($res){
-            $this->commit();
+        try{
+            $exist = $this->where($cond)->find();
+            if(!empty($exist)){
+                $this->where($cond)->save(array('deleted_flag'=>'Y'));
+            }
+            $arr = array(
+                'buyer_id'=>$buyer_id,
+                'attach_group'=>'FINANCE',
+                'attach_name'=>$attach_name,
+                'attach_url'=>$attach_url,
+                'created_by'=>$created_by,
+                'created_at'=>date('Y-m-d H:i:s'),
+            );
+            $this -> add($arr);
             return true;
-        }else{
-            $this->rollback();
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;
         }
     }
@@ -208,7 +206,7 @@ class BuyerattachModel extends PublicModel {
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by,
             'deleted_flag'=>$deleted_flag,
-            'attach_group'=>FINANCE
+            'attach_group'=>'FINANCE'
         );
         return $this->field('attach_name,attach_url')
             ->where($cond)
