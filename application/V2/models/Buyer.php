@@ -1338,6 +1338,7 @@ class BuyerModel extends PublicModel {
         $arr = array(
             'created_by'    => $created_by, //客户id
 //            'created_at'    => date('Y-m-d H:i:s'), //客户id
+            'build_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
             'official_phone'    => $data['official_phone'],    //公司固话
@@ -1352,6 +1353,12 @@ class BuyerModel extends PublicModel {
             'is_build' =>'1',//有效期
             'is_oilgas' =>$data['is_oilgas']//有效期
         );
+        //判断创建数据与编辑数据
+        $build = $this->field('is_build')->where(array('id'=>$data['buyer_id']))->find();
+        if($build['is_build'] == 1){
+            unset($arr['build_time']);
+            $arr['build_modify_time'] = date('Y-m-d H:i:s'); //客户档案信息修改时间---
+        }
         //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
@@ -1496,7 +1503,7 @@ class BuyerModel extends PublicModel {
             $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
-            $arr[$k]['created_at'] = $v['created_at'];  //创建时间
+            $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
             $arr[$k]['is_oilgas'] = $v['is_oilgas']='Y'?'是':'否';    //是否油气
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
@@ -1641,7 +1648,8 @@ class BuyerModel extends PublicModel {
                 'country_bn',   //国家
                 'buyer_code',   //客户编码
                 'name as buyer_name',   //客户名称
-                'created_at',   //创建时间
+//                'created_at',   //创建时间
+                'build_time',   //客户档案创建时间
                 'is_oilgas',   //是否油气
                 'buyer_level',   //客户等级
                 'level_at',   //等级设置时间
@@ -1669,7 +1677,7 @@ class BuyerModel extends PublicModel {
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
                 ->field($field)
                 ->where($cond)
-                ->order('buyer.id desc')
+                ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
             if(!empty($info)){
