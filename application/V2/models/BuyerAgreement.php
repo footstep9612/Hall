@@ -386,7 +386,7 @@ class BuyerAgreementModel extends PublicModel
         //添加
         $res = $this -> addAgree($arr);
         if($res){
-            return $this -> getLastInsID();
+            return $res;
         }
         return false;
     }
@@ -414,8 +414,9 @@ class BuyerAgreementModel extends PublicModel
         $agree = $this->where(array('execute_no'=>$execute_no))->find();
         if(!empty($agree)){
             //附件
+            $id = $agree['id'];
             $attach = new AgreementAttachModel();
-            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id'],'deleted_flag'=>'N'))->find();
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->find();
             $agree['attach_name'] = $attachInfo['attach_name'];
             $agree['attach_url'] = $attachInfo['attach_url'];
             //组织
@@ -433,7 +434,7 @@ class BuyerAgreementModel extends PublicModel
     public function addAgree($data){
         $res = $this -> add($data);
         if($res){
-            return true;
+            return $res;
         }
         return false;
     }

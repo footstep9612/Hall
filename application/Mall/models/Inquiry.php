@@ -81,6 +81,19 @@ class InquiryModel extends PublicModel {
                     }
                 }
             }
+            //添加询单联系人信息
+            $inquiryContactModel = new InquiryContactModel();
+            if ($res['code'] == 1 && isset($data['arr_contact']) && !empty($data['arr_contact'])) {
+                foreach ($data['arr_contact'] as $item) {
+                    $item['inquiry_id'] = $res['data']['id'];
+                    $item['created_by'] = $data['buyer_id'];
+                    $resContact = $inquiryContactModel->addData($item);
+                    if (!$resContact || $resContact['code'] != 1) {
+                        $this->rollback();
+                        return false;
+                    }
+                }
+            }
             $this->commit();
             return $res['data']['id'];
         } catch (Exception $e) {

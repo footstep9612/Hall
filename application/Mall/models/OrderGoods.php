@@ -23,8 +23,8 @@ class OrderGoodsModel extends PublicModel {
      * @param int $order_id // 订单ID
      */
 
-    public function getList($order_no) {
-        $where = $this->_getCondition($order_no);
+    public function getList($condition) {
+        $where = $this->_getCondition($condition);
         $field = 'id,order_no,sku,lang,name,model,spec_attrs,price,buy_number';
         $field .= ',min_pack_naked_qty,nude_cargo_unit,min_pack_unit,thumb,buyer_id';
         return $this->field($field)
@@ -33,12 +33,24 @@ class OrderGoodsModel extends PublicModel {
                      ->select();
     }
 
-    private function _getCondition($order_no) {
+    private function _getCondition($condition) {
         $where = [];
-        $this->_getValue($where, $order_no, 'order_no');
+        $this->_getValue($where, $condition, 'order_no');
         $where['deleted_flag'] = "N";
+
         return $where;
     }
+
+    /* 获取订单数量
+     */
+
+    public function getCount($condition) {
+
+        $where = $this->_getCondition($condition);
+
+        return $this->where($where)->count();
+    }
+
     /**
      * 数据字典
      * @var $data

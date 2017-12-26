@@ -126,7 +126,20 @@ class EmployeeModel extends PublicModel {
      */
     public function getUserIdByName($name) {
         
-        return $this->where(['name'=>['like', '%' . trim($name) . '%'], 'deleted_flag' => 'N'])->getField('id', true);
+        return $this->where(['name' => ['like', '%' . trim($name) . '%'], 'deleted_flag' => 'N'])->getField('id', true);
+    }
+    
+    /**
+     * @desc 根据用户编号获取ID
+     *
+     * @param string $no
+     * @return array
+     * @author liujf
+     * @time 2017-12-25
+     */
+    public function getUserIdByNo($no) {
+    
+        return $this->where(['user_no '=> trim($no), 'deleted_flag' => 'N'])->getField('id');
     }
 
     /**
