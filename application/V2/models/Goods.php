@@ -4072,12 +4072,47 @@ class GoodsModel extends PublicModel {
         $where[] = '(p.name is not null and p.name <>\'\' )  ';
         $result = $this->alias('g')
                         ->join($product_table . ' p on p.spu=g.spu and p.lang=g.lang and p.deleted_flag=\'N\'')
-                        ->where($where)->field('p.name as product_name,g.sku')->select();
+                        ->where($where)->field('p.name as product_name,g.sku,p.material_cat_no')->select();
 
         if ($result) {
             $data = [];
             foreach ($result as $item) {
                 $data[$item['sku']] = $item['product_name'];
+            }
+
+            return $data;
+        } else {
+            return [];
+        }
+    }
+
+    /*
+     * 根据skus 获取产品名称 物料分类编码
+     */
+
+    public function getProductNamesAndMaterialCatNoBySkus($skus, $lang = 'zh') {
+        $where = ['g.deleted_flag' => 'N'];
+        $product_model = new ProductModel();
+        $product_table = $product_model->getTableName();
+        if (is_array($skus) && $skus) {
+            $where['g.sku'] = ['in', $skus];
+        } else {
+            return [];
+        }
+        if (empty($lang)) {
+            $where['g.lang'] = 'zh';
+        } else {
+            $where['g.lang'] = $lang;
+        }
+        $where[] = '(p.name is not null and p.name <>\'\' )  ';
+        $result = $this->alias('g')
+                        ->join($product_table . ' p on p.spu=g.spu and p.lang=g.lang and p.deleted_flag=\'N\'')
+                        ->where($where)->field('p.name as product_name,g.sku,p.material_cat_no')->select();
+
+        if ($result) {
+            $data = [];
+            foreach ($result as $item) {
+                $data[$item['sku']] = $item;
             }
 
             return $data;
