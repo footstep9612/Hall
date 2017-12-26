@@ -93,7 +93,7 @@ class ShoppingCarModel extends PublicModel{
      * @param $input
      * @param type 0 询单车  1购物车
      */
-    public function edit($input){
+    public function edit($input,$userInfo){
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
@@ -107,12 +107,11 @@ class ShoppingCarModel extends PublicModel{
         }
 
         try{
-            $userInfo = getLoinInfo();
             $this->startTrans();
             foreach($input['skus'] as $sku => $count){
                 $data = [
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id'],
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id'],
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'buy_number' => trim($count),
@@ -124,7 +123,7 @@ class ShoppingCarModel extends PublicModel{
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id']
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id']
                 ];
                 $result = $this->field('id')->where($condition)->find();
                 if($result){

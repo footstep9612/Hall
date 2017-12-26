@@ -21,7 +21,6 @@ class ShoppingcarController extends PublicController{
         if(!isset($input['type'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM , 'type不能为空');
         }
-
         $condition = ['buyer_id' =>$this->user['buyer_id'], 'lang' => $input['lang']];
         $condition['type'] = $input['type'];
         if($condition['type']) {
@@ -77,6 +76,9 @@ class ShoppingcarController extends PublicController{
      */
     public function createAction(){
         $input = $this->getPut();
+        if(!$this->user || !isset($this->user['buyer_id'])){
+            jsonReturn('',ErrorMsg::NOLOGIN);
+        }
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
@@ -90,7 +92,7 @@ class ShoppingcarController extends PublicController{
         }
 
         $scModel = new ShoppingCarModel();
-        $result = $scModel->edit($input);
+        $result = $scModel->edit($input,$this->user);
         if($result !== false){
             jsonReturn($result);
         }else{
