@@ -283,13 +283,20 @@ class InquiryController extends PublicController {
         $isShow = false;
 
         foreach ($this->user['role_no'] as $roleNo) {
-            if ($roleNo == $inquiryModel::viewAllRole) {
-                $isShow = true;
-                break;
+            if ($condition['view_type'] == 'dept') {
+                if ($roleNo == $inquiryModel::viewAllRole) {
+                    $isShow = true;
+                    break;
+                }
+                if ($roleNo == $inquiryModel::viewBizDeptRole) {
+                    $isShow = true;
+                    $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
+                    break;
+                }
             }
-            if ($roleNo == $inquiryModel::viewBizDeptRole) {
+            
+            if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
                 $isShow = true;
-                //$condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
                 $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : ['-1'];
                 break;
             }
