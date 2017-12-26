@@ -115,15 +115,14 @@ class ProductrelationController extends PublicController {
         if ($arr) {
             $show_cat_product_model = new ShowCatProductModel();
             $spus = [];
+
             foreach ($arr as $key => $val) {
-                $spus[] = $val['spu'];
+                $spus[] = $val['relation_spu'];
             }
-
             $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, $lang);
-
             foreach ($arr as $key => $val) {
-                if ($val['spu'] && isset($show_cat_products[$val['spu']])) {
-                    $val['onshelf_flag'] = $show_cat_products[$val['spu']];
+                if ($val['relation_spu'] && isset($show_cat_products[$val['relation_spu']])) {
+                    $val['onshelf_flag'] = $show_cat_products[$val['relation_spu']];
                 } else {
                     $val['onshelf_flag'] = 'N';
                 }
