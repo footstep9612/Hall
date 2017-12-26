@@ -1339,6 +1339,7 @@ class BuyerModel extends PublicModel {
             'created_by'    => $created_by, //客户id
 //            'created_at'    => date('Y-m-d H:i:s'), //客户id
             'build_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
+            'build_modify_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
             'official_phone'    => $data['official_phone'],    //公司固话
@@ -1356,7 +1357,7 @@ class BuyerModel extends PublicModel {
         //判断创建数据与编辑数据
         $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();
         if($build['is_build'] == 1){
-            $arr['build_modify_time'] = date('Y-m-d H:i:s'); //客户档案信息修改时间---
+//            $arr['build_modify_time'] = date('Y-m-d H:i:s'); //客户档案信息修改时间---
             if($build['build_time'] !== NULL){
                 unset($arr['build_time']);
             }
