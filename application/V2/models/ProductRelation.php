@@ -64,7 +64,7 @@ class ProductRelationModel extends PublicModel {
                         ->field('pr.id,pr.lang,pr.relation_spu,p.name,p.brand,p.material_cat_no,p.status')
                         ->join($product_table . ' p on p.spu=pr.relation_spu and p.lang=pr.lang ')
                         ->where($where)
-                        ->order('id desc')
+                        ->order('pr.id desc')
                         ->limit($offset, $size)
                         ->select();
     }
