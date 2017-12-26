@@ -54,6 +54,12 @@ class InquiryContactModel extends PublicModel
         if(isset($condition['company'])){
             $data['company'] = trim($condition['company']);
         }
+        if(isset($condition['country_bn'])){
+            $data['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['city'])){
+            $data['city'] = trim($condition['city']);
+        }
         if(isset($condition['phone'])){
             $data['phone'] = trim($condition['phone']);
             if(isset($condition['tel_code'])){
@@ -62,6 +68,9 @@ class InquiryContactModel extends PublicModel
         }
         if(isset($condition['email'])){
             $data['email'] = trim($condition['email']);
+        }
+        if(isset($condition['addr'])){
+            $data['addr'] = trim($condition['addr']);
         }
         if(isset($condition['remarks'])){
             $data['remarks'] = trim($condition['remarks']);
