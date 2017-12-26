@@ -1354,10 +1354,12 @@ class BuyerModel extends PublicModel {
             'is_oilgas' =>$data['is_oilgas']//有效期
         );
         //判断创建数据与编辑数据
-        $build = $this->field('is_build')->where(array('id'=>$data['buyer_id']))->find();
+        $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();
         if($build['is_build'] == 1){
-            unset($arr['build_time']);
             $arr['build_modify_time'] = date('Y-m-d H:i:s'); //客户档案信息修改时间---
+            if($build['build_time'] !== NULL){
+                unset($arr['build_time']);
+            }
         }
         //非必须数据
         $baseArr = array(
