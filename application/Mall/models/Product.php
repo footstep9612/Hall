@@ -268,12 +268,10 @@ class ProductModel extends PublicModel {
                 //附件图
                 $attachModel = new ProductAttachModel();
                 $attachs = $attachModel->getAttachBySpu($spus);
+
                 $dataAttach = [];
                 foreach ($attachs as $r) {
                     if (isset($dataAttach[$r['spu']])) {
-                        if ($r['default_flag'] == 'Y') {
-                            $dataAttach[$r['spu']] = $r['attach_url'];
-                        }
                         continue;
                     }
                     $dataAttach[$r['spu']] = $r['attach_url'];
