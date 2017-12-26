@@ -50,7 +50,7 @@ class ProductrelationController extends PublicController {
 
         if ($data) {
             $this->_setMaterialCat($data, $lang);
-            $this->_setOnshelfFlag($data);
+            $this->_setOnshelfFlag($data, $lang);
 
             $count = $product_relation_model->getCont($spu, $lang);
             $this->setvalue('count', $count);
@@ -111,7 +111,7 @@ class ProductrelationController extends PublicController {
      * @desc
      */
 
-    private function _setOnshelfFlag(&$arr) {
+    private function _setOnshelfFlag(&$arr, $lang) {
         if ($arr) {
             $show_cat_product_model = new ShowCatProductModel();
             $spus = [];
@@ -119,7 +119,7 @@ class ProductrelationController extends PublicController {
                 $spus[] = $val['spu'];
             }
 
-            $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, 'zh');
+            $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, $lang);
 
             foreach ($arr as $key => $val) {
                 if ($val['spu'] && isset($show_cat_products[$val['spu']])) {
