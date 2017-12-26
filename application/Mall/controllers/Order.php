@@ -177,12 +177,14 @@ class OrderController extends PublicController {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         }
-
+        $condition['order_no'] = $order_no;
         $order_goods_model = new OrderGoodsModel();
-        $order_goods = $order_goods_model->getList($order_no);
+        $order_goods = $order_goods_model->getList($condition);
+        $order_count = $order_goods_model->getCount($condition);
 
         if ($order_goods) {
-            $order_goods['spec_attrs'] = json_decode($order_goods['spec_attrs'], true);
+            $this->_setinfos($order_goods);
+            $this->setvalue('count', intval($order_count));
             $this->jsonReturn($order_goods);
         } elseif ($order_goods === null) {
             $this->setCode(MSG::ERROR_EMPTY);
