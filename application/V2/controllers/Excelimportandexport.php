@@ -44,7 +44,7 @@ class ExcelimportandexportController extends PublicController {
         $classify = $this->_getTempletAndAttach($condition['floder']);
         
         // 获取模板数据
-        $templetData = ExcelHelperTrait::ready2import($classify['templet'][0]);
+        $templetData = $this->_trim(ExcelHelperTrait::ready2import($classify['templet'][0]));
         
         /* 批量导入数据*/
         $dataIndex = 0;
@@ -52,8 +52,7 @@ class ExcelimportandexportController extends PublicController {
         // 没有客户的订单执行单号
         $noBuyerExecuteNoArr = [];
         foreach ($templetData as $data) {
-            if ($dataIndex > 1 && !empty($data)) {
-                $data = $this->_trim($data);
+            if ($dataIndex > 1 && $data[1] != '') {
                 $buyerId = $this->buyerModel->where(['name' => $data[3], 'buyer_code' => $data[4], 'deleted_flag' => 'N'])->getField('id');
                 // 没有客户就不插入该数据，记录订单执行单号
                 if (!$buyerId) {
@@ -212,14 +211,13 @@ class ExcelimportandexportController extends PublicController {
         if (!in_array($logGroup, $logGroupArr)) jsonReturn('', -101, '需要正确的日志分组类别!');
     
         // 获取模板数据
-        $templetData = ExcelHelperTrait::ready2import($classify['templet'][0]);
+        $templetData = $this->_trim(ExcelHelperTrait::ready2import($classify['templet'][0]));
     
         /* 批量导入数据*/
         $dataIndex = 0;
         $importOrderLogList = $orderIdMapping = $attachNameMapping = [];
         foreach ($templetData as $data) {
-            if ($dataIndex > 1 && !empty($data)) {
-                $data = $this->_trim($data);
+            if ($dataIndex > 1 && $data[0] != '') {
                 $orderId = $this->orderModel->where(['execute_no' => $data[0], 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
                 // 订单执行单号和订单ID的映射关系
                 $orderIdMapping[$data[0]] = $orderId;
