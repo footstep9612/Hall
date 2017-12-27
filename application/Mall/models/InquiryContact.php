@@ -63,7 +63,7 @@ class InquiryContactModel extends PublicModel
         if(isset($condition['phone'])){
             $data['phone'] = trim($condition['phone']);
             if(isset($condition['tel_code'])){
-                $data['phone'] = trim($condition['tel_code']).' '.$condition['phone'];
+                $data['phone'] = trim($condition['tel_code']).' '.$data['phone'];
             }
         }
         if(isset($condition['email'])){
