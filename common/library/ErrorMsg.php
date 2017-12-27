@@ -14,6 +14,7 @@ class ErrorMsg {
     const SUCCESS = 1;
     const EXIST =100;
     const ERROR_REQUEST_MATHOD = 302;
+    const NOLOGIN = 102;
 
     /**
      * 产品级错误
@@ -41,6 +42,7 @@ class ErrorMsg {
             '0' => '失败',
             '1' => '成功',
             '100' => '已经存在',
+            '102' => '未登陆',
             '302' => '请求方法有误',
 
             /**
