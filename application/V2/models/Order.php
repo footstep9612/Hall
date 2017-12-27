@@ -52,6 +52,12 @@ class OrderModel extends PublicModel {
 
             case 'COMPLETED':
                 return '已完成';
+                
+            case 'OUTGOING':
+                return '已出库';
+            
+            case 'DISPATCHED':
+                return '已发运';
 
             default :return'待确认';
         }
