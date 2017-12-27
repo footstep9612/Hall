@@ -79,7 +79,7 @@ class ShowCatModel extends PublicModel {
         try {
             $result = $this->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->field('cat_no as value,name as label,parent_cat_no,small_icon')
                     ->select();
 
             redisHashSet($this->tableName, $redis_key, json_encode($result));
