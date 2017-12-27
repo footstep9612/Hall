@@ -346,7 +346,7 @@ class SupplierInquiryModel extends PublicModel {
                 . ' left join ' . $market_area_table . ' ma on ma.bn=mac.market_area_bn '
                 . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
         $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
-        $field .= 'i.buyer_code,it.remarks,it.name_zh,it.name,it.model,it.qty,it.unit,';
+        $field .= 'i.buyer_code,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
         $field .= 'i.quote_deadline,qt.supplier_id,qt.purchase_price_cur_bn,';
@@ -381,7 +381,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
-        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
+        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,qt.inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
         $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
@@ -442,7 +442,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setOilFlag($list);
         $this->_setMaterialCat($list, 'zh');
         $this->_setCalculatePrice($list);
-
+        $this->_setBizDespatching($list);
         return $this->_createXls($list);
     }
 
@@ -459,7 +459,7 @@ class SupplierInquiryModel extends PublicModel {
             'E' => ['org_name', '事业部'],
             'F' => ['ie_erui', '是否走易瑞'],
             'G' => ['buyer_code', '客户名称或代码'],
-            'H' => ['remarks', '客户及项目背景描述'],
+            'H' => ['project_basic_info', '客户及项目背景描述'],
             'I' => ['name_zh', '品名中文'],
             'J' => ['name', '品名外文'],
             'K' => ['product_name', '产品名称'],
@@ -484,7 +484,7 @@ class SupplierInquiryModel extends PublicModel {
             'AD' => [null, '获单主体单位)'],
             'AE' => [null, '获取人)'],
             'AF' => ['agent_name', '市场负责人'],
-            'AG' => [null, '事业部分单人'],
+            'AG' => ['biz_despatching', '事业部分单人'],
             'AH' => ['quote_name', '商务技术部报价人'],
             'AI' => ['check_org_name', '事业部负责人'],
             'AJ' => ['brand', '产品品牌'],
@@ -596,6 +596,63 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
     }
+
+    private function _setBizDespatching(&$list) {
+
+        $inquiry_check_log_model = new InquiryCheckLogModel();
+        $employee_model = new EmployeeModel();
+        $employee_table = $employee_model->getTableName(); //管理员表
+        $country_employee_model = new CountryUserModel();
+        $country_employee_table = $country_employee_model->getTableName();
+        foreach ($list as $key => $item) {
+            if ($item['inquiry_id']) {
+                $biz_despatching = $inquiry_check_log_model->alias('icl')
+                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+                        ->join($employee_table . ' e on e.id=icl.agent_id')
+                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
+                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
+                            'out_node' => 'BIZ_DISPATCHING',
+                            'ce.country_bn' => $item['country_bn']
+                        ])
+                        ->group('icl.inquiry_id')
+                        ->find();
+                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
+            }
+        }
+    }
+
+//    private function _setBizDespatching(&$list) {
+//        $inquiry_ids = [];
+//
+//        foreach ($list as $item) {
+//            if ($item['inquiry_id']) {
+//                $inquiry_ids[] = $item['inquiry_id'];
+//            }
+//        }
+//        $inquiry_check_log_model = new InquiryCheckLogModel();
+//
+//        $employee_model = new EmployeeModel();
+//        $employee_table = $employee_model->getTableName(); //管理员表
+//        $biz_despatchings = $inquiry_check_log_model->alias('icl')
+//                ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+//                ->join($employee_table . ' e on e.id=icl.agent_id')
+//                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
+//                ->group('icl.inquiry_id')
+//                ->select();
+//        $bizdespatchings = [];
+//        if ($biz_despatchings) {
+//            foreach ($biz_despatchings as $biz_despatching) {
+//                if ($biz_despatching['inquiry_id']) {
+//                    $bizdespatchings[$biz_despatching['inquiry_id']] = $biz_despatching['biz_despatching'];
+//                }
+//            }
+//        }
+//        foreach ($list as $key => $item) {
+//            if ($item['inquiry_id'] && isset($bizdespatchings[$item['inquiry_id']])) {
+//                $list[$key]['biz_despatching'] = $bizdespatchings[$item['inquiry_id']];
+//            }
+//        }
+//    }
 
     private function _setProductName(&$list) {
         $skus = [];
