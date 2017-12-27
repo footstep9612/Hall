@@ -316,7 +316,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function Inquiryexport() {
+    public function Inquiryexport($condition) {
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName(); //国家表
         $market_area_country_model = new MarketAreaCountryModel();
@@ -422,17 +422,28 @@ class SupplierInquiryModel extends PublicModel {
 
         /*         * **最终报价单明细** */
 
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+        } elseif (!empty($condition['created_at_start'])) {
 
+            $created_at_start = trim($condition['created_at_start']);
+            $where['i.created_at'] = ['egt', $created_at_start];
+        } elseif (!empty($condition['created_at_end'])) {
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['elt', $created_at_end];
+        }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
                 ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
                 ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.inquiry_item_id=it.id', 'left')
                 ->join($final_quote_item_table . ' as fqt on fqt.deleted_flag=\'N\' and fqt.inquiry_id=i.id and fqt.inquiry_item_id=it.id and fqt.quote_item_id=qt.id', 'left')
                 ->field($field)
-                ->where(['i.deleted_flag' => 'N',
-                    'i.status' => ['neq', 'DRAFT'],
-                        // 'i.serial_no' => 'INQ_20171107_00008',
-                ])
+                ->where($where)
                 ->select();
 
         $this->_setSupplierName($list);

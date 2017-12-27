@@ -90,8 +90,9 @@ class SupplierinquiryController extends PublicController {
 
     public function InquiryexportAction() {
         ini_set('memory_limit', '1G');
+        $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        $data = $supplier_inquiry_model->Inquiryexport();
+        $data = $supplier_inquiry_model->Inquiryexport($condition);
 
         if ($data) {
             $this->jsonReturn($data);
