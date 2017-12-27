@@ -326,6 +326,8 @@ class ShowcatController extends PublicController {
         $redis3 = new phpredis($rconfig);
         $keys = $redis3->getKeys('ShowCats_*');
         $redis3->delete($keys);
+        $eruikeys = $redis3->getKeys('eruiShowCats_*');
+        $redis3->delete($eruikeys);
         unset($redis3);
     }
 
