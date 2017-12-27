@@ -581,6 +581,29 @@ class ShowCatModel extends PublicModel {
     }
 
     /**
+     * 更新数据
+     * @param  mix $upcondition 更新条件
+     * @return bool
+     * @author zyg
+     */
+    public function updateico_data($cat_no, $upcondition = []) {
+        $data = [];
+        if (!empty($upcondition['small_icon'])) {
+            $data['small_icon'] = trim($upcondition['small_icon']);
+        }
+        if (!empty($upcondition['middle_icon'])) {
+            $data['middle_icon'] = trim($upcondition['middle_icon']);
+        }
+        if (!empty($upcondition['big_icon'])) {
+            $data['big_icon'] = trim($upcondition['big_icon']);
+        }
+        $data['updated_by'] = defined('UID') ? UID : 0;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $flag = $this->where(['cat_no' => $cat_no])->save($data);
+        return $flag;
+    }
+
+    /**
      * 更新子分类数据和 产品商品展示分类信息
      * @param  mix $upcondition 更新条件
      * @return mix
