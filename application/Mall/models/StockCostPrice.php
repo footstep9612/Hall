@@ -48,7 +48,7 @@ class StockCostPriceModel extends PublicModel {
         $result = $this->field($field)->where($where)
                 ->order('id asc')
                 ->select();
-        echo $this->_sql();
+
         if ($result) {
             $data = array();
             //按类型分组
