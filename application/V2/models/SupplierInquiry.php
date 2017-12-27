@@ -387,6 +387,8 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+
+
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
         $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
@@ -477,33 +479,38 @@ class SupplierInquiryModel extends PublicModel {
             'Y' => ['bq_time', '事业部报出日期'],
             'Z' => ['ld_time', '物流接收日期'],
             'AA' => ['la_time', '物流报出日期'],
-            'AB' => ['quoted_time', '报出日期'],
+            'AB' => ['qs_time', '报出日期'],
             'AC' => ['quoted_time', '报价用时(小时)'],
             'AD' => [null, '获单主体单位)'],
             'AE' => [null, '获取人)'],
             'AF' => ['agent_name', '市场负责人'],
-            'AG' => ['quote_name', '商务技术部报价人'],
-            'AH' => ['check_org_name', '事业部负责人'],
-            'AI' => ['brand', '产品品牌'],
-            'AJ' => ['supplier_name', '报价单位'],
-            'AK' => [null, '报价人联系方式'],
-            'AL' => ['purchase_unit_price', '厂家单价（元）'],
-            'AM' => ['total', '厂家总价（元）'],
-            'AN' => ['gross_profit_rate', '利润率'],
-            'AO' => ['quote_unit_price', '报价单价（元）'],
-            'AP' => ['total_quote_price', '报价总价（元）'],
-            'AQ' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AR' => ['gross_weight_kg', '单重(kg)'],
-            'AS' => ['total_kg', '总重(kg)'],
-            'AT' => ['package_size', '包装体积(mm)'],
-            'AU' => ['package_mode', '包装方式'],
-            'AV' => ['delivery_days', '交货期（天）'],
-            'AW' => ['period_of_validity', '有效期（天）'],
-            'AX' => ['trade_terms_bn', '贸易术语'],
-            'AY' => ['istatus', '最新进度及解决方案'],
-            'AZ' => ['iquote_status', '报价后状态'],
-            'BA' => ['quote_notes', '备注'],
-            'BB' => ['reason_for_no_quote', '未报价分析'],
+            'AG' => [null, '事业部分单人'],
+            'AH' => ['quote_name', '商务技术部报价人'],
+            'AI' => ['check_org_name', '事业部负责人'],
+            'AJ' => ['brand', '产品品牌'],
+            'AK' => ['supplier_name', '报价单位'],
+            'AL' => [null, '报价人联系方式'],
+            'AM' => ['purchase_unit_price', '厂家单价（元）'],
+            'AN' => ['purchase_price_cur_bn', '币种'],
+            'AO' => ['total', '厂家总价（元）'],
+            'AP' => ['purchase_price_cur_bn', '币种'],
+            'AQ' => ['gross_profit_rate', '利润率'],
+            'AR' => ['quote_unit_price', '报价单价（元）'],
+            'AS' => ['purchase_price_cur_bn', '币种'],
+            'AT' => ['total_quote_price', '报价总价（元）'],
+            'AU' => ['purchase_price_cur_bn', '币种'],
+            'AV' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AW' => ['gross_weight_kg', '单重(kg)'],
+            'AX' => ['total_kg', '总重(kg)'],
+            'AY' => ['package_size', '包装体积(mm)'],
+            'AZ' => ['package_mode', '包装方式'],
+            'BA' => ['delivery_days', '交货期（天）'],
+            'BB' => ['period_of_validity', '有效期（天）'],
+            'BC' => ['trade_terms_bn', '贸易术语'],
+            'BD' => ['istatus', '最新进度及解决方案'],
+            'BE' => ['iquote_status', '报价后状态'],
+            'BF' => ['quote_notes', '备注'],
+            'BG' => ['reason_for_no_quote', '未报价分析'],
 //            'BA' => [null, '报价超48小时原因类型'],
 //            'BB' => [null, '报价超48小时分析'],
 //            'BC' => [null, '成单或失单'],
@@ -546,9 +553,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BB' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:BB' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:BB' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:BG' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . '导出的询报价单' . date('YmdHi') . '.xls';
         $objWriter->save($file);
