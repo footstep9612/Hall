@@ -1,16 +1,54 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: linkai
- * Date: 2017/12/20
- * Time: 18:57
+ * User: klp
+ * Date: 2017/12/21
+ * Time: 18:04
  */
-class OrderGoodsModel extends PublicModel{
+class OrderGoodsModel extends PublicModel {
+
+    //put your code here
     protected $tableName = 'order_goods';
     protected $dbName = 'erui_order'; //数据库名称
 
+    //状态
+//pay_status status show_status
+
     public function __construct() {
         parent::__construct();
+    }
+
+
+    /* 获取商品详情
+     * @param int $order_id // 订单ID
+     */
+
+    public function getList($condition) {
+        $where = $this->_getCondition($condition);
+        $field = 'id,order_no,sku,lang,name,model,spec_attrs,price,buy_number';
+        $field .= ',min_pack_naked_qty,nude_cargo_unit,min_pack_unit,thumb,buyer_id';
+        return $this->field($field)
+                     ->where($where)
+                     ->order('id desc')
+                     ->select();
+    }
+
+    private function _getCondition($condition) {
+        $where = [];
+        $this->_getValue($where, $condition, 'order_no');
+        $where['deleted_flag'] = "N";
+
+        return $where;
+    }
+
+    /* 获取订单数量
+     */
+
+    public function getCount($condition) {
+
+        $where = $this->_getCondition($condition);
+
+        return $this->where($where)->count();
     }
 
     /**
@@ -73,6 +111,7 @@ class OrderGoodsModel extends PublicModel{
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderAddressModel】 add:' . $e , Log::ERR);
             return false;
         }
+
     }
 
 }

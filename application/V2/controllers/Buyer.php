@@ -21,7 +21,7 @@ class BuyerController extends PublicController {
      * 用户列表
      * */
 
-    public function buyerStatisListAction() {
+    public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
@@ -893,7 +893,7 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-        //客户信用评价
+        //拜访记录
         $visit = new BuyerVisitModel();
         $visitInfo = $visit->singleVisitInfo($data['buyer_id']);
         //客户需求反馈

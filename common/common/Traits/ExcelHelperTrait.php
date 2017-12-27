@@ -114,9 +114,19 @@ trait ExcelHelperTrait {
         //后期改为配置文件
         $mimes = [
             'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
             'gif' => 'image/gif',
             'png' => 'image/png',
+            'bmp' => 'image/bmp',
             'html' => 'text/html',
+            'doc' => 'application/msword',
+            'docx' => 'application/msword',
+            'xls' => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.ms-excel',
+            'ppt' => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.ms-powerpoint',
+            'pdf' => 'application/pdf',
+            'rar' => 'application/x-rar-compressed',
             'zip' => 'application/zip'
         ];
         return isset($mimes[$ext]) ? $mimes[$ext] : 'application/octet-stream';

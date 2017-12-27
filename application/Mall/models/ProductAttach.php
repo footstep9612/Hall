@@ -44,7 +44,9 @@ class ProductAttachModel extends PublicModel {
         }
 
         try {
-            $attachs = $this->field('spu,attach_type,attach_name,attach_url,default_flag')->where($condition_attach)->order('sort_order')->select();
+            $attachs = $this->field('spu,attach_type,attach_name,attach_url,default_flag')
+                    ->where($condition_attach)->order('default_flag desc,sort_order desc')
+                    ->select();
             return $attachs ? $attachs : [];
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ProductAttach】getAttachBySpu:' . $e, Log::ERR);

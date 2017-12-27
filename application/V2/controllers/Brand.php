@@ -19,7 +19,11 @@ class BrandController extends PublicController {
 
         $brand_model = new BrandModel();
         $arr = $brand_model->getlist($condition, $lang);
-
+        if (!empty($condition['current_no'])) {
+            $current_no = intval($condition['current_no']);
+        } else {
+            $current_no = 1;
+        }
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
 
@@ -36,6 +40,7 @@ class BrandController extends PublicController {
         if ($arr) {
             $count = $brand_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
+            $this->setvalue('current_no', $current_no);
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($arr);
         } elseif ($arr === null) {

@@ -81,6 +81,19 @@ class InquiryModel extends PublicModel {
                     }
                 }
             }
+            //添加询单联系人信息
+            $inquiryContactModel = new InquiryContactModel();
+            if ($res['code'] == 1 && isset($data['arr_contact']) && !empty($data['arr_contact'])) {
+                foreach ($data['arr_contact'] as $item) {
+                    $item['inquiry_id'] = $res['data']['id'];
+                    $item['created_by'] = $data['buyer_id'];
+                    $resContact = $inquiryContactModel->addData($item);
+                    if (!$resContact || $resContact['code'] != 1) {
+                        $this->rollback();
+                        return false;
+                    }
+                }
+            }
             $this->commit();
             return $res['data']['id'];
         } catch (Exception $e) {
@@ -148,8 +161,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('gt', $condition['start_time']),
-                array('lt', $condition['end_time'])
+                array('egt', $condition['start_time']),
+                array('elt', $condition['end_time'])
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态

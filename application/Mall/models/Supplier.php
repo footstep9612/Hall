@@ -105,6 +105,11 @@ class SupplierModel extends PublicModel {
         if (isset($create['supplier_type'])) {
             $data['supplier_type'] = $create['supplier_type'];
         }
+        if (isset($create['source'])) {
+            $data['source'] = $create['source'];
+        } else {
+            $data['source'] = 'Portal';
+        }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
         } else {

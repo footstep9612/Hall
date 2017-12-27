@@ -10,10 +10,9 @@ Target Server Type    : MYSQL
 Target Server Version : 50505
 File Encoding         : 65001
 
-Date: 2017-12-21 18:12:40
+Date: 2017-12-22 10:58:38
 */
-CREATE DATABASE IF NOT EXISTS erui_stock DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
-use erui_stock;
+
 SET FOREIGN_KEY_CHECKS=0;
 -- ----------------------------
 -- Table structure for `home_country`
@@ -399,17 +398,16 @@ CREATE TABLE `product_relation` (
   `updated_by` bigint(20) DEFAULT '0' COMMENT '删除人ID',
   `created_by` bigint(20) NOT NULL,
   `deleted_flag` char(1) DEFAULT 'N' COMMENT '删除标志 N表示 未删除',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `product_relation_lang_spu_relation_spu` (`lang`,`spu`,`relation_spu`) USING BTREE,
+  KEY `product_relation_spu` (`spu`),
+  KEY `product_relation_relation_spu` (`relation_spu`),
+  KEY `product_relation_deleted_flag` (`deleted_flag`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='SPU关联维护表';
 
 -- ----------------------------
 -- Records of product_relation
 -- ----------------------------
-INSERT INTO product_relation VALUES ('2', 'en', '1302030000530000', '1303070000060000', '2017-12-06 13:29:54', null, null, '0', '0', '38699', 'N');
-INSERT INTO product_relation VALUES ('3', 'en', '1302030000530000', '1303070000070000', '2017-12-06 13:29:54', null, null, '0', '0', '38699', 'N');
-INSERT INTO product_relation VALUES ('4', 'en', '1302030000530000', '2307010000190000', '2017-12-06 13:29:54', null, null, '0', '0', '38699', 'N');
-INSERT INTO product_relation VALUES ('5', 'en', '1302030000530000', '1302010000080000', '2017-12-21 16:02:28', null, null, '0', '0', '38699', 'N');
-INSERT INTO product_relation VALUES ('6', 'en', '1302030000530000', '1302010000060000', '2017-12-21 16:06:21', null, null, '0', '0', '38699', 'N');
 
 -- ----------------------------
 -- Table structure for `stock`
@@ -444,8 +442,8 @@ CREATE TABLE `stock` (
 -- ----------------------------
 -- Records of stock
 -- ----------------------------
-INSERT INTO stock VALUES ('3', 'en', 'China', '3101100000020000', '3101100000010001', '1', '0', 'VARCO Top Drive Lower Cock', 'VARCO Top Drive Lower Cock', '1', 'VALID', null, '0', '2017-12-06 17:30:57', '38699', null, null, 'N');
-INSERT INTO stock VALUES ('85', 'en', 'China', '1302010000090000', '1302010000090001', '1', '0', 'Helmet', 'V-type helmet', '1', 'VALID', '2017-12-15 17:52:20', '38699', '2017-12-13 11:20:05', '38699', '2017-12-13 11:28:12', '38699', 'Y');
+INSERT INTO stock VALUES ('3', 'en', 'China', '3101100000020000', '3101100000010001', '1', '0', 'VARCO Top Drive Lower Cock', 'VARCO Top Drive Lower Cock', '5', 'VALID', null, '0', '2017-12-06 17:30:57', '38699', null, null, 'N');
+INSERT INTO stock VALUES ('85', 'en', 'China', '1302010000090000', '1302010000090001', '1', '0', 'Helmet', 'V-type helmet', '50', 'VALID', '2017-12-15 17:52:20', '38699', '2017-12-13 11:20:05', '38699', '2017-12-13 11:28:12', '38699', 'Y');
 INSERT INTO stock VALUES ('86', 'en', 'China', '1302010000090000', '1302010000090002', '1', '0', 'Helmet', 'V-type helmet', '1', 'VALID', '2017-12-15 17:52:20', '38699', '2017-12-13 11:20:05', '38699', '2017-12-13 11:28:12', '38699', 'Y');
 INSERT INTO stock VALUES ('87', 'en', 'China', '1302010000090000', '1302010000090003', '1', '0', 'Helmet', 'V-type helmet', '1', 'VALID', null, '0', '2017-12-13 11:20:05', '38699', '2017-12-13 11:28:12', '38699', 'N');
 INSERT INTO stock VALUES ('88', 'en', 'China', '1302010000090000', '1302010000090004', '1', '0', 'Helmet', 'V-type helmet', '1', 'VALID', null, '0', '2017-12-13 11:20:05', '38699', '2017-12-13 11:28:12', '38699', 'N');

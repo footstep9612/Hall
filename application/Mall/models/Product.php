@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 产品
  * Created by PhpStorm.
@@ -6,7 +7,8 @@
  * Date: 2017/12/8
  * Time: 11:45
  */
-class ProductModel extends PublicModel{
+class ProductModel extends PublicModel {
+
     protected $tableName = 'product';
     protected $dbName = 'erui_goods'; //数据库名称
 
@@ -20,41 +22,40 @@ class ProductModel extends PublicModel{
      * @param string $lang
      * @return bool|mixed
      */
-    public function getInfoBySpu($spu = '',$lang = '', $stock = false, $country_bn = ''){
-        if(empty($spu) || empty($lang)){
+    public function getInfoBySpu($spu = '', $lang = '', $stock = false, $country_bn = '') {
+        if (empty($spu) || empty($lang)) {
             return false;
         }
 
-        $condition = ['spu'=>$spu,'lang'=>$lang, 'status'=>'VALID', 'deleted_flag'=>'N'];
-        try{
+        $condition = ['spu' => $spu, 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N'];
+        try {
             $spuInfo = $this->field('spu,name,show_name,customization_flag,brand,exe_standard,warranty,resp_time,resp_rate,description,exe_standard,tech_paras,advantages,principle,app_scope,properties')->where($condition)->find();
-            if($spuInfo){
+            if ($spuInfo) {
                 //附件
                 $attachModel = new ProductAttachModel();
                 $attachs = $attachModel->getAttachBySpu($spu);
                 $spuInfo['attach'] = $attachs ? $attachs : [];
 
                 //最小订货数量
-                $condition_order = ['spu'=>$spu, 'lang'=>$lang, 'status'=>'VALID', 'deleted_flag'=>'N'];
-                if($stock){
+                $condition_order = ['spu' => $spu, 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N'];
+                if ($stock) {
                     $stockModel = new StockModel();
                     $condition_order['country_bn'] = $country_bn;
                     $stockAry = $stockModel->field('sku,stock')->where($condition_order)->select();
                     $skus = [];
                     $stocks = 0;
-                    foreach($stockAry as $r){
+                    foreach ($stockAry as $r) {
                         $skus[] = $r['sku'];
                         $stocks = $stocks + $r['stock'];
                     }
                     $spuInfo['stock'] = $stocks;    //库存
-
                     //现货价格
                     $scpModel = new StockCostPriceModel();
-                    $condition_price = ['country_bn'=>$country_bn, 'sku'=>['in',$skus], 'status'=>'VALID', 'deleted_flag'=>'N', 'price_validity_start'=>['elt',date('Y-m-d',time())]];
+                    $condition_price = ['country_bn' => $country_bn, 'sku' => ['in', $skus], 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
                     $priceInfo = $scpModel->field('min_price')->where($condition_price)->order('min_price')->find();
                     $spuInfo['price'] = $priceInfo ? $priceInfo['min_price'] : '';
 
-                    $condition_order = ['sku'=>['in',$skus],'lang'=>$lang];    //现货初始化最小订货量查询条件
+                    $condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
                 $goodsModel = new GoodsModel();
                 $min_order_qty = $goodsModel->field('min_order_qty,min_pack_unit,exw_days')->where($condition_order)->order('min_order_qty')->find();
@@ -63,8 +64,8 @@ class ProductModel extends PublicModel{
                 $spuInfo['exw_days'] = $min_order_qty ? $min_order_qty['exw_days'] : '';
             }
             return $spuInfo ? $spuInfo : false;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getInfoBySpu:' . $e , Log::ERR);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getInfoBySpu:' . $e, Log::ERR);
             return false;
         }
     }
@@ -74,50 +75,50 @@ class ProductModel extends PublicModel{
      * @param $input
      * @return array|bool
      */
-    public function getSkuList($input){
-        if(!isset($input['spu']) || empty($input['spu'])){
+    public function getSkuList($input) {
+        if (!isset($input['spu']) || empty($input['spu'])) {
             jsonReturn('', ErrorMsg::NOTNULL_SPU);
         }
 
-        if(!isset($input['lang']) || empty($input['lang'])){
+        if (!isset($input['lang']) || empty($input['lang'])) {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
-        $condition = ['spu'=>$input['spu'], 'lang'=>$input['lang']];
+        $condition = ['spu' => $input['spu'], 'lang' => $input['lang']];
 
-        try{
+        try {
             //现货处理
             $stock = false;
             $skus = [];
-            if(isset($input['type']) && isset($input['country_bn']) && $input['type'] && $input['country_bn']){
+            if (isset($input['type']) && isset($input['country_bn']) && $input['type'] && $input['country_bn']) {
                 $stock = true;
-                $condition_stock = ['spu'=>$input['spu'], 'lang'=>$input['lang'], 'country_bn'=>$input['country_bn'], 'status'=>'VALID', 'deleted_flag'=>'N'];
+                $condition_stock = ['spu' => $input['spu'], 'lang' => $input['lang'], 'country_bn' => $input['country_bn'], 'status' => 'VALID', 'deleted_flag' => 'N'];
                 $stockModel = new StockModel();
                 $stockSku = $stockModel->field('sku,stock')->where($condition_stock)->select();
-                foreach($stockSku as $item){
+                foreach ($stockSku as $item) {
                     $skus[] = $item['sku'];
-                    $skuStock[$item['sku']] =  $item['stock'];
+                    $skuStock[$item['sku']] = $item['stock'];
                 }
-                $condition['sku'] = ['in',$skus];
+                $condition['sku'] = ['in', $skus];
             }
 
             //订货号
-            if(isset($input['sku']) && !empty($input['sku'])){
+            if (isset($input['sku']) && !empty($input['sku'])) {
                 $condition['sku'] = $input['sku'];
             }
 
             //型号
-            if(isset($input['model']) && !empty($input['model'])){
+            if (isset($input['model']) && !empty($input['model'])) {
                 $condition['model'] = $input['model'];
             }
 
             //包装数量
-            if(isset($input['min_pack_naked_qty']) && !empty($input['min_pack_naked_qty'])){
+            if (isset($input['min_pack_naked_qty']) && !empty($input['min_pack_naked_qty'])) {
                 $condition['min_pack_naked_qty'] = $input['min_pack_naked_qty'];
             }
 
             //出货周期
-            if(isset($input['exw_days']) && !empty($input['exw_days'])){
+            if (isset($input['exw_days']) && !empty($input['exw_days'])) {
                 $condition['exw_days'] = $input['exw_days'];
             }
             $condition['status'] = 'VALID';
@@ -127,37 +128,37 @@ class ProductModel extends PublicModel{
             $pageSize = (isset($input['pageSize']) && is_numeric($input['pageSize'])) ? $input['pageSize'] : 10;
 
             $goodsModel = new GoodsModel();
-            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where($condition)->limit(($current_no-1)*$pageSize,$pageSize)->select();
-            if($result){
+            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where($condition)->limit(($current_no - 1) * $pageSize, $pageSize)->select();
+            if ($result) {
                 //扩展属性
                 $gattrModel = new GoodsAttrModel();
-                $condition_attr = ['spu'=>$input['spu'], 'lang'=>$input['lang'], 'deleted_flag'=>'N'];
+                $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
                 $attr_key = $attr_value = [];
-                foreach($attrs as $index => $attr){
-                    $attrInfo = json_decode($attr['spec_attrs'],true);
-                    foreach($attrInfo as $key => $value){
-                        if(!isset($attr_key[$key])){
+                foreach ($attrs as $index => $attr) {
+                    $attrInfo = json_decode($attr['spec_attrs'], true);
+                    foreach ($attrInfo as $key => $value) {
+                        if (!isset($attr_key[$key])) {
                             $attr_key[$key] = $key;
                         }
                         $attr_value[$attr['sku']][$key] = $value;
                     }
                 }
 
-                if($stock){
+                if ($stock) {
                     //现货价格
-                    foreach($result as $index =>$item){
-                        $priceInfo = self::getSkuPriceByCount($item['sku'],$input['country_bn'],$item['min_order_qty']);
+                    foreach ($result as $index => $item) {
+                        $priceInfo = self::getSkuPriceByCount($item['sku'], $input['country_bn'], $item['min_order_qty']);
                         $result[$index]['price'] = $priceInfo['price'];
                         $result[$index]['price_cur_bn'] = $priceInfo['price_cur_bn'];
                         $result[$index]['price_symbol'] = $priceInfo['price_symbol'];
                     }
                 }
             }
-            return $result ? ['skuAry'=>$result, 'stockAry'=>$skuStock ? $skuStock : [], 'attr_key'=>$attr_key, 'attr_value'=>$attr_value] : [];
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $e , Log::ERR);
+            return $result ? ['skuAry' => $result, 'stockAry' => $skuStock ? $skuStock : [], 'attr_key' => $attr_key, 'attr_value' => $attr_value] : [];
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $e, Log::ERR);
             return false;
         }
     }
@@ -166,36 +167,36 @@ class ProductModel extends PublicModel{
      * 根据sku 获取商品基本信息
      * @return array|bool
      */
-    public function getSkusList($input){
-        if(!isset($input['skus']) || empty($input['skus'])){
+    public function getSkusList($input) {
+        if (!isset($input['skus']) || empty($input['skus'])) {
             jsonReturn('', ErrorMsg::NOTNULL_SKU);
         }
 
-        if(!isset($input['lang']) || empty($input['lang'])){
+        if (!isset($input['lang']) || empty($input['lang'])) {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
-        if(isset($input['type']) && $input['type']){
-            if(!isset($input['buyNumber']) || empty($input['buyNumber'])){
+        if (isset($input['type']) && $input['type']) {
+            if (!isset($input['buyNumber']) || empty($input['buyNumber'])) {
                 jsonReturn('', ErrorMsg::ERROR_PARAM, 'buyNumber not null');
             }
             $productModel = new ProductModel();
         }
 
-        try{
+        try {
             $gmodel = new GoodsModel();
             $gtable = $gmodel->getTableName();
             $thisTable = $this->getTableName();
-            $condition = ["$gtable.sku"=>['in', $input['skus']], "$gtable.lang"=>$input['lang'], "$gtable.deleted_flag"=>'N', "$gtable.status"=>'VALID'];
+            $condition = ["$gtable.sku" => ['in', $input['skus']], "$gtable.lang" => $input['lang'], "$gtable.deleted_flag" => 'N', "$gtable.status" => 'VALID'];
             $result = $gmodel->field("$gtable.sku,$gtable.name,$gtable.show_name,$gtable.model,$gtable.min_pack_naked_qty,$gtable.nude_cargo_unit,$gtable.min_pack_unit,$gtable.min_order_qty,$thisTable.name as spu_name,$thisTable.show_name as spu_show_name")->join("$thisTable ON $gtable.spu=$thisTable.spu AND $gtable.lang=$thisTable.lang")->where($condition)->select();
             $attachs = [];
             $attrs = [];
-            if($result){
+            if ($result) {
 
                 $skuAry = [];
-                foreach($result as $index =>$r){
+                foreach ($result as $index => $r) {
                     $skuAry[] = $r['sku'];
-                    if($input['type']){
+                    if ($input['type']) {
                         $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $input['buyNumber'][$r['sku']]);
                     }
                     $result[$r['sku']] = $r;
@@ -205,25 +206,25 @@ class ProductModel extends PublicModel{
 
                 //库存
                 $stockAry = [];
-                if($condition['type']) {
-                    $stockAry = $productModel->getSkuStockBySku( $input['skus'] , $input['country_bn'] , $input[ 'lang' ] );
+                if ($condition['type']) {
+                    $stockAry = $productModel->getSkuStockBySku($input['skus'], $input['country_bn'], $input['lang']);
                 }
 
                 $gattrModel = new GoodsAttrModel();
-                $condition_attr = ['sku'=>['in',$skuAry], 'lang'=>$input['lang'], 'deleted_flag'=>'N'];
+                $condition_attr = ['sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
-                foreach($attrs as $index =>$attr){
-                    $attrs[$attr['sku']] = json_decode($attr['spec_attrs'],true);
+                foreach ($attrs as $index => $attr) {
+                    $attrs[$attr['sku']] = json_decode($attr['spec_attrs'], true);
                     unset($index);
                 }
 
 
                 $gaModel = new GoodsAttachModel();
-                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku'=>['in',$skuAry], 'deleted_flag'=>'N', 'status'=>'VALID'])->select();
-                if($attachInfo){
-                    foreach($attachInfo as $item){
-                        if(isset($attachs[$item['sku']])){
-                            if($item['default_flag'] = 'Y'){
+                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+                if ($attachInfo) {
+                    foreach ($attachInfo as $item) {
+                        if (isset($attachs[$item['sku']])) {
+                            if ($item['default_flag'] = 'Y') {
                                 $attachs[$item['sku']] = $item;
                             }
                             continue;
@@ -232,9 +233,9 @@ class ProductModel extends PublicModel{
                     }
                 }
             }
-            return $result ? ['skuAry'=>$result, 'attachAry'=>$attachs , 'attrAry'=>$attrs, 'stockAry'=>$stockAry] : [];
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkusList:' . $e , Log::ERR);
+            return $result ? ['skuAry' => $result, 'attachAry' => $attachs, 'attrAry' => $attrs, 'stockAry' => $stockAry] : [];
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkusList:' . $e, Log::ERR);
             return false;
         }
     }
@@ -242,45 +243,44 @@ class ProductModel extends PublicModel{
     /**
      * 关联产品
      */
-    public function getRelationSpu($input){
-        if(!isset($input['spu']) || empty($input['spu'])){
+    public function getRelationSpu($input) {
+        if (!isset($input['spu']) || empty($input['spu'])) {
             jsonReturn('', ErrorMsg::NOTNULL_SPU);
         }
 
-        if(!isset($input['lang']) || empty($input['lang'])){
+        if (!isset($input['lang']) || empty($input['lang'])) {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
-        $condition = ['spu'=>$input['spu'], 'lang'=>$input['lang']];
+        $condition = ['spu' => $input['spu'], 'lang' => $input['lang']];
         try {
             $RelationModel = new ProductRelationModel();
-            $relationSpu = $RelationModel->field( 'relation_spu' )->where( $condition )->select();
-            $data = [ ];
-            if ( $relationSpu ) {
-                $spus = [ ];
-                foreach ( $relationSpu as $index => $item ) {
-                    $spus[] = $item[ 'relation_spu' ];
+            $relationSpu = $RelationModel->field('relation_spu')->where($condition)->select();
+            $data = [];
+            if ($relationSpu) {
+                $spus = [];
+                foreach ($relationSpu as $index => $item) {
+                    $spus[] = $item['relation_spu'];
                 }
-                $data[ 'spu' ] = $this->field( 'show_name,name,spu' )->where( [ 'spu' => [ 'in' , $spus ] , 'lang' => $input[ 'lang' ] ] )->select();
+                $data['spu'] = $this->field('show_name,name,spu')
+                                ->where(['spu' => ['in', $spus], 'lang' => $input['lang']])->select();
 
                 //附件图
                 $attachModel = new ProductAttachModel();
-                $attachs = $attachModel->getAttachBySpu( $spus );
-                $dataAttach = [ ];
-                foreach ( $attachs as $r ) {
-                    if ( isset( $dataAttach[ $r[ 'spu' ] ] ) ) {
-                        if ( $r[ 'default_flag' ] == 'Y' ) {
-                            $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
-                        }
+                $attachs = $attachModel->getAttachBySpu($spus);
+
+                $dataAttach = [];
+                foreach ($attachs as $r) {
+                    if (isset($dataAttach[$r['spu']])) {
                         continue;
                     }
-                    $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
+                    $dataAttach[$r['spu']] = $r['attach_url'];
                 }
-                $data[ 'thumbs' ] = $dataAttach;
+                $data['thumbs'] = $dataAttach;
             }
             return $data;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getRelationSpu:' . $e , Log::ERR);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getRelationSpu:' . $e, Log::ERR);
             return false;
         }
     }
@@ -288,26 +288,26 @@ class ProductModel extends PublicModel{
     /**
      * 根据相应数量返回相应价格
      */
-    public function getSkuPriceByCount($sku='', $country_bn='', $count=''){
-        if(!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($count) || !is_numeric($count)){
+    public function getSkuPriceByCount($sku = '', $country_bn = '', $count = '') {
+        if (!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($count) || !is_numeric($count)) {
             return '';
         }
 
-        $condition = ['sku'=>$sku, 'country_bn'=>$country_bn, 'price_validity_start'=>['elt',date('Y-m-d',time())], 'min_purchase_qty'=>['elt',$count]];
-        try{
+        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'min_purchase_qty' => ['elt', $count]];
+        try {
             $scpModel = new StockCostPriceModel();
             $priceInfo = $scpModel->field('min_price as price,min_purchase_qty,max_purchase_qty,price_validity_end,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty DESC')->select();
-            if($priceInfo){
-                foreach($priceInfo as $item){
-                    if(($item['price_validity_end'] >= date('Y-m-d',time()) || empty($item['price_validity_end'])) && (empty($item['max_purchase_qty']) || $item['max_purchase_qty']>= $count)){
+            if ($priceInfo) {
+                foreach ($priceInfo as $item) {
+                    if (($item['price_validity_end'] >= date('Y-m-d', time()) || empty($item['price_validity_end'])) && (empty($item['max_purchase_qty']) || $item['max_purchase_qty'] >= $count)) {
                         return $item;
                         break;
                     }
                 }
             }
             return '';
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuPriceByCount:' . $e , Log::ERR);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuPriceByCount:' . $e, Log::ERR);
             return false;
         }
     }
@@ -318,35 +318,35 @@ class ProductModel extends PublicModel{
      * @param string $country_bn
      * @return array
      */
-    public function getSkuStockBySku($sku,$country_bn='',$lang=''){
-        if(!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($lang) || empty($lang)){
+    public function getSkuStockBySku($sku, $country_bn = '', $lang = '') {
+        if (!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($lang) || empty($lang)) {
             return [];
         }
 
-        if(is_array($sku)){
-            $condition['sku'] = ['in',$sku];
-        }else{
+        if (is_array($sku)) {
+            $condition['sku'] = ['in', $sku];
+        } else {
             $condition['sku'] = $sku;
         }
         $condition['country_bn'] = $country_bn;
         $condition['lang'] = $lang;
         $condition['deleted_flag'] = 'N';
         $condition['status'] = 'VALID';
-        try{
+        try {
             $sModel = new StockModel();
             $stockInfo = $sModel->field('stock,sku,spu,country_bn,lang')->where($condition)->order('stock DESC')->select();
             $data = [];
-            if($stockInfo){
-                foreach($stockInfo as $item){
-                    if(isset($data[$item['sku']])){
+            if ($stockInfo) {
+                foreach ($stockInfo as $item) {
+                    if (isset($data[$item['sku']])) {
                         continue;
                     }
                     $data[$item['sku']] = $item;
                 }
             }
             return $data;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuStockBySku:' . $e , Log::ERR);
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuStockBySku:' . $e, Log::ERR);
             return false;
         }
     }

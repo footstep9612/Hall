@@ -20,7 +20,8 @@ class BuyerAgentModel extends PublicModel{
      * @param mix $condition
      * @return mix
      */
-    public function getlist($where) {
+    public function getlist($buyer_id) {
+        $where['buyer_agent.buyer_id'] = $buyer_id;
         return $this->where($where)
             ->field('buyer_agent.id,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.show_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
             ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')

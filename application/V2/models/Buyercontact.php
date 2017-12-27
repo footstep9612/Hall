@@ -297,6 +297,7 @@ class BuyercontactModel extends PublicModel
             'deleted_flag'=>'N',
         );
         $fieldArr = array(
+            'id', //id
             'name', //联系人名字
             'title', //联系人职位
             'phone', //联系人电话

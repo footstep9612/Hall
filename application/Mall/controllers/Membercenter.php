@@ -25,7 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
-        $this->user['buyer_id'] = 1;//测试  后期去掉哦
+        //$this->user['buyer_id'] = 1;//测试  后期去掉哦
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');
@@ -128,22 +128,12 @@ class MembercenterController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         list($start_no, $pagesize) = $this->_getPage($data);
+        $condition['buyer_id'] = $this->user['buyer_id'];
+        $condition['log_group'] = 'CREDIT';
         $OrderLog = new OrderLogModel();
-        list($result, $count) = $OrderLog->CerditList($this->user, $start_no, $pagesize);
-        if (!empty($result)) {
-            $datajson['code'] = 1;
-            $datajson['count'] = $count;
-            $datajson['data'] = $result;
-        } elseif ($result === null) {
-            $datajson['code'] = -1002;
-            $datajson['count'] = 0;
-            $datajson['message'] = '参数错误!';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['count'] = 0;
-            $datajson['message'] = '失败!';
-        }
-        $this->jsonReturn($datajson);
+        $results = $OrderLog->getBuyerLogList($condition, $start_no, $pagesize);
+        $this->jsonReturn($results);
+
     }
 
     /**
@@ -152,9 +142,9 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function agentlistAction() {
-        $where['buyer_id'] = $this->user['buyer_id'];
+        $buyer_id = $this->user['buyer_id'];
         $model = new BuyerAgentModel();
-        $res = $model->getlist($where);
+        $res = $model->getlist($buyer_id);
         if (!empty($res)) {
             $datajson['code'] = 1;
             $datajson['data'] = $res;

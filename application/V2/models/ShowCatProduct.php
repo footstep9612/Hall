@@ -300,6 +300,8 @@ class ShowCatProductModel extends PublicModel {
 
     public function getOnshelfFlagBySpus($spus, $lang = 'en') {
         try {
+
+
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
                         ->field('scp.spu,scp.onshelf_flag')
