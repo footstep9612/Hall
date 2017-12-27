@@ -41,7 +41,7 @@ class OrderlogController extends PublicController{
             foreach ($orderLogList as $orderLog) {
                 if (trim($orderLog['waybill_no']) != '') $waybillNo[] = $orderLog['waybill_no'];
             }
-            $res['waybill_no'] = implode(',', $waybillNo);
+            if ($waybillNo) $res['waybill_no'] = implode(',', $waybillNo);
         }
         
         $this->jsonReturn($results);
