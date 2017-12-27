@@ -29,18 +29,26 @@ class StockCostPriceModel extends PublicModel {
      * @return array|mixed
      */
     public function getCostPriceBySkus($skus = [], $country_bn) {
+        $date = date('Y-m-d H:i:s');
         $where = array(
             'sku' => ['in', $skus],
             'deleted_flag' => 'N',
             'country_bn' => $country_bn,
-            'price_validity_end' => ['gt', date('Y-m-d H:i:s')],
+            'price_validity_start' => ['elt', $date],
+            //  'price_validity_end' => ['gt', date('Y-m-d H:i:s')],
             'status' => 'VALID'
         );
+        $table_name = $this->getTableName();
+        $map2[$table_name . '.`price_validity_end`'] = ['gt', $date];
+        $map2['price_validity_end'] = '0000-00-00';
+        $map2[] = 'price_validity_end is null';
+        $map2['_logic'] = 'or';
+        $where[]['_complex'] = $map2;
         $field = 'sku,supplier_id,min_price,price_symbol,max_price,max_promotion_price,min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end';
         $result = $this->field($field)->where($where)
                 ->order('id asc')
                 ->select();
-
+        echo $this->_sql();
         if ($result) {
             $data = array();
             //按类型分组
