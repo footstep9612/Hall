@@ -346,7 +346,7 @@ class SupplierInquiryModel extends PublicModel {
                 . ' left join ' . $market_area_table . ' ma on ma.bn=mac.market_area_bn '
                 . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
         $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
-        $field .= 'i.buyer_code,it.remarks,it.name_zh,it.name,it.model,it.qty,it.unit,';
+        $field .= 'i.buyer_code,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
         $field .= 'i.quote_deadline,qt.supplier_id,qt.purchase_price_cur_bn,';
@@ -381,12 +381,14 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
-        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
+        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,qt.inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
         $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+
+
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
         $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
@@ -440,7 +442,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setOilFlag($list);
         $this->_setMaterialCat($list, 'zh');
         $this->_setCalculatePrice($list);
-
+        $this->_setBizDespatching($list);
         return $this->_createXls($list);
     }
 
@@ -457,7 +459,7 @@ class SupplierInquiryModel extends PublicModel {
             'E' => ['org_name', '事业部'],
             'F' => ['ie_erui', '是否走易瑞'],
             'G' => ['buyer_code', '客户名称或代码'],
-            'H' => ['remarks', '客户及项目背景描述'],
+            'H' => ['project_basic_info', '客户及项目背景描述'],
             'I' => ['name_zh', '品名中文'],
             'J' => ['name', '品名外文'],
             'K' => ['product_name', '产品名称'],
@@ -477,33 +479,38 @@ class SupplierInquiryModel extends PublicModel {
             'Y' => ['bq_time', '事业部报出日期'],
             'Z' => ['ld_time', '物流接收日期'],
             'AA' => ['la_time', '物流报出日期'],
-            'AB' => ['quoted_time', '报出日期'],
+            'AB' => ['qs_time', '报出日期'],
             'AC' => ['quoted_time', '报价用时(小时)'],
             'AD' => [null, '获单主体单位)'],
             'AE' => [null, '获取人)'],
             'AF' => ['agent_name', '市场负责人'],
-            'AG' => ['quote_name', '商务技术部报价人'],
-            'AH' => ['check_org_name', '事业部负责人'],
-            'AI' => ['brand', '产品品牌'],
-            'AJ' => ['supplier_name', '报价单位'],
-            'AK' => [null, '报价人联系方式'],
-            'AL' => ['purchase_unit_price', '厂家单价（元）'],
-            'AM' => ['total', '厂家总价（元）'],
-            'AN' => ['gross_profit_rate', '利润率'],
-            'AO' => ['quote_unit_price', '报价单价（元）'],
-            'AP' => ['total_quote_price', '报价总价（元）'],
-            'AQ' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AR' => ['gross_weight_kg', '单重(kg)'],
-            'AS' => ['total_kg', '总重(kg)'],
-            'AT' => ['package_size', '包装体积(mm)'],
-            'AU' => ['package_mode', '包装方式'],
-            'AV' => ['delivery_days', '交货期（天）'],
-            'AW' => ['period_of_validity', '有效期（天）'],
-            'AX' => ['trade_terms_bn', '贸易术语'],
-            'AY' => ['istatus', '最新进度及解决方案'],
-            'AZ' => ['iquote_status', '报价后状态'],
-            'BA' => ['quote_notes', '备注'],
-            'BB' => ['reason_for_no_quote', '未报价分析'],
+            'AG' => ['biz_despatching', '事业部分单人'],
+            'AH' => ['quote_name', '商务技术部报价人'],
+            'AI' => ['check_org_name', '事业部负责人'],
+            'AJ' => ['brand', '产品品牌'],
+            'AK' => ['supplier_name', '报价单位'],
+            'AL' => [null, '报价人联系方式'],
+            'AM' => ['purchase_unit_price', '厂家单价（元）'],
+            'AN' => ['purchase_price_cur_bn', '币种'],
+            'AO' => ['total', '厂家总价（元）'],
+            'AP' => ['purchase_price_cur_bn', '币种'],
+            'AQ' => ['gross_profit_rate', '利润率'],
+            'AR' => ['quote_unit_price', '报价单价（元）'],
+            'AS' => ['purchase_price_cur_bn', '币种'],
+            'AT' => ['total_quote_price', '报价总价（元）'],
+            'AU' => ['purchase_price_cur_bn', '币种'],
+            'AV' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AW' => ['gross_weight_kg', '单重(kg)'],
+            'AX' => ['total_kg', '总重(kg)'],
+            'AY' => ['package_size', '包装体积(mm)'],
+            'AZ' => ['package_mode', '包装方式'],
+            'BA' => ['delivery_days', '交货期（天）'],
+            'BB' => ['period_of_validity', '有效期（天）'],
+            'BC' => ['trade_terms_bn', '贸易术语'],
+            'BD' => ['istatus', '最新进度及解决方案'],
+            'BE' => ['iquote_status', '报价后状态'],
+            'BF' => ['quote_notes', '备注'],
+            'BG' => ['reason_for_no_quote', '未报价分析'],
 //            'BA' => [null, '报价超48小时原因类型'],
 //            'BB' => [null, '报价超48小时分析'],
 //            'BC' => [null, '成单或失单'],
@@ -546,9 +553,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BB' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:BB' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:BB' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:BG' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . '导出的询报价单' . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -589,6 +596,63 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
     }
+
+    private function _setBizDespatching(&$list) {
+
+        $inquiry_check_log_model = new InquiryCheckLogModel();
+        $employee_model = new EmployeeModel();
+        $employee_table = $employee_model->getTableName(); //管理员表
+        $country_employee_model = new CountryUserModel();
+        $country_employee_table = $country_employee_model->getTableName();
+        foreach ($list as $key => $item) {
+            if ($item['inquiry_id']) {
+                $biz_despatching = $inquiry_check_log_model->alias('icl')
+                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+                        ->join($employee_table . ' e on e.id=icl.agent_id')
+                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
+                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
+                            'out_node' => 'BIZ_DISPATCHING',
+                            'ce.country_bn' => $item['country_bn']
+                        ])
+                        ->group('icl.inquiry_id')
+                        ->find();
+                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
+            }
+        }
+    }
+
+//    private function _setBizDespatching(&$list) {
+//        $inquiry_ids = [];
+//
+//        foreach ($list as $item) {
+//            if ($item['inquiry_id']) {
+//                $inquiry_ids[] = $item['inquiry_id'];
+//            }
+//        }
+//        $inquiry_check_log_model = new InquiryCheckLogModel();
+//
+//        $employee_model = new EmployeeModel();
+//        $employee_table = $employee_model->getTableName(); //管理员表
+//        $biz_despatchings = $inquiry_check_log_model->alias('icl')
+//                ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+//                ->join($employee_table . ' e on e.id=icl.agent_id')
+//                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
+//                ->group('icl.inquiry_id')
+//                ->select();
+//        $bizdespatchings = [];
+//        if ($biz_despatchings) {
+//            foreach ($biz_despatchings as $biz_despatching) {
+//                if ($biz_despatching['inquiry_id']) {
+//                    $bizdespatchings[$biz_despatching['inquiry_id']] = $biz_despatching['biz_despatching'];
+//                }
+//            }
+//        }
+//        foreach ($list as $key => $item) {
+//            if ($item['inquiry_id'] && isset($bizdespatchings[$item['inquiry_id']])) {
+//                $list[$key]['biz_despatching'] = $bizdespatchings[$item['inquiry_id']];
+//            }
+//        }
+//    }
 
     private function _setProductName(&$list) {
         $skus = [];
