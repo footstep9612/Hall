@@ -48,7 +48,7 @@ class ExcelimportandexportController extends PublicController {
         
         /* 批量导入数据*/
         $dataIndex = 0;
-        $importOrderList = $importBuyerContactList = $importOrderContactList = $importDeliveryList = $importAddressList = $importPaymentList = $executeNoArr = $orderIdMapping = $importAttachList = $attachNameMapping = [];
+        $importOrderList = $importBuyerContactList = $importOrderContactList = $importDeliveryList = $importAddressList = $importPaymentList = $executeNoArr = $orderIdMapping = $attachNameMapping = [];
         // 没有客户的订单执行单号
         $noBuyerExecuteNoArr = [];
         foreach ($templetData as $data) {
@@ -216,7 +216,7 @@ class ExcelimportandexportController extends PublicController {
     
         /* 批量导入数据*/
         $dataIndex = 0;
-        $importOrderLogList = $orderIdMapping = $importAttachList = $attachNameMapping = [];
+        $importOrderLogList = $orderIdMapping = $attachNameMapping = [];
         foreach ($templetData as $data) {
             if ($dataIndex > 1 && !empty($data)) {
                 $data = $this->_trim($data);
@@ -391,6 +391,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-26
      */
     private  function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
+        $importAttachList = [];
         foreach ($attachList as $attach) {
             // 执行附件上传
             $fileInfo = $this->_upload2FastDFS($attach);
