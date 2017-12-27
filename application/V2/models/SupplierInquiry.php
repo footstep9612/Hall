@@ -608,62 +608,62 @@ class SupplierInquiryModel extends PublicModel {
         }
     }
 
-    private function _setBizDespatching(&$list) {
-
-        $inquiry_check_log_model = new InquiryCheckLogModel();
-        $employee_model = new EmployeeModel();
-        $employee_table = $employee_model->getTableName(); //管理员表
-        $country_employee_model = new CountryUserModel();
-        $country_employee_table = $country_employee_model->getTableName();
-        foreach ($list as $key => $item) {
-            if ($item['inquiry_id']) {
-                $biz_despatching = $inquiry_check_log_model->alias('icl')
-                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
-                        ->join($employee_table . ' e on e.id=icl.agent_id')
-                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
-                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
-                            'out_node' => 'BIZ_DISPATCHING',
-                            'ce.country_bn' => $item['country_bn']
-                        ])
-                        ->group('icl.inquiry_id')
-                        ->find();
-                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
-            }
-        }
-    }
-
 //    private function _setBizDespatching(&$list) {
-//        $inquiry_ids = [];
 //
-//        foreach ($list as $item) {
-//            if ($item['inquiry_id']) {
-//                $inquiry_ids[] = $item['inquiry_id'];
-//            }
-//        }
 //        $inquiry_check_log_model = new InquiryCheckLogModel();
-//
 //        $employee_model = new EmployeeModel();
 //        $employee_table = $employee_model->getTableName(); //管理员表
-//        $biz_despatchings = $inquiry_check_log_model->alias('icl')
-//                ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
-//                ->join($employee_table . ' e on e.id=icl.agent_id')
-//                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
-//                ->group('icl.inquiry_id')
-//                ->select();
-//        $bizdespatchings = [];
-//        if ($biz_despatchings) {
-//            foreach ($biz_despatchings as $biz_despatching) {
-//                if ($biz_despatching['inquiry_id']) {
-//                    $bizdespatchings[$biz_despatching['inquiry_id']] = $biz_despatching['biz_despatching'];
-//                }
-//            }
-//        }
+//        $country_employee_model = new CountryUserModel();
+//        $country_employee_table = $country_employee_model->getTableName();
 //        foreach ($list as $key => $item) {
-//            if ($item['inquiry_id'] && isset($bizdespatchings[$item['inquiry_id']])) {
-//                $list[$key]['biz_despatching'] = $bizdespatchings[$item['inquiry_id']];
+//            if ($item['inquiry_id']) {
+//                $biz_despatching = $inquiry_check_log_model->alias('icl')
+//                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+//                        ->join($employee_table . ' e on e.id=icl.agent_id')
+//                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
+//                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
+//                            'out_node' => 'BIZ_DISPATCHING',
+//                            'ce.country_bn' => $item['country_bn']
+//                        ])
+//                        ->group('icl.inquiry_id')
+//                        ->find();
+//                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
 //            }
 //        }
 //    }
+
+    private function _setBizDespatching(&$list) {
+        $inquiry_ids = [];
+
+        foreach ($list as $item) {
+            if ($item['inquiry_id']) {
+                $inquiry_ids[] = $item['inquiry_id'];
+            }
+        }
+        $inquiry_check_log_model = new InquiryCheckLogModel();
+
+        $employee_model = new EmployeeModel();
+        $employee_table = $employee_model->getTableName(); //管理员表
+        $biz_despatchings = $inquiry_check_log_model->alias('icl')
+                ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+                ->join($employee_table . ' e on e.id=icl.agent_id')
+                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
+                ->group('icl.inquiry_id')
+                ->select();
+        $bizdespatchings = [];
+        if ($biz_despatchings) {
+            foreach ($biz_despatchings as $biz_despatching) {
+                if ($biz_despatching['inquiry_id']) {
+                    $bizdespatchings[$biz_despatching['inquiry_id']] = $biz_despatching['biz_despatching'];
+                }
+            }
+        }
+        foreach ($list as $key => $item) {
+            if ($item['inquiry_id'] && isset($bizdespatchings[$item['inquiry_id']])) {
+                $list[$key]['biz_despatching'] = $bizdespatchings[$item['inquiry_id']];
+            }
+        }
+    }
 
     private function _setProductName(&$list) {
         $skus = [];
