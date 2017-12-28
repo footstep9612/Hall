@@ -826,8 +826,8 @@ class BuyerController extends PublicController {
         $attach = new BuyerattachModel();
         $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
         if(!empty($finance)){
-            $buerInfo['attach_name'] = $finance['attach_name'];
-            $buerInfo['attach_url'] = $finance['attach_url'];
+            $buerInfo['finance_name'] = $finance['attach_name'];
+            $buerInfo['finance_url'] = $finance['attach_url'];
         }
         $arr['base_info'] = $buerInfo;
         //获取客户联系人

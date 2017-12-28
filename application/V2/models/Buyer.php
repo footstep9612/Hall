@@ -1290,7 +1290,7 @@ class BuyerModel extends PublicModel {
         try{
             $this->where(array('id'=>$arr['id']))->save($arr);
             //创建财务报表附件
-            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+            if(!empty($data['base_info']['finance_name']) && !empty($data['base_info']['finance_url'])){
                 $attach = new BuyerattachModel();
                 $attach -> createBuyerFinanceTable($data);
             }
