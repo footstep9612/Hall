@@ -506,6 +506,44 @@ class EsGoodsModel extends Model {
     }
 
     /*
+     * 获取SKU总数
+     * @param array $spus //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getStatusSkuCountBySpu($spus, $lang = 'en') {
+
+        try {
+
+            $where = ['spu' => $spus,
+                'lang' => $lang,
+                'deleted_flag' => 'N',
+                'status' => ['in', ['DRAFT', 'CHECKING', 'INVALID', 'VALID']]
+            ];
+            $data = $this->field('spu,if (`status`=\'DRAFT\',1,0) as draft_count,'
+                            . 'if (`status`=\'CHECKING\',1,0) as checking_count,'
+                            . 'if (`status`=\'INVALID\',1,0) as invalid_count,'
+                            . 'if (`status`=\'VALID\',1,0) as valid_count')
+                    ->where($where)
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            foreach ($data as $item) {
+                $ret[$item['spu']] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
      * @param string $lang // 语言 zh en ru es

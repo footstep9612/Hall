@@ -249,14 +249,26 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            if ($is_recycled && !empty($product['spu'])) {
-                $spus = $product['spu'];
-            }
-
-            $list[$key]['sku_count_notvalid'] = $esgoods->getSkuCountBySpu($product['spu'], $lang);
+            //  if ($is_recycled && !empty($product['spu'])) {
+            $spus = $product['spu'];
+            //  }
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
+
+        $status_sku_counts = $esgoods->getStatusSkuCountBySpu($product['spu'], $lang);
+
+        foreach ($list as $k => $product) {
+            if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
+                $status_sku_count = $status_sku_counts[$product['spu']];
+                $product['sku_count'] = $product['sku_count'] .
+                        '<br>(暂存:' . $status_sku_count['draft_count'] .
+                        ',待审核:' . $status_sku_count['checking_count'] .
+                        ',通过:' . $status_sku_count['valid_count'] .
+                        ',已驳回:' . $status_sku_count['invalid_count'] . ')';
+            }
+        }
+
         if ($is_recycled && !empty($spus)) {
             $esgoods_model = new EsGoodsModel();
             $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
