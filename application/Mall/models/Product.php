@@ -52,8 +52,8 @@ class ProductModel extends PublicModel {
                     //现货价格
                     $scpModel = new StockCostPriceModel();
                     $condition_price = ['country_bn' => $country_bn, 'sku' => ['in', $skus], 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
-                    $priceInfo = $scpModel->field('min_price')->where($condition_price)->order('min_price')->find();
-                    $spuInfo['price'] = $priceInfo ? $priceInfo['min_price'] : '';
+                    $priceInfo = $scpModel->field('min_price,price_symbol')->where($condition_price)->order('min_price')->find();
+                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];
 
                     $condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
@@ -84,9 +84,12 @@ class ProductModel extends PublicModel {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
-        $condition = ['spu' => $input['spu'], 'lang' => $input['lang']];
-
         try {
+            $goodsModel = new GoodsModel();
+            $gtable = $goodsModel->getTableName();
+            $gattrModel = new GoodsAttrModel();
+            $gatable = $gattrModel->getTableName();
+            $condition = ["$gtable.spu" => $input['spu'], "$gtable.lang" => $input['lang']];
             //现货处理
             $stock = false;
             $skus = [];
@@ -99,40 +102,61 @@ class ProductModel extends PublicModel {
                     $skus[] = $item['sku'];
                     $skuStock[$item['sku']] = $item['stock'];
                 }
-                $condition['sku'] = ['in', $skus];
+                $condition["$gtable.sku"] = ['in', $skus];
             }
 
             //订货号
             if (isset($input['sku']) && !empty($input['sku'])) {
-                $condition['sku'] = $input['sku'];
+                $condition["$gtable.sku"] = $input['sku'];
             }
 
             //型号
             if (isset($input['model']) && !empty($input['model'])) {
-                $condition['model'] = $input['model'];
+                $condition["$gtable.model"] = $input['model'];
             }
 
             //包装数量
             if (isset($input['min_pack_naked_qty']) && !empty($input['min_pack_naked_qty'])) {
-                $condition['min_pack_naked_qty'] = $input['min_pack_naked_qty'];
+                $condition["$gtable.min_pack_naked_qty"] = $input['min_pack_naked_qty'];
             }
 
             //出货周期
             if (isset($input['exw_days']) && !empty($input['exw_days'])) {
-                $condition['exw_days'] = $input['exw_days'];
+                $condition["$gtable.exw_days"] = $input['exw_days'];
             }
-            $condition['status'] = 'VALID';
-            $condition['deleted_flag'] = 'N';
+
+            $condition["$gtable.status"] = 'VALID';
+            $condition["$gtable.deleted_flag"] = 'N';
 
             $current_no = (isset($input['current_no']) && is_numeric($input['current_no'])) ? $input['current_no'] : 1;
             $pageSize = (isset($input['pageSize']) && is_numeric($input['pageSize'])) ? $input['pageSize'] : 10;
+            if(isset($input['spec']) && !empty($input['spec'])){
+                $spec = [];
+                foreach($input['spec'] as $key => $value){
+                    //$spec[] = ['exp', 'regexp \'"'.$key.'":"' . $value . '"\''];    //精确查
+                    $spec[] = ['exp', 'regexp \'"'.$key.'":"[^"]*' . $value . '[^"]*"\''];    //模糊查
+                }
+                $condition["$gatable.spec_attrs"] = $spec;
+            }
 
-            $goodsModel = new GoodsModel();
-            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where($condition)->limit(($current_no - 1) * $pageSize, $pageSize)->select();
+            $idAry = $goodsModel->field("$gtable.id")->join($gatable." ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang",'LEFT')->where($condition)->select();
+            $ids = [];
+            if($idAry){
+                foreach($idAry as $id){
+                    $ids[] = $id['id'];
+                }
+            }else{
+                return [];
+            }
+
+            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where(['id'=>['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)->select();
             if ($result) {
+                $skuAry = [];
+                foreach($result as $r){
+                    $skuAry[] = $r['sku'];
+                }
                 //扩展属性
-                $gattrModel = new GoodsAttrModel();
-                $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
+                $condition_attr = ['spu' => $input['spu'], 'sku'=>['in',$skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
                 $attr_key = $attr_value = [];
