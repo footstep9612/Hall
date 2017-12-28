@@ -519,7 +519,7 @@ class EsGoodsModel extends Model {
 
         try {
 
-            $where = ['spu' => $spus,
+            $where = ['spu' => ['in', $spus],
                 'lang' => $lang,
                 'deleted_flag' => 'N',
                 'status' => ['in', ['DRAFT', 'CHECKING', 'INVALID', 'VALID']]

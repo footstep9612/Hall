@@ -250,13 +250,13 @@ class EsproductController extends PublicController {
                 $user_ids[] = $product['onshelf_by'];
             }
             //  if ($is_recycled && !empty($product['spu'])) {
-            $spus = $product['spu'];
+            $spus[] = $product['spu'];
             //  }
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
 
-        $status_sku_counts = $esgoods->getStatusSkuCountBySpu($product['spu'], $lang);
+        $status_sku_counts = $esgoods->getStatusSkuCountBySpu($spus, $lang);
 
         foreach ($list as $k => $product) {
             if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
