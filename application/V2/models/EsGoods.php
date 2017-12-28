@@ -76,14 +76,14 @@ class EsGoodsModel extends Model {
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lt' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lt' => $created_at_end,]]];
             }
         }
     }

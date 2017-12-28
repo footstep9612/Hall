@@ -245,7 +245,7 @@ class ReportController extends PublicController {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
                     $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
                 }
-                
+
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
                     $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'in_node' => 'MARKET_CONFIRMING'])->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
@@ -259,7 +259,7 @@ class ReportController extends PublicController {
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
                     $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
-                
+
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);
