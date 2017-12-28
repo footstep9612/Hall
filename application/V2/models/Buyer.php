@@ -1297,7 +1297,8 @@ class BuyerModel extends PublicModel {
             $this->where(array('id'=>$arr['id']))->save($arr);
             //创建财务报表附件
             if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                $this -> createAttchData($data);
+                $attach = new BuyerattachModel();
+                $attach -> createBuyerFinanceTable($data);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
@@ -1310,20 +1311,6 @@ class BuyerModel extends PublicModel {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;   //新建客户基本信息失败
         }
-    }
-
-    /**
-     * @param $data
-     * 创建财务报表附件
-     */
-    public function createAttchData($data){
-        $attach_name = $data['base_info']['attach_name'];
-        $attach_url = $data['base_info']['attach_url'];
-        $buyer_id = $data['base_info']['buyer_id'];
-        $created_by = $data['created_by'];
-        $model = new BuyerattachModel();
-        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
-        return $financeRes;
     }
     /**
      * 组装客户基本信息创建所需数据

@@ -120,14 +120,17 @@ class BuyerattachModel extends PublicModel {
      * attach_name,attach_url
      * wangs
      */
-    public function createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by){
+    public function createBuyerFinanceTable($data){
+        $attach_name = $data['base_info']['attach_name'];
+        $attach_url = $data['base_info']['attach_url'];
+        $buyer_id = $data['base_info']['buyer_id'];
+        $created_by = $data['created_by'];
         $cond = array(
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by,
             'attach_group'=>'FINANCE',
             'deleted_flag'=>'N',
         );
-        try{
             $exist = $this->where($cond)->find();
             if(!empty($exist)){
                 $this->where($cond)->save(array('deleted_flag'=>'Y'));
@@ -140,12 +143,11 @@ class BuyerattachModel extends PublicModel {
                 'created_by'=>$created_by,
                 'created_at'=>date('Y-m-d H:i:s'),
             );
-            $this -> add($arr);
-            return true;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
+            $res = $this -> add($arr);
+            if($res){
+                return true;
+            }
             return false;
-        }
     }
 
     /**
