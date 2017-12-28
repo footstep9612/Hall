@@ -43,23 +43,6 @@ class BuyerbusinessController extends PublicController
                     'message'=>'业务信息创建成功，采购计划创建为空',
                 );
                 $this -> jsonReturn($dataJson);
-            }
-            //采购计划附件
-            if(!empty($purchaseRes)){
-                $purchase = new BuyerattachModel();
-                $purchaseResult = $purchase->createBuyerPurchaseTable($purchaseRes,$data['buyer_id'],$data['created_by']);
-                if($purchaseResult == false){
-                    $dataJson = array(
-                        'code'=>1,
-                        'message'=>'业务信息，采购计划创建成功，采购计划附件为空',
-                    );
-                }else{
-                    $dataJson = array(
-                        'code'=>1,
-                        'message'=>'业务信息，采购计划，采购计划附件创建成功',
-                    );
-                }
-                $this -> jsonReturn($dataJson);
             }else{
                 $dataJson = array(
                     'code'=>1,
@@ -67,6 +50,29 @@ class BuyerbusinessController extends PublicController
                 );
                 $this -> jsonReturn($dataJson);
             }
+            //采购计划附件
+//            if(!empty($purchaseRes)){
+//                $purchase = new BuyerattachModel();
+//                $purchaseResult = $purchase->createBuyerPurchaseTable($purchaseRes,$data['buyer_id'],$data['created_by']);
+//                if($purchaseResult == false){
+//                    $dataJson = array(
+//                        'code'=>1,
+//                        'message'=>'业务信息，采购计划创建成功，采购计划附件为空',
+//                    );
+//                }else{
+//                    $dataJson = array(
+//                        'code'=>1,
+//                        'message'=>'业务信息，采购计划，采购计划附件创建成功',
+//                    );
+//                }
+//                $this -> jsonReturn($dataJson);
+//            }else{
+//                $dataJson = array(
+//                    'code'=>1,
+//                    'message'=>'业务信息，采购计划，创建成功',
+//                );
+//                $this -> jsonReturn($dataJson);
+//            }
         }
         //提示仅业务信息创建成功
         $dataJson = array(
