@@ -261,11 +261,11 @@ class EsproductController extends PublicController {
         foreach ($list as $k => $product) {
             if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
                 $status_sku_count = $status_sku_counts[$product['spu']];
-                $list[$k]['sku_count'] = $product['sku_count'] . PHP_EOL .
-                        '(暂存:' . $status_sku_count['draft_count'] .
-                        ',待审核:' . $status_sku_count['checking_count'] .
-                        ',通过:' . $status_sku_count['valid_count'] .
-                        ',已驳回:' . $status_sku_count['invalid_count'] . ')';
+                $list[$k]['sku_count'] = $product['sku_count'] . PHP_EOL . '(' .
+                        ($status_sku_count['draft_count'] > 0 ? '   暂存:' . $status_sku_count['draft_count'] : '') .
+                        ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : '') .
+                        ($status_sku_count['valid_count'] > 0 ? '   通过:' . $status_sku_count['valid_count'] : '') .
+                        ($status_sku_count['invalid_count'] > 0 ? '   已驳回:' . $status_sku_count['invalid_count'] : '') . ')';
             }
         }
 
