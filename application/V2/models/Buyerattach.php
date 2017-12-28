@@ -121,8 +121,8 @@ class BuyerattachModel extends PublicModel {
      * wangs
      */
     public function createBuyerFinanceTable($data){
-        $attach_name = $data['base_info']['attach_name'];
-        $attach_url = $data['base_info']['attach_url'];
+        $attach_name = $data['base_info']['finance_name'];
+        $attach_url = $data['base_info']['finance_url'];
         $buyer_id = $data['base_info']['buyer_id'];
         $created_by = $data['created_by'];
         $cond = array(
@@ -237,6 +237,8 @@ class BuyerattachModel extends PublicModel {
             return false;
         }
 //        $attachinfo = pathinfo($attach['attach_url']);
+        $arr['finance_name'] = $attach['attach_name'];
+        $arr['finance_url'] = $attach['attach_url'];
         return $attach;
 
     }
