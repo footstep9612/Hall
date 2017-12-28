@@ -261,7 +261,7 @@ class EsproductController extends PublicController {
         foreach ($list as $k => $product) {
             if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
                 $status_sku_count = $status_sku_counts[$product['spu']];
-                $product['sku_count'] = $product['sku_count'] .
+                $list[$k]['sku_count'] = $product['sku_count'] .
                         '<br>(暂存:' . $status_sku_count['draft_count'] .
                         ',待审核:' . $status_sku_count['checking_count'] .
                         ',通过:' . $status_sku_count['valid_count'] .
