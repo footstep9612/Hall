@@ -524,10 +524,10 @@ class EsGoodsModel extends Model {
                 'deleted_flag' => 'N',
                 'status' => ['in', ['DRAFT', 'CHECKING', 'INVALID', 'VALID']]
             ];
-            $data = $this->field('spu,if (`status`=\'DRAFT\',1,0) as draft_count,'
-                            . 'if (`status`=\'CHECKING\',1,0) as checking_count,'
-                            . 'if (`status`=\'INVALID\',1,0) as invalid_count,'
-                            . 'if (`status`=\'VALID\',1,0) as valid_count')
+            $data = $this->field('spu,sum(if (`status`=\'DRAFT\',1,0)) as draft_count,'
+                            . 'sum(if (`status`=\'CHECKING\',1,0)) as checking_count,'
+                            . 'sum(if (`status`=\'INVALID\',1,0)) as invalid_count,'
+                            . 'sum(if (`status`=\'VALID\',1,0)) as valid_count')
                     ->where($where)
                     ->group('spu')
                     ->select();
