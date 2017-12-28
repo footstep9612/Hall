@@ -226,7 +226,7 @@ class EsproductController extends PublicController {
 
         $user_ids = [];
         $spus = [];
-        $esgoods = new EsGoodsModel();
+        //  $esgoods = new EsGoodsModel();
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -255,7 +255,7 @@ class EsproductController extends PublicController {
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
-
+        $esgoods = new EsGoodsModel();
         $status_sku_counts = $esgoods->getStatusSkuCountBySpu($spus, $lang);
 
         foreach ($list as $k => $product) {
@@ -269,16 +269,16 @@ class EsproductController extends PublicController {
             }
         }
 
-        if ($is_recycled && !empty($spus)) {
-            $esgoods_model = new EsGoodsModel();
-            $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
-            $skucounts = [];
-            if (isset($skucount['aggregations']['spu']['buckets']) && $skucount['aggregations']['spu']['buckets']) {
-                foreach ($skucount['aggregations']['spu']['buckets'] as $sku_count) {
-                    $skucounts[$sku_count['key']] = $sku_count['value'];
-                }
-            }
-        }
+//        if ($is_recycled && !empty($spus)) {
+//            $esgoods_model = new EsGoodsModel();
+//            $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
+//            $skucounts = [];
+//            if (isset($skucount['aggregations']['spu']['buckets']) && $skucount['aggregations']['spu']['buckets']) {
+//                foreach ($skucount['aggregations']['spu']['buckets'] as $sku_count) {
+//                    $skucounts[$sku_count['key']] = $sku_count['value'];
+//                }
+//            }
+//        }
         $employee_model = new EmployeeModel();
         $usernames = $employee_model->getUserNamesByUserids($user_ids);
         foreach ($list as $key => $val) {
@@ -303,9 +303,9 @@ class EsproductController extends PublicController {
             } else {
                 $val['onshelf_by_name'] = '';
             }
-            if ($is_recycled && isset($skucounts[$val['spu']])) {
-                $val['sku_count'] = intval($skucounts[$val['spu']]);
-            }
+//            if ($is_recycled && isset($skucounts[$val['spu']])) {
+//                $val['sku_count'] = intval($skucounts[$val['spu']]);
+//            }
             $list[$key] = $val;
         }
         return $list;
