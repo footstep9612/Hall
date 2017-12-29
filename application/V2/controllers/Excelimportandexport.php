@@ -57,17 +57,17 @@ class ExcelimportandexportController extends PublicController {
         foreach ($templetBaseData as $baseInfo) {
             if ($baseDataIndex > 1 && $baseInfo[1] != '') {
                 $buyerId = $this->buyerModel->where(['buyer_code' => $baseInfo[4], 'deleted_flag' => 'N'])->getField('id');
-                // 没有客户就不插入该数据，记录订单执行单号
+                // 记录没有客户的订单执行单号
                 if (!$buyerId) {
                     $noBuyerExecuteNoArr[] = $baseInfo[1];
-                    $baseDataIndex++;
-                    continue;
+                    /*$baseDataIndex++;
+                    continue;*/
                 }
                 $orderData = [
                     'po_no' => $baseInfo[0],
                     'execute_no' => $baseInfo[1],
                     'contract_date' => $baseInfo[2] == '' ? null : $this->_getStorageDate($baseInfo[2]),
-                    'buyer_id' => $buyerId,
+                    'buyer_id' => $buyerId == '' ? null : $buyerId,
                     'order_agent' => $this->employeeModel->getUserIdByNo($baseInfo[5]) ? : null,
                     'execute_date' => $baseInfo[6] == '' ? null : $this->_getStorageDate($baseInfo[6]),
                     //'agent_id' => $this->employeeModel->getUserIdByNo($baseInfo[10]) ? : null,
@@ -130,6 +130,8 @@ class ExcelimportandexportController extends PublicController {
             }
             $baseDataIndex++;
         }
+        /*// 打印没有客户的订单执行单号
+        print_r($noBuyerExecuteNoArr);exit; */
         // 需要导入的订单数据列表中加入订单编号
         $listCount = count($importOrderList);
         $orderNoArr = $this->_getOrderNoArr($listCount);
@@ -433,12 +435,12 @@ class ExcelimportandexportController extends PublicController {
     private  function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
         $importAttachList = [];
         foreach ($attachList as $attach) {
-            // 执行附件上传
-            $fileInfo = $this->_upload2FastDFS($attach);
-            if ($fileInfo['code'] == 1) {
-                $attachExecuteNo = $this->_getAttachExecuteNo($attach);
-                $orderId = $orderIdMapping[$attachExecuteNo];
-                if ($orderId) {
+            $attachExecuteNo = $this->_getAttachExecuteNo($attach);
+            $orderId = $orderIdMapping[$attachExecuteNo];
+            if ($orderId) {
+                // 执行附件上传
+                $fileInfo = $this->_upload2FastDFS($attach);
+                if ($fileInfo['code'] == '1') {
                     $attachData = [
                         'order_id' => $orderId,
                         'attach_group' => $attachGroup,
@@ -467,16 +469,23 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _upload2FastDFS($file) {
         $server = Yaf_Application::app()->getConfig()->myhost;
-        // 上传文件的接口地址
-        $url = $server . '/V2/Uploadfile/upload';
-        // 上传的文件信息
-        $data = [
-            'tmp_name' => $file,
-            'name' => pathinfo($file, PATHINFO_BASENAME),
-            'type' => ExcelHelperTrait::getFileType($file)
-        ];
-        // 执行文件上传
-        return postfile($data, $url);
+        // 本地和测试调用接口上传
+        if (parse_url($server, PHP_URL_HOST) == '172.18.18.196') {
+            // 上传文件的接口地址
+            $url = $server . '/V2/Uploadfile/upload';
+            // 上传的文件信息
+            $data = [
+                'tmp_name' => $file,
+                'name' => pathinfo($file, PATHINFO_BASENAME),
+                'type' => ExcelHelperTrait::getFileType($file)
+            ];
+            // 执行文件上传
+            return postfile($data, $url);
+        } else {
+            // 线上直接上传
+            $result = ExcelHelperTrait::uploadToFileServer($file);
+            return $result['fileId'] ? ['code' => '1', 'url' => $result['fileId'], 'name' => $result['file']['name']] : ['code' => '-103', 'message' => 'error'];
+        }
     }
     
     /**
