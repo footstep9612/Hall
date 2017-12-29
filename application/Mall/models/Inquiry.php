@@ -159,8 +159,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('egt', $condition['start_time']),
-                array('elt', $condition['end_time'])
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态

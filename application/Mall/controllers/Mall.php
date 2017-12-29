@@ -23,7 +23,7 @@ class MallController extends PublicController
         $data = $this->getPut();
         $model = new BuyerCustomModel();
         $data['buyer_id'] = $this->user['buyer_id'];
-        $res = $model->getlist($data);
+        $res = $model->getlist($data);jsonReturn($res);
         $count = $model->getCount($data);
         if (!empty($res)) {
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;

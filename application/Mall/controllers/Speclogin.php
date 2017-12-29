@@ -25,7 +25,6 @@ class SpecloginController extends PublicController {
         } elseif($data['sign'] == 'register') {
             $this->register($data);
         } elseif($data['sign'] == 'contact'){
-            $data['buyer_id'] = $this->user['buyer_id'];
             $res = $this->createUcustom($data);
             if($res) {
                 jsonReturn($res,1,'提交成功!');

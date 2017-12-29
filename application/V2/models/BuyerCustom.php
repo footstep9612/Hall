@@ -29,7 +29,7 @@ class BuyerCustomModel extends PublicModel
      * 获取列表
      * @param mix $condition
      * @return mix
-     * @author zyg
+     * @author klp
      */
     public function getlist($condition = [],$limit, $order = " id desc") {
 
