@@ -72,23 +72,23 @@ class ShowCatModel extends PublicModel {
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $show_cat_product_model = new ShowCatProductModel();
-        $show_cat_product_table = $show_cat_product_model->getTableName();
-        $show_cat_table = $this->getTableName();
-        $lang = $where['lang'];
-        if ($where['level_no'] === 1) {
-            $where[] = 'cat_no in (select parent_cat_no from ' . $show_cat_table . ' tsc where tsc.cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
-                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\') and tsc.lang=\'' . $lang . '\' and tsc.deleted_flag=\'N\')';
-        } elseif ($where['level_no'] === 2) {
-            $where[] = 'cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
-                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
-        } elseif ($where['level_no'] === 3) {
-            $where[] = 'cat_no in (select sc.cat_no FROM ' . $show_cat_table . ' sc  '
-                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
-        }
+        $show_cat_product_model = new ShowCatProductModel(w);
+//        $show_cat_product_table = $show_cat_product_model->getTableName();
+//        $show_cat_table = $this->getTableName();
+//        $lang = $where['lang'];
+//        if ($where['level_no'] === 1) {
+//            $where[] = 'cat_no in (select parent_cat_no from ' . $show_cat_table . ' tsc where tsc.cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\') and tsc.lang=\'' . $lang . '\' and tsc.deleted_flag=\'N\')';
+//        } elseif ($where['level_no'] === 2) {
+//            $where[] = 'cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
+//        } elseif ($where['level_no'] === 3) {
+//            $where[] = 'cat_no in (select sc.cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
+//        }
 
         try {
             $result = $this
@@ -281,6 +281,23 @@ class ShowCatModel extends PublicModel {
                 ->select();
 
         return $data;
+    }
+
+    /**
+     * Description of 判断国家是否存在
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getExit($country_bn, $lang = 'en') {
+        $where = ['deleted_flag' => 'N'];
+        $where['country_bn'] = $country_bn;
+        if ($lang) {
+            $where['lang'] = $lang;
+        }
+
+        return $this->where($where)->field('id,country_bn')->find();
     }
 
 }

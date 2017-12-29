@@ -1769,4 +1769,41 @@ class BuyerModel extends PublicModel {
         $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
         return $excelDir . DS. $sheetName . '.xlsx';
     }
+
+    /**检测输入CRM客户代码是否存在,返回数据信息
+     * @param $data
+     */
+    public function checkBuyerCrm($data){
+        $field = array(
+            'official_email', //邮箱
+            'country_bn', //国家
+            'official_phone', //区号,电话
+            'first_name', //姓名
+
+            'name', //公司名称
+            'biz_scope', //经营范围
+            'intent_product', //意向产品
+            'purchase_amount' //预计年采购额
+        );
+        $cond = array(
+            'buyer_code'=>$data['buyer_code'],
+        );
+        $info = $this->field($field)->where($cond)->find();
+        if(!empty($info)){
+            $country = new CountryModel();
+            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+        }
+        if(!empty($info['official_phone'])){
+            $phone = explode('-',$info['official_phone']);
+            if(count($phone) == 1){
+                $info['areacode'] = NULL;
+                $info['mobile'] = $phone[0];
+            }else{
+                $info['areacode'] = $phone[0];
+                $info['mobile'] = $phone[1];
+            }
+            unset($info['official_phone']);
+        }
+        return $info;
+    }
 }

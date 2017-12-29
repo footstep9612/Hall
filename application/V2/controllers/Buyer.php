@@ -920,4 +920,29 @@ class BuyerController extends PublicController {
         );
         $this->jsonReturn($dataJson);
     }
+    /**
+     * 添加客户验证输入CRM代码信息
+     * wangs
+     */
+    public function checkBuyerCrmAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $info = $model->checkBuyerCrm($data);
+        if(empty($info)){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'返回CRM数据',
+                'data'=>$info
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'返回CRM数据',
+                'data'=>$info
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
 }
