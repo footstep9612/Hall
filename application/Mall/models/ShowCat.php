@@ -283,4 +283,21 @@ class ShowCatModel extends PublicModel {
         return $data;
     }
 
+    /**
+     * Description of 判断国家是否存在
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getExit($country_bn, $lang = 'en') {
+        $where = ['deleted_flag' => 'N'];
+        $where['country_bn'] = $country_bn;
+        if ($lang) {
+            $where['lang'] = $lang;
+        }
+
+        return $this->where($where)->field('id,country_bn')->find();
+    }
+
 }
