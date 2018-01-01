@@ -27,6 +27,7 @@ class ExcelimportandexportController extends PublicController {
         
         $this->time = date('Y-m-d H:i:s');
         
+        $this->_getRequestUrl();
         $this->_getExcelDir();
     }
     
@@ -349,7 +350,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getTempletAndAttach($floder) {
         // 导入路径
-        $path = ($this->excelDir ? : $this->getExcelDir()) . DS . $floder;
+        $path = ($this->excelDir ? : $this->_getExcelDir()) . DS . $floder;
         return $this->_fileClassify($path);
     }
     
@@ -468,11 +469,10 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-27
      */
     private function _upload2FastDFS($file) {
-        $server = Yaf_Application::app()->getConfig()->myhost;
         // 本地和测试调用接口上传
-        if (parse_url($server, PHP_URL_HOST) == '172.18.18.196') {
+        if (parse_url($this->requestUrl ? : $this->_getRequestUrl(), PHP_URL_HOST) == '172.18.18.196') {
             // 上传文件的接口地址
-            $url = $server . '/V2/Uploadfile/upload';
+            $url = $this->requestUrl . '/V2/Uploadfile/upload';
             // 上传的文件信息
             $data = [
                 'tmp_name' => $file,
@@ -576,6 +576,17 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getStorageDate($date) {
         return date('Y-m-d', strtotime($date));
+    }
+    
+    /**
+     * @desc 获取请求地址
+     *
+     * @return string
+     * @author liujf
+     * @time 2018-01-01
+     */
+    private function _getRequestUrl() {
+        return $this->requestUrl = Yaf_Application::app()->getConfig()->myhost;
     }
 
     /*----------------------------------------------------------------------导入和导出代码界线----------------------------------------------------------------------*/
@@ -827,6 +838,7 @@ class ExcelimportandexportController extends PublicController {
     /**
      * @desc 去掉参数数据两侧的空格
      *
+     * @param mixed $condition
      * @author liujf
      * @time 2017-12-23
      */
