@@ -33,11 +33,7 @@ class PaymentModeModel extends PublicModel {
         }*/
 
         $field = 'lang,bn,name';
-        $result = $this->field($field)->where($condition)->order('bn')->select();
-        if ($result) {
-            //redisHashSet('Paymentmode', md5(json_encode($condition)), json_encode($result));
-            return $result;
-        }
+        return $this->field($field)->where($condition)->order('bn')->select();
     }
 
 }
