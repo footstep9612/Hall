@@ -388,7 +388,7 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['mobile'])) {
+        if (!empty($data['mobile'])) {  //CRM添加客户信息
             $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['type_remarks'])) {
@@ -419,7 +419,7 @@ class BuyerController extends PublicController {
             $buyer_attach_data['created_at'] = date("Y-m-d H:i:s");
             $buyer_attach_data['attach_name'] = $data['name'] . '营业执照';
         }
-        $buyer_contact_data['mobile'] = $data['mobile'];
+        $buyer_contact_data['mobile'] = $data['mobile'];    //CRM添加客户
         $buyer_contact_data['email'] = $data['email'];
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
@@ -427,7 +427,7 @@ class BuyerController extends PublicController {
             jsonReturn('', -101, '名称不能为空!');
         }
         if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
+            $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -946,6 +946,19 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
+        if(!empty($info)){
+            $dataJson = array(
+                'code'=>0,
+                'message'=>'CRM已存在'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        //集团CRM接口
+        $path = dirname(dirname(__FILE__)).'/conf/KRAccountInfo.wsdl';
+        $soap = new SoapClient($path);
+        // 调用函数
+        $result1 = $soap->QueryAccount("001");
+        print_r($result1);die;
         if(empty($info)){
             $dataJson = array(
                 'code'=>0,
