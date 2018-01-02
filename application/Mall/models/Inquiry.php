@@ -57,6 +57,7 @@ class InquiryModel extends PublicModel {
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
+                $scModel = new ShoppingCarModel();
                 foreach ($data['arr_sku'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
                     $item['created_by'] = $data['buyer_id'];
@@ -65,6 +66,8 @@ class InquiryModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
+                    //清询单车
+                    $scModel->clear($item['sku'],$data['buyer_id'],0);
                 }
             }
             //添加附件询单
