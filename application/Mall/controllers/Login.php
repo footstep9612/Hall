@@ -69,7 +69,8 @@ class LoginController extends PublicController {
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
+            $datajson['utime'] = 18000;
+            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -313,7 +314,8 @@ class LoginController extends PublicController {
                 $datajson['country'] = $arr['country_bn'];
                 $datajson['phone'] = $arr['official_phone'];
                 $datajson['token'] = $jwtclient->encode($jwt); //加密
-                redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                $datajson['utime'] = 18000;
+                redisSet('shopmall_user_info_' . $id, json_encode($datajson), $datajson['utime']);
                 jsonReturn($datajson, 1, 'Success!');
             }
             $where['id'] = $id;
