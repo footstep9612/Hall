@@ -81,7 +81,8 @@ class ExcelimportandexportController extends PublicController {
                     'to_country_bn' => $baseInfo[20],
                     'to_port_bn' => $baseInfo[21],
                     'address' => $baseInfo[22],*/
-                    'show_status' => 'COMPLETED',
+                    // 订单状态为进行中
+                    'show_status' => 'GOING',
                     'deleted_flag' => 'N',
                     'created_at' => $this->time
                 ];
@@ -264,6 +265,7 @@ class ExcelimportandexportController extends PublicController {
                 if ($orderId) {
                     // 订单执行单号和订单ID的映射关系
                     $orderIdMapping[$data[0]] = $orderId;
+                    $where = ['id' => $orderId];
                     $orderLogData = [
                         'order_id' => $orderId,
                         'log_group' => $logGroup,
@@ -274,6 +276,8 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['out_no'] = $data[1];
                             $orderLogData['content'] = $data[2];
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已出库
+                            $this->_setOrderStatus($where, 'OUTGOING');
                             /*// 需要导入的附件名称和执行单号的映射(非必填)
                              if ($data[4] != '') {
                              $attachNameMapping[$data[0]] = $data[4];
@@ -283,6 +287,8 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['waybill_no'] = $data[1];
                             $orderLogData['content'] = $data[2];
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已发运
+                            $this->_setOrderStatus($where, 'DISPATCHED');
                             /*if ($data[4] != '') {
                              $attachNameMapping[$data[0]] = $data[4];
                              }*/
@@ -303,8 +309,10 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['content'] = $data[1];
                             $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已完成
+                            if ($data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED');
                             // 更新订单的收款状态
-                            $this->orderModel->where(['id' => $orderId])->setField('pay_status', $this->_getPayStatusByWhether($data[4]));
+                            $this->orderModel->where($where)->setField('pay_status', $this->_getPayStatusByWhether($data[4]));
                     }
                     // 需要导入的订单日志信息数据
                     $importOrderLogList[] = $orderLogData;
@@ -587,6 +595,19 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getRequestUrl() {
         return $this->requestUrl = Yaf_Application::app()->getConfig()->myhost;
+    }
+    
+    /**
+     * @desc 设置订单状态
+     *
+     * @param string $where 条件参数
+     * @param string $status 订单状态值
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-02
+     */
+    private function _setOrderStatus($where, $status) {
+        return $this->orderModel->where($where)->setField('show_status', $status);
     }
 
     /*----------------------------------------------------------------------导入和导出代码界线----------------------------------------------------------------------*/
