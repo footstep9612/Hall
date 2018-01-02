@@ -160,16 +160,20 @@ class InquiryModel extends PublicModel {
                         }
                     }
                     break;
-                case 'quote' :
+                case 'issue' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
-                            
+                
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
+                    }
+                    break;
+                case 'quote' :
+                    foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
                         }
