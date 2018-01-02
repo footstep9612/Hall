@@ -177,5 +177,30 @@ class ShoppingCarModel extends PublicModel{
 		}
 	}
 
+    /**
+     * 清用户车
+     */
+    public function clear($sku='',$buyer_id='',$type=''){
+        if(empty($sku) || empty($buyer_id) || empty($type)){
+            return false;
+        }
+        $condition = [
+            'type' => $type,
+            'sku' => $sku,
+            'buyer_id' => $buyer_id
+        ];
+        try{
+            $data = [
+                'deleted_flag' => 'Y',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+            $result = $this->where($condition)->save($data);
+            return $result ? $result : false;
+        }catch(Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】clear:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
 
 }
