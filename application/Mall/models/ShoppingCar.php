@@ -41,7 +41,7 @@ class ShoppingCarModel extends PublicModel{
                 $goodsTable = $goodsModel->getTableName();
                 $productModel = new ProductModel();
                 $productTable =$productModel->getTableName();
-                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
+                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
                     ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$condition['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
 				$goodsAry = [];
 				foreach($goods as $r){
@@ -181,14 +181,16 @@ class ShoppingCarModel extends PublicModel{
      * 清用户车
      */
     public function clear($sku='',$buyer_id='',$type=''){
-        if(empty($sku) || empty($buyer_id) || empty($type)){
+        if(empty($sku) || empty($buyer_id)){
             return false;
         }
-        $condition = [
-            'type' => $type,
-            'sku' => $sku,
-            'buyer_id' => $buyer_id
-        ];
+        if(is_array($sku)){
+            $condition['sku'] = ['in',$sku];
+        }else{
+            $condition['sku'] = $sku;
+        }
+        $condition[ 'type'] = $type;
+        $condition[ 'buyer_id'] = $buyer_id;
         try{
             $data = [
                 'deleted_flag' => 'Y',
