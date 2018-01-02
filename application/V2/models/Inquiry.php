@@ -406,7 +406,7 @@ class InquiryModel extends PublicModel {
         return $this->field($field)
                             ->where($where)
                             ->page($currentPage, $pageSize)
-                            ->order('id DESC')
+                            ->order('updated_at DESC')
                             ->select();
     }
     
@@ -429,7 +429,7 @@ class InquiryModel extends PublicModel {
         return $this->field($field)
                             ->where($where)
                             ->page($currentPage, $pageSize)
-                            ->order('id DESC')
+                            ->order('updated_at DESC')
                             ->select();
     }
 
@@ -918,7 +918,7 @@ class InquiryModel extends PublicModel {
                                 ->join('erui_rfq.quote e ON a.id = e.inquiry_id AND e.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_rfq.final_quote f ON a.id = f.inquiry_id AND f.deleted_flag = \'N\'', 'LEFT')
                                 ->where($where)
-                                ->order('a.id DESC')
+                                ->order('a.updated_at DESC')
                                 ->select();
         } else {
             return false;
