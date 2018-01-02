@@ -23,10 +23,11 @@ class UploadfileController extends Yaf_Controller_Abstract {
         $ret = $fastdfs->uploadAttach($file['upFile']);
 
         if (!empty($ret['fileId'])) {
-            $result = array(
+            /*$result = array(
                 "code" => '1',
                 "url" => $ret['fileId'],
-            );
+            );*/
+            $result = $ret;
         } else {
             $result = array(
                 "code" => '-103',

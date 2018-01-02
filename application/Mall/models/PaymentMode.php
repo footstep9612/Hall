@@ -25,6 +25,8 @@ class PaymentModeModel extends PublicModel {
         if (!empty($lang)) {
             $condition['lang'] = $lang;
         }
+        $condition['status'] = 'VALID';
+        $condition['deleted_flag'] = 'N';
 
         /*if (redisHashExist('Paymentmode', md5(json_encode($condition)))) {
             return json_decode(redisHashGet('Paymentmode', md5(json_encode($condition))), true);
