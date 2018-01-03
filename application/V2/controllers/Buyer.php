@@ -398,7 +398,7 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['mobile'])) {
+        if (!empty($data['mobile'])) {  //CRM添加客户信息
             $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['type_remarks'])) {
@@ -429,15 +429,16 @@ class BuyerController extends PublicController {
             $buyer_attach_data['created_at'] = date("Y-m-d H:i:s");
             $buyer_attach_data['attach_name'] = $data['name'] . '营业执照';
         }
-        $buyer_contact_data['mobile'] = $data['mobile'];
+        $buyer_contact_data['mobile'] = $data['mobile'];    //CRM添加客户
         $buyer_contact_data['email'] = $data['email'];
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
             jsonReturn('', -101, '名称不能为空!');
         }
-        if (isset($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];
+
+        if (!empty($data['first_name'])) {
+            $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -930,19 +931,108 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
-        if(empty($info)){
+        if(!empty($info)){
             $dataJson = array(
                 'code'=>0,
-                'message'=>'返回CRM数据',
-                'data'=>$info
+                'message'=>'CRM已存在'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        //验证集团CRM存在,则展示数据
+        $group = $this->groupCrmCode($data['buyer_code']);
+        if(!empty($group)){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'集团CRM客户信息',
+                'data'=>$group
             );
         }else{
             $dataJson = array(
                 'code'=>1,
-                'message'=>'返回CRM数据',
-                'data'=>$info
+                'message'=>'正常录入客户信息流程'
             );
         }
         $this->jsonReturn($dataJson);
+    }
+
+    /**
+     * @param $code
+     * 调用集团crm接口
+     * 王帅
+     */
+    public function groupCrmCode($code){
+        //通过code验证并获取客户信息
+//        $soap = <<<EOF
+//<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
+//   <soapenv:Header/>
+//   <soapenv:Body>
+//      <acc:QueryAccount>
+//         <crm_code>{$code}</crm_code>
+//      </acc:QueryAccount>
+//   </soapenv:Body>
+//</soapenv:Envelope>
+//EOF;
+//        $opt = array(
+//            'http'=>array(
+//                'method'=>"POST",
+//                'header'=>"Content-Type: text/xml",
+//                'content' => $soap
+//            )
+//        );
+//        $context = stream_context_create($opt);
+//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+//        $str = file_get_contents($url,false,$context);  //得到客户crm数据
+
+        $str = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><SOAP-ENV:Body><rpc:QueryAccountResponse xmlns:rpc="http://siebel.com/sales/account/"><biz_scope>sss</biz_scope><country_bn>中国</country_bn><crm_code>GDQ20171226</crm_code><email>qq.com </email><first_name>.里斯</first_name><mobile>18639351366</mobile><name>大客户</name><status>0</status></rpc:QueryAccountResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>
+EOF;
+        $null = <<<EOF
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><SOAP-ENV:Body><rpc:QueryAccountResponse xmlns:rpc="http://siebel.com/sales/account/"><biz_scope></biz_scope><country_bn></country_bn><crm_code></crm_code><email></email><first_name></first_name><mobile></mobile><name></name><status>1</status></rpc:QueryAccountResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>Array
+(
+    [0] => HTTP/1.1 200 OK
+    [1] => Cache-Control: no-cache, must-revalidate, max-age=0
+    [2] => Pragma: no-cache
+    [3] => Content-Length: 521
+    [4] => Content-Type: text/xml;charset=UTF-8
+    [5] => Server: Microsoft-IIS/7.5
+    [6] => _charset: UTF-8
+    [7] => X-Powered-By: ASP.NET
+    [8] => Date: Tue, 02 Jan 2018 14:00:39 GMT
+    [9] => Connection: close
+)
+EOF;
+
+//        $sxe = new SimpleXMLElement($str);
+//        $soapenv = $sxe->registerXPathNamespace('c', 'http://siebel.com/sales/account/');
+//        $result = $sxe->xpath('//c:InsertAccount');
+//        $json = json_decode(json_encode($result[0]),true);
+        $need = strstr($str,'<biz_scope>');
+        $need = strstr($need,'</rpc:QueryAccountResponse>',true);
+        $xml = '<root>'.$need.'</root>';
+        $xmlObj = simplexml_load_string($xml);
+        $arr = json_decode(json_encode($xmlObj),true);
+        if(empty($arr['crm_code'])){
+            return null;
+        }
+        if(!empty($arr)){
+            $country = new CountryModel();
+            $nameAndCode = $country->getCountryBnCodeByName($arr['country_bn']);
+            $arr['country_brief'] = $nameAndCode['bn'];
+            $arr['country_code'] = $nameAndCode['int_tel_code'];
+        }
+        $info = array(
+            'official_email'=>$arr['email'], //邮箱
+            'country_bn'=>$arr['country_brief'], //国家简称
+            'country_name'=>$arr['country_bn'], //国家名称
+            'areacode'=>$arr['country_code'], //国家区号
+            'mobile'=>$arr['mobile'], //区号,电话
+            'first_name'=>$arr['first_name'], //姓名
+
+            'name'=>$arr['name'], //公司名称
+            'biz_scope'=>$arr['biz_scope'], //经营范围
+            'intent_product'=>NULL, //意向产品
+            'purchase_amount'=>NULL //预计年采购额
+        );
+        return $info;
     }
 }
