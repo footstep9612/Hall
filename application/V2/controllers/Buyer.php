@@ -1015,4 +1015,29 @@ EOF;
         );
         return $info;
     }
+
+    /**
+     * CRM测试
+     */
+    public function testCrmAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $info = $model->testCrm($data);
+        if(!empty($info)){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'CRM返回数据',
+                'data'=>$info
+            );
+        }else{
+            $dataJson = array(
+                'code'=>2,
+                'message'=>'CRM正常流程',
+                'data'=>$info
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
 }
