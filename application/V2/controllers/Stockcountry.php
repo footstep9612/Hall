@@ -132,7 +132,7 @@ class StockcountryController extends PublicController {
         }
         $stock_country_model = new StockCountryModel();
 
-        if ($stock_country_model->getExit($country_bn)) {
+        if ($stock_country_model->getExit($country_bn, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -140,7 +140,8 @@ class StockcountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $list = $stock_country_model->createData($country_bn, $show_flag, $display_position);
+        $lang = $this->getPut('lang', 'en');
+        $list = $stock_country_model->createData($country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -176,8 +177,8 @@ class StockcountryController extends PublicController {
         }
 
         $stock_country_model = new StockCountryModel();
-
-        if ($stock_country_model->getExit($country_bn, $id)) {
+        $lang = $this->getPut('lang', 'en');
+        if ($stock_country_model->getExit($country_bn, $lang, $id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -185,8 +186,7 @@ class StockcountryController extends PublicController {
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
 
-
-        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $display_position);
+        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
