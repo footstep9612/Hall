@@ -917,7 +917,6 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
-        $data['into_at'] = date('Y-m-d H:i:s');
 
         $results = $checklog->addData($data);
 

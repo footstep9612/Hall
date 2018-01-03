@@ -13,7 +13,7 @@ class BuyerPurchasingModel extends PublicModel
     {
         $info = $this -> showPurchase($buyer_id,$created_by);
         //采购计划数据存在，则删除，再重新添加
-        $this->startTrans();    //开启事务
+//        $this->startTrans();    //开启事务
         if(!empty($info)){
             $this->delPurchase($buyer_id,$created_by);
         }
@@ -43,19 +43,21 @@ class BuyerPurchasingModel extends PublicModel
                     $arr[$key]['created_at'] = date('Y-m-d H:i:s');
                 }
             }
+
             $res = $this -> add($arr[$key]);
             if($res && $flag){
-                $result[$res]=$arr['attach'][$key];
+//                $result[$res]=$arr['attach'][$key];
+                $result[]=$res;
             }else{
                 $flag = false;
             }
         }
         if($flag){
-            $this->commit();
+//            $this->commit();
             return $result;
         }else{
-            $this->rollback();
-            return $flag;
+//            $this->rollback();
+            return false;
         }
     }
     //采购计划删除

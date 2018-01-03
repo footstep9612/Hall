@@ -82,7 +82,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.is_build=0';
+            $where .= ' And `erui_buyer`.`buyer`.is_build=0 and `erui_buyer`.`buyer`.status=\'APPROVED\' ';
         }
 
         if (!empty($condition['user_name'])) {
@@ -426,8 +426,12 @@ class BuyerModel extends PublicModel {
             $data['checked_at'] = date('Y-m-d H:i:s');
 
         }
+        $datajson = $this->create($data);
+        if($create['is_group_crm'] == true){
+            $group_status = $this->addGroupCrm($datajson);
+            $datajson['group_status'] = $group_status;
+        }
         try {
-            $datajson = $this->create($data);
             $res = $this->add($datajson);
             if ($res) {
                 $checked_log_arr['id'] = $res;
@@ -443,6 +447,52 @@ class BuyerModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
+    }
+
+    /**
+     * @param $datajson
+     * 向集团CRM添加客户信息数据
+     * wangs
+     */
+    public function addGroupCrm($datajson){
+        $country = new CountryModel();
+        $name = $country->getCountryByBn($datajson['country_bn'],'zh');
+        $datajson['country_name'] = $name;  //获取国家名称
+
+        $xml = <<<EOF
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
+<soapenv:Header/>
+<soapenv:Body>
+  <acc:InsertAccount>
+     <name>{$datajson['name']}</name>
+     <mobile>{$datajson['official_phone']}</mobile>
+     <country_bn>{$datajson['country_name']}</country_bn>
+     <email>{$datajson['official_email']}</email>
+     <biz_scope></biz_scope>
+     <crm_code>{$datajson['buyer_code']}</crm_code>
+     <first_name>{$datajson['first_name']}</first_name>
+  </acc:InsertAccount>
+</soapenv:Body>
+</soapenv:Envelope>
+EOF;
+        //请求集团CRM
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: text/xml",
+                'content' => $xml
+            )
+        );
+        $context = stream_context_create($opt);
+        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $str = file_get_contents($url,false,$context);  //得到客户crm数据
+
+        $need = strstr($str,'<errorMsg>');
+        $need = strstr($need,'</rpc:InsertAccountResponse>',true);
+        $xml = '<root>'.$need.'</root>';
+        $xmlObj = simplexml_load_string($xml);
+        $arr = json_decode(json_encode($xmlObj),true);
+        return $arr['status'];
     }
 
     /**
@@ -1297,7 +1347,8 @@ class BuyerModel extends PublicModel {
             $this->where(array('id'=>$arr['id']))->save($arr);
             //创建财务报表附件
             if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                $this -> createAttchData($data);
+                $attach = new BuyerattachModel();
+                $attach -> createBuyerFinanceTable($data);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
@@ -1310,20 +1361,6 @@ class BuyerModel extends PublicModel {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;   //新建客户基本信息失败
         }
-    }
-
-    /**
-     * @param $data
-     * 创建财务报表附件
-     */
-    public function createAttchData($data){
-        $attach_name = $data['base_info']['attach_name'];
-        $attach_url = $data['base_info']['attach_url'];
-        $buyer_id = $data['base_info']['buyer_id'];
-        $created_by = $data['created_by'];
-        $model = new BuyerattachModel();
-        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
-        return $financeRes;
     }
     /**
      * 组装客户基本信息创建所需数据
@@ -1781,5 +1818,42 @@ class BuyerModel extends PublicModel {
         $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
         $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
         return $excelDir . DS. $sheetName . '.xlsx';
+    }
+
+    /**检测输入CRM客户代码是否存在,返回数据信息
+     * @param $data
+     */
+    public function checkBuyerCrm($data){
+        $field = array(
+            'official_email', //邮箱
+            'country_bn', //国家
+            'official_phone', //区号,电话
+            'first_name', //姓名
+
+            'name', //公司名称
+            'biz_scope', //经营范围
+            'intent_product', //意向产品
+            'purchase_amount' //预计年采购额
+        );
+        $cond = array(
+            'buyer_code'=>$data['buyer_code'],
+        );
+        $info = $this->field($field)->where($cond)->find();
+//        if(!empty($info)){
+//            $country = new CountryModel();
+//            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+//        }
+//        if(!empty($info['official_phone'])){
+//            $phone = explode('-',$info['official_phone']);
+//            if(count($phone) == 1){
+//                $info['areacode'] = NULL;
+//                $info['mobile'] = $phone[0];
+//            }else{
+//                $info['areacode'] = $phone[0];
+//                $info['mobile'] = $phone[1];
+//            }
+//            unset($info['official_phone']);
+//        }
+        return $info;
     }
 }

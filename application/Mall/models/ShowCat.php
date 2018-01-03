@@ -42,8 +42,7 @@ class ShowCatModel extends PublicModel {
                     0 => '`name` is not null and `name`<>\'\''
                 ];
 
-                $this
-                        ->where($where)
+                $this->where($where)
                         ->field('cat_no,name')
                         ->group('cat_no');
                 if ($page_flag) {
@@ -72,17 +71,32 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
-        $redis_key = md5(json_encode($where));
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
+        $show_cat_product_model = new ShowCatProductModel(w);
+//        $show_cat_product_table = $show_cat_product_model->getTableName();
+//        $show_cat_table = $this->getTableName();
+//        $lang = $where['lang'];
+//        if ($where['level_no'] === 1) {
+//            $where[] = 'cat_no in (select parent_cat_no from ' . $show_cat_table . ' tsc where tsc.cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\') and tsc.lang=\'' . $lang . '\' and tsc.deleted_flag=\'N\')';
+//        } elseif ($where['level_no'] === 2) {
+//            $where[] = 'cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
+//        } elseif ($where['level_no'] === 3) {
+//            $where[] = 'cat_no in (select sc.cat_no FROM ' . $show_cat_table . ' sc  '
+//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
+//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
+//        }
+
         try {
-            $result = $this->where($where)
+            $result = $this
+                    ->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->field('cat_no as value,name as label,parent_cat_no,small_icon')
                     ->select();
 
-            redisHashSet($this->tableName, $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -189,15 +203,12 @@ class ShowCatModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $redis_key = md5(json_encode($where)) . '_COUNT';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return redisHashGet($this->tableName, $redis_key);
-        }
+
         try {
             $count = $this->where($where)
                     //  ->field('id,user_id,name,email,mobile,status')
                     ->count('id');
-            redisHashSet($this->tableName, $redis_key, $count);
+
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -214,16 +225,9 @@ class ShowCatModel extends PublicModel {
     public function getlist($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
 
-            $redis_key = md5(json_encode($where) . $condition['page'] . ',' . $condition['countPerPage']) . '_LIST';
-        } else {
-            $redis_key = md5(json_encode($where)) . '_LIST';
-        }
 
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             return $this->limit($condition['page'] . ',' . $condition['countPerPage']);
@@ -233,7 +237,7 @@ class ShowCatModel extends PublicModel {
                         . 'status,sort_order,created_at,created_by')
                 ->order('sort_order DESC')
                 ->select();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -249,18 +253,13 @@ class ShowCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-        $redis_key = md5(json_encode($condition)) . '_GETLIST';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field('id, cat_no, lang, name, status, sort_order')
                 ->order('sort_order DESC')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -276,19 +275,29 @@ class ShowCatModel extends PublicModel {
         $condition['deleted_flag'] = 'N';
         $condition['level_no'] = 3;
         $condition['lang'] = trim($lang);
-        $redis_key = 'GETLISTBYLETTER_' . $country_bn . '_' . $letter . '_' . $lang;
-
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field(' cat_no,name')
                 ->order('sort_order DESC,id asc')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
         return $data;
+    }
+
+    /**
+     * Description of 判断国家是否存在
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getExit($country_bn, $lang = 'en') {
+        $where = ['deleted_flag' => 'N'];
+        $where['country_bn'] = $country_bn;
+        if ($lang) {
+            $where['lang'] = $lang;
+        }
+
+        return $this->where($where)->field('id,country_bn')->find();
     }
 
 }

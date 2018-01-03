@@ -660,4 +660,12 @@ class CountryModel extends PublicModel {
         }
     }
 
+    /**
+     * 通过集团CRM的国家名称获取country_bn和电话区号
+     * 王帅
+     * @param $bn
+     */
+    public function getCountryBnCodeByName($country_name){
+        return $this->field('bn,int_tel_code')->where(array('name'=>$country_name))->find();
+    }
 }

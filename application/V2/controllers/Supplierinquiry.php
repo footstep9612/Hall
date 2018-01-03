@@ -90,8 +90,34 @@ class SupplierinquiryController extends PublicController {
 
     public function InquiryexportAction() {
         ini_set('memory_limit', '1G');
+        $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        $data = $supplier_inquiry_model->Inquiryexport();
+        $data = $supplier_inquiry_model->Inquiryexport($condition);
+
+        if ($data) {
+            $this->jsonReturn($data);
+        } elseif ($data === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*     * **********----导出询单列表----****************
+     * |supplier_id|是|string|供应商id|
+     * |current_no |否  |int    |当前页(默认1)|
+     * |pagesize |否	|int	|每页显示条数|
+     */
+
+    public function InquiryToatolexportAction() {
+        ini_set('memory_limit', '1G');
+        $condition = $this->getPut();
+        $supplier_inquiry_model = new SupplierInquiryModel();
+        $data = $supplier_inquiry_model->InquiryToatolexport($condition);
 
         if ($data) {
             $this->jsonReturn($data);

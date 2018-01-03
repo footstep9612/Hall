@@ -586,8 +586,8 @@ class EsProductModel extends Model {
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
-                $es->setpreference('_primary_first');
             }
+            $es->setpreference('_primary_first');
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);

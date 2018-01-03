@@ -226,7 +226,7 @@ class EsproductController extends PublicController {
 
         $user_ids = [];
         $spus = [];
-        $esgoods = new EsGoodsModel();
+        //  $esgoods = new EsGoodsModel();
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -249,24 +249,36 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            if ($is_recycled && !empty($product['spu'])) {
-                $spus = $product['spu'];
-            }
-
-            $list[$key]['sku_count_notvalid'] = $esgoods->getSkuCountBySpu($product['spu'], $lang);
+            //  if ($is_recycled && !empty($product['spu'])) {
+            $spus[] = $product['spu'];
+            //  }
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
-        if ($is_recycled && !empty($spus)) {
-            $esgoods_model = new EsGoodsModel();
-            $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
-            $skucounts = [];
-            if (isset($skucount['aggregations']['spu']['buckets']) && $skucount['aggregations']['spu']['buckets']) {
-                foreach ($skucount['aggregations']['spu']['buckets'] as $sku_count) {
-                    $skucounts[$sku_count['key']] = $sku_count['value'];
-                }
+        $esgoods = new EsGoodsModel();
+        $status_sku_counts = $esgoods->getStatusSkuCountBySpu($spus, $lang);
+
+        foreach ($list as $k => $product) {
+            if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
+                $status_sku_count = $status_sku_counts[$product['spu']];
+                $list[$k]['sku_count'] = $product['sku_count'] . PHP_EOL . '(' .
+                        ($status_sku_count['draft_count'] > 0 ? '   暂存:' . $status_sku_count['draft_count'] : '') .
+                        ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : '') .
+                        ($status_sku_count['valid_count'] > 0 ? '   通过:' . $status_sku_count['valid_count'] : '') .
+                        ($status_sku_count['invalid_count'] > 0 ? '   已驳回:' . $status_sku_count['invalid_count'] : '') . ')';
             }
         }
+
+//        if ($is_recycled && !empty($spus)) {
+//            $esgoods_model = new EsGoodsModel();
+//            $skucount = $esgoods_model->getskucountBySpus($spus, $lang);
+//            $skucounts = [];
+//            if (isset($skucount['aggregations']['spu']['buckets']) && $skucount['aggregations']['spu']['buckets']) {
+//                foreach ($skucount['aggregations']['spu']['buckets'] as $sku_count) {
+//                    $skucounts[$sku_count['key']] = $sku_count['value'];
+//                }
+//            }
+//        }
         $employee_model = new EmployeeModel();
         $usernames = $employee_model->getUserNamesByUserids($user_ids);
         foreach ($list as $key => $val) {
@@ -291,9 +303,9 @@ class EsproductController extends PublicController {
             } else {
                 $val['onshelf_by_name'] = '';
             }
-            if ($is_recycled && isset($skucounts[$val['spu']])) {
-                $val['sku_count'] = intval($skucounts[$val['spu']]);
-            }
+//            if ($is_recycled && isset($skucounts[$val['spu']])) {
+//                $val['sku_count'] = intval($skucounts[$val['spu']]);
+//            }
             $list[$key] = $val;
         }
         return $list;
