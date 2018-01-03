@@ -74,6 +74,7 @@ class OrderBuyerContactModel extends PublicModel {
         }
         try{
             $data = $this->_getData($data);
+            $data['created_at'] = date('Y-m-d H:i:s',time());
             $result = $this->add($this->create($data));
             return $result ? $result : false;
         }catch (Exception $e){
