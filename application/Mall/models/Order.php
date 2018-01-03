@@ -139,14 +139,14 @@ class OrderModel extends PublicModel {
                     }
                 }
                 //添加订单联系人信息
-                /*if(isset($data['contactAry']) && !empty($data['contactAry'])){
+                if(isset($data['contactAry']) && !empty($data['contactAry'])){
                     $data['contactAry']['order_id'] = $result;
-                    $ocModel = new OrderContactModel();
+                    $ocModel = new OrderBuyerContactModel();
                     if(!$ocModel->addInfo($data['contactAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单联系人添加失败');
                     }
-                }*/
+                }
                 $this->commit();
                 return $orerNo;
             }
