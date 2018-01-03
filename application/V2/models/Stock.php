@@ -27,7 +27,7 @@ class StockModel extends PublicModel {
         $where = ['s.deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn', 'string', 's.country_bn');
         $this->_getValue($where, $condition, 'floor_name', 'like', 'sf.floor_name');
-
+        $this->_getValue($where, $condition, 'show_name', 'like', 's.show_name');
         $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
@@ -38,8 +38,18 @@ class StockModel extends PublicModel {
                 $where['s.created_by'] = null;
             }
         }
+
+        if (isset($condition['updated_by_name']) && $condition['updated_by_name']) {
+            $userids = $employee_model->getUseridsByUserName(trim($condition['updated_by_name']));
+            if ($userids) {
+                $where['s.updated_by'] = ['in', $userids];
+            } else {
+                $where['s.updated_by'] = null;
+            }
+        }
         $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
+        $this->_getValue($where, $condition, 'updated_at', 'between', 's.updated_at');
         return $where;
     }
 
