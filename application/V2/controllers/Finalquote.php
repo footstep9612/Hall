@@ -77,7 +77,7 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
                 $quoteinfo['gross_profit_rate'] = $quoteModel->where($quotewhere)->getField('gross_profit_rate');    //毛利率
                 $quoteinfo['premium_rate'] = $quoteModel->where($quotewhere)->getField('premium_rate');    //保险税率
-
+                $quoteinfo['certification_fee'] = $quotedata['certification_fee'];
 
                 $results['quotedata'] = $quoteinfo;
             }
@@ -161,6 +161,8 @@ class FinalquoteController extends PublicController {
                 $logidata['shipping_insu_rate'] = $quoteLogiFee['shipping_insu_rate'];  //国际运输险率
                 $logidata['dest_tariff_rate'] = $quoteLogiFee['dest_tariff_rate'];  //目的地关税税率
                 $logidata['dest_va_tax_rate'] = $quoteLogiFee['dest_va_tax_rate'];  //目的地增值税率
+                $logidata['certification_fee'] = $data['certification_fee'];
+                $logidata['certification_fee_cur'] = 'CNY';
 
                 $computedata = $logistics->calcuTotalLogiFee($logidata);
 

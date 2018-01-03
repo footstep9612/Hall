@@ -629,7 +629,7 @@ class ExcelimportandexportController extends PublicController {
      * @author liujf
      * @time 2017-12-21
      */
-    public function inquiryExportDataAction() {
+    public function quoteAnalysisDataExportAction() {
         $this->getPut();
     
         $where['a.deleted_flag'] = 'N';
@@ -708,8 +708,6 @@ class ExcelimportandexportController extends PublicController {
     
         $this->_exportExcel($filename, $titleList, $outData);
     }
-    
-    
 
     /**
      * @desc 重写jsonReturn方法
