@@ -80,8 +80,10 @@ class StockModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
         $where['s.lang'] = $lang;
+
         return $this->alias('s')
-                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn,
+                        s.created_at,s.updated_by,s.created_by,s.updated_at')
                         ->join($stock_floor_table
                                 . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
                         ->where($where)

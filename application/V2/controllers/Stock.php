@@ -46,6 +46,7 @@ class StockController extends PublicController {
             $this->_setCountry($list);
             $this->_setConstPrice($list, $condition['country_bn']);
             $this->_setShowcats($list, $lang, $condition['country_bn']);
+            $this->_setUser($list);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -365,6 +366,44 @@ class StockController extends PublicController {
                 }
                 $arr[$key] = $val;
             }
+        }
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUser(&$arr) {
+        $user_ids = [];
+
+        //  $esgoods = new EsGoodsModel();
+        foreach ($arr as $key => $item) {
+            if ($item['created_by']) {
+                $user_ids[] = $item['created_by'];
+            }
+            if ($item['updated_by']) {
+                $user_ids[] = $item['updated_by'];
+            }
+        }
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($arr as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            $arr[$key] = $val;
         }
     }
 
