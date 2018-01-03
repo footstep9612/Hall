@@ -120,7 +120,7 @@ class SpecloginController extends PublicController {
         if (isset($data['phone']) && $data['phone']) {
             $data['tel'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $data['tel'] = $data['tel_code'].' '.$data['phone'];
+                $data['tel'] = $data['tel_code'].'-'.$data['phone'];
             }
         }
         $res = $buyer_custom_model->create_data($data);
@@ -156,7 +156,7 @@ class SpecloginController extends PublicController {
         if (!empty($data['phone']) && is_numeric($data['phone'])) {
             $arr['official_phone'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $arr['official_phone'] = $data['tel_code'] . ' ' . $data['phone'];
+                $arr['official_phone'] = $data['tel_code'] . '-' . $data['phone'];
             }
         } else {
             jsonReturn(null, -113, ShopMsg::getMessage('-113', $lang));
