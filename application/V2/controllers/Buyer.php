@@ -429,6 +429,10 @@ class BuyerController extends PublicController {
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
         }
+
+        if (!empty($data['is_group_crm'])) {
+            $arr['is_group_crm'] = $data['is_group_crm'];   //  向集团crm添加数据标识
+        }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
         }
@@ -963,7 +967,7 @@ class BuyerController extends PublicController {
             );
         }else{
             $dataJson = array(
-                'code'=>1,
+                'code'=>2,
                 'message'=>'正常录入客户信息流程'
             );
         }
@@ -977,50 +981,26 @@ class BuyerController extends PublicController {
      */
     public function groupCrmCode($code){
         //通过code验证并获取客户信息
-//        $soap = <<<EOF
-//<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
-//   <soapenv:Header/>
-//   <soapenv:Body>
-//      <acc:QueryAccount>
-//         <crm_code>{$code}</crm_code>
-//      </acc:QueryAccount>
-//   </soapenv:Body>
-//</soapenv:Envelope>
-//EOF;
-//        $opt = array(
-//            'http'=>array(
-//                'method'=>"POST",
-//                'header'=>"Content-Type: text/xml",
-//                'content' => $soap
-//            )
-//        );
-//        $context = stream_context_create($opt);
-//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
-//        $str = file_get_contents($url,false,$context);  //得到客户crm数据
-
-        $str = <<<EOF
-<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><SOAP-ENV:Body><rpc:QueryAccountResponse xmlns:rpc="http://siebel.com/sales/account/"><biz_scope>sss</biz_scope><country_bn>中国</country_bn><crm_code>GDQ20171226</crm_code><email>qq.com </email><first_name>.里斯</first_name><mobile>18639351366</mobile><name>大客户</name><status>0</status></rpc:QueryAccountResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>
+        $soap = <<<EOF
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <acc:QueryAccount>
+         <crm_code>{$code}</crm_code>
+      </acc:QueryAccount>
+   </soapenv:Body>
+</soapenv:Envelope>
 EOF;
-        $null = <<<EOF
-<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><SOAP-ENV:Body><rpc:QueryAccountResponse xmlns:rpc="http://siebel.com/sales/account/"><biz_scope></biz_scope><country_bn></country_bn><crm_code></crm_code><email></email><first_name></first_name><mobile></mobile><name></name><status>1</status></rpc:QueryAccountResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>Array
-(
-    [0] => HTTP/1.1 200 OK
-    [1] => Cache-Control: no-cache, must-revalidate, max-age=0
-    [2] => Pragma: no-cache
-    [3] => Content-Length: 521
-    [4] => Content-Type: text/xml;charset=UTF-8
-    [5] => Server: Microsoft-IIS/7.5
-    [6] => _charset: UTF-8
-    [7] => X-Powered-By: ASP.NET
-    [8] => Date: Tue, 02 Jan 2018 14:00:39 GMT
-    [9] => Connection: close
-)
-EOF;
-
-//        $sxe = new SimpleXMLElement($str);
-//        $soapenv = $sxe->registerXPathNamespace('c', 'http://siebel.com/sales/account/');
-//        $result = $sxe->xpath('//c:InsertAccount');
-//        $json = json_decode(json_encode($result[0]),true);
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: text/xml",
+                'content' => $soap
+            )
+        );
+        $context = stream_context_create($opt);
+        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $str = file_get_contents($url,false,$context);  //得到客户crm数据
         $need = strstr($str,'<biz_scope>');
         $need = strstr($need,'</rpc:QueryAccountResponse>',true);
         $xml = '<root>'.$need.'</root>';
