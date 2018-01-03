@@ -421,8 +421,45 @@ class BuyerModel extends PublicModel {
             $data['checked_at'] = date('Y-m-d H:i:s');
 
         }
+        $datajson = $this->create($data);
+//        if($data['is_group_crm'] == true){
+//            Array
+//            (
+//                [buyer_no] => C20180103000001
+//                [buyer_code] => XX22
+//            [lang] => en
+//            [name] => 易瑞国际电
+//            [first_name] => wwwwss
+//            [country_bn] => China
+//            [official_email] => 239157117761s2@qq.com
+//            [official_phone] => 13791414971
+//    [province] => 北京
+//            [created_by] => 38698
+//    [created_at] => 2018-01-03 08:52:06
+//    [status] => APPROVING
+//            [checked_by] => 38698
+//    [checked_at] => 2018-01-03 08:52:06
+//)
+//
+//            $xml = <<<EOF
+//<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
+//   <soapenv:Header/>
+//   <soapenv:Body>
+//      <acc:InsertAccount>
+//         <name>{$datajson['name']}</name>
+//         <mobile>{$datajson['']}</mobile>
+//         <country_bn>�й�</country_bn>
+//         <email></email>
+//         <biz_scope></biz_scope>
+//         <crm_code>GDQ20171226</crm_code>
+//         <first_name>��˹</first_name>
+//      </acc:InsertAccount>
+//   </soapenv:Body>
+//</soapenv:Envelope>
+//EOF;
+//
+//        }
         try {
-            $datajson = $this->create($data);
             $res = $this->add($datajson);
             if($res){
                 $checked_log_arr['id'] = $res;
