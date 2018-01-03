@@ -196,14 +196,14 @@ class EsProductModel extends Model {
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
-//        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-//            $show_cat_no = trim($condition['show_cat_no']);
-//            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-//                        [ESClient::TERM => ['show_cats.cat_no1' => $show_cat_no]],
-//                        [ESClient::TERM => ['show_cats.cat_no2' => $show_cat_no]],
-//                        [ESClient::TERM => ['show_cats.cat_no3' => $show_cat_no]],
-//            ]]];
-//        }
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
+            $show_cat_no = trim($condition['show_cat_no']);
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats.cat_no1' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats.cat_no2' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats.cat_no3' => $show_cat_no]],
+            ]]];
+        }
         if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
@@ -223,23 +223,10 @@ class EsProductModel extends Model {
         }
 
         // $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
-        if ($country_bn && isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-            $show_cat_no = trim($condition['show_cat_no']);
-            $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                [
-                    'path' => "show_cats",
-                    'query' => ['bool' => [ESClient::SHOULD => [
-                                [ESClient::TERM => ['show_cats.cat_no3' => ['value' => $show_cat_no, 'boost' => 99]]],
-                                [ESClient::TERM => ['show_cats.cat_no2' => ['value' => $show_cat_no, 'boost' => 95]]],
-                                [ESClient::TERM => ['show_cats.cat_no1' => ['value' => $show_cat_no, 'boost' => 90]]],
-                            ],
-                            ESClient::MUST => [ESClient::TERM => ['show_cats.country_bn' => ['value' => $country_bn, 'boost' => 99]]]
-            ]]]];
-        }
-        //   $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
-//        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
-//        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no2', 'show_cats.cat_no2');
-//        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no3', 'show_cats.cat_no3');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no2', 'show_cats.cat_no2');
+        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no3', 'show_cats.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
@@ -416,7 +403,7 @@ class EsProductModel extends Model {
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $this->_getEsShowCats($showcats, $keyword, $body, $condition['country_bn']);
+                $this->_getEsShowCats($showcats, $keyword, $body);
             }
         }
         return $body;
@@ -464,35 +451,21 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getEsShowCats($showcats, $keyword, &$body, $country_bn = null) {
+    private function _getEsShowCats($showcats, $keyword, &$body) {
         $show_cat_bool = [];
         foreach ($showcats as $showcat) {
-
             $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
             $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
             $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
         }
         if ($show_cat_bool) {
-            $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                [
-                    'path' => "show_cats",
-                    'query' => ['bool' => [
-                            ESClient::SHOULD => $show_cat_bool,
-                            ESClient::MUST => [ESClient::TERM => ['show_cats.country_bn' => ['value' => $country_bn, 'boost' => 99]]]
-                        ]
-                    ]
-            ]];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
         } else {
-            $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                [
-                    'path' => "show_cats",
-                    'query' => ['bool' => [ESClient::SHOULD => [
-                                [ESClient::TERM => ['show_cats.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
-                                [ESClient::TERM => ['show_cats.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
-                                [ESClient::TERM => ['show_cats.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
-                            ],
-                            ESClient::MUST => [ESClient::TERM => ['show_cats.country_bn' => ['value' => $country_bn, 'boost' => 99]]]
-            ]]]];
+            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
+                        [ESClient::TERM => ['show_cats.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
+                        [ESClient::TERM => ['show_cats.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
+            ]]];
         }
     }
 
