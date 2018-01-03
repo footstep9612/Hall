@@ -118,13 +118,20 @@ class StockCostPriceModel extends PublicModel {
 
         $goods_cost_price_model = new GoodsCostPriceModel();
         $field = 'supplier_id,price as min_price,max_price,price_unit,price_cur_bn,'
-                . 'min_purchase_qty,max_purchase_qty,pricing_date,price_validity_start,'
+                . 'min_purchase_qty,max_purchase_qty,price_validity_start,'
                 . 'price_validity as price_validity_end';
         $cost_prices = $goods_cost_price_model->field($field)
                         ->where(['sku' => $sku, 'deleted_flag' => 'N'])->select();
 
         if ($cost_prices) {
-
+            $cost_prices['min_price'] = null;
+            $cost_prices['max_price'] = null;
+//            $cost_prices['price_cur_bn'] = null;
+//            $cost_prices['min_purchase_qty'] = null;
+//            $cost_prices['max_purchase_qty'] = null;
+//            $cost_prices['pricing_date'] = null;
+            $cost_prices['price_validity_start'] = null;
+            $cost_prices['price_validity_end'] = null;
             return $this->updateDatas($country_bn, $lang, $sku, $cost_prices);
         } else {
             return true;
@@ -136,7 +143,7 @@ class StockCostPriceModel extends PublicModel {
      * @param array $skus
      * @return array|mixed
      */
-    public function getCostPriceBySkus($skus = [], $country_bn) {
+    public function getCostPriceBySkus($skus = [], $country_bn = null) {
         $where = array(
             'sku' => ['in', $skus],
             'deleted_flag' => 'N',

@@ -30,11 +30,11 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn) {
+    public function getExit($country_bn, $lang = 'en') {
 
         $where['country_bn'] = trim($country_bn);
         $where['show_flag'] = 'Y';
-
+        $where['lang'] = $lang;
         return $this->where($where)->field('id,country_bn')->find();
     }
 

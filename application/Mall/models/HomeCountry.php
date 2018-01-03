@@ -40,9 +40,10 @@ class HomeCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $id = null) {
+    public function getExit($country_bn, $lang = 'en', $id = null) {
 
         $where['country_bn'] = $country_bn;
+        $where['lang'] = $lang;
         if ($id) {
             $where['id'] = ['neq', $id];
         }

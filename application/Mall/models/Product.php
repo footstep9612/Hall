@@ -230,8 +230,8 @@ class ProductModel extends PublicModel {
 
                 //库存
                 $stockAry = [];
-                if ($condition['type']) {
-                    $stockAry = $productModel->getSkuStockBySku($input['skus'], $input['country_bn'], $input['lang']);
+                if ($input['type']) {
+                    $stockAry = $productModel->getSkuStockBySku($skuAry, $input['country_bn'], $input['lang']);
                 }
 
                 $gattrModel = new GoodsAttrModel();
