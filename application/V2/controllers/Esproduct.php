@@ -850,7 +850,7 @@ class EsproductController extends PublicController {
             //  'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-                // 'type' => 'nested',
+                'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
