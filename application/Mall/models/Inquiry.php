@@ -262,10 +262,6 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['buyer_code'])) {
             $data['buyer_code'] = $condition['buyer_code'];
-        } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有采购商编号!';
-            return $results;
         }
 //        if (!empty($condition['buyer_account_id'])) {
 //            $data['buyer_account_id'] = $condition['buyer_account_id'];
