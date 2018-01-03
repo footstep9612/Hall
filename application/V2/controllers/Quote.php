@@ -35,7 +35,7 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
+        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
 
