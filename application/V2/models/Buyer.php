@@ -1350,6 +1350,10 @@ EOF;
                 $attach = new BuyerattachModel();
                 $attach -> createBuyerFinanceTable($data);
             }
+            if($data['base_info']['is_edit'] == true && empty($data['base_info']['attach_url'])){
+                $attach = new BuyerattachModel();
+                $attach -> delBuyerFinanceTable($data);
+            }
             //创建联系人信息
             $model = new BuyercontactModel();
             $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
