@@ -296,6 +296,27 @@ class ShowCatModel extends PublicModel {
         return $data;
     }
 
+    public function getListByLetterExit($country_bn, $letter = '', $lang = 'en') {
+        $this->_updateSpuCount();
+        if ($country_bn) {
+            $condition['country_bn'] = trim($country_bn);
+        }
+        if ($letter) {
+            $condition['name'] = ['like', trim($letter) . '%'];
+        }
+        $condition['status'] = self::STATUS_VALID;
+        $condition['deleted_flag'] = 'N';
+        $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
+        $condition['lang'] = trim($lang);
+        $data = $this
+                ->field('id')
+                ->where($condition)
+                ->find();
+
+        return isset($data['id']) ? true : false;
+    }
+
     /**
      * Description of 判断国家是否存在
      * @author  zhongyg
