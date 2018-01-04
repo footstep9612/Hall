@@ -256,7 +256,7 @@ class BuyerCustomModel extends PublicModel
             $arr['company'] = trim($create['company']);
         }
         if (isset($create['country']) && !empty($create['country'])) {
-            $arr['country_bn'] = trim($create['country_bn']);
+            $arr['country_bn'] = trim($create['country']);
         }
         if (isset($create['city']) && !empty($create['city'])) {
             $arr['city'] = trim($create['city']);

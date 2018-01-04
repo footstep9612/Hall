@@ -72,25 +72,9 @@ class ShowCatModel extends PublicModel {
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $show_cat_product_model = new ShowCatProductModel(w);
-//        $show_cat_product_table = $show_cat_product_model->getTableName();
-//        $show_cat_table = $this->getTableName();
-//        $lang = $where['lang'];
-//        if ($where['level_no'] === 1) {
-//            $where[] = 'cat_no in (select parent_cat_no from ' . $show_cat_table . ' tsc where tsc.cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
-//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\') and tsc.lang=\'' . $lang . '\' and tsc.deleted_flag=\'N\')';
-//        } elseif ($where['level_no'] === 2) {
-//            $where[] = 'cat_no in (select sc.parent_cat_no FROM ' . $show_cat_table . ' sc  '
-//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
-//        } elseif ($where['level_no'] === 3) {
-//            $where[] = 'cat_no in (select sc.cat_no FROM ' . $show_cat_table . ' sc  '
-//                    . ' LEFT JOIN ' . $show_cat_product_table . ' scp on scp.lang=sc.lang and scp.onshelf_flag=\'Y\' and sc.cat_no=scp.cat_no'
-//                    . ' where sc.lang=\'' . $lang . '\' and sc.deleted_flag=\'N\')';
-//        }
-
+        $this->_updateSpuCount();
         try {
+            $where['spu_count'] = ['gt', 0];
             $result = $this
                     ->where($where)
                     ->order('sort_order DESC')
@@ -102,6 +86,32 @@ class ShowCatModel extends PublicModel {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
+        }
+    }
+
+    private function _updateSpuCount() {
+        $time = redisHashGet('show_cat', 'sort_order');
+        $show_cat_product_model = new ShowCatProductModel(w);
+        $show_cat_product_teble = $show_cat_product_model->getTableName();
+        $show_cat_table = $this->getTableName();
+        if (empty($time) || $time + 86400 < time()) {
+            $sql = 'UPDATE ' . $show_cat_table . ' set spu_count=0';
+            $sql1 = 'UPDATE ' . $show_cat_table . ' ,(SELECT count(id) as spu_count ,scp.cat_no,scp.lang from '
+                    . $show_cat_product_teble . ' as scp GROUP BY scp.cat_no,scp.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.cat_no';
+            $sql2 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=3 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=2';
+            $sql3 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=2 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=1';
+            $this->execute($sql);
+            $this->execute($sql1);
+            $this->execute($sql2);
+            $this->execute($sql3);
+            redisHashSet('show_cat', 'sort_order', time());
         }
     }
 
@@ -165,7 +175,7 @@ class ShowCatModel extends PublicModel {
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
-
+        $where['deleted_flag'] = 'N';
         getValue($where, $condition, 'name', 'like');
         getValue($where, $condition, 'sort_order', 'string');
         getValue($where, $condition, 'created_at', 'string');
@@ -226,7 +236,7 @@ class ShowCatModel extends PublicModel {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
 
-
+        $where['deleted_flag'] = 'N';
 
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
@@ -242,7 +252,7 @@ class ShowCatModel extends PublicModel {
     }
 
     public function get_list($country_bn, $cat_no = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = $country_bn;
         }
@@ -251,6 +261,8 @@ class ShowCatModel extends PublicModel {
         } else {
             $condition['parent_cat_no'] = 0;
         }
+        $condition['spu_count'] = ['gt', 0];
+        $condition['deleted_flag'] = 'N';
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
 
@@ -264,7 +276,7 @@ class ShowCatModel extends PublicModel {
     }
 
     public function getListByLetter($country_bn, $letter = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = trim($country_bn);
         }
@@ -274,6 +286,7 @@ class ShowCatModel extends PublicModel {
         $condition['status'] = self::STATUS_VALID;
         $condition['deleted_flag'] = 'N';
         $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
         $condition['lang'] = trim($lang);
         $data = $this->where($condition)
                 ->field(' cat_no,name')
@@ -281,6 +294,27 @@ class ShowCatModel extends PublicModel {
                 ->select();
 
         return $data;
+    }
+
+    public function getListByLetterExit($country_bn, $letter = '', $lang = 'en') {
+        $this->_updateSpuCount();
+        if ($country_bn) {
+            $condition['country_bn'] = trim($country_bn);
+        }
+        if ($letter) {
+            $condition['name'] = ['like', trim($letter) . '%'];
+        }
+        $condition['status'] = self::STATUS_VALID;
+        $condition['deleted_flag'] = 'N';
+        $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
+        $condition['lang'] = trim($lang);
+        $data = $this
+                ->field('id')
+                ->where($condition)
+                ->find();
+
+        return isset($data['id']) ? true : false;
     }
 
     /**
