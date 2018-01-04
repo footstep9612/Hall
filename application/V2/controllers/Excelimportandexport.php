@@ -427,8 +427,9 @@ class ExcelimportandexportController extends PublicController {
         $name = pathinfo($attach, PATHINFO_BASENAME);
         $dotpos = strrpos($name, '.');
         if (is_int($dotpos)) $name = substr($name, 0, $dotpos);
-        $tmp = explode(' ', $name);
-        return $tmp[0];
+        $tmp = $this->_trim(explode('PO', $name));
+        $no = $tmp[0] ? : $tmp[1];
+        return trim($no, '-');
     }
     
     /**
