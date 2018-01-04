@@ -35,6 +35,7 @@ class MembercenterController extends PublicController {
         exit;
     }
 
+
     /**
      * 个人信息中心更新保存
      * @author klp
@@ -226,8 +227,47 @@ class MembercenterController extends PublicController {
         }
     }
 
+    /**
+     * 采购商联系人信息
+     * @author klp
+     */
+    public function getContactInfoAction() {
+        $data = $this->getPut();
+        $buyerModel = new BuyerContactModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
+        $result = $buyerModel->info($data);
+        if (!empty($result)) {
+            jsonReturn($result, 1, 'Success!');
+        } else {
+            jsonReturn('', '-1002', 'Data is empty!');
+        }
+        exit;
+    }
 
     /**
+     * 采购商联系人编辑
+     * @author klp
+     */
+    public function contactEditAction()
+    {
+        $data = $this->getPut();
+        $buyerModel = new BuyerContactModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
+        $check = $buyerModel->field('id')->where(['buyer_id' => $this->user['buyer_id'],'id' => $data['id'], 'deleted_flag' => 'N'])->find();
+        if ($check){
+            $result = $buyerModel->update_data($data);
+        } else {
+            $result = $buyerModel->create_data($data);
+        }
+        if($result) {
+            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
+        }
+        exit;
+    }
+
+        /**
      * 分页处理
      * @param array $condition 条件
      * @return array

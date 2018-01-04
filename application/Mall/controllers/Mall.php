@@ -254,16 +254,16 @@ class MallController extends PublicController
         if ($info['buyer_id']) {
             $buyer_model = new BuyerAccountModel();
             $custom_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
-            if (isset($custom_buyer_contact[$info['buyer_id']]) && isset($custom_buyer_contact['show_name'])) {
-                $info['buyer_name'] = $custom_buyer_contact[$info['buyer_id']];
-                $info['show_name'] = $custom_buyer_contact['show_name'];
+            if (isset($custom_buyer_contact[$info['buyer_id']]) && isset($custom_buyer_contact['user_name'])) {
+                $info['show_name'] = $custom_buyer_contact[$info['buyer_id']];
+                $info['user_name'] = $custom_buyer_contact['user_name'];
             } else {
-                $info['buyer_name'] = null;
                 $info['show_name'] = null;
+                $info['user_name'] = null;
             }
         } else {
-            $info['buyer_name'] = '';
             $info['show_name'] = '';
+            $info['user_name'] = '';
         }
     }
 

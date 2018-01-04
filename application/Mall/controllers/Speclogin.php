@@ -27,7 +27,7 @@ class SpecloginController extends PublicController {
         } elseif($data['sign'] == 'contact'){
             $res = $this->createUcustom($data);
             if($res) {
-                jsonReturn($res,1,'提交成功!');
+                jsonReturn($res,1001,'提交成功!');
             } else{
                 jsonReturn('',-1,'提交失败!');
             }
