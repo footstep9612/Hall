@@ -30,12 +30,14 @@ class HomecountryController extends PublicController {
     public function ListAction() {
 
         $condition = $this->getPut();
-        $home_country_model = new HomeCountryModel();
+        $stock_country_model = new StockCountryModel();
 
-        $list = $home_country_model->getList($condition);
+        $list = $stock_country_model->getList($condition);
 
         if ($list) {
             $this->_setCountry($list);
+            $count = $stock_country_model->getCount($condition);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);

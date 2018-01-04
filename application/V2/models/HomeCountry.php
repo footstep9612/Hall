@@ -26,6 +26,7 @@ class HomeCountryModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
+        $this->_getValue($where, $condition, 'lang');
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'display_position');
         $this->_getValue($where, $condition, 'created_by');
@@ -42,7 +43,35 @@ class HomeCountryModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        return $this->where($where)->select();
+
+        list($row_start, $pagesize) = $this->_getPage($condition);
+        return $this->where($where)
+                        ->order('id desc')
+                        ->limit($row_start, $pagesize)
+                        ->select();
+    }
+
+    /**
+     * 获取数据条数
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getCount($condition) {
+        $where = $this->_getCondition($condition);
+
+
+        try {
+            $count = $this->where($where)
+                    ->count('id');
+
+
+            return $count;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return 0;
+        }
     }
 
     /**

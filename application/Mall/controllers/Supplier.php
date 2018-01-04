@@ -163,11 +163,11 @@ class SupplierController extends PublicController {
             $supplier_contact->create_data($supplier_contact_data);
 
             $datajson['code'] = 1;
-            $datajson['message'] = '成功';
+            $datajson['message'] = ShopMsg::getMessage('1', $lang);
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
+            $datajson['message'] = ShopMsg::getMessage('-107', $lang);
         }
         $this->jsonReturn($datajson);
     }

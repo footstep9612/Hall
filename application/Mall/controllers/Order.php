@@ -66,8 +66,7 @@ class OrderController extends PublicController {
     //put your code here
     public function listAction() {
 
-        $condition = $this->getPut(); //查询条件
-
+        $condition = $this->getPut();
         $order_moder = new OrderModel();
         $condition['buyer_id'] = $this->user['buyer_id'];
         $data = $order_moder->getList($condition);

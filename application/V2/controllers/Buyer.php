@@ -1001,18 +1001,43 @@ EOF;
             $arr['country_code'] = $nameAndCode['int_tel_code'];
         }
         $info = array(
-            'official_email'=>$arr['email'], //邮箱
-            'country_bn'=>$arr['country_brief'], //国家简称
-            'country_name'=>$arr['country_bn'], //国家名称
-            'areacode'=>$arr['country_code'], //国家区号
-            'mobile'=>$arr['mobile'], //区号,电话
-            'first_name'=>$arr['first_name'], //姓名
+            'official_email'=>!empty($arr['email'])?$arr['email']:null, //邮箱
+            'country_bn'=>!empty($arr['country_brief'])?$arr['country_brief']:null, //国家简称
+            'country_name'=>!empty($arr['country_bn'])?$arr['country_bn']:null, //国家名称
+            'areacode'=>!empty($arr['country_code'])?$arr['country_code']:null, //国家区号
+            'mobile'=>!empty($arr['mobile'])?$arr['mobile']:null, //区号,电话
+            'first_name'=>!empty($arr['first_name'])?$arr['first_name']:null, //姓名
 
-            'name'=>$arr['name'], //公司名称
-            'biz_scope'=>$arr['biz_scope'], //经营范围
+            'name'=>!empty($arr['name'])?$arr['name']:null, //公司名称
+            'biz_scope'=>!empty($arr['biz_scope'])?$arr['biz_scope']:null, //经营范围
             'intent_product'=>NULL, //意向产品
             'purchase_amount'=>NULL //预计年采购额
         );
         return $info;
+    }
+
+    /**
+     * CRM测试
+     */
+    public function testCrmAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $info = $model->testCrm($data);
+        if(!empty($info)){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'CRM返回数据',
+                'data'=>$info
+            );
+        }else{
+            $dataJson = array(
+                'code'=>2,
+                'message'=>'CRM正常流程',
+                'data'=>$info
+            );
+        }
+        $this->jsonReturn($dataJson);
     }
 }

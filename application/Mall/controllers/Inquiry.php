@@ -93,7 +93,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         } else {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn();
+            $this->jsonReturn($results);
         }
     }
 
