@@ -253,9 +253,12 @@ class MembercenterController extends PublicController {
         $data = $this->getPut();
         $buyerModel = new BuyerContactModel();
         $data['buyer_id'] = $this->user['buyer_id'];
-        $check = $buyerModel->field('id')->where(['buyer_id' => $this->user['buyer_id'],'id' => $data['id'], 'deleted_flag' => 'N'])->find();
-        if ($check){
-            $result = $buyerModel->update_data($data);
+        if(!empty($data['id'])){
+            $check = $buyerModel->field('id')->where(['buyer_id' => $this->user['buyer_id'],'id' => $data['id'], 'deleted_flag' => 'N'])->find();
+            if ($check){
+                $result = $buyerModel->update_data($data);
+            }
+            $result = $buyerModel->create_data($data);
         } else {
             $result = $buyerModel->create_data($data);
         }

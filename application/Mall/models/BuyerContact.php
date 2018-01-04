@@ -44,23 +44,26 @@ class BuyerContactModel extends PublicModel
                         ->limit(1)
                         ->select();
         }
-        $data = [];
+        $arr = [];
+        $buyaccont_model = new BuyerAccountModel();
+        $account_info = $buyaccont_model->getinfo($data);
         if(!$row){
-            $buyaccont_model = new BuyerAccountModel();
-            $account_info = $buyaccont_model->getinfo($data);
             if($account_info){
-                $data['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
-                $data['phone'] = $account_info['official_phone'];
-                $data['email'] = $account_info['official_email'];
-                $data['country_bn'] = $account_info['country_bn'];
-                $data['city'] = $account_info['city'];
-                $data['address'] = $account_info['address'];
-                $data['zipcode'] = '';
-                return $data;
+                $arr['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
+                $arr['phone'] = $account_info['official_phone'];
+                $arr['email'] = $account_info['email'];
+                $arr['country_bn'] = $account_info['country_bn'];
+                $arr['city'] = $account_info['city'];
+                $arr['address'] = $account_info['address'];
+                $arr['zipcode'] = '';
+                $arr['company'] = $account_info['name'];
+                return $arr;
             }
             return false;
         }
-        return false;
+
+        $row['company'] = $account_info['name'];
+        return $row;
     }
 
     /**
