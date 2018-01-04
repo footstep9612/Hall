@@ -46,13 +46,12 @@ class QuoteController extends PublicController{
         $info['inquiry_trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
 
         $transMode = new TransModeModel();
-        $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
-        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
         $info['inquiry_trans_mode_bn'] = $transMode->where(['id' => $info['inquiry_trans_mode_bn']])->getField('trans_mode');
         $info['inquiry_trans_mode_bn'] = $info['inquiry_trans_mode_bn'] ? : '暂无';
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
+        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
         $info['dispatch_place'] = $info['dispatch_place'] ? : '暂无';
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
