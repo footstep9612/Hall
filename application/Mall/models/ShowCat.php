@@ -163,7 +163,7 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
-
+        $where['deleted_flag'] = 'N';
         getValue($where, $condition, 'name', 'like');
         getValue($where, $condition, 'sort_order', 'string');
         getValue($where, $condition, 'created_at', 'string');
@@ -224,7 +224,7 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
 
-
+        $where['deleted_flag'] = 'N';
 
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
@@ -249,6 +249,8 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
         } else {
             $condition['parent_cat_no'] = 0;
         }
+        $condition['spu_count'] = ['gt', 0];
+        $condition['deleted_flag'] = 'N';
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
 
