@@ -47,6 +47,8 @@ class StockController extends PublicController {
             $this->_setConstPrice($list, $condition['country_bn']);
             $this->_setShowcats($list, $lang, $condition['country_bn']);
             $this->_setUser($list);
+            $count = $stock_model->getCount($condition, $lang);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
