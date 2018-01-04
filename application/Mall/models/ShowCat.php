@@ -274,6 +274,7 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
         $condition['status'] = self::STATUS_VALID;
         $condition['deleted_flag'] = 'N';
         $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
         $condition['lang'] = trim($lang);
         $data = $this->where($condition)
                 ->field(' cat_no,name')
