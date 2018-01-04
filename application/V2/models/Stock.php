@@ -180,6 +180,27 @@ class StockModel extends PublicModel {
     }
 
     /**
+     * Description of 更新库存
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateStock($country_bn, $sku, $lang, $stock) {
+
+        $where = ['country_bn' => $country_bn, 'sku' => $sku, 'lang' => $lang];
+        $data = [
+            'stock' => $stock,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => defined('UID') ? UID : 0
+        ];
+        $flag = $this->where($where)->save($data);
+
+
+        return $flag;
+    }
+
+    /**
      * Description of 更新现货
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
