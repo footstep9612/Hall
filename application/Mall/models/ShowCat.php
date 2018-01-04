@@ -71,22 +71,8 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
-        $show_cat_table = $this->getTableName();
-        $show_cat_product_model = new ShowCatProductModel(w);
-        $show_cat_product_teble = $show_cat_product_model->getTableName();
-        $time = redisHashGet('show_cat', 'sort_order');
-        if (empty($time) || $time + 86400 < time()) {
-            $sql1 = 'UPDATE ' . $show_cat_table . ' ,(SELECT count(id) as spu_count ,scp.cat_no,scp.lang from ' . $show_cat_product_teble . ' as scp GROUP BY scp.cat_no,scp.lang) temp
-set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.cat_no';
-            $sql2 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from ' . $show_cat_table . ' as sc where sc.level_no=3 GROUP BY sc.parent_cat_no,sc.lang) temp
-set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=2';
-            $sql3 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from ' . $show_cat_table . ' as sc where sc.level_no=2 GROUP BY sc.parent_cat_no,sc.lang) temp
-set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=1';
-            $this->execute($sql1);
-            $this->execute($sql2);
-            $this->execute($sql3);
-            redisHashSet('show_cat', 'sort_order', time());
-        }
+
+        $this->_updateSpuCount();
         try {
             $where['spu_count'] = ['gt', 0];
             $result = $this
@@ -100,6 +86,32 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
+        }
+    }
+
+    private function _updateSpuCount() {
+        $time = redisHashGet('show_cat', 'sort_order');
+        $show_cat_product_model = new ShowCatProductModel(w);
+        $show_cat_product_teble = $show_cat_product_model->getTableName();
+        $show_cat_table = $this->getTableName();
+        if (empty($time) || $time + 86400 < time()) {
+            $sql = 'UPDATE ' . $show_cat_table . ' set spu_count=0';
+            $sql1 = 'UPDATE ' . $show_cat_table . ' ,(SELECT count(id) as spu_count ,scp.cat_no,scp.lang from '
+                    . $show_cat_product_teble . ' as scp GROUP BY scp.cat_no,scp.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.cat_no';
+            $sql2 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=3 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=2';
+            $sql3 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=2 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=1';
+            $this->execute($sql);
+            $this->execute($sql1);
+            $this->execute($sql2);
+            $this->execute($sql3);
+            redisHashSet('show_cat', 'sort_order', time());
         }
     }
 
@@ -240,7 +252,7 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
     }
 
     public function get_list($country_bn, $cat_no = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = $country_bn;
         }
@@ -264,7 +276,7 @@ set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_ca
     }
 
     public function getListByLetter($country_bn, $letter = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = trim($country_bn);
         }
