@@ -36,6 +36,8 @@ class StockcountryController extends PublicController {
 
         if ($list) {
             $this->_setCountry($list);
+            $count = $stock_country_model->getCount($condition);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -131,7 +133,7 @@ class StockcountryController extends PublicController {
             $this->jsonReturn();
         }
         $stock_country_model = new StockCountryModel();
-
+        $lang = $this->getPut('lang', 'en');
         if ($stock_country_model->getExit($country_bn, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
@@ -140,7 +142,7 @@ class StockcountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $lang = $this->getPut('lang', 'en');
+
         $list = $stock_country_model->createData($country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
