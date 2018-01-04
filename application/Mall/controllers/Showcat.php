@@ -319,24 +319,21 @@ class ShowcatController extends PublicController {
 
     public function getListByLetterExitAction() {
 
-        $lang = $this->getPut('lang', 'en');
-        $letters = $this->getPut('letters', '');
-        $country_bn = $this->getPut('country_bn', '');
-        if (empty($country_bn)) {
+        $data = $this->getPut();
+        if (empty($data['country_bn'])) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('国家简称不能为空!');
             $this->jsonReturn();
         }
         $show_model = new ShowCatModel();
         $newletter = [];
-        foreach ($letters as $letter) {
-            $flag = $show_model->getListByLetterExit($country_bn, $letter, $lang);
+        foreach ($data['letters'] as $letter) {
+            $flag = $show_model->getListByLetterExit($data['country_bn'], $letter, $data['lang']);
             if ($flag) {
                 $newletter[] = $letter;
             }
         }
         if ($newletter) {
-
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($newletter);
         } else {
