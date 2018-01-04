@@ -80,13 +80,29 @@ class StockModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
         $where['s.lang'] = $lang;
+
         return $this->alias('s')
-                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn,
+                        s.created_at,s.updated_by,s.created_by,s.updated_at')
                         ->join($stock_floor_table
                                 . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
                         ->where($where)
                         ->limit($from, $size)
                         ->select();
+    }
+
+    public function getCount($condition, $lang) {
+        $stock_floor_model = new StockFloorModel();
+        $stock_floor_table = $stock_floor_model->getTableName();
+        $where = $this->_getCondition($condition);
+
+        $where['s.lang'] = $lang;
+
+        return $this->alias('s')
+                        ->join($stock_floor_table
+                                . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
+                        ->where($where)
+                        ->count();
     }
 
     /**
@@ -175,6 +191,27 @@ class StockModel extends PublicModel {
         }
         $this->commit();
         return true;
+    }
+
+    /**
+     * Description of 更新库存
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateStock($country_bn, $sku, $lang, $stock) {
+
+        $where = ['country_bn' => $country_bn, 'sku' => $sku, 'lang' => $lang];
+        $data = [
+            'stock' => $stock,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => defined('UID') ? UID : 0
+        ];
+        $flag = $this->where($where)->save($data);
+
+
+        return $flag;
     }
 
     /**

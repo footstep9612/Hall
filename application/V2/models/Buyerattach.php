@@ -115,6 +115,20 @@ class BuyerattachModel extends PublicModel {
             return $this->add($data);
     }
 
+    /**
+     * @param $data
+     * 编辑基本信息,删除财务报表
+     */
+    public function delBuyerFinanceTable($data){
+        $buyer_id = $data['base_info']['buyer_id'];
+        $created_by = $data['created_by'];
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'attach_group'=>'FINANCE',
+        );
+        $this->where($cond)->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+    }
     /*
      * 创建财务报表
      * attach_name,attach_url
