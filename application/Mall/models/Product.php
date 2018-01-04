@@ -134,12 +134,23 @@ class ProductModel extends PublicModel {
                 $spec = [];
                 foreach($input['spec'] as $key => $value){
                     //$spec[] = ['exp', 'regexp \'"'.$key.'":"' . $value . '"\''];    //精确查
+                    $find = array('(',')');
+                    $replace = array('.{1}','.{1}');
+                    $key = str_replace($find, $replace, $key);
+                    $key = str_replace("'", "\\'",$key);
+                    $key = str_replace('"', '.{1,2}',$key);
+
+                    $value = str_replace($find, $replace, $value);
+                    $value = str_replace("'", "\\'",$value);
+                    $value = str_replace('"', '.{1,2}',$value);
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $value, Log::ERR);
                     $spec[] = ['exp', 'regexp \'"'.$key.'":"[^"]*' . $value . '[^"]*"\''];    //模糊查
                 }
                 $condition["$gatable.spec_attrs"] = $spec;
             }
 
             $idAry = $goodsModel->field("$gtable.id")->join($gatable." ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang",'LEFT')->where($condition)->select();
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $goodsModel->getLastSql(), Log::ERR);
             $ids = [];
             if($idAry){
                 foreach($idAry as $id){
