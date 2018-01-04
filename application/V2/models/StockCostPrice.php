@@ -70,8 +70,10 @@ class StockCostPriceModel extends PublicModel {
 
         $where['sku'] = $sku;
         $where['country_bn'] = $country_bn;
+        $this->startTrans();
         $this->where($where)->save(['deleted_flag' => 'Y']);
         $current_model = new CurrencyModel();
+
         foreach ($cost_prices as $cost_price) {
 
             $id = empty($cost_price['id']) ? null : $cost_price['id'];
@@ -83,6 +85,13 @@ class StockCostPriceModel extends PublicModel {
                 $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
             }
             $data = $this->create($cost_price);
+
+            $data['max_price'] = floatval($data['max_price']) > 0 ? intval($data['max_price']) : null;
+            $data['max_promotion_price'] = floatval($data['max_promotion_price']) > 0 ? intval($data['max_promotion_price']) : null;
+            $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
+            $data['min_purchase_qty'] = intval($data['min_purchase_qty']) > 0 ? intval($data['min_purchase_qty']) : 0;
+            $data['max_purchase_qty'] = intval($data['max_purchase_qty']) > 0 ? intval($data['max_purchase_qty']) : null;
+
             $data['spu'] = $this->getSpu($sku, $lang);
             $data['sku'] = $sku;
             $data['country_bn'] = $country_bn;
@@ -91,20 +100,21 @@ class StockCostPriceModel extends PublicModel {
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $data['created_at'] = date('Y-m-d H:i:s');
                 $data['deleted_flag'] = 'N';
-                $data['max_price'] = null;
+
                 $flag = $this->add($data);
             } else {
                 $data['updated_by'] = defined('UID') ? UID : 0;
                 $data['updated_at'] = date('Y-m-d H:i:s');
                 $data['deleted_flag'] = 'N';
-                $data['max_price'] = null;
+
                 $flag = $this->where(['id' => $id])->save($data);
             }
             if (!$flag) {
+                $this->rollback();
                 return false;
             }
         }
-
+        $this->commit();
         return true;
     }
 
