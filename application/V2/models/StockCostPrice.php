@@ -91,11 +91,13 @@ class StockCostPriceModel extends PublicModel {
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $data['created_at'] = date('Y-m-d H:i:s');
                 $data['deleted_flag'] = 'N';
+                $data['max_price'] = null;
                 $flag = $this->add($data);
             } else {
                 $data['updated_by'] = defined('UID') ? UID : 0;
                 $data['updated_at'] = date('Y-m-d H:i:s');
                 $data['deleted_flag'] = 'N';
+                $data['max_price'] = null;
                 $flag = $this->where(['id' => $id])->save($data);
             }
             if (!$flag) {
@@ -126,9 +128,9 @@ class StockCostPriceModel extends PublicModel {
         if ($cost_prices) {
             $cost_prices['min_price'] = null;
             $cost_prices['max_price'] = null;
-//            $cost_prices['price_cur_bn'] = null;
-//            $cost_prices['min_purchase_qty'] = null;
-//            $cost_prices['max_purchase_qty'] = null;
+            $cost_prices['price_cur_bn'] = null;
+            $cost_prices['min_purchase_qty'] = null;
+            $cost_prices['max_purchase_qty'] = null;
 //            $cost_prices['pricing_date'] = null;
             $cost_prices['price_validity_start'] = null;
             $cost_prices['price_validity_end'] = null;
