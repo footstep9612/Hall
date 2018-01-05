@@ -932,6 +932,9 @@ class ExcelmanagerController extends PublicController {
     }
 
 
+    /**
+     * 导出被驳回的所有询单
+     */
     public function exportRejectedAction()
     {
         $this->validateRequests();
@@ -1001,9 +1004,10 @@ class ExcelmanagerController extends PublicController {
             $data[$key]['check'] = $inquiryCheckLog->where([
                 'action' => 'REJECT',
                 'inquiry_id' => $value['id']
-            ])->where("out_node='REJECT_MARKET' OR out_node='CC_DISPATCHING' ")->order('created_at DESC')->field('created_at,created_by,op_note')->find();
+            ])->where("out_node='REJECT_MARKET' OR out_node='CC_DISPATCHING' ")->order('created_at DESC')->field('created_at,created_by,op_note,out_node')->find();
 
             $data[$key]['check']['rejector_name'] = $employee->where(['id'=>$data[$key]['check']['created_by']])->getField('name');
+            $data[$key]['check']['node'] = $this->setNode($data[$key]['check']['out_node']);
             $data[$key]['agent'] = $employee->where(['id'=>$data[$key]['agent_id']])->getField('name');
             $data[$key]['now_agent'] = $employee->where(['id'=>$data[$key]['now_agent_id']])->getField('name');
             $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
@@ -1015,6 +1019,20 @@ class ExcelmanagerController extends PublicController {
         //p($inquiry->getLastSql());
         return $data;
 
+    }
+
+    private function setNode($node) {
+
+        switch ($node) {
+            case 'REJECT_MARKET' :
+                $nodeName = '驳回市场';
+                break;
+            case 'CC_DISPATCHING' :
+                $nodeName = '驳回易瑞';
+                break;
+        }
+
+        return $nodeName;
     }
 
     private function createRejectedFile($data) {
@@ -1033,19 +1051,20 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("E1", '市场经办人');
         $objSheet->setCellValue("F1", '原询单所属事业部');
         $objSheet->setCellValue("G1", '询价时间');
-        $objSheet->setCellValue("H1", '询单描述');
-        $objSheet->setCellValue("I1", '驳回人');
-        $objSheet->setCellValue("J1", '驳回时间');
-        $objSheet->setCellValue("K1", '驳回理由');
-        $objSheet->setCellValue("L1", '当前办理人');
-        $objSheet->setCellValue("M1", '现询单所属事业部');
+        $objSheet->setCellValue("H1", '驳回环节');
+        $objSheet->setCellValue("I1", '询单描述');
+        $objSheet->setCellValue("J1", '驳回人');
+        $objSheet->setCellValue("K1", '驳回时间');
+        $objSheet->setCellValue("L1", '驳回理由');
+        $objSheet->setCellValue("M1", '当前办理人');
+        $objSheet->setCellValue("N1", '现询单所属事业部');
 
         //设置全局文字居中
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
 
         $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
+        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('20');
             $objSheet->getCell($normal_col."1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1066,12 +1085,13 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("E".$startRow, $v['agent']);
                 $objSheet->setCellValue("F".$startRow, $v['org_name']);
                 $objSheet->setCellValue("G".$startRow, $v['created_at']);
-                $objSheet->setCellValue("H".$startRow, $v['adhoc_request']);
-                $objSheet->setCellValue("I".$startRow, $v['check']['rejector_name']);
-                $objSheet->setCellValue("J".$startRow, $v['check']['created_at']);
-                $objSheet->setCellValue("K".$startRow, $v['check']['op_note']);
-                $objSheet->setCellValue("L".$startRow, $v['now_agent']);
-                $objSheet->setCellValue("M".$startRow, $v['org_name']);
+                $objSheet->setCellValue("H".$startRow, $v['check']['node']);
+                $objSheet->setCellValue("I".$startRow, $v['adhoc_request']);
+                $objSheet->setCellValue("J".$startRow, $v['check']['rejector_name']);
+                $objSheet->setCellValue("K".$startRow, $v['check']['created_at']);
+                $objSheet->setCellValue("L".$startRow, $v['check']['op_note']);
+                $objSheet->setCellValue("M".$startRow, $v['now_agent']);
+                $objSheet->setCellValue("N".$startRow, $v['org_name']);
 
                 $objSheet->getCell("A".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("B".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1086,6 +1106,7 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->getCell("K".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("L".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("M".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("N".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
                 $startRow++;
             }
