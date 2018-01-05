@@ -32,7 +32,7 @@ class StockModel extends PublicModel {
      */
     public function getList($country_bn, $lang, $floor_id) {
 
-        $stock_cost_price_model = new StockCostPriceModel();
+        //$stock_cost_price_model = new StockCostPriceModel();
 
         $where = ['s.deleted_flag' => 'N'];
         $where['s.country_bn'] = trim($country_bn);
