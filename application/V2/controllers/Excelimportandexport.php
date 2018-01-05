@@ -466,7 +466,7 @@ class ExcelimportandexportController extends PublicController {
                     $attachData = [
                         'order_id' => $orderId,
                         'attach_group' => $attachGroup,
-                        'attach_name' => $attachNameMapping[$attachExecuteNo] ? : pathinfo($attach, PATHINFO_BASENAME),
+                        'attach_name' => $attachNameMapping[$attachExecuteNo] ? : ($fileInfo['name'] ? : $attachGroup),
                         'attach_url' => $fileInfo['url'],
                         'created_at' => $this->time
                     ];
