@@ -74,8 +74,8 @@ class ExcelimportandexportController extends PublicController {
                     //'agent_id' => $this->employeeModel->getUserIdByNo($baseInfo[10]) ? : null,
                     'amount' => $baseInfo[14] == '' ? null : str_replace(',' , '', $baseInfo[14]),
                     'currency_bn' => $baseInfo[15],
-                    /*'trade_terms_bn' => $baseInfo[16],
-                    'trans_mode_bn' => $baseInfo[17],
+                    'trade_terms_bn' => $baseInfo[16],
+                    /*'trans_mode_bn' => $baseInfo[17],
                     'from_country_bn' => $baseInfo[18],
                     'from_port_bn' => $baseInfo[19],
                     'to_country_bn' => $baseInfo[20],
@@ -117,12 +117,17 @@ class ExcelimportandexportController extends PublicController {
                     $deliveryData['execute_no'] = $baseInfo[1];
                     $deliveryData['created_at'] = $this->time;
                     $importDeliveryList[] = $deliveryData;
-                }
+                }*/
                 // 需要导入的收货人地址数据
-                $addressData = json_decode($baseInfo[25], true);
-                $addressData['created_at'] = $this->time;
-                $importAddressList[] = $addressData;
-                // 需要导入的结算方式数据(非必填)
+                if ($baseInfo[25] != '') {
+                    $addressData = [
+                        'execute_no' => $baseInfo[1],
+                        'address' => $baseInfo[25],
+                        'created_at' => $this->time
+                    ];
+                    $importAddressList[] = $addressData;
+                }
+                /*// 需要导入的结算方式数据(非必填)
                 if ($baseInfo[26] != '') {
                     $paymentData = json_decode($baseInfo[26], true);
                     $paymentData['execute_no'] = $baseInfo[1];
@@ -182,13 +187,11 @@ class ExcelimportandexportController extends PublicController {
                 }
                 $paymentDataIndex++;
             }
-            /*$j = 0;
+            /*// 导入采购商联系人数据
             foreach ($importBuyerContactList as &$importBuyerContact) {
-                $importBuyerContact['order_id'] = $importAddressList[$j]['order_id'] = $importOrderContactList[$j]['order_id'] = $orderIdMapping[$importBuyerContact['execute_no']];
+                $importBuyerContact['order_id'] = $orderIdMapping[$importBuyerContact['execute_no']];
                 unset($importBuyerContact['execute_no']);
-                $j++;
             }
-            // 导入采购商联系人数据
             if ($importBuyerContactList) {
                 $importBuyerContactResult = $this->orderBuyerContactModel->addAll($importBuyerContactList);
                 if (!$importBuyerContactResult) jsonReturn('', -101, '采购商联系人数据导入失败!');
@@ -199,6 +202,10 @@ class ExcelimportandexportController extends PublicController {
                 $this->orderModel->where(['id' => $importBuyerContact['order_id']])->save(['order_contact_id' => $buyerContactId, 'buyer_contact_id' => $buyerContactId]);
             }
             // 导入订单联系人数据
+            foreach ($importOrderContactList as &$importOrderContact) {
+                $importOrderContact['order_id'] = $orderIdMapping[$importOrderContact['execute_no']];
+                unset($importOrderContact['execute_no']);
+            }
             if ($importOrderContactList) {
                 $importOrderContactResult = $this->orderContactModel->addAll($importOrderContactList);
                 if (!$importOrderContactResult) jsonReturn('', -101, '订单联系人数据导入失败!');
@@ -212,12 +219,16 @@ class ExcelimportandexportController extends PublicController {
                 $importDeliveryResult = $this->orderDeliveryModel->addAll($importDeliveryList);
                 if (!$importDeliveryResult) jsonReturn('', -101, '交货信息数据导入失败!');
             }
-            /*// 导入收货人地址数据
+            // 导入收货人地址数据
+            foreach ($importAddressList as &$importAddress) {
+                $importAddress['order_id'] = $orderIdMapping[$importAddress['execute_no']];
+                unset($importAddress['execute_no']);
+            }
             if ($importAddressList) {
                 $importAddressResult = $this->orderAddressModel->addAll($importAddressList);
                 if (!$importAddressResult) jsonReturn('', -101, '收货人地址数据导入失败!');
             }
-            // 导入结算方式数据
+            /*// 导入结算方式数据
             foreach ($importPaymentList as &$importPayment) {
                 $importPayment['order_id'] = $orderIdMapping[$importPayment['execute_no']];
                 unset($importPayment['execute_no']);
@@ -309,8 +320,9 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['content'] = $data[1];
                             $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
-                            // 更新订单状态为已完成
-                            if ($data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED');
+                           /* // 更新订单状态为已完成
+                            $hasDelivery = $this->orderLogModel->where(['order_id' => $orderId, 'deleted_flag' => 'N'])->getField('id');
+                            if ($hasDelivery && $data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED');*/
                             // 更新订单的收款状态
                             $this->orderModel->where($where)->setField('pay_status', $this->_getPayStatusByWhether($data[4]));
                     }
@@ -429,7 +441,7 @@ class ExcelimportandexportController extends PublicController {
         if (is_int($dotpos)) $name = substr($name, 0, $dotpos);
         $tmp = $this->_trim(explode('PO', $name));
         $no = $tmp[0] ? : $tmp[1];
-        return trim($no, '-');
+        return $this->_trim(trim($no, '-'));
     }
     
     /**
