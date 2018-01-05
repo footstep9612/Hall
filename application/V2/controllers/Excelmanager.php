@@ -937,6 +937,9 @@ class ExcelmanagerController extends PublicController {
      */
     public function exportRejectedAction()
     {
+
+        set_time_limit(0);
+
         $this->validateRequests();
 
         $data = $this->getRejectedInquiry();
