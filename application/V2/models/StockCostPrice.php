@@ -85,7 +85,7 @@ class StockCostPriceModel extends PublicModel {
                     $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
                 }
                 $data = $this->create($cost_price);
-                $data['supplier_id'] = 0;
+                $data['supplier_id'] = empty($data['supplier_id']) ? 0 : intval($data['supplier_id']);
                 $data['max_price'] = floatval($data['max_price']) > 0 ? intval($data['max_price']) : null;
                 $data['max_promotion_price'] = floatval($data['max_promotion_price']) > 0 ? intval($data['max_promotion_price']) : null;
                 $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
