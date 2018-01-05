@@ -982,54 +982,67 @@ class ExcelmanagerController extends PublicController {
 
     }
 
+    /**
+     * 获取驳回的信息
+     * @return mixed
+     */
     private function getRejectedInquiry()
     {
 
-        //驳回到市场部和易瑞的 REJECT_MARKET  || CC_DISPATCHING
-        $inquiry= new InquiryModel();
         $inquiryCheckLog = new InquiryCheckLogModel();
 
-        $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id,area_bn,country_bn";
-        $where = " deleted_flag='N' AND (status='REJECT_MARKET' OR status='CC_DISPATCHING') ";
+        $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,b.created_at inquiry_created_at,a.created_at,a.created_by,a.op_note,a.out_node";
+        $where = "b.deleted_flag='N' AND a.action='REJECT' ";
 
-        $data = $inquiry->where($where)->field($field)->select();
 
+        $data = $inquiryCheckLog->alias('a')->join('erui_rfq.inquiry b ON a.inquiry_id=b.id','LEFT')
+            ->field($field)
+            ->where($where)
+            ->select();
 
         $employee = new EmployeeModel();
         $org = new OrgModel();
         $region = new RegionModel();
         $country = new CountryModel();
 
-        foreach ($data as $key=>$value){
-            $data[$key]['check'] = $inquiryCheckLog->where([
-                'action' => 'REJECT',
-                'inquiry_id' => $value['id']
-            ])->where("out_node='REJECT_MARKET' OR out_node='CC_DISPATCHING' ")->order('created_at DESC')->field('created_at,created_by,op_note,out_node')->find();
+        foreach ($data as &$item){
 
-            $data[$key]['check']['rejector_name'] = $employee->where(['id'=>$data[$key]['check']['created_by']])->getField('name');
-            $data[$key]['check']['node'] = $this->setNode($data[$key]['check']['out_node']);
-            $data[$key]['agent'] = $employee->where(['id'=>$data[$key]['agent_id']])->getField('name');
-            $data[$key]['now_agent'] = $employee->where(['id'=>$data[$key]['now_agent_id']])->getField('name');
-            $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
-            $data[$key]['region_name'] = $region->where(['bn'=>trim($data[$key]['area_bn']),'lang'=>'zh'])->getField('name');
-            $data[$key]['country_name'] = $country->where(['bn'=>trim($data[$key]['country_bn']),'lang'=>'zh'])->getField('name');;
+            $item['agent'] = $employee->where(['id'=>$item['agent_id']])->getField('name');
+            $item['now_agent'] = $employee->where(['id'=>$item['now_agent_id']])->getField('name');
+            $item['org_name'] = $org->getNameById($item['org_id']);
+            $item['region_name'] = $region->where(['bn'=>trim($item['area_bn']),'lang'=>'zh'])->getField('name');
+            $item['country_name'] = $country->where(['bn'=>trim($item['country_bn']),'lang'=>'zh'])->getField('name');
 
+            $item['created_by'] = $employee->where(['id'=>$item['created_by']])->getField('name');
+            $item['out_node'] = $this->setNode($item['out_node']);
         }
 
-        //p($inquiry->getLastSql());
         return $data;
 
     }
 
+    /**
+     * 设置环节名称
+     * @param $node
+     *
+     * @return string
+     */
     private function setNode($node) {
 
         switch ($node) {
-            case 'REJECT_MARKET' :
-                $nodeName = '驳回市场';
-                break;
-            case 'CC_DISPATCHING' :
-                $nodeName = '驳回易瑞';
-                break;
+            case 'DRAFT' : $nodeName = '草稿'; break;
+            case 'REJECT_MARKET' : $nodeName = '驳回市场'; break;
+            case 'BIZ_DISPATCHING' : $nodeName = '事业部分单员'; break;
+            case 'CC_DISPATCHING' : $nodeName = '易瑞客户中心分单员'; break;
+            case 'BIZ_QUOTING' :  $nodeName = '事业部报价'; break;
+            case 'LOGI_DISPATCHING' : $nodeName = '物流分单员'; break;
+            case 'LOGI_QUOTING' : $nodeName = '物流报价'; break;
+            case 'LOGI_APPROVING' :  $nodeName = '物流审核'; break;
+            case 'BIZ_APPROVING' : $nodeName = '事业部核算'; break;
+            case 'MARKET_APPROVING' : $nodeName = '事业部审核'; break;
+            case 'MARKET_CONFIRMING' : $nodeName = '市场确认'; break;
+            case 'QUOTE_SENT' : $nodeName = '报价单已发出'; break;
+            case 'INQUIRY_CLOSED' : $nodeName = '报价关闭'; break;
         }
 
         return $nodeName;
@@ -1084,12 +1097,12 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("D".$startRow, $v['country_name']);
                 $objSheet->setCellValue("E".$startRow, $v['agent']);
                 $objSheet->setCellValue("F".$startRow, $v['org_name']);
-                $objSheet->setCellValue("G".$startRow, $v['created_at']);
-                $objSheet->setCellValue("H".$startRow, $v['check']['node']);
+                $objSheet->setCellValue("G".$startRow, $v['inquiry_created_at']);
+                $objSheet->setCellValue("H".$startRow, $v['out_node']);
                 $objSheet->setCellValue("I".$startRow, $v['adhoc_request']);
-                $objSheet->setCellValue("J".$startRow, $v['check']['rejector_name']);
-                $objSheet->setCellValue("K".$startRow, $v['check']['created_at']);
-                $objSheet->setCellValue("L".$startRow, $v['check']['op_note']);
+                $objSheet->setCellValue("J".$startRow, $v['created_by']);
+                $objSheet->setCellValue("K".$startRow, $v['created_at']);
+                $objSheet->setCellValue("L".$startRow, $v['op_note']);
                 $objSheet->setCellValue("M".$startRow, $v['now_agent']);
                 $objSheet->setCellValue("N".$startRow, $v['org_name']);
 
