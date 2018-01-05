@@ -199,4 +199,66 @@ class HandleController extends Yaf_Controller_Abstract
 
     }
 
+    public function rejectedInquiryAction()
+    {
+
+        $inquiryCheckLog = new InquiryCheckLogModel();
+
+        $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,a.created_at,a.created_by,a.op_note,a.out_node";
+        $where = "b.deleted_flag='N' AND a.action='REJECT' ";
+
+
+        $data = $inquiryCheckLog->alias('a')->join('erui_rfq.inquiry b ON a.inquiry_id=b.id','LEFT')
+                                ->field($field)
+                                ->where($where)
+                                ->select();
+
+        $employee = new EmployeeModel();
+        $org = new OrgModel();
+        $region = new RegionModel();
+        $country = new CountryModel();
+
+        foreach ($data as &$item){
+
+            $item['agent'] = $employee->where(['id'=>$item['agent_id']])->getField('name');
+            $item['now_agent'] = $employee->where(['id'=>$item['now_agent_id']])->getField('name');
+            $item['org_name'] = $org->getNameById($item['org_id']);
+            $item['region_name'] = $region->where(['bn'=>trim($item['area_bn']),'lang'=>'zh'])->getField('name');
+            $item['country_name'] = $country->where(['bn'=>trim($item['country_bn']),'lang'=>'zh'])->getField('name');
+
+            $item['created_by'] = $employee->where(['id'=>$item['created_by']])->getField('name');
+            $item['out_node'] = $this->setNode($item['out_node']);
+        }
+        //p(count($data));
+        //p($data);
+        return $data;
+    }
+
+    /**
+     * 设置环节名称
+     * @param $node
+     *
+     * @return string
+     */
+    private function setNode($node) {
+
+        switch ($node) {
+            case 'DRAFT' : $nodeName = '草稿'; break;
+            case 'REJECT_MARKET' : $nodeName = '驳回市场'; break;
+            case 'BIZ_DISPATCHING' : $nodeName = '事业部分单员'; break;
+            case 'CC_DISPATCHING' : $nodeName = '易瑞客户中心分单员'; break;
+            case 'BIZ_QUOTING' :  $nodeName = '事业部报价'; break;
+            case 'LOGI_DISPATCHING' : $nodeName = '物流分单员'; break;
+            case 'LOGI_QUOTING' : $nodeName = '物流报价'; break;
+            case 'LOGI_APPROVING' :  $nodeName = '物流审核'; break;
+            case 'BIZ_APPROVING' : $nodeName = '事业部核算'; break;
+            case 'MARKET_APPROVING' : $nodeName = '事业部审核'; break;
+            case 'MARKET_CONFIRMING' : $nodeName = '市场确认'; break;
+            case 'QUOTE_SENT' : $nodeName = '报价单已发出'; break;
+            case 'INQUIRY_CLOSED' : $nodeName = '报价关闭'; break;
+        }
+
+        return $nodeName;
+    }
+
 }
