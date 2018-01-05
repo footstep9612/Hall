@@ -52,16 +52,17 @@ trait ExcelHelperTrait {
     /**
      * 读取excel文件内容并以数组形式返回
      * @param $localFile 本地文件
+     * @param $index 表格页签索引
      *
      * @return array 文件内容数组
      */
-    static public function ready2import($localFile) {
+    static public function ready2import($localFile, $pIndex = 0) {
         //获取文件类型
         $fileType = PHPExcel_IOFactory::identify($localFile);
         //创建PHPExcel读取对象
         $objReader = PHPExcel_IOFactory::createReader($fileType);
         //加载文件并读取
-        $data = $objReader->load($localFile)->getSheet(0)->toArray();
+        $data = $objReader->load($localFile)->getSheet($pIndex)->toArray();
 
         return $data;
     }
@@ -87,12 +88,12 @@ trait ExcelHelperTrait {
      *
      * @return mixed
      */
-    static public function uploadToFileServer($localFile, $type = 'application/octet-stream') {
+    static public function uploadToFileServer($localFile) {
         //TODO 这里添加上传到文件服务器的逻辑
 
         $client = new FastDFSclient();
         $file = [
-            'name' => $localFile,
+            'name' => pathinfo($localFile, PATHINFO_BASENAME),
             'type' => self::getFileType($localFile),
             'size' => filesize($localFile),
             'tmp_name' => $localFile

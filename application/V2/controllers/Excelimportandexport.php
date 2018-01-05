@@ -27,6 +27,7 @@ class ExcelimportandexportController extends PublicController {
         
         $this->time = date('Y-m-d H:i:s');
         
+        $this->_getRequestUrl();
         $this->_getExcelDir();
     }
     
@@ -43,88 +44,96 @@ class ExcelimportandexportController extends PublicController {
         
         $classify = $this->_getTempletAndAttach($condition['floder']);
         
-        // 获取模板数据
-        $templetData = $this->_trim(ExcelHelperTrait::ready2import($classify['templet'][0]));
+        // 获取订单模板数据
+        $templet = $classify['templet'][0];
+        $templetBaseData = $this->_trim(ExcelHelperTrait::ready2import($templet));
+        $templetDeliveryData = $this->_trim(ExcelHelperTrait::ready2import($templet, 1));
+        $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
         
         /* 批量导入数据*/
-        $dataIndex = 0;
+        $baseDataIndex = $deliveryDataIndex = $paymentDataIndex = 0;
         $importOrderList = $importBuyerContactList = $importOrderContactList = $importDeliveryList = $importAddressList = $importPaymentList = $executeNoArr = $orderIdMapping = $attachNameMapping = [];
         // 没有客户的订单执行单号
         $noBuyerExecuteNoArr = [];
-        foreach ($templetData as $data) {
-            if ($dataIndex > 1 && $data[1] != '') {
-                $buyerId = $this->buyerModel->where(['name' => $data[3], 'buyer_code' => $data[4], 'deleted_flag' => 'N'])->getField('id');
-                // 没有客户就不插入该数据，记录订单执行单号
+        foreach ($templetBaseData as $baseInfo) {
+            if ($baseDataIndex > 1 && $baseInfo[1] != '') {
+                $buyerId = $this->buyerModel->where(['buyer_code' => $baseInfo[4], 'deleted_flag' => 'N'])->getField('id');
+                // 记录没有客户的订单执行单号
                 if (!$buyerId) {
-                    $noBuyerExecuteNoArr[] = $data[1];
-                    $dataIndex++;
-                    continue;
+                    $noBuyerExecuteNoArr[] = $baseInfo[1];
+                    /*$baseDataIndex++;
+                    continue;*/
                 }
                 $orderData = [
-                    'po_no' => $data[0],
-                    'execute_no' => $data[1],
-                    'contract_date' => $data[2],
-                    'buyer_id' => $buyerId,
-                    'order_agent' => $this->employeeModel->getUserIdByNo($data[5]),
-                    'execute_date' => $data[6],
-                    'agent_id' => $this->employeeModel->getUserIdByNo($data[10]),
-                    'amount' => $data[14],
-                    'trade_terms_bn' => $data[15],
-                    'trans_mode_bn' => $data[16],
-                    'from_country_bn' => $data[17],
-                    'from_port_bn' => $data[18],
-                    'to_country_bn' => $data[19],
-                    'to_port_bn' => $data[20],
-                    'address' => $data[21],
+                    'po_no' => $baseInfo[0],
+                    'execute_no' => $baseInfo[1],
+                    'contract_date' => $baseInfo[2] == '' ? null : $this->_getStorageDate($baseInfo[2]),
+                    'buyer_id' => $buyerId == '' ? null : $buyerId,
+                    'order_agent' => $this->employeeModel->getUserIdByNo($baseInfo[5]) ? : null,
+                    'execute_date' => $baseInfo[6] == '' ? null : $this->_getStorageDate($baseInfo[6]),
+                    //'agent_id' => $this->employeeModel->getUserIdByNo($baseInfo[10]) ? : null,
+                    'amount' => $baseInfo[14] == '' ? null : str_replace(',' , '', $baseInfo[14]),
+                    'currency_bn' => $baseInfo[15],
+                    /*'trade_terms_bn' => $baseInfo[16],
+                    'trans_mode_bn' => $baseInfo[17],
+                    'from_country_bn' => $baseInfo[18],
+                    'from_port_bn' => $baseInfo[19],
+                    'to_country_bn' => $baseInfo[20],
+                    'to_port_bn' => $baseInfo[21],
+                    'address' => $baseInfo[22],*/
+                    // 订单状态为进行中
+                    'show_status' => 'GOING',
                     'deleted_flag' => 'N',
                     'created_at' => $this->time
                 ];
                 // 需要导入的订单执行单号和数据
-                $executeNoArr[] = $data[1];
+                $executeNoArr[] = $baseInfo[1];
                 $importOrderList[] = $orderData;
-                // 需要导入的采购商联系人数据
+                /*// 需要导入的采购商联系人数据
                 $buyerContactData = [
-                    'execute_no' => $data[1],
-                    'name' => $data[7],
-                    'phone' => $data[8], 
-                    'email' => $data[9],
+                    'execute_no' => $baseInfo[1],
+                    'name' => $baseInfo[7],
+                    'phone' => $baseInfo[8], 
+                    'email' => $baseInfo[9],
                     'created_at' => $this->time
                 ];
                 $importBuyerContactList[] = $buyerContactData;
                 // 需要导入的订单联系人数据
                 $orderContactData = [
-                    'name' => $data[11],
+                    'name' => $baseInfo[11],
                     'company' => '易瑞',
-                    'phone' => $data[12],
-                    'email' => $data[13],
+                    'phone' => $baseInfo[12],
+                    'email' => $baseInfo[13],
                     'created_at' => $this->time
                 ];
                 $importOrderContactList[] = $orderContactData;
                 // 需要导入的附件名称和执行单号的映射(非必填)
-                if ($data[22] != '') {
-                    $attachNameMapping[$data[1]] = $data[22];
+                if ($baseInfo[23] != '') {
+                    $attachNameMapping[$baseInfo[1]] = $baseInfo[23];
                 }
                 // 需要导入的交货信息数据(非必填)
-                if ($data[23] != '') {
-                    $deliveryData = json_decode($data[23], true);
-                    $deliveryData['execute_no'] = $data[1];
+                if ($baseInfo[24] != '') {
+                    $deliveryData = json_decode($baseInfo[25], true);
+                    $deliveryData['execute_no'] = $baseInfo[1];
                     $deliveryData['created_at'] = $this->time;
                     $importDeliveryList[] = $deliveryData;
                 }
                 // 需要导入的收货人地址数据
-                $addressData = json_decode($data[24], true);
+                $addressData = json_decode($baseInfo[25], true);
                 $addressData['created_at'] = $this->time;
                 $importAddressList[] = $addressData;
                 // 需要导入的结算方式数据(非必填)
-                if ($data[25] != '') {
-                    $paymentData = json_decode($data[25], true);
-                    $paymentData['execute_no'] = $data[1];
+                if ($baseInfo[26] != '') {
+                    $paymentData = json_decode($baseInfo[26], true);
+                    $paymentData['execute_no'] = $baseInfo[1];
                     $paymentData['created_at'] = $this->time;
                     $importPaymentList[] = $paymentData;
-                }
+                }*/
             }
-            $dataIndex++;
+            $baseDataIndex++;
         }
+        /*// 打印没有客户的订单执行单号
+        print_r($noBuyerExecuteNoArr);exit; */
         // 需要导入的订单数据列表中加入订单编号
         $listCount = count($importOrderList);
         $orderNoArr = $this->_getOrderNoArr($listCount);
@@ -139,7 +148,41 @@ class ExcelimportandexportController extends PublicController {
             foreach ($executeNoArr as $executeNo) {
                 $orderIdMapping[$executeNo] = $this->orderModel->where(['execute_no' => $executeNo, 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
             }
-            $j = 0;
+            foreach ($templetDeliveryData as $deliveryInfo) {
+                if ($deliveryDataIndex > 1 && $deliveryInfo[0] != '') {
+                    $orderId = $orderIdMapping[$deliveryInfo[0]];
+                    if ($orderId) {
+                        // 需要导入的交货信息数据
+                        $deliveryData = [
+                            'order_id' => $orderId,
+                            'describe' => $deliveryInfo[1],
+                            'delivery_at' => $deliveryInfo[2] == '' ? null : $this->_getStorageDate($deliveryInfo[2]),
+                            'created_at' => $this->time
+                        ];
+                        $importDeliveryList[] = $deliveryData;
+                    }
+                }
+                $deliveryDataIndex++;
+            }
+            foreach ($templetPaymentData as $paymentInfo) {
+                if ($paymentDataIndex > 1 && $paymentInfo[0] != '') {
+                    $orderId = $orderIdMapping[$paymentInfo[0]];
+                    if ($orderId) {
+                        // 需要导入的结算方式数据
+                        $paymentData = [
+                            'order_id' => $orderId,
+                            'name' => $paymentInfo[1],
+                            'amount' => $paymentInfo[2] == '' ? null : str_replace(',' , '', $paymentInfo[2]),
+                            'payment_mode' => $paymentInfo[3],
+                            'payment_at' => $paymentInfo[4] == '' ? null : $this->_getStorageDate($paymentInfo[4]),
+                            'created_at' => $this->time
+                        ];
+                        $importPaymentList[] = $paymentData;
+                    }
+                }
+                $paymentDataIndex++;
+            }
+            /*$j = 0;
             foreach ($importBuyerContactList as &$importBuyerContact) {
                 $importBuyerContact['order_id'] = $importAddressList[$j]['order_id'] = $importOrderContactList[$j]['order_id'] = $orderIdMapping[$importBuyerContact['execute_no']];
                 unset($importBuyerContact['execute_no']);
@@ -164,12 +207,12 @@ class ExcelimportandexportController extends PublicController {
             foreach ($importDeliveryList as &$importDelivery) {
                 $importDelivery['order_id'] = $orderIdMapping[$importDelivery['execute_no']];
                 unset($importDelivery['execute_no']);
-            }
+            }*/
             if ($importDeliveryList) {
                 $importDeliveryResult = $this->orderDeliveryModel->addAll($importDeliveryList);
                 if (!$importDeliveryResult) jsonReturn('', -101, '交货信息数据导入失败!');
             }
-            // 导入收货人地址数据
+            /*// 导入收货人地址数据
             if ($importAddressList) {
                 $importAddressResult = $this->orderAddressModel->addAll($importAddressList);
                 if (!$importAddressResult) jsonReturn('', -101, '收货人地址数据导入失败!');
@@ -178,7 +221,7 @@ class ExcelimportandexportController extends PublicController {
             foreach ($importPaymentList as &$importPayment) {
                 $importPayment['order_id'] = $orderIdMapping[$importPayment['execute_no']];
                 unset($importPayment['execute_no']);
-            }
+            }*/
             if ($importPaymentList) {
                 $importPaymentResult = $this->orderPaymentModel->addAll($importPaymentList);
                 if (!$importPaymentResult) jsonReturn('', -101, '结算方式数据导入失败!');
@@ -219,52 +262,61 @@ class ExcelimportandexportController extends PublicController {
         foreach ($templetData as $data) {
             if ($dataIndex > 1 && $data[0] != '') {
                 $orderId = $this->orderModel->where(['execute_no' => $data[0], 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
-                // 订单执行单号和订单ID的映射关系
-                $orderIdMapping[$data[0]] = $orderId;
-                $orderLogData = [
-                    'order_id' => $orderId,
-                    'log_group' => $logGroup,
-                    'created_at' => $this->time
-                ];
-                switch ($logGroup) {
-                    case 'OUTBOUND' :
-                        $orderLogData['out_no'] = $data[1];
-                        $orderLogData['content'] = $data[2];
-                        $orderLogData['log_at'] = $data[3];
-                        // 需要导入的附件名称和执行单号的映射(非必填)
-                        if ($data[4] != '') {
-                            $attachNameMapping[$data[0]] = $data[4];
-                        }
-                        break;
-                    case 'LOGISTICS' :
-                        $orderLogData['waybill_no'] = $data[1];
-                        $orderLogData['content'] = $data[2];
-                        $orderLogData['log_at'] = $data[3];
-                        if ($data[4] != '') {
-                            $attachNameMapping[$data[0]] = $data[4];
-                        }
-                        break;
-                    case 'DELIVERY' :
-                        $orderLogData['content'] = $data[1];
-                        $orderLogData['log_at'] = $data[2];
-                        if ($data[3] != '') {
-                            $attachNameMapping[$data[0]] = $data[3];
-                        }
-                        break;
-                    case 'CREDIT' :
-                        $orderLogData['type'] = $data[1];
-                        $orderLogData['amount'] = $data[2];
-                        $orderLogData['log_at'] = $data[3];
-                        break;
-                    case 'COLLECTION' :
-                        $orderLogData['content'] = $data[1];
-                        $orderLogData['amount'] = $data[2];
-                        $orderLogData['log_at'] = $data[3];
-                        // 更新订单的收款状态
-                        $this->orderModel->where(['id' => $orderId])->setField('pay_status', $data[4]);
+                if ($orderId) {
+                    // 订单执行单号和订单ID的映射关系
+                    $orderIdMapping[$data[0]] = $orderId;
+                    $where = ['id' => $orderId];
+                    $orderLogData = [
+                        'order_id' => $orderId,
+                        'log_group' => $logGroup,
+                        'created_at' => $this->time
+                    ];
+                    switch ($logGroup) {
+                        case 'OUTBOUND' :
+                            $orderLogData['out_no'] = $data[1];
+                            $orderLogData['content'] = $data[2];
+                            $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已出库
+                            $this->_setOrderStatus($where, 'OUTGOING');
+                            /*// 需要导入的附件名称和执行单号的映射(非必填)
+                             if ($data[4] != '') {
+                             $attachNameMapping[$data[0]] = $data[4];
+                            }*/
+                            break;
+                        case 'LOGISTICS' :
+                            $orderLogData['waybill_no'] = $data[1];
+                            $orderLogData['content'] = $data[2];
+                            $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已发运
+                            $this->_setOrderStatus($where, 'DISPATCHED');
+                            /*if ($data[4] != '') {
+                             $attachNameMapping[$data[0]] = $data[4];
+                             }*/
+                            break;
+                        case 'DELIVERY' :
+                            $orderLogData['content'] = $data[1];
+                            $orderLogData['log_at'] = $data[2] == '' ? null : $this->_getStorageDate($data[2]);
+                            /*if ($data[3] != '') {
+                             $attachNameMapping[$data[0]] = $data[3];
+                             }*/
+                            break;
+                        case 'CREDIT' :
+                            $orderLogData['type'] = $this->_getCreditTypeByName($data[1]);
+                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
+                            $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            break;
+                        case 'COLLECTION' :
+                            $orderLogData['content'] = $data[1];
+                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
+                            $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            // 更新订单状态为已完成
+                            if ($data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED');
+                            // 更新订单的收款状态
+                            $this->orderModel->where($where)->setField('pay_status', $this->_getPayStatusByWhether($data[4]));
+                    }
+                    // 需要导入的订单日志信息数据
+                    $importOrderLogList[] = $orderLogData;
                 }
-                // 需要导入的订单日志信息数据
-                $importOrderLogList[] = $orderLogData;
             }
             $dataIndex++;
         }
@@ -274,7 +326,7 @@ class ExcelimportandexportController extends PublicController {
             if (!$importOrderLogResult) jsonReturn('', -101, '订单日志信息数据导入失败!');
     
             /* 批量上传和导入附件*/
-            $this->_batchImportOrderAttach($classify['attach'], $logGroup, $orderIdMapping, $attachNameMapping);
+            //$this->_batchImportOrderAttach($classify['attach'], $logGroup, $orderIdMapping, $attachNameMapping);
     
             /* 导入成功*/
             $this->jsonReturn(true);
@@ -306,7 +358,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getTempletAndAttach($floder) {
         // 导入路径
-        $path = ($this->excelDir ? : $this->getExcelDir()) . DS . $floder;
+        $path = ($this->excelDir ? : $this->_getExcelDir()) . DS . $floder;
         return $this->_fileClassify($path);
     }
     
@@ -337,7 +389,7 @@ class ExcelimportandexportController extends PublicController {
         foreach ($flies as $flie) {
             if (preg_match('/^.*templet(\d+)?\.xls(x)?$/i', $flie)) {
                 $data['templet'][] = $flie;
-            } else if (!preg_match('/^.*\.txt$/i', $flie)) {
+            } else {
                 $data['attach'][] = $flie;
             }
         }
@@ -372,10 +424,12 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-26
      */
     private function _getAttachExecuteNo($attach) {
-        $ds = DS;
-        $pattern = "/.*\\{$ds}([^{$ds}-]+)-[^{$ds}-]+$/i";
-        preg_match($pattern, $attach, $match);
-        return $match[1];
+        $name = pathinfo($attach, PATHINFO_BASENAME);
+        $dotpos = strrpos($name, '.');
+        if (is_int($dotpos)) $name = substr($name, 0, $dotpos);
+        $tmp = $this->_trim(explode('PO', $name));
+        $no = $tmp[0] ? : $tmp[1];
+        return trim($no, '-');
     }
     
     /**
@@ -391,18 +445,21 @@ class ExcelimportandexportController extends PublicController {
     private  function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
         $importAttachList = [];
         foreach ($attachList as $attach) {
-            // 执行附件上传
-            $fileInfo = $this->_upload2FastDFS($attach);
-            if ($fileInfo['code'] == 1) {
-                $attachExecuteNo = $this->_getAttachExecuteNo($attach);
-                $attachData = [
-                    'order_id' => $orderIdMapping[$attachExecuteNo],
-                    'attach_group' => $attachGroup,
-                    'attach_name' => $attachNameMapping[$attachExecuteNo] ? : $attachGroup,
-                    'attach_url' => $fileInfo['url'],
-                    'created_at' => $this->time
-                ];
-                $importAttachList[] = $attachData;
+            $attachExecuteNo = $this->_getAttachExecuteNo($attach);
+            $orderId = $orderIdMapping[$attachExecuteNo];
+            if ($orderId) {
+                // 执行附件上传
+                $fileInfo = $this->_upload2FastDFS($attach);
+                if ($fileInfo['code'] == '1') {
+                    $attachData = [
+                        'order_id' => $orderId,
+                        'attach_group' => $attachGroup,
+                        'attach_name' => $attachNameMapping[$attachExecuteNo] ? : pathinfo($attach, PATHINFO_BASENAME),
+                        'attach_url' => $fileInfo['url'],
+                        'created_at' => $this->time
+                    ];
+                    $importAttachList[] = $attachData;
+                }
             }
         }
         // 导入附件数据
@@ -421,17 +478,23 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-27
      */
     private function _upload2FastDFS($file) {
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        // 上传文件的接口地址
-        $url = $server . '/V2/Uploadfile/upload';
-        // 上传的文件信息
-        $data = [
-            'tmp_name' => $file,
-            'name' => pathinfo($file, PATHINFO_BASENAME),
-            'type' => ExcelHelperTrait::getFileType($file)
-        ];
-        // 执行文件上传
-        return postfile($data, $url);
+        // 本地和测试调用接口上传
+        if (parse_url($this->requestUrl ? : $this->_getRequestUrl(), PHP_URL_HOST) == '172.18.18.196') {
+            // 上传文件的接口地址
+            $url = $this->requestUrl . '/V2/Uploadfile/upload';
+            // 上传的文件信息
+            $data = [
+                'tmp_name' => $file,
+                'name' => pathinfo($file, PATHINFO_BASENAME),
+                'type' => ExcelHelperTrait::getFileType($file)
+            ];
+            // 执行文件上传
+            return postfile($data, $url);
+        } else {
+            // 线上直接上传
+            $result = ExcelHelperTrait::uploadToFileServer($file);
+            return $result['fileId'] ? ['code' => '1', 'url' => $result['fileId'], 'name' => $result['file']['name']] : ['code' => '-103', 'message' => 'error'];
+        }
     }
     
     /**
@@ -473,6 +536,80 @@ class ExcelimportandexportController extends PublicController {
         $no = intval(substr($orderNo, 8)) + 1;
         return $today . str_pad($no, 4, '0', STR_PAD_LEFT);
     }
+    
+    /**
+     * @desc 根据授信类型名称获取存储值
+     *
+     * @param string $name 授信类型名称
+     * @return string
+     * @author  liujf
+     * @time 2017-12-29
+     */
+    private function _getCreditTypeByName($name) {
+        switch ($name) {
+            case '支出' :
+                return 'SPENDING';
+            case '还款' :
+                return 'REFUND';
+            default : 
+                return '';
+        }
+    }
+    
+    /**
+     * @desc 获取是否全部付款的收款状态存储值
+     *
+     * @param string $whether 是或者否
+     * @return string
+     * @author  liujf
+     * @time 2017-12-29
+     */
+    private function _getPayStatusByWhether($whether) {
+        switch ($whether) {
+            case '是' :
+                return 'PAY';
+            case '否' :
+                return 'PARTPAY';
+            default :
+                return '';
+        }
+    }
+    
+    /**
+     * @desc 获取转换后的存储日期
+     *
+     * @param string $date 转换前的日期
+     * @return string
+     * @author  liujf
+     * @time 2017-12-28
+     */
+    private function _getStorageDate($date) {
+        return date('Y-m-d', strtotime($date));
+    }
+    
+    /**
+     * @desc 获取请求地址
+     *
+     * @return string
+     * @author liujf
+     * @time 2018-01-01
+     */
+    private function _getRequestUrl() {
+        return $this->requestUrl = Yaf_Application::app()->getConfig()->myhost;
+    }
+    
+    /**
+     * @desc 设置订单状态
+     *
+     * @param string $where 条件参数
+     * @param string $status 订单状态值
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-02
+     */
+    private function _setOrderStatus($where, $status) {
+        return $this->orderModel->where($where)->setField('show_status', $status);
+    }
 
     /*----------------------------------------------------------------------导入和导出代码界线----------------------------------------------------------------------*/
     
@@ -493,7 +630,7 @@ class ExcelimportandexportController extends PublicController {
      * @author liujf
      * @time 2017-12-21
      */
-    public function inquiryExportDataAction() {
+    public function quoteAnalysisDataExportAction() {
         $this->getPut();
     
         $where['a.deleted_flag'] = 'N';
@@ -572,8 +709,6 @@ class ExcelimportandexportController extends PublicController {
     
         $this->_exportExcel($filename, $titleList, $outData);
     }
-    
-    
 
     /**
      * @desc 重写jsonReturn方法
@@ -695,9 +830,7 @@ class ExcelimportandexportController extends PublicController {
                     $flag = false;
                     break;
                 }
-            } else {
-                return false;
-            }
+            } else return false;
         }
         $next = implode($tmpArr);
         return $flag ? $next . 'A' : $next;
@@ -725,6 +858,7 @@ class ExcelimportandexportController extends PublicController {
     /**
      * @desc 去掉参数数据两侧的空格
      *
+     * @param mixed $condition
      * @author liujf
      * @time 2017-12-23
      */

@@ -57,6 +57,7 @@ class InquiryModel extends PublicModel {
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
+                $scModel = new ShoppingCarModel();
                 foreach ($data['arr_sku'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
                     $item['created_by'] = $data['buyer_id'];
@@ -65,6 +66,8 @@ class InquiryModel extends PublicModel {
                         $this->rollback();
                         return false;
                     }
+                    //清询单车
+                    $scModel->clear($item['sku'],$data['buyer_id'],0);
                 }
             }
             //添加附件询单
@@ -159,8 +162,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('egt', $condition['start_time']),
-                array('elt', $condition['end_time'])
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
@@ -262,10 +265,6 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['buyer_code'])) {
             $data['buyer_code'] = $condition['buyer_code'];
-        } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有采购商编号!';
-            return $results;
         }
 //        if (!empty($condition['buyer_account_id'])) {
 //            $data['buyer_account_id'] = $condition['buyer_account_id'];

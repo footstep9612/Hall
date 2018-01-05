@@ -91,6 +91,7 @@ class OrderModel extends PublicModel {
             }
             return $orderNo;
         }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderModel】 createOrderNo:' . $e , Log::ERR);
             return false;
         }
     }
@@ -117,6 +118,7 @@ class OrderModel extends PublicModel {
             $data['created_at'] = date('Y-m-d H:i:s',time());
             $data['infoAry']['source'] = 'MALL';
             $dataInfo = $this->_getData($data['infoAry']);
+            $dataInfo['deleted_flag'] = 'N';
             $result = $this->add($this->create($dataInfo));
             if($result){
                 //添加订单商品信息
@@ -137,14 +139,14 @@ class OrderModel extends PublicModel {
                     }
                 }
                 //添加订单联系人信息
-                /*if(isset($data['contactAry']) && !empty($data['contactAry'])){
+                if(isset($data['contactAry']) && !empty($data['contactAry'])){
                     $data['contactAry']['order_id'] = $result;
-                    $ocModel = new OrderContactModel();
+                    $ocModel = new OrderBuyerContactModel();
                     if(!$ocModel->addInfo($data['contactAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单联系人添加失败');
                     }
-                }*/
+                }
                 $this->commit();
                 return $orerNo;
             }
@@ -156,6 +158,16 @@ class OrderModel extends PublicModel {
         }
     }
 
+    /**
+     * 订单商品
+     * @author link
+     * @param $order_no
+     * @param $data
+     * @param $country_bn
+     * @param $lang
+     * @param $buyer_id
+     * @return bool
+     */
     public function addGoods($order_no,$data,$country_bn,$lang,$buyer_id){
         if(empty($data)){
             return false;
@@ -167,7 +179,9 @@ class OrderModel extends PublicModel {
         $data_insert = [];
         $amount = 0;
         $currency_bn = '';
+        $skuAry = [];
         foreach($data as $sku => $number){
+            $skuAry[] = $sku;
             $number = intval($number);
             $data_temp = [];
             //获取库存信息
@@ -212,6 +226,12 @@ class OrderModel extends PublicModel {
         }
         if(!empty($data_insert)){
             $result = $ogModel->addAll($data_insert);
+
+            //清购物车
+            if($skuAry){
+                $scModel = new ShoppingCarModel();
+                $scModel->clear($skuAry, $buyer_id, 1);
+            }
 
             //更新订单金额
             $orderModel = new OrderModel();

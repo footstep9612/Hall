@@ -66,8 +66,7 @@ class OrderController extends PublicController {
     //put your code here
     public function listAction() {
 
-        $condition = $this->getPut(); //查询条件
-
+        $condition = $this->getPut();
         $order_moder = new OrderModel();
         $condition['buyer_id'] = $this->user['buyer_id'];
         $data = $order_moder->getList($condition);
@@ -451,15 +450,15 @@ class OrderController extends PublicController {
             $buyer_model = new BuyerAccountModel();
             $order_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
             if (isset($order_buyer_contact[$info['buyer_id']])) {
-                $info['buyer_name'] = $order_buyer_contact[$info['buyer_id']];
-                $info['show_name'] = $order_buyer_contact[$info['show_name']];
+                $info['show_name'] = $order_buyer_contact[$info['buyer_id']];
+                $info['user_name'] = $order_buyer_contact[$info['user_name']];
             } else {
-                $info['buyer_name'] = null;
                 $info['show_name'] = null;
+                $info['user_name'] = null;
             }
         } else {
-            $info['buyer_name'] = '';
             $info['show_name'] = '';
+            $info['user_name'] = '';
         }
     }
 

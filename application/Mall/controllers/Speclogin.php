@@ -25,10 +25,9 @@ class SpecloginController extends PublicController {
         } elseif($data['sign'] == 'register') {
             $this->register($data);
         } elseif($data['sign'] == 'contact'){
-            $data['buyer_id'] = $this->user['buyer_id'];
             $res = $this->createUcustom($data);
             if($res) {
-                jsonReturn($res,1,'提交成功!');
+                jsonReturn($res,1001,'提交成功!');
             } else{
                 jsonReturn('',-1,'提交失败!');
             }
@@ -84,7 +83,8 @@ class SpecloginController extends PublicController {
                 $datajson['show_name'] = $info['show_name'];
                 $datajson['user_name'] = $info['user_name'];
                 $datajson['token'] = $jwtclient->encode($jwt); //加密
-                redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
+                $datajson['utime'] = 18000;
+                redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
                 echo json_encode(array("code" => "1", "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
                 exit();
             }
@@ -120,7 +120,7 @@ class SpecloginController extends PublicController {
         if (isset($data['phone']) && $data['phone']) {
             $data['tel'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $data['tel'] = $data['tel_code'].' '.$data['phone'];
+                $data['tel'] = $data['tel_code'].'-'.$data['phone'];
             }
         }
         $res = $buyer_custom_model->create_data($data);
@@ -156,7 +156,7 @@ class SpecloginController extends PublicController {
         if (!empty($data['phone']) && is_numeric($data['phone'])) {
             $arr['official_phone'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $arr['official_phone'] = $data['tel_code'] . ' ' . $data['phone'];
+                $arr['official_phone'] = $data['tel_code'] . '-' . $data['phone'];
             }
         } else {
             jsonReturn(null, -113, ShopMsg::getMessage('-113', $lang));
@@ -222,7 +222,8 @@ class SpecloginController extends PublicController {
                     $datajson['country']    =   $arr['country_bn'];
                     $datajson['phone']      =   $arr['official_phone'];
                     $datajson['token']      =   $jwtclient->encode($jwt); //加密
-                    redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                    $datajson['utime'] = 18000;
+                    redisSet('shopmall_user_info_' . $id, json_encode($datajson), $datajson['utime']);
                     jsonReturn($datajson, 1, ShopMsg::getMessage('139',$lang));
                 }
                 jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));

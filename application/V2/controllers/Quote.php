@@ -35,7 +35,7 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
+        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
 
@@ -43,14 +43,16 @@ class QuoteController extends PublicController{
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
         $info['exchange_rate'] = $info['exchange_rate'] ? : '暂无';
 
-        $info['trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
+        $info['inquiry_trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
 
         $transMode = new TransModeModel();
-        $info['trans_mode_bn'] = $transMode->where(['id' => $info['trans_mode_bn']])->getField('trans_mode');
-        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
+        $info['inquiry_trans_mode_bn'] = $transMode->where(['id' => $info['inquiry_trans_mode_bn']])->getField('trans_mode');
+        $info['inquiry_trans_mode_bn'] = $info['inquiry_trans_mode_bn'] ? : '暂无';
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
+        $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : '暂无';
+        $info['dispatch_place'] = $info['dispatch_place'] ? : '暂无';
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : '暂无';
         $info['inquiry_delivery_addr']  = $logiInfo['destination'];

@@ -53,6 +53,7 @@ class ShopMsg {
             '-101' => '失败',
             '-105' => '注册失败',
             '-106' => '登录失败',
+            '-107' => '抱歉，提交失败',
 
             '-110' => '请输入你的密码',
             '-111' => '请输入公司邮箱',
@@ -86,6 +87,7 @@ class ShopMsg {
 
             '-105' => 'Registration failed',
             '-106' => 'Login failed',
+            '-107' => 'Sorry, the submission failed',
             '-110' => 'Please enter your password',
             '-111' => 'Please enter your company Email',
             '-112' => 'The email format is incorrect',
@@ -111,6 +113,7 @@ class ShopMsg {
 
             '-105' => 'Registro fallido',
             '-106' => 'Error de inicio de sesion',
+            '-107' => 'Lo siento, la presentación falló',
             '-110' => 'Por favor, introduzca su contraseña',
             '-111' => 'Por favor, introduzca su empresa correo electrónico',
             '-112' => 'El formato del correo electrónico es incorrecto',
@@ -136,6 +139,7 @@ class ShopMsg {
 
             '-105' => 'Ошибка регистрации',
             '-106' => 'Ошибка входа',
+            '-107' => 'Прошу прощения! Ошибка отправки',
             '-110' => 'Пожалуйста, введите ваш пароль',
             '-111' => 'Пожалуйста, введите адрес вашей компании',
             '-112' => 'Неправильный формат электронной почты',
