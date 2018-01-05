@@ -266,6 +266,9 @@ class EsproductController extends PublicController {
                         ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : ' 待审核:0') .
                         ($status_sku_count['valid_count'] > 0 ? '   通过:' . $status_sku_count['valid_count'] : ' 通过:0') .
                         ($status_sku_count['invalid_count'] > 0 ? '   已驳回:' . $status_sku_count['invalid_count'] : ' 已驳回:0') . ')';
+            } else {
+                $list[$k]['sku_count'] = 0 . PHP_EOL . '(' .
+                        ' 暂存:0' . ' 待审核:0' . ' 通过:0' . ' 已驳回:0' . ')';
             }
         }
 
