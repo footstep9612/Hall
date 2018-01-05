@@ -150,7 +150,6 @@ class ProductModel extends PublicModel {
             }
 
             $idAry = $goodsModel->field("$gtable.id")->join($gatable." ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang",'LEFT')->where($condition)->select();
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $goodsModel->getLastSql(), Log::ERR);
             $ids = [];
             if($idAry){
                 foreach($idAry as $id){
