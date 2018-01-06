@@ -317,6 +317,33 @@ class ShowcatController extends PublicController {
         $this->jsonReturn($arr);
     }
 
+    public function getListByLetterExitAction() {
+
+        $data = $this->getPut();
+        if (empty($data['country_bn'])) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空!');
+            $this->jsonReturn();
+        }
+        $show_model = new ShowCatModel();
+        $newletter = [];
+        foreach ($data['letters'] as $letter) {
+            $flag = $show_model->getListByLetterExit($data['country_bn'], $letter, $data['lang']);
+            if ($flag) {
+                $newletter[] = $letter;
+            }
+        }
+        if ($newletter) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($newletter);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+
+        $this->jsonReturn($newletter);
+    }
+
     /**
      * Description of 判断当前国家是否存在现货
      * @author  zhongyg

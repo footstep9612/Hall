@@ -252,7 +252,7 @@ class BizdivitionController extends PublicController{
         <p>您好！由【{$role_name}】{$name}，提交的【询单流水号：{$serial_no}】，需要您的办理，请登录BOSS系统及时进行处理。</p>
 Stilly;
 
-        MailHelper::sendEmail('learnfans@aliyun.com', '【询报价】办理通知', $body);
+        MailHelper::sendEmail('learnfans@aliyun.com', '【询报价】办理通知', $body,$name);
 
     }
 }

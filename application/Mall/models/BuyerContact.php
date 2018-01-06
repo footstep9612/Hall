@@ -36,13 +36,12 @@ class BuyerContactModel extends PublicModel
             $row = $this->where(['buyer_id' => $data['buyer_id'], 'deleted_flag' => 'N'])
                         ->order('id desc')
                         ->limit(1)
-                        ->select();
-
+                        ->find();
         } elseif (!empty($data['id'])) {
             $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
                         ->order('id desc')
                         ->limit(1)
-                        ->select();
+                        ->find();
         }
         $arr = [];
         $buyaccont_model = new BuyerAccountModel();

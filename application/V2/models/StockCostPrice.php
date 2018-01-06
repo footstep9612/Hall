@@ -70,40 +70,58 @@ class StockCostPriceModel extends PublicModel {
 
         $where['sku'] = $sku;
         $where['country_bn'] = $country_bn;
+        $this->startTrans();
         $this->where($where)->save(['deleted_flag' => 'Y']);
         $current_model = new CurrencyModel();
-        foreach ($cost_prices as $cost_price) {
+        try {
+            foreach ($cost_prices as $cost_price) {
 
-            $id = empty($cost_price['id']) ? null : $cost_price['id'];
-            if (isset($cost_price['id'])) {
-                unset($cost_price['id']);
-            }
+                $id = empty($cost_price['id']) ? null : $cost_price['id'];
+                if (isset($cost_price['id'])) {
+                    unset($cost_price['id']);
+                }
 
-            if ($cost_price['price_cur_bn']) {
-                $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
+                if ($cost_price['price_cur_bn']) {
+                    $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
+                }
+                $data = $this->create($cost_price);
+                $data['supplier_id'] = empty($data['supplier_id']) ? 0 : intval($data['supplier_id']);
+                $data['max_price'] = floatval($data['max_price']) > 0 ? intval($data['max_price']) : null;
+                $data['max_promotion_price'] = floatval($data['max_promotion_price']) > 0 ? intval($data['max_promotion_price']) : null;
+                $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
+                $data['min_purchase_qty'] = intval($data['min_purchase_qty']) > 0 ? intval($data['min_purchase_qty']) : 0;
+                $data['max_purchase_qty'] = intval($data['max_purchase_qty']) > 0 ? intval($data['max_purchase_qty']) : null;
+
+                $data['spu'] = $this->getSpu($sku, $lang);
+                $data['sku'] = $sku;
+                $data['country_bn'] = $country_bn;
+                $flag = false;
+                if (empty($id)) {
+                    $data['created_by'] = defined('UID') ? UID : 0;
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $data['deleted_flag'] = 'N';
+
+                    $flag = $this->add($data);
+                } else {
+                    $data['updated_by'] = defined('UID') ? UID : 0;
+                    $data['updated_at'] = date('Y-m-d H:i:s');
+                    $data['deleted_flag'] = 'N';
+
+                    $flag = $this->where(['id' => $id])->save($data);
+                }
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
+                }
             }
-            $data = $this->create($cost_price);
-            $data['spu'] = $this->getSpu($sku, $lang);
-            $data['sku'] = $sku;
-            $data['country_bn'] = $country_bn;
-            $flag = false;
-            if (empty($id)) {
-                $data['created_by'] = defined('UID') ? UID : 0;
-                $data['created_at'] = date('Y-m-d H:i:s');
-                $data['deleted_flag'] = 'N';
-                $flag = $this->add($data);
-            } else {
-                $data['updated_by'] = defined('UID') ? UID : 0;
-                $data['updated_at'] = date('Y-m-d H:i:s');
-                $data['deleted_flag'] = 'N';
-                $flag = $this->where(['id' => $id])->save($data);
-            }
-            if (!$flag) {
-                return false;
-            }
+            $this->commit();
+            return true;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->rollback();
+            return false;
         }
-
-        return true;
     }
 
     /**
@@ -126,9 +144,9 @@ class StockCostPriceModel extends PublicModel {
         if ($cost_prices) {
             $cost_prices['min_price'] = null;
             $cost_prices['max_price'] = null;
-//            $cost_prices['price_cur_bn'] = null;
-//            $cost_prices['min_purchase_qty'] = null;
-//            $cost_prices['max_purchase_qty'] = null;
+            $cost_prices['price_cur_bn'] = null;
+            $cost_prices['min_purchase_qty'] = null;
+            $cost_prices['max_purchase_qty'] = null;
 //            $cost_prices['pricing_date'] = null;
             $cost_prices['price_validity_start'] = null;
             $cost_prices['price_validity_end'] = null;
