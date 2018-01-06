@@ -56,13 +56,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($data["token"])) {
                 $token = $data["token"];
             }
-            $this->user =$GLOBALS['SSO_USER'];
+            $this->user = $GLOBALS['SSO_USER'];
             $this->_setUid($this->user);
-            if(isset($this->user['id']) && $this->user['id'] >0){
+            if (isset($this->user['id']) && $this->user['id'] > 0) {
                 return;
-            }else{
+            } else {
                 header("Content-Type: application/json");
-                exit(json_encode(['code'=>403,'message'=>'Token Expired.']));
+                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
             }
         }
     }
@@ -188,7 +188,11 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name) {
-            $data = isset($this->put_data [$name]) && !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            if (isset($this->put_data [$name]) && is_string($this->put_data [$name])) {
+                $data = !empty($this->put_data [$name]) ? trim($this->put_data [$name]) : trim($default);
+            } else {
+                $data = !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            }
             return $data;
         } else {
             $data = $this->put_data;
@@ -544,8 +548,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author 买买提
      * @return string
      */
-
-
     public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode = "86", $subType = 1, $groupSending = 0, $useType = "询报价系统") {
 
         if (empty($receiver)) {
@@ -595,20 +597,20 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return;
     }
 
-
     /**
      * 验证指定参数是否存在
      * @param string $params 初始的请求字段
      * @return array 验证后的请求字段
      */
-    public function validateRequestParams($params=''){
+    public function validateRequestParams($params = '') {
         $request = $this->getPut();
         unset($request['token']);
 
-        if ($params){
-            $params = explode(',',$params);
-            foreach ($params as $param){
-                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少['.$param.']参数']);
+        if ($params) {
+            $params = explode(',', $params);
+            foreach ($params as $param) {
+                if (empty($request[$param]))
+                    $this->jsonReturn(['code' => '-104', 'message' => '缺少[' . $param . ']参数']);
             }
         }
         return $request;

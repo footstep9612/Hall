@@ -23,7 +23,7 @@ class MallController extends PublicController
         $data = $this->getPut();
         $model = new BuyerCustomModel();
         $data['buyer_id'] = $this->user['buyer_id'];
-        $res = $model->getlist($data);jsonReturn($res);
+        $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
@@ -58,6 +58,24 @@ class MallController extends PublicController
         }
         $this->jsonReturn($datajson);
     }*/
+
+    /**
+     * 获取服务类型列表
+     * @param mix $condition
+     * @author klp
+     */
+    public function catnameListAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $catModel = new CustomCatModel();
+        $catInfo = $catModel->listName($lang);
+        if($catInfo) {
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+
+    }
 
     /**
      * 展示所有定制信息详情

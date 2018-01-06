@@ -47,6 +47,24 @@ class CustomservicesController extends PublicController
      }
 
     /**
+     * 获取服务类型列表
+     * @param mix $condition
+     * @author klp
+     */
+    public function catnameListAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
+        $catModel = new CustomCatModel();
+        $catInfo = $catModel->listName($lang);
+        if($catInfo) {
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+
+    }
+
+    /**
      * 展示所有定制信息详情
      * @param mix $condition
      * @return mix
