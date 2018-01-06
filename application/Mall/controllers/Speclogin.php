@@ -125,7 +125,7 @@ class SpecloginController extends PublicController {
         }
         $catModel = new CustomCatModel();
         $cat_no = $catModel->field('cat_no')->where(['cat_name'=>$data['cat_name'],'deleted_flag'=>'N'])->find();
-        $data['cat_no'] = $cat_no ? $cat_no : '';
+        $data['cat_no'] = $cat_no['cat_no']?$cat_no['cat_no']:'';
         $res = $buyer_custom_model->create_data($data);
         if($res) {
             return $res;
