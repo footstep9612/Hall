@@ -426,6 +426,7 @@ class BuyerModel extends PublicModel {
             $group_status = $this->addGroupCrm($datajson);
             $datajson['group_status'] = $group_status;
         }
+        $datajson['source']=1;
         try {
             $res = $this->add($datajson);
             if($res){
