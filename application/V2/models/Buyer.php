@@ -463,7 +463,7 @@ class BuyerModel extends PublicModel {
      <mobile>{$datajson['official_phone']}</mobile>
      <country_bn>{$datajson['country_name']}</country_bn>
      <email>{$datajson['official_email']}</email>
-     <biz_scope></biz_scope>
+     <biz_scope>{$datajson['biz_scope']}</biz_scope>
      <crm_code>{$datajson['buyer_code']}</crm_code>
      <first_name>{$datajson['first_name']}</first_name>
   </acc:InsertAccount>
@@ -1261,7 +1261,8 @@ EOF;
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
-            'company_reg_date'=>'成立日期',
+            'company_reg_date'=>'公司成立日期',
+            'company_address'=>'公司地址',
             'reg_capital'=>'注册资金',
             'reg_capital_cur'=>'注册资金货币',
             'profile'=>'公司介绍',
@@ -1338,16 +1339,28 @@ EOF;
             return $info;
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
-        try{
-            $this->where(array('id'=>$arr['id']))->save($arr);
-            //创建财务报表附件
-            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+        $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
+
+        if($data['base_info']['is_edit'] == true){  //财务报表编辑,联系人编辑
+            //编辑财务报表
+            if(!empty($data['base_info']['finance_attach'])){
                 $attach = new BuyerattachModel();
-                $attach -> createBuyerFinanceTable($data);
+                $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],$data['base_info']['buyer_id'],$data['created_by']);
+            }else{  //删除所有财务报表
+                $attach = new BuyerattachModel();
+                $attach -> delBuyerFinanceTable($data['base_info']['buyer_id'],$data['created_by']);
             }
-            if($data['base_info']['is_edit'] == true && empty($data['base_info']['attach_url'])){
+            //编辑联系人必填
+            if(!empty($data['base_info']['finance_attach'])){
+                $attach = new BuyercontactModel();
+                $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+            }
+            return true;
+        }else{
+            //创建财务报表附件
+            if(!empty($data['base_info']['finance_attach'])){
                 $attach = new BuyerattachModel();
-                $attach -> delBuyerFinanceTable($data);
+                $attach -> createBuyerFinanceTableArr($data['base_info']['finance_attach'],$data['base_info']['buyer_id'],$data['created_by']);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
@@ -1356,9 +1369,6 @@ EOF;
                 return true;
             }
             return false;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
-            return false;   //新建客户基本信息失败
         }
     }
 
@@ -1388,6 +1398,7 @@ EOF;
             'official_email'    => $data['official_email'],    //公司邮箱
             'official_website'  => $data['official_website'],  //公司网址
             'company_reg_date'  => $data['company_reg_date'],  //成立日期
+            'company_address'  => $data['company_address'],  //公司地址
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt

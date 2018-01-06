@@ -91,7 +91,8 @@ class IndustrychainModel extends PublicModel
 //        }//end验证
         $buyer_id = $data['buyer_id'];
         $created_by = $data['created_by'];
-        if(empty($data['up']) && empty($data['down'])){ //添加空数据
+        //添加空数据
+        if(empty($data['up']) && empty($data['down']) && empty($data['competitor'])){
             $null = $this->addNullData($buyer_id,$created_by);
             if($null){
                 return 'nullData';
@@ -108,7 +109,7 @@ class IndustrychainModel extends PublicModel
         }
         return false;
     }
-    //添加空数据
+    //创建上下游,竞争对手信息空数据-王帅
     public function addNullData($buyer_id,$created_by){
         $arrNull = array(
             array(
@@ -123,15 +124,19 @@ class IndustrychainModel extends PublicModel
                 'created_by' => $created_by,
                 'created_at' => date('Y-m-d H:i:s'),
             ),
+            array(
+                'buyer_id' => $buyer_id,
+                'industry_group' => 'competitor',
+                'created_by' => $created_by,
+                'created_at' => date('Y-m-d H:i:s'),
+            )
         );
-        $exist = $this->showNulldel($buyer_id,$created_by);
-        if($exist){
-            $resNull = $this->addAll($arrNull);
-            if($resNull){
-                return 'nullData';
-            }
+        $resNull = $this->addAll($arrNull); //返回添加第一条数据的id
+        if($resNull){
+            return true;
+        }else{
+            return false;
         }
-        return false;
     }
     //创建up  和 down
     public function handleUpDown($industry_group='up',$data,$buyer_id,$created_by){

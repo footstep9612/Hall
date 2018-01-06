@@ -788,14 +788,14 @@ class BuyerController extends PublicController {
         }elseif ($res === false){
             $valid = array(
                 'code'=>0,
-                'message'=>'客户基本信息创建失败',
+                'message'=>'客户基本信息失败',
             );
             $this -> jsonReturn($valid);
         }
 
         $valid = array(
             'code'=>1,
-            'message'=>'基本信息创建成功',
+            'message'=>'基本信息成功',
         );
         $this -> jsonReturn($valid);
     }
@@ -829,9 +829,8 @@ class BuyerController extends PublicController {
         //获取财务报表
         $attach = new BuyerattachModel();
         $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
-        if(!empty($finance)){
-            $buerInfo['attach_name'] = $finance['attach_name'];
-            $buerInfo['attach_url'] = $finance['attach_url'];
+        if(!empty($finance)) {
+            $buerInfo['finance_attach'] = $finance;
         }
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
