@@ -147,7 +147,7 @@ class BuyerModel extends PublicModel {
         }
         if ($where) {
             $sql .= $where;
-            // $sql_count .= $where;
+            //  $sql_count .= $where;
         }
         $sql .= ' Group By `erui_buyer`.`buyer`.`id`';
         //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
