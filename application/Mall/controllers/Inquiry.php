@@ -70,7 +70,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $where = $this->getPut();
 
-        $results = $inquiry->getinfo($where);
+        $results = $inquiry->getInfo($where);
 
         if (isset($results['data'])) {
             $data = $results['data'];
@@ -79,6 +79,22 @@ class InquiryController extends PublicController {
         }
 
         $this->jsonReturn($results);
+    }
+
+    //询单联系人信息
+    public function getContactInfoAction() {
+        $inquiry = new InquiryContactModel();
+        $where = $this->getPut();
+
+        $results = $inquiry->getInfo($where);
+
+        if (!$results) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($results);
+        }
     }
 
 

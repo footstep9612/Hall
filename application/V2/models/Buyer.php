@@ -82,7 +82,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.recommend_flag=\'N\' ';
+            $where .= ' And `erui_buyer`.`buyer`.is_build=0 and `erui_buyer`.`buyer`.status=\'APPROVED\' ';
         }
 
         if (!empty($condition['user_name'])) {
@@ -152,7 +152,8 @@ class BuyerModel extends PublicModel {
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
+//            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
 
         //$count = $this->query($sql_count);
@@ -177,8 +178,21 @@ class BuyerModel extends PublicModel {
         if(!empty($data['name'])){    //客户名称buy
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
+
         if(!empty($data['status'])){    //审核状态===buy
             $cond .= " and buyer.status='".$data['status']."'";
+        }
+        if(!empty($data['filter'])){   //过滤状态
+            $cond .= ' And buyer.status !=\'APPROVING\' and buyer.status !=\'FIRST_REJECTED\' ';
+        }
+
+        if(!empty($data['is_agent']) && $data['is_agent']=='Y'){   //是否是代理人
+            $cond .= ' And buyer.created_by='.$data['created_by'];
+        }
+
+
+        if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
+            $cond .= ' buyer.is_build=0';
         }
         if(!empty($data['source'])){  //客户来源===buy
             if($data['source']==1){ //后台
@@ -412,8 +426,12 @@ class BuyerModel extends PublicModel {
             $data['checked_at'] = date('Y-m-d H:i:s');
 
         }
+        $datajson = $this->create($data);
+        if($create['is_group_crm'] == true){
+            $group_status = $this->addGroupCrm($datajson);
+            $datajson['group_status'] = $group_status;
+        }
         try {
-            $datajson = $this->create($data);
             $res = $this->add($datajson);
             if ($res) {
                 $checked_log_arr['id'] = $res;
@@ -429,6 +447,53 @@ class BuyerModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
+    }
+
+    /**
+     * @param $datajson
+     * 向集团CRM添加客户信息数据
+     * wangs
+     */
+    public function addGroupCrm($datajson){
+        $country = new CountryModel();
+        $name = $country->getCountryByBn($datajson['country_bn'],'zh');
+        $datajson['country_name'] = $name;  //获取国家名称
+
+        $xml = <<<EOF
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
+<soapenv:Header/>
+<soapenv:Body>
+  <acc:InsertAccount>
+     <name>{$datajson['name']}</name>
+     <mobile>{$datajson['official_phone']}</mobile>
+     <country_bn>{$datajson['country_name']}</country_bn>
+     <email>{$datajson['official_email']}</email>
+     <biz_scope></biz_scope>
+     <crm_code>{$datajson['buyer_code']}</crm_code>
+     <first_name>{$datajson['first_name']}</first_name>
+  </acc:InsertAccount>
+</soapenv:Body>
+</soapenv:Envelope>
+EOF;
+        //请求集团CRM
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: text/xml",
+                'content' => $xml
+            )
+        );
+        $context = stream_context_create($opt);
+//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $str = file_get_contents($url,false,$context);  //得到客户crm数据
+
+        $need = strstr($str,'<errorMsg>');
+        $need = strstr($need,'</rpc:InsertAccountResponse>',true);
+        $xml = '<root>'.$need.'</root>';
+        $xmlObj = simplexml_load_string($xml);
+        $arr = json_decode(json_encode($xmlObj),true);
+        return $arr['status'];
     }
 
     /**
@@ -1197,6 +1262,7 @@ class BuyerModel extends PublicModel {
 //            'market_agent_mobile'=>'服务经理联系方式',
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
+            'is_oilgas'=>'是否油气',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
@@ -1228,12 +1294,6 @@ class BuyerModel extends PublicModel {
             'attach_name'=>'附件名称',
             'attach_url'=>'附件url地址',
         );
-        if(!empty($baseExtra['employee_count'])){
-            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
-            }else{
-                return $baseExtra['employee_count'];
-            }
-        }
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
             'name'=>'联系人姓名',
@@ -1260,6 +1320,13 @@ class BuyerModel extends PublicModel {
                 }
             }
         }
+        if(!empty($base['employee_count'])){
+            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
+                return true;
+            }else{
+                return $baseExtra['employee_count'];
+            }
+        }
         return true;
     }
 
@@ -1277,40 +1344,28 @@ class BuyerModel extends PublicModel {
             return $info;
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
-
         try{
-            $base = $this->where(array('id'=>$arr['id']))->save($arr);
-            if($base){
-                //创建财务报表附件
-                if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                    $this -> createAttchData($data);
-                }
-                //创建联系人信息
-                $model = new BuyercontactModel();
-                $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-                if($conn){
-                    return true;
-                }
-                return false;
+            $this->where(array('id'=>$arr['id']))->save($arr);
+            //创建财务报表附件
+            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
+                $attach = new BuyerattachModel();
+                $attach -> createBuyerFinanceTable($data);
             }
+            if($data['base_info']['is_edit'] == true && empty($data['base_info']['attach_url'])){
+                $attach = new BuyerattachModel();
+                $attach -> delBuyerFinanceTable($data);
+            }
+            //创建联系人信息
+            $model = new BuyercontactModel();
+            $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+            if($conn){
+                return true;
+            }
+            return false;
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
             return false;   //新建客户基本信息失败
         }
-    }
-
-    /**
-     * @param $data
-     * 创建财务报表附件
-     */
-    public function createAttchData($data){
-        $attach_name = $data['base_info']['attach_name'];
-        $attach_url = $data['base_info']['attach_url'];
-        $buyer_id = $data['base_info']['buyer_id'];
-        $created_by = $data['created_by'];
-        $model = new BuyerattachModel();
-        $financeRes = $model->createBuyerFinanceTable($attach_name,$attach_url,$buyer_id,$created_by);
-        return $financeRes;
     }
     /**
      * 组装客户基本信息创建所需数据
@@ -1329,7 +1384,9 @@ class BuyerModel extends PublicModel {
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
-            'created_at'    => date('Y-m-d H:i:s'), //客户id
+//            'created_at'    => date('Y-m-d H:i:s'), //客户id
+            'build_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
+            'build_modify_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
             'official_phone'    => $data['official_phone'],    //公司固话
@@ -1341,13 +1398,22 @@ class BuyerModel extends PublicModel {
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
-            'is_build' =>'1'//有效期
+            'is_build' =>'1',//有效期
+            'is_oilgas' =>$data['is_oilgas']//有效期
         );
+        //判断创建数据与编辑数据
+        $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();
+        if($build['is_build'] == 1){
+//            $arr['build_modify_time'] = date('Y-m-d H:i:s'); //客户档案信息修改时间---
+            if($build['build_time'] !== NULL){
+                unset($arr['build_time']);
+            }
+        }
         //非必须数据
         $baseArr = array(
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
-            'is_oilgas', //是否油气
+//            'is_oilgas', //是否油气
             'employee_count', //雇员数量
         );
         foreach ($data as $value) {
@@ -1369,9 +1435,6 @@ class BuyerModel extends PublicModel {
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
         }
-//        if(!empty($data['buyer_id'])){
-//            $cond['created_by'] = $data['created_by'];
-//        }
         $buyerArr = array(
             'id as buyer_id', //客户id
             'buyer_type', //客户类型
@@ -1492,8 +1555,8 @@ class BuyerModel extends PublicModel {
             $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
-            $arr[$k]['created_at'] = $v['created_at'];  //创建时间
-            $arr[$k]['is_oilgas'] = $v['is_oilgas']==='Y'?'是':'否';    //是否油气
+            $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
+            $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
@@ -1641,7 +1704,8 @@ class BuyerModel extends PublicModel {
                 'country_bn',   //国家
                 'buyer_code',   //客户编码
                 'name as buyer_name',   //客户名称
-                'created_at',   //创建时间
+//                'created_at',   //创建时间
+                'build_time',   //客户档案创建时间
                 'is_oilgas',   //是否油气
                 'buyer_level',   //客户等级
                 'level_at',   //等级设置时间
@@ -1669,7 +1733,7 @@ class BuyerModel extends PublicModel {
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
                 ->field($field)
                 ->where($cond)
-                ->order('buyer.id desc')
+                ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
             if(!empty($info)){
@@ -1759,5 +1823,75 @@ class BuyerModel extends PublicModel {
         $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
         $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
         return $excelDir . DS. $sheetName . '.xlsx';
+    }
+
+    /**检测输入CRM客户代码是否存在,返回数据信息
+     * @param $data
+     */
+    public function checkBuyerCrm($data){
+        $field = array(
+            'official_email', //邮箱
+            'country_bn', //国家
+            'official_phone', //区号,电话
+            'first_name', //姓名
+
+            'name', //公司名称
+            'biz_scope', //经营范围
+            'intent_product', //意向产品
+            'purchase_amount' //预计年采购额
+        );
+        $cond = array(
+            'buyer_code'=>$data['buyer_code'],
+        );
+        $info = $this->field($field)->where($cond)->find();
+//        if(!empty($info)){
+//            $country = new CountryModel();
+//            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+//        }
+//        if(!empty($info['official_phone'])){
+//            $phone = explode('-',$info['official_phone']);
+//            if(count($phone) == 1){
+//                $info['areacode'] = NULL;
+//                $info['mobile'] = $phone[0];
+//            }else{
+//                $info['areacode'] = $phone[0];
+//                $info['mobile'] = $phone[1];
+//            }
+//            unset($info['official_phone']);
+//        }
+        return $info;
+    }
+    public function testCrm($data){
+        $field = array(
+            'official_email', //邮箱
+            'country_bn', //国家
+            'official_phone', //区号,电话
+            'first_name', //姓名
+
+            'name', //公司名称
+            'biz_scope', //经营范围
+            'intent_product', //意向产品
+            'purchase_amount' //预计年采购额
+        );
+        $cond = array(
+            'buyer_code'=>$data['buyer_code'],
+        );
+        $info = $this->field($field)->where($cond)->find();
+        if(!empty($info)){
+            $country = new CountryModel();
+            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+        }
+        if(!empty($info['official_phone'])){
+            $phone = explode('-',$info['official_phone']);
+            if(count($phone) == 1){
+                $info['areacode'] = NULL;
+                $info['mobile'] = $phone[0];
+            }else{
+                $info['areacode'] = $phone[0];
+                $info['mobile'] = $phone[1];
+            }
+            unset($info['official_phone']);
+        }
+        return $info;
     }
 }

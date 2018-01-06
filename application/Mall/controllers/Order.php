@@ -50,12 +50,9 @@ class OrderController extends PublicController {
         if(!isset($input['addrAry']) || empty($input['addrAry'])){
             jsonReturn('', MSG::ERROR_PARAM, 'addrAry not null');
         }
-        if(!isset($input['contactAry']) || empty($input['contactAry'])){
-            jsonReturn('', MSG::ERROR_PARAM, 'contactAry not null');
-        }
         $input['buyer_id'] = $this->user['buyer_id'];
         $order_moder = new OrderModel();
-        $orderNo = $order_moder->add($input);
+        $orderNo = $order_moder->addOrder($input);
         jsonReturn($orderNo,$orderNo ? MSG::MSG_SUCCESS : MSG::MSG_FAILED);
     }
 
@@ -69,8 +66,7 @@ class OrderController extends PublicController {
     //put your code here
     public function listAction() {
 
-        $condition = $this->getPut(); //查询条件
-
+        $condition = $this->getPut();
         $order_moder = new OrderModel();
         $condition['buyer_id'] = $this->user['buyer_id'];
         $data = $order_moder->getList($condition);
@@ -144,7 +140,7 @@ class OrderController extends PublicController {
      * @param int $order_id // 订单ID
      * @desc   交收信息
      */
-    public function LastAdressAction() {
+    public function ListAdressAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
@@ -160,6 +156,36 @@ class OrderController extends PublicController {
 
             $this->jsonReturn($order_address);
         } elseif ($order_address === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+
+            $this->jsonReturn(null);
+        }
+    }
+
+    /* 订单商品信息
+    * @param int $order_id // 订单ID
+    * @desc   商品信息
+    */
+    public function ListGoodsAction() {
+
+        $order_no = $this->getPut('order_no');
+        if (!$order_no) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        }
+        $condition['order_no'] = $order_no;
+        $order_goods_model = new OrderGoodsModel();
+        $order_goods = $order_goods_model->getList($condition);
+        $order_count = $order_goods_model->getCount($condition);
+
+        if ($order_goods) {
+            $this->_setinfos($order_goods);
+            $this->setvalue('count', intval($order_count));
+            $this->jsonReturn($order_goods);
+        } elseif ($order_goods === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
@@ -239,7 +265,7 @@ class OrderController extends PublicController {
     }
 
     //订单评论
-    public function AddAction() {
+    public function AddCommentAction() {
         $condition = $this->getPut(); //查询条件
 
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {
@@ -424,15 +450,15 @@ class OrderController extends PublicController {
             $buyer_model = new BuyerAccountModel();
             $order_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
             if (isset($order_buyer_contact[$info['buyer_id']])) {
-                $info['buyer_name'] = $order_buyer_contact[$info['buyer_id']];
-                $info['show_name'] = $order_buyer_contact[$info['show_name']];
+                $info['show_name'] = $order_buyer_contact[$info['buyer_id']];
+                $info['user_name'] = $order_buyer_contact[$info['user_name']];
             } else {
-                $info['buyer_name'] = null;
                 $info['show_name'] = null;
+                $info['user_name'] = null;
             }
         } else {
-            $info['buyer_name'] = '';
             $info['show_name'] = '';
+            $info['user_name'] = '';
         }
     }
 

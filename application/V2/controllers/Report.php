@@ -29,7 +29,7 @@ class ReportController extends PublicController {
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
             $sign = md5($key . $input['input']);
-
+//            echo $sign;
             if ($input['sign'] != $sign) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->setMessage('验证失败!');
@@ -228,6 +228,8 @@ class ReportController extends PublicController {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $inquiryItemModel = new InquiryItemModel();
+            $marketAreaModel = new MarketAreaModel();
+            $marketAreaCountryModel = new MarketAreaCountryModel();
 
             $nowTime = time();
 
@@ -239,6 +241,10 @@ class ReportController extends PublicController {
 
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
                 $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
+                if (empty($inquiry['area_name'])) {
+                    $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
+                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                }
 
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
                     $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'in_node' => 'MARKET_CONFIRMING'])->getField('out_at');
@@ -251,8 +257,9 @@ class ReportController extends PublicController {
 
                 foreach ($inquiryItemList as &$inquiryItem) {
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
-                
+
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);

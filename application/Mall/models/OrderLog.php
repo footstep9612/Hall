@@ -101,4 +101,59 @@ class OrderLogModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取列表
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function getBuyerLogList($condition = [], $start_no, $pagesize) {
+        if (!empty($condition['buyer_id'])) {
+            $where['b.buyer_id'] = $condition['buyer_id'];
+        } else {
+            $results['code'] = '-103';
+            $results['message'] = '没有客户id!';
+            return $results;
+        }
+        if (!empty($condition['order_id'])) {
+            $where['a.order_id'] = $condition['order_id'];
+        }
+        if (!empty($condition['log_group'])) {
+            $where['a.log_group'] = $condition['log_group'];
+        }
+        $where['a.deleted_flag'] = 'N';
+        $where['b.deleted_flag'] = 'N';
+        $field = 'a.id,a.order_id,a.log_group,a.content,a.out_no,a.waybill_no,a.log_at,a.amount,a.type,a.log_id,b.order_no,b.po_no,b.execute_no,b.buyer_id';
+
+        try {
+            $count = $this->alias('a')
+                ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
+                ->where($where)
+                ->count('a.id');
+
+            $list = $this->alias('a')
+                ->join('erui_order.order b ON a.order_id = b.id', 'LEFT')
+                ->field($field)
+                ->where($where)
+                ->limit($start_no, $pagesize)
+                ->order('a.created_at asc')
+                ->select();
+
+            if ($list) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['count'] = $count;
+                $results['data'] = $list;
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
 }

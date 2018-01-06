@@ -239,7 +239,7 @@ class BuyercontactModel extends PublicModel
         );
         $arr = [];
         $flag = true;
-        $this->startTrans();    //开启事务
+//        $this->startTrans();    //开启事务
         $exist = $this->showContactDel($buyer_id,$created_by);
         if($exist == false){
             $flag = false;
@@ -259,10 +259,10 @@ class BuyercontactModel extends PublicModel
             }
         }
         if($flag){
-            $this->commit();
+//            $this->commit();
             return true;
         }else{
-            $this->rollback();
+//            $this->rollback();
             return false;
         }
     }
@@ -297,6 +297,7 @@ class BuyercontactModel extends PublicModel
             'deleted_flag'=>'N',
         );
         $fieldArr = array(
+            'id', //id
             'name', //联系人名字
             'title', //联系人职位
             'phone', //联系人电话

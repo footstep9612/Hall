@@ -25,17 +25,15 @@ class PaymentModeModel extends PublicModel {
         if (!empty($lang)) {
             $condition['lang'] = $lang;
         }
+        $condition['status'] = 'VALID';
+        $condition['deleted_flag'] = 'N';
 
-        if (redisHashExist('Paymentmode', md5(json_encode($condition)))) {
+        /*if (redisHashExist('Paymentmode', md5(json_encode($condition)))) {
             return json_decode(redisHashGet('Paymentmode', md5(json_encode($condition))), true);
-        }
+        }*/
 
         $field = 'lang,bn,name';
-        $result = $this->field($field)->where($condition)->order('bn')->select();
-        if ($result) {
-            redisHashSet('Paymentmode', md5(json_encode($condition)), json_encode($result));
-            return $result;
-        }
+        return $this->field($field)->where($condition)->order('bn')->select();
     }
 
 }

@@ -287,6 +287,8 @@ class LogisticsController extends PublicController {
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
 	        $data['bank_interest'] = $quote['bank_interest'];
 	        $data['total_exw_price'] = $quote['total_exw_price'];
+	        $data['certification_fee'] = $quote['certification_fee'];
+	        $data['certification_fee_cur'] = 'CNY';
 	        
 	        $data = $this->calcuTotalLogiFee($data);
 	        
@@ -842,6 +844,8 @@ class LogisticsController extends PublicController {
 	 *     payment_period 回款周期(天)
 	 *     bank_interest 银行利息
 	 *     fund_occupation_rate 资金占用比例
+	 *     certification_fee 商品检测费（如第三方检验费、认证费等）
+	 *     certification_fee_cur 商品检测费（如第三方检验费、认证费等）币种
 	 *     inspection_fee 商检费
 	 *     inspection_fee_cur 商检费币种
 	 *     land_freight 陆运费
@@ -872,7 +876,6 @@ class LogisticsController extends PublicController {
 	   
 	    $data = $condition;
 	     
-	    $data['inspection_fee'] = 0;
 	    $data['land_freight'] = 0;
 	    $data['port_surcharge'] = 0;
 	    $data['inter_shipping'] = 0;
@@ -883,6 +886,7 @@ class LogisticsController extends PublicController {
 	    $data['dest_tariff_rate'] = 0;
 	    $data['dest_va_tax_rate'] = 0;
 	     
+	    $data['certification_fee'] = $condition['certification_fee'] > 0 ? $condition['certification_fee'] : 0;
 	    $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 	     
 	    switch (true) {
@@ -930,6 +934,7 @@ class LogisticsController extends PublicController {
 	            $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
 	    }
 	     
+	    $certificationFeeUSD = round($data['certification_fee'] / $this->_getRateUSD($data['certification_fee_cur']), 8);
 	    $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
 	    $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
 	    $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
@@ -947,27 +952,27 @@ class LogisticsController extends PublicController {
 	     
 	    switch (true) {
 	        case $trade == 'EXW' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FCA' || $trade == 'FAS' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FOB' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CPT' || $trade == 'CFR' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CIF' || $trade == 'CIP' :
-	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
+	            $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
 	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	            break;
 	        case $trade == 'DAP' || $trade == 'DAT' :
-	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
+	            $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
 	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	            break;
 	        case $trade == 'DDP' || $trade == '快递' :
-	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
+	            $tmpCaFee = ($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
 	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	    }
 	     
@@ -1033,11 +1038,14 @@ class LogisticsController extends PublicController {
 	   
 	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
 	   
-	   if ($overlandInsuCNY < 50) {
+	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
-	   } else {
+	   } else if ($overlandInsuCNY >= 50) {
 	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   } else {
+	       $overlandInsuCNY = 0;
+	       $overlandInsuUSD = 0;
 	   }
 	   
 	   return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
@@ -1060,11 +1068,14 @@ class LogisticsController extends PublicController {
 	    
 	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
 	    
-	    if ($shippingInsuCNY < 50) {
+	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
-	    } else {
+	    } else if ($shippingInsuCNY >= 50) {
 	        $shippingInsuUSD = round($tmpPrice, 8);
+	    } else {
+	        $shippingInsuCNY = 0;
+	        $shippingInsuUSD = 0;
 	    }
 	    
 	    return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];

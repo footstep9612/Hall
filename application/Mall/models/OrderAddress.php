@@ -62,6 +62,9 @@ class OrderAddressModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
@@ -71,12 +74,13 @@ class OrderAddressModel extends PublicModel {
      * @var $data
      * @author link 2017-12-20
      */
-    public function add($data){
+    public function addInfo($data){
         if(!isset($data['order_id'])){
             jsonReturn('订单地址添加，orer_id不能为空');
         }
         try{
             $data = $this->_getData($data);
+            $data['created_at'] = date('Y-m-d H:i:s', time());
             $result = $this->add($this->create($data));
             return $result ? $result : false;
         }catch (Exception $e){

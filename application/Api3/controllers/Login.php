@@ -183,17 +183,17 @@ class LoginController extends PublicController {
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $check_arr['email'];
-            $data_key['name'] = $check[0]['name'];
+            $data_key['show_name'] = $check[0]['show_name'];
             $account_id = $check[0]['id'];
             redisHashSet('reset_password_key', $data_key['key'], $account_id, 86400);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
-            $email_arr['name'] = $check[0]['name'];
+            $email_arr['show_name'] = $check[0]['show_name'];
             $body = $this->getView()->render('login/retrieve_email_'.$lang.'.html', $email_arr);
             $title = 'Erui.com';
-            send_Mail($data_key['email'], $title, $body, $data_key['name']);
+            send_Mail($data_key['email'], $title, $body, $data_key['show_name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
             jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang));//'The company email is not registered yet'

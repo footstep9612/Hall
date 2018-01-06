@@ -76,14 +76,14 @@ class EsGoodsModel extends Model {
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lt' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lt' => $created_at_end,]]];
             }
         }
     }
@@ -506,6 +506,44 @@ class EsGoodsModel extends Model {
     }
 
     /*
+     * 获取SKU总数
+     * @param array $spus //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getStatusSkuCountBySpu($spus, $lang = 'en') {
+
+        try {
+
+            $where = ['spu' => ['in', $spus],
+                'lang' => $lang,
+                'deleted_flag' => 'N',
+                'status' => ['in', ['DRAFT', 'CHECKING', 'INVALID', 'VALID']]
+            ];
+            $data = $this->field('spu,sum(if (`status`=\'DRAFT\',1,0)) as draft_count,'
+                            . 'sum(if (`status`=\'CHECKING\',1,0)) as checking_count,'
+                            . 'sum(if (`status`=\'INVALID\',1,0)) as invalid_count,'
+                            . 'sum(if (`status`=\'VALID\',1,0)) as valid_count')
+                    ->where($where)
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            foreach ($data as $item) {
+                $ret[$item['spu']] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
      * @param string $lang // 语言 zh en ru es
@@ -795,8 +833,14 @@ class EsGoodsModel extends Model {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
             $body['attrs'] = $attrs;
+            if ($attrs['spec_attrs']) {
+                $body['spec_attrs'] = $attrs['spec_attrs'];
+            } else {
+                $body['spec_attrs'] = [];
+            }
         } else {
             $body['attrs'] = new stdClass();
+            $body['spec_attrs'] = [];
             //json_encode([], JSON_UNESCAPED_UNICODE);
         }
 

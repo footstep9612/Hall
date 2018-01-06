@@ -316,7 +316,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function Inquiryexport() {
+    public function Inquiryexport($condition) {
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName(); //国家表
         $market_area_country_model = new MarketAreaCountryModel();
@@ -327,17 +327,32 @@ class SupplierInquiryModel extends PublicModel {
         $employee_table = $employee_model->getTableName(); //管理员表
         $org_model = new OrgModel(); //
         $org_table = $org_model->getTableName(); //组织表
-        $field = 'i.serial_no,';
+
+        /*         * **报价单** */
+        $quote_model = new QuoteModel();
+        $quote_table = $quote_model->getTableName(); //最终报价单明细
+
+        /*         * **报价单** */
+
+        /*         * **报价单** */
+        $final_quote_model = new FinalQuoteModel();
+        $final_quote_table = $final_quote_model->getTableName(); //最终报价单明细
+
+        /*         * **报价单** */
+        $field = 'i.serial_no,qt.sku,';
         $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
         $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
                 . ' on mac.country_bn=c.bn '
                 . ' left join ' . $market_area_table . ' ma on ma.bn=mac.market_area_bn '
                 . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
         $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
-        $field .= 'i.buyer_code,it.remarks,it.name_zh,it.name,it.model,it.qty,it.unit,';
+        $field .= 'i.buyer_code,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,';
+        $field .= 'i.quote_deadline,qt.supplier_id,qt.purchase_price_cur_bn,';
+        $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
+        $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
+
 
 
         /*         * *************-----------询单项明细开始------------------- */
@@ -350,18 +365,30 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
 
-        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
+        $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+
+
+        $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
+        $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
+
+        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time,'; //澄清日期
+        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time_out,'; //澄清日期
+
         $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'MARKET_CONFIRMING\' group by inquiry_id) as qs_time,'; //报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
-        $field .= '(UNIX_TIMESTAMP(i.updated_at)-UNIX_TIMESTAMP(i.created_at))/86400 as quoted_time,'; //报价用时
+        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,qt.inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
         $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+
+
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
         $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
@@ -392,17 +419,172 @@ class SupplierInquiryModel extends PublicModel {
         /*         * **最终报价单明细** */
         $final_quote_item_model = new FinalQuoteItemModel();
         $final_quote_item_table = $final_quote_item_model->getTableName(); //最终报价单明细
+
         /*         * **最终报价单明细** */
 
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+        } elseif (!empty($condition['created_at_start'])) {
+
+            $created_at_start = trim($condition['created_at_start']);
+            $where['i.created_at'] = ['egt', $created_at_start];
+        } elseif (!empty($condition['created_at_end'])) {
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['elt', $created_at_end];
+        }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
                 ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
-                ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.sku=it.sku', 'left')
-                ->join($final_quote_item_table . ' as fqt on fqt.deleted_flag=\'N\' and fqt.inquiry_id=i.id and fqt.sku=it.sku', 'left')
+                ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.inquiry_item_id=it.id', 'left')
+                ->join($final_quote_item_table . ' as fqt on fqt.deleted_flag=\'N\' and fqt.inquiry_id=i.id and fqt.inquiry_item_id=it.id and fqt.quote_item_id=qt.id', 'left')
                 ->field($field)
-                ->where(['i.deleted_flag' => 'N', 'i.status' => ['neq', 'DRAFT']])
+                ->where($where)
                 ->select();
 
+        $this->_setSupplierName($list);
+        $this->_setquoted_time($list);
+        $this->_setProductName($list);
+        $this->_setConstPrice($list);
+        $this->_setOilFlag($list);
+        $this->_setMaterialCat($list, 'zh');
+        $this->_setCalculatePrice($list);
+        $this->_setBizDespatching($list);
+        return $this->_createXls($list);
+    }
+
+    /**
+     * 导出询单列表
+     * @return mix
+     * @author zyg
+     */
+    public function InquiryToatolexport($condition) {
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName(); //国家表
+        $market_area_country_model = new MarketAreaCountryModel();
+        $market_area_country_table = $market_area_country_model->getTableName(); //国家区域关系表
+        $market_area_model = new MarketAreaModel();
+        $market_area_table = $market_area_model->getTableName();   //营销区域表
+        $employee_model = new EmployeeModel();
+        $employee_table = $employee_model->getTableName(); //管理员表
+        $org_model = new OrgModel(); //
+        $org_table = $org_model->getTableName(); //组织表
+
+        /*         * **报价单** */
+        $quote_model = new QuoteModel();
+        $quote_table = $quote_model->getTableName(); //最终报价单明细
+
+        /*         * **报价单** */
+        $field = 'i.serial_no,qt.sku,';
+        $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
+        $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
+                . ' on mac.country_bn=c.bn '
+                . ' left join ' . $market_area_table . ' ma on ma.bn=mac.market_area_bn '
+                . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
+        $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
+        $field .= 'i.buyer_code,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
+        $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
+        $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
+        $field .= 'i.quote_deadline,qt.supplier_id,qt.purchase_price_cur_bn,';
+        $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
+        $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
+        /*         * *************-----------询单项明细开始------------------- */
+        $inquiry_item_model = new InquiryItemModel();
+        $inquiry_item_table = $inquiry_item_model->getTableName(); //询单项明细表
+        $inquiry_check_log_model = new InquiryCheckLogModel();
+        $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
+        $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+
+        $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+
+        $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
+        $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
+
+        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time,'; //澄清日期
+        $field .= $inquiry_check_log_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time_out,'; //澄清日期
+
+        $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
+        $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
+        $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
+        /*         * *************-----------询单项明细结束------------------- */
+        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,qt.inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
+
+        $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
+        $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
+        $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
+        $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+        $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
+        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
+        $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
+        $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,';
+        $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
+                . 'WHEN \'CC_DISPATCHING\' THEN \'易瑞客户中心\' '
+                . 'WHEN \'BIZ_QUOTING\' THEN \'事业部报价\' '
+                . 'WHEN \'LOGI_DISPATCHING\' THEN \'物流分单员\' '
+                . 'WHEN \'LOGI_QUOTING\' THEN \'物流报价\' '
+                . 'WHEN \'LOGI_APPROVING\' THEN \'物流审核\' '
+                . 'WHEN \'BIZ_APPROVING\' THEN \'事业部核算\' '
+                . 'WHEN \'MARKET_APPROVING\' THEN \'市场主管审核\' '
+                . 'WHEN \'MARKET_CONFIRMING\' THEN \'市场确认\' '
+                . 'WHEN \'QUOTE_SENT\' THEN \'报价单已发出\' '
+                . 'WHEN \'INQUIRY_CLOSED\' THEN \'报价关闭\' '
+                . ' END) as istatus,';
+        $field .= '(case i.quote_status WHEN \'NOT_QUOTED\' THEN \'未报价\' '
+                . 'WHEN \'ONGOING\' THEN \'报价中\' '
+                . 'WHEN \'QUOTED\' THEN \'已报价\' '
+                . 'WHEN \'COMPLETED\' THEN \'已完成\' '
+                . ' END) as iquote_status,i.quote_notes';
+        /*         * ****报价单明细** */
+        $quote_item_model = new QuoteItemModel();
+        $quote_item_table = $quote_item_model->getTableName(); //报价单明细表
+        /*         * ****报价单明细** */
+
+        /*         * **最终报价单明细** */
+        $final_quote_item_model = new FinalQuoteItemModel();
+        $final_quote_item_table = $final_quote_item_model->getTableName(); //最终报价单明细
+
+        /*         * **最终报价单明细** */
+
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+        } elseif (!empty($condition['created_at_start'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $where['i.created_at'] = ['egt', $created_at_start];
+        } elseif (!empty($condition['created_at_end'])) {
+            $created_at_end = trim($condition['created_at_end']);
+            $where['i.created_at'] = ['elt', $created_at_end];
+        }
+        $inquiry_model = new InquiryModel();
+        $list = $inquiry_model->alias('i')
+                ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
+                ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.inquiry_item_id=it.id', 'left')
+                ->join($final_quote_item_table . ' as fqt on fqt.deleted_flag=\'N\' and fqt.inquiry_id=i.id and fqt.inquiry_item_id=it.id and fqt.quote_item_id=qt.id', 'left')
+                ->field($field)
+                ->where($where)
+                ->select();
+
+        $this->_setSupplierName($list);
+        $this->_setquoted_time($list);
+        $this->_setProductName($list);
+        $this->_setConstPrice($list);
+        $this->_setOilFlag($list);
+        $this->_setMaterialCat($list, 'zh');
+        $this->_setCalculatePrice($list);
+        $this->_setBizDespatching($list);
+
+        $list = $this->_setTotaldata($list);
         return $this->_createXls($list);
     }
 
@@ -417,55 +599,65 @@ class SupplierInquiryModel extends PublicModel {
             'C' => ['country_name', '询价单位'],
             'D' => ['market_area_name', '所属地区部'],
             'E' => ['org_name', '事业部'],
-            'F' => ['buyer_code', '客户名称或代码'],
-            'G' => ['remarks', '客户及项目背景描述'],
-            'H' => ['name_zh', '品名中文'],
-            'I' => ['name', '品名外文'],
-            'J' => ['model', '规格'],
-            'K' => [null, '图号'],
-            'L' => ['qty', '数量'],
-            'M' => ['unit', '单位'],
-            'N' => [null, '油气or非油气'],
-            'O' => [null, '平台产品分类'],
-            'P' => [null, '产品分类'],
-            'Q' => ['keruiflag', '是否科瑞设备用配件'],
-            'R' => ['bidflag', '是否投标'],
-            'S' => ['inflow_time', '转入日期'],
-            'T' => ['quote_deadline', '需用日期'],
-            'U' => [null, '澄清完成日期'],
-            'V' => ['bq_time', '事业部报出日期'],
-            'W' => ['ld_time', '物流接收日期'],
-            'X' => ['la_time', '物流报出日期'],
-            'Y' => ['qs_time', '报出日期'],
-            'Z' => ['quoted_time', '报价用时'],
-            'AA' => ['agent_name', '市场负责人'],
-            'AB' => ['quote_name', '商务技术部报价人'],
-            'AC' => ['check_org_name', '事业部负责人'],
-            'AD' => ['brand', '产品品牌'],
-            'AE' => ['quote_unit', '报价单位'],
-            'AF' => [null, '供应商报价人'],
-            'AG' => [null, '报价人联系方式'],
-            'AH' => ['purchase_unit_price', '厂家单价（元）'],
-            'AI' => ['total', '厂家总价（元）'],
-            'AJ' => [null, '利润率'],
-            'AK' => ['quote_unit_price', '报价单价（元）'],
-            'AL' => ['total_quote_price', '报价总价（元）'],
-            'AM' => ['total_quoted_price', '报价总金额（美金）'],
-            'AN' => ['gross_weight_kg', '单重(kg)'],
-            'AO' => ['total_kg', '总重(kg)'],
-            'AP' => ['package_size', '包装体积(mm)'],
-            'AQ' => ['package_mode', '包装方式'],
-            'AR' => ['delivery_days', '交货期（天）'],
-            'AS' => ['period_of_validity', '有效期（天）'],
-            'AT' => ['trade_terms_bn', '贸易术语'],
-            'AU' => ['istatus', '最新进度及解决方案'],
-            'AV' => ['iquote_status', '报价后状态'],
-            'AW' => ['quote_notes', '备注'],
-            'AX' => [null, '报价超48小时原因类型'],
-            'AY' => [null, '报价超48小时分析'],
-            'AZ' => [null, '成单或失单'],
-            'BA' => [null, '失单原因类型'],
-            'BB' => [null, '失单原因分析'],
+            'F' => ['ie_erui', '是否走易瑞'],
+            'G' => ['buyer_code', '客户名称或代码'],
+            'H' => ['project_basic_info', '客户及项目背景描述'],
+            'I' => ['name_zh', '品名中文'],
+            'J' => ['name', '品名外文'],
+            'K' => ['product_name', '产品名称'],
+            'L' => ['supplier_name', '供应商'],
+            'M' => ['model', '规格'],
+            'N' => [null, '图号'],
+            'O' => ['qty', '数量'],
+            'P' => ['unit', '单位'],
+            'Q' => ['oil_flag', '油气or非油气'],
+            'R' => ['material_cat_name', '平台产品分类'],
+            'S' => ['category', '产品分类'],
+            'T' => ['keruiflag', '是否科瑞设备用配件'],
+            'U' => ['bidflag', '是否投标'],
+            'V' => ['inflow_time', '转入日期'],
+            'W' => ['quote_deadline', '需用日期'],
+            'X' => ['max_inflow_time', '澄清完成日期'],
+            'Y' => ['bq_time', '事业部报出日期'],
+            'Z' => ['ld_time', '物流接收日期'],
+            'AA' => ['la_time', '物流报出日期'],
+            'AB' => ['qs_time', '报出日期'],
+            'AC' => ['quoted_time', '报价用时(小时)'],
+            'AD' => [null, '获单主体单位)'],
+            'AE' => [null, '获取人)'],
+            'AF' => ['agent_name', '市场负责人'],
+            'AG' => ['biz_despatching', '事业部分单人'],
+            'AH' => ['quote_name', '商务技术部报价人'],
+            'AI' => ['check_org_name', '事业部负责人'],
+            'AJ' => ['brand', '产品品牌'],
+            'AK' => ['supplier_name', '报价单位'],
+            'AL' => [null, '报价人联系方式'],
+            'AM' => ['purchase_unit_price', '厂家单价（元）'],
+            'AN' => ['purchase_price_cur_bn', '币种'],
+            'AO' => ['total', '厂家总价（元）'],
+            'AP' => ['purchase_price_cur_bn', '币种'],
+            'AQ' => ['gross_profit_rate', '利润率'],
+            'AR' => ['quote_unit_price', '报价单价（元）'],
+            'AS' => ['purchase_price_cur_bn', '币种'],
+            'AT' => ['total_quote_price', '报价总价（元）'],
+            'AU' => ['purchase_price_cur_bn', '币种'],
+            'AV' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AW' => ['gross_weight_kg', '单重(kg)'],
+            'AX' => ['total_kg', '总重(kg)'],
+            'AY' => ['package_size', '包装体积(mm)'],
+            'AZ' => ['package_mode', '包装方式'],
+            'BA' => ['delivery_days', '交货期（天）'],
+            'BB' => ['period_of_validity', '有效期（天）'],
+            'BC' => ['trade_terms_bn', '贸易术语'],
+            'BD' => ['istatus', '最新进度及解决方案'],
+            'BE' => ['iquote_status', '报价后状态'],
+            'BF' => ['quote_notes', '备注'],
+            'BG' => ['reason_for_no_quote', '未报价分析'],
+//            'BA' => [null, '报价超48小时原因类型'],
+//            'BB' => [null, '报价超48小时分析'],
+//            'BC' => [null, '成单或失单'],
+//            'BD' => [null, '失单原因类型'],
+//            'BE' => [null, '失单原因分析'],
         ];
     }
 
@@ -495,19 +687,20 @@ class SupplierInquiryModel extends PublicModel {
             foreach ($keys as $rowname => $key) {
 
                 if ($key && isset($item)) {
-                    $objSheet->setCellValue($rowname . ($j + 2), $item[$key[0]]);
+                    $objSheet->setCellValue($rowname . ($j + 2), isset($item[$key[0]]) ? $item[$key[0]] : null);
                 } else {
                     $objSheet->setCellValue($rowname . ($j + 2), '');
                 }
             }
         }
-        $objSheet->freezePaneByColumnAndRow(2, 1);
+        $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BB' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BG' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:BG' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . '导出的询报价单' . date('YmdHi') . '.xls';
         $objWriter->save($file);
-
         if (file_exists($file)) {
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
@@ -525,6 +718,340 @@ class SupplierInquiryModel extends PublicModel {
             return false;
         }
         return false;
+    }
+
+    //产品名称、规格、价格、供应商等信息
+
+    private function _setSupplierName(&$list) {
+        $supplier_ids = [];
+        foreach ($list as $item) {
+            if ($item['supplier_id']) {
+                $supplier_ids[] = $item['supplier_id'];
+            }
+        }
+        $suppliers_model = new SuppliersModel();
+        $supplier_names = $suppliers_model->getSupplierNameByIds($supplier_ids);
+
+        foreach ($list as $key => $item) {
+            if ($item['supplier_id'] && isset($supplier_names[$item['supplier_id']])) {
+                $list[$key]['supplier_name'] = $supplier_names[$item['supplier_id']]['name'];
+            }
+        }
+    }
+
+//    private function _setBizDespatching(&$list) {
+//
+//        $inquiry_check_log_model = new InquiryCheckLogModel();
+//        $employee_model = new EmployeeModel();
+//        $employee_table = $employee_model->getTableName(); //管理员表
+//        $country_employee_model = new CountryUserModel();
+//        $country_employee_table = $country_employee_model->getTableName();
+//        foreach ($list as $key => $item) {
+//            if ($item['inquiry_id']) {
+//                $biz_despatching = $inquiry_check_log_model->alias('icl')
+//                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+//                        ->join($employee_table . ' e on e.id=icl.agent_id')
+//                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
+//                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
+//                            'out_node' => 'BIZ_DISPATCHING',
+//                            'ce.country_bn' => $item['country_bn']
+//                        ])
+//                        ->group('icl.inquiry_id')
+//                        ->find();
+//                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
+//            }
+//        }
+//    }
+
+    private function _setBizDespatching(&$list) {
+        $inquiry_ids = [];
+
+        foreach ($list as $item) {
+            if ($item['inquiry_id']) {
+                $inquiry_ids[] = $item['inquiry_id'];
+            }
+        }
+        $inquiry_check_log_model = new InquiryCheckLogModel();
+
+        $employee_model = new EmployeeModel();
+        $employee_table = $employee_model->getTableName(); //管理员表
+        $biz_despatchings = $inquiry_check_log_model->alias('icl')
+                ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
+                ->join($employee_table . ' e on e.id=icl.agent_id')
+                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
+                ->group('icl.inquiry_id')
+                ->select();
+        $bizdespatchings = [];
+        if ($biz_despatchings) {
+            foreach ($biz_despatchings as $biz_despatching) {
+                if ($biz_despatching['inquiry_id']) {
+                    $bizdespatchings[$biz_despatching['inquiry_id']] = $biz_despatching['biz_despatching'];
+                }
+            }
+        }
+        foreach ($list as $key => $item) {
+            if ($item['inquiry_id'] && isset($bizdespatchings[$item['inquiry_id']])) {
+                $list[$key]['biz_despatching'] = $bizdespatchings[$item['inquiry_id']];
+            }
+        }
+    }
+
+    private function _setProductName(&$list) {
+        $skus = [];
+        foreach ($list as $item) {
+            if ($item['sku']) {
+                $skus[] = $item['sku'];
+            }
+        }
+        $goods_model = new GoodsModel();
+        $product_names = $goods_model->getProductNamesAndMaterialCatNoBySkus($skus);
+
+        foreach ($list as $key => $item) {
+            if ($item['sku'] && isset($product_names[$item['sku']])) {
+                $list[$key]['product_name'] = $product_names[$item['sku']]['product_name'];
+                $list[$key]['material_cat_no'] = $product_names[$item['sku']]['material_cat_no'];
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setConstPrice(&$list) {
+        if ($list) {
+
+            $skus = [];
+            foreach ($list as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+
+            $goods_cost_price_model = new GoodsCostPriceModel();
+            $stockcostprices = $goods_cost_price_model->getCostPricesBySkus($skus);
+
+            foreach ($list as $key => $val) {
+
+                if ($val['sku'] && isset($stockcostprices[$val['sku']])) {
+                    if (isset($stockcostprices[$val['sku']])) {
+                        $price = '';
+                        foreach ($stockcostprices[$val['sku']] as $stockcostprice) {
+                            if ($stockcostprice['price'] && $stockcostprice['max_price']) {
+                                $price = $stockcostprice['price'] . '-' . $stockcostprice['max_price'];
+                            } elseif ($stockcostprice['price']) {
+                                $price = $stockcostprice['price'];
+                            } else {
+                                $price = '';
+                            }
+                        }
+                        $val['costprices'] = $price;
+                    }
+                } else {
+                    $val['costprices'] = '';
+                }
+                $list[$key] = $val;
+            }
+        }
+    }
+
+    private function _setTotaldata($list) {
+        $ret = [];
+        foreach ($list as $item) {
+            $ret[$item['serial_no']]['serial_no'] = $item['serial_no'];
+            $ret[$item['serial_no']]['country_name'] = $item['country_name'];
+            $ret[$item['serial_no']]['market_area_name'] = $item['market_area_name'];
+            $ret[$item['serial_no']]['org_name'] = $item['org_name'];
+            $ret[$item['serial_no']]['ie_erui'] = $item['ie_erui'];
+            $ret[$item['serial_no']]['buyer_code'] = $item['buyer_code'];
+            $ret[$item['serial_no']]['project_basic_info'] = $item['project_basic_info'];
+            $ret[$item['serial_no']]['name_zh'] = null;
+            $ret[$item['serial_no']]['name'] = null;
+            $ret[$item['serial_no']]['product_name'] = null;
+            $ret[$item['serial_no']]['supplier_name'] = null;
+            $ret[$item['serial_no']]['model'] = null;
+            $ret[$item['serial_no']]['qty'] += intval($item['qty']);
+            $ret[$item['serial_no']]['unit'] = $item['unit'];
+            $ret[$item['serial_no']]['oil_flag'] = $item['oil_flag'];
+            $ret[$item['serial_no']]['material_cat_name'] = null;
+            $ret[$item['serial_no']]['category'] = null;
+            $ret[$item['serial_no']]['keruiflag'] = $item['keruiflag'];
+            $ret[$item['serial_no']]['bidflag'] = $item['bidflag'];
+            $ret[$item['serial_no']]['inflow_time'] = $item['inflow_time'];
+            $ret[$item['serial_no']]['quote_deadline'] = $item['quote_deadline'];
+            $ret[$item['serial_no']]['max_inflow_time'] = $item['max_inflow_time'];
+            $ret[$item['serial_no']]['bq_time'] = $item['bq_time'];
+            $ret[$item['serial_no']]['ld_time'] = $item['ld_time'];
+            $ret[$item['serial_no']]['la_time'] = $item['la_time'];
+            $ret[$item['serial_no']]['qs_time'] = $item['qs_time'];
+            $ret[$item['serial_no']]['quoted_time'] = $item['quoted_time'];
+            $ret[$item['serial_no']]['agent_name'] = $item['agent_name'];
+            $ret[$item['serial_no']]['biz_despatching'] = $item['biz_despatching'];
+            $ret[$item['serial_no']]['quote_name'] = $item['quote_name'];
+            $ret[$item['serial_no']]['check_org_name'] = $item['check_org_name'];
+            $ret[$item['serial_no']]['brand'] = null;
+            $ret[$item['serial_no']]['supplier_name'] = null;
+            $ret[$item['serial_no']]['purchase_unit_price'] = null;
+            $ret[$item['serial_no']]['purchase_price_cur_bn'] = null;
+            $ret[$item['serial_no']]['total'] = null;
+            $ret[$item['serial_no']]['gross_profit_rate'] = null;
+            $ret[$item['serial_no']]['quote_unit_price'] = null;
+            $ret[$item['serial_no']]['total_quote_price'] = null;
+            $ret[$item['serial_no']]['total_quoted_price_usd'] += floatval($item['total_quoted_price_usd']);
+            $ret[$item['serial_no']]['gross_weight_kg'] = null;
+            $ret[$item['serial_no']]['total_kg'] = null;
+            $ret[$item['serial_no']]['package_size'] = null;
+            $ret[$item['serial_no']]['package_mode'] = null;
+            $ret[$item['serial_no']]['delivery_days'] = isset($ret[$item['serial_no']]['delivery_days']) && $ret[$item['serial_no']]['delivery_days'] > $item['delivery_days'] ? $ret[$item['serial_no']]['delivery_days'] : $item['delivery_days'];
+            $ret[$item['serial_no']]['period_of_validity'] = isset($ret[$item['serial_no']]['period_of_validity']) && $ret[$item['serial_no']]['period_of_validity'] > $item['period_of_validity'] ? $ret[$item['serial_no']]['period_of_validity'] : $item['period_of_validity'];
+            $ret[$item['serial_no']]['trade_terms_bn'] = $item['trade_terms_bn'];
+            $ret[$item['serial_no']]['istatus'] = $item['istatus'];
+            $ret[$item['serial_no']]['iquote_status'] = $item['iquote_status'];
+            $ret[$item['serial_no']]['quote_notes'] = $item['quote_notes'];
+            $ret[$item['serial_no']]['reason_for_no_quote'] = $item['reason_for_no_quote'];
+        }
+        rsort($ret);
+        return $ret;
+    }
+
+    private function date_diff($datetime1, $datetime2) {
+        $date_time2 = strtotime($datetime2);
+        $date_time1 = strtotime($datetime1);
+        $interval = ($date_time1 - $date_time2) / 3600;
+        return $interval;
+    }
+
+    private function _setquoted_time(&$list) {
+        foreach ($list as $key => $item) {
+            $list[$key]['inflow_time'] = !empty($item['inflow_time']) ? $item['inflow_time'] : $item['inflow_time_out'];
+            $list[$key]['max_inflow_time'] = !empty($item['max_inflow_time']) ? $item['max_inflow_time'] : $item['max_inflow_time_out'];
+
+
+            if ($item['qs_time']) {
+                $list[$key]['quoted_time'] = $this->date_diff($item['qs_time'], $item['created_at']);
+            } else {
+                $list[$key]['quoted_time'] = $this->date_diff(date('Y-m-d H:i:s'), $item['created_at']);
+            }
+        }
+    }
+
+    /*
+     *     'AL' => ['purchase_unit_price', '厂家单价（元）'],
+      'AM' => ['total', '厂家总价（元）'],
+     */
+
+    private function _setCalculatePrice(&$list) {
+        $exchange_rate_model = new ExchangeRateModel();
+
+        foreach ($list as $key => $item) {
+            $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
+            $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
+            $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
+
+            if ($item['purchase_price_cur_bn'] == 'USD') {
+                $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
+            } else {
+                if ($item['exchange_rate'] && $item['exchange_rate'] > 1) {
+                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
+                } elseif ($item['exchange_rate']) {
+                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
+                } else {
+                    $exchange_rate = $exchange_rate_model
+                            ->where(['cur_bn1' => $item['purchase_price_cur_bn'],
+                                'cur_bn2' => 'USD',
+                                'effective_date' => ['egt', date('Y-m')],
+                            ])
+                            ->order('created_at DESC')
+                            ->getField('rate');
+
+                    if (!$exchange_rate) {
+                        $exchange_rate_change = $exchange_rate_model->where([
+                                    'cur_bn2' => $item['purchase_price_cur_bn'],
+                                    'cur_bn1' => 'USD',
+                                    'effective_date' => ['egt', date('Y-m')],
+                                ])->order('created_at DESC')->getField('rate');
+                        $exchange_rate = $exchange_rate_change > 0 ? 1 / $exchange_rate_change : null;
+                    }
+                    if ($exchange_rate) {
+                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rate;
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setOilFlag(&$arr) {
+        if ($arr) {
+            $oil_flags = [
+                '石油专用管材',
+                '钻修井设备',
+                '固井酸化压裂设备',
+                '采油集输设备',
+                '石油专用工具',
+                '石油专用仪器仪表',
+                '油田化学材料',];
+            $not_oil_flags = [
+                '通用机械设备',
+                '劳动防护用品',
+                '消防、医疗产品',
+                '电力电工设备',
+                '橡塑产品',
+                '钢材',
+                '包装物',
+                '杂品',];
+
+            foreach ($arr as $key => $val) {
+                if ($val['category'] && in_array($val['category'], $oil_flags)) {
+                    $val['oil_flag'] = '油气';
+                } elseif ($val['category'] && in_array($val['category'], $not_oil_flags)) {
+                    $val['oil_flag'] = '非油气';
+                } else {
+                    $val['oil_flag'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setMaterialCat(&$arr, $lang) {
+        if ($arr) {
+            $material_cat_model = new MaterialCatModel();
+            $catnos = [];
+            foreach ($arr as $key => $val) {
+                $catnos[] = $val['material_cat_no'];
+            }
+            $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
+            foreach ($arr as $key => $val) {
+                if ($val['category'] && isset($catnames[$val['material_cat_no']])) {
+                    $val['material_cat_name'] = $catnames[$val['material_cat_no']];
+                } else {
+                    $val['material_cat_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
 }

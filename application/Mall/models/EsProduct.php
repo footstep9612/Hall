@@ -586,8 +586,8 @@ class EsProductModel extends Model {
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
-                $es->setpreference('_primary_first');
             }
+            $es->setpreference('_primary_first');
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
@@ -604,34 +604,23 @@ class EsProductModel extends Model {
     }
 
     public function getCatList($condition, $lang) {
-        unset($condition['show_cat_no']);
+        $show_cat_model = new ShowCatModel();
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
+            $show_cat = $show_cat_model->field('level_no')->where(['cat_no' => $condition['show_cat_no'], 'lang' => $lang])->find();
+            $show_cat['level_no'] > 1 ? $condition['show_cat_no'] = null : '';
+        }
         $country_bn = null;
         $body = $this->getCondition($condition, $lang, $country_bn);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
         $es->body['aggs']['country_bn'] = [
-            'terms' => [
-                'field' => 'show_cats.country_bn',
-                // 'values' => 'China',
-                'size' => 10,
-                'order' => ['_count' => 'desc'],
-            ],
+            'terms' => ['field' => 'show_cats.country_bn', 'size' => 10, 'order' => ['_count' => 'desc'],],
             'aggs' => ['cat_no2' =>
-                [
-                    'terms' => [
-                        'field' => 'show_cats.cat_no2',
-                        'size' => 10,
-                        'order' => ['_count' => 'desc']
-                    ],
+                ['terms' => ['field' => 'show_cats.cat_no2', 'size' => 10, 'order' => ['_count' => 'desc']],
                     'aggs' => ['cat_no3' => [
-                            'terms' => [
-                                'field' => 'show_cats.cat_no3',
-                                'size' => 10,
-                                'order' => ['_count' => 'desc']
-                            ]
-                        ]
-                    ]
+                            'terms' => ['field' => 'show_cats.cat_no3', 'size' => 10, 'order' => ['_count' => 'desc']]
+                        ]]
         ]]];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
@@ -690,12 +679,12 @@ class EsProductModel extends Model {
                 } else {
                     continue;
                 }
-                foreach ($show_cat['childs'] as $key => $child_showcat) {
+                foreach ($show_cat['childs'] as $K => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
-                        $show_cat['childs'][$key] = $child_showcat;
+                        $show_cat['childs'][$K] = $child_showcat;
                     } else {
-                        unset($show_cat['childs'][$key]);
+                        unset($show_cat['childs'][$K]);
                     }
                 }
                 rsort($show_cat['childs']);
@@ -733,27 +722,34 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-
-        $es->body['aggs']['spec_name'] = [
-            'terms' => [
-                'field' => 'attrs.spec_attrs.name.all',
-                'size' => 20,
-                'order' => ['_count' => 'desc']
+        $es->body['aggs']['spec_attrs'] = [
+            'nested' => [
+                'path' => 'spec_attrs'
             ],
-            'aggs' => ['spec_value' => [
+            'aggs' => [
+                'spec_name' => [
                     'terms' => [
-                        'field' => 'attrs.spec_attrs.value.all',
-                        'size' => 10,
+                        'field' => 'spec_attrs.name.all',
+                        'size' => 20,
                         'order' => ['_count' => 'desc']
+                    ],
+                    'aggs' => ['spec_value' => [
+                            'terms' => [
+                                'field' => 'spec_attrs.value.all',
+                                'size' => 10,
+                                'order' => ['_count' => 'desc']
+                            ]
+                        ]
                     ]
                 ]
             ]
         ];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $spec_names = [];
-        if (isset($ret['aggregations']['spec_name']['buckets'])) {
-            foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
+        if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
+            foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
 
                 foreach ($spec_name['spec_value']['buckets'] as $spec_value) {

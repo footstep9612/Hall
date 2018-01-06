@@ -42,8 +42,7 @@ class ShowCatModel extends PublicModel {
                     0 => '`name` is not null and `name`<>\'\''
                 ];
 
-                $this
-                        ->where($where)
+                $this->where($where)
                         ->field('cat_no,name')
                         ->group('cat_no');
                 if ($page_flag) {
@@ -72,23 +71,78 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
-        $redis_key = md5(json_encode($where));
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
+        $this->_updateSpuCount();
         try {
-            $result = $this->where($where)
+            $where['spu_count'] = ['gt', 0];
+            $result = $this
+                    ->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->field('cat_no as value,name as label,parent_cat_no,small_icon')
                     ->select();
 
-            redisHashSet($this->tableName, $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
+    }
+
+    private function _updateSpuCount() {
+        $time = redisHashGet('show_cat', 'sort_order');
+        $show_cat_product_model = new ShowCatProductModel(w);
+        $show_cat_product_teble = $show_cat_product_model->getTableName();
+        $show_cat_table = $this->getTableName();
+        if (empty($time) || $time + 86400 < time()) {
+            $sql = 'UPDATE ' . $show_cat_table . ' set spu_count=0';
+            $sql1 = 'UPDATE ' . $show_cat_table . ' ,(SELECT count(id) as spu_count ,scp.cat_no,scp.lang from '
+                    . $show_cat_product_teble . ' as scp GROUP BY scp.cat_no,scp.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang and show_cat.cat_no=temp.cat_no';
+            $sql2 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=3 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=2';
+            $sql3 = 'UPDATE ' . $show_cat_table . ' ,(SELECT sum(sc.spu_count) as spu_count ,sc.parent_cat_no,sc.lang from '
+                    . $show_cat_table . ' as sc where sc.level_no=2 GROUP BY sc.parent_cat_no,sc.lang) temp '
+                    . 'set show_cat.spu_count= temp.spu_count where show_cat.lang=temp.lang '
+                    . 'and show_cat.cat_no=temp.parent_cat_no  and show_cat.level_no=1';
+            $this->execute($sql);
+            $this->execute($sql1);
+            $this->execute($sql2);
+            $this->execute($sql3);
+            redisHashSet('show_cat', 'sort_order', time());
+        }
+    }
+
+    /**
+     * 分类详情
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function info($cat_no, $country_bn, $lang) {
+        $where['deleted_flag'] = 'N';
+        if (empty($cat_no)) {
+            return [];
+        } else {
+            $where['cat_no'] = $cat_no;
+        }
+        if (empty($country_bn)) {
+            return [];
+        } else {
+            $where['country_bn'] = $country_bn;
+        }
+        if (empty($lang)) {
+            return [];
+        } else {
+            $where['lang'] = $lang;
+        }
+        $result = $this->where($where)
+                ->order('sort_order DESC')
+                ->field('cat_no,name ,parent_cat_no')
+                ->find();
+        return $result;
     }
 
     /**
@@ -121,7 +175,7 @@ class ShowCatModel extends PublicModel {
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
-
+        $where['deleted_flag'] = 'N';
         getValue($where, $condition, 'name', 'like');
         getValue($where, $condition, 'sort_order', 'string');
         getValue($where, $condition, 'created_at', 'string');
@@ -159,15 +213,12 @@ class ShowCatModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $redis_key = md5(json_encode($where)) . '_COUNT';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return redisHashGet($this->tableName, $redis_key);
-        }
+
         try {
             $count = $this->where($where)
                     //  ->field('id,user_id,name,email,mobile,status')
                     ->count('id');
-            redisHashSet($this->tableName, $redis_key, $count);
+
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -184,16 +235,9 @@ class ShowCatModel extends PublicModel {
     public function getlist($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
 
-            $redis_key = md5(json_encode($where) . $condition['page'] . ',' . $condition['countPerPage']) . '_LIST';
-        } else {
-            $redis_key = md5(json_encode($where)) . '_LIST';
-        }
+        $where['deleted_flag'] = 'N';
 
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             return $this->limit($condition['page'] . ',' . $condition['countPerPage']);
@@ -203,12 +247,12 @@ class ShowCatModel extends PublicModel {
                         . 'status,sort_order,created_at,created_by')
                 ->order('sort_order DESC')
                 ->select();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
     public function get_list($country_bn, $cat_no = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = $country_bn;
         }
@@ -217,25 +261,22 @@ class ShowCatModel extends PublicModel {
         } else {
             $condition['parent_cat_no'] = 0;
         }
+        $condition['spu_count'] = ['gt', 0];
+        $condition['deleted_flag'] = 'N';
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-        $redis_key = md5(json_encode($condition)) . '_GETLIST';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field('id, cat_no, lang, name, status, sort_order')
                 ->order('sort_order DESC')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
     public function getListByLetter($country_bn, $letter = '', $lang = 'en') {
-
+        $this->_updateSpuCount();
         if ($country_bn) {
             $condition['country_bn'] = trim($country_bn);
         }
@@ -245,20 +286,52 @@ class ShowCatModel extends PublicModel {
         $condition['status'] = self::STATUS_VALID;
         $condition['deleted_flag'] = 'N';
         $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
         $condition['lang'] = trim($lang);
-        $redis_key = 'GETLISTBYLETTER_' . $country_bn . '_' . $letter . '_' . $lang;
-
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field(' cat_no,name')
                 ->order('sort_order DESC,id asc')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
         return $data;
+    }
+
+    public function getListByLetterExit($country_bn, $letter = '', $lang = 'en') {
+        $this->_updateSpuCount();
+        if ($country_bn) {
+            $condition['country_bn'] = trim($country_bn);
+        }
+        if ($letter) {
+            $condition['name'] = ['like', trim($letter) . '%'];
+        }
+        $condition['status'] = self::STATUS_VALID;
+        $condition['deleted_flag'] = 'N';
+        $condition['level_no'] = 3;
+        $condition['spu_count'] = ['gt', 0];
+        $condition['lang'] = trim($lang);
+        $data = $this
+                ->field('id')
+                ->where($condition)
+                ->find();
+
+        return isset($data['id']) ? true : false;
+    }
+
+    /**
+     * Description of 判断国家是否存在
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getExit($country_bn, $lang = 'en') {
+        $where = ['deleted_flag' => 'N'];
+        $where['country_bn'] = $country_bn;
+        if ($lang) {
+            $where['lang'] = $lang;
+        }
+
+        return $this->where($where)->field('id,country_bn')->find();
     }
 
 }

@@ -45,9 +45,6 @@ class BuyercontactController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['area_bn'])) {
-            $where['area_bn'] = $data['area_bn'];
-        }
         if(!empty($data['pageSize'])){
             $where['num'] = $data['pageSize'];
         }
@@ -201,6 +198,23 @@ class BuyercontactController extends PublicController {
                 'message' => '用户验证失败',
             );
         }
+    }
+    /**
+     * 客户拜访记录-选择获取客户联系人列表
+     * wangs
+     */
+    public function buyerContactListAction() {
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyercontactModel();
+        $res = $model->showBuyerExistContact($data['buyer_id'],$created_by);  //获取客户联系人列表
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'返回客户联系人列表',
+            'data'=>$res
+        );
+        $this -> jsonReturn($dataJson);
     }
 
 }

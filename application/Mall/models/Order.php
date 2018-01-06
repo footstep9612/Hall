@@ -52,6 +52,9 @@ class OrderModel extends PublicModel {
         'address',    //地址'
         'created_by',    //创建人    这里可能不需要填写
         'created_at',    //创建时间
+        'expected_receipt_date',    //期望收货日期
+        'remark',    //订单备注
+        'source',    //源
     ];
 
     /**
@@ -67,6 +70,9 @@ class OrderModel extends PublicModel {
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
+            if(empty($value)){
+                $data[$key] = null;
+            }
         }
         return $data;
     }
@@ -81,10 +87,11 @@ class OrderModel extends PublicModel {
         try {
             $orderNoInfo = $this->field( 'order_no' )->order( 'order_no DESC' )->find();
             if($orderNoInfo){
-                $orderNo = substr($orderNoInfo['order_no'],0,8).(substr($orderNoInfo['order_no'],8)+1);
+                $orderNo = substr($orderNoInfo['order_no'],0,8).str_pad(substr($orderNoInfo['order_no'],8)+1, 4, '0', STR_PAD_LEFT);
             }
             return $orderNo;
         }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderModel】 createOrderNo:' . $e , Log::ERR);
             return false;
         }
     }
@@ -94,7 +101,7 @@ class OrderModel extends PublicModel {
      * @param array $data['country_bn','buyer_id','lang','skuAry'=[sku:number],'infoAry'=>[],'addrAry'=>[],'contactAry'=>[]]
      * @return bool|mixed
      */
-    public function add($data){
+    public function addOrder($data){
         if(!isset($data['infoAry'])){
             jsonReturn('', MSG::MSG_FAILED, '订单信息不能为空');
         }
@@ -107,22 +114,26 @@ class OrderModel extends PublicModel {
         $this->startTrans();
         try{
             $data['infoAry']['order_no'] = $orerNo;
+            $data['infoAry']['buyer_id'] = $data['buyer_id'];
+            $data['created_at'] = date('Y-m-d H:i:s',time());
+            $data['infoAry']['source'] = 'MALL';
             $dataInfo = $this->_getData($data['infoAry']);
-            $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
+            $dataInfo['deleted_flag'] = 'N';
             $result = $this->add($this->create($dataInfo));
             if($result){
                 //添加订单商品信息
                 if(isset($data['skuAry']) && !empty($data['skuAry'])){
-                    if(!$this->addGoods($result,$data['skuAry'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
+                    if(!$this->addGoods($orerNo,$data['skuAry'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单商品添加失败');
                     }
                 }
+
                 //添加订单地址信息
                 if(isset($data['addrAry']) && !empty($data['addrAry'])){
                     $data['addrAry']['order_id'] = $result;
                     $oaModel = new OrderAddressModel();
-                    if(!$oaModel->add($data['addrAry'])){
+                    if(!$oaModel->addInfo($data['addrAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单地址添加失败');
                     }
@@ -130,8 +141,8 @@ class OrderModel extends PublicModel {
                 //添加订单联系人信息
                 if(isset($data['contactAry']) && !empty($data['contactAry'])){
                     $data['contactAry']['order_id'] = $result;
-                    $ocModel = new OrderContactModel();
-                    if(!$ocModel->add($data['contactAry'])){
+                    $ocModel = new OrderBuyerContactModel();
+                    if(!$ocModel->addInfo($data['contactAry'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单联系人添加失败');
                     }
@@ -147,6 +158,16 @@ class OrderModel extends PublicModel {
         }
     }
 
+    /**
+     * 订单商品
+     * @author link
+     * @param $order_no
+     * @param $data
+     * @param $country_bn
+     * @param $lang
+     * @param $buyer_id
+     * @return bool
+     */
     public function addGoods($order_no,$data,$country_bn,$lang,$buyer_id){
         if(empty($data)){
             return false;
@@ -157,21 +178,29 @@ class OrderModel extends PublicModel {
         $ogModel = new OrderGoodsModel();
         $data_insert = [];
         $amount = 0;
-        foreach($data as $sku=>$number){
+        $currency_bn = '';
+        $skuAry = [];
+        foreach($data as $sku => $number){
+            $skuAry[] = $sku;
             $number = intval($number);
             $data_temp = [];
             //获取库存信息
             $stockInfo = $productModel->getSkuStockBySku($sku,$country_bn,$lang);
-            $stock = ($stockInfo && isset($stockInfo[$sku])) ? $stockInfo[$sku]['stock'] : 0;
-            if($number>$stock){
-                jsonReturn('', 1099, '库存不足');
+            if($stockInfo){
+                $stock = ($stockInfo && isset($stockInfo[$sku])) ? $stockInfo[$sku]['stock'] : 0;
+                if($number>$stock){
+                    jsonReturn('', 1099, '库存不足');
+                }
+            }else{
+                jsonReturn('', 1044, '已经下架');
             }
 
             //获取价格信息
             $priceInfo = $productModel->getSkuPriceByCount($sku,$country_bn,$number);
+            $currency_bn = $priceInfo ? $priceInfo['price_cur_bn'] : null;
 
             //获取商品基本信息
-            $goodsInfo = $goodsModel->getInfoBySku();
+            $goodsInfo = $goodsModel->getInfoBySku($sku,$lang);
 
             //商品附件图
             $condition_attach = ['sku'=>$sku, 'attach_type'=>'BIG_IMAGE', 'status'=>'VALID'];
@@ -181,7 +210,7 @@ class OrderModel extends PublicModel {
                 'sku' => $sku,
                 'name' => $goodsInfo[$sku]['show_name'] ? $goodsInfo[$sku]['show_name'] : ($goodsInfo[$sku]['name'] ? $goodsInfo[$sku]['name'] : ($goodsInfo[$sku]['spu_show_name'] ? $goodsInfo[$sku]['spu_show_name'] :($goodsInfo[$sku]['spu_name'] ? $goodsInfo[$sku]['spu_name'] : ''))),    //商品名称
                 'spec_attrs' => $goodsInfo[$sku]['spec_attrs'],    //规格属性
-                'price' => ($priceInfo !== false) ? $priceInfo : null,
+                'price' => $priceInfo ? $priceInfo['price'] : null,
                 'buy_number' => $number,
                 'lang' => $lang,    //语言
                 'model' => $goodsInfo[$sku]['model'] ? $goodsInfo[$sku]['model'] : null,    //型号
@@ -190,6 +219,7 @@ class OrderModel extends PublicModel {
                 'min_pack_unit' => $goodsInfo[$sku]['min_pack_unit'],    //最小包装单位
                 'thumb'=> $attach ? json_encode($attach): null,    //商品图
                 'buyer_id' => $buyer_id,    //采购商id
+                'created_at' => date('Y-m-d H:i:s',time())
             ];
             $amount = $amount + $data_temp['price'] * $data_temp['buy_number'];
             $data_insert[] = $data_temp;
@@ -197,9 +227,15 @@ class OrderModel extends PublicModel {
         if(!empty($data_insert)){
             $result = $ogModel->addAll($data_insert);
 
+            //清购物车
+            if($skuAry){
+                $scModel = new ShoppingCarModel();
+                $scModel->clear($skuAry, $buyer_id, 1);
+            }
+
             //更新订单金额
             $orderModel = new OrderModel();
-            $result_order = $orderModel->where(['order_no'=>$order_no])->save(['amount'=>$amount]);
+            $result_order = $orderModel->where(['order_no'=>$order_no])->save(['amount'=>$amount, 'currency_bn'=>$currency_bn]);
             return ($result && $result_order) ? true : false;
         }
         return false;
@@ -215,7 +251,7 @@ class OrderModel extends PublicModel {
 
     public function info($order_id, $lang = 'en') {
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
-        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,quality,distributed,comment_flag';
+        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,quality,distributed,comment_flag,remark';
         return $this->field($field)
                         ->where(['id' => $order_id])->find();
     }
@@ -297,9 +333,11 @@ class OrderModel extends PublicModel {
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
         $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn';
-        return $this
-                        ->field($field)
-                        ->where($where)->limit($start_no, $pagesize)->order('id desc')->select();
+        return $this->field($field)
+                    ->where($where)
+                    ->limit($start_no, $pagesize)
+                    ->order('id desc')
+                    ->select();
     }
 
     /* 获取订单数量

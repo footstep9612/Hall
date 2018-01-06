@@ -69,7 +69,8 @@ class LoginController extends PublicController {
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
+            $datajson['utime'] = 18000;
+            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
@@ -150,17 +151,17 @@ class LoginController extends PublicController {
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $check_arr['email'];
-            $data_key['name'] = $check[0]['name'];
+            $data_key['show_name'] = $check[0]['show_name'];
             $account_id = $check[0]['id'];
             redisHashSet('reset_password_key', $data_key['key'], $account_id, 86400);
             $config_obj = Yaf_Registry::get("config");
             $config_shop = $config_obj->shop->toArray();
             $email_arr['url'] = $config_shop['url'];
             $email_arr['key'] = $data_key['key'];
-            $email_arr['name'] = $check[0]['name'];
+            $email_arr['show_name'] = $check[0]['show_name'];
             $body = $this->getView()->render('login/retrieve_email_' . $lang . '.html', $email_arr);
             $title = 'Erui.com';
-            send_Mail($data_key['email'], $title, $body, $data_key['name']);
+            send_Mail($data_key['email'], $title, $body, $data_key['show_name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
             jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang)); //'The company email is not registered yet'
@@ -249,7 +250,7 @@ class LoginController extends PublicController {
         if (!empty($data['phone']) && is_numeric($data['phone'])) {
             $arr['official_phone'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $arr['official_phone'] = $data['tel_code'] . ' ' . $data['phone'];
+                $arr['official_phone'] = $data['tel_code'] . '-' . $data['phone'];
             }
         } else {
             jsonReturn(null, -113, ShopMsg::getMessage('-113', $lang));
@@ -313,7 +314,8 @@ class LoginController extends PublicController {
                 $datajson['country'] = $arr['country_bn'];
                 $datajson['phone'] = $arr['official_phone'];
                 $datajson['token'] = $jwtclient->encode($jwt); //加密
-                redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                $datajson['utime'] = 18000;
+                redisSet('shopmall_user_info_' . $id, json_encode($datajson), $datajson['utime']);
                 jsonReturn($datajson, 1, 'Success!');
             }
             $where['id'] = $id;

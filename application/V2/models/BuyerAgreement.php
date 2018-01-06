@@ -126,11 +126,11 @@ class BuyerAgreementModel extends PublicModel
      * 框架协议首页列表的条件
      */
     public function getAgreeCond($data = [],$excel=true){
-        if($excel==true){
-            $cond = '1=1';
-        }else{
-            $cond = " agree.created_by=".$data['created_by'];
-        }
+            $cond = ' 1=1';
+//        if($excel==true){
+//        }else{
+//            $cond = " agree.created_by=".$data['created_by'];
+//        }
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
@@ -386,7 +386,7 @@ class BuyerAgreementModel extends PublicModel
         //添加
         $res = $this -> addAgree($arr);
         if($res){
-            return $this -> getLastInsID();
+            return $res;
         }
         return false;
     }
@@ -414,8 +414,9 @@ class BuyerAgreementModel extends PublicModel
         $agree = $this->where(array('execute_no'=>$execute_no))->find();
         if(!empty($agree)){
             //附件
+            $id = $agree['id'];
             $attach = new AgreementAttachModel();
-            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$agree['id']))->find();
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->find();
             $agree['attach_name'] = $attachInfo['attach_name'];
             $agree['attach_url'] = $attachInfo['attach_url'];
             //组织
@@ -433,7 +434,7 @@ class BuyerAgreementModel extends PublicModel
     public function addAgree($data){
         $res = $this -> add($data);
         if($res){
-            return true;
+            return $res;
         }
         return false;
     }
@@ -468,7 +469,7 @@ class BuyerAgreementModel extends PublicModel
                 return false;
             }
         }
-        if($data['execute_start_at'] >= $data['execute_end_at']){
+        if($data['execute_start_at'] > $data['execute_end_at']){
             return false;
         }
         return true;
@@ -486,10 +487,8 @@ class BuyerAgreementModel extends PublicModel
         if($exRes){
             //保存数据
             unset($arr['execute_no']);
-            $res = $this ->where(array('id'=>$exRes['id']))-> save($arr);
-            if($res){
-                return $exRes['id'];
-            }
+            $this ->where(array('id'=>$exRes['id']))-> save($arr);
+            return $exRes['id'];
         }else{
             return 'no_error';
         }

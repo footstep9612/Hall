@@ -45,6 +45,7 @@ class GoodsModel extends PublicModel{
             if($result){
                 foreach($result as $index =>$item){
                     $result[$item['sku']] = $item;
+                    unset($result[$index]);
                 }
             }
             return $result ? $result : [];

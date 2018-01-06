@@ -17,7 +17,8 @@ class StockcountryController extends PublicController {
 
     //put your code here
     public function init() {
-        //  parent::init();
+        $this->token = false;
+        parent::init();
     }
 
     /**
@@ -35,9 +36,16 @@ class StockcountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn(null);
         }
+
+        $lang = $this->getPut('lang', 'en');
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn(null);
+        }
         $stock_country_model = new StockCountryModel();
 
-        $list = $stock_country_model->getExit($country_bn);
+        $list = $stock_country_model->getExit($country_bn, $lang);
 
         if ($list) {
             $this->jsonReturn($list);

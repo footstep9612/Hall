@@ -49,8 +49,8 @@ class ProductrelationController extends PublicController {
         $data = $product_relation_model->getList($spu, $lang, ($current_no - 1) * $pagesize, $pagesize);
 
         if ($data) {
-            $this->_setMaterialCat($data);
-            $this->_setOnshelfFlag($data);
+            $this->_setMaterialCat($data, $lang);
+            $this->_setOnshelfFlag($data, $lang);
 
             $count = $product_relation_model->getCont($spu, $lang);
             $this->setvalue('count', $count);
@@ -75,7 +75,7 @@ class ProductrelationController extends PublicController {
      * @desc
      */
 
-    private function _setMaterialCat(&$arr) {
+    private function _setMaterialCat(&$arr, $lang) {
         if ($arr) {
             $material_cat_model = new MaterialCatModel();
             $catnos = [];
@@ -83,7 +83,7 @@ class ProductrelationController extends PublicController {
                 $catnos[] = $val['material_cat_no'];
             }
 
-            $catnames = $material_cat_model->getNameByCatNos($catnos, 'zh');
+            $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
 
             foreach ($arr as $key => $val) {
                 if ($val['material_cat_no'] && isset($catnames[$val['material_cat_no']])) {
@@ -111,19 +111,18 @@ class ProductrelationController extends PublicController {
      * @desc
      */
 
-    private function _setOnshelfFlag(&$arr) {
+    private function _setOnshelfFlag(&$arr, $lang) {
         if ($arr) {
             $show_cat_product_model = new ShowCatProductModel();
             $spus = [];
+
             foreach ($arr as $key => $val) {
-                $spus[] = $val['spu'];
+                $spus[] = $val['relation_spu'];
             }
-
-            $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, 'zh');
-
+            $show_cat_products = $show_cat_product_model->getOnshelfFlagBySpus($spus, $lang);
             foreach ($arr as $key => $val) {
-                if ($val['spu'] && isset($show_cat_products[$val['spu']])) {
-                    $val['onshelf_flag'] = $show_cat_products[$val['spu']];
+                if ($val['relation_spu'] && isset($show_cat_products[$val['relation_spu']])) {
+                    $val['onshelf_flag'] = $show_cat_products[$val['relation_spu']];
                 } else {
                     $val['onshelf_flag'] = 'N';
                 }
@@ -141,7 +140,7 @@ class ProductrelationController extends PublicController {
      * @desc  SPU关联
      */
     public function CreateAction() {
-        $spu = $this->getPut('spu');
+        $spu = $this->getPut('current_spu');
         if (empty($spu)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择SPU!');
@@ -166,7 +165,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('添加成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('添加失败!');
             $this->jsonReturn(null);
@@ -198,7 +197,7 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');
             $this->jsonReturn();
-        } elseif ($flag === FALSE) {
+        } elseif ($flag === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('删除失败!');
             $this->jsonReturn(null);

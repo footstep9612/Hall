@@ -43,9 +43,7 @@ class ShowCatModel extends PublicModel {
     public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
         $redis_key = md5(json_encode($where));
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         try {
             $this->where($where)
                     ->order('sort_order DESC')
@@ -55,7 +53,7 @@ class ShowCatModel extends PublicModel {
             }
             $result = $this->select();
 
-            redisHashSet($this->tableName, $redis_key, json_encode($result));
+
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -78,10 +76,7 @@ class ShowCatModel extends PublicModel {
         //语言默认取en 统一小写
         $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : ( browser_lang() ? browser_lang() : 'en');
         $condition['status'] = self::STATUS_VALID;
-        $redis_key = md5(json_encode($condition) . $field);
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         try {
             //后期优化缓存的读取
             //这里需要注意排序的顺序（注意与后台一致）
@@ -94,7 +89,7 @@ class ShowCatModel extends PublicModel {
                 $data['data'] = $resouce;
                 $data['count'] = count($resouce);
             }
-            redisHashSet($this->tableName, $redis_key, json_encode($data));
+
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -140,15 +135,12 @@ class ShowCatModel extends PublicModel {
         } else {
             $where['status'] = self::STATUS_VALID;
         }
-        $redis_key = md5(json_encode($where)) . '_cat_no';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         try {
             $data = $this->field(['cat_no'])->where($where)->order('sort_order DESC')
                     ->group('cat_no')
                     ->select();
-            redisHashSet($this->tableName, $redis_key, json_encode($data));
+
             return $data;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -224,15 +216,12 @@ class ShowCatModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $redis_key = md5(json_encode($where)) . '_COUNT';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return redisHashGet($this->tableName, $redis_key);
-        }
+
         try {
             $count = $this->where($where)
                     //  ->field('id,user_id,name,email,mobile,status')
                     ->count('id');
-            redisHashSet($this->tableName, $redis_key, $count);
+
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -249,16 +238,7 @@ class ShowCatModel extends PublicModel {
     public function getlist($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
 
-            $redis_key = md5(json_encode($where) . $condition['page'] . ',' . $condition['countPerPage']) . '_LIST';
-        } else {
-            $redis_key = md5(json_encode($where)) . '_LIST';
-        }
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             return $this->limit($condition['page'] . ',' . $condition['countPerPage']);
@@ -268,7 +248,7 @@ class ShowCatModel extends PublicModel {
                         . 'status,sort_order,created_at,created_by')
                 ->order('sort_order DESC')
                 ->select();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -290,18 +270,12 @@ class ShowCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-        $redis_key = md5(json_encode($condition)) . '_GETLIST';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field('id, cat_no, lang, name, status, sort_order')
                 ->order('sort_order DESC')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
         return $data;
     }
 
@@ -318,18 +292,13 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $redis_key = md5(json_encode($where)) . '_INFO';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($where)
                 ->field('id, cat_no, parent_cat_no, level_no, lang, name, status, '
                         . 'sort_order, created_at, created_by, big_icon, middle_icon, '
                         . 'small_icon, market_area_bn, country_bn,updated_at,updated_by')
                 ->find();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -577,6 +546,29 @@ class ShowCatModel extends PublicModel {
             return false;
         }
         $this->commit();
+        return $flag;
+    }
+
+    /**
+     * 更新数据
+     * @param  mix $upcondition 更新条件
+     * @return bool
+     * @author zyg
+     */
+    public function updateico_data($cat_no, $upcondition = []) {
+        $data = [];
+        if (!empty($upcondition['small_icon'])) {
+            $data['small_icon'] = trim($upcondition['small_icon']);
+        }
+        if (!empty($upcondition['middle_icon'])) {
+            $data['middle_icon'] = trim($upcondition['middle_icon']);
+        }
+        if (!empty($upcondition['big_icon'])) {
+            $data['big_icon'] = trim($upcondition['big_icon']);
+        }
+        $data['updated_by'] = defined('UID') ? UID : 0;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $flag = $this->where(['cat_no' => $cat_no])->save($data);
         return $flag;
     }
 

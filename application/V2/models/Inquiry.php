@@ -24,6 +24,7 @@ class InquiryModel extends PublicModel {
     const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
     const viewAllRole = 'A012'; //查看全部询单角色编号
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
+    const viewCountryRole = 'A015'; //查看国家角色编号(A014被占用)
     const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
     public $inquiryStatus = [
         'DRAFT' => '草稿',
@@ -159,16 +160,20 @@ class InquiryModel extends PublicModel {
                         }
                     }
                     break;
-                case 'quote' :
+                case 'issue' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
-                            
+                
                             if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
+                    }
+                    break;
+                case 'quote' :
+                    foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
                         }
@@ -252,9 +257,9 @@ class InquiryModel extends PublicModel {
             $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
         }
         
-        /*if (!empty($condition['org_id'])) {
+        if (!empty($condition['org_id'])) {
             $where['org_id'] = ['in', $condition['org_id']]; //事业部
-        }*/
+        }
     
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
@@ -405,7 +410,7 @@ class InquiryModel extends PublicModel {
         return $this->field($field)
                             ->where($where)
                             ->page($currentPage, $pageSize)
-                            ->order('id DESC')
+                            ->order('updated_at DESC')
                             ->select();
     }
     
@@ -428,7 +433,7 @@ class InquiryModel extends PublicModel {
         return $this->field($field)
                             ->where($where)
                             ->page($currentPage, $pageSize)
-                            ->order('id DESC')
+                            ->order('updated_at DESC')
                             ->select();
     }
 
@@ -785,6 +790,32 @@ class InquiryModel extends PublicModel {
     
         return $data;
     }
+
+    /**
+     * 设置角色名称
+     * @param $data
+     *
+     * @author maimaiti
+     * @return string
+     */
+    public function setRoleName($data)
+    {
+        if ($data['is_agent'] == 'Y') {
+            return '市场经办人';
+        }elseif ($data['is_erui'] == 'Y') {
+            return '易瑞事业部';
+        }elseif ($data['is_issue'] == 'Y') {
+            return '事业部分单员';
+        }elseif ($data['is_quote'] == 'Y') {
+            return '报价人';
+        }elseif ($data['is_check'] == 'Y') {
+            return '报价审核人';
+        }elseif ($data['is_country_agent'] == 'Y') {
+            return '区域负责人或国家负责人';
+        }else{
+            return '';
+        }
+    }
     
     /**
      * @desc 获取指定国家的角色用户ID
@@ -884,14 +915,14 @@ class InquiryModel extends PublicModel {
             $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
             
             return $this->alias('a')
-                                ->field('a.id, a.serial_no, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                                ->field('a.id, a.serial_no, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
                                 ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
                                 ->join('erui_rfq.quote e ON a.id = e.inquiry_id AND e.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_rfq.final_quote f ON a.id = f.inquiry_id AND f.deleted_flag = \'N\'', 'LEFT')
                                 ->where($where)
-                                ->order('a.id DESC')
+                                ->order('a.updated_at DESC')
                                 ->select();
         } else {
             return false;

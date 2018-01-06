@@ -20,6 +20,8 @@ class BuyerLogisticsModel extends PublicModel
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETED = 'DELETED'; //删除；
+    const STATUS_SEND = 'SEND'; //发送；
+    const STATUS_UNSEND = 'UNSEND'; //未发送；
     const DELETE_Y = 'Y';
     const DELETE_N = 'N';
 
@@ -127,13 +129,10 @@ class BuyerLogisticsModel extends PublicModel
         }
         if (isset($data['status']) && !empty($data['status'])) {
             switch (strtoupper($data['status'])) {
-                case self::STATUS_VALID:
+                case self::STATUS_SEND:
                     $arr['status'] = $data['status'];
                     break;
-                case self::STATUS_INVALID:
-                    $arr['status'] = $data['status'];
-                    break;
-                case self::STATUS_DELETED:
+                case self::STATUS_UNSEND:
                     $arr['status'] = $data['status'];
                     break;
             }

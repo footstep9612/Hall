@@ -326,6 +326,8 @@ class ShowcatController extends PublicController {
         $redis3 = new phpredis($rconfig);
         $keys = $redis3->getKeys('ShowCats_*');
         $redis3->delete($keys);
+        $eruikeys = $redis3->getKeys('eruiShowCats_*');
+        $redis3->delete($eruikeys);
         unset($redis3);
     }
 
@@ -429,6 +431,34 @@ class ShowcatController extends PublicController {
         $this->_exist($data, 'es', $level_no, $market_area_bn, $country_bn, $cat_no, false);
         $this->_exist($data, 'ru', $level_no, $market_area_bn, $country_bn, $cat_no, false);
         $result = $this->_model->update_data($data);
+        if ($result) {
+            $this->delcache();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($result);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    public function updateiconAction() {
+        $data = $this->getPut();
+        $cat_no = $this->getPut('cat_no');
+        if (empty($cat_no)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('物料分类编码不能为空!');
+            $this->jsonReturn();
+        } else {
+            $info = $this->_model->where(['cat_no' => $cat_no])->find();
+            if (intval($info['level_no'])) {
+
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('分类编码对应的分类不存在!');
+                $this->jsonReturn();
+            }
+        }
+        $result = $this->_model->updateico_data($cat_no, $data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);

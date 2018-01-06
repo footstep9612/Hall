@@ -41,13 +41,13 @@ class ShoppingCarModel extends PublicModel{
                 $goodsTable = $goodsModel->getTableName();
                 $productModel = new ProductModel();
                 $productTable =$productModel->getTableName();
-                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status")
+                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
                     ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$condition['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
 				$goodsAry = [];
 				foreach($goods as $r){
 					$r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
                     if($condition['type']){
-                        $r['price'] = $productModel->getSkuPriceByCount($r['sku'], $country_bn, $result[$r['sku']]['buy_number']);
+                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $country_bn, $result[$r['sku']]['buy_number']);
                     }
 					$goodsAry[$r['sku']] = $r;
 				}
@@ -93,7 +93,7 @@ class ShoppingCarModel extends PublicModel{
      * @param $input
      * @param type 0 询单车  1购物车
      */
-    public function edit($input){
+    public function edit($input,$userInfo){
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
@@ -107,12 +107,11 @@ class ShoppingCarModel extends PublicModel{
         }
 
         try{
-            $userInfo = getLoinInfo();
             $this->startTrans();
             foreach($input['skus'] as $sku => $count){
                 $data = [
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id'],
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id'],
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'buy_number' => trim($count),
@@ -124,7 +123,7 @@ class ShoppingCarModel extends PublicModel{
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id']
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id']
                 ];
                 $result = $this->field('id')->where($condition)->find();
                 if($result){
@@ -177,6 +176,33 @@ class ShoppingCarModel extends PublicModel{
              return false;
 		}
 	}
+
+    /**
+     * 清用户车
+     */
+    public function clear($sku='',$buyer_id='',$type=''){
+        if(empty($sku) || empty($buyer_id)){
+            return false;
+        }
+        if(is_array($sku)){
+            $condition['sku'] = ['in',$sku];
+        }else{
+            $condition['sku'] = $sku;
+        }
+        $condition[ 'type'] = $type;
+        $condition[ 'buyer_id'] = $buyer_id;
+        try{
+            $data = [
+                'deleted_flag' => 'Y',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+            $result = $this->where($condition)->save($data);
+            return $result ? $result : false;
+        }catch(Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】clear:' . $e , Log::ERR);
+            return false;
+        }
+    }
 
 
 }
