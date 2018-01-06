@@ -37,7 +37,6 @@ class BuyerContactModel extends PublicModel
                         ->order('id desc')
                         ->limit(1)
                         ->select();
-
         } elseif (!empty($data['id'])) {
             $row = $this->where(['id' => $data['id'], 'deleted_flag' => 'N'])
                         ->order('id desc')
@@ -63,7 +62,7 @@ class BuyerContactModel extends PublicModel
         }
 
         $row['company'] = $account_info['name'];
-        return $row;
+        return $row[0];
     }
 
     /**
