@@ -297,7 +297,13 @@ class OrderModel extends PublicModel {
             }
         }
 
-        $this->_getValue($where, $condition, 'contract_date', 'between'); //签约日期
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //创建时间new
+            $where['created_at'] = array(
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
+            );
+        }
+        //$this->_getValue($where, $condition, 'contract_date', 'between'); //签约日期
         if (isset($condition['term']) && $condition['term']) {    //贸易术语
             $where['trade_terms_bn'] = $condition['term'];
         }

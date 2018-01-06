@@ -53,6 +53,38 @@ class CustomCatModel extends PublicModel
 
 
     /**
+     * 获取列表信息
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function listName($lang='zh') {
+        $where = [
+            "deleted_flag" => 'N',
+            "lang" => $lang
+        ];
+        $res = $this->where($where)
+            ->field('cat_name,cat_no,lang')
+            ->select();
+        if($res) {
+            /*foreach($res as $item) {
+                foreach($res as $team){
+                    if($item['cat_no'] == $team['cat_no'] && $item['lang'] == 'zh'&& $team['lang'] == 'en') {
+                        $data['cat_name'] = $item['cat_name'];
+                        $data['cat_name_en'] = $team['cat_name'];
+                        $arr[] = $data;
+                    }
+                }
+            }*/
+            foreach($res as $item){
+                $arr[$item['lang']][] = $item;
+            }
+            return $arr;
+        }
+        return false;
+    }
+
+    /**
      * 新增
      */
     public function create_data($create, $where) {
