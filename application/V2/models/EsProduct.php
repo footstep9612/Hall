@@ -2055,13 +2055,16 @@ class EsProductModel extends Model {
             'D' => 'material_cat_no',
             'E' => 'name',
             'F' => 'show_name',
-            'G' => 'bizline',
-            'H' => 'brand',
-            'I' => 'description',
-            'J' => 'tech_paras',
-            'K' => 'exe_standard',
-            'L' => 'warranty',
-            'M' => 'keywords',
+            'G' => 'material_cat',
+            'H' => 'show_cat',
+            'I' => 'bizline',
+            'J' => 'brand',
+            'K' => 'description',
+            'L' => 'tech_paras',
+            'M' => 'exe_standard',
+            'N' => 'warranty',
+            'O' => 'keywords',
+            'P' => 'created_at'
         ];
     }
 
@@ -2183,14 +2186,34 @@ class EsProductModel extends Model {
         $objSheet->setCellValue("N1", '审核状态');
 
         $keys = $this->_getKeys();
-        $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
+        $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
+            'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
+            'status', 'bizline', 'created_at', 'material_cat', 'show_cats'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
 
         foreach ($result as $j => $item) {
             foreach ($keys as $letter => $key) {
 
+
+
                 if ($key === 'brand' && isset($item['brand']['name']) && $item['brand']['name']) {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['brand']['name']);
+                } elseif ($key === 'material_cat' && $item['material_cat']) {
+
+                    $material_cat = (isset($item['material_cat']['cat_name1']) ? $item['material_cat']['cat_name1'] : '')
+                            . (isset($item['material_cat']['cat_name2']) ? $item['material_cat']['cat_name2'] : '')
+                            . (isset($item['material_cat']['cat_name3']) ? $item['material_cat']['cat_name3'] : '') . '-'
+                            . $item['material_cat_no'];
+                    $objSheet->setCellValue($letter . ($j + 2), $material_cat);
+                } elseif ($key === 'show_cat' && $item['show_cats']) {
+                    $show_cats = null;
+                    foreach ($item['show_cats'] as $show_cat) {
+                        $show_cats = (isset($show_cat['cat_name1']) ? $show_cat['cat_name1'] : '')
+                                . (isset($item['material_cat']['cat_name2']) ? $show_cat['cat_name2'] : '')
+                                . (isset($show_cat['cat_name3']) ? $show_cat['cat_name3'] : '') . '-'
+                                . $show_cat['cat_no3'] . PHP_EOL;
+                        $objSheet->setCellValue($letter . ($j + 2), $show_cats);
+                    }
                 } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
