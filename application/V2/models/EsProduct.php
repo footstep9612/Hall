@@ -740,7 +740,7 @@ class EsProductModel extends Model {
             $onshelf_flags = $this->table('erui_goods.show_cat_product')
                             ->field('spu,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
-                                    . ' ,max(updated_by) as min_updated_by'
+                                    . ' ,max(updated_by) as max_updated_by'
                                     . ',max(updated_at) as max_updated_at'
                                     . ' ,max(checked_by) as max_checked_by'
                                     . ' ,max(checked_by) as max_checked_at')
@@ -988,7 +988,7 @@ class EsProductModel extends Model {
                 $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
             } elseif ($onshelf_flags[$id]['max_created_at']) {
                 $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_at'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';

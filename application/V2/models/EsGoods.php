@@ -874,7 +874,7 @@ class EsGoodsModel extends Model {
                 $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
             } elseif ($onshelf_flags[$id]['max_created_at']) {
                 $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_at'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';
