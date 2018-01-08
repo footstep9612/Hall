@@ -9,7 +9,7 @@ class MallController extends PublicController
 {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 
@@ -26,12 +26,9 @@ class MallController extends PublicController
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            foreach($res as $item){
-                $arr[$item['lang']][] = $item;
-            }
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
-            $datajson['data'] = $arr;
+            $datajson['data'] = $res;
         } else {
             $datajson['code'] = ShopMsg::CUSTOM_FAILED;
             $datajson['data'] = "";
