@@ -2065,6 +2065,8 @@ class EsProductModel extends Model {
             'N' => 'material_cat',
             'O' => 'show_cat',
             'P' => 'created_at',
+            'Q' => 'checked_at',
+            'R' => 'onshelf_at',
         ];
     }
 
@@ -2185,8 +2187,10 @@ class EsProductModel extends Model {
         $objSheet->setCellValue("N1", '物料分类');
         $objSheet->setCellValue("O1", '展示分类');
         $objSheet->setCellValue("P1", '创建时间');
-        $objSheet->setCellValue("Q1", '审核状态');
-        $objSheet->getStyle("Q1")->getFont()->setBold(true);    //粗体
+        $objSheet->setCellValue("Q1", '审核时间');
+        $objSheet->setCellValue("R1", '上架时间');
+        $objSheet->setCellValue("S1", '审核状态');
+        $objSheet->getStyle("S1")->getFont()->setBold(true);    //粗体
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
             'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
@@ -2251,10 +2255,10 @@ class EsProductModel extends Model {
                     $status = $item['status'];
                     break;
             }
-            $objSheet->setCellValue("Q" . ($j + 2), ' ' . $status);
+            $objSheet->setCellValue("S" . ($j + 2), ' ' . $status);
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:Q' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:S' . ($j + 2))->applyFromArray($styleArray);
 
         $objSheet->freezePaneByColumnAndRow(3, 2);
 //
