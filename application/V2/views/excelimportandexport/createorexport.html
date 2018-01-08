@@ -17,7 +17,7 @@
     				val = document.getElementById('input').value.replace(/(^\s*)|(\s*$)/g, ''),
     				form = document.getElementById('form');
     		if (val == '') {
-    			alert('请输入导出的方法！');
+    			alert('请输入生成或导出数据文件的方法！');
     		} else {
     			form.action = val;
             	document.getElementById('sign').value = md5(key + val);
