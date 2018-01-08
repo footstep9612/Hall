@@ -42,7 +42,7 @@ class BuyerCustomModel extends PublicModel
                  `erui_mall`.`buyer_custom`.`country_bn`, `erui_mall`.`buyer_custom`.`tel`,
                  `erui_mall`.`buyer_custom`.`status`, `erui_mall`.`buyer_custom`.`created_at`,
                  `erui_mall`.`buyer_custom`.`created_by`, `erui_mall`.`buyer_custom`.`updated_at`,
-                 `erui_mall`.`buyer_custom`.`updated_by`,';
+                 `erui_mall`.`buyer_custom`.`updated_by`, `erui_mall`.`buyer_custom`.`lang`,';
         $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
         $sql .= '`erui_buyer`.`buyer_agent`.`agent_id`,';
         $sql .= '`erui_sys`.`employee`.`name` as `agent_name`';
