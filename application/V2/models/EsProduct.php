@@ -2064,7 +2064,7 @@ class EsProductModel extends Model {
             'M' => 'exe_standard',
             'N' => 'warranty',
             'O' => 'keywords',
-            'P' => 'created_at'
+            'P' => 'created_at',
         ];
     }
 
@@ -2111,7 +2111,6 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Export failed:' . $e, Log::ERR);
             return false;
         }
-
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
         rmdir($tmpDir);
         $dirName = $tmpDir . $date;
@@ -2183,8 +2182,7 @@ class EsProductModel extends Model {
         $objSheet->setTitle('SPU导出_' . ($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
-        $objSheet->setCellValue("N1", '审核状态');
-
+        $objSheet->setCellValue("Q1", '审核状态');
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
             'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
@@ -2200,20 +2198,22 @@ class EsProductModel extends Model {
                     $objSheet->setCellValue($letter . ($j + 2), $item['brand']['name']);
                 } elseif ($key === 'material_cat' && $item['material_cat']) {
 
-                    $material_cat = (isset($item['material_cat']['cat_name1']) ? $item['material_cat']['cat_name1'] : '')
-                            . (isset($item['material_cat']['cat_name2']) ? $item['material_cat']['cat_name2'] : '')
+                    $material_cat = (isset($item['material_cat']['cat_name1']) ? $item['material_cat']['cat_name1'] : '') . '/'
+                            . (isset($item['material_cat']['cat_name2']) ? $item['material_cat']['cat_name2'] : '') . '/'
                             . (isset($item['material_cat']['cat_name3']) ? $item['material_cat']['cat_name3'] : '') . '-'
                             . $item['material_cat_no'];
                     $objSheet->setCellValue($letter . ($j + 2), $material_cat);
                 } elseif ($key === 'show_cat' && $item['show_cats']) {
                     $show_cats = null;
                     foreach ($item['show_cats'] as $show_cat) {
-                        $show_cats = (isset($show_cat['cat_name1']) ? $show_cat['cat_name1'] : '')
-                                . (isset($item['material_cat']['cat_name2']) ? $show_cat['cat_name2'] : '')
+                        $show_cats .= (isset($show_cat['cat_name1']) ? $show_cat['cat_name1'] : '') . '/'
+                                . (isset($item['material_cat']['cat_name2']) ? $show_cat['cat_name2'] : '') . '/'
                                 . (isset($show_cat['cat_name3']) ? $show_cat['cat_name3'] : '') . '-'
                                 . $show_cat['cat_no3'] . PHP_EOL;
-                        $objSheet->setCellValue($letter . ($j + 2), $show_cats);
                     }
+
+
+                    $objSheet->setCellValue($letter . ($j + 2), $show_cats);
                 } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
@@ -2247,10 +2247,10 @@ class EsProductModel extends Model {
                     $status = $item['status'];
                     break;
             }
-            $objSheet->setCellValue("N" . ($j + 2), ' ' . $status);
+            $objSheet->setCellValue("Q" . ($j + 2), ' ' . $status);
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:N' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:Q' . ($j + 2))->applyFromArray($styleArray);
 
         $objSheet->freezePaneByColumnAndRow(3, 2);
 //
@@ -2261,6 +2261,7 @@ class EsProductModel extends Model {
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $objWriter->save($dirName . '/' . $date . '_' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
+
         return true;
     }
 
