@@ -115,10 +115,10 @@ class OrderModel extends PublicModel {
         try{
             $data['infoAry']['order_no'] = $orerNo;
             $data['infoAry']['buyer_id'] = $data['buyer_id'];
-            $data['created_at'] = date('Y-m-d H:i:s',time());
             $data['infoAry']['source'] = 'MALL';
             $dataInfo = $this->_getData($data['infoAry']);
             $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
             $result = $this->add($this->create($dataInfo));
             if($result){
                 //添加订单商品信息

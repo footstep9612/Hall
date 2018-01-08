@@ -114,7 +114,9 @@ class ProductModel extends PublicModel {
             if (isset($input['model']) && !empty($input['model'])) {
                 //$condition["$gtable.model"] = $input['model'];
                 $input['model'] = trim($input['model']);
-                $input['model'] = str_replace(" ", " *",$input['model']);
+                $find = array('(',')'," ",'\\','/');
+                $replace = array('.{1}','.{1}'," *",'.{1,2}','.{1,2}');
+                $input['model'] = str_replace($find, $replace, $input['model']);
                 $condition["$gtable.model"] = ['exp', 'regexp \''.$input['model'].'\''];
             }
 
@@ -137,8 +139,8 @@ class ProductModel extends PublicModel {
                 $spec = [];
                 foreach($input['spec'] as $key => $value){
                     //$spec[] = ['exp', 'regexp \'"'.$key.'":"' . $value . '"\''];    //精确查
-                    $find = array('(',')'," ");
-                    $replace = array('.{1}','.{1}'," *");
+                    $find = array('(',')'," ",'\\','/');
+                    $replace = array('.{1}','.{1}'," *",'.{1,2}','.{1,2}');
                     $key = str_replace($find, $replace, $key);
                     $key = str_replace("'", "\\'",$key);
                     $key = str_replace('"', '.{1,2}',$key);

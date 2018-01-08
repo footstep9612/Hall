@@ -346,24 +346,10 @@ class ExcelimportandexportController extends PublicController {
         } else jsonReturn('', -101, '没有可导入的数据!');
     }
     
-    public function getPut() {
-        $key = '9b2a37b7b606c14d43db538487a148c7';
-        $input = json_decode(file_get_contents("php://input"), true);
-        $post = $this->getPost();
-        $param = $input ? $input : $post;
-        $sign = md5($key . $param['input']);
-        if ($param['sign'] != $sign) {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('验证失败!');
-            parent::jsonReturn();
-        }
-        return json_decode($param['input'], true) ? : $param['input'];
-    }
-    
     /**
      * @desc 获取模板和附件
      *
-     * @param string $floder 需要导入的目录
+     * @param string $floder 获取的目录
      * @return array
      * @author liujf
      * @time 2017-12-24
@@ -383,7 +369,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getExcelDir() {
         $excelDir = MYPATH . DS . 'public' . DS . 'tmp';
-        if (!is_dir($excelDir)) mkdir($excelDir, 0777, true);
+        $this->_createDir($excelDir);
         return $this->excelDir = $excelDir;
     }
     
@@ -396,13 +382,13 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-22
      */
     private function _fileClassify($path) {
-        $flies = $data = [];
-        $this->_scanDir($path, $flies);
-        foreach ($flies as $flie) {
-            if (preg_match('/^.*templet(\d+)?\.xls(x)?$/i', $flie)) {
-                $data['templet'][] = $flie;
+        $files = $data = [];
+        $this->_scanDir($path, $files);
+        foreach ($files as $file) {
+            if ($this->_isTemplet($file)) {
+                $data['templet'][] = $file;
             } else {
-                $data['attach'][] = $flie;
+                $data['attach'][] = $file;
             }
         }
         return $data;
@@ -412,19 +398,19 @@ class ExcelimportandexportController extends PublicController {
      * @desc 扫描目录下所有文件
      *
      * @param string $path 扫描路径
-     * @param array $flies 文件路径
+     * @param array $files 文件路径
      * @author liujf
      * @time 2017-12-22
      */
-    private function _scanDir($path, &$flies) {
+    private function _scanDir($path, &$files) {
         if (is_dir($path)) {
             $dp = dir($path);
             while($file = $dp->read()) {
-                if($file != '.' && $file != '..') $this->_scanDir($path . DS . $file, $flies);
+                if($file != '.' && $file != '..') $this->_scanDir($path . DS . $file, $files);
             }
             $dp->close();
         }
-        if(is_file($path)) $flies[] = $path;
+        if(is_file($path)) $files[] = $path;
     }
     
     /**
@@ -461,7 +447,7 @@ class ExcelimportandexportController extends PublicController {
             $orderId = $orderIdMapping[$attachExecuteNo];
             if ($orderId) {
                 // 执行附件上传
-                $fileInfo = $this->_upload2FastDFS($attach);
+                $fileInfo = $this->_uploadToFastDFS($attach);
                 if ($fileInfo['code'] == '1') {
                     $attachData = [
                         'order_id' => $orderId,
@@ -489,7 +475,7 @@ class ExcelimportandexportController extends PublicController {
      * @author liujf
      * @time 2017-12-27
      */
-    private function _upload2FastDFS($file) {
+    private function _uploadToFastDFS($file) {
         // 本地和测试调用接口上传
         if (parse_url($this->requestUrl ? : $this->_getRequestUrl(), PHP_URL_HOST) == '172.18.18.196') {
             // 上传文件的接口地址
@@ -642,7 +628,7 @@ class ExcelimportandexportController extends PublicController {
      * @author liujf
      * @time 2017-12-21
      */
-    public function quoteAnalysisDataExportAction() {
+    public function exportQuoteAnalysisDataAction() {
         $this->getPut();
     
         $where['a.deleted_flag'] = 'N';
@@ -659,25 +645,25 @@ class ExcelimportandexportController extends PublicController {
                                                                      ->select();
     
         $date = date("Ymd");
-        $filename = "quote_analysis-$date.xlsx";
+        $fileName = "quote_analysis-$date.xlsx";
     
         $titleList = [
-            "流程编码",
-            "询价时间",
-            "询单所属事业部",
-            "客户编码",
-            "区域",
-            "国家",
-            "是否驳回",
-            "驳回环节",
-            "询价商品名称",
-            "市场提交询单时间",
-            "询单第一次被分单的时间",
-            "询单最终被分单的时间",
-            "产品报价最终报出时间",
-            "物流分单的时间",
-            "物流最终报出价格的时间",
-            "市场确认的时间",
+            '流程编码',
+            '询价时间',
+            '询单所属事业部',
+            '客户编码',
+            '区域',
+            '国家',
+            '是否驳回',
+            '驳回环节',
+            '询价商品名称',
+            '市场提交询单时间',
+            '询单第一次被分单的时间',
+            '询单最终被分单的时间',
+            '产品报价最终报出时间',
+            '物流分单的时间',
+            '物流最终报出价格的时间',
+            '市场确认的时间',
         ];
     
         $outData = [];
@@ -719,85 +705,346 @@ class ExcelimportandexportController extends PublicController {
             ];
         }
     
-        $this->_exportExcel($filename, $titleList, $outData);
+        $this->_exportExcel($fileName, $titleList, $outData);
+    }
+    
+    /**
+     * @desc 生成土猫商品文件集
+     *
+     * @author liujf
+     * @time 2018-01-07
+     */
+    public function createToolMallFilesAction() {
+        $date = date('YmdHis');
+        // 土猫商品文件夹名称
+        $folder = $this->_utf8ToGbk('土猫商品');
+        // 土猫商品生成目录
+        $toolMallDir = ($this->excelDir ? : $this->_getExcelDir()) . DS . $folder;
+        $this->_createDir($toolMallDir);
+        // 获取模板文件
+        $templetFiles = $this->_getTempletFiles($toolMallDir);
+        // 获取模板数据
+        foreach ($templetFiles as $templetFile) {
+            $templetData = $this->_trim(ExcelHelperTrait::ready2import($templetFile));
+            array_shift($templetData);
+            $spuDataList = $skuDataList = $tmpArr = [];
+            $skuTitleList = $this->_getSkuTitleList();
+            $skuTitleList[0] = $skuTitleList[1] = $skuTitleList[15] = '';
+            foreach ($skuTitleList as $skuTitle) {
+                $tmpArr[] = ['value' => $skuTitle];
+            }
+            $skuDataList[0] = $tmpArr;
+            $i = 1;
+            foreach ($templetData as $data) {
+                if ($data[0] != '') {
+                    // 生成的商品文件夹名称
+                    $goodsFolder = $this->_utf8ToGbk($this->_replaceToline($data[0]) . '_' . $date . '_' . $i);
+                    $i++;
+                    // 商品目录
+                    $goodsDir = $toolMallDir . DS . $goodsFolder;
+                    $this->_createDir($goodsDir);
+                    // 商品文件
+                    $goodsFile = $goodsDir . DS . $goodsFolder . '.xlsx';
+                    // 将生成的spu数据
+                    $spuDataList[0] = [
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => $data[0]],
+                        ['value' => $data[0]],
+                        ['value' => ''],
+                        ['value' => $data[5]],
+                        ['value' => ''],
+                        ['value' => $data[7]],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                    ];
+                    // 将生成的sku数据
+                    $skuDataList[1] = [
+                        ['value' => ''],
+                        ['value' => '1'],
+                        ['value' => ''],
+                        ['value' => $data[2]],
+                        ['value' => ''],
+                        ['value' => '7'],
+                        ['value' => '1'],
+                        ['value' => $data[4]],
+                        ['value' => '包'],
+                        ['value' => '1'],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => '申报要素'],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => $data[5]],
+                        ['value' => $data[2]],
+                    ];
+                    $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
+                    // 生成失败
+                    if (!$result) $this->jsonReturn(false);
+                }
+            }
+        }
+        // 生成成功
+        $this->jsonReturn(true);
+    }
+    
+    /**
+     * @desc 生成商品数据导入小工具所需的模板文件
+     *
+     * @param string $file 文件路径
+     * @param array $titleArr 表格标题
+     * @param array $dataArr 表格数据
+     * @author liujf
+     * @time 2018-01-06
+     */
+    private function _createGoodsToolFile($file, $spuDataList, $skuDataList) {
+        $objPHPExcel = new PHPExcel();
+        $spuTitleList = $this->_getSpuTitleList();
+        $spuTitleCount = count($spuTitleList);
+        $spuWordArr = $this->_getWordArr($spuTitleCount);
+        // 设置产品模板标题
+        $this->_setExcelTitle($objPHPExcel, $spuTitleList, $spuWordArr);
+        // 填充产品模板数据
+        $this->_setExcelData($objPHPExcel, $spuDataList, $spuWordArr);
+        $objPHPExcel->getActiveSheet()->setTitle('产品模板');
+        $skuTitleList = $this->_getSkuTitleList();
+        $skuTitleCount = count($skuTitleList);
+        $skuWordArr = $this->_getWordArr($skuTitleCount);
+        // 创建一个新的shee空间
+        $objPHPExcel->createSheet();
+        // 设置商品模板标题
+        $this->_setExcelTitle($objPHPExcel, $skuTitleList, $skuWordArr, 1);
+        // 填充商品模板数据
+        $this->_setExcelData($objPHPExcel, $skuDataList, $skuWordArr, 1);
+        $objPHPExcel->getActiveSheet()->setTitle('商品模板');
+        // 生成文件
+        return $this->_createExcelFile($objPHPExcel, $file);
+    }
+    
+    /**
+     * @desc 获取产品模板标题
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _getSpuTitleList() {
+        return [
+            '产品类别',
+            '物料编码',
+            '产品名称',
+            '展示名称',
+            '产品组',
+            '产品品牌',
+            '产品介绍',
+            '技术参数',
+            '执行标准',
+            '质保期',
+            '关键字',
+        ];
+    }
+    
+    /**
+     * @desc 获取商品模板标题
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _getSkuTitleList() {
+        return [
+            '商品信息',
+            '序号',
+            '订货号',
+            '型号',
+            '供应商名称',
+            '出货周期(天)',
+            '最小包装内裸货商品数量',
+            '商品裸货单位',
+            '最小包装单位',
+            '最小订货数量',
+            '供应商供货价',
+            '币种',
+            '长度（mm）',
+            '材质',
+            '重量（g）',
+            '物流信息',
+            '裸货尺寸长(mm)',
+            '裸货尺寸宽(mm)',
+            '裸货尺寸高(mm)',
+            '最小包装后尺寸长(mm)',
+            '最小包装后尺寸宽(mm)',
+            '最小包装后尺寸高(mm)',
+            '净重(kg)',
+            '毛重(kg)',
+            '仓储运输包装及其他要求',
+            '包装类型',
+            '申报要素',
+            '中文品名(报关用)',
+            '海关编码',
+            '成交单位',
+            '退税率(%)',
+            '监管条件',
+            '境内货源地',
+            '用途',
+            '品牌',
+            '型号',
+        ];
+    }
+    
+    /**
+     * @desc 生成excel文件
+     *
+     * @param object $objPHPExcel PHPExcel对象
+     * @param string $file 文件路径
+     * @return bool
+     * @author liujf
+     * @time 2018-01-06
+     */
+    private function _createExcelFile(&$objPHPExcel, $file) {
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        try {
+            $objWriter->save($file);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        };
     }
 
     /**
-     * @desc 重写jsonReturn方法
+     * @desc 获取指定一级目录模板文件
      *
+     * @param string $path 目录路径
+     * @return array $files 模板文件路径数组
      * @author liujf
-     * @time 2017-11-10
+     * @time 2018-01-07
      */
-    public function jsonReturn($data = [], $type = 'JSON') {
-        if ($data) {
-            $this->setCode('1');
-            $this->setMessage('成功!');
-            parent::jsonReturn($data, $type);
-        } else {
-            $this->setCode('-101');
-            $this->setMessage('失败!');
-            parent::jsonReturn();
+    private function _getTempletFiles($path) {
+        $files = [];
+        if (is_dir($path)) {
+            $dp = dir($path);
+            while($file = $dp->read()) {
+                if($file != '.' && $file != '..') {
+                    if($this->_isTemplet($file)) $files[] = $path . DS . $file;
+                }
+            }
+            $dp->close();
         }
+        return $files;
+    }
+    
+    /**
+     * @desc 判断是否为模板文件
+     *
+     * @param string $file 文件路径
+     * @return bool
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _isTemplet($file) {
+        return preg_match('/^.*templet\d*\.xls(x)?$/i', $file) ? true : false;
     }
     
     /**
      * @desc 导出excel
      *
-     * @param string $filename 文件名
-     * @param array $titleArr 表格标题
-     * @param array $dataArr 表格数据
+     * @param string $fileName 文件名
+     * @param array $titleList 表格标题
+     * @param array $dataList 表格数据
      * @author liujf
      * @time 2017-12-19
      */
-    private function _exportExcel($filename, $titleArr, $dataArr) {
-        $titleCount = count($titleArr);
-        $dataCount = count($dataArr);
-        $wordArr = $this->_getWordArr($titleCount);
+    private function _exportExcel($fileName, $titleList, $dataList) {
         $objPHPExcel = new PHPExcel();
-    
         // Set document properties
         $objPHPExcel->getProperties()
-                                ->setCreator("liujf")
-                                ->setLastModifiedBy("liujf")
-                                ->setTitle("Office 2007 XLSX Test Document")
-                                ->setSubject("Office 2007 XLSX Test Document")
-                                ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
-                                ->setKeywords("office 2007 openxml php")
-                                ->setCategory("Test result file");
+                                ->setCreator('liujf')
+                                ->setLastModifiedBy('liujf')
+                                ->setTitle('Office 2007 XLSX Test Document')
+                                ->setSubject('Office 2007 XLSX Test Document')
+                                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
+                                ->setKeywords('office 2007 openxml php')
+                                ->setCategory('Test result file');
+        $titleCount = count($titleList);
+        $wordArr = $this->_getWordArr($titleCount);
+         // 设置excel表格的标题
+        $this->_setExcelTitle($objPHPExcel, $titleList, $wordArr);
+        // 填充excel表格的数据
+        $this->_setExcelData($objPHPExcel, $dataList, $wordArr);
+        // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+        $objPHPExcel->setActiveSheetIndex(0);
+        header('Content-Type: application/vnd.ms-excel; charset="UTF-8"');
+        header('Content-Disposition: attachment; filename=' . urlencode($fileName));
+        header('Content-Transfer-Encoding: binary');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+        $objWriter->save('php://output');
+    }
     
+    /**
+     * @desc 设置excel表格的标题
+     *
+     * @param object $objPHPExcel PHPExcel对象
+     * @param array $titleList 表格标题
+     * @param array $wordArr 表格对应的词组
+     * @param int $pIndex 表格标签页索引
+     * @author liujf
+     * @time 2018-01-06
+     */
+    private function _setExcelTitle(&$objPHPExcel, $titleList, $wordArr, $pIndex = 0) {
+        $objPHPExcel->setActiveSheetIndex($pIndex);
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $titleCount = count($titleList);
+        $wordArr = is_array($wordArr) && !empty($wordArr) ? $wordArr : $this->_getWordArr($titleCount);
         for($i = 0; $i < $titleCount; $i++) {
-            $objPHPExcel->setActiveSheetIndex(0)->setCellValue("$wordArr[$i]1", $titleArr[$i]);
-            $objPHPExcel->getActiveSheet()->getColumnDimension($wordArr[$i])->setAutoSize(true);
+            $objSheet->setCellValue("$wordArr[$i]1", $titleList[$i]);
+            $objSheet->getColumnDimension($wordArr[$i])->setAutoSize(true);
         }
+    }
     
-        $typeArr = array(
-            'string' => PHPExcel_Cell_DataType::TYPE_STRING,
-            'int' => PHPExcel_Cell_DataType::TYPE_NUMERIC
-        );
-        //填充表格信息
+    /**
+     * @desc 填充excel表格的数据
+     *
+     * @param object $objPHPExcel PHPExcel对象
+     * @param array $dataList 表格数据
+     * @param array $wordArr 表格对应的词组
+     * @param int $pIndex 表格标签页索引
+     * @author liujf
+     * @time 2018-01-06
+     */
+    private function _setExcelData(&$objPHPExcel, $dataList, $wordArr, $pIndex = 0) {
+        $objPHPExcel->setActiveSheetIndex($pIndex);
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $dataCount = count($dataList);
+        $typeArr = ['string' => PHPExcel_Cell_DataType::TYPE_STRING, 'int' => PHPExcel_Cell_DataType::TYPE_NUMERIC];
         for ($i = 2; $i <= $dataCount + 1; $i++) {
             $j = 0;
-            foreach ($dataArr[$i - 2] as $key=>$value) {
-                if($typeArr[$value['type']]) {
-                    //显示指定内容类型
-                    $objPHPExcel->getActiveSheet()->setCellValueExplicit("$wordArr[$j]$i", $value['value'], $typeArr[$value['type']]);
-                } else {
-                    $objPHPExcel->getActiveSheet()->setCellValueExplicit("$wordArr[$j]$i", $value['value']);
-                }
-                if($value['type'] == 'int') $objPHPExcel->getActiveSheet()->getStyle("$wordArr[$j]$i")->getNumberFormat()->setFormatCode('#,##0.00');
+            foreach ($dataList[$i - 2] as $data) {
+                $objSheet->setCellValueExplicit("$wordArr[$j]$i", $data['value'], $typeArr[$data['type']] ? : $typeArr['string']);
+                if($data['type'] == 'int') $objSheet->getStyle("$wordArr[$j]$i")->getNumberFormat()->setFormatCode('#,##0.00');
                 $j++;
             }
         }
-    
-        // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-        $objPHPExcel->setActiveSheetIndex(0);
-    
-        header('Content-Type: application/vnd.ms-excel; charset="UTF-8"');
-        header('Content-Disposition: attachment; filename=' . urlencode($filename));
-        header("Content-Transfer-Encoding: binary");
-        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
-        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-        $objWriter->save('php://output');
     }
     
     /**
@@ -868,9 +1115,45 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc 替换非目录字符为下划线
+     *
+     * @param string $str 需处理的字符串
+     * @return string
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _replaceToline($str) {
+        return preg_replace('/[\\\\\/:*?"<>|]/', '_', $str);
+    }
+    
+    /**
+     * @desc 编码UTF-8转GBK
+     *
+     * @param string $str 需转换的字符串
+     * @return string
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _utf8ToGbk($str) {
+        return iconv('UTF-8', 'GBK', $str);
+    }
+    
+    /**
+     * @desc 创建目录
+     *
+     * @param string $path 目录路径
+     * @author liujf
+     * @time 2018-01-07
+     */
+    private function _createDir($path) {
+        if (!is_dir($path)) mkdir($path, 0777, true);
+    }
+    
+    /**
      * @desc 去掉参数数据两侧的空格
      *
      * @param mixed $condition
+     * @return mixed
      * @author liujf
      * @time 2017-12-23
      */
@@ -884,6 +1167,44 @@ class ExcelimportandexportController extends PublicController {
             }
         }
         return $condition;
+    }
+    
+    /**
+     * @desc 安全验证
+     *
+     * @author liujf
+     * @time 2018-01-07
+     */
+    public function getPut() {
+        $key = '9b2a37b7b606c14d43db538487a148c7';
+        $input = json_decode(file_get_contents("php://input"), true);
+        $post = $this->getPost();
+        $param = $input ? $input : $post;
+        $sign = md5($key . $param['input']);
+        if ($param['sign'] != $sign) {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('验证失败!');
+            parent::jsonReturn();
+        }
+        return json_decode($param['input'], true) ? : $param['input'];
+    }
+    
+    /**
+     * @desc 重写jsonReturn方法
+     *
+     * @author liujf
+     * @time 2017-11-10
+     */
+    public function jsonReturn($data = [], $type = 'JSON') {
+        if ($data) {
+            $this->setCode('1');
+            $this->setMessage('成功!');
+            parent::jsonReturn($data, $type);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('失败!');
+            parent::jsonReturn();
+        }
     }
 
 }
