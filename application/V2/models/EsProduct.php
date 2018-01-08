@@ -2181,11 +2181,12 @@ class EsProductModel extends Model {
         $objSheet->getColumnDimension('C')->setWidth(25);
         $objSheet->setTitle('SPU导出_' . ($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
-        $objSheet->setCellValue("N", '物料分类');
-        $objSheet->setCellValue("O", '展示分类');
-        $objSheet->setCellValue("P", '创建时间');
+
+        $objSheet->setCellValue("N1", '物料分类');
+        $objSheet->setCellValue("O1", '展示分类');
+        $objSheet->setCellValue("P1", '创建时间');
         $objSheet->setCellValue("Q1", '审核状态');
+        $objSheet->getStyle("Q1")->getFont()->setBold(true);    //粗体
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
             'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
