@@ -177,6 +177,10 @@ class BuyerattachModel extends PublicModel {
             'attach_group'=>$type,
             'deleted_flag'=>'N'
         );
+        if(empty($attach[0]['attach_url'])){
+            $this->where($cond)->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+            return true;
+        }
         $existId = $this->field('id')->where($cond)->select();
         $arrId=$this->packageId($existId);
         //编辑的传过来的id

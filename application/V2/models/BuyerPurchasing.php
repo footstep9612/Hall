@@ -45,23 +45,6 @@ class BuyerPurchasingModel extends PublicModel
     //创建采购计划
     public function createPurchase($purchase,$buyer_id,$created_by)
     {
-//        $info = $this -> showPurchase($buyer_id,$created_by);
-        //采购计划数据存在，则删除，再重新添加
-//        if(!empty($info)){
-//            $this->delPurchase($buyer_id,$created_by);
-//        }
-        $packageArr = array(
-//            'buyer_id', //采购商ID
-//            'purchasing_at',    //采购时间-date
-//            'purchasing_budget',    //采购预算
-//            'purchasing_plan',  //采购计划
-//            'created_by',   //创建人
-//            'created_at',   //创建时间
-//            'attach_name',   //采购计划附件名称
-//            'attach_url',   //采购计划附件url
-        );
-        $arr = [];
-        $result = [];
         $flag = true;
         foreach($purchase as $key => $value){
             if(empty($value['purchasing_at'])){
