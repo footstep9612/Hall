@@ -74,13 +74,16 @@ class BuyerBusinessModel extends PublicModel
             'created_by',   // 创建人
 //            'created_at' => date('Y-m-d H:i:s'),
             'product_type',    //产品类型-------业务基础信息
+            'Product_service_preference',    //产品服务偏好
+            'Origin_preference',    //原产地偏好
+            'Brand_preference',    //品牌偏好
             'purchasing_model',    //采购模式
             'purchasing_cycle',    //采购周期
             'cycle_remarks',    //采购周期写入时间
             'usage',  //使用情况
             'is_warehouse',  //是否有仓库
             'warehouse_address', //仓库地址
-            'competitor_info',   //竞争对手情况
+//            'competitor_info',   //竞争对手情况-------放入上下游
             'trade_terms',  //贸易术语-------------结算情况
             'settlement',    //结算方式
             'is_local_settlement',  //是否支持本地结算
@@ -95,21 +98,38 @@ class BuyerBusinessModel extends PublicModel
             $arr[$v] = $data[$v];
         }
         $arr['created_at'] = date('Y-m-d H:i:s');
-        //数据存在，删除，重新添加
-        $this->startTrans();    //开启事务：
-        $showRes = $this -> showBusiness($data['buyer_id'],$data['created_by']);
-        if(!empty($showRes)){
-            $this->delBusiness($data['buyer_id'],$data['created_by']);
+        if(empty($arr['net_at'])){
+            $arr['net_at']=null;
         }
-        //添加数据
-        $addRes = $this -> add($arr);
-        if($addRes){
-            $this->commit();
-            return true;
+        if(empty($arr['net_invalid_at'])){
+            $arr['net_invalid_at']=null;
+        }
+        if($data['is_edit'] == true){
+            //业务数据
+            $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
+            //里程碑事件
+            $event = new MilestoneEventModel();
+            $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+            //采购计划
+            $purchase = new BuyerPurchasingModel();
+            $purchaseRes = $purchase->updatePurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
+            if($addRes || $eventRes || $purchaseRes){
+                return true;
+            }
         }else{
-            $this->rollback();
-            return false;
+            //添加数据
+            $addRes = $this -> add($arr);
+            //里程碑事件
+            $event = new MilestoneEventModel();
+            $eventRes = $event->createMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+            //采购计划
+            $purchase = new BuyerPurchasingModel();
+            $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
+            if($addRes || $eventRes || $purchaseRes){
+                return true;
+            }
         }
+
     }
     //删除业务信息
     public function delBusiness($buyer_id,$created_by){
@@ -137,6 +157,9 @@ class BuyerBusinessModel extends PublicModel
         $fieldArr = array(
             'buyer_id', //客户id
             'product_type', //产品类型
+            'Product_service_preference', //产品服务偏好
+            'Origin_preference', //原产地偏好
+            'Brand_preference', //品牌偏好
             'purchasing_model', //采购模式
             'purchasing_cycle', //采购周期
             'cycle_remarks',    // 采购周期的备注时间

@@ -33,51 +33,10 @@ class BuyerbusinessController extends PublicController
             );
             $this -> jsonReturn($dataJson);
         }
-        //采购计划
-        if(!empty($data['purchase'])){
-            $purchase = new BuyerPurchasingModel();
-            $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            if($purchaseRes === false){
-                $dataJson = array(
-                    'code'=>1,
-                    'message'=>'业务信息创建成功，采购计划创建为空',
-                );
-                $this -> jsonReturn($dataJson);
-            }else{
-                $dataJson = array(
-                    'code'=>1,
-                    'message'=>'业务信息，采购计划，创建成功',
-                );
-                $this -> jsonReturn($dataJson);
-            }
-            //采购计划附件
-//            if(!empty($purchaseRes)){
-//                $purchase = new BuyerattachModel();
-//                $purchaseResult = $purchase->createBuyerPurchaseTable($purchaseRes,$data['buyer_id'],$data['created_by']);
-//                if($purchaseResult == false){
-//                    $dataJson = array(
-//                        'code'=>1,
-//                        'message'=>'业务信息，采购计划创建成功，采购计划附件为空',
-//                    );
-//                }else{
-//                    $dataJson = array(
-//                        'code'=>1,
-//                        'message'=>'业务信息，采购计划，采购计划附件创建成功',
-//                    );
-//                }
-//                $this -> jsonReturn($dataJson);
-//            }else{
-//                $dataJson = array(
-//                    'code'=>1,
-//                    'message'=>'业务信息，采购计划，创建成功',
-//                );
-//                $this -> jsonReturn($dataJson);
-//            }
-        }
         //提示仅业务信息创建成功
         $dataJson = array(
             'code'=>1,
-            'message'=>'业务信息创建成功,采购计划为空',
+            'message'=>'业务信息成功',
         );
         $this -> jsonReturn($dataJson);
 
@@ -93,11 +52,14 @@ class BuyerbusinessController extends PublicController
         $data['created_by'] = $created_by;
         $business = new BuyerBusinessModel();
         $businessRes = $business->businessList($data);
+        //采购计划
         $purchase = new BuyerPurchasingModel();
         $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);
-        if(!empty($purchaseRes)){
-            $businessRes ['purchase'] = $purchaseRes;
-        }
+        $businessRes ['purchase'] = $purchaseRes;
+        //里程碑事件
+        $event = new MilestoneEventModel();
+        $eventRes = $event->showMilestoneEvent($data['buyer_id'],$data['created_by']);
+        $businessRes ['milestone_event'] = $eventRes;
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',
