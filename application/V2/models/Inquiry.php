@@ -232,7 +232,11 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];    //报价状态
         }
-        
+
+        if (!empty($condition['buyer_inquiry_no'])) {
+            $where['buyer_inquiry_no'] = $condition['buyer_inquiry_no'];    //客户询单号
+        }
+
         if (!empty($condition['user_country'])) {
             $where['country_bn'] = ['in', $condition['user_country']];    //查看事业部询单角色国家
         }
