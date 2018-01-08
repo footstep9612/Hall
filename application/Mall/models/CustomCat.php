@@ -47,6 +47,28 @@ class CustomCatModel extends PublicModel
             return false;
         }
     }
+    /**
+     * 获取列表信息
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function listName($lang='en') {
+        $where = [
+            "deleted_flag" => 'N',
+            "lang" => $lang
+        ];
+        $res = $this->where($where)
+            ->field('cat_name,cat_no,lang')
+            ->select();
+        if($res) {
+            foreach($res as $item){
+                $arr[$item['lang']][] = $item;
+            }
+            return $arr;
+        }
+        return false;
+    }
 
     /**
      * 新增

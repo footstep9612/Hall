@@ -34,9 +34,12 @@ class CustomservicesController extends PublicController
          $model = new BuyerCustomModel();
          $res = $model->getlist($data, $limit);
          if (!empty($res)) {
+             foreach($res['data'] as $item){
+                 $arr['data'][$item['lang']][] = $item;
+             }
              $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
              $datajson['count'] = $res['count'];
-             $datajson['data'] = $res['data'];
+             $datajson['data'] = $arr['data'];
          } else {
              $datajson['code'] = ShopMsg::CUSTOM_FAILED;
              $datajson['data'] = "";
@@ -45,6 +48,24 @@ class CustomservicesController extends PublicController
 
          $this->jsonReturn($datajson);
      }
+
+    /**
+     * 获取服务类型列表
+     * @param mix $condition
+     * @author klp
+     */
+    public function catnameListAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
+        $catModel = new CustomCatModel();
+        $catInfo = $catModel->listName($lang);
+        if($catInfo) {
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+
+    }
 
     /**
      * 展示所有定制信息详情
