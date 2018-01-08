@@ -297,7 +297,7 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
         }
-        if (isset($data['source'])&&$data['source']='phone') {
+        if (isset($data['source'])&&$data['source']='mobile') {
             $data['source']=3;
         } else {
             $data['source']=2;
