@@ -196,11 +196,13 @@ class BuyerModel extends PublicModel {
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $cond .= ' buyer.is_build=0';
         }
-        if(!empty($data['source'])){  //客户来源===buy
-            if($data['source']==1){ //后台
-                $cond .= ' and buyer.created_by is not NULL';
-            }else{
-                $cond .= ' and buyer.created_by is NULL';
+        if (!empty($data['source'])) {
+            if ($data['source'] == 1) {
+                $cond .= ' And `erui_buyer`.`buyer`.source=1';
+            } else if ($data['source'] == 2) {
+                $cond .= ' And `erui_buyer`.`buyer`.source=2';
+            } else if ($data['source'] == 3) {
+                $cond .= ' And `erui_buyer`.`buyer`.source=3';
             }
         }
         if(!empty($data['buyer_level'])){  //客户等级===buy
@@ -1184,13 +1186,6 @@ EOF;
         }
         if (!empty($condition['created_by'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
-        }
-        if (!empty($condition['source'])) {
-            if ($condition['source'] == 1) {
-                $where .= ' And `erui_buyer`.`buyer`.created_by  > 0';
-            } else if ($condition['source'] == 2) {
-                $where .= ' And `erui_buyer`.`buyer`.created_by  is null';
-            }
         }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
