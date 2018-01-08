@@ -65,6 +65,7 @@ class LoginController extends PublicController {
             $jwt['show_name'] = $info['show_name'];
             $datajson['buyer_no'] = $buyer_info['buyer_no'];
             $datajson['email'] = $info['email'];
+            $datajson['country_bn'] = $info['country_bn'];
             $datajson['buyer_id'] = $info['buyer_id'];
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
