@@ -50,7 +50,7 @@ class BuyerCustomModel extends PublicModel
         $sql .= $str;
 
         $sql .= " LEFT JOIN `erui_buyer`.`buyer_agent` ON `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_mall`.`buyer_custom`.`buyer_id` ";
-        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
+        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`cat_no` = `erui_mall`.`buyer_custom`.`cat_no`";
         $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
 
         $sql_count = 'SELECT count(`erui_mall`.`buyer_custom`.`id`) as num ';
@@ -77,7 +77,9 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['email']) && !empty($condition['email'])) {
             $where .= ' And `erui_mall`.`buyer_custom`.`email` ="' . $condition['email'] . '"';
         }
-
+        if (isset($condition['lang']) && !empty($condition['lang'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`lang` ="' . strtolower($condition['lang']) . '"';
+        }
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;
