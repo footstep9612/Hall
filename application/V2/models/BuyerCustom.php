@@ -35,14 +35,14 @@ class BuyerCustomModel extends PublicModel
 
         $sql = 'SELECT `erui_mall`.`buyer_custom`.`id`, `erui_mall`.`buyer_custom`.`buyer_id`,
                  `erui_mall`.`buyer_custom`.`service_no`, `erui_mall`.`buyer_custom`.`title`,
-                 `erui_mall`.`buyer_custom`.`cat_id`, `erui_mall`.`buyer_custom`.`item_id`,
+                 `erui_mall`.`buyer_custom`.`cat_no`, `erui_mall`.`buyer_custom`.`item_no`,
                  `erui_mall`.`buyer_custom`.`content`, `erui_mall`.`buyer_custom`.`remarks`,
                  `erui_mall`.`buyer_custom`.`add_desc`, `erui_mall`.`buyer_custom`.`email`,
                  `erui_mall`.`buyer_custom`.`contact_name`, `erui_mall`.`buyer_custom`.`company`,
                  `erui_mall`.`buyer_custom`.`country_bn`, `erui_mall`.`buyer_custom`.`tel`,
                  `erui_mall`.`buyer_custom`.`status`, `erui_mall`.`buyer_custom`.`created_at`,
                  `erui_mall`.`buyer_custom`.`created_by`, `erui_mall`.`buyer_custom`.`updated_at`,
-                 `erui_mall`.`buyer_custom`.`updated_by`,';
+                 `erui_mall`.`buyer_custom`.`updated_by`, `erui_mall`.`buyer_custom`.`lang`,';
         $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
         $sql .= '`erui_buyer`.`buyer_agent`.`agent_id`,';
         $sql .= '`erui_sys`.`employee`.`name` as `agent_name`';
@@ -65,8 +65,11 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['company']) && !empty($condition['company'])) {
             $where .= " And `erui_mall`.`buyer_custom`.`company` like '%" . $condition['company'] . "%'";
         }
-        if (isset($condition['cat_id']) && !empty($condition['cat_id'])) {
-            $where .= ' And `erui_mall`.`buyer_custom`.`cat_id` = "' . $condition['cat_id'] .'"';
+        if (isset($condition['cat_no']) && !empty($condition['cat_no'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`cat_no` = "' . $condition['cat_no'] .'"';
+        }
+        if (isset($condition['cat_name']) && !empty($condition['cat_name'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`cat_name` = "' . $condition['cat_name'] .'"';
         }
         if (isset($condition['official_phone']) && !empty($condition['official_phone'])) {
             $where .= ' And `erui_mall`.`buyer_custom`.`official_phone`  = " ' . $condition['official_phone'] . '"';
@@ -145,12 +148,12 @@ class BuyerCustomModel extends PublicModel
         if (isset($create['title'])) {
             $arr['title'] = $create['title'];
         }
-        if (isset($create['cat_id'])) {
-            $arr['cat_id'] = trim($create['cat_id']);
+        if (isset($create['cat_no'])) {
+            $arr['cat_no'] = trim($create['cat_no']);
         }
-        if (isset($create['item_id'])) {
-            $arr['item_id'] = json_encode(trim($create['item_id']));
-        }
+        /*if (isset($create['item_no'])) {
+            $arr['item_no'] = json_encode(trim($create['item_no']));
+        }*/
         if (isset($create['content'])) {
             $arr['content'] = trim($create['content']);
         }
@@ -203,12 +206,12 @@ class BuyerCustomModel extends PublicModel
         if (isset($data['title'])) {
             $arr['title'] = $data['title'];
         }
-        if (isset($data['cat_id'])) {
-            $arr['cat_id'] = trim($data['cat_id']);
+        if (isset($data['cat_no'])) {
+            $arr['cat_no'] = trim($data['cat_no']);
         }
-        if (isset($data['item_id'])) {
-            $arr['item_id'] = json_encode(trim($data['item_id']));
-        }
+        /*if (isset($data['item_no'])) {
+            $arr['item_no'] = json_encode(trim($data['item_no']));
+        }*/
         if (isset($data['content'])) {
             $arr['content'] = trim($data['content']);
         }
