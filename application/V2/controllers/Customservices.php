@@ -34,9 +34,12 @@ class CustomservicesController extends PublicController
          $model = new BuyerCustomModel();
          $res = $model->getlist($data, $limit);
          if (!empty($res)) {
+             foreach($res['data'] as $item){
+                 $arr['data'][$item['lang']][] = $item;
+             }
              $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
              $datajson['count'] = $res['count'];
-             $datajson['data'] = $res['data'];
+             $datajson['data'] = $arr['data'];
          } else {
              $datajson['code'] = ShopMsg::CUSTOM_FAILED;
              $datajson['data'] = "";

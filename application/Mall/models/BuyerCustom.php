@@ -36,7 +36,7 @@ class BuyerCustomModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_id,service_no,title,cat_name,cat_no,item_no,content,remarks,add_desc';
+        $field = 'id,lang,buyer_id,service_no,title,cat_name,cat_no,item_no,content,remarks,add_desc';
         $field .= ',email,contact_name,company,country_bn,city,tel,status,created_by,created_at';
         return $this->field($field)
                      ->where($where)
