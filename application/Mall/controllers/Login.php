@@ -69,7 +69,7 @@ class LoginController extends PublicController {
             $datajson['buyer_id'] = $info['buyer_id'];
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
-            $datajson['country_bn'] = $info['country_bn'];
+            $datajson['country_bn'] = $buyer_info['country_bn'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
             $datajson['utime'] = 18000;
             redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);

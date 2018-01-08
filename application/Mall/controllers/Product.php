@@ -169,4 +169,28 @@ class ProductController extends PublicController {
         }
     }
 
+    /**
+     * 商品购物车结构信息
+     */
+    public function shoppingcarAction(){
+        $input = $this->getPut();
+        if(!isset($input['skus']) || empty($input['skus'])){
+            jsonReturn('', ErrorMsg::NOTNULL_SKU);
+        }
+        if (!isset($input['lang']) || empty($input['lang'])) {
+            jsonReturn('', ErrorMsg::NOTNULL_LANG);
+        }
+
+        $productModel = new ProductModel();
+        $result = $productModel->myShoppingCar($input);
+        if ($result !== false) {
+            jsonReturn($result);
+        } else {
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+
+
+
+    }
+
 }
