@@ -471,7 +471,7 @@ class BuyerModel extends PublicModel {
      <mobile>{$datajson['official_phone']}</mobile>
      <country_bn>{$datajson['country_name']}</country_bn>
      <email>{$datajson['official_email']}</email>
-     <biz_scope></biz_scope>
+     <biz_scope>{$datajson['biz_scope']}</biz_scope>
      <crm_code>{$datajson['buyer_code']}</crm_code>
      <first_name>{$datajson['first_name']}</first_name>
   </acc:InsertAccount>
@@ -487,8 +487,8 @@ EOF;
             )
         );
         $context = stream_context_create($opt);
-//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
-        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+//        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
         $str = file_get_contents($url,false,$context);  //得到客户crm数据
 
         $need = strstr($str,'<errorMsg>');
