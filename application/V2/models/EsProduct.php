@@ -2055,15 +2055,15 @@ class EsProductModel extends Model {
             'D' => 'material_cat_no',
             'E' => 'name',
             'F' => 'show_name',
-            'G' => 'material_cat',
-            'H' => 'show_cat',
-            'I' => 'bizline',
-            'J' => 'brand',
-            'K' => 'description',
-            'L' => 'tech_paras',
-            'M' => 'exe_standard',
-            'N' => 'warranty',
-            'O' => 'keywords',
+            'G' => 'bizline',
+            'H' => 'brand',
+            'I' => 'description',
+            'J' => 'tech_paras',
+            'K' => 'exe_standard',
+            'L' => 'warranty',
+            'M' => 'keywords',
+            'N' => 'material_cat',
+            'O' => 'show_cat',
             'P' => 'created_at',
         ];
     }
@@ -2182,6 +2182,9 @@ class EsProductModel extends Model {
         $objSheet->setTitle('SPU导出_' . ($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
         $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
+        $objSheet->setCellValue("N", '物料分类');
+        $objSheet->setCellValue("O", '展示分类');
+        $objSheet->setCellValue("P", '创建时间');
         $objSheet->setCellValue("Q1", '审核状态');
         $keys = $this->_getKeys();
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
