@@ -994,7 +994,7 @@ class ExcelmanagerController extends PublicController {
 
         $inquiryCheckLog = new InquiryCheckLogModel();
 
-        $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,b.created_at inquiry_created_at,a.created_at,a.created_by,a.op_note,a.out_node";
+        $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,b.created_at inquiry_created_at,a.created_at,a.created_by,a.op_note,a.in_node";
         $where = "b.deleted_flag='N' AND a.action='REJECT' ";
 
 
@@ -1017,7 +1017,7 @@ class ExcelmanagerController extends PublicController {
             $item['country_name'] = $country->where(['bn'=>trim($item['country_bn']),'lang'=>'zh'])->getField('name');
 
             $item['created_by'] = $employee->where(['id'=>$item['created_by']])->getField('name');
-            $item['out_node'] = $this->setNode($item['out_node']);
+            $item['in_node'] = $this->setNode($item['in_node']);
         }
 
         return $data;
@@ -1101,7 +1101,7 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("E".$startRow, $v['agent']);
                 $objSheet->setCellValue("F".$startRow, $v['org_name']);
                 $objSheet->setCellValue("G".$startRow, $v['inquiry_created_at']);
-                $objSheet->setCellValue("H".$startRow, $v['out_node']);
+                $objSheet->setCellValue("H".$startRow, $v['in_node']);
                 $objSheet->setCellValue("I".$startRow, $v['adhoc_request']);
                 $objSheet->setCellValue("J".$startRow, $v['created_by']);
                 $objSheet->setCellValue("K".$startRow, $v['created_at']);
