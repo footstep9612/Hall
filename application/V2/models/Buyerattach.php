@@ -138,12 +138,12 @@ class BuyerattachModel extends PublicModel {
      * 创建财务报表,多文件添加
      * wangs
      */
-    public function createBuyerFinanceTableArr($attach,$buyer_id,$created_by){
+    public function createBuyerFinanceTableArr($attach,$type,$buyer_id,$created_by){
         $flag=true;
         foreach($attach as $key => $value){
             $value['buyer_id']=$buyer_id;
             $value['created_by']=$created_by;
-            $value['attach_group']='FINANCE';
+            $value['attach_group']=$type;
             $value['created_at']=date('Y-m-d H:i:s');
             $res = $this->add($value);
             if($flag && !$res){
@@ -156,18 +156,25 @@ class BuyerattachModel extends PublicModel {
             return false;
         }
     }
-
+    /**
+     * @param $attach   公司组织人员架构arr
+     * @param $buyer_id
+     * @param $created_by
+     */
+//    public function createOrgChartArr($attach,$buyer_id,$created_by){
+//
+//    }
     /**
      * @param $attach财务报表附件arr
      * @param $buyer_id客户id
      * @param $created_by创建人
      */
-    public function updateBuyerFinanceTableArr($attach,$buyer_id,$created_by){
+    public function updateBuyerFinanceTableArr($attach,$type,$buyer_id,$created_by){
         //财务表中记录的id
         $cond = array(
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by,
-            'attach_group'=>'FINANCE',
+            'attach_group'=>$type,
             'deleted_flag'=>'N'
         );
         $existId = $this->field('id')->where($cond)->select();
@@ -185,7 +192,7 @@ class BuyerattachModel extends PublicModel {
             if(empty($value['id'])){
                 $value['buyer_id']=$buyer_id;
                 $value['created_by']=$created_by;
-                $value['attach_group']='FINANCE';
+                $value['attach_group']=$type;
                 $value['created_at']=date('Y-m-d H:i:s');
                 $res = $this->add($value);
                 if($flag && !$res){
@@ -224,23 +231,23 @@ class BuyerattachModel extends PublicModel {
             'attach_group'=>'FINANCE',
             'deleted_flag'=>'N',
         );
-            $exist = $this->where($cond)->find();
-            if(!empty($exist)){
-                $this->where($cond)->save(array('deleted_flag'=>'Y'));
-            }
-            $arr = array(
-                'buyer_id'=>$buyer_id,
-                'attach_group'=>'FINANCE',
-                'attach_name'=>$attach_name,
-                'attach_url'=>$attach_url,
-                'created_by'=>$created_by,
-                'created_at'=>date('Y-m-d H:i:s'),
-            );
-            $res = $this -> add($arr);
-            if($res){
-                return true;
-            }
-            return false;
+        $exist = $this->where($cond)->find();
+        if(!empty($exist)){
+            $this->where($cond)->save(array('deleted_flag'=>'Y'));
+        }
+        $arr = array(
+            'buyer_id'=>$buyer_id,
+            'attach_group'=>'FINANCE',
+            'attach_name'=>$attach_name,
+            'attach_url'=>$attach_url,
+            'created_by'=>$created_by,
+            'created_at'=>date('Y-m-d H:i:s'),
+        );
+        $res = $this -> add($arr);
+        if($res){
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -296,12 +303,12 @@ class BuyerattachModel extends PublicModel {
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
     }
     //按条件客户id，创建人,删除表示，查询附件
-    public function showBuyerExistAttach($buyer_id,$created_by,$deleted_flag='N'){
+    public function showBuyerExistAttach($type,$buyer_id,$created_by,$deleted_flag='N'){
         $cond = array(
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by,
             'deleted_flag'=>$deleted_flag,
-            'attach_group'=>'FINANCE'
+            'attach_group'=>$type
         );
         return $this->field('id,attach_name,attach_url')
             ->where($cond)

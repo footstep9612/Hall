@@ -230,7 +230,6 @@ class BuyercontactModel extends PublicModel
             $strId=implode(',',$delId);
             $this->where("id in ($strId)")->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
         }
-
         $validArr = array(
             'name', //联系人姓名+
             'title', //联系人职位+
@@ -242,21 +241,15 @@ class BuyercontactModel extends PublicModel
             'role', //角色
             'social_relations', //社会关系
         );
-        $update = [];
         foreach($contact as $key => $value){
-            foreach($validArr as $v){
-                if(!empty($value[$v])){
-                    $update[$key][$v]=$value[$v];
-                    $update[$key]['id']=$value['id'];
-                    $update[$key]['buyer_id']=$buyer_id;
-                    $update[$key]['created_by']=$created_by;
-                    $update[$key]['created_at']=date('Y-m-d H:i:s');
-                }
-            }
-            if(!empty($update[$key]['id'])){
-                $this->where(array('id'=>$value['id']))->save($update[$key]);   //编辑
+            $value['buyer_id']=$buyer_id;
+            $value['created_by']=$created_by;
+            $value['created_at']=date('Y-m-d H:i:s');
+            if(!empty($value['id'])){
+                $this->where(array('id'=>$value['id']))->save($value);   //编辑
             }else{
-                $this->add($update[$key]);  //添加
+                unset($value['id']);
+                $this->add($value);  //添加
             }
         }
         return true;

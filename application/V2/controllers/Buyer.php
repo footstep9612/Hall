@@ -828,10 +828,20 @@ class BuyerController extends PublicController {
         $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
         //获取财务报表
         $attach = new BuyerattachModel();
-        $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
-        if(!empty($finance)) {
+        $finance = $attach->showBuyerExistAttach('FINANCE',$data['buyer_id'],$data['created_by']);
+        if(!empty($finance)){
             $buerInfo['finance_attach'] = $finance;
+        }else{
+            $buerInfo['finance_attach'] = array();
         }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART',$data['buyer_id'],$data['created_by']);
+        if(!empty($org_chart)){
+            $buerInfo['org_chart'] = $org_chart;
+        }else{
+            $buerInfo['org_chart'] = array();
+        }
+
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();

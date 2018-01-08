@@ -172,7 +172,6 @@ class IndustrychainModel extends PublicModel
                 $arrId[]=$v['id'];
             }
         }
-        print_r($arrId);die;
         foreach($data as $k => $v){
             if(!empty($v['id'])){
                 if(in_array($v['id'],$arrId)){
@@ -194,7 +193,6 @@ class IndustrychainModel extends PublicModel
             }
 
         }
-        print_r($v);die;
     }
     /**
      * @param $data

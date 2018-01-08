@@ -1346,24 +1346,23 @@ EOF;
 
         if($data['base_info']['is_edit'] == true){  //财务报表编辑,联系人编辑
             //编辑财务报表
-            if(!empty($data['base_info']['finance_attach'])){
-                $attach = new BuyerattachModel();
-                $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],$data['base_info']['buyer_id'],$data['created_by']);
-            }else{  //删除所有财务报表
-                $attach = new BuyerattachModel();
-                $attach -> delBuyerFinanceTable($data['base_info']['buyer_id'],$data['created_by']);
-            }
+            $attach = new BuyerattachModel();
+            $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
+            //公司人员组织架构
+            $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
             //编辑联系人必填
-            if(!empty($data['base_info']['finance_attach'])){
-                $attach = new BuyercontactModel();
-                $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-            }
+            $attach = new BuyercontactModel();
+            $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
             return true;
         }else{
             //创建财务报表附件
-            if(!empty($data['base_info']['finance_attach'])){
-                $attach = new BuyerattachModel();
-                $attach -> createBuyerFinanceTableArr($data['base_info']['finance_attach'],$data['base_info']['buyer_id'],$data['created_by']);
+            $attach = new BuyerattachModel();
+            if(!empty($data['base_info']['finance_attach'][0]['attach_url'])){
+                $attach -> createBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
+            }
+            //创建公司人员组织架构
+            if(!empty($data['base_info']['org_chart'][0]['attach_url'])){
+                $attach -> createBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
