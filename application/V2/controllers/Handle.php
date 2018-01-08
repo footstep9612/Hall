@@ -261,4 +261,25 @@ class HandleController extends Yaf_Controller_Abstract
         return $nodeName;
     }
 
+    public function testAction()
+    {
+
+        $vowels = "o";
+
+        $onlyconsonants = str_replace($vowels, "", "Hello World of PHP");
+
+        $content = "<a href='http://v.youku.com/v_show/id_XMzI5OTAwNzgyNA==.html?spm=a2hww.20027244.m_250003.5~5!3~5~5~A#paction'></a>";
+
+        $content = str_replace("<a href='http://v.youku.com/", "view.php?url=http://v.youku.com/", $content);
+
+        // view.php?url=http://v.youku.com/v_show/id_XMzI5OTAwNzgyNA==.html?spm=a2hww.20027244.m_250003.5~5!3~5~5~A#paction'>
+
+        //$content = str_replace('<a href="http://v.youku.com/','<a href="view.php?url=http://v.youku.com/',$content);
+
+
+
+        p($content);
+
+
+    }
 }
