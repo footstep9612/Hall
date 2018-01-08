@@ -742,8 +742,8 @@ class EsProductModel extends Model {
                                     . ',max(created_at) as max_created_at'
                                     . ' ,max(updated_by) as min_updated_by'
                                     . ',max(updated_at) as max_updated_at'
-                                    . ' ,max(checked_by) as min_checked_by'
-                                    . ' ,max(checked_by) as min_checked_at')
+                                    . ' ,max(checked_by) as max_checked_by'
+                                    . ' ,max(checked_by) as max_checked_at')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('spu')->select();
             $ret = [];
@@ -980,15 +980,15 @@ class EsProductModel extends Model {
         }
         if (isset($onshelf_flags[$id])) {
             $body['onshelf_flag'] = 'Y';
-            if ($onshelf_flags[$id]['checked_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['checked_by'];
-            } elseif ($onshelf_flags[$id]['updated_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['updated_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['updated_by'];
-            } elseif ($onshelf_flags[$id]['created_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['created_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['created_by'];
+            if ($onshelf_flags[$id]['max_checked_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_checked_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_checked_at'];
+            } elseif ($onshelf_flags[$id]['max_updated_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_updated_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
+            } elseif ($onshelf_flags[$id]['max_created_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_by'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';
@@ -2192,9 +2192,10 @@ class EsProductModel extends Model {
         $objSheet->setCellValue("S1", '审核状态');
         $objSheet->getStyle("S1")->getFont()->setBold(true);    //粗体
         $keys = $this->_getKeys();
+
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
             'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
-            'status', 'bizline', 'created_at', 'material_cat', 'show_cats'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
+            'status', 'bizline', 'created_at', 'material_cat', 'show_cats', 'checked_at', 'onshelf_at'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
 
         foreach ($result as $j => $item) {
             foreach ($keys as $letter => $key) {

@@ -555,10 +555,10 @@ class EsGoodsModel extends Model {
             $onshelf_flags = $this->table('erui_goods.show_cat_goods')
                             ->field('sku,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
-                                    . ',max(updated_by) as min_updated_by'
+                                    . ',max(updated_by) as max_updated_by'
                                     . ',max(updated_at) as max_updated_at'
-                                    . ',max(checked_by) as min_checked_by'
-                                    . ',max(checked_by) as min_checked_at')
+                                    . ',max(checked_by) as max_checked_by'
+                                    . ',max(checked_by) as max_checked_at')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('sku')->select();
             $ret = [];
@@ -866,15 +866,15 @@ class EsGoodsModel extends Model {
         if (isset($onshelf_flags[$id])) {
 
             $body['onshelf_flag'] = 'Y';
-            if ($onshelf_flags[$id]['checked_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['checked_by'];
-            } elseif ($onshelf_flags[$id]['updated_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['updated_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['updated_by'];
-            } elseif ($onshelf_flags[$id]['created_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['created_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['created_by'];
+            if ($onshelf_flags[$id]['max_checked_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_checked_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_checked_at'];
+            } elseif ($onshelf_flags[$id]['max_updated_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_updated_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
+            } elseif ($onshelf_flags[$id]['max_created_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_by'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';
