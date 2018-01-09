@@ -733,8 +733,7 @@ class ExcelimportandexportController extends PublicController {
             foreach ($templetData as $data) {
                 if ($data[0] != '') {
                     // 生成的商品文件夹名称
-                    $goodsFolder = $this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[0]));
-                    $goodsFolder = mb_substr($goodsFolder, 0, 60, 'GBK');
+                    $goodsFolder = $this->_leftSubGbk($this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[0])), 60);
                     // 商品目录
                     $goodsDir = $this->_addSlash($toolMallDir) . $goodsFolder;
                     $this->_createDir($goodsDir);
@@ -845,8 +844,7 @@ class ExcelimportandexportController extends PublicController {
             foreach ($templetData as $data) {
                 if ($data[1] != '') {
                     // 生成的商品文件夹名称
-                    $goodsFolder = $this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[1]));
-                    $goodsFolder = mb_substr($goodsFolder, 0, 60, 'GBK');
+                    $goodsFolder = $this->_leftSubGbk($this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[1])), 60);
                     // 商品目录
                     $goodsDir = $this->_addSlash($yunFangBaoDir) . $goodsFolder;
                     $this->_createDir($goodsDir);
@@ -1281,18 +1279,18 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _downloadFile($url, $saveDir, $fileName) {
         $saveDir = $this->_trim($saveDir);
-        if ($saveDir == '') $saveDir = '.';
-        $this->_createDir($saveDir);
-        $saveFile = $this->_addSlash($saveDir) . $fileName;
-        $file = fopen ($url, 'rb');
-        if ($file) {
-            $newf = fopen($saveFile, 'wb');
-            if ($newf) {
-                $size = 1024 * 8;
-                while (!feof($file)) fwrite($newf, fread($file, $size), $size);
-                fclose($newf);
+        if ($this->_createDir($saveDir)) {
+            $saveFile = $this->_addSlash($saveDir) . $fileName;
+            $file = fopen ($url, 'rb');
+            if ($file) {
+                $newf = fopen($saveFile, 'wb');
+                if ($newf) {
+                    $size = 1024 * 8;
+                    while (!feof($file)) fwrite($newf, fread($file, $size), $size);
+                    fclose($newf);
+                }
+                fclose($file);
             }
-            fclose($file);
         }
     }
     
@@ -1327,7 +1325,7 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
-     * @desc 替换非目录字符为下划线
+     * @desc 替换空格和非目录字符为下划线
      *
      * @param string $str 需处理的字符串
      * @return string
@@ -1335,7 +1333,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _replaceToline($str) {
-        return preg_replace('/[\\\\\/:*?"<>|\r\n]/', '_', $str);
+        return preg_replace('/[\\\\\/:*?"<>|\s\r\n]/', '_', $str);
     }
     
     /**
@@ -1352,6 +1350,19 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc GBK编码从左端开始截取字符串,如果长度不够原样返回
+     *
+     * @param string $str 需截取的字符串
+     * @param int $length 长度
+     * @return string
+     * @author liujf
+     * @time 2018-01-09
+     */
+    private function _leftSubGbk($str, $length) {
+        return is_string($str) && is_int($length) && mb_strlen($str, 'GBK') > $length ? mb_substr($str, 0, $length, 'GBK') : $str;
+    }
+    
+    /**
      * @desc 创建目录
      *
      * @param string $path 目录路径
@@ -1360,7 +1371,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _createDir($path) {
-        if (!is_dir($path)) return mkdir($path, 0777, true);
+        return is_dir($path) ?  true : mkdir($path, 0777, true);
     }
     
     /**
