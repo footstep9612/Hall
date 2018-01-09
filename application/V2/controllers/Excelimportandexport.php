@@ -765,7 +765,7 @@ class ExcelimportandexportController extends PublicController {
                         ['value' => ''],
                         ['value' => $data[2]],
                         ['value' => ''],
-                        ['value' => '7'],
+                        ['value' => ''],
                         ['value' => '1'],
                         ['value' => $data[4]],
                         ['value' => '包'],
@@ -821,7 +821,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-08
      */
     public function createYunFangBaoFilesAction() {
-        //$this->getPut();
+        $this->getPut();
         $date = date('YmdHis');
         // 云防爆商品文件夹名称
         $yunFangBaoFolder = $this->_utf8ToGbk('云防爆商品');
@@ -843,7 +843,7 @@ class ExcelimportandexportController extends PublicController {
             $spuDataList = $skuDataList = [];
             $skuDataList[0] = $this->_getFirstSkuData();
             foreach ($templetData as $data) {
-                if ($data[0] != '') {
+                if ($data[1] != '') {
                     // 生成的商品文件夹名称
                     $goodsFolder = $this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[1]));
                     $goodsFolder = mb_substr($goodsFolder, 0, 60, 'GBK');
@@ -1118,7 +1118,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _isTemplet($file) {
-        return preg_match('/^.*templet\d*\.xls(x)?$/i', $file) ? true : false;
+        return preg_match('/^.*templet(_\d+|\d*)\.xls(x)?$/i', $file) ? true : false;
     }
     
     /**
@@ -1342,12 +1342,13 @@ class ExcelimportandexportController extends PublicController {
      * @desc 编码UTF-8转GBK
      *
      * @param string $str 需转换的字符串
-     * @return string
+     * @param bool $ignore 是否忽略不能转换的字符
+     * @return mixed
      * @author liujf
      * @time 2018-01-07
      */
-    private function _utf8ToGbk($str) {
-        return iconv('UTF-8', 'GBK', $str);
+    private function _utf8ToGbk($str, $ignore = false) {
+        return iconv('UTF-8', 'GBK//' . ($ignore === true ?  'IGNORE' : 'TRANSLIT'), $str);
     }
     
     /**
