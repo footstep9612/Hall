@@ -414,9 +414,8 @@ class BuyerAgreementModel extends PublicModel
             //附件
             $id = $agree['id'];
             $attach = new AgreementAttachModel();
-            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->find();
-            $agree['attach_name'] = $attachInfo['attach_name'];
-            $agree['attach_url'] = $attachInfo['attach_url'];
+            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->select();
+            $agree['agree_attach'] = $attachInfo;
             //组织
             $org = new OrgModel();
             $orgInfo = $org->getNameById($agree['org_id']);

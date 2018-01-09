@@ -47,7 +47,7 @@ class BuyeragreementController extends PublicController
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
-        if(empty($data['attach_name']) || empty($data['attach_url'])){
+        if(empty($data['agree_attach'][0]['attach_url'])){
             $dataJson['code'] = 0;
             $dataJson['message'] = '请选择协议附件';
             $this -> jsonReturn($dataJson);
@@ -66,17 +66,13 @@ class BuyeragreementController extends PublicController
         }
         $agree = new BuyerAgreementModel();
 
-        $agreement_id = $agree->createAgree($data);
+        $agreement_id = $agree->createAgree($data); //框架协议创建成功
         if(is_numeric($agreement_id)){
-            $data['agreement_id'] = $agreement_id;
             $attach = new AgreementAttachModel();
-            $attachRes = $attach->createAgreeAttach($data['agree_attach']);
+            $attachRes = $attach->createAgreeAttach($data['agree_attach'],$agreement_id,$created_by);
             if($attachRes){
                 $dataJson['code'] = 1;
                 $dataJson['message'] = '协议，附件，创建成功';
-            }else{
-                $dataJson['code'] = 0;
-                $dataJson['message'] = '创建协议成功，附件创建为空';
             }
             $this -> jsonReturn($dataJson);
         }elseif ($agreement_id !== false && $agreement_id !== true && $agreement_id !== 'exsit'){

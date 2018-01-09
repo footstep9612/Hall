@@ -12,18 +12,14 @@ class AgreementAttachModel extends PublicModel {
         parent::__construct();
     }
     //创建框架协议上传的附件
-    public function createAgreeAttach($data){
-        $arr['agreement_id'] = $data['agreement_id'];
-        $arr['attach_name'] = $data['attach_name'];
-        $arr['attach_url'] = $data['attach_url'];
-        $arr['created_by'] = $data['created_by'];
-        $arr['created_at'] = date('Y-m-d H:i:s');
-        $res = $this -> add ($arr);
-        if($res){
-            return true;
-        }else{
-            return false;
+    public function createAgreeAttach($agree,$agreement_id,$created_by){
+        foreach($agree as $key => $value){
+            $value['agreement_id']=$agreement_id;
+            $value['created_by'] = $created_by;
+            $value['created_at'] = date('Y-m-d H:i:s');
+            $this -> add ($value);
         }
+        return true;
     }
     //保存编辑协议附件数据
     public function updateAgreeAttach($id,$data){
