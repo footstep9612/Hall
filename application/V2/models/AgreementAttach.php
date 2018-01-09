@@ -22,24 +22,37 @@ class AgreementAttachModel extends PublicModel {
         return true;
     }
     //保存编辑协议附件数据
-    public function updateAgreeAttach($id,$data){
-        $arr['agreement_id'] = $id;
-        $arr['attach_name'] = $data['attach_name'];
-        $arr['attach_url'] = $data['attach_url'];
-        $arr['created_by'] = $data['created_by'];
-        $arr['created_at'] = date('Y-m-d H:i:s');
-        $this->startTrans();    //开启事务
-        $exist = $this->where(array('agreement_id'=>$id))->find();
-        if($exist){
-            $this->where(array('agreement_id'=>$id))->save(array('deleted_flag'=>'Y'));
+    public function updateAgreeAttach($agree,$agreement_id,$created_by){
+        $cond=array(
+            'agreement_id'=>$agreement_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>'N',
+        );
+        $exist=$this->field('id')->where($cond)->select();
+        $existId=array();
+        foreach($exist as $v){
+            $existId[]=$v['id'];
         }
-        $res = $this->add($arr);
-        if($res){
-            $this->commit();
-            return true;
-        }else{
-            $this->rollback();
-            return false;
+        $inputId=array();
+        foreach($agree as $v){
+            if(!empty($v['id'])){
+                $inputId[]=$v['id'];
+            }
         }
+        $delId=array_diff($existId,$inputId);
+        if(!empty($delId)){ //del
+            $strId=implode(',',$delId);
+            $this->where("id in ($strId)")->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+        }
+        foreach($agree as $k => $v){
+            if(empty($v['id'])){
+                $v['agreement_id']=$agreement_id;
+                $v['created_by']=$created_by;
+                $v['deleted_flag']='N';
+                $v['created_at']=date('Y-m-d H:i:s');
+                $this->add($v);
+            }
+        }
+        return true;
     }
 }

@@ -148,4 +148,15 @@ class EmployeeModel extends PublicModel {
         );
         return $arr;
     }
+
+    /**
+     * @param $id
+     * 根据id获取技术人员名称-王帅
+     */
+    public function getNameByid($id){
+        return $this->field('id,name')->where(array('id'=>$id))->find();
+    }
+    public function getIdByName($name){
+        return $this->field('id,name')->where(array('name'=>$name))->find();
+    }
 }

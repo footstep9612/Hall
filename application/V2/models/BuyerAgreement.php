@@ -67,7 +67,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportAgree($data){
-        $cond = $this->getAgreeCond($data,true);
+        $cond = $this->getAgreeCond($data);
         if(!empty($data['page'])){
             $page = $data['page'];
         }else{
@@ -125,14 +125,11 @@ class BuyerAgreementModel extends PublicModel
      * $excel bool true: excel 导出数据用; false:管理列表用
      * 框架协议首页列表的条件
      */
-    public function getAgreeCond($data = [],$excel=true){
-            $cond = ' 1=1';
-        if($excel !==true){ //展示列表
-            $cond .= " agree.created_by=".$data['created_by'];
-            if(!empty($data['buyer_id'])){  //客户id
-                $cond .= " and buyer_id='$data[buyer_id]'";
-            }
-        }
+    public function getAgreeCond($data = []){
+        $cond = ' 1=1';
+        if($data['is_agree'] == true){ //展示列表
+            $cond .= " and agree.created_by=".$data['created_by'];
+        }   //统计展示数据
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
@@ -243,8 +240,21 @@ class BuyerAgreementModel extends PublicModel
                 return false;
             }
             $country = new CountryModel();
+            $employee=new EmployeeModel();
             foreach($info as $k => $v){
                 $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+                if(!empty($v['agent'])){
+                    if(is_numeric($v['agent'])){
+                        $em_name=$employee->getNameByid($v['agent']);
+                        $info[$k]['agent']=$em_name['name'];
+                    }
+                }
+                if(!empty($v['technician'])){
+                    if(is_numeric($v['technician'])){
+                        $tech_name=$employee->getNameByid($v['technician']);
+                        $info[$k]['technician']=$tech_name['name'];
+                    }
+                }
             }
             if($excel==false){
                 return array('info'=>$info,'totalCount'=>$totalCount);
@@ -265,7 +275,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //框架协议管理入口
     public function manageAgree($data){
-        $cond = $this->getAgreeCond($data,false);
+        $cond = $this->getAgreeCond($data);
         if(!empty($data['page'])){
             $page = $data['page'];
         }else{
@@ -414,16 +424,34 @@ class BuyerAgreementModel extends PublicModel
             //附件
             $id = $agree['id'];
             $attach = new AgreementAttachModel();
-            $attachInfo = $attach->field('attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->select();
+            $attachInfo = $attach->field('id,attach_name,attach_url')->where(array('agreement_id'=>$id,'deleted_flag'=>'N'))->select();
             $agree['agree_attach'] = $attachInfo;
             //组织
-            $org = new OrgModel();
-            $orgInfo = $org->getNameById($agree['org_id']);
-            $agree['org_name'] = $orgInfo;
+//            $org = new OrgModel();
+//            $orgInfo = $org->getNameById($agree['org_id']);
+//            $agree['org_name'] = $orgInfo;
             //
-            $country = new CountryModel();
-            $countryInfo = $country->getCountryByBn($agree['country_bn'],'zh');
-            $agree['country_name'] = $countryInfo;
+//            $country = new CountryModel();
+//            $countryInfo = $country->getCountryByBn($agree['country_bn'],'zh');
+//            $agree['country_name'] = $countryInfo;
+        }
+        //技术人员名称
+        $employee=new EmployeeModel();
+        if(!empty($agree['agent'])){
+            if(is_numeric($agree['agent'])){
+                $em_name=$employee->getNameByid($agree['agent']);
+            }else{
+                $em_name=$employee->getIdByName($agree['agent']);
+            }
+            $agree['agent']=$em_name;
+        }
+        if(!empty($agree['technician'])){
+            if(is_numeric($agree['technician'])){
+                $tech_name=$employee->getNameByid($agree['technician']);
+            }else{
+                $tech_name=$employee->getIdByName($agree['technician']);
+            }
+            $agree['technician']=$tech_name;
         }
         return $agree;
     }

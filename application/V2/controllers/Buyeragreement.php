@@ -107,7 +107,7 @@ class BuyeragreementController extends PublicController
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
-        if(empty($data['attach_name']) || empty($data['attach_url'])){
+        if(empty($data['agree_attach'][0]['attach_url'])){
             $dataJson['code'] = 0;
             $dataJson['message'] = '请上传附件';
             $this -> jsonReturn($dataJson);
@@ -125,13 +125,10 @@ class BuyeragreementController extends PublicController
             $this -> jsonReturn($dataJson);
         }
         $attach = new AgreementAttachModel();
-        $attachRes = $attach->updateAgreeAttach($res,$data);
+        $attachRes = $attach->updateAgreeAttach($data['agree_attach'],$res,$created_by);
         if($attachRes){
             $dataJson['code'] = 1;
             $dataJson['message'] = '保存协议成功';
-        }else{
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '保存协议成功,附件为空';
         }
         $this -> jsonReturn($dataJson);
     }
