@@ -14,6 +14,9 @@ class BuyerBusinessModel extends PublicModel
             return false;
         }
         $info = $this -> showBusinessFind($data['buyer_id'],$data['created_by']);
+        if(!empty($info['net_subject'])){
+            $info['net_subject']=explode(',',$info['net_subject']);
+        }
         return $info;
     }
     //验证有效数据性
@@ -103,6 +106,9 @@ class BuyerBusinessModel extends PublicModel
         }
         if(empty($arr['net_invalid_at'])){
             $arr['net_invalid_at']=null;
+        }
+        if(!empty($arr['net_subject'])){    //入网主题可多选
+            $arr['net_subject']=implode(',',$arr['net_subject']);
         }
         if($data['is_edit'] == true){
             //业务数据
