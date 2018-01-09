@@ -593,6 +593,8 @@ class QuoteController extends PublicController{
                 }
                 if (!is_numeric($value['purchase_unit_price'])){
                     return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                }else if ($value['purchase_unit_price']<=0){
+                    return ['code'=>'-104','message'=>'采购单价必须大于0'];
                 }
                 //采购币种
                 if (empty($value['purchase_price_cur_bn'])){

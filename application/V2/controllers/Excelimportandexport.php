@@ -356,7 +356,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getTempletAndAttach($floder) {
         // 导入路径
-        $path = ($this->excelDir ? : $this->_getExcelDir()) . DS . $floder;
+        $path = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $floder;
         return $this->_fileClassify($path);
     }
     
@@ -406,7 +406,7 @@ class ExcelimportandexportController extends PublicController {
         if (is_dir($path)) {
             $dp = dir($path);
             while($file = $dp->read()) {
-                if($file != '.' && $file != '..') $this->_scanDir($path . DS . $file, $files);
+                if($file != '.' && $file != '..') $this->_scanDir($this->_addSlash($path) . $file, $files);
             }
             $dp->close();
         }
@@ -511,7 +511,7 @@ class ExcelimportandexportController extends PublicController {
             $no = intval(substr($orderNo, 8));
             $today = date('Ymd');
             for ($i = 0; $i < $size; $i++) {
-                $orderNoArr[] = $today . str_pad($no, 4, '0', STR_PAD_LEFT);
+                $orderNoArr[] = $this->_jointMark($today, $no);
                 $no++;
             }
         }
@@ -532,7 +532,7 @@ class ExcelimportandexportController extends PublicController {
             return $today . '0001';
         }
         $no = intval(substr($orderNo, 8)) + 1;
-        return $today . str_pad($no, 4, '0', STR_PAD_LEFT);
+        return $this->_jointMark($today, $no);
     }
     
     /**
@@ -612,14 +612,14 @@ class ExcelimportandexportController extends PublicController {
     /*----------------------------------------------------------------------导入和导出代码界线----------------------------------------------------------------------*/
     
     /**
-     * @desc 导出excel文件页面
+     * @desc 生成或导出数据文件页面
      *
      * @author liujf
      * @time 2017-12-21
      */
-    public function exportExcelAction() {
-        $this->getView()->assign("title", "数据导出");
-        $this->display('export');
+    public function createOrExportExcelAction() {
+        $this->getView()->assign("title", "生成或导出数据文件");
+        $this->display('createorexport');
     }
     
     /**
@@ -630,11 +630,9 @@ class ExcelimportandexportController extends PublicController {
      */
     public function exportQuoteAnalysisDataAction() {
         $this->getPut();
-    
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = ['neq', 'DRAFT'];
         $lang = 'zh';
-    
         $inquiryList = $this->inquiryModel->alias('a')
                                                                      ->field('a.id, a.serial_no, a.created_at, a.buyer_code, b.name AS country_name, c.name AS area_name, d.name AS org_name')
                                                                      ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
@@ -643,10 +641,8 @@ class ExcelimportandexportController extends PublicController {
                                                                      ->where($where)
                                                                      ->order('a.id DESC')
                                                                      ->select();
-    
         $date = date("Ymd");
         $fileName = "quote_analysis-$date.xlsx";
-    
         $titleList = [
             '流程编码',
             '询价时间',
@@ -665,9 +661,7 @@ class ExcelimportandexportController extends PublicController {
             '物流最终报出价格的时间',
             '市场确认的时间',
         ];
-    
         $outData = [];
-    
         foreach ($inquiryList as $inquiry) {
             $nodeList = $this->inquiryCheckLogModel->field('in_node, out_node, op_note')->where(['inquiry_id' => $inquiry['id'], 'action' => 'REJECT'])->order('id DESC')->select();
             $nodeName = [];
@@ -684,7 +678,6 @@ class ExcelimportandexportController extends PublicController {
             $logiIssueTime = $this->inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'LOGI_DISPATCHING']))->order('id DESC')->getField('out_at');
             $logiQuoteTime = $this->inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'LOGI_QUOTING']))->order('id DESC')->getField('out_at');
             $marketTime = $this->inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'MARKET_CONFIRMING']))->order('id DESC')->getField('out_at');
-    
             $outData[] = [
                 ['value' => $inquiry['serial_no'], 'type' => 'string'],
                 ['value' => $inquiry['created_at'], 'type' => 'string'],
@@ -704,7 +697,6 @@ class ExcelimportandexportController extends PublicController {
                 ['value' => $marketTime, 'type' => 'string'],
             ];
         }
-    
         $this->_exportExcel($fileName, $titleList, $outData);
     }
     
@@ -715,36 +707,43 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     public function createToolMallFilesAction() {
+        //$this->getPut();
         $date = date('YmdHis');
         // 土猫商品文件夹名称
-        $folder = $this->_utf8ToGbk('土猫商品');
+        $toolMallFolder = $this->_utf8ToGbk('土猫商品');
+        // 商品图片文件夹名称
+        $goodsImgFolder = 'jpg';
+        // 商品介绍图片文件夹名称
+        $introduceImgFolder = $this->_utf8ToGbk('技术参数 中文');
         // 土猫商品生成目录
-        $toolMallDir = ($this->excelDir ? : $this->_getExcelDir()) . DS . $folder;
+        $toolMallDir = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $toolMallFolder;
         $this->_createDir($toolMallDir);
         // 获取模板文件
         $templetFiles = $this->_getTempletFiles($toolMallDir);
+        // 失败记录
+        $faile = [];
+        // 记录数
+        $count = 1;
         // 获取模板数据
         foreach ($templetFiles as $templetFile) {
             $templetData = $this->_trim(ExcelHelperTrait::ready2import($templetFile));
             array_shift($templetData);
-            $spuDataList = $skuDataList = $tmpArr = [];
-            $skuTitleList = $this->_getSkuTitleList();
-            $skuTitleList[0] = $skuTitleList[1] = $skuTitleList[15] = '';
-            foreach ($skuTitleList as $skuTitle) {
-                $tmpArr[] = ['value' => $skuTitle];
-            }
-            $skuDataList[0] = $tmpArr;
-            $i = 1;
+            $spuDataList = $skuDataList = [];
+            $skuDataList[0] = $this->_getFirstSkuData();
             foreach ($templetData as $data) {
                 if ($data[0] != '') {
                     // 生成的商品文件夹名称
-                    $goodsFolder = $this->_utf8ToGbk($this->_replaceToline($data[0]) . '_' . $date . '_' . $i);
-                    $i++;
+                    $goodsFolder = $this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[0]));
+                    $goodsFolder = mb_substr($goodsFolder, 0, 60, 'GBK');
                     // 商品目录
-                    $goodsDir = $toolMallDir . DS . $goodsFolder;
+                    $goodsDir = $this->_addSlash($toolMallDir) . $goodsFolder;
                     $this->_createDir($goodsDir);
+                    // 商品图片目录
+                    $goodsImgDir = $this->_addSlash($goodsDir) . $goodsImgFolder;
+                    // 商品介绍图片目录
+                    $introduceImgDir = $this->_addSlash($goodsDir) . $introduceImgFolder;
                     // 商品文件
-                    $goodsFile = $goodsDir . DS . $goodsFolder . '.xlsx';
+                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' .  $this->_utf8ToGbk('中文') . '.xlsx';
                     // 将生成的spu数据
                     $spuDataList[0] = [
                         ['value' => ''],
@@ -787,25 +786,143 @@ class ExcelimportandexportController extends PublicController {
                         ['value' => ''],
                         ['value' => ''],
                         ['value' => ''],
-                        ['value' => '申报要素'],
                         ['value' => ''],
                         ['value' => ''],
                         ['value' => ''],
                         ['value' => ''],
                         ['value' => ''],
-                        ['value' => ''],
-                        ['value' => ''],
-                        ['value' => $data[5]],
-                        ['value' => $data[2]],
                     ];
+                    
+                    /* 下载商品图片*/
+                    $goodsImgUrlList = $this->_trim(explode(',', $data[8]));
+                    $this->_downloadImg($goodsImgUrlList, $goodsImgDir, $goodsFolder, 'http:');
+    
+                    /* 下载商品介绍图片*/
+                    preg_match_all('/<img src="([^"]*)"/i', $data[11], $imgMatch);
+                    $introduceImgUrlList = $this->_trim($imgMatch[1]);
+                    $this->_downloadImg($introduceImgUrlList, $introduceImgDir, $goodsFolder, 'http:');
+                    
+                    /* 生成模板文件*/
                     $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
                     // 生成失败
-                    if (!$result) $this->jsonReturn(false);
+                    if (!$result) $faile[] = $count;
+                    $count++;
                 }
             }
         }
-        // 生成成功
-        $this->jsonReturn(true);
+        // 生成完成，返回失败的记录
+        $this->jsonReturn($faile ? ['faile' => $faile] : true);
+    }
+    
+    /**
+     * @desc 生成云防爆商品文件集
+     *
+     * @author liujf
+     * @time 2018-01-08
+     */
+    public function createYunFangBaoFilesAction() {
+        //$this->getPut();
+        $date = date('YmdHis');
+        // 云防爆商品文件夹名称
+        $yunFangBaoFolder = $this->_utf8ToGbk('云防爆商品');
+        // 商品图片文件夹名称
+        $goodsImgFolder = 'jpg';
+        // 云防爆商品生成目录
+        $yunFangBaoDir = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $yunFangBaoFolder;
+        $this->_createDir($yunFangBaoDir);
+        // 获取模板文件
+        $templetFiles = $this->_getTempletFiles($yunFangBaoDir);
+        // 失败记录
+        $faile = [];
+        // 记录数
+        $count = 1;
+        // 获取模板数据
+        foreach ($templetFiles as $templetFile) {
+            $templetData = $this->_trim(ExcelHelperTrait::ready2import($templetFile));
+            array_shift($templetData);
+            $spuDataList = $skuDataList = [];
+            $skuDataList[0] = $this->_getFirstSkuData();
+            foreach ($templetData as $data) {
+                if ($data[0] != '') {
+                    // 生成的商品文件夹名称
+                    $goodsFolder = $this->_utf8ToGbk($this->_jointMark('', $count, 5) . '_' . $date . '_' . $this->_replaceToline($data[1]));
+                    $goodsFolder = mb_substr($goodsFolder, 0, 60, 'GBK');
+                    // 商品目录
+                    $goodsDir = $this->_addSlash($yunFangBaoDir) . $goodsFolder;
+                    $this->_createDir($goodsDir);
+                    // 商品图片目录
+                    $goodsImgDir = $this->_addSlash($goodsDir) . $goodsImgFolder;
+                    // 商品文件
+                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' .  $this->_utf8ToGbk('中文') . '.xlsx';
+                    // 质保期
+                    preg_match('/(质保期[^月年]+(月|年))/', $data[3], $periodMatch);
+                    $guaranteePeriod = $periodMatch[1];
+                    // 供货周期
+                    preg_match('/\|供货周期:(\d+)天\|/', $data[6], $supplyMatch);
+                    $supplyCycle = intval($supplyMatch[1]) ? : '';
+                    // 将生成的spu数据
+                    $spuDataList[0] = [
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => $data[1]],
+                        ['value' => $data[1]],
+                        ['value' => ''],
+                        ['value' => '南阳云防爆'],
+                        ['value' => $data[3]],
+                        ['value' => $data[6]],
+                        ['value' => ''],
+                        ['value' => $guaranteePeriod],
+                        ['value' => ''],
+                    ];
+                    // 将生成的sku数据
+                    $skuDataList[1] = [
+                        ['value' => ''],
+                        ['value' => '1'],
+                        ['value' => ''],
+                        ['value' => $data[5]],
+                        ['value' => $data[2]],
+                        ['value' => $supplyCycle],
+                        ['value' => '1'],
+                        ['value' => ''],
+                        ['value' => '包'],
+                        ['value' => '1'],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                        ['value' => ''],
+                    ];
+    
+                    /* 下载商品图片*/
+                    $goodsImgUrlList = $this->_trim(explode(',', $data[4]));
+                    $this->_downloadImg($goodsImgUrlList, $goodsImgDir, $goodsFolder, 'http://image.ex12580.com');
+    
+                    /* 生成模板文件*/
+                    $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
+                    // 生成失败
+                    if (!$result) $faile[] = $count;
+                    $count++;
+                }
+            }
+        }
+        // 生成完成，返回失败的记录
+        $this->jsonReturn($faile ? ['faile' => $faile] : true);
     }
     
     /**
@@ -885,9 +1002,6 @@ class ExcelimportandexportController extends PublicController {
             '最小订货数量',
             '供应商供货价',
             '币种',
-            '长度（mm）',
-            '材质',
-            '重量（g）',
             '物流信息',
             '裸货尺寸长(mm)',
             '裸货尺寸宽(mm)',
@@ -907,9 +1021,50 @@ class ExcelimportandexportController extends PublicController {
             '监管条件',
             '境内货源地',
             '用途',
-            '品牌',
-            '型号',
         ];
+    }
+    
+    /**
+     * @desc 获取商品模板生成的第一条数据
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-01-08
+     */
+    private function _getFirstSkuData() {
+        $tmpArr = [];
+        $skuTitleList = $this->_getSkuTitleList();
+        $skuTitleList[0] = $skuTitleList[1] = $skuTitleList[12] = '';
+        foreach ($skuTitleList as $skuTitle) {
+            $tmpArr[] = ['value' => $skuTitle];
+        }
+        return $tmpArr;
+    }
+    
+    /**
+     * @desc 下载图片
+     *
+     * @param array $imgUrlList 图片地址列表
+     * @param string $saveDir 图片保存目录
+     * @param string $imgName 图片名称（不含文件扩展名）
+     * @param string $prefix 无http://字符时的地址连接前缀字符
+     * @author liujf
+     * @time 2018-01-08
+     */
+    private function _downloadImg($imgUrlList, $saveDir, $imgName, $prefix = '') {
+        if (is_array($imgUrlList)) {
+            $imgUrlList = $this->_trim($imgUrlList);
+            $i = 1;
+            foreach ($imgUrlList as $imgUrl) {
+                if ($imgUrl != '') {
+                    if (!preg_match('/^http:\/\/.*/i', $imgUrl)) $imgUrl = $prefix . $imgUrl;
+                    // 保存的图片名称
+                    $saveName =  $this->_jointMark($imgName, $i, 2, '_') . '.jpg';
+                    $i++;
+                    $this->_downloadFile($imgUrl, $saveDir, $saveName);
+                }
+            }
+        }
     }
     
     /**
@@ -922,6 +1077,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-06
      */
     private function _createExcelFile(&$objPHPExcel, $file) {
+        $objPHPExcel->setActiveSheetIndex(0);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         try {
             $objWriter->save($file);
@@ -945,7 +1101,7 @@ class ExcelimportandexportController extends PublicController {
             $dp = dir($path);
             while($file = $dp->read()) {
                 if($file != '.' && $file != '..') {
-                    if($this->_isTemplet($file)) $files[] = $path . DS . $file;
+                    if($this->_isTemplet($file)) $files[] = $this->_addSlash($path) . $file;
                 }
             }
             $dp->close();
@@ -1115,6 +1271,62 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc 下载远程文件到指定目录
+     *
+     * @param string $url 远程文件地址
+     * @param string $saveDir 文件保存目录
+     * @param string $fileName 保存的文件名称
+     * @author liujf
+     * @time 2018-01-08
+     */
+    private function _downloadFile($url, $saveDir, $fileName) {
+        $saveDir = $this->_trim($saveDir);
+        if ($saveDir == '') $saveDir = '.';
+        $this->_createDir($saveDir);
+        $saveFile = $this->_addSlash($saveDir) . $fileName;
+        $file = fopen ($url, 'rb');
+        if ($file) {
+            $newf = fopen($saveFile, 'wb');
+            if ($newf) {
+                $size = 1024 * 8;
+                while (!feof($file)) fwrite($newf, fread($file, $size), $size);
+                fclose($newf);
+            }
+            fclose($file);
+        }
+    }
+    
+    /**
+     * @desc 给字符串连接数字
+     *
+     * @param string $str 需处理的字符串
+     * @param string $input 拼接基础字符
+     * @param int $length 拼接的字符长度
+     * @param string $mark 连接符号
+     * @param string $pad 追加字符
+     * @param string $type 追加类型
+     * @return string
+     * @author liujf
+     * @time 2018-01-08
+     */
+    private function _jointMark($str, $input, $length = 4, $mark = '', $pad = '0', $type = STR_PAD_LEFT) {
+       return $str . $mark . str_pad($input, $length, $pad, $type);
+    }
+    
+    /**
+     * @desc 加上目录连接斜线
+     *
+     * @param string $dir 需处理的目录
+     * @return string
+     * @author liujf
+     * @time 2018-01-08
+     */
+    private function _addSlash($dir) {
+        if (!preg_match('/.*[\\\\\/]$/s', $dir)) $dir .= DS;
+        return $dir;
+    }
+    
+    /**
      * @desc 替换非目录字符为下划线
      *
      * @param string $str 需处理的字符串
@@ -1123,7 +1335,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _replaceToline($str) {
-        return preg_replace('/[\\\\\/:*?"<>|]/', '_', $str);
+        return preg_replace('/[\\\\\/:*?"<>|\r\n]/', '_', $str);
     }
     
     /**
@@ -1142,11 +1354,12 @@ class ExcelimportandexportController extends PublicController {
      * @desc 创建目录
      *
      * @param string $path 目录路径
+     * @return bool
      * @author liujf
      * @time 2018-01-07
      */
     private function _createDir($path) {
-        if (!is_dir($path)) mkdir($path, 0777, true);
+        if (!is_dir($path)) return mkdir($path, 0777, true);
     }
     
     /**

@@ -390,4 +390,77 @@ class ProductModel extends PublicModel {
         }
     }
 
+    /**
+     * 我的购物车
+     */
+    public function myShoppingCar($input=[]){
+        if(!isset($input) || empty($input) || !isset($input['skus']) || !isset($input['lang'])){
+            return false;
+        }
+        if(isset($input['type']) && $input['type']!==0 && !isset($input['country_bn'])){
+            return false;
+        }
+        try{
+            $goodsModel= new GoodsModel();
+            $goodsTable = $goodsModel->getTableName();
+            $result = $input['skus'];
+            if($result){
+                $skus = [];
+                $spus = [];
+                foreach($result as $index =>$item){
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
+
+                $goodsModel= new GoodsModel();
+                $goodsTable = $goodsModel->getTableName();
+                $productModel = new ProductModel();
+                $productTable =$productModel->getTableName();
+                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
+                    ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$input['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
+                $goodsAry = [];
+                foreach($goods as $r){
+                    $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
+                    if($input['type']){
+                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
+                    }
+                    $goodsAry[$r['sku']] = $r;
+                }
+
+                //库存
+                $stockAry = [];
+                if($input['type']) {
+                    $stockAry = $productModel->getSkuStockBySku( $skus , $input['country_bn'] , $input[ 'lang' ] );
+                }
+
+                //扩展属性
+                $gattrModel = new GoodsAttrModel();
+                $condition_attr = ['sku'=>['in', $skus], 'lang'=>$input['lang'], 'deleted_flag'=>'N'];
+                $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
+                $attrAry = [];
+                foreach($attrs as $attr){
+                    $attrAry[$attr['sku']] = json_decode($attr['spec_attrs'],true);
+                }
+
+                //图
+                $attachModel = new ProductAttachModel();
+                $attachs = $attachModel->getAttachBySpu( $spus );
+                $dataAttach = [''];
+                foreach ( $attachs as $r ) {
+                    if ( isset( $dataAttach[ $r[ 'spu' ] ] ) ) {
+                        if ( $r[ 'default_flag' ] == 'Y' ) {
+                            $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
+                        }
+                        continue;
+                    }
+                    $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
+                }
+            }
+            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
+            return false;
+        }
+    }
+
 }

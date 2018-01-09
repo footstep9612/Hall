@@ -160,7 +160,7 @@ class DownloadController extends PublicController {
         if (!empty($where['country_bn'])) {
             $map['buyer.country_bn'] = ['in', $where['country_bn'] ];
         }
-        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.buyer_code,`erui_buyer`.`buyer`.country_bn,buyer_level,`erui_buyer`.`buyer`.created_by,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
+        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.buyer_code,`erui_buyer`.`buyer`.country_bn,buyer_level,`erui_buyer`.`buyer`.source,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
             ->join('`erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id`', 'left')
             ->join('`erui_sys`.`employee` em on em.id=erui_buyer.buyer_agent.agent_id', 'left')
             ->where($map)
@@ -173,10 +173,12 @@ class DownloadController extends PublicController {
                 $data[$k]['buyer_level'] = '注册会员';
             }
             //用户来源
-            if (!empty($v['created_by'])){
-                $data[$k]['created_by'] = '后台注册';
-            }else{
-                $data[$k]['created_by'] = '门户注册';
+            if ($v['source']==1){
+                $data[$k]['source'] = '后台注册';
+            }elseif($v['source']==2){
+                $data[$k]['source'] = '门户注册';
+            }elseif($v['source']==3){
+                $data[$k]['source'] = '手机端注册';
             }
             //审核状态
             switch ($v['status']){
@@ -222,7 +224,7 @@ class DownloadController extends PublicController {
             $objSheet->setCellValue("B" . $rowNum, $v['buyer_code']);
             $objSheet->setCellValue("C" . $rowNum, $v['country_name']);
             $objSheet->setCellValue("D" . $rowNum, $v['buyer_level']);
-            $objSheet->setCellValue("E" . $rowNum, $v['created_by']);
+            $objSheet->setCellValue("E" . $rowNum, $v['source']);
             $objSheet->setCellValue("F" . $rowNum, $v['created_at']);
             $objSheet->setCellValue("G" . $rowNum, $v['status']);
 
