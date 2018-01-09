@@ -562,7 +562,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalOilFlag($list);
         $this->_setBizDespatching($list);
         $this->_setTotalPrice($list);
-        $this->_setTotalCalculatePrice($list);
+        // $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
     }
 
@@ -639,6 +639,57 @@ class SupplierInquiryModel extends PublicModel {
         ];
     }
 
+    /*
+     * 对应表
+     *
+     */
+
+    private function _getTotalKeys() {
+        return [
+            'B' => ['serial_no', '报价单号'],
+            'C' => ['country_name', '询价单位'],
+            'D' => ['market_area_name', '所属地区部'],
+            'E' => ['org_name', '事业部'],
+            'F' => ['ie_erui', '是否走易瑞'],
+            'G' => ['buyer_code', '客户名称或代码'],
+            'H' => ['project_basic_info', '客户及项目背景描述'],
+            'I' => ['name_zh', '品名中文'],
+            'J' => ['qty', '数量'],
+            'K' => ['unit', '单位'],
+            'L' => ['oil_flag', '油气or非油气'],
+            'M' => ['category', '产品分类'],
+            'N' => ['keruiflag', '是否科瑞设备用配件'],
+            'O' => ['bidflag', '是否投标'],
+            'P' => ['inflow_time', '转入日期'],
+            'Q' => ['quote_deadline', '需用日期'],
+            'R' => ['max_inflow_time', '澄清完成日期'],
+            'S' => ['bq_time', '事业部报出日期'],
+            'T' => ['ld_time', '物流接收日期'],
+            'U' => ['la_time', '物流报出日期'],
+            'V' => ['qs_time', '报出日期'],
+            'W' => ['quoted_time', '报价用时(小时)'],
+            'X' => [null, '获单主体单位)'],
+            'Y' => [null, '获取人)'],
+            'Z' => ['agent_name', '市场负责人'],
+            'AA' => ['biz_despatching', '事业部分单人'],
+            'AB' => ['quote_name', '商务技术部报价人'],
+            'AC' => ['check_org_name', '事业部负责人'],
+            'AD' => ['total_quote_price', '报价总价（元）'],
+            'AE' => ['purchase_price_cur_bn', '币种'],
+            'AF' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AG' => ['total_kg', '总重(kg)'],
+            'AH' => ['package_size', '包装体积(mm)'],
+            'AI' => ['package_mode', '包装方式'],
+            'AJ' => ['delivery_days', '交货期（天）'],
+            'AK' => ['period_of_validity', '有效期（天）'],
+            'AL' => ['trade_terms_bn', '贸易术语'],
+            'AM' => ['istatus', '最新进度及解决方案'],
+            'AN' => ['iquote_status', '报价后状态'],
+            'AO' => ['quote_notes', '备注'],
+            'AP' => ['reason_for_no_quote', '未报价分析'],
+        ];
+    }
+
     private function _createXls($list, $name = '导出的询报价单') {
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
         rmdir($tmpDir);
@@ -655,7 +706,11 @@ class SupplierInquiryModel extends PublicModel {
         $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
         $objSheet->setTitle('询报价单表');
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $keys = $this->_getKeys();
+        if ($name == '导出总行询单数据') {
+            $keys = $this->_getTotalKeys();
+        } else {
+            $keys = $this->_getKeys();
+        }
         $objSheet->setCellValue('A1', '序号');
         foreach ($keys as $rowname => $key) {
             $objSheet->setCellValue($rowname . '1', $key[1]);
@@ -716,30 +771,6 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
     }
-
-//    private function _setBizDespatching(&$list) {
-//
-//        $inquiry_check_log_model = new InquiryCheckLogModel();
-//        $employee_model = new EmployeeModel();
-//        $employee_table = $employee_model->getTableName(); //管理员表
-//        $country_employee_model = new CountryUserModel();
-//        $country_employee_table = $country_employee_model->getTableName();
-//        foreach ($list as $key => $item) {
-//            if ($item['inquiry_id']) {
-//                $biz_despatching = $inquiry_check_log_model->alias('icl')
-//                        ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
-//                        ->join($employee_table . ' e on e.id=icl.agent_id')
-//                        ->join($country_employee_table . ' ce on ce.employee_id=icl.agent_id')
-//                        ->where(['icl.inquiry_id' => $item['inquiry_id'],
-//                            'out_node' => 'BIZ_DISPATCHING',
-//                            'ce.country_bn' => $item['country_bn']
-//                        ])
-//                        ->group('icl.inquiry_id')
-//                        ->find();
-//                $list[$key]['biz_despatching'] = $biz_despatching['biz_despatching'];
-//            }
-//        }
-//    }
 
     private function _setBizDespatching(&$list) {
         $inquiry_ids = [];
@@ -1060,10 +1091,10 @@ class SupplierInquiryModel extends PublicModel {
             }
             $quote_model = new QuoteModel();
             $final_quote_model = new FinalQuoteModel();
-            $quotes = $quote_model->field('inquiry_id,purchase_cur_bn,total_logi_fee,total_quote_price')
+            $quotes = $quote_model->field('inquiry_id,total_logi_fee,total_quote_price,total_weight,package_volumn,package_mode,delivery_period,period_of_validity')
                     ->where($where)
                     ->select();
-            $final_quotes = $final_quote_model->field('inquiry_id,purchase_cur_bn,total_logi_fee,total_quote_price')
+            $final_quotes = $final_quote_model->field('inquiry_id,total_logi_fee,total_quote_price')
                     ->where($where)
                     ->select();
             $quoteprices = [];
@@ -1075,19 +1106,34 @@ class SupplierInquiryModel extends PublicModel {
                 $final_quoteprices[$final_quote['inquiry_id']] = $final_quote;
             }
             foreach ($arr as $key => $val) {
-                if (isset($final_quoteprices[$val['inquiry_id']]['total_quote_price']) && $final_quoteprices[$val['inquiry_id']]['total_quote_price']) {
+                if (isset($final_quoteprices[$val['inquiry_id']]['total_quote_price'])) {
                     $val['total_quote_price'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
-                    $val['purchase_price_cur_bn'] = isset($final_quoteprices[$val['inquiry_id']]['purchase_cur_bn']) ? $final_quoteprices[$val['inquiry_id']]['purchase_cur_bn'] : '';
+                    $val['purchase_price_cur_bn'] = 'USD';
                     $val['total_quoted_price_usd'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
-                } elseif (isset($quoteprices[$val['inquiry_id']]['total_quote_price']) && $quoteprices[$val['inquiry_id']]['total_quote_price']) {
+                } elseif (isset($quoteprices[$val['inquiry_id']]['total_quote_price'])) {
                     $val['total_quote_price'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
-                    $val['purchase_price_cur_bn'] = isset($quoteprices[$val['inquiry_id']]['purchase_cur_bn']) ? $quoteprices[$val['inquiry_id']]['purchase_cur_bn'] : '';
+                    $val['purchase_price_cur_bn'] = 'USD';
                     $val['total_quoted_price_usd'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
                 } else {
                     $val['total_quote_price'] = '';
                     $val['purchase_price_cur_bn'] = '';
                     $val['total_quoted_price_usd'] = '';
                 }
+
+                if (isset($quoteprices[$val['inquiry_id']]['total_weight'])) {
+                    $val['total_kg'] = $quoteprices[$val['inquiry_id']]['total_weight'];
+                    $val['package_size'] = isset($quoteprices[$val['inquiry_id']]['package_volumn']) ? $quoteprices[$val['inquiry_id']]['package_volumn'] : '';
+                    $val['package_mode'] = $quoteprices[$val['inquiry_id']]['package_mode'];
+                    $val['delivery_days'] = $quoteprices[$val['inquiry_id']]['delivery_period'];
+                    $val['period_of_validity'] = $quoteprices[$val['inquiry_id']]['period_of_validity'];
+                } else {
+                    $val['total_weight'] = '';
+                    $val['package_size'] = '';
+                    $val['package_mode'] = '';
+                    $val['delivery_days'] = '';
+                    $val['period_of_validity'] = '';
+                }
+
 
                 $arr[$key] = $val;
             }
