@@ -222,6 +222,7 @@ class EsProductModel extends Model {
             $country_bn = $condition['country_bn'] = 'China';
         }
 
+
         // $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
         $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
         $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
@@ -629,10 +630,10 @@ class EsProductModel extends Model {
         $show_cats = [];
         if (isset($ret['aggregations']['country_bn']['buckets'])) {
             foreach ($ret['aggregations']['country_bn']['buckets'] as $countrys) {
-
-                if ($countrys['key'] != $country_bn) {
-                    continue;
-                }
+//
+//                if ($countrys['key'] != $country_bn) {
+//                    continue;
+//                }
                 if (isset($countrys['cat_no2']['buckets'])) {
                     foreach ($countrys['cat_no2']['buckets'] as $cats) {
                         $show_cat_nos[] = $cats['key'];
@@ -660,12 +661,12 @@ class EsProductModel extends Model {
         }
 
         if ($show_cat_nos) {
-            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $lang;
+            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $country_bn . '_' . $lang;
             $newshowcats = json_decode(redisGet($catno_key), true);
             $newshow_cats = [];
             if (!$newshowcats) {
                 $showcatmodel = new ShowCatModel();
-                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false);
+                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false, $country_bn);
                 foreach ($showcats as $showcat) {
                     $newshow_cats[$showcat['cat_no']] = $showcat['name'];
                 }
