@@ -1265,6 +1265,7 @@ EOF;
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
             'is_oilgas'=>'是否油气',
+            'company_model'=>'公司性质',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
@@ -1411,7 +1412,8 @@ EOF;
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//有效期
-            'is_oilgas' =>$data['is_oilgas']//有效期
+            'is_oilgas' =>$data['is_oilgas'],   //是否油气
+            'company_model' =>$data['company_model']    //公司性质
         );
         //判断创建数据与编辑数据
         $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();
@@ -1427,6 +1429,8 @@ EOF;
             'type_remarks', //客户类型备注
 //            'is_oilgas', //是否油气
             'employee_count', //雇员数量
+            'sub_company_name', //子公司名称
+            'credit_level', //信用等级
         );
         foreach($data as $value){
             foreach($baseArr as $v){
