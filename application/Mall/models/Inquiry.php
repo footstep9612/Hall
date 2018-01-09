@@ -297,6 +297,7 @@ class InquiryModel extends PublicModel {
         $data['status'] = 'DRAFT';
         $data['quote_status'] = 'NOT_QUOTED';
         $data['created_at'] = $this->getTime();
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);
