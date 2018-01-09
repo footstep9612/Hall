@@ -1045,7 +1045,7 @@ class ExcelimportandexportController extends PublicController {
      * @param array $imgUrlList 图片地址列表
      * @param string $saveDir 图片保存目录
      * @param string $imgName 图片名称（不含文件扩展名）
-     * @param string $prefix 无http://字符时的地址连接前缀字符
+     * @param string $prefix 无http(s)://字符时的地址连接前缀字符
      * @author liujf
      * @time 2018-01-08
      */
@@ -1230,22 +1230,20 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-20
      */
     private function _getNextWord($prev = '') {
-        $prev = strtoupper(trim($prev));
-        if ($prev == '') return 'A';
+        $next = strtoupper(trim($prev));
+        if ($next == '') return 'A';
         $letterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         $flag = true; //是否全是A的标记
-        $tmpArr = str_split($prev);
-        for ($i = count($tmpArr) - 1; $i >= 0; $i--) {
-            if (in_array($tmpArr[$i], $letterArr)) {
-                $tmp = $this->_getNextVal($letterArr, $tmpArr[$i]);
-                $tmpArr[$i] = $tmp;
+        for ($i = strlen($next) - 1; $i >= 0; $i--) {
+            if (in_array($next[$i], $letterArr)) {
+                $tmp = $this->_getNextVal($letterArr, $next[$i]);
+                $next[$i] = $tmp;
                 if ($tmp != 'A') {
                     $flag = false;
                     break;
                 }
             } else return false;
         }
-        $next = implode($tmpArr);
         return $flag ? $next . 'A' : $next;
     }
     
@@ -1346,7 +1344,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _utf8ToGbk($str, $ignore = false) {
-        return iconv('UTF-8', 'GBK//' . ($ignore === true ?  'IGNORE' : 'TRANSLIT'), $str);
+        return iconv('UTF-8', 'GBK//' . ($ignore === true ? 'IGNORE' : 'TRANSLIT'), $str);
     }
     
     /**
