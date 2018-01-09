@@ -259,13 +259,10 @@ class ProductModel extends PublicModel {
 
 
                 $gaModel = new GoodsAttachModel();
-                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
                 if ($attachInfo) {
                     foreach ($attachInfo as $item) {
                         if (isset($attachs[$item['sku']])) {
-                            if ($item['default_flag'] = 'Y') {
-                                $attachs[$item['sku']] = $item;
-                            }
                             continue;
                         }
                         $attachs[$item['sku']] = $item;
@@ -274,17 +271,9 @@ class ProductModel extends PublicModel {
                 $paModel = new ProductAttachModel();
                 foreach($skuAry as $sku){
                     if(!isset($attachs[$sku])){
-                        $attachInfo = $paModel->field('spu,attach_url,attach_name')->where(['spu' => $result[$sku]['spu'], 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+                        $attachInfo = $paModel->field('spu,attach_url,attach_name')->where(['spu' => $result[$sku]['spu'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->find();
                         if ($attachInfo) {
-                            foreach ($attachInfo as $item) {
-                                if (isset($attachs[$sku])) {
-                                    if ($item['default_flag'] = 'Y') {
-                                        $attachs[$sku] = $item;
-                                    }
-                                    continue;
-                                }
-                                $attachs[$sku] = $item;
-                            }
+                            $attachs[$sku] = $attachInfo;
                         }
                     }
                 }
