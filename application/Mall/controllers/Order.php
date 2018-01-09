@@ -121,6 +121,7 @@ class OrderController extends PublicController {
                 $info['delivery_left'] = null;
             }
             $this->_setBuyerName($info);
+            $this->_setOrderCurrency($info); //获取订单的单位
             $this->_setOrderAttachOther($info, $order_id); //获取附件
             $this->_setOrderAttachPo($info, $order_id); //获取附件
             $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
@@ -182,6 +183,9 @@ class OrderController extends PublicController {
         $order_count = $order_goods_model->getCount($condition);
 
         if ($order_goods) {
+            /*foreach($order_goods as $item) {
+                $this->_setOrderCurrency($item); //获取商品的单位
+            }*/
             $this->_setinfos($order_goods);
             $this->setvalue('count', intval($order_count));
             $this->jsonReturn($order_goods);
@@ -459,6 +463,28 @@ class OrderController extends PublicController {
         } else {
             $info['show_name'] = '';
             $info['user_name'] = '';
+        }
+    }
+
+    /* 获取采购商信息
+   * @param int $order_id // 订单ID
+   * @author  zhongyg
+   * @date    2017-8-1 16:50:09
+   * @version V2.0
+   * @desc   订单
+   */
+
+    private function _setOrderCurrency(&$info) {
+        if ($info['currency_bn']) {
+            $currency_model = new CurrencyModel();
+            $order_currency = $currency_model->field('bn,symbol,name')->where(['bn'=>$info['currency_bn']])->find();
+            if (isset($order_currency['symbol'])) {
+                $info['symbol'] = $order_currency['symbol'];
+            } else {
+                $info['symbol'] = null;
+            }
+        } else {
+            $info['symbol'] = '';
         }
     }
 

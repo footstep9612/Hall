@@ -45,13 +45,15 @@ class BuyerCustomModel extends PublicModel
                  `erui_mall`.`buyer_custom`.`updated_by`, `erui_mall`.`buyer_custom`.`lang`,';
         $sql .= '`erui_mall`.`custom_cat`.`cat_name`,';
         $sql .= '`erui_buyer`.`buyer_agent`.`agent_id`,';
-        $sql .= '`erui_sys`.`employee`.`name` as `agent_name`';
+        $sql .= '`erui_sys`.`employee`.`name` as `agent_name`,';
+        $sql .= '`erui_dict`.`country`.`name` as `country`';
         $str = ' FROM ' . $this->g_table;
         $sql .= $str;
 
         $sql .= " LEFT JOIN `erui_buyer`.`buyer_agent` ON `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_mall`.`buyer_custom`.`buyer_id` ";
-        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`id` = `erui_mall`.`buyer_custom`.`cat_id`";
+        $sql .= " LEFT JOIN `erui_mall`.`custom_cat` ON `erui_mall`.`custom_cat`.`cat_no` = `erui_mall`.`buyer_custom`.`cat_no`";
         $sql .= " LEFT JOIN `erui_sys`.`employee` ON `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.`deleted_flag`='N'";
+        $sql .= " LEFT JOIN `erui_dict`.`country` ON `erui_dict`.`country`.`bn` = `erui_mall`.`buyer_custom`.`country_bn` AND `erui_dict`.`country`.`lang` = `erui_mall`.`buyer_custom`.`lang`";
 
         $sql_count = 'SELECT count(`erui_mall`.`buyer_custom`.`id`) as num ';
         $sql_count .= $str;
@@ -77,7 +79,12 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['email']) && !empty($condition['email'])) {
             $where .= ' And `erui_mall`.`buyer_custom`.`email` ="' . $condition['email'] . '"';
         }
-
+        if (isset($condition['lang']) && !empty($condition['lang'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`lang` ="' . strtolower($condition['lang']) . '"';
+        }
+        if (isset($condition['tel']) && !empty($condition['tel'])) {
+            $where .= ' And `erui_mall`.`buyer_custom`.`tel` REGEXP"([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$"';
+        }
         if ($where) {
             $sql .= $where;
             $sql_count .= $where;

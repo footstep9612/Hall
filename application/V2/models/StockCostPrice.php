@@ -47,6 +47,7 @@ class StockCostPriceModel extends PublicModel {
                                 . 'min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,'
                                 . 'max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end')
                         ->where($where)
+                        ->order('min_purchase_qty asc')
                         ->select();
     }
 
@@ -91,7 +92,9 @@ class StockCostPriceModel extends PublicModel {
                 $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
                 $data['min_purchase_qty'] = intval($data['min_purchase_qty']) > 0 ? intval($data['min_purchase_qty']) : 0;
                 $data['max_purchase_qty'] = intval($data['max_purchase_qty']) > 0 ? intval($data['max_purchase_qty']) : null;
-
+                if (empty($data['min_price'])) {
+                    jsonReturn(null, '-1', '价格不能为空!');
+                }
                 $data['spu'] = $this->getSpu($sku, $lang);
                 $data['sku'] = $sku;
                 $data['country_bn'] = $country_bn;

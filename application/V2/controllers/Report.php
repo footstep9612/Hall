@@ -223,48 +223,47 @@ class ReportController extends PublicController {
      */
     public function getTimeIntervalDataAction() {
         $condition = $this->getPut();
-
         if (!empty($condition['creat_at_start']) && !empty($condition['creat_at_end'])) {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $inquiryItemModel = new InquiryItemModel();
             $marketAreaModel = new MarketAreaModel();
             $marketAreaCountryModel = new MarketAreaCountryModel();
-
             $nowTime = time();
-
             $inquiryList = $inquiryModel->getTimeIntervalList($condition);
-
             foreach ($inquiryList as &$inquiry) {
                 $where['inquiry_id'] = $inquiry['id'];
                 $createdTime = strtotime($inquiry['created_at']);
-
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
                 $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
                 if (empty($inquiry['area_name'])) {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
                     $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
                 }
-
+                // 询单报价时间
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'in_node' => 'MARKET_CONFIRMING'])->getField('out_at');
+                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'MARKET_CONFIRMING']))->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $createdTime;
                 }
-
+                // 询单驳回次数
+                $rejectWhere = array_merge($where, ['action' => 'REJECT']);
+                $inquiry['reject_count'] = $inquiryCheckLogModel->getCount($rejectWhere);
+                // 询单驳回理由
+                $inquiry['reject_reason'] = $inquiryCheckLogModel->where($rejectWhere)->order('id DESC')->getField('op_note', true);
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
-
                 foreach ($inquiryItemList as &$inquiryItem) {
+                    // sku是否油气
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                    // sku是否平台
                     $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
-
+                // sku记录数
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);
             }
-
             $this->jsonReturn($inquiryList);
         } else {
             $this->setCode('-103');

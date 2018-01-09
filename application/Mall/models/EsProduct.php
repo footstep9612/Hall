@@ -196,14 +196,7 @@ class EsProductModel extends Model {
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
-        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-            $show_cat_no = trim($condition['show_cat_no']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERM => ['show_cats.cat_no1' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats.cat_no2' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats.cat_no3' => $show_cat_no]],
-            ]]];
-        }
+
         if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
@@ -222,11 +215,10 @@ class EsProductModel extends Model {
             $country_bn = $condition['country_bn'] = 'China';
         }
 
-        // $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no2', 'show_cats.cat_no2');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no3', 'show_cats.cat_no3');
+
+
+
+
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
@@ -276,19 +268,44 @@ class EsProductModel extends Model {
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
+        $onshelf_flag = '';
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = trim($condition['onshelf_flag']) == 'N' ? 'N' : 'Y';
             if (trim($condition['onshelf_flag']) === 'A') {
-
-            } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
-            } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+                $onshelf_flag = '';
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+            $onshelf_flag = 'Y';
         }
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
+            $show_cat_no = trim($condition['show_cat_no']);
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
+            ]]];
 
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        } elseif ($country_bn) {
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        }
         if (!empty($condition['min_exw_day']) && intval($condition['min_exw_day']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['min_exw_day' => ['lte' => intval($condition['min_exw_day']),]]];
         }
@@ -591,7 +608,6 @@ class EsProductModel extends Model {
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
-
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
@@ -614,25 +630,26 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->body['aggs']['country_bn'] = [
-            'terms' => ['field' => 'show_cats.country_bn', 'size' => 10, 'order' => ['_count' => 'desc'],],
-            'aggs' => ['cat_no2' =>
-                ['terms' => ['field' => 'show_cats.cat_no2', 'size' => 10, 'order' => ['_count' => 'desc']],
-                    'aggs' => ['cat_no3' => [
-                            'terms' => ['field' => 'show_cats.cat_no3', 'size' => 10, 'order' => ['_count' => 'desc']]
-                        ]]
-        ]]];
+        $es->body['aggs'] = ['show_cats_nested' => [
+                'nested' => [
+                    'path' => 'show_cats_nested'
+                ],
+                'aggs' => ['country_bn' => [
+                        'terms' => ['field' => 'show_cats_nested.country_bn', 'size' => 10, 'order' => ['_count' => 'desc'],],
+                        'aggs' => ['cat_no2' =>
+                            ['terms' => ['field' => 'show_cats_nested.cat_no2', 'size' => 10, 'order' => ['_count' => 'desc']],
+                                'aggs' => ['cat_no3' => [
+                                        'terms' => ['field' => 'show_cats_nested.cat_no3', 'size' => 10, 'order' => ['_count' => 'desc']]
+                                    ]]]
+        ]]]]];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
         $show_cat_nos = [];
         $show_cats = [];
-        if (isset($ret['aggregations']['country_bn']['buckets'])) {
-            foreach ($ret['aggregations']['country_bn']['buckets'] as $countrys) {
+        if (isset($ret['aggregations']['show_cats_nested']['country_bn']['buckets'])) {
+            foreach ($ret['aggregations']['show_cats_nested']['country_bn']['buckets'] as $countrys) {
 
-                if ($countrys['key'] != $country_bn) {
-                    continue;
-                }
                 if (isset($countrys['cat_no2']['buckets'])) {
                     foreach ($countrys['cat_no2']['buckets'] as $cats) {
                         $show_cat_nos[] = $cats['key'];
@@ -660,12 +677,12 @@ class EsProductModel extends Model {
         }
 
         if ($show_cat_nos) {
-            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $lang;
+            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $country_bn . '_' . $lang;
             $newshowcats = json_decode(redisGet($catno_key), true);
             $newshow_cats = [];
             if (!$newshowcats) {
                 $showcatmodel = new ShowCatModel();
-                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false);
+                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false, $country_bn);
                 foreach ($showcats as $showcat) {
                     $newshow_cats[$showcat['cat_no']] = $showcat['name'];
                 }
