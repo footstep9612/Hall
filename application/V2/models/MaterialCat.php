@@ -1062,12 +1062,14 @@ class MaterialCatModel extends PublicModel {
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-        $url = $server . '/V2/Uploadfile/upload';
+        $url = $server . '/mall/Uploadfile/upload';
         $data['tmp_name'] = $localDir;
         $data['type'] = 'application/xls';
         $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
+
         $fileId = postfile($data, $url);
-        if ($fileId) {
+
+        if (!empty($fileId['url'])) {
             unlink($localDir);
             return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'] . '.xls', 'name' => $fileId['name']);
         }
