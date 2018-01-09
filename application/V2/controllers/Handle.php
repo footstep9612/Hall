@@ -320,6 +320,13 @@ class HandleController extends Yaf_Controller_Abstract
 
     }
 
+    /**
+     * 形成供应商数据Excel对象
+     * @param $data 数据对象
+     * @param $supplierName 供应商名称
+     *
+     * @return string 本地文件路径
+     */
     private function createSupplierExcel($data, $supplierName)
     {
         $objPHPExcel = new PHPExcel();
