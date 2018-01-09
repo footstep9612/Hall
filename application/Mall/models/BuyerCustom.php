@@ -154,7 +154,9 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['cat_no']) && $condition['cat_no']) {
             $where['cat_no'] = $condition['cat_no'];                 //服务类型名称
         }
-
+        /*if (isset($condition['tel']) && $condition['tel']) {
+            $where['tel'] = ['REGEXP','([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$'];
+        }*/
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
             $where['created_at'] = array(
                 array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
