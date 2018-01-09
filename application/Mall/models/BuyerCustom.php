@@ -36,7 +36,7 @@ class BuyerCustomModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_id,service_no,title,cat_name,cat_no,item_no,content,remarks,add_desc';
+        $field = 'id,lang,buyer_id,service_no,title,cat_name,cat_no,item_no,content,remarks,add_desc';
         $field .= ',email,contact_name,company,country_bn,city,tel,status,created_by,created_at';
         return $this->field($field)
                      ->where($where)
@@ -138,8 +138,8 @@ class BuyerCustomModel extends PublicModel
                 case 'Talent':
                     $where['cat_name'] = 'Talent training';
                     break;
-                case 'Humen':
-                    $where['cat_name'] = 'Humen resources';
+                case 'Human':
+                    $where['cat_name'] = 'Human resources';
                     break;
                 default :
                     break;
@@ -154,7 +154,9 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['cat_no']) && $condition['cat_no']) {
             $where['cat_no'] = $condition['cat_no'];                 //服务类型名称
         }
-
+        /*if (isset($condition['tel']) && $condition['tel']) {
+            $where['tel'] = ['REGEXP','([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$'];
+        }*/
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
             $where['created_at'] = array(
                 array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),

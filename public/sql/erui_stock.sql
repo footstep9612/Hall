@@ -10,7 +10,7 @@ Target Server Type    : MYSQL
 Target Server Version : 50505
 File Encoding         : 65001
 
-Date: 2018-01-03 14:34:19
+Date: 2018-01-08 14:46:36
 */
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -69,12 +69,12 @@ CREATE TABLE `home_country_ads` (
 -- ----------------------------
 -- Records of home_country_ads
 -- ----------------------------
-INSERT INTO home_country_ads VALUES ('7', 'en', 'China', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLUzeAWCNbAAT72hhfD38436.jpg', 'petroleum special tools', '/en/product/index/show_cat_no/330000.html', 'VALID', '2017-12-15 18:42:48', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('9', 'en', 'China', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLU2CAHQIBAATqVDZZa3o455.jpg', 'Membership rights', null, 'VALID', '2017-12-16 13:15:22', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('10', 'en', 'China', '0', 'HOT', 'group1/M00/01/F9/rBFgyFpLT6GAMX6NAAFn7gO8CMg353.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'VALID', '2017-12-16 13:19:42', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('11', 'en', 'China', '0', 'HOT', 'group1/M00/01/F9/rBFgyFpLT1eAMZ2KAADtoDhpI1Y825.jpg', 'More In Stock', '/en/rfq/find.html', 'VALID', '2017-12-16 13:28:04', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('15', 'en', 'Argentina', '0', 'HOT', 'group1/M00/01/F9/rBFgyFpLT6GAMX6NAAFn7gO8CMg353.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'VALID', '2017-12-16 13:19:42', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('16', 'en', 'Argentina', '0', 'HOT', 'group1/M00/01/F9/rBFgyFpLT1eAMZ2KAADtoDhpI1Y825.jpg', 'More In Stock', '/en/rfq/find.html', 'VALID', '2017-12-16 13:28:04', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('7', 'en', 'China', '3', 'BANNER', 'group1/M00/02/21/rBFgyFpPM_mARsSFAAUQLLYHhzs199.jpg', 'petroleum special tools', '/en/product/index/show_cat_no/330000.html', 'VALID', '2017-12-15 18:42:48', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('9', 'en', 'China', '0', 'BANNER', 'group1/M00/02/21/rBFgyFpPM96ANH4bAATFNjYYf9c347.jpg', 'Membership rights', null, 'VALID', '2017-12-16 13:15:22', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('10', 'en', 'China', '0', 'HOT', 'group1/M00/02/21/rBFgyFpPNNWAeMwGAAFn9bBg82s091.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'VALID', '2017-12-16 13:19:42', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('11', 'en', 'China', '0', 'HOT', 'group1/M00/02/21/rBFgyFpPNK-ARsCLAADtIs8wDqc980.jpg', 'More In Stock', '/en/rfq/find.html', 'VALID', '2017-12-16 13:28:04', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('15', 'en', 'Argentina', '0', 'HOT', 'group1/M00/02/21/rBFgyFpPNNWAeMwGAAFn9bBg82s091.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'VALID', '2017-12-16 13:19:42', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('16', 'en', 'Argentina', '0', 'HOT', 'group1/M00/02/21/rBFgyFpPNK-ARsCLAADtIs8wDqc980.jpg', 'More In Stock', '/en/rfq/find.html', 'VALID', '2017-12-16 13:28:04', '38699', null, null, 'N', '0', null);
 INSERT INTO home_country_ads VALUES ('17', 'en', 'China', '0', 'ICO', 'group1/M00/01/8A/rBFgyFpEo7iAH34tAAAlSE5AF7M959.jpg', 'screen pipe', '/en/product/index/show_cat_no/010601.html', 'VALID', '2017-12-28 15:57:40', '38699', null, null, 'N', '0', null);
 INSERT INTO home_country_ads VALUES ('18', 'en', 'China', '0', 'ICO', 'group1/M00/01/8A/rBFgyFpEpE-AD6DWAAAjQFFERKo539.jpg', 'steel tube', '/en/product/index/show_cat_no/020601.html', 'VALID', '2017-12-28 15:58:20', '38699', null, null, 'N', '0', null);
 INSERT INTO home_country_ads VALUES ('19', 'en', 'China', '0', 'ICO', 'group1/M00/01/8A/rBFgyFpEpG2AOfq2AAAntrZIoqE931.jpg', 'tire', '/en/product/index/show_cat_no/100201.html', 'VALID', '2017-12-28 15:58:53', '38699', null, null, 'N', '0', null);
@@ -99,10 +99,10 @@ INSERT INTO home_country_ads VALUES ('37', 'en', 'Argentina', '0', 'ICO', 'group
 INSERT INTO home_country_ads VALUES ('38', 'en', 'Argentina', '0', 'ICO', 'group1/M00/01/8B/rBFgyFpEpXCAcB9_AAAmvw3DWS0892.jpg', 'bearing', '/en/product/index/show_cat_no/451000.html', 'VALID', '2017-12-28 16:03:14', '38699', null, null, 'N', '0', null);
 INSERT INTO home_country_ads VALUES ('39', 'en', 'Argentina', '0', 'ICO', 'group1/M00/01/8B/rBFgyFpEpZOATGpiAAAlpnlGSkk275.jpg', 'cementing tool', '/en/product/index/show_cat_no/530600.html', 'VALID', '2017-12-28 16:03:48', '38699', null, null, 'N', '0', null);
 INSERT INTO home_country_ads VALUES ('40', 'en', 'Argentina', '0', 'ICO', 'group1/M00/01/8B/rBFgyFpEpbCAKQcvAAAkErLN6EE082.jpg', 'sealing elements', '/en/product/index/show_cat_no/451100.html', 'VALID', '2017-12-28 16:04:23', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('41', 'en', 'China', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLU4WAEFZfAAgAPab6LUs454.jpg', 'KANGSHIELD', '/en/product/index/keyword/KANGSHIELD.html', 'VALID', '2018-01-02 17:39:26', '0', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('42', 'en', 'Argentina', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLUzeAWCNbAAT72hhfD38436.jpg', 'petroleum special tools', '/en/product/index/show_cat_no/530000.html', 'VALID', '2017-12-15 18:42:48', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('43', 'en', 'Argentina', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLU2CAHQIBAATqVDZZa3o455.jpg', 'Membership rights', null, 'VALID', '2017-12-16 13:15:22', '38699', null, null, 'N', '0', null);
-INSERT INTO home_country_ads VALUES ('44', 'en', 'Argentina', '0', 'BANNER', 'group1/M00/01/FB/rBFgyFpLU4WAEFZfAAgAPab6LUs454.jpg', 'KANGSHIELD', '/en/product/index/keyword/KANGSHIELD.html', 'VALID', '2018-01-02 17:39:26', '0', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('41', 'en', 'China', '2', 'BANNER', 'group1/M00/02/21/rBFgyFpPM6-AQNDQAAfEU1HjXjQ890.jpg', 'KANGSHIELD', '/en/product/index/keyword/KANGSHIELD.html', 'VALID', '2018-01-02 17:39:26', '0', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('42', 'en', 'Argentina', '3', 'BANNER', 'group1/M00/02/21/rBFgyFpPM_mARsSFAAUQLLYHhzs199.jpg', 'petroleum special tools', '/en/product/index/show_cat_no/530000.html', 'VALID', '2017-12-15 18:42:48', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('43', 'en', 'Argentina', '1', 'BANNER', 'group1/M00/02/21/rBFgyFpPM96ANH4bAATFNjYYf9c347.jpg', 'Membership rights', null, 'VALID', '2017-12-16 13:15:22', '38699', null, null, 'N', '0', null);
+INSERT INTO home_country_ads VALUES ('44', 'en', 'Argentina', '2', 'BANNER', 'group1/M00/02/21/rBFgyFpPM6-AQNDQAAfEU1HjXjQ890.jpg', 'KANGSHIELD', '/en/product/index/keyword/KANGSHIELD.html', 'VALID', '2018-01-02 17:39:26', '0', null, null, 'N', '0', null);
 
 -- ----------------------------
 -- Table structure for `home_country_nav`
@@ -207,16 +207,16 @@ CREATE TABLE `home_floor_ads` (
 -- ----------------------------
 -- Records of home_floor_ads
 -- ----------------------------
-INSERT INTO home_floor_ads VALUES ('1', 'en', 'China', '1', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLUFmAUHZZAAGtYif0MQ4023.jpg', 'Petroleum special tools\r\nPetroleum special tools\r\nPetroleum special tools', null, 'VALID', '2018-01-02 17:27:04', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('2', 'en', 'China', '2', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLUMOAPA4jAACvf3O2Crw916.jpg', 'Labor insurance, security\r\nLabor insurance, security\r\nLabor insurance, security\r\nLabor insurance, security', null, 'VALID', '2018-01-02 17:28:00', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('3', 'en', 'China', '3', '0', 'BACKGROUP', 'group1/M00/01/FA/rBFgyFpLUdSAXm5_AAGMOyCDXpQ723.jpg', 'Petroleum equipments and accessories', null, 'VALID', '2018-01-02 17:32:12', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('4', 'en', 'China', '4', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLURiAJTozAAFIo4o67qk867.jpg', 'Instrument and meter', null, 'VALID', '2018-01-02 17:29:08', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('5', 'en', 'China', '5', '0', 'BACKGROUP', 'group1/M00/01/FA/rBFgyFpLUbOACAbQAADSHA6Txjg745.jpg', 'Standard parts and hardware sundries', null, 'VALID', '2018-01-02 17:31:42', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('6', 'en', 'Argentina', '6', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLUFmAUHZZAAGtYif0MQ4023.jpg', 'Petroleum special tools\r\nPetroleum special tools\r\nPetroleum special tools', null, 'VALID', '2018-01-02 17:27:04', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('7', 'en', 'Argentina', '7', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLUMOAPA4jAACvf3O2Crw916.jpg', 'Labor insurance, security\r\nLabor insurance, security\r\nLabor insurance, security\r\nLabor insurance, security', null, 'VALID', '2018-01-02 17:28:00', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('8', 'en', 'Argentina', '8', '0', 'BACKGROUP', 'group1/M00/01/FA/rBFgyFpLUdSAXm5_AAGMOyCDXpQ723.jpg', 'Petroleum equipments and accessories', null, 'VALID', '2018-01-02 17:32:12', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('9', 'en', 'Argentina', '9', '0', 'BACKGROUP', 'group1/M00/01/F9/rBFgyFpLURiAJTozAAFIo4o67qk867.jpg', 'Instrument and meter', null, 'VALID', '2018-01-02 17:29:08', '0', null, null, '0', null, 'N');
-INSERT INTO home_floor_ads VALUES ('10', 'en', 'Argentina', '10', '0', 'BACKGROUP', 'group1/M00/01/FA/rBFgyFpLUbOACAbQAADSHA6Txjg745.jpg', 'Standard parts and hardware sundries', null, 'VALID', '2018-01-02 17:31:42', '0', null, null, '0', null, 'N');
+INSERT INTO home_floor_ads VALUES ('1', 'en', 'China', '1', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWgSAUoJhAAERIs1uYxE073.jpg', 'Petroleum special tools', '', 'VALID', '2018-01-02 17:27:04', '0', '2018-01-05 18:57:58', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('2', 'en', 'China', '2', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWpuAbzCLAACPBMWFanw954.jpg', 'Labor insurance, security', '', 'VALID', '2018-01-02 17:28:00', '0', '2018-01-05 18:58:40', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('3', 'en', 'China', '3', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWuWAMT9iAAEX24TncKw594.jpg', 'Petroleum equipments and accessories', '', 'VALID', '2018-01-02 17:32:12', '0', '2018-01-05 19:00:26', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('4', 'en', 'China', '4', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWyaAdL5_AAD4PMGH1Gc378.jpg', 'Instrument and meter', '', 'VALID', '2018-01-02 17:29:08', '0', '2018-01-05 19:00:59', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('5', 'en', 'China', '5', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPW0eAbG5jAACkhchWHGo699.jpg', 'Standard parts and hardware sundries', '', 'VALID', '2018-01-02 17:31:42', '0', '2018-01-05 19:01:42', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('6', 'en', 'Argentina', '6', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWgSAUoJhAAERIs1uYxE073.jpg', 'Petroleum special tools', '', 'VALID', '2018-01-02 17:27:04', '0', '2018-01-05 18:57:51', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('7', 'en', 'Argentina', '7', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWpuAbzCLAACPBMWFanw954.jpg', 'Labor insurance, security', '', 'VALID', '2018-01-02 17:28:00', '0', '2018-01-05 18:58:52', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('8', 'en', 'Argentina', '8', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWuWAMT9iAAEX24TncKw594.jpg', 'Petroleum equipments and accessories', '', 'VALID', '2018-01-02 17:32:12', '0', '2018-01-05 18:59:59', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('9', 'en', 'Argentina', '9', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPWyaAdL5_AAD4PMGH1Gc378.jpg', 'Instrument and meter', '', 'VALID', '2018-01-02 17:29:08', '0', '2018-01-05 19:01:04', null, '0', '38699', 'N');
+INSERT INTO home_floor_ads VALUES ('10', 'en', 'Argentina', '10', '0', 'BACKGROUP', 'group1/M00/02/22/rBFgyFpPW0eAbG5jAACkhchWHGo699.jpg', 'Standard parts and hardware sundries', '', 'VALID', '2018-01-02 17:31:42', '0', '2018-01-05 19:01:36', null, '0', '38699', 'N');
 
 -- ----------------------------
 -- Table structure for `home_floor_keyword`
@@ -251,8 +251,8 @@ INSERT INTO home_floor_keyword VALUES ('2', 'en', 'China', '5', 'tools', '0', 'V
 INSERT INTO home_floor_keyword VALUES ('3', 'en', 'China', '5', 'measuring tools', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('4', 'en', 'China', '5', 'cutting tools', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('5', 'en', 'China', '5', 'grinding tool,abrasives', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('6', 'en', 'China', '5', 'diamond and its products', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('7', 'en', 'China', '5', 'mould', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('6', 'en', 'China', '5', 'tool set', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('7', 'en', 'China', '5', 'wrench', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('8', 'en', 'China', '5', 'weighing instrument', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('9', 'en', 'China', '5', 'fastener', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('10', 'en', 'Argentina', '5', 'bearing', '0', 'VALID', '2017-12-28 11:54:04', '38699', null, null, '0', null, 'N');
@@ -262,80 +262,80 @@ INSERT INTO home_floor_keyword VALUES ('13', 'en', 'Argentina', '10', 'tools', '
 INSERT INTO home_floor_keyword VALUES ('14', 'en', 'Argentina', '10', 'measuring tools', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('15', 'en', 'Argentina', '10', 'cutting tools', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('16', 'en', 'Argentina', '10', 'grinding tool,abrasives', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('17', 'en', 'Argentina', '10', 'diamond and its products', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('18', 'en', 'Argentina', '10', 'mould', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('17', 'en', 'Argentina', '10', 'tool set', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('18', 'en', 'Argentina', '10', 'wrench', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('19', 'en', 'Argentina', '10', 'weighing instrument', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('20', 'en', 'Argentina', '10', 'fastener', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('21', 'en', 'Argentina', '10', 'bearing', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('22', 'en', 'Argentina', '10', 'sealing elements', '0', 'VALID', '2017-12-28 11:54:22', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('23', 'en', 'Argentina', '9', 'regulating unit', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('23', 'en', 'Argentina', '9', 'thermometer', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('24', 'en', 'Argentina', '9', 'transducing unit', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('25', 'en', 'Argentina', '9', 'exploration apparatus', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('25', 'en', 'Argentina', '9', 'pressure gauge', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('26', 'en', 'Argentina', '9', 'auxiliary unit', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('27', 'en', 'Argentina', '9', 'logging tools', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('28', 'en', 'Argentina', '9', 'glass apparatus', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('28', 'en', 'Argentina', '9', ' pressure gage', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('29', 'en', 'Argentina', '9', 'pertroleum products analytical instrument', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('30', 'en', 'Argentina', '9', 'pigging apparatus', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('30', 'en', 'Argentina', '9', ' temperature transmitter', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('31', 'en', 'Argentina', '9', 'actuator', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('32', 'en', 'Argentina', '9', 'textile apparatus', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('33', 'en', 'China', '4', 'regulating unit', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('32', 'en', 'Argentina', '9', 'governor', '0', 'VALID', '2017-12-28 11:54:45', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('33', 'en', 'China', '4', 'thermometer', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('34', 'en', 'China', '4', 'transducing unit', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('35', 'en', 'China', '4', 'exploration apparatus', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('35', 'en', 'China', '4', 'pressure gauge', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('36', 'en', 'China', '4', 'auxiliary unit', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('37', 'en', 'China', '4', 'logging tools', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('38', 'en', 'China', '4', 'glass apparatus', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('38', 'en', 'China', '4', ' pressure gage', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('39', 'en', 'China', '4', 'pertroleum products analytical instrument', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('40', 'en', 'China', '4', 'pigging apparatus', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('40', 'en', 'China', '4', ' temperature transmitter', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('41', 'en', 'China', '4', 'actuator', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('42', 'en', 'China', '4', 'textile apparatus', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('43', 'en', 'Argentina', '8', 'power equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('44', 'en', 'Argentina', '8', 'transportation equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('42', 'en', 'China', '4', 'governor', '0', 'VALID', '2017-12-28 11:54:56', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('43', 'en', 'Argentina', '8', 'shale shaker', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('44', 'en', 'Argentina', '8', 'disc brake', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('45', 'en', 'Argentina', '8', 'small machinery', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('46', 'en', 'Argentina', '8', 'construction machinery equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('47', 'en', 'Argentina', '8', 'lifting transportation equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('48', 'en', 'Argentina', '8', 'general machinery equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('49', 'en', 'Argentina', '8', 'petroleum special equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('50', 'en', 'Argentina', '8', 'metal processing machinical equipment', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('51', 'en', 'China', '3', 'power equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('52', 'en', 'China', '3', 'transportation equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('50', 'en', 'Argentina', '8', 'hydraulic motor', '0', 'VALID', '2017-12-28 11:55:24', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('51', 'en', 'China', '3', 'shale shaker', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('52', 'en', 'China', '3', 'disc brake', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('53', 'en', 'China', '3', 'small machinery', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('54', 'en', 'China', '3', 'construction machinery equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('55', 'en', 'China', '3', 'lifting transportation equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('56', 'en', 'China', '3', 'general machinery equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('57', 'en', 'China', '3', 'petroleum special equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('58', 'en', 'China', '3', 'metal processing machinical equipment', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('58', 'en', 'China', '3', 'hydraulic motor', '0', 'VALID', '2017-12-28 11:55:35', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('59', 'en', 'Argentina', '7', 'labour protection', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('60', 'en', 'Argentina', '7', 'fire equipment', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('60', 'en', 'Argentina', '7', 'anti-gas protection equipment', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('61', 'en', 'Argentina', '7', 'safety helmet', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('62', 'en', 'Argentina', '7', 'eye protection products', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('63', 'en', 'Argentina', '7', 'seat belts/safety rope', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('64', 'en', 'Argentina', '7', 'cleaning product', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('64', 'en', 'Argentina', '7', 'soundproof products', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('65', 'en', 'Argentina', '7', 'fire fighting equipment', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('66', 'en', 'Argentina', '7', 'fire pharmacy', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('66', 'en', 'Argentina', '7', 'safety hook', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('67', 'en', 'Argentina', '7', 'safety shoes', '0', 'VALID', '2017-12-28 11:56:03', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('68', 'en', 'China', '2', 'labour protection', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('69', 'en', 'China', '2', 'fire equipment', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('69', 'en', 'China', '2', 'anti-gas protection equipment', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('70', 'en', 'China', '2', 'safety helmet', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('71', 'en', 'China', '2', 'eye protection products', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('72', 'en', 'China', '2', 'seat belts/safety rope', '0', 'VALID', '2017-12-28 11:56:13', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('73', 'en', 'China', '2', 'cleaning product', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('73', 'en', 'China', '2', 'soundproof products', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('74', 'en', 'China', '2', 'fire fighting equipment', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('75', 'en', 'China', '2', 'fire pharmacy', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('75', 'en', 'China', '2', 'safety hook', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('76', 'en', 'China', '2', 'safety shoes', '0', 'VALID', '2017-12-28 11:56:14', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('77', 'en', 'China', '1', 'well drilling/workover tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('78', 'en', 'China', '1', 'drilling fishing tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('79', 'en', 'China', '1', 'coring tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('79', 'en', 'China', '1', 'elevator', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('80', 'en', 'China', '1', 'cementing tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('81', 'en', 'China', '1', 'directional well tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('81', 'en', 'China', '1', 'downhole tool', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('82', 'en', 'China', '1', 'pilot production tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('83', 'en', 'China', '1', 'well logging tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('84', 'en', 'China', '1', 'completion tools', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('85', 'en', 'China', '1', 'drill bit', '0', 'VALID', '2017-12-28 11:56:33', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('86', 'en', 'Argentina', '6', 'well drilling/workover tools', '0', 'VALID', '2017-12-28 11:56:51', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('87', 'en', 'Argentina', '6', 'drilling fishing tools', '0', 'VALID', '2017-12-28 11:56:51', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('88', 'en', 'Argentina', '6', 'coring tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('88', 'en', 'Argentina', '6', 'elevator', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('89', 'en', 'Argentina', '6', 'cementing tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
-INSERT INTO home_floor_keyword VALUES ('90', 'en', 'Argentina', '6', 'directional well tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
+INSERT INTO home_floor_keyword VALUES ('90', 'en', 'Argentina', '6', 'downhole tool', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('91', 'en', 'Argentina', '6', 'pilot production tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('92', 'en', 'Argentina', '6', 'well logging tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
 INSERT INTO home_floor_keyword VALUES ('93', 'en', 'Argentina', '6', 'completion tools', '0', 'VALID', '2017-12-28 11:56:52', '38699', null, null, '0', null, 'N');
@@ -27604,22 +27604,59 @@ CREATE TABLE `stock` (
   KEY `lang` (`lang`),
   KEY `floor_id` (`floor_id`),
   KEY `sku` (`sku`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8 COMMENT='现货';
+) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8 COMMENT='现货';
 
 -- ----------------------------
 -- Records of stock
 -- ----------------------------
-INSERT INTO stock VALUES ('1', 'en', 'Canada', '1302020000090000', '1302020000090001', '1', '0', 'PU coated gloves', 'PU coated gloves', '1', 'VALID', null, '0', '2017-12-27 16:47:58', '38699', '2017-12-27 16:52:00', '38699', 'N');
-INSERT INTO stock VALUES ('2', 'en', 'Canada', '1303050000010000', '1303050000010001', '1', '0', 'Welding apron', 'Welding apron', '1', 'VALID', null, '0', '2017-12-27 16:47:58', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('3', 'en', 'Canada', '1303160000040000', '1303160000040001', '1', '0', 'Earmuffs', 'Earmuffs', '1', 'VALID', null, '0', '2017-12-27 16:47:58', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('4', 'en', 'Canada', '1303160000040000', '1303160000040002', '1', '0', 'Earmuffs', 'Earmuffs', '1', 'VALID', null, '0', '2017-12-27 16:47:58', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('5', 'en', 'Canada', '1303160000060000', '1303160000060001', '1', '0', 'Earmuffs', 'Earmuffs', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('6', 'en', 'Canada', '1303160000060000', '1303160000060002', '1', '0', 'Earmuffs', 'Earmuffs', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('7', 'en', 'Canada', '1302020000260000', '1302020000260001', '1', '0', 'Welder leather gloves', 'Welder leather gloves', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('8', 'en', 'Canada', '1302020000270000', '1302020000270001', '1', '0', 'Welder leather gloves', 'Welder leather gloves', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('9', 'en', 'Canada', '1303140000030000', '1303140000030001', '1', '0', 'Bowl-shaped with valve respirator', 'Bowl-shaped with valve respirator', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('10', 'en', 'Canada', '1303140000010000', '1303140000010001', '1', '0', 'Bowl shape respirator', 'Bowl shape respirator', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
-INSERT INTO stock VALUES ('11', 'en', 'Canada', '1303040000220000', '1303040000220001', '1', '0', 'Auto-darkening welding mask', 'Auto-darkening welding mask', '1', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2017-12-27 16:52:01', '38699', 'N');
+INSERT INTO stock VALUES ('1', 'en', 'Canada', '1302020000090000', '1302020000090001', '0', '11', 'PU coated gloves', 'PU coated gloves', '11', 'VALID', '2018-01-04 11:11:28', '37850', '2017-12-27 16:47:58', '38699', '2018-01-04 16:11:21', '37850', 'N');
+INSERT INTO stock VALUES ('2', 'en', 'Canada', '1303050000010000', '1303050000010001', '1', '10', 'Welding apron', 'Welding apron', '500', 'VALID', '2018-01-04 11:11:37', '37850', '2017-12-27 16:47:58', '38699', '2018-01-05 16:54:23', '38699', 'N');
+INSERT INTO stock VALUES ('3', 'en', 'Canada', '1303160000040000', '1303160000040001', '0', '9', 'Earmuffs', 'Earmuffs', '10', 'VALID', '2018-01-04 11:11:59', '37850', '2017-12-27 16:47:58', '38699', '2018-01-04 16:10:36', '37850', 'Y');
+INSERT INTO stock VALUES ('4', 'en', 'Canada', '1303160000040000', '1303160000040002', '0', '8', 'Earmuffs', 'Earmuffs', '12', 'VALID', null, '0', '2017-12-27 16:47:58', '38699', '2018-01-04 11:33:10', '37850', 'N');
+INSERT INTO stock VALUES ('5', 'en', 'Canada', '1303160000060000', '1303160000060001', '0', '7', 'Earmuffs', 'Earmuffs', '10', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-04 16:10:57', '37850', 'Y');
+INSERT INTO stock VALUES ('6', 'en', 'Canada', '1303160000060000', '1303160000060002', '0', '6', 'Earmuffs', 'Earmuffs', '10', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-04 16:11:00', '37850', 'N');
+INSERT INTO stock VALUES ('7', 'en', 'Canada', '1302020000260000', '1302020000260001', '0', '0', 'Welder leather gloves', 'Welder leather gloves', '2400', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-05 16:54:36', '38699', 'N');
+INSERT INTO stock VALUES ('8', 'en', 'Canada', '1302020000270000', '1302020000270001', '1', '4', 'Welder leather gloves', 'Welder leather gloves', '2400', 'VALID', '2018-01-04 11:11:14', '37850', '2017-12-27 16:47:59', '38699', '2018-01-05 16:54:48', '38699', 'N');
+INSERT INTO stock VALUES ('9', 'en', 'Canada', '1303140000030000', '1303140000030001', '0', '0', 'Bowl-shaped with valve respirator', 'Bowl-shaped with valve respirator', '6000', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-05 16:55:01', '38699', 'N');
+INSERT INTO stock VALUES ('10', 'en', 'Canada', '1303140000010000', '1303140000010001', '1', '3', 'Bowl shape respirator', 'Bowl shape respirator', '3000', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-05 16:55:12', '38699', 'N');
+INSERT INTO stock VALUES ('11', 'en', 'Canada', '1303040000220000', '1303040000220001', '1', '0', 'Auto-darkening welding mask', 'Auto-darkening welding mask', '500', 'VALID', null, '0', '2017-12-27 16:47:59', '38699', '2018-01-05 16:55:24', '38699', 'N');
+INSERT INTO stock VALUES ('12', 'en', 'Canada', '1303070000300000', '1303070000300001', '0', '0', null, null, '928', 'VALID', null, '0', '2018-01-05 16:45:21', '38699', '2018-01-05 16:55:36', '38699', 'N');
+INSERT INTO stock VALUES ('13', 'en', 'Canada', '1303070000310000', '1303070000310001', '1', '0', null, null, '1710', 'VALID', null, '0', '2018-01-05 16:45:21', '38699', '2018-01-05 16:55:48', '38699', 'N');
+INSERT INTO stock VALUES ('14', 'en', 'Canada', '1303070000320000', '1303070000320001', '1', '0', null, null, '1026', 'VALID', null, '0', '2018-01-05 16:50:51', '38699', '2018-01-05 16:56:23', '38699', 'N');
+INSERT INTO stock VALUES ('15', 'en', 'Canada', '1303070000340000', '1303070000340001', '1', '0', null, null, '540', 'VALID', null, '0', '2018-01-05 16:50:51', '38699', '2018-01-05 16:56:35', '38699', 'N');
+INSERT INTO stock VALUES ('16', 'en', 'Canada', '1302020000460000', '1302020000460001', '1', '0', null, null, '5000', 'VALID', null, '0', '2018-01-05 16:50:51', '38699', '2018-01-05 16:56:47', '38699', 'N');
+INSERT INTO stock VALUES ('17', 'en', 'Canada', '1303040000230000', '1303040000230002', '1', '0', null, null, '100', 'VALID', null, '0', '2018-01-05 16:50:51', '38699', '2018-01-05 16:56:59', '38699', 'N');
+INSERT INTO stock VALUES ('18', 'en', 'Canada', '1302020000450000', '1302020000450001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 16:50:51', '38699', null, null, 'N');
+INSERT INTO stock VALUES ('19', 'en', 'Canada', '1601090000250000', '1601090000250001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:23:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('20', 'en', 'Canada', '1601090000140000', '1601090000140001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:23:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('21', 'en', 'Canada', '1601090000130000', '1601090000130001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('22', 'en', 'Canada', '1601090000110000', '1601090000110001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('23', 'en', 'Canada', '1601090000100000', '1601090000100001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('24', 'en', 'Canada', '1601090000090000', '1601090000090001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('25', 'en', 'Canada', '1601090000080000', '1601090000080001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('26', 'en', 'Canada', '1601090000070000', '1601090000070001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('27', 'en', 'Canada', '1601090000060000', '1601090000060001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('28', 'en', 'Canada', '1601090000050000', '1601090000050001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:22', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('29', 'en', 'Bulgaria', '1601090000250000', '1601090000250001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('30', 'en', 'Bulgaria', '1601090000140000', '1601090000140001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('31', 'en', 'Bulgaria', '1601090000130000', '1601090000130001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('32', 'en', 'Bulgaria', '1601090000110000', '1601090000110001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('33', 'en', 'Bulgaria', '1601090000100000', '1601090000100001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('34', 'en', 'Bulgaria', '1601090000090000', '1601090000090001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('35', 'en', 'Bulgaria', '1601090000080000', '1601090000080001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('36', 'en', 'Bulgaria', '1601090000070000', '1601090000070001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('37', 'en', 'Bulgaria', '1601090000060000', '1601090000060001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('38', 'en', 'Bulgaria', '1601090000050000', '1601090000050001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:29:34', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('39', 'zh', 'China', '1601090000250000', '1601090000250001', '0', '0', null, null, '461321', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:49', '37850', 'N');
+INSERT INTO stock VALUES ('40', 'zh', 'China', '1601090000140000', '1601090000140001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('41', 'zh', 'China', '1601090000130000', '1601090000130001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('42', 'zh', 'China', '1601090000110000', '1601090000110001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('43', 'zh', 'China', '1601090000100000', '1601090000100001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('44', 'zh', 'China', '1601090000090000', '1601090000090001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('45', 'zh', 'China', '1601090000080000', '1601090000080001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('46', 'zh', 'China', '1601090000070000', '1601090000070001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('47', 'zh', 'China', '1601090000060000', '1601090000060001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
+INSERT INTO stock VALUES ('48', 'zh', 'China', '1601090000050000', '1601090000050001', '0', '0', null, null, '1', 'VALID', null, '0', '2018-01-05 18:35:49', '37850', null, null, 'N');
 
 -- ----------------------------
 -- Table structure for `stock_cost_price`
@@ -27630,7 +27667,7 @@ CREATE TABLE `stock_cost_price` (
   `country_bn` varchar(100) NOT NULL COMMENT '国家简称',
   `spu` varchar(32) DEFAULT NULL,
   `sku` varchar(32) NOT NULL COMMENT 'SKU',
-  `supplier_id` bigint(20) NOT NULL COMMENT '供应商ID',
+  `supplier_id` bigint(20) DEFAULT '0' COMMENT '供应商ID',
   `min_price` decimal(16,4) DEFAULT NULL COMMENT '最小展示单价',
   `max_price` decimal(16,4) DEFAULT NULL COMMENT '最大展示单价',
   `max_promotion_price` decimal(16,4) DEFAULT NULL COMMENT '最大促销单价',
@@ -27655,20 +27692,305 @@ CREATE TABLE `stock_cost_price` (
   KEY `sku` (`sku`),
   KEY `supplier_id` (`supplier_id`),
   KEY `country_bn` (`country_bn`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 COMMENT='现货展示价格';
+) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=utf8 COMMENT='现货展示价格';
 
 -- ----------------------------
 -- Records of stock_cost_price
 -- ----------------------------
-INSERT INTO stock_cost_price VALUES ('1', 'Canada', '1302020000090000', '1302020000090001', '21', '24.0000', '28.0000', null, null, 'bag', 'CNY', '￥', '160', null, null, '2017-12-18', '0000-00-00', 'VALID', '38699', '2017-12-27 16:47:58', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('2', 'Canada', '1303050000010000', '1303050000010001', '21', '28.8000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:58', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('3', 'Canada', '1303160000040000', '1303160000040001', '21', '13.2000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:58', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('4', 'Canada', '1303160000040000', '1303160000040002', '21', '13.2000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('5', 'Canada', '1303160000060000', '1303160000060001', '21', '19.3000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('6', 'Canada', '1303160000060000', '1303160000060002', '21', '19.3000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('7', 'Canada', '1302020000260000', '1302020000260001', '21', '187.2000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('8', 'Canada', '1302020000270000', '1302020000270001', '21', '118.8000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
-INSERT INTO stock_cost_price VALUES ('9', 'Canada', '1303040000220000', '1303040000220001', '21', '65.0000', null, null, null, '袋', 'CNY', '￥', '1', null, null, '2017-12-27', null, 'VALID', '38699', '2017-12-27 16:47:59', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('1', 'Canada', '1303050000010000', '1303050000010001', '21', '11.0000', '11.0000', null, null, '1pc/bag', 'CAD', 'C$', '10', '19', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:44:52', '37850', '2018-01-05 19:15:48', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('2', 'Canada', '1303050000010000', '1303050000010001', '21', '10.4500', '10.0000', null, null, '1pc/bag', 'CAD', 'C$', '20', '29', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:44:52', '37850', '2018-01-05 19:15:48', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('3', 'Canada', '1303050000010000', '1303050000010001', '21', '9.9000', '9.0000', null, null, '1pc/bag', 'CAD', 'C$', '30', '49', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:44:52', '37850', '2018-01-05 19:15:48', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('4', 'Canada', '1303050000010000', '1303050000010001', '21', '8.9500', '8.0000', null, null, '1pc/bag', 'CAD', 'C$', '50', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:44:52', '37850', '2018-01-05 19:15:48', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('5', 'Canada', '1302020000260000', '1302020000260001', '21', '5.9000', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '2', '3', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:45:55', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('6', 'Canada', '1302020000260000', '1302020000260001', '21', '5.6000', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '4', '5', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:45:55', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('7', 'Canada', '1302020000260000', '1302020000260001', '21', '5.4500', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '6', '7', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:45:55', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('8', 'Canada', '1302020000260000', '1302020000260001', '21', '5.2400', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '8', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:45:55', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('9', 'Canada', '1302020000270000', '1302020000270001', '21', '5.3500', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '2', '3', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:46:35', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('10', 'Canada', '1302020000270000', '1302020000270001', '21', '5.0500', '5.0000', null, null, '6pairs/bag', 'CAD', 'C$', '4', '5', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:46:35', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('11', 'Canada', '1302020000270000', '1302020000270001', '21', '4.9500', '4.0000', null, null, '6pairs/bag', 'CAD', 'C$', '6', '7', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:46:35', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('12', 'Canada', '1302020000270000', '1302020000270001', '21', '4.7500', '4.0000', null, null, '6pairs/bag', 'CAD', 'C$', '8', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:46:35', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('13', 'Canada', '1303140000030000', '1303140000030001', '21', '8.1000', '8.0000', null, null, '10pieces/box', 'CAD', 'C$', '5', '9', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('14', 'Canada', '1303140000030000', '1303140000030001', '21', '7.3100', '7.0000', null, null, '10pieces/box', 'CAD', 'C$', '10', '19', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('15', 'Canada', '1303140000030000', '1303140000030001', '21', '5.6800', '5.0000', null, null, '10pieces/box', 'CAD', 'C$', '20', '39', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('16', 'Canada', '1303140000030000', '1303140000030001', '21', '5.4800', '5.0000', null, null, '10pieces/box', 'CAD', 'C$', '40', '399', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('17', 'Canada', '1303140000030000', '1303140000030001', '21', '5.3000', '5.0000', null, null, '10pieces/box', 'CAD', 'C$', '400', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('18', 'Canada', '1303140000010000', '1303140000010001', '21', '10.5000', '10.0000', null, null, '20pieces/box', 'CAD', 'C$', '5', '9', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:39', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('19', 'Canada', '1303140000010000', '1303140000010001', '21', '9.7100', '9.0000', null, null, '20pieces/box', 'CAD', 'C$', '10', '19', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:39', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('20', 'Canada', '1303140000010000', '1303140000010001', '21', '8.0800', '8.0000', null, null, '20pieces/box', 'CAD', 'C$', '20', '39', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:39', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('21', 'Canada', '1303140000010000', '1303140000010001', '21', '7.8800', '7.0000', null, null, '20pieces/box', 'CAD', 'C$', '40', '399', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:39', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('22', 'Canada', '1303140000010000', '1303140000010001', '21', '7.7000', '7.0000', null, null, '20pieces/box', 'CAD', 'C$', '400', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:47:39', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('23', 'Canada', '1303040000220000', '1303040000220001', '21', '42.4200', '42.0000', null, null, '6pieces/case', 'CAD', 'C$', '1', '5', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('24', 'Canada', '1303040000220000', '1303040000220001', '21', '34.1900', '34.0000', null, null, '6pieces/case', 'CAD', 'C$', '6', '11', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('25', 'Canada', '1303040000220000', '1303040000220001', '21', '33.4800', '33.0000', null, null, '6pieces/case', 'CAD', 'C$', '12', '23', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('26', 'Canada', '1303040000220000', '1303040000220001', '21', '33.9000', '33.0000', null, null, '6pieces/case', 'CAD', 'C$', '24', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('27', 'Canada', '1303070000300000', '1303070000300001', '21', '7.2400', '7.0000', null, null, '1piece/piece', 'CAD', 'C$', '20', '49', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('28', 'Canada', '1303070000300000', '1303070000300001', '21', '7.0500', '7.0000', null, null, '1piece/piece', 'CAD', 'C$', '50', '99', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('29', 'Canada', '1303070000300000', '1303070000300001', '21', '6.9500', '6.0000', null, null, '1piece/piece', 'CAD', 'C$', '100', '299', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('30', 'Canada', '1303070000300000', '1303070000300001', '21', '6.9200', '6.0000', null, null, '1piece/piece', 'CAD', 'C$', '300', '927', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('31', 'Canada', '1303070000300000', '1303070000300001', '21', '5.8000', '5.0000', null, null, '1piece/piece', 'CAD', 'C$', '928', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:48:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('32', 'Canada', '1303070000310000', '1303070000310001', '21', '11.5500', '11.0000', null, null, '1piece/piece', 'CAD', 'C$', '10', '29', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:11', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('33', 'Canada', '1303070000310000', '1303070000310001', '21', '11.1000', '11.0000', null, null, '1piece/piece', 'CAD', 'C$', '30', '49', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:11', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('34', 'Canada', '1303070000310000', '1303070000310001', '21', '11.0000', '11.0000', null, null, '1piece/piece', 'CAD', 'C$', '50', '99', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:11', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('35', 'Canada', '1303070000310000', '1303070000310001', '21', '10.9500', '10.0000', null, null, '1piece/piece', 'CAD', 'C$', '100', '341', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:12', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('36', 'Canada', '1303070000310000', '1303070000310001', '21', '9.7500', '9.0000', null, null, '1piece/piece', 'CAD', 'C$', '342', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:12', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('37', 'Canada', '1303070000320000', '1303070000320001', '21', '13.4500', '13.0000', null, null, '1piece/piece', 'CAD', 'C$', '10', '29', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:41', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('38', 'Canada', '1303070000320000', '1303070000320001', '21', '12.9500', '12.0000', null, null, '1piece/piece', 'CAD', 'C$', '30', '49', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:41', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('39', 'Canada', '1303070000320000', '1303070000320001', '21', '12.8800', '12.0000', null, null, '1piece/piece', 'CAD', 'C$', '50', '99', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:41', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('40', 'Canada', '1303070000320000', '1303070000320001', '21', '12.8000', '12.0000', null, null, '1piece/piece', 'CAD', 'C$', '100', '343', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:41', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('41', 'Canada', '1303070000320000', '1303070000320001', '21', '11.6500', '11.0000', null, null, '1piece/piece', 'CAD', 'C$', '342', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:50:42', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('42', 'Canada', '1303070000340000', '1303070000340001', '21', '15.3500', '15.0000', null, null, '1piece/piece', 'CAD', 'C$', '10', '29', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('43', 'Canada', '1303070000340000', '1303070000340001', '21', '14.9000', '14.0000', null, null, '1piece/piece', 'CAD', 'C$', '30', '49', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('44', 'Canada', '1303070000340000', '1303070000340001', '21', '14.8100', '14.0000', null, null, '1piece/piece', 'CAD', 'C$', '50', '99', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('45', 'Canada', '1303070000340000', '1303070000340001', '21', '14.7400', '14.0000', null, null, '1piece/piece', 'CAD', 'C$', '100', '269', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('46', 'Canada', '1303070000340000', '1303070000340001', '21', '13.6000', '13.0000', null, null, '1piece/piece', 'CAD', 'C$', '270', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:16', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('47', 'Canada', '1302020000460000', '1302020000460001', '21', '7.3500', '7.0000', null, null, '6pairs/bag', 'CAD', 'C$', '2', '3', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:44', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('48', 'Canada', '1302020000460000', '1302020000460001', '21', '6.9500', '6.0000', null, null, '6pairs/bag', 'CAD', 'C$', '4', '5', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:44', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('49', 'Canada', '1302020000460000', '1302020000460001', '21', '6.7500', '6.0000', null, null, '6pairs/bag', 'CAD', 'C$', '6', '7', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:44', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('50', 'Canada', '1302020000460000', '1302020000460001', '21', '6.4500', '6.0000', null, null, '6pairs/bag', 'CAD', 'C$', '8', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:51:44', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('51', 'Canada', '1303040000230000', '1303040000230002', '21', '13.0500', '13.0000', null, null, '1piece/piece', 'CAD', 'C$', '5', '9', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:52:02', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('52', 'Canada', '1303040000230000', '1303040000230002', '21', '12.7500', '12.0000', null, null, '1piece/piece', 'CAD', 'C$', '10', '19', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:52:03', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('53', 'Canada', '1303040000230000', '1303040000230002', '21', '11.7500', '11.0000', null, null, '1piece/piece', 'CAD', 'C$', '20', '29', null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:52:03', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('54', 'Canada', '1303040000230000', '1303040000230002', '21', '10.3000', '10.0000', null, null, '1piece/piece', 'CAD', 'C$', '30', null, null, '2018-01-04', '2018-03-31', 'VALID', '38699', '2018-01-05 17:52:03', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('55', 'Canada', '1601090000250000', '1601090000250001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('56', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('57', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('58', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('59', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('60', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('61', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('62', 'Canada', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('63', 'Canada', '1601090000140000', '1601090000140001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('64', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('65', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('66', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('67', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('68', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('69', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('70', 'Canada', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:23:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('71', 'Canada', '1601090000130000', '1601090000130001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('72', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('73', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('74', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('75', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('76', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('77', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('78', 'Canada', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('79', 'Canada', '1601090000110000', '1601090000110001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('80', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('81', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('82', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('83', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('84', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('85', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('86', 'Canada', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('87', 'Canada', '1601090000100000', '1601090000100001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('88', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('89', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('90', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('91', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('92', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('93', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('94', 'Canada', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('95', 'Canada', '1601090000090000', '1601090000090001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('96', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('97', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('98', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('99', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('100', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('101', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('102', 'Canada', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('103', 'Canada', '1601090000080000', '1601090000080001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('104', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('105', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('106', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('107', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('108', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('109', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('110', 'Canada', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('111', 'Canada', '1601090000070000', '1601090000070001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('112', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('113', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('114', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('115', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('116', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('117', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('118', 'Canada', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('119', 'Canada', '1601090000060000', '1601090000060001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('120', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('121', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('122', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('123', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('124', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('125', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('126', 'Canada', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('127', 'Canada', '1601090000050000', '1601090000050001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('128', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('129', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('130', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('131', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('132', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('133', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('134', 'Canada', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:22', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('135', 'Bulgaria', '1601090000250000', '1601090000250001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('136', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('137', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('138', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('139', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('140', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('141', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('142', 'Bulgaria', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('143', 'Bulgaria', '1601090000140000', '1601090000140001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('144', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('145', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('146', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('147', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('148', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('149', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('150', 'Bulgaria', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('151', 'Bulgaria', '1601090000130000', '1601090000130001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('152', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('153', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('154', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('155', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('156', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('157', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('158', 'Bulgaria', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('159', 'Bulgaria', '1601090000110000', '1601090000110001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('160', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('161', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('162', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('163', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('164', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('165', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('166', 'Bulgaria', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('167', 'Bulgaria', '1601090000100000', '1601090000100001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('168', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('169', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('170', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('171', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('172', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('173', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('174', 'Bulgaria', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('175', 'Bulgaria', '1601090000090000', '1601090000090001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('176', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('177', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('178', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('179', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('180', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('181', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('182', 'Bulgaria', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('183', 'Bulgaria', '1601090000080000', '1601090000080001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('184', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('185', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('186', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('187', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('188', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('189', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('190', 'Bulgaria', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('191', 'Bulgaria', '1601090000070000', '1601090000070001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('192', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('193', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('194', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('195', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('196', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('197', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('198', 'Bulgaria', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('199', 'Bulgaria', '1601090000060000', '1601090000060001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('200', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('201', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('202', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('203', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('204', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('205', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('206', 'Bulgaria', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('207', 'Bulgaria', '1601090000050000', '1601090000050001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('208', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('209', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('210', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('211', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('212', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('213', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('214', 'Bulgaria', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:29:34', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('215', 'China', '1601090000250000', '1601090000250001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('216', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('217', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('218', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('219', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('220', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('221', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('222', 'China', '1601090000250000', '1601090000250001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', '37850', '2018-01-08 09:20:54', null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('223', 'China', '1601090000140000', '1601090000140001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('224', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('225', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('226', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('227', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('228', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('229', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('230', 'China', '1601090000140000', '1601090000140001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('231', 'China', '1601090000130000', '1601090000130001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('232', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('233', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('234', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('235', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('236', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('237', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('238', 'China', '1601090000130000', '1601090000130001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('239', 'China', '1601090000110000', '1601090000110001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('240', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('241', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('242', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('243', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('244', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('245', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('246', 'China', '1601090000110000', '1601090000110001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('247', 'China', '1601090000100000', '1601090000100001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('248', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('249', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('250', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('251', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('252', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('253', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('254', 'China', '1601090000100000', '1601090000100001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('255', 'China', '1601090000090000', '1601090000090001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('256', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('257', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('258', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('259', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('260', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('261', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('262', 'China', '1601090000090000', '1601090000090001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('263', 'China', '1601090000080000', '1601090000080001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('264', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('265', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('266', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('267', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('268', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('269', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('270', 'China', '1601090000080000', '1601090000080001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('271', 'China', '1601090000070000', '1601090000070001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('272', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('273', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('274', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('275', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('276', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('277', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('278', 'China', '1601090000070000', '1601090000070001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('279', 'China', '1601090000060000', '1601090000060001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('280', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('281', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('282', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('283', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('284', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('285', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('286', 'China', '1601090000060000', '1601090000060001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('287', 'China', '1601090000050000', '1601090000050001', '586', '0.0000', null, null, null, null, null, null, '1', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('288', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('289', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('290', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('291', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('292', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('293', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
+INSERT INTO stock_cost_price VALUES ('294', 'China', '1601090000050000', '1601090000050001', '0', null, null, null, null, null, null, null, '0', null, null, null, null, 'VALID', '37850', '2018-01-05 18:35:49', null, null, null, '0', 'N');
 
 -- ----------------------------
 -- Table structure for `stock_country`
@@ -27686,14 +28008,19 @@ CREATE TABLE `stock_country` (
   `deleted_at` datetime DEFAULT NULL COMMENT '删除时间',
   `deleted_by` bigint(20) DEFAULT '0' COMMENT '删除人ID',
   `updated_by` bigint(20) DEFAULT '0' COMMENT '维护人',
+  `deleted_flag` char(1) NOT NULL DEFAULT 'N' COMMENT '删除标志',
   PRIMARY KEY (`id`),
   KEY `country_bn` (`country_bn`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='现货与国家关系';
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COMMENT='现货与国家关系';
 
 -- ----------------------------
 -- Records of stock_country
 -- ----------------------------
-INSERT INTO stock_country VALUES ('1', 'en', 'Canada', 'Y', 'LEFT', '2017-12-06 14:24:59', '38699', '2017-12-06 14:36:01', null, '0', '38699');
+INSERT INTO stock_country VALUES ('1', 'en', 'Canada', 'Y', 'LEFT', '2017-12-06 14:24:59', '38699', '2018-01-08 09:15:06', null, '0', '37850', 'N');
+INSERT INTO stock_country VALUES ('2', 'en', 'Afghanistan', 'N', null, '2018-01-04 09:32:16', '37850', '2018-01-04 09:32:21', null, '0', '37850', 'N');
+INSERT INTO stock_country VALUES ('3', 'en', 'America', 'Y', null, '2018-01-04 14:04:25', '37850', null, null, '0', '0', 'N');
+INSERT INTO stock_country VALUES ('4', 'en', 'Bulgaria', 'Y', null, '2018-01-05 10:26:16', '37850', null, null, '0', '0', 'N');
+INSERT INTO stock_country VALUES ('5', 'zh', 'China', 'Y', null, '2018-01-05 18:35:40', '37850', null, null, '0', '0', 'N');
 
 -- ----------------------------
 -- Table structure for `stock_country_ads`
@@ -27725,10 +28052,10 @@ CREATE TABLE `stock_country_ads` (
 -- Records of stock_country_ads
 -- ----------------------------
 INSERT INTO stock_country_ads VALUES ('3', 'en', 'Canada', '0', 'group1/M00/01/B4/rBFgyFpF1W2AZMQwAAXUv9KrjlA395.jpg', 'Shipping', '/en/stock/index.html', 'BANNER', 'VALID', '2017-12-16 13:10:07', '38699', null, null, 'N', null, '0');
-INSERT INTO stock_country_ads VALUES ('4', 'en', 'Canada', '0', 'group1/M00/01/F9/rBFgyFpLT1eAMZ2KAADtoDhpI1Y825.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'HOT', 'VALID', '2017-12-16 13:20:00', '38699', null, null, 'N', null, '0');
-INSERT INTO stock_country_ads VALUES ('6', 'en', 'Canada', '0', 'group1/M00/01/F9/rBFgyFpLT6GAMX6NAAFn7gO8CMg353.jpg', 'More In Stock', '/en/rfq/find.html', 'HOT', 'VALID', '2017-12-16 13:28:14', '38699', null, null, 'N', null, '0');
-INSERT INTO stock_country_ads VALUES ('7', 'en', 'Canada', '0', 'group1/M00/01/FB/rBFgyFpLU8CAJu3xAACsfJmyjzQ317.jpg', 'More In Stock', '/en/rfq/find.html', 'RHOT', 'VALID', '2017-12-29 13:41:28', '0', null, null, 'N', null, '0');
-INSERT INTO stock_country_ads VALUES ('8', 'en', 'Canada', '0', 'group1/M00/01/FB/rBFgyFpLU9yACz2OAAEygDBjDfw426.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'RHOT', 'VALID', '2017-12-29 13:42:02', '0', null, null, 'N', null, '0');
+INSERT INTO stock_country_ads VALUES ('4', 'en', 'Canada', '0', 'group1/M00/02/21/rBFgyFpPNgKAf1ZCAAEewUlW1sQ611.jpg', 'Bowl-shaped with valve respirator', '/en/product/info/spu/1303140000030000/sku/1303140000030001/type/1.html', 'HOT', 'VALID', '2017-12-16 13:20:00', '38699', null, null, 'N', null, '0');
+INSERT INTO stock_country_ads VALUES ('6', 'en', 'Canada', '0', 'group1/M00/02/21/rBFgyFpPNhqACd1WAAFdcIFKm98419.jpg', 'Welder leather gloves', '/en/product/info/spu/1302020000260000/sku/1302020000260001/type/1.html', 'HOT', 'VALID', '2017-12-16 13:28:14', '38699', null, null, 'N', null, '0');
+INSERT INTO stock_country_ads VALUES ('7', 'en', 'Canada', '0', 'group1/M00/02/21/rBFgyFpPNY6ALnYbAACzXcxUPsg676.jpg', 'More In Stock', '/en/rfq/find.html', 'RHOT', 'VALID', '2017-12-29 13:41:28', '0', null, null, 'N', null, '0');
+INSERT INTO stock_country_ads VALUES ('8', 'en', 'Canada', '0', 'group1/M00/02/21/rBFgyFpPNXaAFpRGAAEyhPc4fos656.jpg', 'Exclusive Custom Service', '/en/Customservice/Customservice.html', 'RHOT', 'VALID', '2017-12-29 13:42:02', '0', null, null, 'N', null, '0');
 
 -- ----------------------------
 -- Table structure for `stock_floor`
@@ -27757,7 +28084,7 @@ CREATE TABLE `stock_floor` (
 -- ----------------------------
 -- Records of stock_floor
 -- ----------------------------
-INSERT INTO stock_floor VALUES ('1', 'en', 'petroleum special pipes', 'Canada', 'Y', 'petroleum special pipes', '99', '14', '2017-12-13 15:26:29', '38699', '2017-12-27 16:52:01', null, '0', '38699', 'N');
+INSERT INTO stock_floor VALUES ('1', 'en', 'petroleum special pipes', 'Canada', 'Y', 'petroleum special pipes', '99', '10', '2017-12-13 15:26:29', '38699', '2018-01-04 11:11:59', null, '0', '37850', 'N');
 
 -- ----------------------------
 -- Table structure for `stock_floor_ads`
@@ -27790,7 +28117,7 @@ CREATE TABLE `stock_floor_ads` (
 -- ----------------------------
 -- Records of stock_floor_ads
 -- ----------------------------
-INSERT INTO stock_floor_ads VALUES ('1', 'en', 'China', '1', '0', 'group1/M00/00/7D/rBISxFozpm6AM-2RAAMMDzn30rA052.jpg', 'index_banner', null, 'BANNER', 'VALID', '2017-12-15 19:23:18', '38699', null, null, '0', null, 'N');
+INSERT INTO stock_floor_ads VALUES ('1', 'en', 'Canada', '1', '0', 'group1/M00/02/21/rBFgyFpPNlqAP2XeAAEkJADlDJs421.jpg', 'KSD-45 PVC Cone', '/en/product/info/spu/1303070000300000/sku/1303070000300001/type/1.html', 'BACKGROUP', 'VALID', '2017-12-15 19:23:18', '38699', null, null, '0', null, 'N');
 
 -- ----------------------------
 -- Table structure for `stock_floor_keyword`
@@ -27815,11 +28142,12 @@ CREATE TABLE `stock_floor_keyword` (
   KEY `country_bn` (`country_bn`),
   KEY `lang` (`lang`),
   KEY `floor_id` (`floor_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 COMMENT='楼层关键词';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COMMENT='楼层关键词';
 
 -- ----------------------------
 -- Records of stock_floor_keyword
 -- ----------------------------
+INSERT INTO stock_floor_keyword VALUES ('2', 'en', 'Canada', '1', 'sasasa/@&#!@#W$E%R^T&*YU(IO)~!@#$%^&*()________{\"?><ERTYHJGFDRTYHJA|}{][[[[[;./.,.,m,./.~`12345678999990\\][\';.,.1234567890！@#￥%……&*（）《》？L:\"{}|\\[\\asas', '0', 'VALID', '2018-01-04 20:08:37', '0', null, null, '0', null, 'Y');
 
 -- ----------------------------
 -- Table structure for `stock_floor_show_cat`

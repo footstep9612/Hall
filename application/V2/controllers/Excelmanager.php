@@ -932,8 +932,14 @@ class ExcelmanagerController extends PublicController {
     }
 
 
+    /**
+     * 导出被驳回的所有询单
+     */
     public function exportRejectedAction()
     {
+
+        set_time_limit(0);
+
         $this->validateRequests();
 
         $data = $this->getRejectedInquiry();
@@ -979,42 +985,70 @@ class ExcelmanagerController extends PublicController {
 
     }
 
+    /**
+     * 获取驳回的信息
+     * @return mixed
+     */
     private function getRejectedInquiry()
     {
 
-        //驳回到市场部和易瑞的 REJECT_MARKET  || CC_DISPATCHING
-        $inquiry= new InquiryModel();
         $inquiryCheckLog = new InquiryCheckLogModel();
 
-        $field = "id,serial_no,agent_id,created_at,adhoc_request,now_agent_id,org_id,area_bn,country_bn";
-        $where = " deleted_flag='N' AND (status='REJECT_MARKET' OR status='CC_DISPATCHING') ";
+        $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,b.created_at inquiry_created_at,a.created_at,a.created_by,a.op_note,a.in_node";
+        $where = "b.deleted_flag='N' AND a.action='REJECT' ";
 
-        $data = $inquiry->where($where)->field($field)->select();
 
+        $data = $inquiryCheckLog->alias('a')->join('erui_rfq.inquiry b ON a.inquiry_id=b.id','LEFT')
+            ->field($field)
+            ->where($where)
+            ->select();
 
         $employee = new EmployeeModel();
         $org = new OrgModel();
         $region = new RegionModel();
         $country = new CountryModel();
 
-        foreach ($data as $key=>$value){
-            $data[$key]['check'] = $inquiryCheckLog->where([
-                'action' => 'REJECT',
-                'inquiry_id' => $value['id']
-            ])->where("out_node='REJECT_MARKET' OR out_node='CC_DISPATCHING' ")->order('created_at DESC')->field('created_at,created_by,op_note')->find();
+        foreach ($data as &$item){
 
-            $data[$key]['check']['rejector_name'] = $employee->where(['id'=>$data[$key]['check']['created_by']])->getField('name');
-            $data[$key]['agent'] = $employee->where(['id'=>$data[$key]['agent_id']])->getField('name');
-            $data[$key]['now_agent'] = $employee->where(['id'=>$data[$key]['now_agent_id']])->getField('name');
-            $data[$key]['org_name'] = $org->getNameById($data[$key]['org_id']);
-            $data[$key]['region_name'] = $region->where(['bn'=>trim($data[$key]['area_bn']),'lang'=>'zh'])->getField('name');
-            $data[$key]['country_name'] = $country->where(['bn'=>trim($data[$key]['country_bn']),'lang'=>'zh'])->getField('name');;
+            $item['agent'] = $employee->where(['id'=>$item['agent_id']])->getField('name');
+            $item['now_agent'] = $employee->where(['id'=>$item['now_agent_id']])->getField('name');
+            $item['org_name'] = $org->getNameById($item['org_id']);
+            $item['region_name'] = $region->where(['bn'=>trim($item['area_bn']),'lang'=>'zh'])->getField('name');
+            $item['country_name'] = $country->where(['bn'=>trim($item['country_bn']),'lang'=>'zh'])->getField('name');
 
+            $item['created_by'] = $employee->where(['id'=>$item['created_by']])->getField('name');
+            $item['in_node'] = $this->setNode($item['in_node']);
         }
 
-        //p($inquiry->getLastSql());
         return $data;
 
+    }
+
+    /**
+     * 设置环节名称
+     * @param $node
+     *
+     * @return string
+     */
+    private function setNode($node) {
+
+        switch ($node) {
+            case 'DRAFT' : $nodeName = '草稿'; break;
+            case 'REJECT_MARKET' : $nodeName = '驳回市场'; break;
+            case 'BIZ_DISPATCHING' : $nodeName = '事业部分单员'; break;
+            case 'CC_DISPATCHING' : $nodeName = '易瑞客户中心分单员'; break;
+            case 'BIZ_QUOTING' :  $nodeName = '事业部报价'; break;
+            case 'LOGI_DISPATCHING' : $nodeName = '物流分单员'; break;
+            case 'LOGI_QUOTING' : $nodeName = '物流报价'; break;
+            case 'LOGI_APPROVING' :  $nodeName = '物流审核'; break;
+            case 'BIZ_APPROVING' : $nodeName = '事业部核算'; break;
+            case 'MARKET_APPROVING' : $nodeName = '事业部审核'; break;
+            case 'MARKET_CONFIRMING' : $nodeName = '市场确认'; break;
+            case 'QUOTE_SENT' : $nodeName = '报价单已发出'; break;
+            case 'INQUIRY_CLOSED' : $nodeName = '报价关闭'; break;
+        }
+
+        return $nodeName;
     }
 
     private function createRejectedFile($data) {
@@ -1033,19 +1067,20 @@ class ExcelmanagerController extends PublicController {
         $objSheet->setCellValue("E1", '市场经办人');
         $objSheet->setCellValue("F1", '原询单所属事业部');
         $objSheet->setCellValue("G1", '询价时间');
-        $objSheet->setCellValue("H1", '询单描述');
-        $objSheet->setCellValue("I1", '驳回人');
-        $objSheet->setCellValue("J1", '驳回时间');
-        $objSheet->setCellValue("K1", '驳回理由');
-        $objSheet->setCellValue("L1", '当前办理人');
-        $objSheet->setCellValue("M1", '现询单所属事业部');
+        $objSheet->setCellValue("H1", '驳回环节');
+        $objSheet->setCellValue("I1", '询单描述');
+        $objSheet->setCellValue("J1", '驳回人');
+        $objSheet->setCellValue("K1", '驳回时间');
+        $objSheet->setCellValue("L1", '驳回理由');
+        $objSheet->setCellValue("M1", '当前办理人');
+        $objSheet->setCellValue("N1", '现询单所属事业部');
 
         //设置全局文字居中
         $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
 
         $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
-        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"];
+        $normal_cols = ["A","B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
         foreach ($normal_cols as $normal_col):
             $objSheet->getColumnDimension($normal_col)->setWidth('20');
             $objSheet->getCell($normal_col."1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1065,13 +1100,14 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->setCellValue("D".$startRow, $v['country_name']);
                 $objSheet->setCellValue("E".$startRow, $v['agent']);
                 $objSheet->setCellValue("F".$startRow, $v['org_name']);
-                $objSheet->setCellValue("G".$startRow, $v['created_at']);
-                $objSheet->setCellValue("H".$startRow, $v['adhoc_request']);
-                $objSheet->setCellValue("I".$startRow, $v['check']['rejector_name']);
-                $objSheet->setCellValue("J".$startRow, $v['check']['created_at']);
-                $objSheet->setCellValue("K".$startRow, $v['check']['op_note']);
-                $objSheet->setCellValue("L".$startRow, $v['now_agent']);
-                $objSheet->setCellValue("M".$startRow, $v['org_name']);
+                $objSheet->setCellValue("G".$startRow, $v['inquiry_created_at']);
+                $objSheet->setCellValue("H".$startRow, $v['in_node']);
+                $objSheet->setCellValue("I".$startRow, $v['adhoc_request']);
+                $objSheet->setCellValue("J".$startRow, $v['created_by']);
+                $objSheet->setCellValue("K".$startRow, $v['created_at']);
+                $objSheet->setCellValue("L".$startRow, $v['op_note']);
+                $objSheet->setCellValue("M".$startRow, $v['now_agent']);
+                $objSheet->setCellValue("N".$startRow, $v['org_name']);
 
                 $objSheet->getCell("A".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("B".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
@@ -1086,6 +1122,7 @@ class ExcelmanagerController extends PublicController {
                 $objSheet->getCell("K".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("L".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
                 $objSheet->getCell("M".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("N".$startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
                 $startRow++;
             }

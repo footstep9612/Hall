@@ -381,11 +381,11 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '用户名不可以为空!');
         }
-        if (!empty($data['password'])) {
-            $buyer_account_data['password_hash'] = md5(trim($data['password']));
-        } else {
-            jsonReturn('', -101, '密码不可以都为空!');
-        }
+//        if (!empty($data['password'])) {
+//            $buyer_account_data['password_hash'] = md5(trim($data['password']));
+//        } else {
+//            jsonReturn('', -101, '密码不可以都为空!');
+//        }
         if (!empty($data['email'])) {
             $buyer_account_data['email'] = $data['email'];
             if (!isEmail($buyer_account_data['email'])) {
@@ -712,10 +712,10 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-        if (!empty($data['password'])) {
-            $account['password_hash'] = $data['password'];
-            // $buyer_account_model->update_data($arr_account, $where_account);
-        }
+//        if (!empty($data['password'])) {
+//            $account['password_hash'] = $data['password'];
+//            // $buyer_account_model->update_data($arr_account, $where_account);
+//        }
         $buyer_attach_model = new BuyerattachModel();
         if (!empty($data['attach_url'])) {
             $where_attach['attach_url'] = $data['attach_url'];
