@@ -138,8 +138,8 @@ class BuyerCustomModel extends PublicModel
                 case 'Talent':
                     $where['cat_name'] = 'Talent training';
                     break;
-                case 'Humen':
-                    $where['cat_name'] = 'Humen resources';
+                case 'Human':
+                    $where['cat_name'] = 'Human resources';
                     break;
                 default :
                     break;
