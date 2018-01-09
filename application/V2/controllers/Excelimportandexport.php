@@ -1057,7 +1057,7 @@ class ExcelimportandexportController extends PublicController {
             $i = 1;
             foreach ($imgUrlList as $imgUrl) {
                 if ($imgUrl != '') {
-                    if (!preg_match('/^http:\/\/.*/i', $imgUrl)) $imgUrl = $prefix . $imgUrl;
+                    if (!preg_match('/^https?:\/\/.*/i', $imgUrl)) $imgUrl = $prefix . $imgUrl;
                     // 保存的图片名称
                     $saveName =  $this->_jointMark($imgName, $i, 2, '_') . '.jpg';
                     $i++;
