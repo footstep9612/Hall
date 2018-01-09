@@ -1430,7 +1430,6 @@ EOF;
 //            'is_oilgas', //是否油气
             'employee_count', //雇员数量
             'sub_company_name', //子公司名称
-            'credit_level', //信用等级
         );
         foreach($data as $value){
             foreach($baseArr as $v){

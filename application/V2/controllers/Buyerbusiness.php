@@ -67,4 +67,19 @@ class BuyerbusinessController extends PublicController
         );
         $this -> jsonReturn($dataJson);
     }
+    //贸易术语,结算方式-业务信息专用
+    public function tradePaymentAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $payment = new PaymentModeModel();  //结算方式
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $pay = $payment->paymentList($lang);
+
+        $tradeTerms = new TradeTermsModel();  //结算方式
+        $trade = $tradeTerms->tradeList($lang);
+        $dataJson['code']=1;
+        $dataJson['message']='结算方式和贸易术语';
+        $dataJson['payment']=$pay;
+        $dataJson['trade']=$trade;
+        $this -> jsonReturn($dataJson);
+    }
 }

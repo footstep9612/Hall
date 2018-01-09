@@ -65,11 +65,12 @@ class BuyeragreementController extends PublicController
             }
         }
         $agree = new BuyerAgreementModel();
+
         $agreement_id = $agree->createAgree($data);
         if(is_numeric($agreement_id)){
             $data['agreement_id'] = $agreement_id;
             $attach = new AgreementAttachModel();
-            $attachRes = $attach->createAgreeAttach($data);
+            $attachRes = $attach->createAgreeAttach($data['agree_attach']);
             if($attachRes){
                 $dataJson['code'] = 1;
                 $dataJson['message'] = '协议，附件，创建成功';
@@ -78,9 +79,9 @@ class BuyeragreementController extends PublicController
                 $dataJson['message'] = '创建协议成功，附件创建为空';
             }
             $this -> jsonReturn($dataJson);
-        }elseif ($agreement_id === false){
+        }elseif ($agreement_id !== false && $agreement_id !== true && $agreement_id !== 'exsit'){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '创建协议失败,请输入规范数据';
+            $dataJson['message'] = '请输入规范'.$agreement_id.'数据';
             $this -> jsonReturn($dataJson);
         }elseif ($agreement_id === 'exsit'){
             $dataJson['code'] = 0;
@@ -110,11 +111,16 @@ class BuyeragreementController extends PublicController
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        if(empty($data['attach_name']) || empty($data['attach_url'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '请上传附件';
+            $this -> jsonReturn($dataJson);
+        }
         $agree = new BuyerAgreementModel();
         $res = $agree->updateAgree($data);
-        if($res == false || empty($data['attach_name']) || empty($data['attach_url'])){
+        if($res !==true && $res !== 'no_error' && !is_numeric($res)){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入规范数据';
+            $dataJson['message'] = '请输入规范'.$res.'数据';
             $this -> jsonReturn($dataJson);
         }
         if($res === 'no_error'){

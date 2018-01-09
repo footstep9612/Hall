@@ -16,7 +16,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportModel($excelName,$sheetName,$data){
-        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','市场经办人','商务技术经办人');
+        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','项目金额（美元）','项目开始执行时间','项目结束执行时间','市场经办人','商务技术经办人');
         $excelDir = MYPATH.DS.'public'.DS.'tmp'.DS.'excelagree';
         if(!is_dir($excelDir)){
             mkdir($excelDir,0777,true);
@@ -127,20 +127,16 @@ class BuyerAgreementModel extends PublicModel
      */
     public function getAgreeCond($data = [],$excel=true){
             $cond = ' 1=1';
-//        if($excel==true){
-//        }else{
-//            $cond = " agree.created_by=".$data['created_by'];
-//        }
+        if($excel !==true){ //展示列表
+            $cond .= " agree.created_by=".$data['created_by'];
+            if(!empty($data['buyer_id'])){  //客户id
+                $cond .= " and buyer_id='$data[buyer_id]'";
+            }
+        }
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
-        if(!empty($data['buyer_id'])){  //客户id
-            $cond .= " and buyer_id='$data[buyer_id]'";
-        }
-//        if(!empty($data['created_by'])){  //执行创建人
-//            $cond .= " and agree.created_by='$data[created_by]'";
-//        }
         if(!empty($data['country_bn'])){  //所属地区----------国家
             $cond .= " and agree.country_bn='$data[country_bn]'";
         }
@@ -185,6 +181,7 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
             $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
+            $arr[$k]['execute_end_at'] = $v['execute_end_at'];    //项目结束执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
         }
@@ -220,6 +217,7 @@ class BuyerAgreementModel extends PublicModel
             'unit',             //单位
             'amount',           //项目金额
             'execute_start_at', //项目开始执行时间
+            'execute_end_at', //项目结束执行时间
             'agent',            //市场经办人
             'technician'        //商务技术经办人
         );  //获取字段start
@@ -374,8 +372,8 @@ class BuyerAgreementModel extends PublicModel
     public function createAgree($data){
         //验证
         $valid = $this -> validData($data);
-        if($valid == false){
-            return false;
+        if($valid !== true){
+            return $valid;
         }
         //组装数据
         $arr = $this -> packageData($data);
@@ -441,36 +439,26 @@ class BuyerAgreementModel extends PublicModel
     //验证非空数据
     public function validData($data){
         //验证必要数据
-        if(empty($data['buyer_id']) || empty($data['created_by']) || empty($data['buyer_code'])){
-            return false;
-        }
-        if(!empty($data['token'])){
-            unset($data['token']);
-        }
-        //限制数据的长度200
-        foreach($data as $v){
-            if(strlen($v) > 200){
-                return false;
-            }
-        }
         $arr = array(
-            'execute_no',   //框架执行单号
-            'org_id',   //所属事业部
-            'execute_company',  //执行分公司
-            'country_bn',  //所属国家
+            'buyer_id'=>'客户id',
+            'buyer_code'=>'客户代码',
+            'execute_no'=>'框架执行单号',
+            'org_id'=>'所属事业部',
+            'execute_company'=>'执行分公司',
+            'country_bn'=>'所属国家',
 //            'agent',    //市场经办人
-            'technician',   //商务技术经办人
-            'execute_start_at', //框架开始时间
-            'execute_end_at',   //框架结束时间
-            'amount',   //项目金额
+            'technician'=>'商务技术经办人',
+            'execute_start_at'=>'框架开始时间',
+            'execute_end_at'=>'框架结束时间',
+            'amount'=>'项目金额'
         );
-        foreach($arr as $v){
-            if(empty($data[$v])){
-                return false;
+        foreach($arr as $k => $v){
+            if(empty($data[$k])){
+                return $v;
             }
         }
         if($data['execute_start_at'] > $data['execute_end_at']){
-            return false;
+            return '结束时间大于等于开始时间';
         }
         return true;
     }
@@ -478,8 +466,8 @@ class BuyerAgreementModel extends PublicModel
     public function updateAgree($data){
         //验证
         $valid = $this -> validData($data);
-        if($valid == false){
-            return false;
+        if($valid !== true){
+            return $valid;
         }
         //组装数据
         $arr = $this -> packageData($data);
