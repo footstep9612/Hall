@@ -86,10 +86,15 @@ class InquiryitemModel extends PublicModel {
 
         $goods_model = new GoodsModel();
         $goods_table = $goods_model->getTableName();
+
+        $InquiryItemAttach_model = new InquiryItemAttachModel();
+        $item_attach_table = $InquiryItemAttach_model->getTableName();
+
         try {
-            $list = $this->field('t.*,g.exw_days,g.min_pack_naked_qty')
+            $list = $this->field('t.*,g.exw_days,g.min_pack_naked_qty,it.*')
                             ->alias('t')
                             ->join($goods_table . ' as g on g.sku=t.sku and g.lang=\'en\'', 'left')
+                            ->join($item_attach_table . ' as it on it.inquiry_item_id = t.id', 'left')
                             ->where($where)->order('t.created_at desc')->select();
 
             if ($list) {
