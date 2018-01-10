@@ -271,8 +271,15 @@ class HandleController extends Yaf_Controller_Abstract
      */
     public function exportSupplierSkuAction()
     {
+        /*
+         * 1、湖北江汉石油仪器仪表股份有限公司
+         * 2、中国石油集团济柴动力总厂
+         * 3、青岛天时油气装备服务集团有限公司
+         * 4、江苏如通石油机械股份有限公司
+         * 5、烟台石油机械有限公司
+         */
 
-        $supplierName = '湖北江汉石油仪器仪表股份有限公司';
+        $supplierName = '烟台石油机械有限公司';
         $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVING'])->getField('id');
 
         $data = $this->getSkuDataBySupplierID($supplierId);
