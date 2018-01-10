@@ -727,7 +727,9 @@ class EsProductModel extends Model {
         $brand_names = [];
         if (isset($ret['aggregations']['brand_name']['buckets'])) {
             foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
-                $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                if ($brand_name['key']) {
+                    $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                }
             }
         }
         return $brand_names;
@@ -768,12 +770,15 @@ class EsProductModel extends Model {
         if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
             foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
+                if ($spec_name['key']) {
+                    foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
+                        if ($spec_value['key']) {
+                            $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                        }
+                    }
 
-                foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
-                    $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                    $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'], 'spec_values' => $spec_values];
                 }
-
-                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'], 'spec_values' => $spec_values];
             }
         }
         return $spec_names;
