@@ -3,6 +3,14 @@
 class HandleController extends Yaf_Controller_Abstract
 {
 
+    /**
+     *
+     *  db : rm-erui123.mysql.rds.aliyuncs.com
+     *  user : mmt
+     *  pwd : kRui#rds8
+     */
+
+
     public function init()
     {
         header('Content-type:text/html;charset=utf8');
@@ -261,25 +269,186 @@ class HandleController extends Yaf_Controller_Abstract
         return $nodeName;
     }
 
-    public function testAction()
+    /**
+     * 测试方法
+     */
+    public function testAction(){}
+
+    /**
+     * 导出指定供应商的SKU信息
+     */
+    public function exportSupplierSkuAction()
+    {
+        /*
+         * 1、湖北江汉石油仪器仪表股份有限公司
+         * 2、中国石油集团济柴动力总厂
+         * 3、青岛天时油气装备服务集团有限公司
+         * 4、江苏如通石油机械股份有限公司
+         * 5、烟台石油机械有限公司
+         */
+
+        $supplierName = '烟台石油机械有限公司';
+        $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
+
+        if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或为审核!']));
+
+        $data = $this->getSkuDataBySupplierID($supplierId);
+
+        $localFile = $this->createSupplierExcel($data, $supplierName);
+
+        p($localFile);
+    }
+
+    /**
+     * 获取指定供应商对应的SKU信息
+     * @param $supplierId 供应商id
+     *
+     * @return mixed
+     */
+    private function getSkuDataBySupplierID ($supplierId)
     {
 
-        $vowels = "o";
+        $model = new GoodsSupplierModel();
 
-        $onlyconsonants = str_replace($vowels, "", "Hello World of PHP");
+        $where = [
+            'a.supplier_id' => $supplierId,
+            //'b.lang'         => 'zh',
+        ];
 
-        $content = "<a href='http://v.youku.com/v_show/id_XMzI5OTAwNzgyNA==.html?spm=a2hww.20027244.m_250003.5~5!3~5~5~A#paction'></a>";
+        $field = 'b.id,c.spu,c.show_name,c.brand,b.name,b.model,b.exw_days,b.min_pack_naked_qty,b.nude_cargo_unit,
+                b.min_pack_unit,b.min_order_qty,d.price,d.price_cur_bn,d.price_validity,a.supplier_id';
 
-        $content = str_replace("<a href='http://v.youku.com/", "view.php?url=http://v.youku.com/", $content);
+        $data = $model->alias('a')->join('erui_goods.goods b ON a.sku=b.sku')
+                                ->join('erui_goods.product c ON a.spu=c.spu')
+                                ->join('erui_goods.goods_cost_price d ON a.sku=d.sku')
+                                ->field($field)
+                                ->where($where)
+                                ->select();
 
-        // view.php?url=http://v.youku.com/v_show/id_XMzI5OTAwNzgyNA==.html?spm=a2hww.20027244.m_250003.5~5!3~5~5~A#paction'>
+        foreach ($data as &$value){
+            $brand = json_decode($value['brand'],true);
+            $value['brand'] =$brand['name'];
+            $value['supplier_name'] = (new SupplierModel)->where(['id'=> $value['supplier_id']])->getField('name');
+        }
 
-        //$content = str_replace('<a href="http://v.youku.com/','<a href="view.php?url=http://v.youku.com/',$content);
+        //p(count($data));
+        return $data;
 
+    }
 
+    /**
+     * 形成供应商数据Excel对象
+     * @param $data 数据对象
+     * @param $supplierName 供应商名称
+     *
+     * @return string 本地文件路径
+     */
+    private function createSupplierExcel($data, $supplierName)
+    {
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $objSheet->setTitle($supplierName);
 
-        p($content);
+        /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
+        $objSheet->setCellValue("A1", '序号');
+        $objSheet->setCellValue("B1", '订货号');
+        $objSheet->setCellValue("C1", 'SPU编码');
+        $objSheet->setCellValue("D1", 'SPU展示名称(中文)');
+        $objSheet->setCellValue("E1", '品牌(中文)');
+        $objSheet->setCellValue("F1", '名称');
+        $objSheet->setCellValue("G1", '型号');
+        $objSheet->setCellValue("H1", '供应商名称');
+        $objSheet->setCellValue("I1", '出货周期(天)');
+        $objSheet->setCellValue("J1", '最小包装内裸货商品数量');
+        $objSheet->setCellValue("K1", '商品裸货单位');
+        $objSheet->setCellValue("L1", '最小包装单位');
+        $objSheet->setCellValue("M1", '最小订货数量');
+        $objSheet->setCellValue("N1", '供应商供货价');
+        $objSheet->setCellValue("O1", '有效期');
+        $objSheet->setCellValue("P1", '币种');
+        $objSheet->setCellValue("Q1", '扩展属性');
 
+        $objSheet->setCellValue("A2", '');
+        $objSheet->setCellValue("B2", 'Item No.');
+        $objSheet->setCellValue("C2", 'SPU');
+        $objSheet->setCellValue("D2", 'Spu show name');
+        $objSheet->setCellValue("E2", 'Brand');
+        $objSheet->setCellValue("F2", 'Name');
+        $objSheet->setCellValue("G2", 'Model');
+        $objSheet->setCellValue("H2", 'Supplier');
+        $objSheet->setCellValue("I2", 'EXW(day)');
+        $objSheet->setCellValue("J2", 'Minimum packing Naked quantity');
+        $objSheet->setCellValue("K2", 'Goods nude cargo units');
+        $objSheet->setCellValue("L2", 'Minimum packing unit');
+        $objSheet->setCellValue("M2", 'Minimum order quantity');
+        $objSheet->setCellValue("N2", 'Supply price');
+        $objSheet->setCellValue("O2", 'Price validity');
+        $objSheet->setCellValue("P2", 'Currency');
+        $objSheet->setCellValue("Q2", '');
 
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+
+        $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $normal_cols = ["B", "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N", "O", "P", "Q"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('20');
+            $objSheet->getCell($normal_col . "1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            $objSheet->getCell($normal_col . "2")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+        $objSheet->getColumnDimension("H")->setWidth('30');
+
+        $startRow = 3;
+        if (!empty($data)) {
+            foreach ($data as $k => $v) {
+
+                $objSheet->getRowDimension($startRow)->setRowHeight(30);
+
+                $objSheet->setCellValue("A" . $startRow, $k);
+                $objSheet->setCellValue("B" . $startRow, '');
+                $objSheet->setCellValue("C" . $startRow, $v['spu']);
+                $objSheet->setCellValue("D" . $startRow, $v['show_name']);
+                $objSheet->setCellValue("E" . $startRow, $v['brand']);
+                $objSheet->setCellValue("F" . $startRow, $v['name']);
+                $objSheet->setCellValue("G" . $startRow, $v['model']);
+                $objSheet->setCellValue("H" . $startRow, $v['supplier_name']);
+                $objSheet->setCellValue("I" . $startRow, $v['exw_days']);
+                $objSheet->setCellValue("J" . $startRow, $v['min_pack_naked_qty']);
+                $objSheet->setCellValue("K" . $startRow, $v['nude_cargo_unit']);
+                $objSheet->setCellValue("L" . $startRow, $v['min_pack_unit']);
+                $objSheet->setCellValue("M" . $startRow, $v['min_order_qty']);
+                $objSheet->setCellValue("N" . $startRow, $v['price']);
+                $objSheet->setCellValue("O" . $startRow, $v['price_validity']);
+                $objSheet->setCellValue("P" . $startRow, $v['price_cur_b']);
+                $objSheet->setCellValue("Q" . $startRow, '');
+
+                $objSheet->getCell("A" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("B" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("C" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("D" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("E" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("F" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("G" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("H" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("I" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("J" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("K" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("L" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("M" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("N" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("O" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("P" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("Q" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+                $startRow++;
+            }
+
+        }
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SUPPLIER_" . date('Ymd-His') . '.xls');
     }
 }

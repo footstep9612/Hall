@@ -86,10 +86,15 @@ class InquiryitemModel extends PublicModel {
 
         $goods_model = new GoodsModel();
         $goods_table = $goods_model->getTableName();
+
+        $InquiryItemAttach_model = new InquiryItemAttachModel();
+        $item_attach_table = $InquiryItemAttach_model->getTableName();
+
         try {
-            $list = $this->field('t.*,g.exw_days,g.min_pack_naked_qty')
+            $list = $this->field('t.*,g.exw_days,g.min_pack_naked_qty,it.*')
                             ->alias('t')
                             ->join($goods_table . ' as g on g.sku=t.sku and g.lang=\'en\'', 'left')
+                            ->join($item_attach_table . ' as it on it.inquiry_item_id = t.id', 'left')
                             ->where($where)->order('t.created_at desc')->select();
 
             if ($list) {
@@ -146,7 +151,7 @@ class InquiryitemModel extends PublicModel {
      * 添加数据.
      * @param Array $condition
      * @return Array
-     * @author zhangyuliang
+     * @author link
      */
     public function addData($condition = []) {
         if (!empty($condition['inquiry_id'])) {
@@ -156,13 +161,27 @@ class InquiryitemModel extends PublicModel {
             $results['message'] = '没有询单ID!';
             return $results;
         }
+        //询单item附件
+        $attach = [];
+        if(isset($condition['attach'])){
+            if( !empty($condition['attach']['attach_url'])){
+                $attach = $condition['attach'];
+            }
+            unset($condition['attach']);
+        }
 
         $data = $this->create($condition);
         $data['created_at'] = $this->getTime();
-
         try {
             $id = $this->add($data);
             if ($id) {
+                if($attach){
+                    $attach['inquiry_id'] = $data['inquiry_id'];
+                    $attach['inquiry_item_id'] = $id;
+                    $attach['created_at'] = $this->getTime();
+                    $iiaModel = new InquiryItemAttachModel();
+                    $iiaModel->add($iiaModel->create($attach));
+                }
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
             } else {

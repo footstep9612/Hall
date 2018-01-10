@@ -82,6 +82,9 @@ class BuyerCustomModel extends PublicModel
         if (isset($condition['lang']) && !empty($condition['lang'])) {
             $where .= ' And `erui_mall`.`buyer_custom`.`lang` ="' . strtolower($condition['lang']) . '"';
         }
+        if (isset($condition['contact_name']) && !empty($condition['contact_name'])) {
+            $where .= " And `erui_mall`.`buyer_custom`.`contact_name` like '%" . $condition['contact_name'] . "%'";
+        }
         if (isset($condition['tel']) && !empty($condition['tel'])) {
             $where .= ' And `erui_mall`.`buyer_custom`.`tel` REGEXP"([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$"';
         }
