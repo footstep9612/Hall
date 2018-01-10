@@ -381,7 +381,7 @@ class OrderController extends PublicController {
                         ->setField(['order_contact_id' => $refId]);
             }
             //保存商品信息
-            $this->_saveOrderGoods($data, $order['order_no']);
+            $this->_saveOrderGoods(array_merge($data, ['order_id' => $order['id'], 'order_no' => $order['order_no']]));
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -397,7 +397,7 @@ class OrderController extends PublicController {
     /**
      * @desc 保存订单商品信息
      *
-     * @param array $data  提交的数据数组
+     * @param array $data
      * @author liujf
      * @time 2018-01-10
      */
@@ -405,7 +405,9 @@ class OrderController extends PublicController {
         $orderGoodsModel = new OrderGoodsModel();
         $time = date('Y-m-d H:i:s');
         foreach ($data['order_goods'] as $orderGoodsData) {
-            $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
+            $orderGoodsData['order_id'] = $data['order_id'];
+            $orderGoodsData['order_no'] = $data['order_no'];
+            $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
             unset($orderGoodsData['price']);
             $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
             $where = ['id' => intval($orderGoodsData['id'])];
@@ -415,7 +417,6 @@ class OrderController extends PublicController {
                 $orderGoodsData['updated_at'] = $this->time;
                 $orderGoodsModel->updateInfo($where, $orderGoodsData);
             } else {
-                $orderGoodsData['order_no'] = $data['order_no'];
                 $orderGoodsData['created_by'] = $this->user['id'];
                 $orderGoodsData['created_at'] = $time;
                 $orderGoodsModel->addRecord($orderGoodsData);
