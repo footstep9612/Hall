@@ -258,7 +258,7 @@ class ProductModel extends PublicModel {
                 }
 
 
-                $gaModel = new GoodsAttachModel();
+                /*$gaModel = new GoodsAttachModel();
                 $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
                 if ($attachInfo) {
                     foreach ($attachInfo as $item) {
@@ -267,7 +267,7 @@ class ProductModel extends PublicModel {
                         }
                         $attachs[$item['sku']] = $item;
                     }
-                }
+                }*/
                 $paModel = new ProductAttachModel();
                 foreach($skuAry as $sku){
                     if(!isset($attachs[$sku])){

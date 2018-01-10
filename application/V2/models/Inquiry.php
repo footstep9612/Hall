@@ -73,6 +73,9 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
+        if (!empty($condition['buyer_inquiry_no'])) {
+            $where['buyer_inquiry_no'] = $condition['buyer_inquiry_no'];    //客户询单号
+        }
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = array('in',$condition['agent_id']);//市场经办人
         }
@@ -122,7 +125,11 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
         }
-        
+
+        if (!empty($condition['buyer_inquiry_no'])) {
+            $where['buyer_inquiry_no'] = $condition['buyer_inquiry_no'];    //客户询单号
+        }
+
         if (!empty($condition['agent_id'])) {
             $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
         }

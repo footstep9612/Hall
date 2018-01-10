@@ -246,7 +246,7 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
+            jsonReturn('', '-1001', 'Token Expired');
         }
         if (!empty($data['oldpassword'])) {
             $password = $data['oldpassword'];
@@ -270,12 +270,12 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
+            jsonReturn('', '-1001', 'Token Expired');//用户buyer_id不可以为空
         }
         if (!empty($data['password'])) {
             $new['password_hash'] = $data['password'];
         } else {
-            jsonReturn('', '-1001', '新密码不可以为空');
+            jsonReturn('', '-1001', 'Password cannot be empty');
         }
         $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
         if ($res !== false) {

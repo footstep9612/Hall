@@ -62,22 +62,6 @@ class MembercenterController extends PublicController {
     }
 
 
-
-    /**
-     * 源密码校验
-     * @author klp
-     */
-    public function checkOldPwdAction() {
-        $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut());
-        if ($result) {
-            jsonReturn('', 1, '原密码输入正确!');
-        } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
-        }
-        exit;
-    }
-
     /**
      * 修改密码
      * @author klp
@@ -90,12 +74,12 @@ class MembercenterController extends PublicController {
         if ($result) {
             $res = $buyerAccount->update_pwd($data);
             if ($res) {
-                jsonReturn('', 1, '修改密码成功!');
+                jsonReturn('', 1, 'Password is reset successfully!');
             } else {
-                jsonReturn('', '-1002', '修改密码失败!');
+                jsonReturn('', '-1002', 'Password is reset failed!');
             }
         } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
+            jsonReturn('', '-1001', 'Current password error!');
         }
     }
 

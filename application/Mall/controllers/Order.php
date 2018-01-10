@@ -362,7 +362,6 @@ class OrderController extends PublicController {
     public function ListLogAction() {
 
         $order_id = $this->getPut('order_id');
-        $order_id = 912;
         if (!$order_id) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
