@@ -31,4 +31,22 @@ class BuyerAgentModel extends PublicModel{
             ->order('buyer_agent.id desc')
             ->select();
     }
+
+    /**
+     * 根据客户id获取市场负责人id
+     * @param $buyer_id
+     * @return array|bool|mixed
+     * @author link
+     */
+    public function getAgentIdByBuyerId($buyer_id){
+        try{
+            $condition = [
+                'buyer_id'=>$buyer_id,
+            ];
+            $agentIds = $this->field('agent_id')->where($condition)->select();
+            return $agentIds ? $agentIds : [];
+        }catch (Exception $e){
+            return false;
+        }
+    }
 }

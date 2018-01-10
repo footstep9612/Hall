@@ -227,7 +227,7 @@ class ProductModel extends PublicModel {
             $gtable = $gmodel->getTableName();
             $thisTable = $this->getTableName();
             $condition = ["$gtable.sku" => ['in', $input['skus']], "$gtable.lang" => $input['lang'], "$gtable.deleted_flag" => 'N', "$gtable.status" => 'VALID'];
-            $result = $gmodel->field("$gtable.sku,$gtable.name,$gtable.show_name,$gtable.model,$gtable.min_pack_naked_qty,$gtable.nude_cargo_unit,$gtable.min_pack_unit,$gtable.min_order_qty,$thisTable.name as spu_name,$thisTable.show_name as spu_show_name")->join("$thisTable ON $gtable.spu=$thisTable.spu AND $gtable.lang=$thisTable.lang")->where($condition)->select();
+            $result = $gmodel->field("$gtable.sku,$gtable.name,$gtable.spu,$gtable.show_name,$gtable.model,$gtable.min_pack_naked_qty,$gtable.nude_cargo_unit,$gtable.min_pack_unit,$gtable.min_order_qty,$thisTable.name as spu_name,$thisTable.show_name as spu_show_name")->join("$thisTable ON $gtable.spu=$thisTable.spu AND $gtable.lang=$thisTable.lang")->where($condition)->select();
             $attachs = [];
             $attrs = [];
             if ($result) {
@@ -258,17 +258,23 @@ class ProductModel extends PublicModel {
                 }
 
 
-                $gaModel = new GoodsAttachModel();
-                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+                /*$gaModel = new GoodsAttachModel();
+                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
                 if ($attachInfo) {
                     foreach ($attachInfo as $item) {
                         if (isset($attachs[$item['sku']])) {
-                            if ($item['default_flag'] = 'Y') {
-                                $attachs[$item['sku']] = $item;
-                            }
                             continue;
                         }
                         $attachs[$item['sku']] = $item;
+                    }
+                }*/
+                $paModel = new ProductAttachModel();
+                foreach($skuAry as $sku){
+                    if(!isset($attachs[$sku])){
+                        $attachInfo = $paModel->field('spu,attach_url,attach_name')->where(['spu' => $result[$sku]['spu'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->find();
+                        if ($attachInfo) {
+                            $attachs[$sku] = $attachInfo;
+                        }
                     }
                 }
             }
