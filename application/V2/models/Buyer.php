@@ -1281,7 +1281,7 @@ EOF;
                 return $v;
             }
         }
-        if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$base['official_email'])){
+        if(!preg_match ("/^([a-zA-Z0-9_.-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$base['official_email'])){
             return $baseArr['official_email'];
         }
         if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
