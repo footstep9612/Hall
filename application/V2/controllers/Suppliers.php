@@ -843,10 +843,13 @@ class SuppliersController extends PublicController {
     /**
      * @desc 去掉参数数据两侧的空格
      *
+     * @param mixed $condition
+     * @return mixed
      * @author liujf
-     * @time 2017-11-10
+     * @time 2017-12-23
      */
     private function _trim($condition = []) {
+        if (is_string($condition)) return trim($condition);
         foreach ($condition as $k => $v) {
             if (is_array($v)) {
                 $condition[$k] = $this->_trim($v);
