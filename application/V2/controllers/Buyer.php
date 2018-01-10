@@ -1065,4 +1065,20 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+
+    /**
+     * 获取客户类型名称列表
+     */
+    public function getBuyerTypeListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $type=new BuyerTypeModel();
+        $info=$type->buyerNameList($lang);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'客户类型名称列表',
+            'data'=>$info
+        );
+        $this->jsonReturn($dataJson);
+    }
 }
