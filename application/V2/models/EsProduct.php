@@ -943,6 +943,7 @@ class EsProductModel extends Model {
         } else {
             $body['show_cats'] = [];
         }
+        $body['show_cats_nested'] = $body['show_cats'];
 
         if ($es_product && ($es_product['_source']['brand'] != $body['brand'] || $es_product['_source']['material_cat_no'] !== $item['material_cat_no'])) {
             $this->BatchSKU($spu, $lang, $body['brand'], $body['brand_childs'], $item['material_cat_no'], $body['material_cat'], $body['material_cat_zh']);
@@ -1590,7 +1591,9 @@ class EsProductModel extends Model {
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
                     $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
-                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($item['_source']['spu'], $lang)]];
+                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($item['_source']['spu'], $lang),
+                            'show_cats_nested' => $this->getshowcats($item['_source']['spu'], $lang)
+                    ]];
                 }
 
                 $es = new ESClient();
@@ -1819,11 +1822,12 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
-
+            $data['show_cats'] = [];
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $spu);
+            unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
@@ -1840,10 +1844,11 @@ class EsProductModel extends Model {
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
-
+                $data['show_cats_nested'] = [];
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
+                unset($data['show_cats_nested']);
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [
@@ -1956,9 +1961,11 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = $onshelf_flag;
             $data['onshelf_by'] = $onshelf_by;
             $data['show_cats'] = $this->getshowcats($spu, $lang);
+            $data['show_cats_nested'] = $data['show_cats'];
             $data['onshelf_at'] = date('Y-m-d H:i:s');
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $spu);
+            unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
@@ -1982,9 +1989,11 @@ class EsProductModel extends Model {
                 }
 
                 rsort($data['show_cats']);
+                $data['show_cats_nested'] = $data['show_cats'];
                 $data['onshelf_at'] = date('Y-m-d H:i:s');
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
+                unset($data['show_cats_nested']);
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [

@@ -227,7 +227,7 @@ class ProductModel extends PublicModel {
             $gtable = $gmodel->getTableName();
             $thisTable = $this->getTableName();
             $condition = ["$gtable.sku" => ['in', $input['skus']], "$gtable.lang" => $input['lang'], "$gtable.deleted_flag" => 'N', "$gtable.status" => 'VALID'];
-            $result = $gmodel->field("$gtable.sku,$gtable.name,$gtable.show_name,$gtable.model,$gtable.min_pack_naked_qty,$gtable.nude_cargo_unit,$gtable.min_pack_unit,$gtable.min_order_qty,$thisTable.name as spu_name,$thisTable.show_name as spu_show_name")->join("$thisTable ON $gtable.spu=$thisTable.spu AND $gtable.lang=$thisTable.lang")->where($condition)->select();
+            $result = $gmodel->field("$gtable.sku,$gtable.name,$gtable.spu,$gtable.show_name,$gtable.model,$gtable.min_pack_naked_qty,$gtable.nude_cargo_unit,$gtable.min_pack_unit,$gtable.min_order_qty,$thisTable.name as spu_name,$thisTable.show_name as spu_show_name")->join("$thisTable ON $gtable.spu=$thisTable.spu AND $gtable.lang=$thisTable.lang")->where($condition)->select();
             $attachs = [];
             $attrs = [];
             if ($result) {
@@ -259,16 +259,22 @@ class ProductModel extends PublicModel {
 
 
                 $gaModel = new GoodsAttachModel();
-                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->select();
+                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => ['in', $skuAry], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
                 if ($attachInfo) {
                     foreach ($attachInfo as $item) {
                         if (isset($attachs[$item['sku']])) {
-                            if ($item['default_flag'] = 'Y') {
-                                $attachs[$item['sku']] = $item;
-                            }
                             continue;
                         }
                         $attachs[$item['sku']] = $item;
+                    }
+                }
+                $paModel = new ProductAttachModel();
+                foreach($skuAry as $sku){
+                    if(!isset($attachs[$sku])){
+                        $attachInfo = $paModel->field('spu,attach_url,attach_name')->where(['spu' => $result[$sku]['spu'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->find();
+                        if ($attachInfo) {
+                            $attachs[$sku] = $attachInfo;
+                        }
                     }
                 }
             }
@@ -386,6 +392,79 @@ class ProductModel extends PublicModel {
             return $data;
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuStockBySku:' . $e, Log::ERR);
+            return false;
+        }
+    }
+
+    /**
+     * 我的购物车
+     */
+    public function myShoppingCar($input=[]){
+        if(!isset($input) || empty($input) || !isset($input['skus']) || !isset($input['lang'])){
+            return false;
+        }
+        if(isset($input['type']) && $input['type']!==0 && !isset($input['country_bn'])){
+            return false;
+        }
+        try{
+            $goodsModel= new GoodsModel();
+            $goodsTable = $goodsModel->getTableName();
+            $result = $input['skus'];
+            if($result){
+                $skus = [];
+                $spus = [];
+                foreach($result as $index =>$item){
+                    $skus[] = $item['sku'];
+                    $spus[] = $item['spu'];
+                }
+
+                $goodsModel= new GoodsModel();
+                $goodsTable = $goodsModel->getTableName();
+                $productModel = new ProductModel();
+                $productTable =$productModel->getTableName();
+                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
+                    ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$input['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
+                $goodsAry = [];
+                foreach($goods as $r){
+                    $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
+                    if($input['type']){
+                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
+                    }
+                    $goodsAry[$r['sku']] = $r;
+                }
+
+                //库存
+                $stockAry = [];
+                if($input['type']) {
+                    $stockAry = $productModel->getSkuStockBySku( $skus , $input['country_bn'] , $input[ 'lang' ] );
+                }
+
+                //扩展属性
+                $gattrModel = new GoodsAttrModel();
+                $condition_attr = ['sku'=>['in', $skus], 'lang'=>$input['lang'], 'deleted_flag'=>'N'];
+                $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
+                $attrAry = [];
+                foreach($attrs as $attr){
+                    $attrAry[$attr['sku']] = json_decode($attr['spec_attrs'],true);
+                }
+
+                //图
+                $attachModel = new ProductAttachModel();
+                $attachs = $attachModel->getAttachBySpu( $spus );
+                $dataAttach = [''];
+                foreach ( $attachs as $r ) {
+                    if ( isset( $dataAttach[ $r[ 'spu' ] ] ) ) {
+                        if ( $r[ 'default_flag' ] == 'Y' ) {
+                            $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
+                        }
+                        continue;
+                    }
+                    $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
+                }
+            }
+            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
             return false;
         }
     }
