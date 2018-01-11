@@ -1313,7 +1313,7 @@ EOF;
                 }
             }
             if(!empty($value['email'])){
-                if(!preg_match ("/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$value['email'])){
+                if(!preg_match ("/^([a-zA-Z0-9_.-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/",$value['email'])){
                     return $contactExtra['email'];
                 }
             }
