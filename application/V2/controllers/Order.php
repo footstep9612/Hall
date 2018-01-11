@@ -414,7 +414,7 @@ class OrderController extends PublicController {
             $hasGoods = $orderGoodsModel->where($where)->getField('id');
             if ($hasGoods) {
                 $orderGoodsData['updated_by'] = $this->user['id'];
-                $orderGoodsData['updated_at'] = $this->time;
+                $orderGoodsData['updated_at'] = $time;
                 $orderGoodsModel->updateInfo($where, $orderGoodsData);
             } else {
                 $orderGoodsData['created_by'] = $this->user['id'];
