@@ -131,7 +131,7 @@ class StockModel extends PublicModel {
 
         if (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
             $prodcut_model = new ProductModel();
-            $where_spu = ['deleted_flag' => ' N',
+            $where_spu = ['deleted_flag' => 'N',
                 'lang' => $lang,
                 'spu' => $data['spu'],
             ];
@@ -142,6 +142,7 @@ class StockModel extends PublicModel {
         } elseif (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
             $data['show_name'] = $data['name'];
         }
+
         return $data;
     }
 
@@ -161,6 +162,7 @@ class StockModel extends PublicModel {
             if (!$row) {
 
                 $goods_name = $this->getSpu($sku, $lang);
+
                 if (empty($goods_name['spu'])) {
 
                     return false;
@@ -177,13 +179,11 @@ class StockModel extends PublicModel {
                 ];
                 $flag = $this->add($data);
                 if (!$flag) {
-
-
                     $this->rollback();
                     return false;
                 }
 
-                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
+                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku, false);
                 if (!$flag_price) {
 
                     $this->rollback();
