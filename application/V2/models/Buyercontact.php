@@ -176,6 +176,9 @@ class BuyercontactModel extends PublicModel
         if(isset($condition['last_name'])){
             $arr['last_name'] = $condition['last_name'];
         }
+        if(isset($condition['name'])){
+            $arr['name'] = $condition['name'];
+        }
         if(isset($condition['gender'])){
             $arr['gender'] = $condition['gender'];
         }
