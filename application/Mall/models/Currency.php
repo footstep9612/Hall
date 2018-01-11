@@ -23,7 +23,7 @@ class CurrencyModel extends PublicModel {
         }
         try {
             $field = 'bn,symbol,name';
-            $result = $this->field($field)->order('bn')->where(['status'=>'VALID','deleted_flag'=>'N'])->select();
+            $result = $this->field($field)->order('bn')->where(['status'=>'VALID','deleted_flag'=>'N'])->group('bn')->select();
             if ($result) {
                 redisHashSet('Currency', 'currency', json_encode($result));
                 return $result;

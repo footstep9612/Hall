@@ -95,7 +95,7 @@ class InquiryitemModel extends PublicModel {
                             ->alias('t')
                             ->join($goods_table . ' as g on g.sku=t.sku and g.lang=\'en\'', 'left')
                             ->join($item_attach_table . ' as it on it.inquiry_item_id = t.id', 'left')
-                            ->where($where)->order('t.created_at desc')->select();
+                            ->where($where)->order('t.id asc')->select();
 
             if ($list) {
                 $results['code'] = '1';

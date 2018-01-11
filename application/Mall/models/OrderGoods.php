@@ -29,7 +29,7 @@ class OrderGoodsModel extends PublicModel {
         $field .= ',min_pack_naked_qty,nude_cargo_unit,min_pack_unit,thumb,buyer_id';
         return $this->field($field)
                      ->where($where)
-                     ->order('id desc')
+                     ->order('id asc')
                      ->select();
     }
 
