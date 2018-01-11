@@ -1291,12 +1291,12 @@ EOF;
 
         //基本信息可选数据
         $baseExtra = array( //创建客户基本信息可选数据
-            'buyer_type'=>'客户类型',
+            'type_id'=>'客户类型',   //buyer_type
             'type_remarks'=>'类型备注',
             'is_oilgas'=>'是否油气',
             'employee_count'=>'雇员数量',
-            'attach_name'=>'附件名称',
-            'attach_url'=>'附件url地址',
+//            'attach_name'=>'附件名称',
+//            'attach_url'=>'附件url地址',
         );
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
@@ -1425,7 +1425,7 @@ EOF;
         }
         //非必须数据
         $baseArr = array(
-            'buyer_type', //客户类型
+            'type_id', //客户类型buyer_type
             'type_remarks', //客户类型备注
 //            'is_oilgas', //是否油气
             'employee_count', //雇员数量

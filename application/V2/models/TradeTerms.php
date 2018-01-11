@@ -143,7 +143,7 @@ class TradeTermsModel extends PublicModel {
     }
     //业务信息专用-贸易术语-王帅
     public function tradeList($lang='zh'){
-        $sql="SELECT DISTINCT terms,description from `erui_dict`.`trade_terms` where lang='$lang'";
+        $sql="SELECT DISTINCT terms trade_code,description trade_name from `erui_dict`.`trade_terms` where lang='$lang'";
         $info=$this->query($sql);
         return $info;
     }

@@ -23,9 +23,9 @@ class BuyerTypeModel extends PublicModel {
      */
     public function buyerNameList($lang='zh'){
         if($lang=='zh'){
-            $info=$this->field('id,name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $info=$this->field('id type_id,name type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
         }else{
-            $info=$this->field('id,en as name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $info=$this->field('id type_id,en as type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
         }
         return $info;
     }
