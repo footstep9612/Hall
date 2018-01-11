@@ -139,8 +139,8 @@ class ProductModel extends PublicModel {
                 $spec = [];
                 foreach($input['spec'] as $key => $value){
                     //$spec[] = ['exp', 'regexp \'"'.$key.'":"' . $value . '"\''];    //精确查
-                    $find = array('(',')'," ",'\\','/');
-                    $replace = array('.{1}','.{1}'," *",'.{1,2}','.{1,2}');
+                    $find = array('(',')'," ",'\\','/','inner','insert');
+                    $replace = array('.{1}','.{1}'," *",'.{1,2}','.{1,2}','.{5}','.{6}');
                     $key = str_replace($find, $replace, $key);
                     $key = str_replace("'", "\\'",$key);
                     $key = str_replace('"', '.{1,2}',$key);
