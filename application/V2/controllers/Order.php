@@ -408,7 +408,6 @@ class OrderController extends PublicController {
             $orderGoodsData['order_id'] = $data['order_id'];
             $orderGoodsData['order_no'] = $data['order_no'];
             $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
-            unset($orderGoodsData['price']);
             $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
             $where = ['id' => intval($orderGoodsData['id'])];
             $hasGoods = $orderGoodsModel->where($where)->getField('id');
@@ -417,6 +416,7 @@ class OrderController extends PublicController {
                 $orderGoodsData['updated_at'] = $time;
                 $orderGoodsModel->updateInfo($where, $orderGoodsData);
             } else {
+                unset($orderGoodsData['price']);
                 $orderGoodsData['created_by'] = $this->user['id'];
                 $orderGoodsData['created_at'] = $time;
                 $orderGoodsModel->addRecord($orderGoodsData);
