@@ -386,7 +386,7 @@ class OrderController extends PublicController {
                         ->setField(['order_contact_id' => $refId]);
             }
             //保存商品信息
-            $this->_saveOrderGoods(array_merge($data, ['order_no' => $order['order_no']]));
+            $this->_saveOrderGoods($data);
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -876,7 +876,7 @@ class OrderController extends PublicController {
         $condition = $this->_trim($this->put_data);
         if ($condition['order_no'] == '') $this->jsonReturn(['code' => -101, 'message' => '缺少订单编号参数']);
         $orderGoodsModel = new OrderGoodsModel();
-        $field = 'id, material_cat_name, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
+        $field = 'id, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
         $data = $orderGoodsModel->getList($condition, $field);
         if ($data) {
             $this->jsonReturn($data);
