@@ -177,8 +177,8 @@ class InquiryController extends PublicController
         $condition = $this->validateRequestParams('id');
 
         //询单信息
-        $inquiryFields = 'serial_no,inquiry_source,trade_terms_bn,payment_mode,country_bn,buyer_id,buyer_name,
-                            buyer_code,to_country,destination';
+        $inquiryFields = 'serial_no,inquiry_source,trade_terms_bn,payment_mode,country_bn,area_bn,buyer_id,buyer_name,
+                            buyer_code,to_country,to_port,destination,quote_deadline,quote_notes,trans_mode_bn';
         $inquiry = $this->inquiryModel->getDetail($condition, $inquiryFields);
 
         //sku信息
