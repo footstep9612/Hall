@@ -122,7 +122,7 @@ class BuyerCustomModel extends PublicModel
 //            $row = $this->query($sql);     //==>>扩展加附件使用(后期加)
             $data = array();
             if($customInfo) {
-                $catModel = new CustomCatModel();
+            /*    $catModel = new CustomCatModel();
                 $catInfo = $catModel->info($lang, $customInfo['cat_id']);
                 $customInfo['cat_name'] = $catInfo[0]['cat_name'];
                 $itemModel = new CustomCatItemModel();
@@ -130,7 +130,7 @@ class BuyerCustomModel extends PublicModel
                 foreach($item as $v) {
                     $itemInfo = $itemModel->info($lang, $customInfo['cat_id'], $v);
                     $customInfo['item_name'][] = $itemInfo[0][0]['item_name'];
-                }
+                }*/
                 return $customInfo;
             } else {
                 return false;
