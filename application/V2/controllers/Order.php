@@ -356,7 +356,7 @@ class OrderController extends PublicController {
             } else {
                 $order['created_at'] = date('Y-m-d H:i:s');
                 $order['created_by'] = intval($this->user['id']);
-                $order['order_no'] = $this->generateOrderId();
+                $order['order_no'] = $order_no = $this->generateOrderId();
                 $order['show_status'] = 'GOING';
                 $order['pay_status'] = 'UNPAY';
                 $order['deleted_flag'] = 'N';
@@ -386,7 +386,7 @@ class OrderController extends PublicController {
                         ->setField(['order_contact_id' => $refId]);
             }
             //保存商品信息
-            $this->_saveOrderGoods($data);
+            $this->_saveOrderGoods($data, $order_no);
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -403,14 +403,17 @@ class OrderController extends PublicController {
      * @desc 保存订单商品信息
      *
      * @param array $data
+     * @param string $orderNo
      * @author liujf
      * @time 2018-01-10
      */
-    private function _saveOrderGoods($data) {
+    private function _saveOrderGoods($data, $orderNo) {
+        $orderNo = $this->_trim($orderNo);
+        if ($orderNo == '') $this->jsonReturn(['code'=>-105,'message'=>'订单ID不能为空']);
         $orderGoodsModel = new OrderGoodsModel();
         $time = date('Y-m-d H:i:s');
         foreach ($data['order_goods'] as $orderGoodsData) {
-            $orderGoodsData['order_no'] = $data['order_no'];
+            $orderGoodsData['order_no'] = $orderNo;
             $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
             $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
             $where = ['id' => intval($orderGoodsData['id'])];
