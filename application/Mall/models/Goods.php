@@ -44,6 +44,7 @@ class GoodsModel extends PublicModel{
                 ->join($productTable." ON $thisTable.spu=$productTable.spu AND $thisTable.lang=$productTable.lang")->join($gaTable." ON $thisTable.sku=$gaTable.sku AND $thisTable.lang=$gaTable.lang")->where($condition)->select();
             if($result){
                 foreach($result as $index =>$item){
+                    $item['name'] = empty($item['show_name']) ? (empty($item['name']) ? (empty($item['spu_show_name']) ? $item['spu_name'] : $item['spu_show_name']) : $item['name']) : $item['show_name'];
                     $result[$item['sku']] = $item;
                     unset($result[$index]);
                 }
