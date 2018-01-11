@@ -841,23 +841,25 @@ class SuppliersController extends PublicController {
     }
 
     /**
-     * @desc 去掉参数数据两侧的空格
+     * @desc 去掉数据两侧的空格
      *
-     * @param mixed $condition
+     * @param mixed $data
      * @return mixed
      * @author liujf
-     * @time 2017-12-23
+     * @time 2018-01-11
      */
-    private function _trim($condition = []) {
-        if (is_string($condition)) return trim($condition);
-        foreach ($condition as $k => $v) {
-            if (is_array($v)) {
-                $condition[$k] = $this->_trim($v);
-            } else {
-                $condition[$k] = trim($v);
-            }
+    private function _trim($data) {
+        if (is_array($data)) {
+            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            return $data;
+        } else if (is_object($data)) {
+            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            return $data;
+        } else if (is_string($data)) {
+            return trim($data);
+        } else {
+            return $data;
         }
-        return $condition;
     }
 
     /**

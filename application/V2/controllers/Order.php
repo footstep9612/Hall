@@ -386,7 +386,7 @@ class OrderController extends PublicController {
                         ->setField(['order_contact_id' => $refId]);
             }
             //保存商品信息
-            $this->_saveOrderGoods(array_merge($data, ['order_id' => $order['id'], 'order_no' => $order['order_no']]));
+            $this->_saveOrderGoods(array_merge($data, ['order_no' => $order['order_no']]));
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -410,7 +410,6 @@ class OrderController extends PublicController {
         $orderGoodsModel = new OrderGoodsModel();
         $time = date('Y-m-d H:i:s');
         foreach ($data['order_goods'] as $orderGoodsData) {
-            $orderGoodsData['order_id'] = $data['order_id'];
             $orderGoodsData['order_no'] = $data['order_no'];
             $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
             $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
@@ -875,6 +874,7 @@ class OrderController extends PublicController {
      */
     public function getOrderGoodsListAction() {
         $condition = $this->_trim($this->put_data);
+        if ($condition['order_no'] == '') $this->jsonReturn(['code' => -101, 'message' => '缺少订单编号参数']);
         $orderGoodsModel = new OrderGoodsModel();
         $field = 'id, material_cat_name, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
         $data = $orderGoodsModel->getList($condition, $field);
@@ -886,22 +886,24 @@ class OrderController extends PublicController {
     }
     
     /**
-     * @desc 去掉参数数据两侧的空格
+     * @desc 去掉数据两侧的空格
      *
-     * @param mixed $condition
+     * @param mixed $data
      * @return mixed
      * @author liujf
-     * @time 2018-01-10
+     * @time 2018-01-11
      */
-    private function _trim($condition = []) {
-        if (is_string($condition)) return trim($condition);
-        foreach ($condition as $k => $v) {
-            if (is_array($v)) {
-                $condition[$k] = $this->_trim($v);
-            } else {
-                $condition[$k] = trim($v);
-            }
+    private function _trim($data) {
+        if (is_array($data)) {
+            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            return $data;
+        } else if (is_object($data)) {
+            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            return $data;
+        } else if (is_string($data)) {
+            return trim($data);
+        } else {
+            return $data;
         }
-        return $condition;
     }
 }
