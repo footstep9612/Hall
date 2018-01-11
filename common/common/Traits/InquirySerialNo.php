@@ -82,7 +82,7 @@ trait InquirySerialNo{
         
         $inquiryModel = new InquiryModel();
         
-        $inquiry = $inquiryModel->field('serial_no')->order('id DESC')->find();
+        $inquiry = $inquiryModel->field('serial_no')->order('serial_no DESC')->find();
         
         $serialNoArr = explode('_', $inquiry['serial_no']);
         

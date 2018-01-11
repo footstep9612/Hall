@@ -151,7 +151,7 @@ class InquiryitemModel extends PublicModel {
      * 添加数据.
      * @param Array $condition
      * @return Array
-     * @author zhangyuliang
+     * @author link
      */
     public function addData($condition = []) {
         if (!empty($condition['inquiry_id'])) {
@@ -161,13 +161,27 @@ class InquiryitemModel extends PublicModel {
             $results['message'] = '没有询单ID!';
             return $results;
         }
+        //询单item附件
+        $attach = [];
+        if(isset($condition['attach'])){
+            if( !empty($condition['attach']['attach_url'])){
+                $attach = $condition['attach'];
+            }
+            unset($condition['attach']);
+        }
 
         $data = $this->create($condition);
         $data['created_at'] = $this->getTime();
-
         try {
             $id = $this->add($data);
             if ($id) {
+                if($attach){
+                    $attach['inquiry_id'] = $data['inquiry_id'];
+                    $attach['inquiry_item_id'] = $id;
+                    $attach['created_at'] = $this->getTime();
+                    $iiaModel = new InquiryItemAttachModel();
+                    $iiaModel->add($iiaModel->create($attach));
+                }
                 $results['code'] = '1';
                 $results['messaage'] = '成功！';
             } else {

@@ -41,7 +41,7 @@ class InquiryModel extends PublicModel {
     /**
      * @param  添加询单/添加sku询单项明细.　　－在用
      * 验证询单号是否存在
-     * @author zhangyuliang
+     * @author link
      */
     public function addInquiry($data) {
         $this->startTrans();
@@ -293,6 +293,13 @@ class InquiryModel extends PublicModel {
             $results['code'] = '-103';
             $results['message'] = '没有国家简称!';
             return $results;
+        }
+        //根据客户查询市场负责人
+        $bagentModel = new BuyerAgentModel();
+        $agentIds = $bagentModel->getAgentIdByBuyerId($condition['buyer_id']);
+        if($agentIds){
+            $data['agent_id'] = $agentIds[0]['agent_id'];
+            $data['now_agent_id'] = $agentIds[0]['agent_id'];
         }
         $data['status'] = 'DRAFT';
         $data['quote_status'] = 'NOT_QUOTED';

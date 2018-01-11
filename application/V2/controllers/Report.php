@@ -251,7 +251,12 @@ class ReportController extends PublicController {
                 $rejectWhere = array_merge($where, ['action' => 'REJECT']);
                 $inquiry['reject_count'] = $inquiryCheckLogModel->getCount($rejectWhere);
                 // 询单驳回理由
-                $inquiry['reject_reason'] = $inquiryCheckLogModel->where($rejectWhere)->order('id DESC')->getField('op_note', true);
+                $rejectReasonList = $inquiryCheckLogModel->where($rejectWhere)->order('id DESC')->getField('op_note', true);
+                $inquiry['reject_reason'] = [];
+                foreach ($rejectReasonList as $rejectReason) {
+                     $tmpArr = explode(',', $rejectReason);
+                     $inquiry['reject_reason'][] = $tmpArr[0];
+                }
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
                 foreach ($inquiryItemList as &$inquiryItem) {
                     // sku是否油气

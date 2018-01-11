@@ -289,7 +289,7 @@ class OrderController extends PublicController {
      */
 
     private function saveOrder($data) {
-
+        $data = $this->_trim($data);
         $order['po_no'] = $this->safeString($data['po_no']);
         $order['execute_no'] = $this->safeString($data['execute_no']);
         $contract_date = strtotime($data['contract_date']);
@@ -336,7 +336,7 @@ class OrderController extends PublicController {
         try {
             //保存订单基本信息
             if (isset($data['order_no']) && !empty($data['order_no'])) {
-                $order_no = trim($data['order_no']);
+                $order_no = $data['order_no'];
                 $info = $orderModel->where(['order_no' => $order_no, 'deleted_flag' => 'N'])->find();
                 if (empty($info)) {
                     return ['code' => -105, '参数传递错误'];
@@ -380,6 +380,8 @@ class OrderController extends PublicController {
                 $orderModel->where(['id' => $order['id']])
                         ->setField(['order_contact_id' => $refId]);
             }
+            //保存商品信息
+            $this->_saveOrderGoods(array_merge($data, ['order_id' => $order['id'], 'order_no' => $order['order_no']]));
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -389,6 +391,36 @@ class OrderController extends PublicController {
             return ['code' => 1, 'message' => 'Success'];
         } catch (Exception $e) {
             return ['code' => -106, 'message' => '更新订单失败'];
+        }
+    }
+    
+    /**
+     * @desc 保存订单商品信息
+     *
+     * @param array $data
+     * @author liujf
+     * @time 2018-01-10
+     */
+    private function _saveOrderGoods($data) {
+        $orderGoodsModel = new OrderGoodsModel();
+        $time = date('Y-m-d H:i:s');
+        foreach ($data['order_goods'] as $orderGoodsData) {
+            $orderGoodsData['order_id'] = $data['order_id'];
+            $orderGoodsData['order_no'] = $data['order_no'];
+            $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
+            $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
+            $where = ['id' => intval($orderGoodsData['id'])];
+            $hasGoods = $orderGoodsModel->where($where)->getField('id');
+            if ($hasGoods) {
+                $orderGoodsData['updated_by'] = $this->user['id'];
+                $orderGoodsData['updated_at'] = $time;
+                $orderGoodsModel->updateInfo($where, $orderGoodsData);
+            } else {
+                unset($orderGoodsData['price']);
+                $orderGoodsData['created_by'] = $this->user['id'];
+                $orderGoodsData['created_at'] = $time;
+                $orderGoodsModel->addRecord($orderGoodsData);
+            }
         }
     }
 
@@ -828,5 +860,39 @@ class OrderController extends PublicController {
             $hasOrder = $order->where($cond)->limit(1)->save(['deleted_flag'=>'Y']);
             $this->jsonReturn(['code' => 1, 'message' => '删除成功']);
         }
+    }
+    
+    /**
+     * @desc 获取订单商品列表接口
+     *
+     * @author liujf
+     * @time 2018-01-10
+     */
+    public function getOrderGoodsListAction() {
+        $condition = $this->_trim($this->put_data);
+        $orderGoodsModel = new OrderGoodsModel();
+        $field = 'id, material_cat_name, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
+        $data = $orderGoodsModel->getList($condition, $field);
+        $this->jsonReturn($data);
+    }
+    
+    /**
+     * @desc 去掉参数数据两侧的空格
+     *
+     * @param mixed $condition
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-10
+     */
+    private function _trim($condition = []) {
+        if (is_string($condition)) return trim($condition);
+        foreach ($condition as $k => $v) {
+            if (is_array($v)) {
+                $condition[$k] = $this->_trim($v);
+            } else {
+                $condition[$k] = trim($v);
+            }
+        }
+        return $condition;
     }
 }

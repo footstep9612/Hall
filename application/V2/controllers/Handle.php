@@ -3,6 +3,14 @@
 class HandleController extends Yaf_Controller_Abstract
 {
 
+    /**
+     *
+     *  db : rm-erui123.mysql.rds.aliyuncs.com
+     *  user : mmt
+     *  pwd : kRui#rds8
+     */
+
+
     public function init()
     {
         header('Content-type:text/html;charset=utf8');
@@ -280,7 +288,9 @@ class HandleController extends Yaf_Controller_Abstract
          */
 
         $supplierName = '烟台石油机械有限公司';
-        $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVING'])->getField('id');
+        $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
+
+        if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或为审核!']));
 
         $data = $this->getSkuDataBySupplierID($supplierId);
 
@@ -299,10 +309,10 @@ class HandleController extends Yaf_Controller_Abstract
     {
 
         $model = new GoodsSupplierModel();
+
         $where = [
             'a.supplier_id' => $supplierId,
-            'b.lang'         => 'zh',
-            'c.lang'         => 'zh'
+            //'b.lang'         => 'zh',
         ];
 
         $field = 'b.id,c.spu,c.show_name,c.brand,b.name,b.model,b.exw_days,b.min_pack_naked_qty,b.nude_cargo_unit,
@@ -321,7 +331,6 @@ class HandleController extends Yaf_Controller_Abstract
             $value['supplier_name'] = (new SupplierModel)->where(['id'=> $value['supplier_id']])->getField('name');
         }
 
-        //p($data);
         //p(count($data));
         return $data;
 
@@ -411,8 +420,8 @@ class HandleController extends Yaf_Controller_Abstract
                 $objSheet->setCellValue("L" . $startRow, $v['min_pack_unit']);
                 $objSheet->setCellValue("M" . $startRow, $v['min_order_qty']);
                 $objSheet->setCellValue("N" . $startRow, $v['price']);
-                $objSheet->setCellValue("O" . $startRow, $v['price_cur_b']);
-                $objSheet->setCellValue("P" . $startRow, $v['price_validity']);
+                $objSheet->setCellValue("O" . $startRow, $v['price_validity']);
+                $objSheet->setCellValue("P" . $startRow, $v['price_cur_b']);
                 $objSheet->setCellValue("Q" . $startRow, '');
 
                 $objSheet->getCell("A" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
