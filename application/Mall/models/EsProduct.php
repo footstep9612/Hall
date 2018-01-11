@@ -810,7 +810,11 @@ class EsProductModel extends Model {
                             $is_spec_value_include = true;
                         }
                     }
-                    if (!$is_spec_value_include && $spec_name['key'] == $specname) {
+                    if ($is_spec_value_include && $spec_name['key'] == $specname) {
+
+                        $is_spec_name_include = true;
+                    } elseif ($spec_name['key'] == $specname) {
+                        $is_spec_name_include = true;
                         $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
                     }
                     $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'],
