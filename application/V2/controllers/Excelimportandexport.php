@@ -803,7 +803,7 @@ class ExcelimportandexportController extends PublicController {
                     
                     /* 生成模板文件*/
                     $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
-                    // 生成失败
+                    // 记录哪些生成失败
                     if (!$result) $faile[] = $count;
                     $count++;
                 }
@@ -913,7 +913,7 @@ class ExcelimportandexportController extends PublicController {
     
                     /* 生成模板文件*/
                     $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
-                    // 生成失败
+                    // 记录哪些生成失败
                     if (!$result) $faile[] = $count;
                     $count++;
                 }
