@@ -168,6 +168,38 @@ class InquiryController extends PublicController
         }
     }
 
+    /**
+     * 询单SKU列表(包含所有状态的询单)
+     */
+    public function sku_listAction()
+    {
+
+        $condition = $this->validateRequestParams('id');
+
+        //询单信息
+        $inquiryFields = 'serial_no,inquiry_source,trade_terms_bn,payment_mode,country_bn,area_bn,buyer_id,buyer_name,
+                            buyer_code,to_country,to_port,destination,quote_deadline,quote_notes,trans_mode_bn';
+        $inquiry = $this->inquiryModel->getDetail($condition, $inquiryFields);
+
+        //sku信息
+        $skuFields = 'name,name_zh,brand,model,qty,unit,sku,remarks';
+        $where = ['inquiry_id' => $condition['id'], 'deleted_flag' => 'N'];
+        $inquiry['sku_list'] = (new InquiryItemModel)->where($where)->field($skuFields)->select();
+
+        //附件
+        $inquiry['attach_list'] = (new InquiryAttachModel)->where(['inquiry_id' => $condition['id']])->field('attach_name,attach_url')->select();
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $inquiry
+        ]);
+
+    }
+
+    /**
+     * 下载询单价
+     */
     public function downListAction()
     {
 
