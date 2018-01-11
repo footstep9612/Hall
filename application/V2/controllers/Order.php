@@ -300,6 +300,10 @@ class OrderController extends PublicController {
         if ($contract_date > 0) {
             $order['execute_date'] = date('Y-m-d', $execute_date);
         }
+        $expected_receipt_date = strtotime($data['expected_receipt_date']);
+        if ($expected_receipt_date > 0) {
+            $order['expected_receipt_date'] = date('Y-m-d', $expected_receipt_date);
+        }
         if (!empty($data['order_agent'])) {
             $order['order_agent'] = $this->safeString($data['order_agent']);
         }
@@ -327,6 +331,7 @@ class OrderController extends PublicController {
         $order['to_country_bn'] = $this->safeString($data['to_country_bn']);    //目的国
         $order['to_port_bn'] = $this->safeString($data['to_port_bn']);    //目的港口
         $order['address'] = $this->safeString($data['address']); //地址
+        $order['remark'] = $this->safeString($data['remark']); //备注
         $order['order_contact_id'] = intval($data['order_contact_id']);
         $order['buyer_contact_id'] = intval($data['buyer_contact_id']);
 
@@ -873,7 +878,11 @@ class OrderController extends PublicController {
         $orderGoodsModel = new OrderGoodsModel();
         $field = 'id, material_cat_name, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
         $data = $orderGoodsModel->getList($condition, $field);
-        $this->jsonReturn($data);
+        if ($data) {
+            $this->jsonReturn($data);
+        } else {
+            $this->jsonReturn(['code' => -101, 'message' => '数据为空']);
+        }
     }
     
     /**
