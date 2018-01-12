@@ -811,7 +811,7 @@ class EsGoodsModel extends Model {
 
             $body['brand'] = json_decode($body['brand'], true);
         } elseif ($body['brand']) {
-            $body['brand'] = ['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = ['lang' => $lang, 'name' => trim($body['brand']), 'logo' => '', 'manufacturer' => ''];
         } else {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
@@ -949,8 +949,8 @@ class EsGoodsModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => $name,
-                    'value' => $value];
+                $ret[] = ['name' => trim($name),
+                    'value' => trim($value)];
             }
         }
         return $ret;

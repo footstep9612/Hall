@@ -894,7 +894,7 @@ class EsProductModel extends Model {
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_decode($item['brand'], true);
         } elseif ($item['brand']) {
-            $body['brand'] = ['lang' => $lang, 'name' => $item['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = ['lang' => $lang, 'name' => trim($item['brand']), 'logo' => '', 'manufacturer' => ''];
         } else {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
@@ -1069,8 +1069,8 @@ class EsProductModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => $name,
-                    'value' => $value];
+                $ret[] = ['name' => trim($name),
+                    'value' => trim($value)];
             }
         }
         return $ret;
