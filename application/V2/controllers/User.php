@@ -593,4 +593,30 @@ class UserController extends PublicController {
 
     }
 
+
+    /**
+     * 根据国家简称获取国家名称
+     * @return array
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function countryNameAction()
+    {
+
+        $condition = $this->validateRequestParams('country_bns');
+
+        $countryNames = [];
+        foreach (explode(',',$condition['country_bns']) as $country_bn){
+            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $countryNames
+        ]);
+
+    }
+
 }
