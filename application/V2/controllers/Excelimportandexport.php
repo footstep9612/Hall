@@ -48,10 +48,11 @@ class ExcelimportandexportController extends PublicController {
         $templet = $classify['templet'][0];
         $templetBaseData = $this->_trim(ExcelHelperTrait::ready2import($templet));
         $templetDeliveryData = $this->_trim(ExcelHelperTrait::ready2import($templet, 1));
-        $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
+        $templetAddressData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
+        $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 3));
         
         /* 批量导入数据*/
-        $baseDataIndex = $deliveryDataIndex = $paymentDataIndex = 0;
+        $baseDataIndex = $deliveryDataIndex = $addressDataIndex = $paymentDataIndex = 0;
         $importOrderList = $importBuyerContactList = $importOrderContactList = $importDeliveryList = $importAddressList = $importPaymentList = $executeNoArr = $orderIdMapping = $attachNameMapping = [];
         // 没有客户的订单执行单号
         $noBuyerExecuteNoArr = [];
@@ -113,11 +114,11 @@ class ExcelimportandexportController extends PublicController {
                 }
                 // 需要导入的交货信息数据(非必填)
                 if ($baseInfo[24] != '') {
-                    $deliveryData = json_decode($baseInfo[25], true);
+                    $deliveryData = json_decode($baseInfo[24], true);
                     $deliveryData['execute_no'] = $baseInfo[1];
                     $deliveryData['created_at'] = $this->time;
                     $importDeliveryList[] = $deliveryData;
-                }*/
+                }
                 // 需要导入的收货人地址数据
                 if ($baseInfo[25] != '') {
                     $addressData = [
@@ -127,7 +128,7 @@ class ExcelimportandexportController extends PublicController {
                     ];
                     $importAddressList[] = $addressData;
                 }
-                /*// 需要导入的结算方式数据(非必填)
+                // 需要导入的结算方式数据(非必填)
                 if ($baseInfo[26] != '') {
                     $paymentData = json_decode($baseInfo[26], true);
                     $paymentData['execute_no'] = $baseInfo[1];
@@ -168,6 +169,29 @@ class ExcelimportandexportController extends PublicController {
                     }
                 }
                 $deliveryDataIndex++;
+            }
+            foreach ($templetAddressData as $addressInfo) {
+                if ($addressDataIndex > 1 && $addressInfo[0] != '') {
+                    $orderId = $orderIdMapping[$addressInfo[0]];
+                    if ($orderId) {
+                        // 需要导入的收货人地址数据
+                        $addressData = [
+                            'order_id' => $orderId,
+                            'name' => $addressInfo[1],
+                            'tel_number' => $addressInfo[2],
+                            'area_bn' => $addressInfo[3],
+                            'country' => $addressInfo[4],
+                            'city' => $addressInfo[5],
+                            'zipcode' => $addressInfo[6],
+                            'fax' => $addressInfo[7],
+                            'address' => $addressInfo[8],
+                            'email' => $addressInfo[9],
+                            'created_at' => $this->time
+                        ];
+                        $importAddressList[] = $addressData;
+                    }
+                }
+                $addressDataIndex++;
             }
             foreach ($templetPaymentData as $paymentInfo) {
                 if ($paymentDataIndex > 1 && $paymentInfo[0] != '') {
@@ -219,11 +243,11 @@ class ExcelimportandexportController extends PublicController {
                 $importDeliveryResult = $this->orderDeliveryModel->addAll($importDeliveryList);
                 if (!$importDeliveryResult) jsonReturn('', -101, '交货信息数据导入失败!');
             }
-            // 导入收货人地址数据
+            /*// 导入收货人地址数据
             foreach ($importAddressList as &$importAddress) {
                 $importAddress['order_id'] = $orderIdMapping[$importAddress['execute_no']];
                 unset($importAddress['execute_no']);
-            }
+            }*/
             if ($importAddressList) {
                 $importAddressResult = $this->orderAddressModel->addAll($importAddressList);
                 if (!$importAddressResult) jsonReturn('', -101, '收货人地址数据导入失败!');
@@ -707,7 +731,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     public function createToolMallFilesAction() {
-        //$this->getPut();
+        $this->getPut();
         $date = date('YmdHis');
         // 土猫商品文件夹名称
         $toolMallFolder = $this->_utf8ToGbk('土猫商品');
@@ -1373,23 +1397,25 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
-     * @desc 去掉参数数据两侧的空格
+     * @desc 去掉数据两侧的空格
      *
-     * @param mixed $condition
+     * @param mixed $data
      * @return mixed
      * @author liujf
-     * @time 2017-12-23
+     * @time 2018-01-11
      */
-    private function _trim($condition = []) {
-        if (is_string($condition)) return trim($condition);
-        foreach ($condition as $k => $v) {
-            if (is_array($v)) {
-                $condition[$k] = $this->_trim($v);
-            } else {
-                $condition[$k] = trim($v);
-            }
+    private function _trim($data) {
+        if (is_array($data)) {
+            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            return $data;
+        } else if (is_object($data)) {
+            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            return $data;
+        } else if (is_string($data)) {
+            return trim($data);
+        } else {
+            return $data;
         }
-        return $condition;
     }
     
     /**
