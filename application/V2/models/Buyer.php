@@ -1270,7 +1270,7 @@ EOF;
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
             'company_reg_date'=>'公司成立日期',
-            'company_address'=>'公司地址',
+            'company_address'=>'公司地址',  //  +
             'reg_capital'=>'注册资金',
             'reg_capital_cur'=>'注册资金货币',
             'profile'=>'公司介绍',
@@ -1311,6 +1311,11 @@ EOF;
             'address'=>'详细地址',
             'experience'=>'工作经历',
             'social_relations'=>'社会关系',
+
+            'key_concern'=>'决策主要关注点',
+            'attitude'=>'对科瑞的态度',
+            'social_place'=>'常去社交场所',
+            'relatives_family'=>'家庭亲戚相关信息',
         );
         foreach($contact as $value){
             foreach($contactArr as $k => $v){
@@ -1405,7 +1410,7 @@ EOF;
             'official_email'    => $data['official_email'],    //公司邮箱
             'official_website'  => $data['official_website'],  //公司网址
             'company_reg_date'  => $data['company_reg_date'],  //成立日期
-            'company_address'  => $data['company_address'],  //公司地址
+            'company_address'  => $data['company_address'],  //公司地址+
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
@@ -1445,6 +1450,7 @@ EOF;
      * wangs
      */
     public function showBuyerBaseInfo($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = [];
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
@@ -1482,10 +1488,18 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
-        if(!empty($info)){
-            $country = new CountryModel();
-            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+        if($data['is_check'] == true){
+            if(!empty($info['buyer_type'])){
+                $type = new BuyerTypeModel();
+                $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
+                $info['buyer_type'] = $buyerType['type_name'];
+            }
+            if(!empty($info['country_bn'])){
+                $country = new CountryModel();
+                $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
+            }
         }
+
         return $info;
     }
 
