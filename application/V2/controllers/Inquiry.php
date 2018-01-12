@@ -714,7 +714,7 @@ class InquiryController extends PublicController {
 
         $where = $this->put_data;
 
-        $results = $Item->getList($where);
+        $results = $Item->getJoinList_($where);
         $this->jsonReturn($results);
     }
 

@@ -633,7 +633,7 @@ class ExcelimportandexportController extends PublicController {
         return $this->orderModel->where($where)->setField('show_status', $status);
     }
 
-    /*----------------------------------------------------------------------导入和导出代码界线----------------------------------------------------------------------*/
+    /*----------------------------------------------------------------------导入和导出及文件生成代码界线----------------------------------------------------------------------*/
     
     /**
      * @desc 生成或导出数据文件页面
@@ -969,7 +969,7 @@ class ExcelimportandexportController extends PublicController {
         $skuTitleList = $this->_getSkuTitleList();
         $skuTitleCount = count($skuTitleList);
         $skuWordArr = $this->_getWordArr($skuTitleCount);
-        // 创建一个新的shee空间
+        // 创建一个新的sheet空间
         $objPHPExcel->createSheet();
         // 设置商品模板标题
         $this->_setExcelTitle($objPHPExcel, $skuTitleList, $skuWordArr, 1);
