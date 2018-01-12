@@ -47,19 +47,21 @@ class IpLocation {
      * @var int
      */
     private $totalip;
+    private $country;
 
     /**
      * 构造函数，打开 QQWry.Dat 文件并初始化类中的信息
      *
-     * @param string $filepath
+     * @param string $country
+     *  @param string $filename
      * @return IpLocation
      */
-    public function __construct($filepath = MYPATH . "/conf/UTFWry.dat") {
+    public function __construct($country = 'China', $filename = "UTFWry.dat") {
         $this->fp = 0;
-        if (($this->fp = fopen($filepath, 'rb')) !== false) {
+        $this->country = $country;
+        if (($this->fp = fopen(MYPATH . '/conf/' . $filename, 'rb')) !== false) {
 
             $this->firstip = $this->getlong();
-
             $this->lastip = $this->getlong();
             $this->totalip = ($this->lastip - $this->firstip) / 7;
         }
@@ -116,7 +118,7 @@ class IpLocation {
             $char = fread($this->fp, 1);
         }
         if (strpos($data, '市') || strpos($data, '省') || strpos($data, '自治区') || $data == '本机地址') {
-            return '阿根廷';
+            return $this->country;
         } else {
             return $data;
         }
@@ -223,10 +225,10 @@ class IpLocation {
                 break;
         }
         if (trim($location['country']) == 'CZ88.NET') {  // CZ88.NET表示没有有效信息
-            $location['country'] = '阿根廷';
+            $location['country'] = $this->country;
         }
         if (trim($location['area']) == 'CZ88.NET') {
-            $location['area'] = '阿根廷';
+            $location['area'] = $this->country;
         }
         return $location;
     }
