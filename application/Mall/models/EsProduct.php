@@ -197,7 +197,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
 
-        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
+        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'Argentina') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
             $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
@@ -209,10 +209,10 @@ class EsProductModel extends Model {
             if ($showcat) {
                 $condition['country_bn'] = $country_bn;
             } else {
-                $condition['country_bn'] = 'China';
+                $condition['country_bn'] = 'Argentina';
             }
         } else {
-            $country_bn = $condition['country_bn'] = 'China';
+            $country_bn = $condition['country_bn'] = 'Argentina';
         }
 
 
