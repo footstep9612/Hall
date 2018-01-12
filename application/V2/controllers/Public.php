@@ -53,17 +53,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
             $data = $this->getRequest()->getPost();
 
-//            if (!empty($data["token"])) {
-//                $token = $data["token"];
-//            }
-//            $this->user = $GLOBALS['SSO_USER'];
-//            $this->_setUid($this->user);
-//            if (isset($this->user['id']) && $this->user['id'] > 0) {
-//                return;
-//            } else {
-//                header("Content-Type: application/json");
-//                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
-//            }
+            if (!empty($data["token"])) {
+                $token = $data["token"];
+            }
+            $this->user = $GLOBALS['SSO_USER'];
+            $this->_setUid($this->user);
+            if (isset($this->user['id']) && $this->user['id'] > 0) {
+                return;
+            } else {
+                header("Content-Type: application/json");
+                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
+            }
             if (!empty($token)) {
                 try {
                     //$tks = explode('.', $token);
