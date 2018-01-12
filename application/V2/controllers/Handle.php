@@ -286,17 +286,61 @@ class HandleController extends Yaf_Controller_Abstract
          * 4、江苏如通石油机械股份有限公司
          * 5、烟台石油机械有限公司
          */
+        set_time_limit(0);
 
-        $supplierName = '烟台石油机械有限公司';
-        $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
+        //$supplierName = '湖北江汉石油仪器仪表股份有限公司';
+        //$supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVING'])->getField('id');
 
-        if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或为审核!']));
+        //if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或为审核!']));
 
-        $data = $this->getSkuDataBySupplierID($supplierId);
+        //$data = $this->getSpuBySupplier($supplierId);
+        $data = $this->getSpuByBrandAction('济柴');
+        //p($data);
 
-        $localFile = $this->createSupplierExcel($data, $supplierName);
+        (new GoodsModel)->exportAll([
+            'spus' => $data,
+            //'lang' => 'zh'
+        ]);
 
-        p($localFile);
+        //$data = $this->getSkuDataBySupplierID($supplierId);
+        //p($condition);
+        //$localFile = $this->createSupplierExcel($data, $supplierName);
+
+        //p($localFile);
+    }
+
+
+    /**
+     * 根据供应商获取SPU
+     * @param $supplierId 供应商id
+     *
+     * @return mixed SPU
+     */
+    private function getSpuBySupplier($supplierId)
+    {
+         return (new ProductSupplierModel)->where(['supplier_id' => $supplierId])->getField('spu',true);
+    }
+
+
+    /**
+     * 根据品牌获取SPU
+     * @param $brand 品牌
+     *
+     * @return array SPU
+     */
+    public function getSpuByBrandAction($brand)
+    {
+
+        $data = (new ProductModel)->where(['deleted_flag' => 'N', 'lang'=> 'zh'])->field('spu,brand')->select();
+
+        $spus = [];
+        foreach ($data as $item){
+            $brand_info = json_decode($item['brand'],true);
+            if ($brand_info['name'] == $brand){
+                $spus[] = $item['spu'];
+            }
+        }
+        return $spus;
     }
 
     /**
