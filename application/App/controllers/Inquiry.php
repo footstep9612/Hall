@@ -143,13 +143,12 @@ class InquiryController extends PublicController
 
         $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status,trade_terms_bn,quote_deadline,created_at');
 
         foreach ($inquiryList as &$inquiry) {
 
-            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['name'] = $nowAgent['name'];
-
+            $inquiry['name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
+            $inquiry['quantity'] = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry['id'],'deleted_flag'=>'N'])->count();
             unset($inquiry['now_agent_id']);
 
         }
