@@ -489,8 +489,8 @@ EOF;
             )
         );
         $context = stream_context_create($opt);
-//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
-        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+//        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
         $str = file_get_contents($url,false,$context);  //得到客户crm数据
 
         $need = strstr($str,'<errorMsg>');
@@ -1367,6 +1367,8 @@ EOF;
             $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
             //公司人员组织架构
             $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
+            //分析报告
+            $attach -> updateBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
             //编辑联系人必填
             $attach = new BuyercontactModel();
             $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
@@ -1380,6 +1382,10 @@ EOF;
             //创建公司人员组织架构
             if(!empty($data['base_info']['org_chart'][0]['attach_url'])){
                 $attach -> createBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
+            }
+            //创建分析报告附件
+            if(!empty($data['base_info']['report_attach'][0]['attach_url'])){
+                $attach -> createBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
@@ -1877,23 +1883,9 @@ EOF;
         );
         $cond = array(
             'buyer_code'=>$data['buyer_code'],
+            'deleted_flag'=>'N'
         );
         $info = $this->field($field)->where($cond)->find();
-//        if(!empty($info)){
-//            $country = new CountryModel();
-//            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
-//        }
-//        if(!empty($info['official_phone'])){
-//            $phone = explode('-',$info['official_phone']);
-//            if(count($phone) == 1){
-//                $info['areacode'] = NULL;
-//                $info['mobile'] = $phone[0];
-//            }else{
-//                $info['areacode'] = $phone[0];
-//                $info['mobile'] = $phone[1];
-//            }
-//            unset($info['official_phone']);
-//        }
         return $info;
     }
     public function testCrm($data){

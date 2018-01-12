@@ -858,6 +858,7 @@ class BuyerController extends PublicController {
         if(!empty($contactInfo)){
             $arr['contact'] = $contactInfo;
         }
+        print_r($contactInfo);die;
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',
