@@ -96,5 +96,7 @@ class PaymentModeModel extends PublicModel {
             return $result;
         }
     }
-
+    public function paymentList($lang='zh'){
+        return $this->field('bn pay_code,name pay_name')->where(array('lang'=>$lang))->select();
+    }
 }

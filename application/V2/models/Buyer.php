@@ -1187,6 +1187,16 @@ EOF;
         if (!empty($condition['created_by'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
         }
+
+        if (!empty($condition['source'])) {
+            if ($condition['source'] == 1) {
+                $where .= ' And `erui_buyer`.`buyer`.source=1';
+            } else if ($condition['source'] == 2) {
+                $where .= ' And `erui_buyer`.`buyer`.source=2';
+            } else if ($condition['source'] == 3) {
+                $where .= ' And `erui_buyer`.`buyer`.source=3';
+            }
+        }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }
@@ -1261,10 +1271,12 @@ EOF;
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
             'is_oilgas'=>'是否油气',
+            'company_model'=>'公司性质',
             'official_phone'=>'公司固话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
-            'company_reg_date'=>'成立日期',
+            'company_reg_date'=>'公司成立日期',
+            'company_address'=>'公司地址',  //  +
             'reg_capital'=>'注册资金',
             'reg_capital_cur'=>'注册资金货币',
             'profile'=>'公司介绍',
@@ -1285,12 +1297,12 @@ EOF;
 
         //基本信息可选数据
         $baseExtra = array( //创建客户基本信息可选数据
-            'buyer_type'=>'客户类型',
+            'type_id'=>'客户类型',   //buyer_type
             'type_remarks'=>'类型备注',
             'is_oilgas'=>'是否油气',
             'employee_count'=>'雇员数量',
-            'attach_name'=>'附件名称',
-            'attach_url'=>'附件url地址',
+//            'attach_name'=>'附件名称',
+//            'attach_url'=>'附件url地址',
         );
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
@@ -1305,6 +1317,11 @@ EOF;
             'address'=>'详细地址',
             'experience'=>'工作经历',
             'social_relations'=>'社会关系',
+
+            'key_concern'=>'决策主要关注点',
+            'attitude'=>'对科瑞的态度',
+            'social_place'=>'常去社交场所',
+            'relatives_family'=>'家庭亲戚相关信息',
         );
         foreach($contact as $value){
             foreach($contactArr as $k => $v){
@@ -1342,16 +1359,27 @@ EOF;
             return $info;
         }
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
-        try{
-            $this->where(array('id'=>$arr['id']))->save($arr);
+        $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
+
+        if($data['base_info']['is_edit'] == true){  //财务报表编辑,联系人编辑
+            //编辑财务报表
+            $attach = new BuyerattachModel();
+            $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
+            //公司人员组织架构
+            $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
+            //编辑联系人必填
+            $attach = new BuyercontactModel();
+            $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+            return true;
+        }else{
             //创建财务报表附件
-            if(!empty($data['base_info']['attach_name']) && !empty($data['base_info']['attach_url'])){
-                $attach = new BuyerattachModel();
-                $attach -> createBuyerFinanceTable($data);
+            $attach = new BuyerattachModel();
+            if(!empty($data['base_info']['finance_attach'][0]['attach_url'])){
+                $attach -> createBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
             }
-            if($data['base_info']['is_edit'] == true && empty($data['base_info']['attach_url'])){
-                $attach = new BuyerattachModel();
-                $attach -> delBuyerFinanceTable($data);
+            //创建公司人员组织架构
+            if(!empty($data['base_info']['org_chart'][0]['attach_url'])){
+                $attach -> createBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
             }
             //创建联系人信息
             $model = new BuyercontactModel();
@@ -1360,9 +1388,6 @@ EOF;
                 return true;
             }
             return false;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '/v2/buyer/createBuyerInfo:' . $e , Log::ERR);
-            return false;   //新建客户基本信息失败
         }
     }
     /**
@@ -1391,13 +1416,15 @@ EOF;
             'official_email'    => $data['official_email'],    //公司邮箱
             'official_website'  => $data['official_website'],  //公司网址
             'company_reg_date'  => $data['company_reg_date'],  //成立日期
+            'company_address'  => $data['company_address'],  //公司地址+
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' =>  $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//有效期
-            'is_oilgas' =>$data['is_oilgas']//有效期
+            'is_oilgas' =>$data['is_oilgas'],   //是否油气
+            'company_model' =>$data['company_model']    //公司性质
         );
         //判断创建数据与编辑数据
         $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();
@@ -1409,10 +1436,11 @@ EOF;
         }
         //非必须数据
         $baseArr = array(
-            'buyer_type', //客户类型
+            'type_id', //客户类型buyer_type
             'type_remarks', //客户类型备注
 //            'is_oilgas', //是否油气
             'employee_count', //雇员数量
+            'sub_company_name', //子公司名称
         );
         foreach ($data as $value) {
             foreach ($baseArr as $v) {
@@ -1429,6 +1457,7 @@ EOF;
      * wangs
      */
     public function showBuyerBaseInfo($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = [];
         if(!empty($data['buyer_id'])){
             $cond['id'] = $data['buyer_id'];
@@ -1466,10 +1495,18 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
-        if(!empty($info)){
-            $country = new CountryModel();
-            $info['country_name'] = $country->getCountryByBn($info['country_bn'],'zh');
+        if($data['is_check'] == true){
+            if(!empty($info['buyer_type'])){
+                $type = new BuyerTypeModel();
+                $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
+                $info['buyer_type'] = $buyerType['type_name'];
+            }
+            if(!empty($info['country_bn'])){
+                $country = new CountryModel();
+                $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
+            }
         }
+
         return $info;
     }
 

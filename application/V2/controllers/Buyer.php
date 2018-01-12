@@ -796,13 +796,13 @@ class BuyerController extends PublicController {
         }elseif ($res === false){
             $valid = array(
                 'code'=>0,
-                'message'=>'客户基本信息创建失败',
+                'message'=>'客户基本信息失败',
             );
             $this->jsonReturn($valid);
         }
         $valid = array(
             'code'=>1,
-            'message'=>'基本信息创建成功',
+            'message'=>'基本信息成功',
         );
         $this->jsonReturn($valid);
     }
@@ -837,11 +837,20 @@ class BuyerController extends PublicController {
         //获取财务报表
         $attach = new BuyerattachModel();
 
-        $finance = $attach->showBuyerExistAttach($data['buyer_id'],$data['created_by']);
+        $finance = $attach->showBuyerExistAttach('FINANCE',$data['buyer_id'],$data['created_by']);
         if(!empty($finance)){
-            $buerInfo['attach_name'] = $finance['attach_name'];
-            $buerInfo['attach_url'] = $finance['attach_url'];
+            $buerInfo['finance_attach'] = $finance;
+        }else{
+            $buerInfo['finance_attach'] = array();
         }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART',$data['buyer_id'],$data['created_by']);
+        if(!empty($org_chart)){
+            $buerInfo['org_chart'] = $org_chart;
+        }else{
+            $buerInfo['org_chart'] = array();
+        }
+
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
@@ -1039,6 +1048,22 @@ EOF;
                 'data'=>$info
             );
         }
+        $this->jsonReturn($dataJson);
+    }
+
+    /**
+     * 获取客户类型名称列表
+     */
+    public function getBuyerTypeListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $type=new BuyerTypeModel();
+        $info=$type->buyerNameList($lang);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'客户类型名称列表',
+            'data'=>$info
+        );
         $this->jsonReturn($dataJson);
     }
 }

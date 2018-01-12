@@ -224,6 +224,62 @@ class BuyercontactModel extends PublicModel
         }
         return $this->where($where)->save($arr);
     }
+
+    /**
+     * @param $contact  联系人arr
+     * @param $buyer_id
+     * @param $created_by
+     * 王帅
+     * 编辑联系人信息
+     */
+    public function updateBuyerContact($contact,$buyer_id,$created_by){
+        $cond=array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>'N'
+        );
+        $exist=$this->field('id')->where($cond)->select();
+        $arrId=$this->packageId($exist);
+        $contactId=$this->packageId($contact);  //编辑---------id----------------------------------------------
+        $delId=array_diff($arrId,$contactId);   //删除---------id----------------------------------------------
+        if(!empty($delId)){
+            $strId=implode(',',$delId);
+            $this->where("id in ($strId)")->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+        }
+        $validArr = array(
+            'name', //联系人姓名+
+            'title', //联系人职位+
+            'phone', //联系人电话+
+            'email', //联系人邮箱
+            'address', //联系人姓名
+            'hobby', //爱好
+            'experience', //经历
+            'role', //角色
+            'social_relations', //社会关系
+        );
+        foreach($contact as $key => $value){
+            $value['buyer_id']=$buyer_id;
+            $value['created_by']=$created_by;
+            $value['created_at']=date('Y-m-d H:i:s');
+            if(!empty($value['id'])){
+                $this->where(array('id'=>$value['id']))->save($value);   //编辑
+            }else{
+                unset($value['id']);
+                $this->add($value);  //添加
+            }
+        }
+        return true;
+    }
+    //循环打包id
+    public function packageId($data){
+        $arr=array();
+        foreach($data as $k => $v){
+            if(!empty($v['id'])){
+                $arr[]=$v['id'];
+            }
+        }
+        return $arr;
+    }
     /**
      * 客户管理，基本信息--新建-客户的-联系人
      * wangs
@@ -242,11 +298,6 @@ class BuyercontactModel extends PublicModel
         );
         $arr = [];
         $flag = true;
-//        $this->startTrans();    //开启事务
-        $exist = $this->showContactDel($buyer_id,$created_by);
-        if($exist == false){
-            $flag = false;
-        }
         foreach($contact as $key => $value){
             foreach($validArr as $v){
                 if(!empty($value[$v])){
@@ -262,10 +313,8 @@ class BuyercontactModel extends PublicModel
             }
         }
         if($flag){
-//            $this->commit();
             return true;
         }else{
-//            $this->rollback();
             return false;
         }
     }
