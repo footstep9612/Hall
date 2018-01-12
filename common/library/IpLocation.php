@@ -51,12 +51,12 @@ class IpLocation {
     /**
      * 构造函数，打开 QQWry.Dat 文件并初始化类中的信息
      *
-     * @param string $filename
+     * @param string $filepath
      * @return IpLocation
      */
-    public function __construct($filename = "UTFWry.dat") {
+    public function __construct($filepath = MYPATH . "/conf/UTFWry.dat") {
         $this->fp = 0;
-        if (($this->fp = fopen(MYPATH . '/conf/' . $filename, 'rb')) !== false) {
+        if (($this->fp = fopen($filepath, 'rb')) !== false) {
 
             $this->firstip = $this->getlong();
 
