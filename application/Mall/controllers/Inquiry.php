@@ -89,8 +89,23 @@ class InquiryController extends PublicController {
         $results = $inquiry->getInfo($where);
 
         if (!$results) {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
+            $buyer_account_model = new BuyerAccountModel();
+            $data['buyer_id'] = $this->user['buyer_id'];
+            $account_info = $buyer_account_model->getinfo($data);
+            if($account_info) {
+                $arr['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
+                $arr['phone'] = $account_info['official_phone'];
+                $arr['email'] = $account_info['email'] ? $account_info['email'] : $account_info['official_email'];
+                $arr['country_bn'] = $account_info['country_bn'];
+                $arr['city_bn'] = $account_info['city'];
+                $arr['addr'] = $account_info['address'];
+                $arr['company'] = $account_info['name'];
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
         } else {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn($results);

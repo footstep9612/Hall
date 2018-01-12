@@ -716,51 +716,83 @@ class EsProductModel extends Model {
     }
 
     public function getBrandsList($condition, $lang = 'en') {
+        $brand = $condition['brand'];
         unset($condition['brand']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->setaggs('brand.name.all', 'brand_name', 'terms', 10);
+        $brand_terms = [
+            'field' => 'brand.name.all',
+            'size' => 10,
+            'order' => ['_count' => 'desc']
+        ];
+
+        $es->body['aggs']['brand_name'] = [
+            'terms' => $brand_terms
+        ];
+
+
+
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $brand_names = [];
+        if ($brand) {
+            $is_include = false;
+        } else {
+            $is_include = true;
+        }
         if (isset($ret['aggregations']['brand_name']['buckets'])) {
             foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
-                $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                if ($brand_name['key']) {
+                    $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                }
+                if (!$is_include && $brand_name['key'] == $brand) {
+                    $is_include = true;
+                }
             }
+        }
+        if ($is_include === false) {
+
+            $brand_names[count($brand_names) - 1] = ['brand_name' => $brand, 'count' => 0];
         }
         return $brand_names;
     }
 
     public function getSpecsList($condition, $lang = 'en') {
+
+        $specname = $condition['spec_name'];
+        $specvalue = $condition['spec_value'];
         unset($condition['spec_name'], $condition['spec_value']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->body['aggs']['spec_attrs'] = [
-            'nested' => [
-                'path' => 'spec_attrs'
-            ],
-            'aggs' => [
-                'spec_name' => [
-                    'terms' => [
-                        'field' => 'spec_attrs.name.all',
-                        'size' => 20,
-                        'order' => ['_count' => 'desc']
-                    ],
+        $spec_name_terms = ['field' => 'spec_attrs.name.all',
+            'size' => 20,
+            'order' => ['_count' => 'desc']];
+        $spec_value_terms = ['field' => 'spec_attrs.value.all',
+            'size' => 10,
+            'order' => ['_count' => 'desc']];
+
+        $es->body['aggs']['spec_attrs'] = ['nested' => ['path' => 'spec_attrs'],
+            'aggs' => ['spec_name' => ['terms' => $spec_name_terms,
                     'aggs' => ['spec_value' => [
-                            'terms' => [
-                                'field' => 'spec_attrs.value.all',
-                                'size' => 10,
-                                'order' => ['_count' => 'desc']
-                            ]
-                        ]
-                    ]
-                ]
-            ]
-        ];
+                            'terms' => $spec_value_terms
+        ]]]]];
+        if ($specname) {
+            $is_spec_name_include = false;
+        } else {
+            $is_spec_name_include = true;
+        }
+        if ($specvalue) {
+            $is_spec_value_include = false;
+        } else {
+            $is_spec_value_include = true;
+        }
+
+
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
@@ -768,14 +800,35 @@ class EsProductModel extends Model {
         if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
             foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
+                if ($spec_name['key']) {
 
-                foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
-                    $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                    foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
+                        if ($spec_value['key']) {
+                            $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                        }
+                        if (!$is_spec_value_include && $spec_name['key'] == $specname && $spec_value['key'] == $specvalue) {
+                            $is_spec_value_include = true;
+                        }
+                    }
+                    if ($is_spec_value_include && $spec_name['key'] == $specname) {
+
+                        $is_spec_name_include = true;
+                    } elseif ($spec_name['key'] == $specname) {
+                        $is_spec_name_include = true;
+                        $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
+                    }
+                    $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'],
+                        'spec_values' => $spec_values];
                 }
-
-                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'], 'spec_values' => $spec_values];
             }
         }
+        if ($is_spec_name_include === false) {
+
+            $spec_names[count($spec_names) - 1] = ['spec_name' => $specname,
+                'count' => 0,
+                'spec_values' => [['spec_value' => $specvalue, 'count' => 0]]];
+        }
+
         return $spec_names;
     }
 

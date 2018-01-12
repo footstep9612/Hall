@@ -115,7 +115,7 @@ class OrderModel extends PublicModel {
         try{
             $data['infoAry']['order_no'] = $orerNo;
             $data['infoAry']['buyer_id'] = $data['buyer_id'];
-            $data['infoAry']['source'] = 'MALL';
+            $data['infoAry']['source'] = 'Mall';
             $dataInfo = $this->_getData($data['infoAry']);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
@@ -210,6 +210,7 @@ class OrderModel extends PublicModel {
                 'sku' => $sku,
                 'name' => $goodsInfo[$sku]['show_name'] ? $goodsInfo[$sku]['show_name'] : ($goodsInfo[$sku]['name'] ? $goodsInfo[$sku]['name'] : ($goodsInfo[$sku]['spu_show_name'] ? $goodsInfo[$sku]['spu_show_name'] :($goodsInfo[$sku]['spu_name'] ? $goodsInfo[$sku]['spu_name'] : ''))),    //商品名称
                 'spec_attrs' => $goodsInfo[$sku]['spec_attrs'],    //规格属性
+                'symbol' => $priceInfo ? $priceInfo['price_symbol'] : null,
                 'price' => $priceInfo ? $priceInfo['price'] : null,
                 'buy_number' => $number,
                 'lang' => $lang,    //语言
