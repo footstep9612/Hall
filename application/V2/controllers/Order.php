@@ -140,7 +140,7 @@ class OrderController extends PublicController {
                     '`buyer_id`,`agent_id`,`order_contact_id`,`buyer_contact_id`,' .
                     '`amount`,`currency_bn`,`trade_terms_bn`,`trans_mode_bn`,' .
                     '`from_country_bn`,`from_port_bn`,`to_country_bn`,`to_port_bn`,' .
-                    '`address`,`status`,`show_status`,`pay_status`,`created_at`';
+                    '`address`,`status`,`show_status`,`pay_status`,`created_at`,`expected_receipt_date`,`remark`';
             $info = $orderModel->where(['id' => $id])->field($field)->find();
             if (empty($info)) {
                 $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
@@ -300,6 +300,10 @@ class OrderController extends PublicController {
         if ($contract_date > 0) {
             $order['execute_date'] = date('Y-m-d', $execute_date);
         }
+        $expected_receipt_date = strtotime($data['expected_receipt_date']);
+        if ($expected_receipt_date > 0) {
+            $order['expected_receipt_date'] = date('Y-m-d', $expected_receipt_date);
+        }
         if (!empty($data['order_agent'])) {
             $order['order_agent'] = $this->safeString($data['order_agent']);
         }
@@ -327,6 +331,7 @@ class OrderController extends PublicController {
         $order['to_country_bn'] = $this->safeString($data['to_country_bn']);    //目的国
         $order['to_port_bn'] = $this->safeString($data['to_port_bn']);    //目的港口
         $order['address'] = $this->safeString($data['address']); //地址
+        $order['remark'] = $this->safeString($data['remark']); //备注
         $order['order_contact_id'] = intval($data['order_contact_id']);
         $order['buyer_contact_id'] = intval($data['buyer_contact_id']);
 
@@ -351,7 +356,7 @@ class OrderController extends PublicController {
             } else {
                 $order['created_at'] = date('Y-m-d H:i:s');
                 $order['created_by'] = intval($this->user['id']);
-                $order['order_no'] = $this->generateOrderId();
+                $order['order_no'] = $order_no = $this->generateOrderId();
                 $order['show_status'] = 'GOING';
                 $order['pay_status'] = 'UNPAY';
                 $order['deleted_flag'] = 'N';
@@ -381,7 +386,7 @@ class OrderController extends PublicController {
                         ->setField(['order_contact_id' => $refId]);
             }
             //保存商品信息
-            $this->_saveOrderGoods(array_merge($data, ['order_id' => $order['id'], 'order_no' => $order['order_no']]));
+            $this->_saveOrderGoods($data, $order_no);
 
             $this->savePOFile($data, $order['id']);
             $this->saveOtherFiles($data, $order['id']);
@@ -398,15 +403,17 @@ class OrderController extends PublicController {
      * @desc 保存订单商品信息
      *
      * @param array $data
+     * @param string $orderNo
      * @author liujf
      * @time 2018-01-10
      */
-    private function _saveOrderGoods($data) {
+    private function _saveOrderGoods($data, $orderNo) {
+        $orderNo = $this->_trim($orderNo);
+        if ($orderNo == '') $this->jsonReturn(['code'=>-105,'message'=>'订单ID不能为空']);
         $orderGoodsModel = new OrderGoodsModel();
         $time = date('Y-m-d H:i:s');
         foreach ($data['order_goods'] as $orderGoodsData) {
-            $orderGoodsData['order_id'] = $data['order_id'];
-            $orderGoodsData['order_no'] = $data['order_no'];
+            $orderGoodsData['order_no'] = $orderNo;
             $orderGoodsData['lang'] = $orderGoodsData['lang'] == '' ? 'zh' : $orderGoodsData['lang'];
             $orderGoodsData['buy_number'] = intval($orderGoodsData['buy_number']) ? : null;
             $where = ['id' => intval($orderGoodsData['id'])];
@@ -870,29 +877,36 @@ class OrderController extends PublicController {
      */
     public function getOrderGoodsListAction() {
         $condition = $this->_trim($this->put_data);
+        if ($condition['order_no'] == '') $this->jsonReturn(['code' => -101, 'message' => '缺少订单编号参数']);
         $orderGoodsModel = new OrderGoodsModel();
-        $field = 'id, material_cat_name, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
+        $field = 'id, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
         $data = $orderGoodsModel->getList($condition, $field);
-        $this->jsonReturn($data);
+        if ($data) {
+            $this->jsonReturn($data);
+        } else {
+            $this->jsonReturn(['code' => -101, 'message' => '数据为空']);
+        }
     }
     
     /**
-     * @desc 去掉参数数据两侧的空格
+     * @desc 去掉数据两侧的空格
      *
-     * @param mixed $condition
+     * @param mixed $data
      * @return mixed
      * @author liujf
-     * @time 2018-01-10
+     * @time 2018-01-11
      */
-    private function _trim($condition = []) {
-        if (is_string($condition)) return trim($condition);
-        foreach ($condition as $k => $v) {
-            if (is_array($v)) {
-                $condition[$k] = $this->_trim($v);
-            } else {
-                $condition[$k] = trim($v);
-            }
+    private function _trim($data) {
+        if (is_array($data)) {
+            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            return $data;
+        } else if (is_object($data)) {
+            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            return $data;
+        } else if (is_string($data)) {
+            return trim($data);
+        } else {
+            return $data;
         }
-        return $condition;
     }
 }

@@ -197,7 +197,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
 
-        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
+        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'Argentina') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
             $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
@@ -209,10 +209,10 @@ class EsProductModel extends Model {
             if ($showcat) {
                 $condition['country_bn'] = $country_bn;
             } else {
-                $condition['country_bn'] = 'China';
+                $condition['country_bn'] = 'Argentina';
             }
         } else {
-            $country_bn = $condition['country_bn'] = 'China';
+            $country_bn = $condition['country_bn'] = 'Argentina';
         }
 
 
@@ -810,7 +810,11 @@ class EsProductModel extends Model {
                             $is_spec_value_include = true;
                         }
                     }
-                    if (!$is_spec_value_include && $spec_name['key'] == $specname) {
+                    if ($is_spec_value_include && $spec_name['key'] == $specname) {
+
+                        $is_spec_name_include = true;
+                    } elseif ($spec_name['key'] == $specname) {
+                        $is_spec_name_include = true;
                         $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
                     }
                     $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'],

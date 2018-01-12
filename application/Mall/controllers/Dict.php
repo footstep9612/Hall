@@ -324,13 +324,13 @@ class DictController extends PublicController {
         $IpModel = new CountryModel();
 
         $ip = get_client_ip();
-        $iplocation = new IpLocation();
+        $iplocation = new IpLocation('Argentina');
         if ($ip != 'Unknown') {
             $country = $iplocation->getlocation($ip);
 
             $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
         } else {
-            $send = 'China';
+            $send = 'Argentina';
         }
         $this->setCode(1);
         $this->jsonReturn($send);

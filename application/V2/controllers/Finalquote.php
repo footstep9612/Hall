@@ -295,7 +295,6 @@ class FinalquoteController extends PublicController {
 	 * @time 2017-09-20
 	 */
 	private function _getOverlandInsuFee($totalExwPrice = 0, $overlandInsuRate = 0) {
-	    
 	    // 美元兑人民币汇率
 	   $rate = $this->_getRateUSD('CNY');
 	    
@@ -306,8 +305,11 @@ class FinalquoteController extends PublicController {
 	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
-	   } else {
+	   } else if ($overlandInsuCNY >= 50) {
 	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   } else {
+	       $overlandInsuCNY = 0;
+	       $overlandInsuUSD = 0;
 	   }
 	   
 	   return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
@@ -323,7 +325,6 @@ class FinalquoteController extends PublicController {
 	 * @time 2017-09-20
 	 */
 	private function _getShippingInsuFee($totalExwPrice = 0, $shippingInsuRate = 0) {
-	
 	    // 美元兑人民币汇率
 	    $rate = $this->_getRateUSD('CNY');
 	    
@@ -334,8 +335,11 @@ class FinalquoteController extends PublicController {
 	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
-	    } else {
+	    } else if ($shippingInsuCNY >= 50) {
 	        $shippingInsuUSD = round($tmpPrice, 8);
+	    } else {
+	        $shippingInsuCNY = 0;
+	        $shippingInsuUSD = 0;
 	    }
 	    
 	    return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];

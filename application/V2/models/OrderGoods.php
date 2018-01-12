@@ -27,8 +27,8 @@ class OrderGoodsModel extends PublicModel {
          if (!empty($condition['id'])) {
              $where['id'] = $condition['id'];
          }
-         if (!empty($condition['order_id'])) {
-             $where['order_id'] = $condition['order_id'];
+         if (!empty($condition['order_no'])) {
+             $where['order_no'] = $condition['order_no'];
          }
          return $where;
      }

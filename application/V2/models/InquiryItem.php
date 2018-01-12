@@ -12,6 +12,9 @@ class InquiryitemModel extends PublicModel {
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
     protected $joinTable = 'erui_rfq.final_quote_item b ON a.id = b.inquiry_item_id AND b.deleted_flag = \'N\'';
+    protected $joinTable_ = 'erui_rfq.inquiry_item_attach c ON a.id = c.inquiry_item_id';
+    protected $joinField = 'a.qty, a.category, b.quote_unit_price, b.total_quote_price';
+    protected $joinField_ = 'a.*, c.attach_name, c.attach_url';
     public $isOil = [
         '石油专用管材',
         '钻修井设备',
@@ -310,6 +313,33 @@ class InquiryitemModel extends PublicModel {
     }
     
     /**
+     * @desc 获取关联询单SKU查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2018-01-12
+     */
+    public function getJoinWhere_($condition = []) {
+        $where['a.deleted_flag'] = 'N';
+         
+        if (!empty($condition['id'])) {
+            $where['a.id'] = $condition['id'];    //明细id
+        }
+        if (!empty($condition['inquiry_id'])) {
+            $where['a.inquiry_id'] = $condition['inquiry_id'];    //询单id
+        }
+        if (!empty($condition['sku'])) {
+            $where['a.sku'] = $condition['sku'];  //商品SKU
+        }
+        if (!empty($condition['brand'])) {
+            $where['a.brand'] = $condition['brand'];  //品牌
+        }
+         
+        return $where;
+    }
+    
+    /**
      * @desc 获取关联询单SKU记录总数
      *
      * @param array $condition
@@ -338,11 +368,44 @@ class InquiryitemModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
         
         return $this->alias('a')
-                            ->field('a.qty, a.category, b.quote_unit_price, b.total_quote_price')
+                            ->field($this->joinField)
                             ->join($this->joinTable, 'LEFT')
                             ->where($where)
                             ->order('a.id DESC')
                             ->select();
+    }
+    
+    /**
+     * @desc 获取关联询单SKU列表
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-12
+     */
+    public function getJoinList_($condition = []) {
+        $where = $this->getJoinWhere_($condition);
+        try {
+            $list = $this->alias('a')
+                                ->field($this->joinField_)
+                                ->join($this->joinTable_, 'LEFT')
+                                ->where($where)
+                                ->order('a.id DESC')
+                                ->select();
+            if ($list) {
+                $results['code'] = '1';
+                $results['message'] = '成功！';
+                $results['data'] = $list;
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = '没有找到相关信息!';
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
     }
 
 }

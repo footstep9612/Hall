@@ -560,4 +560,63 @@ class UserController extends PublicController {
         $this->jsonReturn($results);
     }
 
+
+    /**
+     * 根据地理区域获取国家
+     * @return mixed
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function areaCountryAction()
+    {
+
+        $this->validateRequestParams();
+
+        $where = ['deleted_flag' => 'N','status'=> 'VALID','lang' => 'zh'];
+        $field = 'bn,name';
+        $region = (new MarketAreaModel)->where($where)->field($field)->select();
+
+        foreach ($region as &$item){
+            $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
+                                    ->join('erui_dict.country b ON a.country_bn=b.bn')
+                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh'])
+                                    ->field('b.name,b.bn')
+                                    ->select();
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $region
+        ]);
+
+    }
+
+
+    /**
+     * 根据国家简称获取国家名称
+     * @return array
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function countryNameAction()
+    {
+
+        $condition = $this->validateRequestParams('country_bns');
+
+        $countryNames = [];
+        foreach (explode(',',$condition['country_bns']) as $country_bn){
+            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $countryNames
+        ]);
+
+    }
+
 }
