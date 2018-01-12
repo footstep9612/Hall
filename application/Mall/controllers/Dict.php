@@ -330,7 +330,7 @@ class DictController extends PublicController {
 
             $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
         } else {
-            $send = 'China';
+            $send = 'Argentina';
         }
         $this->setCode(1);
         $this->jsonReturn($send);
