@@ -324,7 +324,7 @@ class DictController extends PublicController {
         $IpModel = new CountryModel();
 
         $ip = get_client_ip();
-        $iplocation = new IpLocation();
+        $iplocation = new IpLocation('Argentina');
         if ($ip != 'Unknown') {
             $country = $iplocation->getlocation($ip);
 
