@@ -331,22 +331,22 @@ class EsProductModel extends Model {
             ]]];
         }
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
-            $attrs = trim($condition['attrs']);
+            $attrs = strtolower(trim($condition['attrs']));
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $attrs, 'boost' => 99]]],
             ]]];
         }
 
         if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
-            $spec_value = trim($condition['spec_value']);
-            $spec_name = trim($condition['spec_name']);
+            $spec_value = strtolower(trim($condition['spec_value']));
+            $spec_name = strtolower(trim($condition['spec_name']));
             $body['query']['bool']['must'][] = [ESClient::NESTED =>
                 [
                     'path' => "spec_attrs",
                     'query' => ['bool' => [ESClient::MUST => [
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.value.all' => ['value' => $spec_value, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.name.all' => ['value' => $spec_name, 'boost' => 99]]],
                             ]]]
                 ]
             ];
