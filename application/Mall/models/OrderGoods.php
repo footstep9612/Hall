@@ -26,7 +26,7 @@ class OrderGoodsModel extends PublicModel {
     public function getList($condition) {
         $where = $this->_getCondition($condition);
         $field = 'id,order_no,sku,lang,name,model,spec_attrs,price,buy_number';
-        $field .= ',min_pack_naked_qty,nude_cargo_unit,min_pack_unit,thumb,buyer_id';
+        $field .= ',min_pack_naked_qty,nude_cargo_unit,min_pack_unit,thumb,buyer_id,symbol';
         return $this->field($field)
                      ->where($where)
                      ->order('id asc')
