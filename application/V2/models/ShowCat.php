@@ -51,7 +51,6 @@ class ShowCatModel extends PublicModel {
             }
             $result = $this->select();
 
-            echo $this->_sql();
 
             return $result;
         } catch (Exception $ex) {
