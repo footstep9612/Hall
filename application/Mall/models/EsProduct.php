@@ -331,7 +331,7 @@ class EsProductModel extends Model {
             ]]];
         }
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
-            $attrs = trim($condition['attrs']);
+            $attrs = strtolower(trim($condition['attrs']));
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
                         [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $attrs, 'boost' => 99]]],
