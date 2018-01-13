@@ -1923,4 +1923,21 @@ EOF;
         }
         return $info;
     }
+
+    /**
+     * 创建业务信息,crm-信用
+     */
+    public function CrmCredite($credit,$buyer_id){
+        $arr=array(
+            'line_of_credit'=>$credit['line_of_credit'],    //授信额度
+            'credit_available'=>$credit['credit_available'],    //可用额度
+            'credit_type'=>$credit['credit_type'],    //授信类型
+            'credit_level'=>$credit['credit_level'],    //信用等级
+        );
+        $cond=array(
+            'id'=>$buyer_id,
+            'deleted_flag'=>'N'
+        );
+        return $this->where($cond)->save($arr);
+    }
 }

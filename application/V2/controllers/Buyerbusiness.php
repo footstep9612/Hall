@@ -92,11 +92,5 @@ class BuyerbusinessController extends PublicController
         $dataJson['data']=$arr;
 
         $this -> jsonReturn($dataJson);
-//        credit: {
-//            credit_level: '',
-//              credit_type: '',
-//              line_of_credit: '',
-//              credit_available: ''
-//            },
     }
 }
