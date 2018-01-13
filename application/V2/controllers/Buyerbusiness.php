@@ -73,13 +73,21 @@ class BuyerbusinessController extends PublicController
         $payment = new PaymentModeModel();  //结算方式
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $pay = $payment->paymentList($lang);
-
+        $arr['payment']=$pay;
         $tradeTerms = new TradeTermsModel();  //结算方式
         $trade = $tradeTerms->tradeList($lang);
+        $arr['trade']=$trade;
+        $purchase = new PurchaseModel();  //采购模式
+        $purchaseInfo = $purchase->purchaseModeNameList($lang);
+        $arr['purchase_mode']=$purchaseInfo;    //采购周期
+        $purchaseInfo = $purchase->purchaseCycleNameList($lang);
+        $arr['purchase_cycle']=$purchaseInfo;
         $dataJson['code']=1;
-        $dataJson['message']='结算方式和贸易术语';
-        $dataJson['payment']=$pay;
-        $dataJson['trade']=$trade;
+        $dataJson['message']='结算方式和贸易术语和采购模式和采购周期';
+        $dataJson['data']=$arr;
+
+
+
         $this -> jsonReturn($dataJson);
     }
 }
