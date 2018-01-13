@@ -231,9 +231,12 @@ class EsProductModel extends Model {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
             $body['query']['bool']['must'][] = [ESClient::TERM => ['recommend_flag' => $recommend_flag]];
         }
-
-// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
+        if (!empty($condition['brand'])) {
+            $brandmodel = new BrandModel();
+            $brand = $brandmodel->getbrand(['name' => trim($condition['brand'])], $lang);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);

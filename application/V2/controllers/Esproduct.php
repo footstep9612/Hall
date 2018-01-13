@@ -39,6 +39,10 @@ class EsproductController extends PublicController {
         $rconfig['dbname'] = 3;
         $redis3 = new phpredis($rconfig);
         $key3s = $redis3->getKeys('*');
+
+        $rconfig['dbname'] = 4;
+        $redis4 = new phpredis($rconfig);
+        $key4s = $redis3->getKeys('*');
         $delkeys = [];
         foreach ($keys as $key) {
             if (strpos($key, 'user_info_') === false) {
@@ -53,7 +57,13 @@ class EsproductController extends PublicController {
             }
         }
         $redis3->delete($delkeys);
-
+        $delkeys = [];
+        foreach ($key4s as $key) {
+            if (strpos($key, 'shopmall_user_info') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis4->delete($delkeys);
         unset($redis, $redis3, $keys, $delkeys);
         $this->jsonReturn();
     }

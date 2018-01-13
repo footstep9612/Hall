@@ -119,4 +119,35 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取列表
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getbrand($condition, $lang = '', $field = 'brand') {
+        $where = $this->_getcondition($condition, $lang);
+
+        try {
+            $item = $this->where($where)
+                    ->field($field)
+                    ->order('id desc')
+                    ->find();
+            $brand_name = '';
+            if (!empty($item['brand']) && $item['brand']) {
+                $brand_langs = json_decode($item['brand'], true);
+                foreach ($brand_langs as $brand_lang) {
+                    if ($brand_lang['lang'] === $lang && $brand_lang['name']) {
+                        $brand_name = $brand_lang['name'];
+                    }
+                }
+            }
+            return $brand_name;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
 }
