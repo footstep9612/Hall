@@ -598,7 +598,7 @@ class OrderController extends PublicController {
                 'zipcode' => $item['zipcode'],
                 'tel_number' => $item['phone'],
                 'consignee_id' => $item['id'],
-                'name' => $item['first_name'] . ' ' . $item['last_name'],
+                'name' => $item['name'],
                 'country' => $item['country_bn'],
                 'city' => $item['city'],
                 'email' => $item['email'],
