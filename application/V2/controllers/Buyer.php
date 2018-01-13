@@ -850,6 +850,13 @@ class BuyerController extends PublicController {
         }else{
             $buerInfo['org_chart'] = array();
         }
+        //分析报告
+        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
+        if(!empty($org_chart)){
+            $buerInfo['report_attach'] = $org_chart;
+        }else{
+            $buerInfo['report_attach'] = array();
+        }
 
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
@@ -858,7 +865,6 @@ class BuyerController extends PublicController {
         if(!empty($contactInfo)){
             $arr['contact'] = $contactInfo;
         }
-        print_r($contactInfo);die;
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',
