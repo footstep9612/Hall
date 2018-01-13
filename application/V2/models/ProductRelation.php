@@ -162,7 +162,22 @@ class ProductRelationModel extends PublicModel {
      * @desc  SPU关联
      */
     public function deletedData($id) {
-        return $this->where(['id' => $id])->save(['deleted_flag' => 'Y']);
+
+        $item = $this->field('relation_spu,spu,lang')->where(['id' => $id])->find();
+        if ($item) {
+            $flag = $this->where(['id' => $id])->save(['deleted_flag' => 'Y']);
+
+            if ($flag) {
+                $product_model = new ProductModel();
+
+                $count = $this->where(['spu' => $item['spu'], 'lang' => $item['lang']])->count();
+                if ($count) {
+                    $product_model->where(['spu' => $item['spu'], 'lang' => $item['lang']])->save(['relation_flag' => 'N']);
+                }
+            }
+            return $flag;
+        }
+        return true;
     }
 
 }
