@@ -88,7 +88,7 @@ class BuyerbusinessController extends PublicController
         $arr['creditLevel']=$creditLevel;
         $arr['creditType']=$creditType;
         $dataJson['code']=1;
-        $dataJson['message']='结算方式和贸易术语和采购模式和采购周期';
+        $dataJson['message']='结算和贸易和采购和信用配置';
         $dataJson['data']=$arr;
 
         $this -> jsonReturn($dataJson);
