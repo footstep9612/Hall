@@ -1442,7 +1442,7 @@ EOF;
         }
         //非必须数据
         $baseArr = array(
-            'type_id', //客户类型buyer_type
+            'buyer_type', //客户类型buyer_type
             'type_remarks', //客户类型备注
 //            'is_oilgas', //是否油气
             'employee_count', //雇员数量
@@ -1482,7 +1482,7 @@ EOF;
             'reg_capital_cur', //注册资金货币
             'area_bn', //地区
             'country_bn', //国家
-            'address as company_address', //公司地址
+            'company_address', //公司地址
             'company_model', //公司性质
             'sub_company_name', //子公司名称
             'official_email', //公司邮箱
