@@ -126,7 +126,6 @@ class IndustrychainModel extends PublicModel
         );
         $arr = array();
         foreach($chainExist as $key => $value){
-            unset($value['id']);
             if($value['industry_group']=='up'){
                 foreach($up as $kup => $vup){
                     unset($value[$vup]);
