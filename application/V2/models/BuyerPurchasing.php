@@ -120,6 +120,11 @@ class BuyerPurchasingModel extends PublicModel
             ->field($field)
             ->where($map)
             -> select();
+        foreach ($info as $k => $v){
+            if(!empty($v['purchasing_at'])){
+                $info[$k]['purchasing_at']=substr($v['purchasing_at'],0,4);
+            }
+        }
 //        print_r($info);die;
 //        foreach($info as $k => $v){
 //            $info[$k]['purchasing_at'] = substr($v['purchasing_at'],0,4);
