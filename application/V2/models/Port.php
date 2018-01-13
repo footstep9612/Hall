@@ -177,7 +177,7 @@ class PortModel extends PublicModel {
         $country = $country_model->getTableName();
         try {
             $field = 'id,bn,country_bn,name,lang,port_type,trans_mode,address,longitude,latitude,'
-                    . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang group by `name`) as country';
+                    . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang and deleted_flag=\'N\' group by `name`) as country';
             $result = $this->field($field)
                     ->where($where)
                     ->select();
