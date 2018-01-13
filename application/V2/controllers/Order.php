@@ -246,7 +246,7 @@ class OrderController extends PublicController {
                 'order_id' => intval($data['id']),
                 'deleted_flag' => 'N'
             ];
-            $data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+            $data = $orderAddress->where($condition)->field('consignee_id as id,name,tel_number,country,zipcode,city,fax,address,email')->select();
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
         }
