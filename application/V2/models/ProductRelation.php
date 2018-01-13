@@ -165,14 +165,22 @@ class ProductRelationModel extends PublicModel {
 
         $item = $this->field('relation_spu,spu,lang')->where(['id' => $id])->find();
         if ($item) {
-            $flag = $this->where(['id' => $id])->save(['deleted_flag' => 'Y']);
+            $flag = $this->where(['id' => $id])->save(['deleted_flag' => 'Y', 'deleted_at' => date('Y-m-d H:i:s'), 'deleted_by' => defined('UID') ? UID : 0]);
 
             if ($flag) {
-                $product_model = new ProductModel();
+                try {
+                    $product_model = new ProductModel();
 
-                $count = $this->where(['spu' => $item['spu'], 'lang' => $item['lang']])->count();
-                if ($count) {
-                    $product_model->where(['spu' => $item['spu'], 'lang' => $item['lang']])->save(['relation_flag' => 'N']);
+                    $count = $this->where(['spu' => $item['spu'], 'deleted_flag' => 'N', 'lang' => $item['lang']])->count();
+
+                    if (!$count) {
+                        $product_model->where(['spu' => $item['spu'], 'lang' => $item['lang']])->save(['relation_flag' => 'N']);
+
+                        $es = new ESClient();
+                        $es->update_document('erui_goods', 'product_' . $item['lang'], ['relation_flag' => 'N'], $item['spu']);
+                    }
+                } catch (Exception $ex) {
+                    return false;
                 }
             }
             return $flag;

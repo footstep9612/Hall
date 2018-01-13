@@ -197,13 +197,13 @@ class ProductrelationController extends PublicController {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');
             $this->jsonReturn();
-        } elseif ($flag === null) {
+        } elseif ($flag === false) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('删除失败!');
             $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
+            $this->setMessage('删除失败!');
             $this->jsonReturn();
         }
     }
