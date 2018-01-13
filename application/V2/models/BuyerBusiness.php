@@ -87,8 +87,8 @@ class BuyerBusinessModel extends PublicModel
             'is_warehouse',  //是否有仓库
             'warehouse_address', //仓库地址
 //            'competitor_info',   //竞争对手情况-------放入上下游
-            'trade_code',  //贸易术语-------------结算情况  trade_code  trade_name  trade_terms
-            'pay_code',    //结算方式 pay_code pay_name  settlement
+            'trade_terms',  //贸易术语-------------结算情况
+            'settlement',    //结算方式 pay_code pay_name  settlement
             'is_local_settlement',  //是否支持本地结算
             'is_purchasing_relationship',    //是否有采购关系
             'is_net',    //是否入网-------------入网管理
@@ -107,14 +107,7 @@ class BuyerBusinessModel extends PublicModel
         $arr['buyer_id'] = $data['buyer_id'];
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
-        if(!empty($arr['trade_code'])){
-            $arr['trade_terms']=$arr['trade_code'];
-            unset($arr['trade_code']);
-        }
-        if(!empty($arr['pay_code'])){
-            $arr['settlement']=$arr['pay_code'];
-            unset($arr['pay_code']);
-        }
+
         if(empty($arr['net_at'])){
             $arr['net_at']=null;
         }
@@ -186,7 +179,7 @@ class BuyerBusinessModel extends PublicModel
             'usage',    // 设备使用情况
             'is_warehouse', //是否有仓库
             'warehouse_address',    //仓库所在地
-            'competitor_info',  //竞争对手信息
+//            'competitor_info',  //竞争对手信息
             'trade_terms',  //贸易术语
             'settlement',   //结算方式
             'is_local_settlement',  //是否本地结算
