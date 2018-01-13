@@ -52,6 +52,10 @@ class BuyerbusinessController extends PublicController
         $data['created_by'] = $created_by;
         $business = new BuyerBusinessModel();
         $businessRes = $business->businessList($data);
+        //信用
+        $buyer_credit = new BuyerModel();
+        $credit = $buyer_credit->showBuyerCredit($data['buyer_id']);
+        $businessRes ['credit'] = $credit;
         //采购计划
         $purchase = new BuyerPurchasingModel();
         $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);

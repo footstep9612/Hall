@@ -1940,4 +1940,15 @@ EOF;
         );
         return $this->where($cond)->save($arr);
     }
+
+    /**
+     * @param $id crm-wangs
+     */
+    public function showBuyerCredit($id){
+        $cond=array(
+            'id'=>$id,
+            'deleted_flag'=>'N'
+        );
+        return $this->field('credit_level,credit_type,line_of_credit,credit_available')->where($cond)->find();
+    }
 }
