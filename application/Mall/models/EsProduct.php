@@ -769,10 +769,10 @@ class EsProductModel extends Model {
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $spec_name_terms = ['field' => 'spec_attrs.name.all',
+        $spec_name_terms = ['field' => 'spec_attrs.name.' . $lang,
             'size' => 20,
             'order' => ['_count' => 'desc']];
-        $spec_value_terms = ['field' => 'spec_attrs.value.all',
+        $spec_value_terms = ['field' => 'spec_attrs.value.' . $lang,
             'size' => 10,
             'order' => ['_count' => 'desc']];
 
