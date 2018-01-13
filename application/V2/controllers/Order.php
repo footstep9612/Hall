@@ -246,7 +246,7 @@ class OrderController extends PublicController {
                 'order_id' => intval($data['id']),
                 'deleted_flag' => 'N'
             ];
-            $data = $orderAddress->where($condition)->field('consignee_id as id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+            $data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
         }
@@ -572,7 +572,7 @@ class OrderController extends PublicController {
         $orderAddress = new OrderAddressModel();
         $orderAddress->where(['order_id' => $order_id])->setField(['deleted_flag' => 'Y']);
 
-        if (!isset($data['consignee_id'])) {
+        /*if (!isset($data['consignee_id'])) {
             return;
         }
         $consignees = explode(',', $data['consignee_id']);
@@ -587,17 +587,17 @@ class OrderController extends PublicController {
         $contacts = $buyercontact->where(['id' => ['in', $consignees]])->select();
         if (empty($contacts)) {
             return false;
-        }
+        }*/
         $addresses = [];
         $userId = intval($this->user['id']);
         $now = date('Y-m-d H:i:s');
-        foreach ($contacts as $item) {
+        foreach ($data['order_address'] as $item) {
             $address = [
                 'order_id' => $order_id,
                 'address' => $item['address'],
                 'zipcode' => $item['zipcode'],
                 'tel_number' => $item['phone'],
-                'consignee_id' => $item['id'],
+                //'consignee_id' => $item['id'],
                 'name' => $item['name'],
                 'country' => $item['country_bn'],
                 'city' => $item['city'],
