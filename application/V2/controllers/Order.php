@@ -246,7 +246,7 @@ class OrderController extends PublicController {
                 'order_id' => intval($data['id']),
                 'deleted_flag' => 'N'
             ];
-            $data = $orderAddress->where($condition)->field('consignee_id as id,name,tel_number,country,zipcode,city,fax,address,email')->select();
+            $data = $orderAddress->where($condition)->field('id,name,tel_number,country,zipcode,city,fax,address,email')->select();
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
         }
@@ -320,7 +320,7 @@ class OrderController extends PublicController {
             if (doubleval($data['amount']) > 0) {
                 $order['amount'] = doubleval($data['amount']); //订单金额
             } else {
-                $this->jsonReturn(['code' => -101, 'message' => '订单金额不能为负值']);
+                $this->jsonReturn(['code' => -101, 'message' => '订单金额必须大于0']);
             }
         }
         $order['currency_bn'] = $this->safeString($data['currency_bn']); //币种
