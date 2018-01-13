@@ -334,7 +334,7 @@ class EsProductModel extends Model {
             $attrs = trim($condition['attrs']);
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $attrs, 'boost' => 99]]],
             ]]];
         }
 
@@ -345,8 +345,8 @@ class EsProductModel extends Model {
                 [
                     'path' => "spec_attrs",
                     'query' => ['bool' => [ESClient::MUST => [
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.value.all' => ['value' => $spec_value, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.name.all' => ['value' => $spec_name, 'boost' => 99]]],
                             ]]]
                 ]
             ];
