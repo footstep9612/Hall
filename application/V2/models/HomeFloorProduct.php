@@ -156,9 +156,13 @@ class HomeFloorProductModel extends PublicModel {
     public function deleteData($country_bn, $spus, $lang) {
         $this->startTrans();
         $home_floor_model = new HomeFloorModel();
+
+
         foreach ($spus as $spu) {
             $row = $this->getExit($country_bn, $lang, $spu);
-            if (!$row) {
+
+
+            if ($row) {
 
                 $where = [
                     'country_bn' => $country_bn,
@@ -168,6 +172,7 @@ class HomeFloorProductModel extends PublicModel {
                 $flag = $this->where($where)->save(['deleted_flag' => 'Y',
                     'deleted_at' => date('Y-m-d H:i:s'),
                     'deleted_by' => defined('UID') ? UID : 0]);
+
                 if (!$flag) {
                     $this->rollback();
                     return false;
