@@ -82,12 +82,21 @@ class BuyerbusinessController extends PublicController
         $arr['purchase_mode']=$purchaseInfo;    //采购周期
         $purchaseInfo = $purchase->purchaseCycleNameList($lang);
         $arr['purchase_cycle']=$purchaseInfo;
+        $credit = new CreditModel();  //结算方式
+        $creditLevel = $credit->creditLevelNameList($lang);
+        $creditType = $credit->creditTypeNameList($lang);
+        $arr['creditLevel']=$creditLevel;
+        $arr['creditType']=$creditType;
         $dataJson['code']=1;
         $dataJson['message']='结算方式和贸易术语和采购模式和采购周期';
         $dataJson['data']=$arr;
 
-
-
         $this -> jsonReturn($dataJson);
+//        credit: {
+//            credit_level: '',
+//              credit_type: '',
+//              line_of_credit: '',
+//              credit_available: ''
+//            },
     }
 }
