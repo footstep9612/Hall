@@ -258,7 +258,7 @@ class BuyercontactModel extends PublicModel
             'social_relations', //社会关系
             'key_concern', //决策主要关注点
             'attitude_kerui', //对科瑞的态度
-            'social_place', //常去社交场所
+            'social_habits', //常去社交场所
             'relatives_family', //家庭亲戚相关信息
         );
         foreach($contact as $key => $value){
@@ -301,7 +301,7 @@ class BuyercontactModel extends PublicModel
             'social_relations', //社会关系
             'key_concern', //决策主要关注点
             'attitude_kerui', //对科瑞的态度
-            'social_place', //常去社交场所
+            'social_habits', //常去社交场所
             'relatives_family', //家庭亲戚相关信息
         );
         $arr = [];
@@ -369,7 +369,7 @@ class BuyercontactModel extends PublicModel
             'social_relations', //联系人社会关系
             'key_concern', //决策主要关注点
             'attitude_kerui', //对科瑞的态度
-            'social_place', //常去社交场所
+            'social_habits', //常去社交场所
             'relatives_family', //家庭亲戚相关信息
         );
         $field = '';
