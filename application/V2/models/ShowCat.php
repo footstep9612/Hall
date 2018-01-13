@@ -50,8 +50,6 @@ class ShowCatModel extends PublicModel {
                 $this->limit(0, 10);
             }
             $result = $this->select();
-
-
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
