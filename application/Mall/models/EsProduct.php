@@ -339,8 +339,8 @@ class EsProductModel extends Model {
         }
 
         if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
-            $spec_value = trim($condition['spec_value']);
-            $spec_name = trim($condition['spec_name']);
+            $spec_value = strtolower(trim($condition['spec_value']));
+            $spec_name = strtolower(trim($condition['spec_name']));
             $body['query']['bool']['must'][] = [ESClient::NESTED =>
                 [
                     'path' => "spec_attrs",
