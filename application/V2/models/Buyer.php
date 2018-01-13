@@ -1482,7 +1482,9 @@ EOF;
             'reg_capital_cur', //注册资金货币
             'area_bn', //地区
             'country_bn', //国家
-//            'address as company_address', //公司地址
+            'address as company_address', //公司地址
+            'company_model', //公司性质
+            'sub_company_name', //子公司名称
             'official_email', //公司邮箱
             'official_phone', //公司电话
             'official_website', //公司官网
