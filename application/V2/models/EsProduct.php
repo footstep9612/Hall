@@ -1069,8 +1069,8 @@ class EsProductModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => trim($name),
-                    'value' => trim($value)];
+                $ret[] = ['name' => strtolower(trim($name)),
+                    'value' => strtolower(trim($value))];
             }
         }
         return $ret;

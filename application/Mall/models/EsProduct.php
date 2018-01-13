@@ -231,9 +231,12 @@ class EsProductModel extends Model {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
             $body['query']['bool']['must'][] = [ESClient::TERM => ['recommend_flag' => $recommend_flag]];
         }
-
-// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
+        if (!empty($condition['brand'])) {
+            $brandmodel = new BrandModel();
+            $brand = $brandmodel->getbrand(['name' => trim($condition['brand'])], $lang);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
@@ -748,14 +751,14 @@ class EsProductModel extends Model {
                 if ($brand_name['key']) {
                     $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
                 }
-                if (!$is_include && $brand_name['key'] == $brand) {
+                if (!$is_include && strtolower($brand_name['key']) == strtolower($brand)) {
                     $is_include = true;
                 }
             }
         }
         if ($is_include === false) {
 
-            $brand_names[count($brand_names) - 1] = ['brand_name' => $brand, 'count' => 0];
+            $brand_names[count($brand_names) - 1] = ['brand_name' => strtoupper($brand), 'count' => 0];
         }
         return $brand_names;
     }
@@ -806,14 +809,14 @@ class EsProductModel extends Model {
                         if ($spec_value['key']) {
                             $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
                         }
-                        if (!$is_spec_value_include && $spec_name['key'] == $specname && $spec_value['key'] == $specvalue) {
+                        if (!$is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname) && strtolower($spec_value['key']) == strtolower($specvalue)) {
                             $is_spec_value_include = true;
                         }
                     }
-                    if ($is_spec_value_include && $spec_name['key'] == $specname) {
+                    if ($is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname)) {
 
                         $is_spec_name_include = true;
-                    } elseif ($spec_name['key'] == $specname) {
+                    } elseif (strtolower($spec_name['key']) == strtolower($specname)) {
                         $is_spec_name_include = true;
                         $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
                     }
@@ -824,9 +827,9 @@ class EsProductModel extends Model {
         }
         if ($is_spec_name_include === false) {
 
-            $spec_names[count($spec_names) - 1] = ['spec_name' => $specname,
+            $spec_names[count($spec_names) - 1] = ['spec_name' => strtolower($specname),
                 'count' => 0,
-                'spec_values' => [['spec_value' => $specvalue, 'count' => 0]]];
+                'spec_values' => [['spec_value' => strtolower($specvalue), 'count' => 0]]];
         }
 
         return $spec_names;

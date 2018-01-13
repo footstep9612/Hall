@@ -42,8 +42,6 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
-        $redis_key = md5(json_encode($where));
-
         try {
             $this->where($where)
                     ->order('sort_order DESC')
@@ -53,6 +51,7 @@ class ShowCatModel extends PublicModel {
             }
             $result = $this->select();
 
+            echo $this->_sql();
 
             return $result;
         } catch (Exception $ex) {

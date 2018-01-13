@@ -90,11 +90,17 @@ class ShowCatModel extends PublicModel {
     }
 
     private function _updateSpuCount() {
-        $time = redisHashGet('show_cat', 'sort_order');
-        $show_cat_product_model = new ShowCatProductModel(w);
+        $time = redisHashGet('show_cat', 'spu_count');
+
+        $where = ['spu_count' => ['gt', 0], 'deleted_flag' => 'N', 'level_no' => 1];
+
+        $count = $this->where($where)->count();
+
+        $show_cat_product_model = new ShowCatProductModel();
         $show_cat_product_teble = $show_cat_product_model->getTableName();
         $show_cat_table = $this->getTableName();
-        if (empty($time) || $time + 86400 < time()) {
+        if (empty($time) || $time + 3600 < time() || $count == 0) {
+            $this->startTrans();
             $sql = 'UPDATE ' . $show_cat_table . ' set spu_count=0';
             $sql1 = 'UPDATE ' . $show_cat_table . ' ,(SELECT count(id) as spu_count ,scp.cat_no,scp.lang from '
                     . $show_cat_product_teble . ' as scp GROUP BY scp.cat_no,scp.lang) temp '
@@ -111,7 +117,8 @@ class ShowCatModel extends PublicModel {
             $this->execute($sql1);
             $this->execute($sql2);
             $this->execute($sql3);
-            redisHashSet('show_cat', 'sort_order', time());
+            $this->commit();
+            redisHashSet('show_cat', 'spu_count', time());
         }
     }
 
