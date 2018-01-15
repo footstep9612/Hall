@@ -1367,8 +1367,8 @@ EOF;
             $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
             //公司人员组织架构
             $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
-            //分析报告
-            $attach -> updateBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
+//            //分析报告
+//            $attach -> updateBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
             //编辑联系人必填
             $attach = new BuyercontactModel();
             $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
@@ -1384,9 +1384,9 @@ EOF;
                 $attach -> createBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
             }
             //创建分析报告附件
-            if(!empty($data['base_info']['report_attach'][0]['attach_url'])){
-                $attach -> createBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
-            }
+//            if(!empty($data['base_info']['report_attach'][0]['attach_url'])){
+//                $attach -> createBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
+//            }
             //创建联系人信息
             $model = new BuyercontactModel();
             $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);

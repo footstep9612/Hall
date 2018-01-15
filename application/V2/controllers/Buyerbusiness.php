@@ -56,6 +56,14 @@ class BuyerbusinessController extends PublicController
         $buyer_credit = new BuyerModel();
         $credit = $buyer_credit->showBuyerCredit($data['buyer_id']);
         $businessRes ['credit'] = $credit;
+        //分析报告
+        $attach = new BuyerattachModel();
+        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
+        if(!empty($org_chart)){
+            $businessRes['report_attach'] = $org_chart;
+        }else{
+            $businessRes['report_attach'] = array();
+        }
         //采购计划附件
         $attach = new PurchasingAttachModel();
         $attacheRes = $attach->showPurchaseAttach($data['buyer_id'],$data['created_by']);

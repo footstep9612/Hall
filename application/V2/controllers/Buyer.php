@@ -851,14 +851,14 @@ class BuyerController extends PublicController {
             $buerInfo['org_chart'] = array();
         }
         //分析报告
-        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
-        if(!empty($org_chart)){
-            $buerInfo['report_attach'] = $org_chart;
-        }else{
-            $buerInfo['report_attach'] = array();
-        }
-
-        $arr['base_info'] = $buerInfo;
+//        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
+//        if(!empty($org_chart)){
+//            $buerInfo['report_attach'] = $org_chart;
+//        }else{
+//            $buerInfo['report_attach'] = array();
+//        }
+//
+//        $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
         $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);

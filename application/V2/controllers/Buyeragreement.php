@@ -4,7 +4,7 @@ class BuyeragreementController extends PublicController
 {
     public function __init()
     {
-        parent::__init();
+        parent::init();
     }
     //统计-excel导出-框架协议数据-wangs
     public function exportStatisAgreeAction(){

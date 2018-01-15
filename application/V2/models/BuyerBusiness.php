@@ -147,6 +147,9 @@ class BuyerBusinessModel extends PublicModel
             //信用
             $buyer = new BuyerModel();
             $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
+            //分析报告+++++++++++++++++++++++++++
+            $attach = new BuyerattachModel();
+            $attach -> updateBuyerFinanceTableArr($data['report_attach'],'REPORT',$data['buyer_id'],$data['created_by']);
             //采购计划附件
             $attach = new PurchasingAttachModel();
             if(!empty($data['purchase_attach'][0]['attach_url'])){
@@ -169,6 +172,11 @@ class BuyerBusinessModel extends PublicModel
             //信用
             $buyer = new BuyerModel();
             $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
+            //创建分析报告附件++++++++++++++++++++++++
+            if(!empty($data['report_attach'][0]['attach_url'])){
+                $attach = new BuyerattachModel();
+                $attach -> createBuyerFinanceTableArr($data['report_attach'],'REPORT',$data['buyer_id'],$data['created_by']);
+            }
             //采购计划附件
             if(!empty($data['purchase_attach'][0]['attach_url'])){
                 $attach = new PurchasingAttachModel();
