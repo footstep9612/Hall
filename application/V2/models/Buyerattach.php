@@ -156,14 +156,7 @@ class BuyerattachModel extends PublicModel {
             return false;
         }
     }
-    /**
-     * @param $attach   公司组织人员架构arr
-     * @param $buyer_id
-     * @param $created_by
-     */
-//    public function createOrgChartArr($attach,$buyer_id,$created_by){
-//
-//    }
+
     /**
      * @param $attach财务报表附件arr
      * @param $buyer_id客户id

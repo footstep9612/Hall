@@ -123,13 +123,20 @@ class BuyerBusinessModel extends PublicModel
             //信用
             $buyer = new BuyerModel();
             $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
-            //里程碑事件
-            $event = new MilestoneEventModel();
-            $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+            //采购计划附件
+            $attach = new PurchasingAttachModel();
+            if(!empty($data['purchase_attach'][0]['attach_url'])){
+                $attachRes = $attach->updatePurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
+            }else{
+                $attachRes = $attach->delPurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
+            }
             //采购计划
             $purchase = new BuyerPurchasingModel();
             $purchaseRes = $purchase->updatePurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            if($addRes || $eventRes || $purchaseRes ||$buyerRes){
+            //里程碑事件
+            $event = new MilestoneEventModel();
+            $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+            if($addRes || $eventRes || $purchaseRes ||$buyerRes || $attachRes){
                 return true;
             }
         }else{
@@ -138,13 +145,19 @@ class BuyerBusinessModel extends PublicModel
             //信用
             $buyer = new BuyerModel();
             $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
-            //里程碑事件
-            $event = new MilestoneEventModel();
-            $eventRes = $event->createMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+            //采购计划附件
+            if(!empty($data['purchase_attach'][0]['attach_url'])){
+                $attach = new PurchasingAttachModel();
+                $attachRes = $attach->CreatePurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
+            }
             //采购计划
             $purchase = new BuyerPurchasingModel();
             $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            if($addRes || $eventRes || $purchaseRes ||$buyerRes){
+            //里程碑事件
+            $event = new MilestoneEventModel();
+            $eventRes = $event->createMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+
+            if($addRes || $eventRes || $purchaseRes ||$buyerRes || $attachRes){
                 return true;
             }
         }
