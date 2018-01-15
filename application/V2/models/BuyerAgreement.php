@@ -128,7 +128,7 @@ class BuyerAgreementModel extends PublicModel
     public function getAgreeCond($data = []){
         $cond = ' 1=1';
         if($data['is_agree'] == true){ //展示列表
-            $cond .= " buyer_id=".$data['buyer_id']." and agree.created_by=".$data['created_by'];
+            $cond .= " and buyer_id=".$data['buyer_id']." and agree.created_by=".$data['created_by'];
         }   //统计展示数据
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
