@@ -117,8 +117,9 @@ class IpLocation {
             $data .= $char;             // 将读取的字符连接到给定字符串之后
             $char = fread($this->fp, 1);
         }
+
         if (strpos($data, '市') || strpos($data, '省') || strpos($data, '自治区') || $data == '本机地址') {
-            return $this->country;
+            return '中国';
         } else {
             return $data;
         }
@@ -224,6 +225,8 @@ class IpLocation {
                 $location['area'] = $this->getarea();
                 break;
         }
+
+
         if (trim($location['country']) == 'CZ88.NET') {  // CZ88.NET表示没有有效信息
             $location['country'] = $this->country;
         }
