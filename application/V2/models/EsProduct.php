@@ -890,6 +890,8 @@ class EsProductModel extends Model {
         $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
 
         $body = $item;
+        $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_decode($item['brand'], true);
@@ -949,7 +951,7 @@ class EsProductModel extends Model {
             $this->BatchSKU($spu, $lang, $body['brand'], $body['brand_childs'], $item['material_cat_no'], $body['material_cat'], $body['material_cat_zh']);
         }
         if (isset($name_locs[$spu]) && $name_locs[$spu]) {
-            $body['name_loc'] = $name_locs[$spu];
+            $body['name_loc'] = htmlspecialchars_decode($name_locs[$spu]);
         } else {
             $body['name_loc'] = '';
         }
