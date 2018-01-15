@@ -760,6 +760,8 @@ class EsGoodsModel extends Model {
         $spu = $item['spu'];
 
         $body = $item;
+        $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
         $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
@@ -816,7 +818,7 @@ class EsGoodsModel extends Model {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
-            $body['name_loc'] = $name_locs[$sku];
+            $body['name_loc'] = htmlspecialchars_decode($name_locs[$sku]);
         } else {
             $body['name_loc'] = '';
         }
