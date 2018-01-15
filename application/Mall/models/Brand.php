@@ -150,4 +150,36 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取列表 区分大小写
+     * @param mix $brand_name 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getBrandByBrandName($brand_name, $lang = 'en') {
+
+
+        try {
+            $brand_name = str_replace('%', '\%', $brand_name);
+            $brand_name = str_replace('_', '\_', $brand_name);
+
+            $bind = [];
+            $bind[':new_brand_name'] = '%"name": "' . $brand_name . '"%';
+            $bind[':brand_name'] = '%"name":"' . $brand_name . '"%';
+            $bind[':lang'] = '%"lang": "' . strtolower($lang) . '"%';
+            $bind[':new_lang'] = '%"lang":"' . strtolower($lang) . '"%';
+            $sql = 'SELECT brand FROM ' . $this->getTableName() . ' WHERE  deleted_flag=\'N\' ';
+            $sql .= ' AND `status`=\'VALID\' ';
+            $sql .= ' AND (brand like binary :brand_name OR brand  like binary :new_brand_name escape \'/\')';
+            $sql .= ' AND (brand like :lang OR brand like :new_lang)';
+
+            $brand = $this->db()->query($sql, $bind);
+            return $brand;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
 }
