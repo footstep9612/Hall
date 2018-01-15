@@ -1404,12 +1404,13 @@ EOF;
         //会员有效期12个月--------------1年
         if (!empty($data['level_at'])) {
             $level_at = $data['level_at'];
-        } else {
-            $level_at = date('Y-m-d');
+            $year_at = substr($level_at, 0, 4);
+            $year_end = substr($level_at, 0, 4) + 1;
+            $expiry_at = str_replace($year_at, $year_end, $level_at);
+        }else{
+            $level_at=null;
+            $expiry_at=null;
         }
-        $year_at = substr($level_at, 0, 4);
-        $year_end = substr($level_at, 0, 4) + 1;
-        $expiry_at = str_replace($year_at, $year_end, $level_at);
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
@@ -1426,7 +1427,7 @@ EOF;
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
-            'level_at' =>  $level_at,  //定级日期
+            'level_at' => $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//有效期
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
