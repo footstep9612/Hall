@@ -1822,11 +1822,13 @@ class EsProductModel extends Model {
         if (is_string($spus)) {
             $spu = $spus;
 
+            $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
-            $data['show_cats'] = [];
+            $data['show_cats_nested'] = [];
+
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
@@ -1838,6 +1840,14 @@ class EsProductModel extends Model {
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            if (!empty($es_product['_source']['show_cats'])) {
+                $show_cat_model = new ShowCatModel();
+                foreach ($es_product['_source']['show_cats'] as $show_cat) {
+                    if (!empty($show_cat['cat_no3'])) {
+                        $show_cat_model->UpdateSpuCountByShowCatNo($show_cat['cat_no3'], $lang);
+                    }
+                }
+            }
         } elseif (is_array($spus)) {
 
             $updateParams = [];
@@ -1845,6 +1855,7 @@ class EsProductModel extends Model {
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
+                $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
@@ -1860,6 +1871,14 @@ class EsProductModel extends Model {
                 ]]]];
 
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+                if (!empty($es_product['_source']['show_cats'])) {
+                    $show_cat_model = new ShowCatModel();
+                    foreach ($es_product['_source']['show_cats'] as $show_cat) {
+                        if (!empty($show_cat['cat_no3'])) {
+                            $show_cat_model->UpdateSpuCountByShowCatNo($show_cat['cat_no3'], $lang);
+                        }
+                    }
+                }
             }
 
             $es->bulk($updateParams);
@@ -1976,6 +1995,12 @@ class EsProductModel extends Model {
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            if ($data['show_cats']) {
+                $show_cat = new ShowCatModel();
+                foreach ($data['show_cats'] as $showcat) {
+                    $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no'], $lang);
+                }
+            }
         } elseif (is_array($spus)) {
             $show_cat_product_model = new ShowCatProductModel();
             $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang);
@@ -2006,7 +2031,17 @@ class EsProductModel extends Model {
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
             }
             $ret = $es->bulk($updateParams);
+            if ($scats) {
+                $show_cat = new ShowCatModel();
+                foreach ($scats as $showcats) {
+
+                    foreach ($showcats as $showcat) {
+                        $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no'], $lang);
+                    }
+                }
+            }
         }
+
         $es->refresh($this->dbName);
         $this->_delcache();
         return true;

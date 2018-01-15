@@ -72,7 +72,7 @@ class ShowCatModel extends PublicModel {
     public function tree($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $this->_updateSpuCount();
+        //$this->_updateSpuCount();
         try {
             $where['spu_count'] = ['gt', 0];
             $result = $this

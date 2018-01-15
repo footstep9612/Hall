@@ -1326,4 +1326,32 @@ class ShowCatModel extends PublicModel {
         return $result;
     }
 
+    public function UpdateSpuCountByShowCatNo($cat_no, $lang = 'en') {
+
+        $data = $this->field('cat_no,parent_cat_no,spu_count')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+            $product_model = new ShowCatProductModel();
+            $count = $product_model->where(['onshelf_flag' => 'Y', 'cat_no' => $cat_no])->count();
+
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $count]);
+            if ($flag && $data['parent_cat_no']) {
+                $num = intval($count) - intval($data['spu_count']);
+                $this->UpdateSpuCountByCatno($cat_no, $lang, $num);
+            }
+        }
+    }
+
+    public function UpdateSpuCountByCatno($cat_no, $lang = 'en', $num = 1) {
+        $flag = false;
+        $data = $this->field('cat_no,parent_cat_no')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => ['exp', 'spu_count' . '+' . $num]]);
+            if ($flag && $data['parent_cat_no']) {
+                $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+            }
+        }
+        return $flag;
+    }
+
 }
