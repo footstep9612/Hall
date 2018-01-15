@@ -858,7 +858,7 @@ class BuyerController extends PublicController {
 //            $buerInfo['report_attach'] = array();
 //        }
 //
-//        $arr['base_info'] = $buerInfo;
+        $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
         $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
