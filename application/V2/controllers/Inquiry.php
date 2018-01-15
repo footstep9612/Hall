@@ -536,7 +536,7 @@ class InquiryController extends PublicController {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
     
-            $inquiry= $inquiryModel->field('org_id, erui_id, quote_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
+            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
             $inNode= $inquiryCheckLogModel->where(['inquiry_id' => $condition['inquiry_id'], 'out_node' => 'CLARIFY'])->order('id DESC')->getField('in_node');
             
             // 根据流入环节获取当前办理人
@@ -565,6 +565,8 @@ class InquiryController extends PublicController {
                 default :
                     jsonReturn('', '-101', '流入环节有误!');
             }
+            
+            $inquiryModel->startTrans();
     
             $data = [
                 'id' => $condition['inquiry_id'],
@@ -572,8 +574,27 @@ class InquiryController extends PublicController {
                 'status' => $inNode,
                 'updated_by' => $this->user['id']
             ];
+            
+            $log = [
+                'inquiry_id' => $condition['inquiry_id'],
+                'action' => 'CLARIFY',
+                'in_node' => 'CLARIFY',
+                'out_node' => $inNode,
+                'into_at' => $inquiry['inflow_time'],
+                'op_note' => $condition['op_note']
+            ];
     
-            $res = $inquiryModel->updateData($data);
+            $res1 = $inquiryModel->updateData($data);
+            
+            $res2 = $this->_addInquiryCheckLog($log);
+            
+            if ($res1['code'] == 1 && $res2['code'] == 1) {
+                $inquiryModel->commit();
+                $res = true;
+            } else {
+                $inquiryModel->rollback();
+                $res = false;
+            }
     
             if ($res) {
                 $this->setCode('1');
@@ -1061,57 +1082,11 @@ class InquiryController extends PublicController {
      */
 
     public function addCheckLogAction() {
-        $checklog = new CheckLogModel();
         $data = $this->put_data;
-        $data['agent_id'] = $this->user['id'];
-        $data['created_by'] = $this->user['id'];
-
-        $results = $checklog->addData($data);
-
-        //发送短信
-        $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
-
-        $employeeModel = new EmployeeModel();
-        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
-
-        //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
-        if( !in_array($data['out_node'],['QUOTE_SENT','INQUIRY_CLOSED'])){
-
-            $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
-
-            //发送邮件通知
-//            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
-//
-//            if ($data['action'] =='CREATE'){
-//
-//                $title = '【询报价】办理通知';
-//
-//                $body = <<< Stilly
-//                    <h2>【{$role_name}】{$this->user['name']}</h2>
-//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
-//Stilly;
-//            }else{
-//
-//                $title = '【询报价】退回通知';
-//                $body = <<< Stilly
-//                    <h2>【{$role_name}】{$this->user['name']}</h2>
-//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
-//Stilly;
-//
-//            }
-//
-//            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
-
-
-        }
-
-
-        //催办测试清零
-        $this->cleanInquiryRemind($data['inquiry_id']);
-
-        $this->jsonReturn($results);
-
+        
+        $result = $this->_addInquiryCheckLog($data);
+        
+        $this->jsonReturn($result);
     }
 
     public function cleanInquiryRemind($inquiry_id){
@@ -1251,6 +1226,67 @@ class InquiryController extends PublicController {
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
+    }
+    
+    /**
+     * @desc 记录询单日志
+     *
+     * @param array $data
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-15
+     */
+    private function _addInquiryCheckLog($data) {
+        $checklog = new CheckLogModel();
+        
+        $data['agent_id'] = $this->user['id'];
+        $data['created_by'] = $this->user['id'];
+
+        $result = $checklog->addData($data);
+
+        //发送短信
+        $inquiryModel = new InquiryModel();
+        $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+
+        $employeeModel = new EmployeeModel();
+        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
+
+        //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
+        if( !in_array($data['out_node'],['QUOTE_SENT','INQUIRY_CLOSED'])){
+
+            $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+
+            //发送邮件通知
+//            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
+//
+//            if ($data['action'] =='CREATE'){
+//
+//                $title = '【询报价】办理通知';
+//
+//                $body = <<< Stilly
+//                    <h2>【{$role_name}】{$this->user['name']}</h2>
+//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
+//Stilly;
+//            }else{
+//
+//                $title = '【询报价】退回通知';
+//                $body = <<< Stilly
+//                    <h2>【{$role_name}】{$this->user['name']}</h2>
+//                    <p>您好！由【{$role_name}】{$this->user['name']}，提交的【询单流水号：{$inquiryInfo['serial_no']}】，需要您的办理，请登录BOSS系统 (<a href="http://boss.erui.com">boss.erui.com</a>) 及时进行处理。</p>
+//Stilly;
+//
+//            }
+//
+//            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
+
+
+        }
+
+
+        //催办测试清零
+        $this->cleanInquiryRemind($data['inquiry_id']);
+
+        return $result;
     }
 
 }
