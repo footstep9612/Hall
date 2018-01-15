@@ -625,9 +625,9 @@ class EsProductModel extends Model {
                 'aggs' => ['country_bn' => [
                         'terms' => ['field' => 'show_cats_nested.country_bn', 'size' => 10, 'order' => ['_count' => 'desc'],],
                         'aggs' => ['cat_no2' =>
-                            ['terms' => ['field' => 'show_cats_nested.cat_no2', 'size' => 10, 'order' => ['cat_nam2' => 'asc']],
+                            ['terms' => ['field' => 'show_cats_nested.cat_no2', 'size' => 10, 'order' => ['_count' => 'desc']],
                                 'aggs' => ['cat_no3' => [
-                                        'terms' => ['field' => 'show_cats_nested.cat_no3', 'size' => 10, 'order' => ['cat_nam3' => 'asc']]
+                                        'terms' => ['field' => 'show_cats_nested.cat_no3', 'size' => 10, 'order' => ['_count' => 'desc']]
                                     ]]]
         ]]]]];
         $es->body['size'] = 0;
@@ -715,7 +715,7 @@ class EsProductModel extends Model {
         $brand_terms = [
             'field' => 'brand.name.all',
             'size' => 10,
-            'order' => ['brand.name.all' => 'asc']
+            'order' => ['_count' => 'desc']
         ];
 
         $es->body['aggs']['brand_name'] = [
@@ -761,10 +761,10 @@ class EsProductModel extends Model {
         $es->setfields(['spu']);
         $spec_name_terms = ['field' => 'spec_attrs.name.all',
             'size' => 20,
-            'order' => ['spec_attrs.name.all' => 'asc']];
+            'order' => ['_count' => 'desc']];
         $spec_value_terms = ['field' => 'spec_attrs.value.all',
             'size' => 10,
-            'order' => ['spec_attrs.value.all' => 'asc']];
+            'order' => ['_count' => 'desc']];
 
         $es->body['aggs']['spec_attrs'] = ['nested' => ['path' => 'spec_attrs'],
             'aggs' => ['spec_name' => ['terms' => $spec_name_terms,
