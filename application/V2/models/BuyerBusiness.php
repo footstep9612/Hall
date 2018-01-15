@@ -17,6 +17,8 @@ class BuyerBusinessModel extends PublicModel
         $info = $this -> showBusinessFind($data['buyer_id'],$data['created_by']);
         if(!empty($info['net_subject'])){
             $info['net_subject']=explode(',',$info['net_subject']);
+        }else{
+            $info['net_subject']=[];
         }
         if($data['is_check']==true){  //查看
             $purchasing=new PurchaseModel();
