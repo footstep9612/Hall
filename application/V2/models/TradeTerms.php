@@ -147,5 +147,14 @@ class TradeTermsModel extends PublicModel {
         $info=$this->query($sql);
         return $info;
     }
-
+    //获取贸易术语-id
+    public function getTradeNameById($terms,$lang='zh'){
+        $cond=array(
+            'terms'=>$terms,
+            'lang'=>$lang,
+            'deleted_flag'=>'N'
+        );
+        $name=$this->field('id,description')->where($cond)->find(); //一条
+        return $name;
+    }
 }

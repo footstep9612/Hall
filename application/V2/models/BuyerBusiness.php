@@ -10,12 +10,34 @@ class BuyerBusinessModel extends PublicModel
     }
     //业务信息详情
     public function businessList($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['buyer_id']) || empty($data['created_by'])){
             return false;
         }
         $info = $this -> showBusinessFind($data['buyer_id'],$data['created_by']);
         if(!empty($info['net_subject'])){
             $info['net_subject']=explode(',',$info['net_subject']);
+        }
+        if($data['is_check']==true){  //查看
+            $purchasing=new PurchaseModel();
+            if(!empty($info['purchasing_model'])){  //采购模式
+                $purchaseName=$purchasing->getPurchaseModelNameById($info['purchasing_model'],$lang);
+                $info['purchasing_model']=$purchaseName['type_name'];
+            }
+            if(!empty($info['purchasing_cycle'])){  //采购周期
+                $purchaseName=$purchasing->getPurchaseCycleNameById($info['purchasing_cycle'],$lang);
+                $info['purchasing_cycle']=$purchaseName['type_name'];
+            }
+            if(!empty($info['trade_terms'])){  //贸易术语
+                $trade=new TradeTermsModel();
+                $tradeName=$trade->getTradeNameById($info['trade_terms'],$lang);
+                $info['trade_terms']=$tradeName['description'];
+            }
+            if(!empty($info['settlement'])){  //结算方式
+                $pay=new PaymentModeModel();
+                $payName=$pay->getSettlementNameById($info['settlement'],$lang);
+                $info['settlement']=$payName['name'];
+            }
         }
         return $info;
     }
