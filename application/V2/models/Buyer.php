@@ -1524,22 +1524,36 @@ EOF;
      * wangs
      */
     public function showBuyerStatis($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['buyer_id']) || empty($data['created_by'])){
             return false;
         }
         $cond = array(
             'id'=>$data['buyer_id'],
-            'created_by'=>$data['created_by']
+            'created_by'=>$data['created_by'],
+            'deleted_flag'=>'N'
         );
         $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
             ->where($cond)
             ->find();
-        if(empty($info)){
-            $info['credit_level'] = "";
-            $info['credit_type'] = "";
-            $info['line_of_credit'] = 0;
-            $info['credit_available'] = 0;
+        if($data['is_check']==true){
+            if(!empty($info['credit_level'])){
+                $level=new CreditModel();
+                $levelName=$level->getCreditLevelNameById($info['credit_level'],$lang);
+                $info['credit_level']=$levelName['type_name'];
+            }
+            if(!empty($info['credit_type'])){
+                $level=new CreditModel();
+                $levelName=$level->getCreditTpeNameById($info['credit_type'],$lang);
+                $info['credit_type']=$levelName['type_name'];
+            }
         }
+//        if(empty($info)){
+//            $info['credit_level'] = "";
+//            $info['credit_type'] = "";
+//            $info['line_of_credit'] = 0;
+//            $info['credit_available'] = 0;
+//        }
         return $info;
     }
 

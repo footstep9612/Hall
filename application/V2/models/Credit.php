@@ -46,7 +46,19 @@ class CreditModel extends PublicModel {
      * @param string $lang  语言
      * 王帅
      */
-    public function buyerTypeNameById($id,$lang='zh'){
+    public function getCreditLevelNameById($id,$lang='zh'){
+        $cond=array(
+            'id'=>$id,
+            'deleted_flag'=>'N'
+        );
+        if($lang=='zh'){
+            $name=$this->field('id type_id,name type_name')->where($cond)->find();
+        }else{
+            $name=$this->field('id type_id,en type_name')->where($cond)->find();
+        }
+        return $name;
+    }
+    public function getCreditTpeNameById($id,$lang='zh'){
         $cond=array(
             'id'=>$id,
             'deleted_flag'=>'N'
