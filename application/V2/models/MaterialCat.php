@@ -1069,9 +1069,9 @@ class MaterialCatModel extends PublicModel {
 
         $fileId = postfile($data, $url);
 
-        if (!empty($fileId['url'])) {
+        if (!empty($fileId['fileId'])) {
             unlink($localDir);
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'] . '.xls', 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer . $fileId['fileId'] . '?filename=' . $fileId['name'] . '.xls', 'name' => $fileId['name']);
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
         return false;
