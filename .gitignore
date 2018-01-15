@@ -47,6 +47,7 @@ logs/
 logs/
 .idea/
 application/ExcelFiles/
+public/tmp/
 .settings
 .project
 /application/V2/models/MaterialCatProduct.php

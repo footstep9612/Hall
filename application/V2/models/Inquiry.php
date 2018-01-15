@@ -28,6 +28,7 @@ class InquiryModel extends PublicModel {
     const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
     public $inquiryStatus = [
         'DRAFT' => '草稿',
+        'CLARIFY' => '项目澄清',
         'REJECT_MARKET' => '驳回市场',
         'BIZ_DISPATCHING' => '事业部分单员',
         'CC_DISPATCHING' => '易瑞客户中心分单员',
