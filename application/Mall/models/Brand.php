@@ -161,6 +161,8 @@ class BrandModel extends PublicModel {
 
 
         try {
+            $brand_name = str_replace('%', '\%', $brand_name);
+            $brand_name = str_replace('_', '\_', $brand_name);
 
             $bind = [];
             $bind[':new_brand_name'] = '%"name": "' . $brand_name . '"%';
@@ -169,7 +171,7 @@ class BrandModel extends PublicModel {
             $bind[':new_lang'] = '%"lang":"' . strtolower($lang) . '"%';
             $sql = 'SELECT brand FROM ' . $this->getTableName() . ' WHERE  deleted_flag=\'N\' ';
             $sql .= ' AND `status`=\'VALID\' ';
-            $sql .= ' AND (brand like binary :brand_name OR brand  like binary :new_brand_name)';
+            $sql .= ' AND (brand like binary :brand_name OR brand  like binary :new_brand_name escape \'/\')';
             $sql .= ' AND (brand like :lang OR brand like :new_lang)';
 
             $brand = $this->db()->query($sql, $bind);
