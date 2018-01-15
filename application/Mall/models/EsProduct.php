@@ -215,10 +215,6 @@ class EsProductModel extends Model {
             $country_bn = $condition['country_bn'] = 'Argentina';
         }
 
-
-
-
-
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
