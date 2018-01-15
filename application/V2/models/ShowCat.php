@@ -1336,17 +1336,18 @@ class ShowCatModel extends PublicModel {
             $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $count]);
             if ($flag && $data['parent_cat_no']) {
                 $num = intval($count) - intval($data['spu_count']);
-                $this->UpdateSpuCountByCatno($cat_no, $lang, $num);
+                $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
             }
         }
     }
 
-    public function UpdateSpuCountByCatno($cat_no, $lang = 'en', $num = 1) {
-        $flag = false;
+    public function UpdateSpuCountByCatno($cat_no, $lang = 'en') {
+
         $data = $this->field('cat_no,parent_cat_no')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
         if ($data) {
 
-            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => ['exp', 'spu_count' . '+' . $num]]);
+            $spu_count = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'parent_cat_no' => $cat_no])->sum('spu_count');
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $spu_count]);
             if ($flag && $data['parent_cat_no']) {
                 $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
             }
