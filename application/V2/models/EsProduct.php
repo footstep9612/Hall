@@ -1822,7 +1822,6 @@ class EsProductModel extends Model {
         if (is_string($spus)) {
             $spu = $spus;
 
-            $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
             $data = [];
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
@@ -1840,14 +1839,6 @@ class EsProductModel extends Model {
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-            if (!empty($es_product['_source']['show_cats'])) {
-                $show_cat_model = new ShowCatModel();
-                foreach ($es_product['_source']['show_cats'] as $show_cat) {
-                    if (!empty($show_cat['cat_no3'])) {
-                        $show_cat_model->UpdateSpuCountByShowCatNo($show_cat['cat_no3'], $lang);
-                    }
-                }
-            }
         } elseif (is_array($spus)) {
 
             $updateParams = [];
@@ -1855,7 +1846,7 @@ class EsProductModel extends Model {
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
-                $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
+
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
@@ -1871,14 +1862,6 @@ class EsProductModel extends Model {
                 ]]]];
 
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-                if (!empty($es_product['_source']['show_cats'])) {
-                    $show_cat_model = new ShowCatModel();
-                    foreach ($es_product['_source']['show_cats'] as $show_cat) {
-                        if (!empty($show_cat['cat_no3'])) {
-                            $show_cat_model->UpdateSpuCountByShowCatNo($show_cat['cat_no3'], $lang);
-                        }
-                    }
-                }
             }
 
             $es->bulk($updateParams);
