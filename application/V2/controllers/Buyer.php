@@ -376,11 +376,11 @@ class BuyerController extends PublicController {
 
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if (!empty($data['user_name'])  && strlen($data['user_name'])) {
-            $buyer_account_data['user_name'] = $data['user_name'];
-        } else {
-            jsonReturn('', -101, '用户名不可以为空!');
-        }
+//        if (!empty($data['user_name'])  && strlen($data['user_name'])) {
+//            $buyer_account_data['user_name'] = $data['user_name'];
+//        } else {
+//            jsonReturn('', -101, '用户名不可以为空!');
+//        }
 //        if (!empty($data['password'])) {
 //            $buyer_account_data['password_hash'] = md5(trim($data['password']));
 //        } else {
@@ -439,6 +439,7 @@ class BuyerController extends PublicController {
 
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
+            $buyer_account_data['show_name'] = $data['first_name'];  //account-姓名
         }
 
         if (!empty($data['is_group_crm'])) {
@@ -524,8 +525,8 @@ class BuyerController extends PublicController {
             }
             $buyer_contact_data['buyer_id'] = $id;
             //添加联系人
-            $buyer_contact_model = new BuyercontactModel();
-            $buyer_contact_model->create_data($buyer_contact_data);
+//            $buyer_contact_model = new BuyercontactModel();
+//            $buyer_contact_model->create_data($buyer_contact_data);
             //添加附件
             $buyer_attach_model = new BuyerattachModel();
             $buyer_attach_model->create_data($buyer_attach_data);
@@ -638,6 +639,7 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];
+            $account['first_name'] = $data['first_name'];
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
