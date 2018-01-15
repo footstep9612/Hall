@@ -71,7 +71,7 @@ class ExcelmanagerController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/02/64/rBFgyFpW0aaATTIHAAAn8lJq0sY11.xlsx'
+                'url' => 'http://file01.erui.com/group1/M00/02/8F/rBFgyFpcB5WAC85pAAAn8H4MZrE92.xlsx'
             ]
         ]);
     }
@@ -173,7 +173,7 @@ class ExcelmanagerController extends PublicController {
         }
         //遍历重组
         foreach ($data as $k => $v) {
-            //$sku[$k]['pn'] = $v[1]; //商品供应商P/N码
+            $sku[$k]['sku'] = $v[1]; //sku编码|订货号
             $sku[$k]['name'] = $v[2]; //外文品名
             $sku[$k]['name_zh'] = $v[3]; //中文品名
             $sku[$k]['buy_number'] = $v[4]; //数量
