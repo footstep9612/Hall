@@ -49,7 +49,7 @@ class ShowCatModel extends PublicModel {
                     $this->limit(0, 20);
                 }
 
-                $flag = $this->order('`name` ASC')->select();
+                $flag = $thisw->select();
 
                 return $flag;
             } else {
