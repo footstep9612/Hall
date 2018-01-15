@@ -612,7 +612,7 @@ class InquiryController extends PublicController {
             $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id DESC')->select();
         
             foreach ($clarifyList as &$clarify) {
-                $inquiry['agent_name'] = $employeeModel->getUserNameById($clarify['created_by']);
+                $clarify['agent_name'] = $employeeModel->getUserNameById($clarify['created_by']);
             }
         
             if ($clarifyList) {
