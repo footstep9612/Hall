@@ -1709,7 +1709,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond = "buyer.created_by=$data[created_by] and is_build=1";
+        $cond = "buyer.created_by=$data[created_by] and is_build=1 and status='APPROVED'";
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
