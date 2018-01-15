@@ -1943,8 +1943,8 @@ EOF;
      */
     public function CrmCredite($credit,$buyer_id){
         $arr=array(
-            'line_of_credit'=>$credit['line_of_credit'],    //授信额度
-            'credit_available'=>$credit['credit_available'],    //可用额度
+            'line_of_credit'=>!empty($credit['line_of_credit'])?$credit['line_of_credit']:0,    //授信额度
+            'credit_available'=>!empty($credit['credit_available'])?$credit['credit_available']:0,    //可用额度
             'credit_type'=>$credit['credit_type'],    //授信类型
             'credit_level'=>$credit['credit_level'],    //信用等级
         );
