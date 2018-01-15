@@ -599,29 +599,35 @@ class InquiryController extends PublicController {
      */
     public function getClarifyListAction() {
         $condition = $this->put_data;
-    
-        $inquiryCheckLogModel = new InquiryCheckLogModel();
-        $employeeModel = new EmployeeModel();
         
-        $where['inquiry_id'] = $condition['inquiry_id'];
-        $where['_complex']['in_node'] = $where['_complex']['out_node'] = 'CLARIFY';
-        $where['_complex']['_logic'] = 'or';
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryCheckLogModel = new InquiryCheckLogModel();
+            $employeeModel = new EmployeeModel();
+            
+            $where['inquiry_id'] = $condition['inquiry_id'];
+            $where['_complex']['in_node'] = $where['_complex']['out_node'] = 'CLARIFY';
+            $where['_complex']['_logic'] = 'or';
+            
+            $field = 'in_node, out_node, op_note, created_by, created_at';
+            $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id DESC')->select();
         
-        $field = 'in_node, out_node, op_note, created_by, created_at';
-        $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id DESC')->select();
-    
-        foreach ($clarifyList as &$clarify) {
-            $inquiry['agent_name'] = $employeeModel->getUserNameById($clarify['created_by']);
-        }
-    
-        if ($clarifyList) {
-            $res['code'] = 1;
-            $res['message'] = '成功!';
-            $res['data'] = $clarifyList;
-            $this->jsonReturn($res);
+            foreach ($clarifyList as &$clarify) {
+                $inquiry['agent_name'] = $employeeModel->getUserNameById($clarify['created_by']);
+            }
+        
+            if ($clarifyList) {
+                $res['code'] = 1;
+                $res['message'] = '成功!';
+                $res['data'] = $clarifyList;
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage('失败!');
+                $this->jsonReturn();
+            }
         } else {
-            $this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setCode('-103');
+            $this->setMessage('缺少参数!');
             $this->jsonReturn();
         }
     }
