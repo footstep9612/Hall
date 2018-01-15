@@ -891,6 +891,8 @@ class EsProductModel extends Model {
 
         $body = $item;
         $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['tech_paras'] = htmlspecialchars_decode($item['tech_paras']);
+        $body['exe_standard'] = htmlspecialchars_decode($item['exe_standard']);
         $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
         if (json_decode($item['brand'], true)) {
