@@ -397,7 +397,7 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $sort_order = $this->getPut('sort_order');
-
+        $deleted_flag = $this->getPut('deleted_flag', 'N');
         if (!in_array($lang, ['zh', 'en', 'es', 'ru'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的语言不正确!');
@@ -406,7 +406,7 @@ class HomefloorController extends PublicController {
         $home_floor_keyword_model = new HomeFloorKeywordModel();
 
 
-        $flag = $home_floor_keyword_model->updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword);
+        $flag = $home_floor_keyword_model->updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword, $deleted_flag);
 
         if ($flag) {
             $message = '删除关键词成功!';
