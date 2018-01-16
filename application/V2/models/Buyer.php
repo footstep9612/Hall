@@ -1245,10 +1245,10 @@ EOF;
                 }
             }
         }
-
-        $totalCount=$this->where(array('deleted_flag'=>'N'))->count();  //客户总数量
-
-        $levelSql="select buyer_level,count(*) as level_count from erui_buyer.buyer buyer WHERE buyer.deleted_flag='N' GROUP BY buyer.buyer_level";
+        $sqlTotal="select count(id) total_count from erui_buyer.buyer buyer ".$where;   //客户总数量
+        $totalCount=$this->query($sqlTotal);
+        $totalCount=$totalCount[0]['total_count'];
+        $levelSql="select buyer_level,count(*) as level_count from erui_buyer.buyer buyer ".$where." GROUP BY buyer.buyer_level";
         $level=$this->query($levelSql); //客户等级下的数量
         $arrLevel=array();
         foreach($level as $k => $v){
