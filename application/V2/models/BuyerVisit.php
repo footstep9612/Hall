@@ -486,7 +486,7 @@ class BuyerVisitModel extends PublicModel {
      * 返回数组,已上传到服务器临时路径
      */
     public function getVisitStatiaList($data = [],$length = 1000){
-        $lang=isset($data['lnag'])?$data['lang']:'zh';
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
@@ -505,7 +505,7 @@ class BuyerVisitModel extends PublicModel {
             }else{
                 $excelName = 'visit_'.($i/$length);
             }
-            $excelDir[] = $this->exportModel($excelName,$info); //导入excel,获取excel临时文件路径信息
+            $excelDir[] = $this->exportModel($lang,$excelName,$info); //导入excel,获取excel临时文件路径信息
             $i = $i+$length;
             $total =$total-$length;
         } while ($total > 0);
@@ -517,7 +517,7 @@ class BuyerVisitModel extends PublicModel {
      * execl导出的数据 $data
      * wangs
      */
-    public function exportModel($excelName,$data){
+    public function exportModel($lang='zh',$excelName,$data){
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
         //存放excel文件目录
@@ -534,7 +534,11 @@ class BuyerVisitModel extends PublicModel {
         $objActSheet->setTitle('sheet1');
         //填充表头信息
         $letter = range(A,Z);
-        $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+        if($lang=='zh'){
+            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+        }else{
+            $tableheader = array('Serial','Customer_name','Customer_code','Visit_time','Visit_type','Position','Visit level','Customer demand category');
+        }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
             $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
@@ -552,8 +556,9 @@ class BuyerVisitModel extends PublicModel {
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
-        $excel->getActiveSheet()->getColumnDimension('G')->setWidth(30);
-        $excel->getActiveSheet()->getColumnDimension('H')->setWidth(30);
+        $excel->getActiveSheet()->getColumnDimension('E')->setWidth(40);
+        $excel->getActiveSheet()->getColumnDimension('G')->setWidth(40);
+        $excel->getActiveSheet()->getColumnDimension('H')->setWidth(40);
         //填充表格数据信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
