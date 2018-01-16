@@ -28,6 +28,7 @@ class BuyerVisitModel extends PublicModel {
      * @return array|bool|mixed
      */
     public function getList($data = []){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
@@ -41,7 +42,7 @@ class BuyerVisitModel extends PublicModel {
         $offset = ($current_no-1)*$length;
         $total = $this->field('id')->where($condition)->count();
         //按条件获取拜访记录数据
-        $result = $this->condGetVisitData($condition,$offset,$length);
+        $result = $this->condGetVisitData($lang,$condition,$offset,$length);
         $arr = [
                  'current_no' => $current_no,
                  'pagesize' => $length,
@@ -591,7 +592,7 @@ class BuyerVisitModel extends PublicModel {
      * @数据偏移量 $offset
      * wangs
      */
-    public function condGetVisitData($condition = [],$offset = 0,$pageSize = 10){
+    public function condGetVisitData($lang='zh',$condition = [],$offset = 0,$pageSize = 10){
         $vtModel = new VisitTypeModel();    //拜访类型
         $vpModel = new VisitPositionModel();    //拜访位置类型
         $vlModel = new VisitLevelModel();   //拜访级别
@@ -622,7 +623,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //目的拜访类型
             $vtype = json_decode($r['visit_type']);
-            $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+            if($lang=='zh'){
+                $visitTypeInfo = $vtModel->field('name as name')->where(['id'=>['in',$vtype]])->select();
+            }else{
+                $visitTypeInfo = $vtModel->field('en as name')->where(['id'=>['in',$vtype]])->select();
+            }
             $visit_type = '';
             foreach($visitTypeInfo as $info){
                 $visit_type.= '、'.$info['name'];
@@ -632,7 +637,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //职位拜访类型
             $vposition = json_decode($r['visit_position']);
-            $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+            if($lang=='zh'){
+                $vpInfo = $vpModel->field('name as name')->where(['id'=>['in',$vposition]])->select();
+            }else{
+                $vpInfo = $vpModel->field('en as name')->where(['id'=>['in',$vposition]])->select();
+            }
             $visit_position = '';
             foreach($vpInfo as $info){
                 $visit_position.= '、'.$info['name'];
@@ -643,7 +652,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //拜访级别
             $vlevel = json_decode($r['visit_level']);
-            $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+            if($lang=='zh'){
+                $vlInfo = $vlModel->field('name as name')->where(['id'=>['in',$vlevel]])->select();
+            }else{
+                $vlInfo = $vlModel->field('en as name')->where(['id'=>['in',$vlevel]])->select();
+            }
             $visit_level = '';
             foreach($vlInfo as $info){
                 $visit_level.= '、'.$info['name'];
@@ -653,7 +666,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //客户需求类型
             $dtype = json_decode($r['demand_type']);
-            $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+            if($lang=='zh'){
+                $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+            }else{
+                $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+            }
             $demand_type = '';
             foreach($dpInfo as $info){
                 $demand_type.= '、'.$info['name'];

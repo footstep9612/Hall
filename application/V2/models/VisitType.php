@@ -34,7 +34,7 @@ class VisitTypeModel extends PublicModel {
         ];
         try{
             if($_input['lang']=='en'){
-                $result = $this->field('id,en,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
+                $result = $this->field('id,en as name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
             }else{
                 $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
             }
