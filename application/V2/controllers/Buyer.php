@@ -192,29 +192,32 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         }
-        if (!empty($data['country_bn'])) {
+        if (!empty($data['country_bn'])) {  //国家
             $pieces = explode(",", $data['country_bn']);
             for ($i = 0; $i < count($pieces); $i++) {
                 $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
             }
             $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
-        if (!empty($data['buyer_no'])) {
+        if (!empty($data['buyer_no'])) {    //客户编号
             $where['buyer_no'] = $data['buyer_no'];
         }
-        if (!empty($data['buyer_code'])) {
+        if (!empty($data['buyer_code'])) {  //CRM客户代码
             $where['buyer_code'] = $data['buyer_code'];
         }
-        if (!empty($data['status'])) {
+        if (!empty($data['status'])) {  //审核状态
             $where['status'] = $data['status'];
         }
-        if (!empty($data['employee_name'])) {
+        if (!empty($data['employee_name'])) {   //经办人
             $where['employee_name'] = $data['employee_name'];
         }
-        if (!empty($data['source'])) {
+        if (!empty($data['source'])) {  //用户来源
             $where['source'] = $data['source'];
         }
-        if (!empty($data['checked_at_start'])) {
+        if (!empty($data['buyer_level'])) {  //客户等级id
+            $where['buyer_level'] = $data['buyer_level'];
+        }
+        if (!empty($data['checked_at_start'])) {    //审核时间
             $where['checked_at_start'] = $data['checked_at_start'];
         }
         if (!empty($data['checked_at_end'])) {
@@ -223,7 +226,7 @@ class BuyerController extends PublicController {
         if (!empty($data['created_at_end'])) {
             $where['created_at_end'] = $data['created_at_end'];
         }
-        if (!empty($data['created_at_start'])) {
+        if (!empty($data['created_at_start'])) {    //注册时间
             $where['created_at_start'] = $data['created_at_start'];
         }
         if (!empty($data['pageSize'])) {
@@ -232,11 +235,26 @@ class BuyerController extends PublicController {
         if (!empty($data['currentPage'])) {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
-        $data = $model->getBuyerCountByStatus($where);
-        $arr = [];
-        for ($i = 0; $i < count($data); $i++) {
-            $arr[$data[$i]['status']] = $data[$i]['number'];
-        }
+        $arr = $model->getBuyerCountByStatus($where);
+//        $field=array(
+//            'APPROVED', //审核通过
+//            'FIRST_APPROVED', //初审通过
+//            'APPROVING', //待审核
+//            'FIRST_REJECTED', //初审驳回
+//            'REJECTED', //驳回
+//        );
+//        $arr = [];
+//        foreach($data as $key => $value){
+//            $arr[$value['status']]=$value['number'];
+//            foreach($field as $v){
+//                if(empty($arr[$v])){
+//                    $arr[$v]=0;
+//                }
+//            }
+//        }
+//        for ($i = 0; $i < count($data); $i++) {
+//            $arr[$data[$i]['status']] = $data[$i]['number'];
+//        }
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;

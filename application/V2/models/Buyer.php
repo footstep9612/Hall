@@ -82,7 +82,7 @@ class BuyerModel extends PublicModel {
             $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
         }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $where .= ' And `erui_buyer`.`buyer`.is_build=0 and `erui_buyer`.`buyer`.status=\'APPROVED\' ';
+            $where .= ' And `erui_buyer`.`buyer`.is_build=0 and `erui_buyer`.`buyer`.deleted_flag=\'N\' and `erui_buyer`.`buyer`.status=\'APPROVED\' ';
         }
 
         if (!empty($condition['user_name'])) {
@@ -1197,6 +1197,9 @@ EOF;
                 $where .= ' And `erui_buyer`.`buyer`.source=3';
             }
         }
+        if (!empty($condition['buyer_level'])) {    //客户等级
+            $where .= ' And `erui_buyer`.`buyer`.buyer_level=\''.$condition['buyer_level'].'\'';
+        }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
         }
@@ -1215,18 +1218,52 @@ EOF;
         }
         $sql .= ' Group By `buyer`.status';
         //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
-        $res['count'] = count($this->query($sql));
-        if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
-        }
+//        $res['count'] = count($this->query($sql));
+//        if ($condition['num']) {
+//            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
+//        }
 
         //$count = $this->query($sql_count);
 
-        $res['data'] = $this->query($sql);
+//        $res['data'] = $this->query($sql);
 
 
-        $row = $this->query($sql);
-        return $row;
+        $statusCount = $this->query($sql);  //各状态下的客户数量
+        $field=array(
+            'APPROVED', //审核通过
+            'FIRST_APPROVED', //初审通过
+            'APPROVING', //待审核
+            'FIRST_REJECTED', //初审驳回
+            'REJECTED', //驳回
+        );
+        $statusArr = [];
+        foreach($statusCount as $key => $value){
+            $statusArr[$value['status']]=$value['number'];
+            foreach($field as $v){
+                if(empty($statusArr[$v])){
+                    $statusArr[$v]=0;
+                }
+            }
+        }
+
+        $totalCount=$this->where(array('deleted_flag'=>'N'))->count();  //客户总数量
+
+        $levelSql="select buyer_level,count(*) as level_count from erui_buyer.buyer buyer WHERE buyer.deleted_flag='N' GROUP BY buyer.buyer_level";
+        $level=$this->query($levelSql); //客户等级下的数量
+        $arrLevel=array();
+        foreach($level as $k => $v){
+            $arrLevel[$v['buyer_level']]=$v['level_count'];
+            if(empty($arrLevel['普通会员'])){
+                $arrLevel['普通会员']=0;
+            }
+            if(empty($arrLevel['高级会员'])){
+                $arrLevel['高级会员']=0;
+            }
+        }
+        $result['status']=$statusArr;
+        $result['total_count']=$totalCount;
+        $result['level_count']=$arrLevel;
+        return $result;
     }
 
     /**
