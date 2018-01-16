@@ -236,25 +236,6 @@ class BuyerController extends PublicController {
             $where['page'] = ($data['currentPage'] - 1) * $where['num'];
         }
         $arr = $model->getBuyerCountByStatus($where);
-//        $field=array(
-//            'APPROVED', //审核通过
-//            'FIRST_APPROVED', //初审通过
-//            'APPROVING', //待审核
-//            'FIRST_REJECTED', //初审驳回
-//            'REJECTED', //驳回
-//        );
-//        $arr = [];
-//        foreach($data as $key => $value){
-//            $arr[$value['status']]=$value['number'];
-//            foreach($field as $v){
-//                if(empty($arr[$v])){
-//                    $arr[$v]=0;
-//                }
-//            }
-//        }
-//        for ($i = 0; $i < count($data); $i++) {
-//            $arr[$data[$i]['status']] = $data[$i]['number'];
-//        }
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
