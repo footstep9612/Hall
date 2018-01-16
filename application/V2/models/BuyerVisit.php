@@ -486,6 +486,7 @@ class BuyerVisitModel extends PublicModel {
      * 返回数组,已上传到服务器临时路径
      */
     public function getVisitStatiaList($data = [],$length = 1000){
+        $lang=isset($data['lnag'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
@@ -497,7 +498,7 @@ class BuyerVisitModel extends PublicModel {
         $i = 0;
         do {
             //按条件获取拜访记录数据
-            $result = $this->condGetVisitData($condition,$i,$length);
+            $result = $this->condGetVisitData($lang,$condition,$i,$length);
             $info = $this->getVisitStatisData($result); //整理excel导出的数据
             if($i==0){
                 $excelName = 'visit';
