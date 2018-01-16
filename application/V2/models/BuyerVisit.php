@@ -537,7 +537,7 @@ class BuyerVisitModel extends PublicModel {
         if($lang=='zh'){
             $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
         }else{
-            $tableheader = array('Serial','Customer_name','Customer_code','Visit_time','Visit_type','Position','Visit level','Customer demand category');
+            $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category');
         }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
