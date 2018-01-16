@@ -385,8 +385,6 @@ class EsProductModel extends Model {
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
                             ])->select();
-
-
             if (empty($showcats)) {
                 $brand_model = new BrandModel();
                 $brands = $brand_model->getBrandByBrandName($keyword, $lang);
