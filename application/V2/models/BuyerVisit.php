@@ -227,9 +227,9 @@ class BuyerVisitModel extends PublicModel {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择职位拜访类型');
         }
 
-        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
-        }
+//        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
+//            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
+//        }
 
         if(!isset($_input['visit_objective']) || empty($_input['visit_objective'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入拜访目的');
