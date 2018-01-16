@@ -1260,9 +1260,11 @@ EOF;
                 $arrLevel['高级会员']=0;
             }
         }
+        $buyer_level['ordinary']=$arrLevel['普通会员'];
+        $buyer_level['senior']=$arrLevel['高级会员'];
         $result['status']=$statusArr;
         $result['total_count']=$totalCount;
-        $result['level_count']=$arrLevel;
+        $result['level_count']=$buyer_level;
         return $result;
     }
 
