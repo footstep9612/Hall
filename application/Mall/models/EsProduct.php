@@ -197,7 +197,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
 
-        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
+        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'Argentina') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
             $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
@@ -209,15 +209,11 @@ class EsProductModel extends Model {
             if ($showcat) {
                 $condition['country_bn'] = $country_bn;
             } else {
-                $condition['country_bn'] = 'China';
+                $condition['country_bn'] = 'Argentina';
             }
         } else {
-            $country_bn = $condition['country_bn'] = 'China';
+            $country_bn = $condition['country_bn'] = 'Argentina';
         }
-
-
-
-
 
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
@@ -231,9 +227,12 @@ class EsProductModel extends Model {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
             $body['query']['bool']['must'][] = [ESClient::TERM => ['recommend_flag' => $recommend_flag]];
         }
-
-// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
+        if (!empty($condition['brand'])) {
+            $brandmodel = new BrandModel();
+            $brand = $brandmodel->getbrand(['name' => trim($condition['brand'])], $lang);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
@@ -328,22 +327,22 @@ class EsProductModel extends Model {
             ]]];
         }
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
-            $attrs = trim($condition['attrs']);
+            $attrs = strtolower(trim($condition['attrs']));
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                         [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $attrs, 'boost' => 99]]],
             ]]];
         }
 
         if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
-            $spec_value = trim($condition['spec_value']);
-            $spec_name = trim($condition['spec_name']);
+            $spec_value = strtolower(trim($condition['spec_value']));
+            $spec_name = strtolower(trim($condition['spec_name']));
             $body['query']['bool']['must'][] = [ESClient::NESTED =>
                 [
                     'path' => "spec_attrs",
                     'query' => ['bool' => [ESClient::MUST => [
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
-                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.value.all' => ['value' => $spec_value, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.name.all' => ['value' => $spec_name, 'boost' => 99]]],
                             ]]]
                 ]
             ];
@@ -373,20 +372,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $keyword = $condition['keyword'];
+            $keyword = trim($condition['keyword']);
 
-//            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-//                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-//                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-//                        // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-//                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
-//                        // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-//                        //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-//                        [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-//                        [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-//                        [ESClient::MATCH_PHRASE => ['spu' => ['query' => $keyword, 'boost' => 100]]],
-//            ]]];
-//
             if (empty($show_cat_model)) {
                 $show_cat_model = new ShowCatModel();
             }
@@ -398,11 +385,10 @@ class EsProductModel extends Model {
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
                             ])->select();
-
-
             if (empty($showcats)) {
                 $brand_model = new BrandModel();
-                $brands = $brand_model->getlist(['name' => $keyword], $lang);
+                $brands = $brand_model->getBrandByBrandName($keyword, $lang);
+
                 if (empty($brands)) {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
@@ -669,6 +655,7 @@ class EsProductModel extends Model {
                                     'count' => $cat['doc_count'],
                                 ];
                             }
+
                             $show_cats[$cats['key']]['childs'] = $child_cats;
                         }
                     }
@@ -696,6 +683,7 @@ class EsProductModel extends Model {
                 } else {
                     continue;
                 }
+
                 foreach ($show_cat['childs'] as $K => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
@@ -704,7 +692,7 @@ class EsProductModel extends Model {
                         unset($show_cat['childs'][$K]);
                     }
                 }
-                rsort($show_cat['childs']);
+//                rsort($show_cat['childs']);
                 $newshowcats[] = $show_cat;
             }
 
@@ -748,14 +736,14 @@ class EsProductModel extends Model {
                 if ($brand_name['key']) {
                     $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
                 }
-                if (!$is_include && $brand_name['key'] == $brand) {
+                if (!$is_include && strtolower($brand_name['key']) == strtolower($brand)) {
                     $is_include = true;
                 }
             }
         }
         if ($is_include === false) {
 
-            $brand_names[count($brand_names) - 1] = ['brand_name' => $brand, 'count' => 0];
+            $brand_names[count($brand_names) - 1] = ['brand_name' => strtoupper($brand), 'count' => 0];
         }
         return $brand_names;
     }
@@ -806,14 +794,14 @@ class EsProductModel extends Model {
                         if ($spec_value['key']) {
                             $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
                         }
-                        if (!$is_spec_value_include && $spec_name['key'] == $specname && $spec_value['key'] == $specvalue) {
+                        if (!$is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname) && strtolower($spec_value['key']) == strtolower($specvalue)) {
                             $is_spec_value_include = true;
                         }
                     }
-                    if ($is_spec_value_include && $spec_name['key'] == $specname) {
+                    if ($is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname)) {
 
                         $is_spec_name_include = true;
-                    } elseif ($spec_name['key'] == $specname) {
+                    } elseif (strtolower($spec_name['key']) == strtolower($specname)) {
                         $is_spec_name_include = true;
                         $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
                     }
@@ -824,9 +812,9 @@ class EsProductModel extends Model {
         }
         if ($is_spec_name_include === false) {
 
-            $spec_names[count($spec_names) - 1] = ['spec_name' => $specname,
+            $spec_names[count($spec_names) - 1] = ['spec_name' => strtolower($specname),
                 'count' => 0,
-                'spec_values' => [['spec_value' => $specvalue, 'count' => 0]]];
+                'spec_values' => [['spec_value' => strtolower($specvalue), 'count' => 0]]];
         }
 
         return $spec_names;

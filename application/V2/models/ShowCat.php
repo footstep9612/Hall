@@ -42,8 +42,6 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
-        $redis_key = md5(json_encode($where));
-
         try {
             $this->where($where)
                     ->order('sort_order DESC')
@@ -52,8 +50,6 @@ class ShowCatModel extends PublicModel {
                 $this->limit(0, 10);
             }
             $result = $this->select();
-
-
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -526,7 +522,7 @@ class ShowCatModel extends PublicModel {
             if (isset($condition[$lang]) && !empty($condition[$lang]['name'])) {
                 $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
-                $data['name'] = $condition[$lang]['name'];
+                $data['name'] = trim($condition[$lang]['name']);
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
@@ -896,8 +892,8 @@ class ShowCatModel extends PublicModel {
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
             if (isset($createcondition[$lang]) && !empty($createcondition[$lang]['name'])) {
-                $data['lang'] = $lang;
-                $data['name'] = $createcondition[$lang]['name'];
+                $data['lang'] = trim($lang);
+                $data['name'] = trim($createcondition[$lang]['name']);
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();
@@ -1056,7 +1052,7 @@ class ShowCatModel extends PublicModel {
                         'cat_no2' => '',
                         'cat_name2' => '',
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn']
                     ];
@@ -1080,7 +1076,7 @@ class ShowCatModel extends PublicModel {
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
@@ -1104,7 +1100,7 @@ class ShowCatModel extends PublicModel {
                     'cat_no3' => $val['cat_no'],
                     'market_area_bn' => $val['market_area_bn'],
                     'country_bn' => $val['country_bn'],
-                    'cat_name3' => $val['name']];
+                    'cat_name3' => trim($val['name'])];
             }
             return $newcat3s;
         } catch (Exception $ex) {
@@ -1128,7 +1124,7 @@ class ShowCatModel extends PublicModel {
             $where['level_no'] = ['eq', $level_no];
             $where['deleted_flag'] = 'N';
             $where['lang'] = $lang;
-            $where['name'] = $name;
+            $where['name'] = trim($name);
             $where['market_area_bn'] = $market_area_bn;
             $where['country_bn'] = $country_bn;
             $flag = $this->field('id')->where($where)
@@ -1328,6 +1324,35 @@ class ShowCatModel extends PublicModel {
         unset($currentSheet, $PHPExcel, $objReader);
         //unlink($localFile);
         return $result;
+    }
+
+    public function UpdateSpuCountByShowCatNo($cat_no, $lang = 'en') {
+
+        $data = $this->field('cat_no,parent_cat_no,spu_count')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+            $product_model = new ShowCatProductModel();
+            $count = $product_model->where(['onshelf_flag' => 'Y', 'cat_no' => $cat_no])->count();
+
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $count]);
+            if ($flag && $data['parent_cat_no']) {
+                $num = intval($count) - intval($data['spu_count']);
+                $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+            }
+        }
+    }
+
+    public function UpdateSpuCountByCatno($cat_no, $lang = 'en') {
+
+        $data = $this->field('cat_no,parent_cat_no')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+
+            $spu_count = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'parent_cat_no' => $cat_no])->sum('spu_count');
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $spu_count]);
+            if ($flag && $data['parent_cat_no']) {
+                $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+            }
+        }
+        return $flag;
     }
 
 }

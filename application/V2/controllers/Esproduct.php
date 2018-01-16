@@ -39,6 +39,10 @@ class EsproductController extends PublicController {
         $rconfig['dbname'] = 3;
         $redis3 = new phpredis($rconfig);
         $key3s = $redis3->getKeys('*');
+
+        $rconfig['dbname'] = 4;
+        $redis4 = new phpredis($rconfig);
+        $key4s = $redis3->getKeys('*');
         $delkeys = [];
         foreach ($keys as $key) {
             if (strpos($key, 'user_info_') === false) {
@@ -53,7 +57,13 @@ class EsproductController extends PublicController {
             }
         }
         $redis3->delete($delkeys);
-
+        $delkeys = [];
+        foreach ($key4s as $key) {
+            if (strpos($key, 'shopmall_user_info') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis4->delete($delkeys);
         unset($redis, $redis3, $keys, $delkeys);
         $this->jsonReturn();
     }
@@ -109,9 +119,22 @@ class EsproductController extends PublicController {
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
                 //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
-            $condition['deleted_flag'] = 'Y';
+
+            $condition['status'] = 'DRAFT';
+            $condition['onshelf_flag'] = 'N';
+            $send['draft_count'] = $model->getCount($condition, $lang);
+            $condition['status'] = 'CHECKING';
+            $condition['onshelf_flag'] = 'N';
+            $send['checking_count'] = $model->getCount($condition, $lang);
+            $condition['status'] = 'VALID';
             $condition['onshelf_flag'] = 'A';
-            //  $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
+            $send['valid_count'] = $model->getCount($condition, $lang);
+            $condition['status'] = 'INVALID';
+            $condition['onshelf_flag'] = 'N';
+            $send['invalid_count'] = $model->getCount($condition, $lang);
+            $condition['status'] = 'VALID';
+            $condition['onshelf_flag'] = 'N';
+            $send['onshelfing_count'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);

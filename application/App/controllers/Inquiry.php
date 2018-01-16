@@ -143,13 +143,12 @@ class InquiryController extends PublicController
 
         $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status,trade_terms_bn,quote_deadline,created_at');
 
         foreach ($inquiryList as &$inquiry) {
 
-            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['name'] = $nowAgent['name'];
-
+            $inquiry['name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
+            $inquiry['quantity'] = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry['id'],'deleted_flag'=>'N'])->count();
             unset($inquiry['now_agent_id']);
 
         }
@@ -173,13 +172,12 @@ class InquiryController extends PublicController
      */
     public function sku_listAction()
     {
-
         $condition = $this->validateRequestParams('id');
 
         //询单信息
         $inquiryFields = 'serial_no,inquiry_source,trade_terms_bn,payment_mode,country_bn,area_bn,buyer_id,buyer_name,
                             buyer_code,to_country,to_port,destination,quote_deadline,quote_notes,trans_mode_bn';
-        $inquiry = $this->inquiryModel->getDetail($condition, $inquiryFields);
+        $inquiry = $this->inquiryModel->getDetail(['id' => $condition['id']], $inquiryFields);
 
         //sku信息
         $skuFields = 'name,name_zh,brand,model,qty,unit,sku,remarks';

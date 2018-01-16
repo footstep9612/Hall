@@ -220,7 +220,8 @@ class LoginController extends PublicController {
             $datajson['country'] = $buyer_info['country_bn'];
             $datajson['phone'] = $buyer_info['official_phone'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($datajson), 18000);
+            $datajson['utime'] = 18000;
+            redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($info), $datajson['utime']);
 
             jsonReturn($datajson, 1, 'success!');
         } else {
@@ -269,6 +270,11 @@ class LoginController extends PublicController {
             $buyer_account_data['show_name'] = trim($data['show_name']);
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115', $lang));
+        }
+        if (isset($data['source'])&&$data['source']=='mobile') {
+            $arr['source']=3;
+        } else {
+            $arr['source']=2;
         }
 
         $model = new BuyerModel();

@@ -125,8 +125,9 @@ class ShoppingCarModel extends PublicModel{
                     'lang' => $input['lang'],
                     'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id']
                 ];
-                $result = $this->field('id')->where($condition)->find();
+                $result = $this->field('id,buy_number')->where($condition)->find();
                 if($result){
+                    $data['buy_number'] = $data['buy_number'] + $result['buy_number'];
                     $data['updated_at'] = date('Y-m-d H:i:s');
                     $result = $this->where(['id'=>$result['id']])->save($data);
                 }else{
