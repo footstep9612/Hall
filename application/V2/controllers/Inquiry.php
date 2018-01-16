@@ -11,6 +11,8 @@ class InquiryController extends PublicController {
 
     public function init() {
         parent::init();
+        
+        $this->put_data = $this->_trim($this->put_data);
     }
 
     /**
@@ -524,7 +526,7 @@ class InquiryController extends PublicController {
     }
     
     /**
-     * @desc 完成项目澄清
+     * @desc 完成（回复）项目澄清
      *
      * @author liujf
      * @time 2018-01-15
@@ -536,7 +538,7 @@ class InquiryController extends PublicController {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
     
-            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
+            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, check_org_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
             $inNode= $inquiryCheckLogModel->where(['inquiry_id' => $condition['inquiry_id'], 'out_node' => 'CLARIFY'])->order('id DESC')->getField('in_node');
             
             // 根据流入环节获取当前办理人
@@ -561,6 +563,9 @@ class InquiryController extends PublicController {
                     break;
                 case 'BIZ_APPROVING' :
                     $nowAgentId = $inquiry['quote_id'];
+                    break;
+                case 'MARKET_APPROVING' :
+                    $nowAgentId = $inquiry['check_org_id'];
                     break;
                 default :
                     jsonReturn('', '-101', '流入环节有误!');
@@ -1287,6 +1292,28 @@ class InquiryController extends PublicController {
         $this->cleanInquiryRemind($data['inquiry_id']);
 
         return $result;
+    }
+    
+    /**
+     * @desc 去掉数据两侧的空格
+     *
+     * @param mixed $data
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-16
+     */
+    private function _trim($data) {
+        if (is_array($data)) {
+            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            return $data;
+        } else if (is_object($data)) {
+            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            return $data;
+        } else if (is_string($data)) {
+            return trim($data);
+        } else {
+            return $data;
+        }
     }
 
 }
