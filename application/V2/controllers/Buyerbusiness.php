@@ -33,51 +33,10 @@ class BuyerbusinessController extends PublicController
             );
             $this -> jsonReturn($dataJson);
         }
-        //采购计划
-        if(!empty($data['purchase'])){
-            $purchase = new BuyerPurchasingModel();
-            $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            if($purchaseRes === false){
-                $dataJson = array(
-                    'code'=>1,
-                    'message'=>'业务信息创建成功，采购计划创建为空',
-                );
-                $this -> jsonReturn($dataJson);
-            }else{
-                $dataJson = array(
-                    'code'=>1,
-                    'message'=>'业务信息，采购计划，创建成功',
-                );
-                $this -> jsonReturn($dataJson);
-            }
-            //采购计划附件
-//            if(!empty($purchaseRes)){
-//                $purchase = new BuyerattachModel();
-//                $purchaseResult = $purchase->createBuyerPurchaseTable($purchaseRes,$data['buyer_id'],$data['created_by']);
-//                if($purchaseResult == false){
-//                    $dataJson = array(
-//                        'code'=>1,
-//                        'message'=>'业务信息，采购计划创建成功，采购计划附件为空',
-//                    );
-//                }else{
-//                    $dataJson = array(
-//                        'code'=>1,
-//                        'message'=>'业务信息，采购计划，采购计划附件创建成功',
-//                    );
-//                }
-//                $this -> jsonReturn($dataJson);
-//            }else{
-//                $dataJson = array(
-//                    'code'=>1,
-//                    'message'=>'业务信息，采购计划，创建成功',
-//                );
-//                $this -> jsonReturn($dataJson);
-//            }
-        }
         //提示仅业务信息创建成功
         $dataJson = array(
             'code'=>1,
-            'message'=>'业务信息创建成功,采购计划为空',
+            'message'=>'业务信息成功',
         );
         $this -> jsonReturn($dataJson);
 
@@ -93,16 +52,65 @@ class BuyerbusinessController extends PublicController
         $data['created_by'] = $created_by;
         $business = new BuyerBusinessModel();
         $businessRes = $business->businessList($data);
+        //信用
+        $buyer_credit = new BuyerModel();
+        $credit = $buyer_credit->showBuyerCredit($data['buyer_id']);
+        $businessRes ['credit'] = $credit;
+        //分析报告
+        $attach = new BuyerattachModel();
+        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
+        if(!empty($org_chart)){
+            $businessRes['report_attach'] = $org_chart;
+        }else{
+            $businessRes['report_attach'] = array();
+        }
+        //采购计划附件
+        $attach = new PurchasingAttachModel();
+        $attacheRes = $attach->showPurchaseAttach($data['buyer_id'],$data['created_by']);
+        if(!empty($attacheRes)){
+            $businessRes ['purchase_attach'] = $attacheRes;
+        }else{
+            $businessRes ['purchase_attach'] = array();
+        }
+        //采购计划
         $purchase = new BuyerPurchasingModel();
         $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);
-        if(!empty($purchaseRes)){
-            $businessRes ['purchase'] = $purchaseRes;
-        }
+        $businessRes ['purchase'] = $purchaseRes;
+        //里程碑事件
+        $event = new MilestoneEventModel();
+        $eventRes = $event->showMilestoneEvent($data['buyer_id'],$data['created_by']);
+        $businessRes ['milestone_event'] = $eventRes;
         $dataJson = array(
             'code'=>1,
             'message'=>'返回数据',
             'data'=>$businessRes,
         );
+        $this -> jsonReturn($dataJson);
+    }
+    //贸易术语,结算方式-业务信息专用
+    public function tradePaymentAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $payment = new PaymentModeModel();  //结算方式
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $pay = $payment->paymentList($lang);
+        $arr['payment']=$pay;
+        $tradeTerms = new TradeTermsModel();  //结算方式
+        $trade = $tradeTerms->tradeList($lang);
+        $arr['trade']=$trade;
+        $purchase = new PurchaseModel();  //采购模式
+        $purchaseInfo = $purchase->purchaseModeNameList($lang);
+        $arr['purchase_mode']=$purchaseInfo;    //采购周期
+        $purchaseInfo = $purchase->purchaseCycleNameList($lang);
+        $arr['purchase_cycle']=$purchaseInfo;
+        $credit = new CreditModel();  //结算方式
+        $creditLevel = $credit->creditLevelNameList($lang);
+        $creditType = $credit->creditTypeNameList($lang);
+        $arr['creditLevel']=$creditLevel;
+        $arr['creditType']=$creditType;
+        $dataJson['code']=1;
+        $dataJson['message']='结算和贸易和采购和信用配置';
+        $dataJson['data']=$arr;
+
         $this -> jsonReturn($dataJson);
     }
 }

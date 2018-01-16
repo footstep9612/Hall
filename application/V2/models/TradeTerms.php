@@ -141,5 +141,20 @@ class TradeTermsModel extends PublicModel {
             return [];
         }
     }
-
+    //业务信息专用-贸易术语-王帅
+    public function tradeList($lang='zh'){
+        $sql="SELECT DISTINCT terms trade_code,description trade_name from `erui_dict`.`trade_terms` where lang='$lang'";
+        $info=$this->query($sql);
+        return $info;
+    }
+    //获取贸易术语-id
+    public function getTradeNameById($terms,$lang='zh'){
+        $cond=array(
+            'terms'=>$terms,
+            'lang'=>$lang,
+            'deleted_flag'=>'N'
+        );
+        $name=$this->field('id,description')->where($cond)->find(); //一条
+        return $name;
+    }
 }
