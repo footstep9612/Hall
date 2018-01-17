@@ -154,7 +154,7 @@ class HomeFloorShowCatModel extends PublicModel {
         }
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['floor_id'] = intval($condition['floor_id']);
-        $condition['deleted_flag'] = 'N';
+        $condition['deleted_flag'] = $condition['deleted_flag'] == 'Y' ? 'Y' : 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;

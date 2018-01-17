@@ -215,10 +215,6 @@ class EsProductModel extends Model {
             $country_bn = $condition['country_bn'] = 'Argentina';
         }
 
-
-
-
-
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
@@ -389,8 +385,6 @@ class EsProductModel extends Model {
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
                             ])->select();
-
-
             if (empty($showcats)) {
                 $brand_model = new BrandModel();
                 $brands = $brand_model->getBrandByBrandName($keyword, $lang);
@@ -661,6 +655,7 @@ class EsProductModel extends Model {
                                     'count' => $cat['doc_count'],
                                 ];
                             }
+
                             $show_cats[$cats['key']]['childs'] = $child_cats;
                         }
                     }
@@ -688,6 +683,7 @@ class EsProductModel extends Model {
                 } else {
                     continue;
                 }
+
                 foreach ($show_cat['childs'] as $K => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
@@ -696,7 +692,7 @@ class EsProductModel extends Model {
                         unset($show_cat['childs'][$K]);
                     }
                 }
-                rsort($show_cat['childs']);
+//                rsort($show_cat['childs']);
                 $newshowcats[] = $show_cat;
             }
 

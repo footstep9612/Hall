@@ -522,7 +522,7 @@ class ShowCatModel extends PublicModel {
             if (isset($condition[$lang]) && !empty($condition[$lang]['name'])) {
                 $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
-                $data['name'] = $condition[$lang]['name'];
+                $data['name'] = trim($condition[$lang]['name']);
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
@@ -892,8 +892,8 @@ class ShowCatModel extends PublicModel {
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
             if (isset($createcondition[$lang]) && !empty($createcondition[$lang]['name'])) {
-                $data['lang'] = $lang;
-                $data['name'] = $createcondition[$lang]['name'];
+                $data['lang'] = trim($lang);
+                $data['name'] = trim($createcondition[$lang]['name']);
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();
@@ -1052,7 +1052,7 @@ class ShowCatModel extends PublicModel {
                         'cat_no2' => '',
                         'cat_name2' => '',
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn']
                     ];
@@ -1076,11 +1076,11 @@ class ShowCatModel extends PublicModel {
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                        'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                        'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                         'cat_no1' => '',
                         'cat_name1' => '',
                     ];
@@ -1094,13 +1094,13 @@ class ShowCatModel extends PublicModel {
             foreach ($cat3s as $val) {
                 $newcat3s[$val['cat_no']] = [
                     'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-                    'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+                    'cat_name1' => trim($newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name']),
                     'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                    'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                     'cat_no3' => $val['cat_no'],
                     'market_area_bn' => $val['market_area_bn'],
                     'country_bn' => $val['country_bn'],
-                    'cat_name3' => $val['name']];
+                    'cat_name3' => trim($val['name'])];
             }
             return $newcat3s;
         } catch (Exception $ex) {
@@ -1124,7 +1124,7 @@ class ShowCatModel extends PublicModel {
             $where['level_no'] = ['eq', $level_no];
             $where['deleted_flag'] = 'N';
             $where['lang'] = $lang;
-            $where['name'] = $name;
+            $where['name'] = trim($name);
             $where['market_area_bn'] = $market_area_bn;
             $where['country_bn'] = $country_bn;
             $flag = $this->field('id')->where($where)

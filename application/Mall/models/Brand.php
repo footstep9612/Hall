@@ -171,7 +171,8 @@ class BrandModel extends PublicModel {
             $bind[':new_lang'] = '%"lang":"' . strtolower($lang) . '"%';
             $sql = 'SELECT brand FROM ' . $this->getTableName() . ' WHERE  deleted_flag=\'N\' ';
             $sql .= ' AND `status`=\'VALID\' ';
-            $sql .= ' AND (brand like binary :brand_name OR brand  like binary :new_brand_name escape \'/\')';
+            // 可以再 like后面加 binary 区分大小写
+            $sql .= ' AND (brand like  :brand_name OR brand  like  :new_brand_name escape \'/\')';
             $sql .= ' AND (brand like :lang OR brand like :new_lang)';
 
             $brand = $this->db()->query($sql, $bind);
