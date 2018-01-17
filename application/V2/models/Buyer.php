@@ -1662,8 +1662,9 @@ EOF;
             }else{
                 $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'YES':'NO';    //是否油气
             }
-            $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             
+            $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
+
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
