@@ -1648,7 +1648,7 @@ EOF;
      * 打包，客户管理数据列表
      * wangs
      */
-    public function packageBuyerExcelData($data){
+    public function packageBuyerExcelData($data,$lang='zh'){
         $arr = [];
         foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];  //客户id
@@ -1657,20 +1657,36 @@ EOF;
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
             $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
-            $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
+            if($lang=='zh'){
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
+            }else{
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'YES':'NO';    //是否油气
+            }
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
-            $arr[$k]['is_net'] = $v['is_net']==='Y'?'是':'否';  //是否入网
+            if($lang=='zh'){
+                $arr[$k]['is_net'] = $v['is_net']==='Y'?'是':'否';  //是否入网
+            }else{
+                $arr[$k]['is_net'] = $v['is_net']==='Y'?'YES':'NO';  //是否入网
+            }
             $arr[$k]['net_at'] = $v['net_at'];  //入网时间
             $arr[$k]['net_invalid_at'] = $v['net_invalid_at'];  //失效时间
             $arr[$k]['product_type'] = $v['product_type'];  //产品类型
             $arr[$k]['credit_level'] = $v['credit_level'];  //采购商信用等级
             $arr[$k]['credit_type'] = $v['credit_type'];    //授信类型
             $arr[$k]['line_of_credit'] = $v['line_of_credit'];  //授信额度
-            $arr[$k]['is_local_settlement'] = $v['is_local_settlement']==='Y'?'是':'否';    //本地结算
-            $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']==='Y'?'是':'否';  //采购关系
+            if($lang=='zh'){
+                $arr[$k]['is_local_settlement'] = $v['is_local_settlement']==='Y'?'是':'否';    //本地结算
+            }else{
+                $arr[$k]['is_local_settlement'] = $v['is_local_settlement']==='Y'?'YES':'NO';    //本地结算
+            }
+            if($lang=='zh'){
+                $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']==='Y'?'是':'否';  //采购关系
+            }else{
+                $arr[$k]['is_purchasing_relationship'] = $v['is_purchasing_relationship']==='Y'?'YES':'NO';  //采购关系
+            }
             $arr[$k]['market_agent'] = $v['market_agent'];  //kerui/erui客户服务经理
             $arr[$k]['total_visit'] = $v['total_visit'];    //总访问次数
             $arr[$k]['quarter_visit'] = $v['quarter_visit'];    //季度访问次数
@@ -1788,6 +1804,7 @@ EOF;
      * @param $pageSize
      */
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerManageCond($data);
         $totalCount = $this->alias('buyer')
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
@@ -1840,7 +1857,7 @@ EOF;
             if(!empty($info)){
                 $country = new CountryModel();
                 foreach($info as $k => $v){
-                    $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+                    $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                 }
             }
             $ids = array();
@@ -1852,7 +1869,7 @@ EOF;
                 'info' => $info,
             );
             $full = $this->exportBuyerListDataFull($res);
-            $need = $this->packageBuyerExcelData($full);
+            $need = $this->packageBuyerExcelData($full,$lang);
             if($excel==false){   //excel导出
                 return array('info'=>$need,'totalCount'=>$totalCount);
             }
