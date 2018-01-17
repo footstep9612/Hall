@@ -79,7 +79,7 @@ class MembercenterController extends PublicController {
                 jsonReturn('', '-1002', 'Password is reset failed!');
             }
         } else {
-            jsonReturn('', '-1001', 'Current password error!');
+            jsonReturn('', '-1001', 'Current password is error!');
         }
     }
 
