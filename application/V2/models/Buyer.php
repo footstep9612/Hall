@@ -1879,7 +1879,9 @@ EOF;
                 $level = new BuyerLevelModel();
                 foreach($info as $k => $v){
                     $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
-                    $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+                    if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
+                        $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+                    }
 //                    if($lang=='en'){
 //                        if($v['buyer_level']=='普通会员'){
 //                            $info[$k]['buyer_level']='Member';
