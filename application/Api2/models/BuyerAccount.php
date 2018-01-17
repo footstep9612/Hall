@@ -276,19 +276,23 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data, $token) {
+    public function update_pwd($data) {
 
-        if (!empty($token['buyer_id'])) {
-            $where['buyer_id'] = $token['buyer_id'];
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
+            jsonReturn('', '-1001', 'Token Expired');//用户buyer_id不可以为空
         }
         if (!empty($data['password'])) {
             $new['password_hash'] = $data['password'];
         } else {
-            jsonReturn('', '-1001', '新密码不可以为空');
+            jsonReturn('', '-1001', 'Password cannot be empty');
         }
-        return $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
 
     /*

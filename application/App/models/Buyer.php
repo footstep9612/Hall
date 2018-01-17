@@ -28,7 +28,7 @@ class BuyerModel extends PublicModel {
     const STATUS_REJECTED = 'REJECTED'; //无效；
 
 
-    public function getlist($condition = [], $order = " id desc") {
+    public function getlist($condition = [], $userCountrys, $order = " id desc") {
 
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];
@@ -41,6 +41,13 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['buyer_no'])) {
             $where['buyer_no'] = $condition['buyer_no'];
         }
+        if (!empty($condition['userOwnCountry'])){
+            $where = [
+                'country_bn' => ['in',$userCountrys]
+            ];
+        }
+
+        $where['deleted_flag'] = 'N';
 
         $page = $condition['currentPage'];
         $pagesize = $condition['pageSize'];
@@ -48,11 +55,9 @@ class BuyerModel extends PublicModel {
         $field = 'id,buyer_no,buyer_code,name,bn,country_bn,area_bn,created_by';
 
         return $this->where($where)->order($order)->page($page, $pagesize)->field($field)->select();
-        p($this->getLastSql());
-
     }
 
-    public function getCount($condition = []){
+    public function getCount($condition = [], $userCountrys){
 
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];
@@ -66,6 +71,13 @@ class BuyerModel extends PublicModel {
             $where['buyer_no'] = $condition['buyer_no'];
         }
 
+        if (!empty($condition['userOwnCountry'])){
+            $where = [
+                'country_bn' => ['in',$userCountrys]
+            ];
+        }
+
+        $where['deleted_flag'] = 'N';
         return $this->where($where)->field('id')->count();
 
     }

@@ -539,44 +539,49 @@ class InquiryController extends PublicController {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
     
             $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, check_org_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
-            $inNode= $inquiryCheckLogModel->where(['inquiry_id' => $condition['inquiry_id'], 'out_node' => 'CLARIFY'])->order('id DESC')->getField('in_node');
+            $inquiryCheckLog= $inquiryCheckLogModel->getDetail(['inquiry_id' => $condition['inquiry_id']], 'in_node, out_node');
             
-            // 根据流入环节获取当前办理人
-            switch ($inNode) {
-                case 'BIZ_DISPATCHING' :
-                    $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
-                    break;
-                case 'CC_DISPATCHING' :
-                    $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['erui_id']], $inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::inquiryIssueRole, 'erui');
-                    break;
-                case 'BIZ_QUOTING' :
-                    $nowAgentId = $inquiry['quote_id'];
-                    break;
-                case 'LOGI_DISPATCHING' :
-                    $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['logi_org_id']], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, 'lg');
-                    break;
-                case 'LOGI_QUOTING' :
-                    $nowAgentId = $inquiry['logi_agent_id'];
-                    break;
-                case 'LOGI_APPROVING' :
-                    $nowAgentId = $inquiry['logi_check_id'];
-                    break;
-                case 'BIZ_APPROVING' :
-                    $nowAgentId = $inquiry['quote_id'];
-                    break;
-                case 'MARKET_APPROVING' :
-                    $nowAgentId = $inquiry['check_org_id'];
-                    break;
-                default :
-                    jsonReturn('', '-101', '流入环节有误!');
-            }
+            $error = false;
+            if ($inquiryCheckLog['out_node'] == 'CLARIFY') {
+                // 根据流入环节获取当前办理人
+                switch ($inquiryCheckLog['in_node']) {
+                    case 'BIZ_DISPATCHING' :
+                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+                        break;
+                    case 'CC_DISPATCHING' :
+                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['erui_id']], $inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::inquiryIssueRole, 'erui');
+                        break;
+                    case 'BIZ_QUOTING' :
+                        $nowAgentId = $inquiry['quote_id'];
+                        break;
+                    case 'LOGI_DISPATCHING' :
+                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['logi_org_id']], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, 'lg');
+                        break;
+                    case 'LOGI_QUOTING' :
+                        $nowAgentId = $inquiry['logi_agent_id'];
+                        break;
+                    case 'LOGI_APPROVING' :
+                        $nowAgentId = $inquiry['logi_check_id'];
+                        break;
+                    case 'BIZ_APPROVING' :
+                        $nowAgentId = $inquiry['quote_id'];
+                        break;
+                    case 'MARKET_APPROVING' :
+                        $nowAgentId = $inquiry['check_org_id'];
+                        break;
+                    default :
+                        $error = true;
+                }
+            } else $error = true;
+            
+            if ($error) jsonReturn('', '-101', '流转环节有误!');
             
             $inquiryModel->startTrans();
     
             $data = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $nowAgentId,
-                'status' => $inNode,
+                'status' => $inquiryCheckLog['in_node'],
                 'updated_by' => $this->user['id']
             ];
             
@@ -584,7 +589,7 @@ class InquiryController extends PublicController {
                 'inquiry_id' => $condition['inquiry_id'],
                 'action' => 'CLARIFY',
                 'in_node' => 'CLARIFY',
-                'out_node' => $inNode,
+                'out_node' => $inquiryCheckLog['in_node'],
                 'into_at' => $inquiry['inflow_time'],
                 'op_note' => $condition['op_note']
             ];
@@ -635,7 +640,7 @@ class InquiryController extends PublicController {
             $where['_complex']['_logic'] = 'or';
             
             $field = 'in_node, out_node, op_note, created_by, created_at';
-            $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id DESC')->select();
+            $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id ASC')->select();
         
             foreach ($clarifyList as &$clarify) {
                 $clarify['created_name'] = $employeeModel->getUserNameById($clarify['created_by']);

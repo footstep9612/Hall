@@ -25,6 +25,9 @@ class BuyerController extends PublicController {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
+        //获取用户对应的多家
+        $userCountrys = $this->_userCountrys($this->user['id']);
+
         if (!empty($data['keyword'])) {
 
             $keyword = trim($data['keyword']);
@@ -46,6 +49,8 @@ class BuyerController extends PublicController {
                 $where['name'] = $keyword;
             }
 
+        }else{
+            $where['userOwnCountry'] = "Y";
         }
 
         $where['currentPage'] = !empty($data['currentPage']) ? $data['currentPage']:1;
@@ -53,7 +58,7 @@ class BuyerController extends PublicController {
 
         $model = new BuyerModel();
 
-        $data = $model->getlist($where);
+        $data = $model->getlist($where,$userCountrys);
 
         $this->_setArea($data, 'area');
         $this->_setCountry($data, 'country');
@@ -75,7 +80,7 @@ class BuyerController extends PublicController {
             }
 
             $datajson['code'] = 1;
-            $datajson['count'] = $model->getCount($where);
+            $datajson['count'] = $model->getCount($where, $userCountrys);
             $datajson['data'] = $buyerList;
         } else {
             $datajson['code'] = -1;
@@ -139,6 +144,26 @@ class BuyerController extends PublicController {
                 $arr[$key] = $val;
             }
         }
+    }
+
+    /**
+     * 获取用户对应国家
+     * @param $id 用户id
+     *
+     * @return string 对应国家
+     * @author 买买提
+     * @time 2018/01/17 11:50:00
+     */
+    private function _userCountrys($id)
+    {
+        $data = (new CountryUserModel)->alias('a')
+            ->join('erui_dict.country b ON a.country_bn=b.bn')
+            ->where(['a.employee_id'=> $id])
+            ->distinct('b.bn')
+            ->field('b.bn')
+            ->select();
+
+       return implode(',',array_column($data, 'bn'));
     }
 
 }
