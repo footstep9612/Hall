@@ -993,6 +993,7 @@ class InquiryModel extends PublicModel {
     {
         return $this->where(['id' => $id])->getField('serial_no');
     }
+    
      /* @param $buyer_id
      * 获取询单数量
      * wangs
@@ -1027,6 +1028,7 @@ class InquiryModel extends PublicModel {
         );
         return $data;
     }
+    
     /**
      * 客户管理首页获取询单数量和金额
      * wnags
