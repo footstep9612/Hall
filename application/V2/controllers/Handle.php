@@ -495,4 +495,87 @@ class HandleController extends Yaf_Controller_Abstract
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SUPPLIER_" . date('Ymd-His') . '.xls');
     }
+
+    /**
+     * 导出无供应商编号的供应商
+     * 2018/01/16
+     */
+    public function supplierAction()
+    {
+        $data = $this->supplierData();
+
+        $localFile = $this->createSupplier($data);
+        p($localFile);
+    }
+
+    /**
+     * 无供应商编号的供应商数据
+     * @return mixed
+     */
+    private function supplierData()
+    {
+        //没有供应商编码的数据
+        $data = (new SupplierModel)->where('supplier_no is null')->field('id,supplier_no,name,name_en,country_bn')->select();
+        foreach ($data as &$item){
+            $item['country_bn'] = (new CountryModel)->where(['bn'=>$item['country_bn'],'lang'=>'zh'])->getField('name');
+        }
+        return $data;
+    }
+
+    private function createSupplier($data)
+    {
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $objSheet->setTitle('');
+
+        /* 设置A1~R1标题并合并单元格(水平整行，垂直2列) */
+        $objSheet->setCellValue("A1", 'ID');
+        $objSheet->setCellValue("B1", '供应商编号');
+        $objSheet->setCellValue("C1", '供应商名称');
+        $objSheet->setCellValue("D1", '供应商名称(英文)');
+        $objSheet->setCellValue("E1", '国家');
+
+
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+
+        $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $normal_cols = ["B", "D", "E"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('20');
+            $objSheet->getCell($normal_col . "1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+        $objSheet->getColumnDimension("C")->setWidth('30');
+
+        $startRow = 2;
+        if (!empty($data)) {
+            foreach ($data as $k => $v) {
+
+                $objSheet->getRowDimension($startRow)->setRowHeight(30);
+
+                $objSheet->setCellValue("A" . $startRow, $v['id']);
+                $objSheet->setCellValue("B" . $startRow, $v['supplier_no']);
+                $objSheet->setCellValue("C" . $startRow, $v['name']);
+                $objSheet->setCellValue("D" . $startRow, $v['name_en']);
+                $objSheet->setCellValue("E" . $startRow, $v['country_bn']);
+
+
+                $objSheet->getCell("A" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("B" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("C" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("D" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("E" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+                $startRow++;
+            }
+
+        }
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SUPPLIER_" . date('Ymd-His') . '.xls');
+    }
+
 }
