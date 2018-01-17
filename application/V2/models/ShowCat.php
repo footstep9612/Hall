@@ -1080,7 +1080,7 @@ class ShowCatModel extends PublicModel {
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                        'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                        'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                         'cat_no1' => '',
                         'cat_name1' => '',
                     ];
@@ -1094,9 +1094,9 @@ class ShowCatModel extends PublicModel {
             foreach ($cat3s as $val) {
                 $newcat3s[$val['cat_no']] = [
                     'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-                    'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+                    'cat_name1' => trim($newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name']),
                     'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                    'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                     'cat_no3' => $val['cat_no'],
                     'market_area_bn' => $val['market_area_bn'],
                     'country_bn' => $val['country_bn'],
