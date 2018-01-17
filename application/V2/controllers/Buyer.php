@@ -251,7 +251,7 @@ class BuyerController extends PublicController {
     }
 
     /*
-     * 统计各状态数量 jhw
+     * 客户审核列表 jhw
      * */
 
     public function buyercheckedlistAction() {
