@@ -159,8 +159,16 @@ class BuyerModel extends PublicModel {
         }
 
         //$count = $this->query($sql_count);
-
-        $res['data'] = $this->query($sql);
+        $lang=isset($condition['lang'])?$condition['lang']:'zh';
+        $info = $this->query($sql);
+        foreach($info as $k => $v){
+            if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){
+                $level = new BuyerLevelModel();
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }
+        }
+//        $res['data'] = $this->query($sql);
+        $res['data'] = $info;
         return $res;
     }
 
@@ -1547,12 +1555,16 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
-        if($lang=='en'){
-            if($info['buyer_level']=='普通会员'){
-                $info['buyer_level']='Member';
-            }elseif($info['buyer_level']=='普通会员'){
-                $info['buyer_level']='Senior member';
-            }
+//        if($lang=='en'){
+//            if($info['buyer_level']=='普通会员'){
+//                $info['buyer_level']='Member';
+//            }elseif($info['buyer_level']=='普通会员'){
+//                $info['buyer_level']='Senior member';
+//            }
+//        }
+        if(!empty($info['buyer_level'])){
+            $level = new BuyerLevelModel();
+            $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
         }
         if($data['is_check'] == true){
             if(!empty($info['buyer_type'])){
@@ -1864,19 +1876,19 @@ EOF;
                 ->select();
             if(!empty($info)){
                 $country = new CountryModel();
-//                $level = new BuyerLevelModel();
+                $level = new BuyerLevelModel();
                 foreach($info as $k => $v){
                     $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
-//                    $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
-                    if($lang=='en'){
-                        if($v['buyer_level']=='普通会员'){
-                            $info[$k]['buyer_level']='Member';
-                        }elseif($v['buyer_level']=='高级会员'){
-                            $info[$k]['buyer_level']='Senior membe';
-                        }else{
-                            $info[$k]['buyer_level']=null;
-                        }
-                    }
+                    $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+//                    if($lang=='en'){
+//                        if($v['buyer_level']=='普通会员'){
+//                            $info[$k]['buyer_level']='Member';
+//                        }elseif($v['buyer_level']=='高级会员'){
+//                            $info[$k]['buyer_level']='Senior membe';
+//                        }else{
+//                            $info[$k]['buyer_level']=null;
+//                        }
+//                    }
                 }
             }
             $ids = array();

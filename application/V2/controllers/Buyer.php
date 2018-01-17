@@ -25,6 +25,9 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
+        if (!empty($data['lang'])) {    //en/zh 王帅-客户等级
+            $where['lang'] = $data['lang'];
+        }
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         }
