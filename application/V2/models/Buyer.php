@@ -1547,6 +1547,13 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
+        if($lang=='en'){
+            if($info['buyer_level']=='普通会员'){
+                $info['buyer_level']='Member';
+            }elseif($info['buyer_level']=='普通会员'){
+                $info['buyer_level']='Senior member';
+            }
+        }
         if($data['is_check'] == true){
             if(!empty($info['buyer_type'])){
                 $type = new BuyerTypeModel();
