@@ -59,16 +59,17 @@ class ExcelimportandexportController extends PublicController {
         $noBuyerExecuteNoArr = [];
         foreach ($templetBaseData as $baseInfo) {
             if ($baseDataIndex > 1 && $baseInfo[1] != '') {
+                $executeNo = strtoupper($baseInfo[1]);
                 $buyerId = $this->buyerModel->where(['buyer_code' => $baseInfo[4], 'deleted_flag' => 'N'])->getField('id');
                 // 记录没有客户的订单执行单号
                 if (!$buyerId) {
-                    $noBuyerExecuteNoArr[] = $baseInfo[1];
+                    $noBuyerExecuteNoArr[] = $executeNo;
                     /*$baseDataIndex++;
                     continue;*/
                 }
                 $orderData = [
                     'po_no' => $baseInfo[0],
-                    'execute_no' => $baseInfo[1],
+                    'execute_no' => $executeNo,
                     'contract_date' => $baseInfo[2] == '' ? null : $this->_getStorageDate($baseInfo[2]),
                     'buyer_id' => $buyerId == '' ? null : $buyerId,
                     'order_agent' => $this->employeeModel->getUserIdByNo($baseInfo[5]) ? : null,
@@ -89,11 +90,11 @@ class ExcelimportandexportController extends PublicController {
                     'created_at' => $this->time
                 ];
                 // 需要导入的订单执行单号和数据
-                $executeNoArr[] = $baseInfo[1];
+                $executeNoArr[] = $executeNo;
                 $importOrderList[] = $orderData;
                 /*// 需要导入的采购商联系人数据
                 $buyerContactData = [
-                    'execute_no' => $baseInfo[1],
+                    'execute_no' => $executeNo,
                     'name' => $baseInfo[7],
                     'phone' => $baseInfo[8], 
                     'email' => $baseInfo[9],
@@ -111,19 +112,19 @@ class ExcelimportandexportController extends PublicController {
                 $importOrderContactList[] = $orderContactData;
                 // 需要导入的附件名称和执行单号的映射(非必填)
                 if ($baseInfo[23] != '') {
-                    $attachNameMapping[$baseInfo[1]] = $baseInfo[23];
+                    $attachNameMapping[$executeNo] = $baseInfo[23];
                 }
                 // 需要导入的交货信息数据(非必填)
                 if ($baseInfo[24] != '') {
                     $deliveryData = json_decode($baseInfo[24], true);
-                    $deliveryData['execute_no'] = $baseInfo[1];
+                    $deliveryData['execute_no'] = $executeNo;
                     $deliveryData['created_at'] = $this->time;
                     $importDeliveryList[] = $deliveryData;
                 }*/
                 // 需要导入的收货人地址数据
                 if ($baseInfo[25] != '') {
                     $addressData = [
-                        'execute_no' => $baseInfo[1],
+                        'execute_no' => $executeNo,
                         'address' => $baseInfo[22],
                         'name' => $baseInfo[25],
                         'created_at' => $this->time
@@ -133,7 +134,7 @@ class ExcelimportandexportController extends PublicController {
                 /*// 需要导入的结算方式数据(非必填)
                 if ($baseInfo[26] != '') {
                     $paymentData = json_decode($baseInfo[26], true);
-                    $paymentData['execute_no'] = $baseInfo[1];
+                    $paymentData['execute_no'] = $executeNo;
                     $paymentData['created_at'] = $this->time;
                     $importPaymentList[] = $paymentData;
                 }*/
@@ -158,7 +159,8 @@ class ExcelimportandexportController extends PublicController {
             }
             foreach ($templetDeliveryData as $deliveryInfo) {
                 if ($deliveryDataIndex > 1 && $deliveryInfo[0] != '') {
-                    $orderId = $orderIdMapping[$deliveryInfo[0]];
+                    $executeNo = strtoupper($deliveryInfo[0]);
+                    $orderId = $orderIdMapping[$executeNo];
                     if ($orderId) {
                         // 需要导入的交货信息数据
                         $deliveryData = [
@@ -174,7 +176,8 @@ class ExcelimportandexportController extends PublicController {
             }
             /*foreach ($templetAddressData as $addressInfo) {
                 if ($addressDataIndex > 1 && $addressInfo[0] != '') {
-                    $orderId = $orderIdMapping[$addressInfo[0]];
+                    $executeNo = strtoupper($addressInfo[0]);
+                    $orderId = $orderIdMapping[$executeNo];
                     if ($orderId) {
                         // 需要导入的收货人地址数据
                         $addressData = [
@@ -197,7 +200,8 @@ class ExcelimportandexportController extends PublicController {
             }*/
             foreach ($templetPaymentData as $paymentInfo) {
                 if ($paymentDataIndex > 1 && $paymentInfo[0] != '') {
-                    $orderId = $orderIdMapping[$paymentInfo[0]];
+                    $executeNo = strtoupper($paymentInfo[0]);
+                    $orderId = $orderIdMapping[$executeNo];
                     if ($orderId) {
                         // 需要导入的结算方式数据
                         $paymentData = [
@@ -298,10 +302,11 @@ class ExcelimportandexportController extends PublicController {
         $importOrderLogList = $orderIdMapping = $attachNameMapping = [];
         foreach ($templetData as $data) {
             if ($dataIndex > 1 && $data[0] != '') {
-                $orderId = $this->orderModel->where(['execute_no' => $data[0], 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
+                $executeNo = strtoupper($data[0]);
+                $orderId = $this->_getOrderIdByExecuteNo($executeNo);
                 if ($orderId) {
                     // 订单执行单号和订单ID的映射关系
-                    $orderIdMapping[$data[0]] = $orderId;
+                    $orderIdMapping[$executeNo] = $orderId;
                     $where = ['id' => $orderId];
                     $orderLogData = [
                         'order_id' => $orderId,
@@ -469,7 +474,7 @@ class ExcelimportandexportController extends PublicController {
     private  function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
         $importAttachList = [];
         foreach ($attachList as $attach) {
-            $attachExecuteNo = $this->_getAttachExecuteNo($attach);
+            $attachExecuteNo = strtoupper($this->_getAttachExecuteNo($attach));
             $orderId = $orderIdMapping[$attachExecuteNo] ? : $this->_getOrderIdByExecuteNo($attachExecuteNo);
             if ($orderId) {
                 // 执行附件上传

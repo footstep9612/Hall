@@ -48,4 +48,17 @@ class StockModel extends PublicModel {
                         ->select();
     }
 
+    /**
+     * Description of 判断国家现货是否存在
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getExit($country_bn, $lang) {
+        $where['country_bn'] = $country_bn;
+        $where['lang'] = $lang;
+        return $this->where($where)->field('id,floor_id')->find();
+    }
+
 }

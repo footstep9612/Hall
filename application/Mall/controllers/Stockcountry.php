@@ -47,8 +47,17 @@ class StockcountryController extends PublicController {
 
         $list = $stock_country_model->getExit($country_bn, $lang);
 
+
         if ($list) {
-            $this->jsonReturn($list);
+            $stock_model = new StockModel();
+            $flag = $stock_model->getExit($country_bn, $lang);
+            if ($flag) {
+                $this->jsonReturn($list);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage('空数据!');
+                $this->jsonReturn();
+            }
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');

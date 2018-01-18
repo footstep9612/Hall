@@ -301,10 +301,10 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
         }
-        if (isset($data['source'])&&$data['source']='mobile') {
-            $data['source']=3;
+        if (isset($data['source'])&&$data['source']=='mobile') {
+            $arr['source']=3;
         } else {
-            $data['source']=2;
+            $arr['source']=2;
         }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
