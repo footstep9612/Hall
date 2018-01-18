@@ -22,12 +22,20 @@ class BuyerTypeModel extends PublicModel {
      * 客户类型列表-王帅
      */
     public function buyerNameList($lang='zh'){
+        $cond=array(
+            'deleted_flag'=>'N'
+        );
+        $currency=new CurrencyModel();
         if($lang=='zh'){
-            $info=$this->field('id type_id,name type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $type=$this->field('id type_id,name type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $list=$currency->field('bn as currency_bn,name as currency_name')->where($cond)->select();
         }else{
-            $info=$this->field('id type_id,en as type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $type=$this->field('id type_id,en as type_name')->where(array('deleted_flag'=>'N'))->order('sort asc')->select();
+            $list=$currency->field('bn as currency_bn,en_name as currency_name')->where($cond)->select();
         }
-        return $info;
+            $arr['type']=$type;
+            $arr['currency']=$list;
+        return $arr;
     }
 
     /**
