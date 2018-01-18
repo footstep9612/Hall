@@ -143,7 +143,7 @@ class MarketAreaCountryModel extends PublicModel {
 
     public function getAreasBybns($country_bns, $lang = 'zh') {
 
-        $lang = $this->db()->escapeString($lang);
+        $lang = $this->escapeString($lang);
         $market_area_model = new MarketAreaModel();
         $market_area_table = $market_area_model->getTableName();
         try {

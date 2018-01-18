@@ -279,7 +279,7 @@ class BrandModel extends PublicModel {
                 $where['id'] = ['neq', $id];
             }
             $where['deleted_flag'] = 'N';
-            $where[] = 'brand like \'%"lang":"' . $this->db()->escapeString($lang) . '"%\' and brand like \'%"name":"' . $this->db()->escapeString($name) . '"%\'';
+            $where[] = 'brand like \'%"lang":"' . $this->escapeString($lang) . '"%\' and brand like \'%"name":"' . $this->db()->escapeString($name) . '"%\'';
             $flag = $this->field('id')->where($where)
                     ->find();
             return $flag;

@@ -27,23 +27,23 @@ class SupplierInquiryModel extends PublicModel {
 
     private function _getCondition($condition, &$where) {
         if (!empty($condition['supplier_no'])) {
-            $supplier_no = $this->db()->escapeString(trim($condition['supplier_no']));
+            $supplier_no = $this->escapeString(trim($condition['supplier_no']));
             $where .= ' AND tmp.supplier_no=\'' . $supplier_no . '\'';
         }
         if (!empty($condition['supplier_name'])) {
-            $supplier_name = $this->db()->escapeString(trim($condition['supplier_name']));
+            $supplier_name = $this->escapeString(trim($condition['supplier_name']));
             $where .= ' AND tmp.supplier_name like \'%' . $supplier_name . '%\'';
         }
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = $this->db()->escapeString(trim($condition['created_at_start']));
-            $created_at_end = $this->db()->escapeString(trim($condition['created_at_end']));
+            $created_at_start = $this->escapeString(trim($condition['created_at_start']));
+            $created_at_end = $this->escapeString(trim($condition['created_at_end']));
             $where .= ' AND tmp.created_at between \'' . $created_at_start . '\''
                     . ' AND \'' . $created_at_end . '\'';
         } elseif (!empty($condition['created_at_start'])) {
-            $created_at_start = $this->db()->escapeString(trim($condition['created_at_start']));
+            $created_at_start = $this->escapeString(trim($condition['created_at_start']));
             $where .= ' AND tmp.created_at > \'' . $created_at_start . '\'';
         } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = $this->db()->escapeString(trim($condition['created_at_end']));
+            $created_at_end = $this->escapeString(trim($condition['created_at_end']));
             $where .= ' AND tmp.created_at < \'' . $created_at_end . '\'';
         }
     }
@@ -71,7 +71,7 @@ class SupplierInquiryModel extends PublicModel {
         $field = 'supplier_no,supplier_name,supplier_id,';
         foreach ($this->areas as $area_bn) {
             $new_area_bn = str_replace(' ', '-', trim($area_bn));
-            $field .= 'sum(if(tmp.area_bn=\'' . $this->db()->escapeString($area_bn) . '\',1,0)) as \'' . $new_area_bn . '\',';
+            $field .= 'sum(if(tmp.area_bn=\'' . $this->escapeString($area_bn) . '\',1,0)) as \'' . $new_area_bn . '\',';
         }
         $field .= 'sum(tmp.area_bn is not null) as \'total\' ';
 
