@@ -160,7 +160,7 @@ class OrderModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($start_no, $pagesize) = $this->_getPage($condition);
         return $this
-                        ->field('order.id,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
+                        ->field('order.id,source,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
                         ->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')
                         ->where($where)->limit($start_no, $pagesize)->order('order.created_at desc')->select();
     }
