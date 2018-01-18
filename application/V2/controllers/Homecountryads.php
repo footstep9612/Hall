@@ -149,11 +149,11 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
         $link = $this->getPut('link');
-        if (empty($link)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请输入广告链接地址!');
-            $this->jsonReturn();
-        }
+//        if (empty($link)) {
+//            $this->setCode(MSG::MSG_EXIST);
+//            $this->setMessage('请输入广告链接地址!');
+//            $this->jsonReturn();
+//        }
         $home_country_ads_model = new HomeCountryAdsModel();
         if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
@@ -221,11 +221,11 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
         $link = $this->getPut('link');
-        if (empty($link)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请输入广告链接地址!');
-            $this->jsonReturn();
-        }
+//        if (empty($link)) {
+//            $this->setCode(MSG::MSG_EXIST);
+//            $this->setMessage('请输入广告链接地址!');
+//            $this->jsonReturn();
+//        }
         $home_country_ads_model = new HomeCountryAdsModel();
 
         if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {

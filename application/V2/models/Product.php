@@ -228,7 +228,7 @@ class ProductModel extends PublicModel {
         //检测名称（必填）
         if(!isset($input['activename']) || empty($input['activename'])){
             if (empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name'])) {
-                jsonReturn('', ErrorMsg::FAILED, '请输出名称');
+                jsonReturn('', ErrorMsg::FAILED, '请输入名称');
             }
             foreach(['zh','en','es','ru'] as $lang){
                 if(isset($input[$lang])){
@@ -237,7 +237,7 @@ class ProductModel extends PublicModel {
             }
         }else{
             if(empty($input[$input['activename']]['name'])){
-                jsonReturn('', ErrorMsg::FAILED, '请输出名称');
+                jsonReturn('', ErrorMsg::FAILED, '请输入名称');
             }
             $datas[$input['activename']] = $input[$input['activename']];
         }
@@ -359,11 +359,13 @@ class ProductModel extends PublicModel {
                         }
                     //}
                     $data['status'] = $item['status'] ? $item['status'] : self::STATUS_DRAFT;
-                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->find();
+                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->order('deleted_flag ASC')->find();
                     if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
+                        $data['deleted_flag'] = 'N';
+                        //$result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
+                        $result = $this->where(array('id' => $exist_check['id']))->save($data);
                         if (!$result) {
                             $this->rollback();
                             flock($fp, LOCK_UN);

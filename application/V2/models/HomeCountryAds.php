@@ -116,7 +116,9 @@ class HomeCountryAdsModel extends PublicModel {
         $data['img_url'] = $img_url;
         $data['group'] = $group;
         $data['lang'] = $lang;
-        $data['link'] = trim($link);
+        if (!empty($link)) {
+            $data['link'] = trim($link);
+        }
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 
