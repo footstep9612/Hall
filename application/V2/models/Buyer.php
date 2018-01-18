@@ -526,6 +526,9 @@ EOF;
             if ($row) {
                 $buyerInfo['attach'] = $row[0];
             }
+            $account=new BuyerAccountModel();
+            $show_name=$account->field('show_name')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
+            $buyerInfo['first_name'] = $show_name['show_name'];
             return $buyerInfo;
         } else {
             return false;
