@@ -41,30 +41,13 @@ class UrlpermController extends PublicController {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
+        $data = $model_url_perm->getlist(['parent_id'=>0,'source'=>'BOSS'],$limit); //($this->put_data);
         $count = count($data);
         $res = $this -> get_urlperm_children($data);
-//        $childrencount=0;
-//        for($i=0;$i<$count;$i++){
-//            $data[$i]['check'] =false ;
-//            $data[$i]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['id']],$limit);
-//            $childrencount = count($data[$i]['children']);
-//            if($childrencount>0){
-//                for($j=0;$j<$childrencount;$j++){
-//                    if(isset($data[$i]['children'][$j]['id'])){
-//                        $data[$i]['children'][$j]['check'] =false ;
-//                        $data[$i]['children'][$j]['children'] = $model_url_perm->getlist(['parent_id'=> $data[$i]['children'][$j]['id']],$limit);
-//                        if(!$data[$i]['children'][$j]['children']){
-//                            unset($data[$i]['children'][$j]['children']);
-//                        }
-//                    }
-//                }
-//            }else{
-//                unset($data[$i]['children']);
-//            }
-//        }
+
         if(!empty($data)){
             $datajson['code'] = 1;
+            $datajson['count'] = $count;
             $datajson['data'] = $res;
         }else{
             $datajson['code'] = -104;
@@ -112,35 +95,39 @@ class UrlpermController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /**
+     * 创建菜单
+     * @author 买买提 <maimt@keruigroup.com>
+     * @return void
+     */
     public function createAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data)){
-            $datajson['code'] = -101;
-            $datajson['message'] = '数据不可为空!';
-            $this->jsonReturn($datajson);
+
+        $request = json_decode(file_get_contents("php://input"), true);
+
+        if (empty($request['fn'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '名称不能为空'
+            ]);
         }
-        if(!isset($data['url'])){
-            $datajson['code'] = -101;
-            $datajson['message'] = '地址不可为空!';
-            $this->jsonReturn($datajson);
+
+        if (empty($request['url'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '链接URL不能为空'
+            ]);
         }
-        if(!isset($data['parent_id'])||!$data['parent_id']){
-            $data['parent_id'] = 0;
-        }
-        if(!isset($data['fn'])){
-            $datajson['code'] = -101;
-            $datajson['message'] = '方法名不可为空!';
-            $this->jsonReturn($datajson);
-        }
-        $data['created_by']=$this->user['id'];
-        $model_url_perm = new UrlPermModel();
-        $id = $model_url_perm->create_data($data);
-        if(!empty($id)){
+
+        $request['created_by'] = $this->user['id'];
+
+        $response = (new UrlPermModel)->create_data($request);
+
+        if($response){
             $datajson['code'] = 1;
-            $datajson['data']['id'] = $id;
+            $datajson['message'] = '添加成功';
+            $datajson['data']['id'] = $response;
         }else{
             $datajson['code'] = -104;
-            $datajson['data'] = $data;
             $datajson['message'] = '添加失败!';
         }
         $this->jsonReturn($datajson);
@@ -148,18 +135,30 @@ class UrlpermController extends PublicController {
 
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data)){
-            $datajson['code'] = -101;
-            $datajson['message'] = '数据不可为空!';
-            $this->jsonReturn($datajson);
+
+        if (empty($data['fn'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '名称不能为空'
+            ]);
         }
-        if(empty($data['id'])){
-            $datajson['code'] = -101;
-            $datajson['message'] = '缺少主键!';
-            $this->jsonReturn($datajson);
+
+        if (empty($data['url'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '链接URL不能为空'
+            ]);
+        }
+
+        if (empty($data['id'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => '缺少主键'
+            ]);
         }else{
             $where['id'] = $data['id'];
         }
+
         $model_url_perm = new UrlPermModel();
         $id = $model_url_perm->update_data($data,$where);
         if($id > 0){
