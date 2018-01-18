@@ -170,8 +170,8 @@ class BuyerattachModel extends PublicModel {
             'attach_group'=>$type,
             'deleted_flag'=>'N'
         );
-        $ex=$this->field('id')->where($cond)->select();
         if(empty($attach[0]['attach_url'])){
+            $ex=$this->field('id')->where($cond)->select();
             if($ex){
                 $this->where($cond)->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
             }
