@@ -128,4 +128,20 @@ class CurrencyModel extends PublicModel {
         }
     }
 
+    /**
+     * @param string $lang
+     * crm - wangs
+     */
+    public function getCurrencyList($lang='zh'){
+        $cond=array(
+            'deleted_flag'=>'N'
+        );
+        if($lang=='zh'){
+            $list=$this->field('bn as currency_bn,name as currency_name')->where($cond)->select();
+        }else{
+            $list=$this->field('bn as currency_bn,en_name as currency_name')->where($cond)->select();
+        }
+        return $list;
+    }
+
 }

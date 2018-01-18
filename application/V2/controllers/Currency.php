@@ -38,4 +38,20 @@ class CurrencyController extends PublicController {
         $this->jsonReturn($data);
     }
 
+    /**
+     * crm-wangs
+     */
+    public function getCurrencyListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $model = new CurrencyModel();
+        $res = $model->getCurrencyList($lang);
+        $dataJson=array(
+            'code'=>1,
+            'message'=>'货币列表数',
+            'data'=>$res
+        );
+        $this->jsonReturn($dataJson);
+    }
+
 }
