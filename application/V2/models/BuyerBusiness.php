@@ -155,7 +155,7 @@ class BuyerBusinessModel extends PublicModel
             if(!empty($data['purchase_attach'][0]['attach_url'])){
                 $attachRes = $attach->updatePurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
             }else{
-                $attachRes = $attach->delPurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
+                $attachRes = $attach->delPurchasingAttach($data['buyer_id'],$data['created_by']);
             }
             //采购计划
             $purchase = new BuyerPurchasingModel();

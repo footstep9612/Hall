@@ -31,7 +31,10 @@ class PurchasingAttachModel extends PublicModel {
             'attach_group'=>'PURCHASING',
             'deleted_flag'=>'N'
         );
-        $this->where($cond)->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+        $exist=$this->field('id')->where($cond)->select();
+        if($exist){
+            $this->where($cond)->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+        }
         return true;
     }
 
