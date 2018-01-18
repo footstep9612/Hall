@@ -226,14 +226,15 @@ class StockcountryadsController extends PublicController {
             $this->setMessage('请输入广告链接地址!');
             $this->jsonReturn();
         }
-        $stock_country_model = new StockCountryModel();
+        $stock_country_ads_model = new StockCountryAdsModel();
 
-        if ($stock_country_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
+        if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
-        $list = $stock_country_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $stock_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
+
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

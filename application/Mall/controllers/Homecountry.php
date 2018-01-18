@@ -43,7 +43,7 @@ class HomecountryController extends PublicController {
             $this->setMessage('请选择语言!');
             $this->jsonReturn(null);
         }
-        $home_country_model = new HomeCountryModel();
+        $home_country_model = new ShowCatModel();
 
         $list = $home_country_model->getExit($country_bn, $lang);
 
