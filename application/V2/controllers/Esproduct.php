@@ -494,8 +494,9 @@ class EsproductController extends PublicController {
         $es = new ESClient();
         $state = $es->getstate();
 
-        if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body, 5, 1);
+        if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
+            $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
+            $es->index_alias($this->index . '_' . $this->version, $this->index);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
