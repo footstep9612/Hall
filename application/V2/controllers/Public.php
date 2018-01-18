@@ -119,7 +119,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 //            }else {
 //                $this->jsonReturn($model->getMessage(UserModel::MSG_TOKEN_ERR));
 //                exit;
-            }
+//            }
         }
     }
 
