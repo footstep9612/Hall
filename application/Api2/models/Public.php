@@ -289,4 +289,15 @@ class PublicModel extends Model {
         }
     }
 
+    /**
+     * SQL指令安全过滤
+     * @access public
+     * @param string $str  SQL字符串
+     * @return string
+     */
+    public function escapeString($str) {
+
+        return $this->db()->escapeString(trim($str));
+    }
+
 }
