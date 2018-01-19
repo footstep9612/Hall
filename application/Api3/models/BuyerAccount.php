@@ -272,9 +272,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data, $userId) {
-        if (!empty($userId['buyer_id'])) {
-            $where['buyer_id'] = $userId['buyer_id'];
+    public function checkPassword($data) {
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
