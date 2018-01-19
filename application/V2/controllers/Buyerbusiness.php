@@ -75,10 +75,20 @@ class BuyerbusinessController extends PublicController
         //采购计划
         $purchase = new BuyerPurchasingModel();
         $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);
+        if(empty($purchaseRes)){
+            $purchaseRes=[
+                array('purchasing_at'=>null,'purchasing_budget'=>null,'purchasing_plan'=>null)
+            ];
+        }
         $businessRes ['purchase'] = $purchaseRes;
         //里程碑事件
         $event = new MilestoneEventModel();
         $eventRes = $event->showMilestoneEvent($data['buyer_id'],$data['created_by']);
+        if(empty($eventRes)){
+            $eventRes=[
+                array('event_time'=>null,'event_name'=>null,'event_content'=>null,'event_contact'=>null)
+            ];
+        }
         $businessRes ['milestone_event'] = $eventRes;
         $dataJson = array(
             'code'=>1,

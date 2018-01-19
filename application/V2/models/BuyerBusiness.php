@@ -15,6 +15,29 @@ class BuyerBusinessModel extends PublicModel
             return false;
         }
         $info = $this -> showBusinessFind($data['buyer_id'],$data['created_by']);
+        if(empty($info)){
+            $info=array(
+                'product_type'=>null, //产品类型
+                'purchasing_model'=>null, //采购模式
+                'purchasing_cycle'=>null, //采购周期
+                'cycle_remarks'=>null, //周期备注
+                'usage'=>null, //设备以及使用情况
+                'is_warehouse'=>null, //是否有仓库
+                'warehouse_address'=>null, //仓库地址
+                'Product_service_preference'=>null, //产品服务偏好
+                'Origin_preference'=>null, //原产地偏好
+                'Brand_preference'=>null, //品牌偏好
+                'trade_terms'=>null, //贸易术语
+                'settlement'=>null, //结算方式
+                'is_local_settlement'=>null, //是否本地结算
+                'is_purchasing_relationship'=>null, //是否与KERUI/ERUI有关系
+                'is_net'=>null, //是否入网
+//                'net_subject', //入网主题
+                'net_at'=>null, //入网时间
+                'net_invalid_at'=>null, //如网失效时间
+                'net_goods'=>null, //入网产品
+            );
+        }
         if(!empty($info['net_subject'])){
             $info['net_subject']=explode(',',$info['net_subject']);
         }else{
