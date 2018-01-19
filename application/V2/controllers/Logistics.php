@@ -279,9 +279,9 @@ class LogisticsController extends PublicController {
 	        $where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
-	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
-	        
 	        $quote = $this->quoteModel->where($where)->find();
+	        
+	        $data['premium_rate'] = $quote['premium_rate'];
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
