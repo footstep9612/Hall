@@ -30,6 +30,7 @@ class HomeCountryModel extends PublicModel {
         $this->_getValue($where, $condition, 'display_position');
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'show_flag', 'bool');
+        $this->_getValue($where, $condition, 'lang');
         return $where;
     }
 

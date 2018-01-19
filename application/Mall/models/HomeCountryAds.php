@@ -27,6 +27,7 @@ class HomeCountryAdsModel extends PublicModel {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'group');
+        $this->_getValue($where, $condition, 'lang');
         return $where;
     }
 
