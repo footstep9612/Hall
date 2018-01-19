@@ -166,7 +166,15 @@ class BuyerBusinessModel extends PublicModel
         }
         if($data['is_edit'] == true){
             //业务数据
-            $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
+            $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
+            if($businessExist){
+                $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
+            }else{
+                if(!empty($arr['id'])){
+                    unset($arr['id']);
+                }
+                $addRes = $this->add($arr);
+            }
             //信用
             $buyer = new BuyerModel();
             $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
