@@ -65,19 +65,19 @@ class BuyerbusinessController extends PublicController
             $businessRes['report_attach'] = array();
         }
         //采购计划附件
-        $attach = new PurchasingAttachModel();
-        $attacheRes = $attach->showPurchaseAttach($data['buyer_id'],$data['created_by']);
-        if(!empty($attacheRes)){
-            $businessRes ['purchase_attach'] = $attacheRes;
-        }else{
-            $businessRes ['purchase_attach'] = array();
-        }
+//        $attach = new PurchasingAttachModel();
+//        $attacheRes = $attach->showPurchaseAttach($data['buyer_id'],$data['created_by']);
+//        if(!empty($attacheRes)){
+//            $businessRes ['purchase_attach'] = $attacheRes;
+//        }else{
+//            $businessRes ['purchase_attach'] = array();
+//        }
         //采购计划
         $purchase = new BuyerPurchasingModel();
         $purchaseRes = $purchase->showPurchase($data['buyer_id'],$data['created_by']);
         if(empty($purchaseRes)){
             $purchaseRes=[
-                array('purchasing_at'=>null,'purchasing_budget'=>null,'purchasing_plan'=>null)
+                array('purchasing_at'=>null,'purchasing_budget'=>null,'purchasing_plan'=>null,'attach_name'=>null,'attach_url'=>null)
             ];
         }
         $businessRes ['purchase'] = $purchaseRes;
