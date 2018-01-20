@@ -155,12 +155,12 @@ class BuyerBusinessModel extends PublicModel
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
 
-        if(empty($arr['net_at'])){
-            $arr['net_at']=null;
-        }
-        if(empty($arr['net_invalid_at'])){
-            $arr['net_invalid_at']=null;
-        }
+//        if(empty($arr['net_at'])){
+//            $arr['net_at']=null;
+//        }
+//        if(empty($arr['net_invalid_at'])){
+//            $arr['net_invalid_at']=null;
+//        }
         if(!empty($arr['net_subject'])){    //入网主题可多选
             $arr['net_subject']=implode(',',$arr['net_subject']);
         }
@@ -194,7 +194,7 @@ class BuyerBusinessModel extends PublicModel
             //里程碑事件
             $event = new MilestoneEventModel();
             $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
-            if($addRes || $eventRes || $purchaseRes ||$buyerRes || $attachRes){
+            if($addRes || $eventRes || $purchaseRes ||$buyerRes){
                 return true;
             }
         }else{

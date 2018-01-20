@@ -41,20 +41,19 @@ class BuyerPurchasingModel extends PublicModel
             if(!empty($arr[$key]['id'])){
                 $inputId[]=$arr[$key]['id'];
                 $this->where(array('id'=>$arr[$key]['id']))->save($arr[$key]);
+                $attach=array(
+                    'attach_group'=>'PURCHASING',
+                    'attach_name'=>$value['attach_name'],
+                    'attach_url'=>$value['attach_url'],
+                    'created_by'=>$created_by,
+                    'created_at'=>date('Y-m-d H:i:s')
+                );
+                $attachModel=new PurchasingAttachModel();
+                $attachModel->where(array('id'=>$value['attach_id']))->save($attach);
             }else{
                 unset($arr[$key]['id']);
                 $this->addPurchase($arr[$key],$buyer_id,$created_by);
             }
-
-            $attach=array(
-                'attach_group'=>'PURCHASING',
-                'attach_name'=>$value['attach_name'],
-                'attach_url'=>$value['attach_url'],
-                'created_by'=>$created_by,
-                'created_at'=>date('Y-m-d H:i:s')
-            );
-            $attachModel=new PurchasingAttachModel();
-            $attachModel->where(array('id'=>$value['attach_id']))->save($attach);
         }
 
         $diff=array_diff($arrId,$inputId);
