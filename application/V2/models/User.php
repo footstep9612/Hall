@@ -16,11 +16,6 @@ class UserModel extends PublicModel {
     //put your code here
     protected $tableName = 'employee';
     protected $g_table = 'employee';
-    protected $joinTable1 = 'erui_sys.org_member b ON a.id = b.employee_id';
-    protected $joinTable2 = 'erui_sys.org c ON b.org_id = c.id AND c.deleted_flag = \'N\'';
-    protected $joinTable3 = 'erui_sys.country_member d ON a.id = d.employee_id';
-    protected $joinTable4 = 'erui_dict.country e ON d.country_bn = e.bn AND e.lang = \'zh\' AND e.deleted_flag = \'N\'';
-    protected $joinField = 'a.id, a.user_no, a.name AS user_name, IF(a.citizenship = \'china\', \'中籍\', \'外籍\') AS citizenship, GROUP_CONCAT(DISTINCT, c.name) AS org_name, GROUP_CONCAT(DISTINCT, c.name) AS country_name';
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
@@ -358,41 +353,35 @@ class UserModel extends PublicModel {
     }
     
     /**
-     * @desc 获取关联查询条件
+     * @desc 获取查询条件
      *
      * @param array $condition
      * @return array
      * @author liujf
      * @time 2018-01-22
      */
-    public function getJoinWhere($condition = []) {
-        $where['a.deleted_flag'] = 'N';
+    public function getWhere($condition = []) {
+        $where['deleted_flag'] = 'N';
         if(!empty($condition['user_no'])) {
-            $where['a.user_no'] = ['like', '%' . trim($condition['user_no']) . '%'];
+            $where['user_no'] = ['like', '%' . trim($condition['user_no']) . '%'];
         }
         if(!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . trim($condition['name']) . '%'];
+            $where['name'] = ['like', '%' . trim($condition['name']) . '%'];
         }
         return $where;
     }
     
     /**
-     * @desc 获取关联记录总数
+     * @desc 获取记录总数
      *
      * @param array $condition
      * @return int $count
      * @author liujf
      * @time 2018-01-22
      */
-    public function getJoinCount($condition = []) {
-        $where = $this->getJoinWhere($condition);
-        $count = $this->alias('a')
-                                 ->join($this->joinTable1, 'LEFT')
-                                 ->join($this->joinTable2, 'LEFT')
-                                 ->join($this->joinTable3, 'LEFT')
-                                 ->join($this->joinTable4, 'LEFT')
-                                 ->where($where)
-                                 ->count('a.id');
+    public function getCount_($condition = []) {
+        $where = $this->getWhere($condition);
+        $count = $this->where($where)->count('id');
         return $count > 0 ? $count : 0;
     }
     
@@ -405,19 +394,14 @@ class UserModel extends PublicModel {
      * @author liujf
      * @time 2018-01-22
      */
-    public function getJoinList($condition = []) {
-        $where = $this->getJoinWhere($condition);
+    public function getList_($condition = [], $field = '*') {
+        $where = $this->getWhere($condition);
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-        return $this->alias('a')
-                            ->join($this->joinTable1, 'LEFT')
-                            ->join($this->joinTable2, 'LEFT')
-                            ->join($this->joinTable3, 'LEFT')
-                            ->join($this->joinTable4, 'LEFT')
-                            ->field($this->joinField)
+        return $this->field($field)
                             ->where($where)
                             ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
+                            ->order('id DESC')
                             ->select();
     }
 
