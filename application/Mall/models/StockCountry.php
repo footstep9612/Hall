@@ -35,8 +35,14 @@ class StockCountryModel extends PublicModel {
         $where['country_bn'] = trim($country_bn);
         $where['show_flag'] = 'Y';
         $where['deleted_flag'] = 'N';
-
-        return $this->where($where)->field('id,country_bn')->find();
+        $where['lang'] = $lang;
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName();
+        return $this
+                        ->alias('sc')
+                        ->where($where)
+                        ->field('id,country_bn,(select `name` from ' . $country_table . ' where bn=sc.country_bn and lang=sc.lang and deleted_flag=\'N\' group by `name` ) as country_name')
+                        ->find();
     }
 
 }

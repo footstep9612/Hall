@@ -258,6 +258,12 @@ class UserModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
+        if (isset($create['employee_flag'])) {
+            $data['employee_flag'] = $create['employee_flag'];
+        }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
+        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -338,6 +344,9 @@ class UserModel extends PublicModel {
         }
         if (isset($create['employee_flag'])) {
             $data['employee_flag'] = $create['employee_flag'];
+        }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
         }
         $datajson = $this->create($data);
         return $this->add($datajson);

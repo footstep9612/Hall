@@ -18,7 +18,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
+    protected $version = '2';
 
     //put your code here
     public function init() {

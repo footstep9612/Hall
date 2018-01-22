@@ -279,9 +279,9 @@ class LogisticsController extends PublicController {
 	        $where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
-	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
-	        
 	        $quote = $this->quoteModel->where($where)->find();
+	        
+	        $data['premium_rate'] = $quote['premium_rate'];
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
@@ -586,7 +586,7 @@ class LogisticsController extends PublicController {
 	         
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        $inquiryModel = $this->inquiryModel;
+	        //$inquiryModel = $this->inquiryModel;
 	        
 	        $logiCheckId = $condition['logi_check_id'];//$this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
 	        
@@ -1010,7 +1010,7 @@ class LogisticsController extends PublicController {
 	 * @author liujf
 	 * @time 2017-08-10
 	 */
-	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate, $trade = 'CIF', $extRate) {
+	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate, $trade = 'CIF', $extRate = 1) {
 	    $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / 100 / $calcuRate, 8);
 	    
 	    if ($tmpIfFee >= 8 || $tmpIfFee == 0) {

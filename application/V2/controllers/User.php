@@ -347,6 +347,11 @@ class UserController extends PublicController {
         } else {
             $arr['employee_flag'] = "I";
         }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
+        } else {
+            $arr['citizenship'] = 'china';
+        }
         $password = randStr(6);
         $arr['password_hash'] = md5($password);
         $model = new UserModel();
@@ -491,6 +496,12 @@ class UserController extends PublicController {
         }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
+        }
+        if (!empty($data['employee_flag'])) {
+            $arr['employee_flag'] = $data['employee_flag'];
+        }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
         }
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
