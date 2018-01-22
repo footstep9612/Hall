@@ -98,58 +98,58 @@
 </head>
 <body>
 <div class="container">
-    <div class="email-top" style='background: #325588 url("< ?php echo $url';?>/static/common/images/erui_white_logo.png") 20px center no-repeat;'></div>
+    <div class="email-top" style='background: #325588 url("<?php echo $url';?>/static/common/images/erui_white_logo.png") 20px center no-repeat;'></div>
     <div class="top-shadow"></div>
     <div class="mail-content">
         <h2>Dear you ：</h2>
-        <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;">Hello! Your order has been <span style="color: #ff7800"> < ?php echo $order['info1'];?></span>.</p>
+        <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;">Hello! Your order has been <span style="color: #ff7800"> < ?php echo $info;?></span>.</p>
         <h2 style="margin-bottom: 20px;">Order information</h2>
         <dl class="dl-horizontal">
             <dt>No. Order：</dt>
-            <dd>< ?php echo $order['info2'];?></dd>
+            <dd><?php echo $order_no;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Date：</dt>
-            <dd>< ?php echo $order['info3'];?></dd>
+            <dd><?php echo $created_at;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Order status：</dt>
-            <dd>< ?php echo $order['info4'];?></dd>
+            <dd><?php echo $status;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Payment status：</dt>
-            <dd>< ?php echo $order['info5'];?></dd>
+            <dd><?php echo $pay_status;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Order amount：</dt>
-            <dd style="color: #ff7800">< ?php echo $order['info6'];?></dd>
+            <dd style="color: #ff7800"><?php echo $currency_bn;?><?php echo $amount;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Destination：</dt>
-            <dd>< ?php echo $order['info7'];?></dd>
+            <dd><?php echo $address;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Expected delivery date：</dt>
-            <dd>< ?php echo $order['info8'];?></dd>
+            <dd><?php echo $expected_receipt_date;?></dd>
         </dl>
         <h2 style="margin: 20px auto;">Consignee information</h2>
         <dl class="dl-horizontal">
             <dt>Consignee：</dt>
-            <dd>< ?php echo $order['info9'];?></dd>
+            <dd><?php echo $name;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Phone：</dt>
-            <dd>< ?php echo $order['info10'];?></dd>
+            <dd><?php echo $phone;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Postcode：</dt>
-            <dd>< ?php echo $order['info11'];?></dd>
+            <dd><?php echo $zipcode;?></dd>
         </dl>
         <dl class="dl-horizontal">
             <dt>Email：</dt>
-            <dd>< ?php echo $order['info12'];?></dd>
+            <dd><?php echo $email;?></dd>
         </dl>
-        <a href="< ?php echo $url;?>" class="viewBtn">View order details</a>
+        <a href="<?php echo $url;?>" class="viewBtn">View order details</a>
         <div class="dashed-line" style="width: 100%;border-bottom: 1px dashed #a8a7a7;margin-top: 47px;"></div>
     </div>
     <div class="mail-bottom">

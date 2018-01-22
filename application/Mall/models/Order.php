@@ -150,6 +150,21 @@ class OrderModel extends PublicModel {
                 $this->commit();
                 return $orerNo;
             }
+            $arrEmail = [
+                'email'=> '531499132@qq.com',//测试
+                'order_no'=> $orerNo,
+                'creted_at'=> $dataInfo['created_at'],
+                'status'=> 'Proceeding',
+                'pay_status'=> 'Unpaid',
+                'currency_bn'=> $dataInfo['currency_bn'],
+                'amount'=> $dataInfo['amount'],
+                'remark'=> $dataInfo['remark'],
+                'expected_receipt_date'=> '',
+                'name'=> $data['addrAry']['name'],
+                'phone'=> $data['addrAry']['phone'],
+                'zipcode'=> $data['addrAry']['zipcode']
+            ];
+            $this->orderEmail($arrEmail);
             return false;
         }catch (Exception $e){
             $this->rollback();
@@ -424,6 +439,17 @@ class OrderModel extends PublicModel {
                 return 'Payment completed';
 
             default :return'Unpaid';
+        }
+    }
+
+    //订单生产发送邮件
+    function orderEmail($email_arr, $title= 'Erui.com') {
+        $body = $this->getView()->render('login/order_email.html', $email_arr);
+        $res = send_Mail($email_arr['email'], $title, $body);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, '发送成功!');
+        } else {
+            jsonReturn('', -130, '发送失败!');
         }
     }
 
