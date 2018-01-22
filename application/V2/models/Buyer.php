@@ -1313,7 +1313,7 @@ EOF;
         $base = $arr['base_info'];  //基本信息
         $contact = $arr['contact']; //联系人
         $baseArr = array(   //创建客户基本信息必须数据
-            'buyer_id'=>'客户id',
+//            'buyer_id'=>'客户id',
             'buyer_name'=>'客户名称',
 //            'buyer_account'=>'客户账号',
 //            'buyer_code'=>'客户CRM编码',
