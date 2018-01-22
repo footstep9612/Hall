@@ -629,5 +629,28 @@ class UserController extends PublicController {
         ]);
 
     }
+    
+    /**
+     * @desc 项目获取用户列表
+     *
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getObtainUserListAction() {
+        $condition = json_decode(file_get_contents("php://input"), true);
+        $userModel = new UserModel();
+        $userList = $userModel->getJoinList($condition);
+        if ($userList) {
+            $res['code'] = 1;
+            $res['message'] = '成功!';
+            $res['data'] = $userList;
+            $res['count'] = $userModel->getJoinCount($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('失败!');
+            $this->jsonReturn();
+        }
+    }
 
 }
