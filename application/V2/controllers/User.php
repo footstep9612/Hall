@@ -629,5 +629,49 @@ class UserController extends PublicController {
         ]);
 
     }
+    
+    /**
+     * @desc 项目获取用户列表
+     *
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getObtainUserListAction() {
+        $condition = json_decode(file_get_contents("php://input"), true);
+        $userModel = new UserModel();
+        $countryUserModel = new CountryUserModel();
+        $countryModel = new CountryModel();
+        $orgMemberModel = new OrgMemberModel();
+        $orgModel = new OrgModel();
+        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'中籍\', \'外籍\') AS citizenship';
+        $userList = $userModel->getList_($condition, $field);
+        foreach ($userList as &$user) {
+            $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
+            $countryList = [];
+            foreach ($countryBnList as $countryBn) {
+                $countryName = $countryModel->where(['bn' => $countryBn, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                if ($countryName) $countryList[] = $countryName;
+            }
+            $user['country_name'] = implode(',', $countryList);
+            $orgIdList = $orgMemberModel->where(['employee_id' => $user['id']])->getField('org_id', true);
+            $orgList = [];
+            foreach ($orgIdList as $orgId) {
+                $orgName = $orgModel->where(['id' => $orgId, 'deleted_flag' => 'N'])->getField('name');
+                if ($orgName) $orgList[] = $orgName;
+            }
+            $user['group_name'] = implode(',', $orgList);
+        }
+        if ($userList) {
+            $res['code'] = 1;
+            $res['message'] = '成功!';
+            $res['data'] = $userList;
+            $res['count'] = $userModel->getCount_($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage('失败!');
+            $this->jsonReturn();
+        }
+    }
 
 }

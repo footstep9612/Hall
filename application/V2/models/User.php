@@ -351,5 +351,58 @@ class UserModel extends PublicModel {
         $datajson = $this->create($data);
         return $this->add($datajson);
     }
+    
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getWhere($condition = []) {
+        $where['deleted_flag'] = 'N';
+        if(!empty($condition['user_no'])) {
+            $where['user_no'] = ['like', '%' . trim($condition['user_no']) . '%'];
+        }
+        if(!empty($condition['username'])) {
+            $where['name'] = ['like', '%' . trim($condition['username']) . '%'];
+        }
+        return $where;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getCount_($condition = []) {
+        $where = $this->getWhere($condition);
+        $count = $this->where($where)->count('id');
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getList_($condition = [], $field = '*') {
+        $where = $this->getWhere($condition);
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        return $this->field($field)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('id DESC')
+                            ->select();
+    }
 
 }
