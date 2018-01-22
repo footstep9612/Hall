@@ -1898,7 +1898,7 @@ EOF;
                         $info[$k]['build_time']=$v['created_at'];
                     }
                     if(empty($v['level_at'])){
-                        $info[$k]['level_at']=$v['created_at'];
+                        $info[$k]['level_at']=substr($v['created_at'],0,10);
                     }
                 }
             }
