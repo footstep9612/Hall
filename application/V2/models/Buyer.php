@@ -1686,6 +1686,12 @@ EOF;
             }
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
+            if(empty($v['buyer_level']) && $lang=='zh'){
+                $arr[$k]['buyer_level']='注册会员';
+            }elseif(empty($v['buyer_level']) && $lang=='en'){
+                $arr[$k]['buyer_level']='Registered member';
+            }
+
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
@@ -1887,10 +1893,6 @@ EOF;
                     $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                     if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
                         $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
-                    }elseif(empty($info[$k]['buyer_level']) && $lang=='zh'){
-                        $info[$k]['buyer_level']='注册会员';
-                    }elseif(empty($info[$k]['buyer_level']) && $lang=='en'){
-                        $info[$k]['buyer_level']='Registered member';
                     }
 //                    if($lang=='en'){
 //                        if($v['buyer_level']=='普通会员'){
