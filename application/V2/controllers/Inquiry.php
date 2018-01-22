@@ -728,6 +728,10 @@ class InquiryController extends PublicController {
         if (!empty($results['data']['area_bn'])) {
             $results['data']['area_name'] = $marketAreaModel->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
         }
+        //项目获取人
+        if (!empty($results['data']['obtain_id'])) {
+            $results['data']['obtain_name'] = $employee->getUserNameById($results['data']['obtain_id']);
+        }
 
         if (!empty($results['data'])) {
             $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
@@ -745,17 +749,12 @@ class InquiryController extends PublicController {
      */
 
     public function addAction() {
-        $auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $data = $this->put_data;
+        $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
 
-        if ($auth['code'] == 1) {
-            $data['status'] = 'APPROVING_BY_SC';
-        }
-
         $results = $inquiry->addData($data);
-
         $this->jsonReturn($results);
     }
 
@@ -765,7 +764,6 @@ class InquiryController extends PublicController {
      */
 
     public function updateAction() {
-        //$auth = $this->checkAuthAction();
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
