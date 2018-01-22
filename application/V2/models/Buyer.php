@@ -1854,7 +1854,7 @@ EOF;
                 'country_bn',   //国家
                 'buyer_code',   //客户编码
                 'name as buyer_name',   //客户名称
-//                'created_at',   //创建时间
+                'created_at',   //创建时间
                 'build_time',   //客户档案创建时间
                 'is_oilgas',   //是否油气
                 'buyer_level',   //客户等级
@@ -1894,15 +1894,9 @@ EOF;
                     if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
                         $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
                     }
-//                    if($lang=='en'){
-//                        if($v['buyer_level']=='普通会员'){
-//                            $info[$k]['buyer_level']='Member';
-//                        }elseif($v['buyer_level']=='高级会员'){
-//                            $info[$k]['buyer_level']='Senior membe';
-//                        }else{
-//                            $info[$k]['buyer_level']=null;
-//                        }
-//                    }
+                    if(empty($v['build_time'])){
+                        $info[$k]['build_time']=$v['created_at'];
+                    }
                 }
             }
             $ids = array();
