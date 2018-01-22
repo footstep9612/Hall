@@ -1264,19 +1264,19 @@ EOF;
         $arrLevel=array();
         foreach($level as $k => $v){
             $arrLevel[$v['buyer_level']]=$v['level_count'];
-            if(empty($arrLevel['普通会员'])){
-                $arrLevel['普通会员']=0;
+            if(empty($arrLevel['52'])){
+                $arrLevel['52']=0;
             }
-            if(empty($arrLevel['高级会员'])){
-                $arrLevel['高级会员']=0;
+            if(empty($arrLevel['53'])){
+                $arrLevel['53']=0;
             }
             if(empty($arrLevel[''])){
                 $arrLevel['']=0;
             }
         }
         $buyer_level['kong']=$arrLevel[''];
-        $buyer_level['ordinary']=$arrLevel['普通会员'];
-        $buyer_level['senior']=$arrLevel['高级会员'];
+        $buyer_level['ordinary']=$arrLevel['52'];
+        $buyer_level['senior']=$arrLevel['53'];
         $result['status']=$statusArr;
         $result['total_count']=$totalCount;
         $result['level_count']=$buyer_level;
