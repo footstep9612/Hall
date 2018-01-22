@@ -398,4 +398,29 @@ class DictController extends PublicController {
 //            jsonReturn('', '400', '失败');
 //        }
 //    }
+
+
+    /**
+     * 展示所有定制信息详情
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function customInfoAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $catModel = new CustomCatModel();
+        $itemModel = new CustomCatItemModel();
+        $catInfo = $catModel->info($lang,'');
+        if($catInfo) {
+            foreach ($catInfo as $k =>$v) {
+                $itemInfo = $itemModel->info($lang, $v['id'],'');
+                $catInfo[$k]['item'] = $itemInfo;
+            }
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'failed!');
+        }
+
+    }
 }

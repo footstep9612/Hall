@@ -484,4 +484,14 @@ class LoginController extends PublicController {
         }
     }
 
+    function orderEmailAction($email_arr,$title= 'Erui.com') {
+        $body = $this->getView()->render('login/order_email.html', $email_arr);
+        $res = send_Mail($email_arr['email'], $title, $body);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, '发送成功!');
+        } else {
+            jsonReturn('', -130, '发送失败!');
+        }
+    }
+
 }
