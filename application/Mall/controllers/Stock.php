@@ -28,6 +28,45 @@ class StockController extends PublicController {
      * @version V2.0
      * @desc  现货
      */
+    public function ListByKeywordAction() {
+        $condition = $this->getPut();
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+
+        $stock_model = new StockModel();
+        $list = $stock_model->getListByKeyword($condition);
+        if ($list) {
+            $this->_setImage($list);
+            $this->_setConstPrice($list, $condition['country_bn']);
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
     public function ListAction() {
         $country_bn = $this->getPut('country_bn');
         if (empty($country_bn)) {

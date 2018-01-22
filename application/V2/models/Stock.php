@@ -127,7 +127,7 @@ class StockModel extends PublicModel {
             'sku' => $sku,
         ];
         $goods_model = new GoodsModel();
-        $data = $goods_model->field('spu,name,show_name')->where($where)->find();
+        $data = $goods_model->field('spu,name,show_name,model')->where($where)->find();
 
         if (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
             $prodcut_model = new ProductModel();
@@ -174,6 +174,7 @@ class StockModel extends PublicModel {
                     'name' => $goods_name['name'],
                     'show_name' => $goods_name['show_name'],
                     'sku' => $sku,
+                    'model' => $goods_name['model'],
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => defined('UID') ? UID : 0
                 ];

@@ -23,6 +23,38 @@ class StockModel extends PublicModel {
         parent::__construct();
     }
 
+    private function _getCondition($condition) {
+        $where = ['s.deleted_flag' => 'N', 's.stock' => ['gt', 0]];
+        $where['s.country_bn'] = trim($condition['country_bn']);
+        $where['s.lang'] = $condition['lang'];
+        $this->_getValue($where, $condition, 'keyword', 'like', 's.show_name');
+        $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
+
+        return $where;
+    }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function getListByKeyword($condition) {
+
+        $where = $this->_getCondition($condition);
+        list($from, $size) = $this->_getPage($condition);
+
+
+
+        return $this->alias('s')
+                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->where($where)
+                        ->order('sort_order desc')
+                        ->limit($from, $size)
+                        ->select();
+    }
+
     /**
      * Description of 获取现货列表
      * @author  zhongyg
