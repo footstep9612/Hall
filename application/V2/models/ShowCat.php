@@ -801,14 +801,32 @@ class ShowCatModel extends PublicModel {
         }
         if (empty($parent_cat_no) && $level_no == 1) {
             $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
+            p($re);
+            p($this->getLastSql());
             if (!empty($re['max_cat_no'])) {
+
+                /*
+                 * 暂时去掉编码长度限制
+                 * 修改人:买买提
+                 * 修改时间:2018-01-22 11:08:34
+                 *
                 if ($re['max_cat_no'] >= 990000) {
                     Log::write($re['max_cat_no'] . '一级展示分类超过限制!');
                     return false;
                 }
+
                 return sprintf('%06d', intval($re['max_cat_no']) + 10000);
+
+                */
+
+                // 00+1:00:00
+                $cat_no_seeds = explode(':',$re['max_cat_no']);
+                $cat_no_seeds[0] = $cat_no_seeds[0]+1;
+
+                return implode(':',$cat_no_seeds);
             } else {
-                return '010000';
+                //return '010000';
+                return '01:00:00';
             }
         } elseif (empty($parent_cat_no)) {
             return false;
