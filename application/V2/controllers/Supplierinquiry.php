@@ -29,6 +29,7 @@ class SupplierinquiryController extends PublicController {
         $supplier_inquiry_model = new SupplierInquiryModel();
         list($data, $count) = $supplier_inquiry_model->getList($condition);
 
+
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
             $inquirycount = $supplier_inquiry_model->getInquiryCount();

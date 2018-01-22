@@ -307,7 +307,7 @@ class DictController extends PublicController {
     public function paymentmodelistAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? strtolower($data['lang']) : 'en';
-        $pModel = new PaymentmodeModel();
+        $pModel = new PaymentModeModel();
         $payment = $pModel->getPaymentmode($lang);
         if ($payment) {
             jsonReturn($payment);

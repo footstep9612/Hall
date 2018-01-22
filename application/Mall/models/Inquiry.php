@@ -127,10 +127,10 @@ class InquiryModel extends PublicModel {
 
         switch ($condition['status']) {
             case'waiting_for_quotation':
-                $where['status'] = ['notin', ['QUOTE_SENT', 'CONFIRM']];
+                $where['quote_status'] = ['notin', ['QUOTED', 'COMPLETED']];
                 break;
             case'quotation_finished':
-                $where['status'] = ['in', ['QUOTE_SENT', 'CONFIRM']];
+                $where['quote_status'] = ['in', ['QUOTED', 'COMPLETED']];
                 break;
             default :
                 break;

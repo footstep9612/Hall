@@ -122,7 +122,7 @@ class QuoteModel extends PublicModel {
 
         $total_gross_weight_kg = [];
         foreach ($quoteItemExwUnitPrices as $price) {
-            $total_gross_weight_kg[] = $price['gross_weight_kg'];
+            $total_gross_weight_kg[] = $price['gross_weight_kg'] * $price['quote_qty'];
         }
         $total_gross_weight_kg = array_sum($total_gross_weight_kg);
 

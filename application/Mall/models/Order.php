@@ -180,6 +180,7 @@ class OrderModel extends PublicModel {
         $amount = 0;
         $currency_bn = '';
         $skuAry = [];
+        $sku_stock = [];
         foreach($data as $sku => $number){
             $skuAry[] = $sku;
             $number = intval($number);
@@ -232,6 +233,23 @@ class OrderModel extends PublicModel {
             if($skuAry){
                 $scModel = new ShoppingCarModel();
                 $scModel->clear($skuAry, $buyer_id, 1);
+            }
+
+            //修改库存
+            $stockModel = new StockModel();
+            foreach($data_insert as $r){
+                $stockWhere = [
+                    'sku'=>$r['sku'],
+                    'country_bn'=> $country_bn,
+                    'lang' => $r['lang']
+                ];
+                $stockUpData = [
+                    'stock' => ['exp', 'stock'.'-'.$r['buy_number']]
+                ];
+                $upstatue = $stockModel->where($stockWhere)->save($stockUpData);
+                if(!$upstatue){
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Order】stock更新失败'.$country_bn.'-'.$lang.'-'.$r['sku'].'库存应减'.$r['buy_number'] , Log::ERR);
+                }
             }
 
             //更新订单金额

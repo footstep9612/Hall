@@ -164,6 +164,17 @@ class PublicModel extends Model {
     }
 
     /**
+     * SQL指令安全过滤
+     * @access public
+     * @param string $str  SQL字符串
+     * @return string
+     */
+    public function escapeString($str) {
+
+        return $this->db()->escapeString(trim($str));
+    }
+
+    /**
      * 分页处理
      * @param array $condition 条件
      * @return array
