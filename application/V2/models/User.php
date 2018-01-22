@@ -365,8 +365,8 @@ class UserModel extends PublicModel {
         if(!empty($condition['user_no'])) {
             $where['user_no'] = ['like', '%' . trim($condition['user_no']) . '%'];
         }
-        if(!empty($condition['name'])) {
-            $where['name'] = ['like', '%' . trim($condition['name']) . '%'];
+        if(!empty($condition['username'])) {
+            $where['name'] = ['like', '%' . trim($condition['username']) . '%'];
         }
         return $where;
     }

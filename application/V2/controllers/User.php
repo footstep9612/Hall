@@ -643,7 +643,7 @@ class UserController extends PublicController {
         $countryModel = new CountryModel();
         $orgMemberModel = new OrgMemberModel();
         $orgModel = new OrgModel();
-        $field = 'id, user_no, name, IF(citizenship = \'china\', \'中籍\', \'外籍\') AS citizenship';
+        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'中籍\', \'外籍\') AS citizenship';
         $userList = $userModel->getList_($condition, $field);
         foreach ($userList as &$user) {
             $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
@@ -659,7 +659,7 @@ class UserController extends PublicController {
                 $orgName = $orgModel->where(['id' => $orgId, 'deleted_flag' => 'N'])->getField('name');
                 if ($orgName) $orgList[] = $orgName;
             }
-            $user['org_name'] = implode(',', $orgList);
+            $user['group_name'] = implode(',', $orgList);
         }
         if ($userList) {
             $res['code'] = 1;
