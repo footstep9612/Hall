@@ -162,9 +162,11 @@ class OrderModel extends PublicModel {
                 'expected_receipt_date'=> '',
                 'name'=> $data['addrAry']['name'],
                 'phone'=> $data['addrAry']['phone'],
-                'zipcode'=> $data['addrAry']['zipcode']
+                'zipcode'=> $data['addrAry']['zipcode'],
+                'url'=> 'http://mall.erui.com',
+                'time'=> date('Y-m-d H:i:s',time())
             ];
-            $this->orderEmail($arrEmail);
+            orderEmail($arrEmail);
             return false;
         }catch (Exception $e){
             $this->rollback();
@@ -172,6 +174,7 @@ class OrderModel extends PublicModel {
             return false;
         }
     }
+
 
     /**
      * 订单商品
@@ -442,15 +445,6 @@ class OrderModel extends PublicModel {
         }
     }
 
-    //订单生产发送邮件
-    function orderEmail($email_arr, $title= 'Erui.com') {
-        $body = $this->getView()->render('login/order_email.html', $email_arr);
-        $res = send_Mail($email_arr['email'], $title, $body);
-        if ($res['code'] == 1) {
-            jsonReturn('', 1, '发送成功!');
-        } else {
-            jsonReturn('', -130, '发送失败!');
-        }
-    }
+
 
 }

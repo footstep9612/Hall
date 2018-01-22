@@ -6,13 +6,13 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>email</title>
-    <link rel="stylesheet" href="/static/common/css/bootstrap.css">
-    <link rel="stylesheet" href="/static/common/css/base.css">
+    <link rel="stylesheet" href="<?php echo $url;?>/static/common/css/bootstrap.css">
+    <link rel="stylesheet" href="<?php echo $url;?>/static/common/css/base.css">
     <!--<link rel="stylesheet" href="email.css">-->
     <!-- HTML5 Shiv 和 Respond.js 用于让 IE8 支持 HTML5元素和媒体查询 -->
     <!-- 注意： 如果通过 file://  引入 Respond.js 文件，则该文件无法起效果 -->
     <!--[if lt IE 9]>
-    <script src="./lib/html5shiv.min.js"></script>
+    <script src="<?php echo $url;?>/static/common/js/html5shiv.min.js"></script>
     <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.js"></script>
     <![endif]-->
     <style>
@@ -98,11 +98,12 @@
 </head>
 <body>
 <div class="container">
-    <div class="email-top" style='background: #325588 url("<?php echo $url';?>/static/common/images/erui_white_logo.png") 20px center no-repeat;'></div>
+    <div class="email-top" style='background: #325588 url("<?php echo $url;?>/static/common/images/erui_white_logo.png") 20px center no-repeat;'></div>
     <div class="top-shadow"></div>
     <div class="mail-content">
         <h2>Dear you ：</h2>
-        <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;">Hello! Your order has been <span style="color: #ff7800"> < ?php echo $info;?></span>.</p>
+        <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;">Hello! Your order has been
+            <span style="color: #ff7800"> <?php echo $info;?></span>.</p>
         <h2 style="margin-bottom: 20px;">Order information</h2>
         <dl class="dl-horizontal">
             <dt>No. Order：</dt>
@@ -155,7 +156,7 @@
     <div class="mail-bottom">
         <p>If you have any questions or need help, please contact us</p>
         <p>ERUI INTERNATION <a href="http://www.erui.com" style="color: #3e91f9;margin: 10px;">http://www.erui.com</a></p>
-        <p style="float: right; text-align: right;margin: 70px 0 30px 0;">2018-01-25 13:10:49 <br>
+        <p style="float: right; text-align: right;margin: 70px 0 30px 0;"><?php echo $time;?><br>
             This is an automatic response, please do not reply.</p>
     </div>
 </div>
