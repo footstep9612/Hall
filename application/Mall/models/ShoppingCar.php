@@ -48,6 +48,7 @@ class ShoppingCarModel extends PublicModel{
 					$r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
                     if($condition['type']){
                         $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $country_bn, $result[$r['sku']]['buy_number']);
+                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $country_bn);
                     }
 					$goodsAry[$r['sku']] = $r;
 				}

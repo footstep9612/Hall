@@ -243,6 +243,7 @@ class ProductModel extends PublicModel {
                     $skuAry[] = $r['sku'];
                     if ($input['type']) {
                         $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $input['buyNumber'][$r['sku']]);
+                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
                     }
                     $result[$r['sku']] = $r;
                     $result[$r['sku']]['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? (empty($r['spu_name']) ? '' : $r['spu_name']) : $r['spu_show_name']) : $r['name']) : $r['show_name'];
@@ -455,6 +456,7 @@ class ProductModel extends PublicModel {
                     $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']) : $r['show_name'];
                     if ($input['type']) {
                         $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
+                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
                     }
                     $goodsAry[$r['sku']] = $r;
                 }
