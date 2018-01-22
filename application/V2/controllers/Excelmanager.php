@@ -59,6 +59,22 @@ class ExcelmanagerController extends PublicController {
             ]
         ]);
     }
+    
+    /**
+     * @desc 下载订单sku导入模板接口
+     *
+     * @author liujf
+     * @time 2018-01-11
+     */
+    public function downloadOrderSkuTemplateAction() {
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'data' => [
+                'url' => 'http://file01.erui.com/group1/M00/02/8F/rBFgyFpcB5WAC85pAAAn8H4MZrE92.xlsx'
+            ]
+        ]);
+    }
 
     /**
      * @desc 导入sku(询单管理->新增询单)
@@ -76,6 +92,22 @@ class ExcelmanagerController extends PublicController {
         $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
         $this->jsonReturn($response);
 
+    }
+    
+    /**
+     * @desc 导入订单sku接口
+     *
+     * @author liujf
+     * @time 2018-01-11
+     */
+    public function importOrderSkuAction() {
+        $request = $this->validateRequests('file_url');
+        $remoteFile = $request['file_url'];
+        //下载到本地临时文件
+        $localFile = ExcelHelperTrait::download2local($remoteFile);
+        $data = ExcelHelperTrait::ready2import($localFile);
+        $response = $this->_importOrderSkuHandler($localFile, $data);
+        $this->jsonReturn($response);
     }
 
     /**
@@ -123,6 +155,37 @@ class ExcelmanagerController extends PublicController {
                 'message' => $exception->getMessage()
             ];
         }
+    }
+    
+    /**
+     * @desc 执行订单sku导入操作
+     * 
+     * @param string $localFile
+     * @param array $data
+     * @return array
+     * @author liujf
+     * @time 2018-01-11
+     */
+    private function _importOrderSkuHandler($localFile, $data) {
+        array_shift($data); //去掉第一行数据(excel文件的标题)
+        if (empty($data)) {
+            return ['code' => '-104', 'message' => '没有可导入的数据'];
+        }
+        //遍历重组
+        foreach ($data as $k => $v) {
+            $sku[$k]['sku'] = $v[1]; //sku编码|订货号
+            $sku[$k]['name'] = $v[2]; //外文品名
+            $sku[$k]['name_zh'] = $v[3]; //中文品名
+            $sku[$k]['buy_number'] = $v[4]; //数量
+            $sku[$k]['nude_cargo_unit'] = $v[5]; //单位
+            $sku[$k]['brand'] = $v[6]; //品牌
+            $sku[$k]['model'] = $v[7]; //型号
+        }
+        //删除本地临时文件
+        if (file_exists($localFile)) {
+            unlink($localFile);
+        }
+        return $sku;
     }
 
     /**
@@ -946,7 +1009,7 @@ class ExcelmanagerController extends PublicController {
 
         $excelFile = $this->createRejectedFile($data);
 
-        //p($localFile);
+        p($localFile);
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;

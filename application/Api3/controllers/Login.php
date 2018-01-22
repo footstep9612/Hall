@@ -27,35 +27,35 @@ class LoginController extends PublicController {
     public function loginAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        /*if (!empty($data['email'])) {
-            if (!isEmail($data['email'])) {
-                jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
-            }
-            $arr['email'] = trim($data['email']);
-        } else {
-            jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
-        }*/
+        /* if (!empty($data['email'])) {
+          if (!isEmail($data['email'])) {
+          jsonReturn(null, -112, ShopMsg::getMessage('-112',$lang));
+          }
+          $arr['email'] = trim($data['email']);
+          } else {
+          jsonReturn(null, -111, ShopMsg::getMessage('-111',$lang));
+          } */
         if (!empty($data['email'])) {
-            $data['email']=trim($data['email']);
+            $data['email'] = trim($data['email']);
             if (isEmail($data['email'])) {
                 $arr['email'] = $data['email'];
             } else {
                 $arr['user_name'] = $data['email'];
             }
         } else {
-            jsonReturn(null, -124, ShopMsg::getMessage('-124',$lang));
+            jsonReturn(null, -124, ShopMsg::getMessage('-124', $lang));
             exit();
         }
         if (!empty($data['password'])) {
             $arr['password'] = trim($data['password']);
         } else {
-            jsonReturn(null, -110, ShopMsg::getMessage('-110',$lang));
+            jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
             $buyer_model = new BuyerModel();
-            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']] );
+            $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']]);
             $jwtclient = new JWTClient();
             $jwt['id'] = $info['id'];
             $jwt['buyer_id'] = $info['buyer_id'];
@@ -64,16 +64,19 @@ class LoginController extends PublicController {
             $jwt['show_name'] = $info['show_name'];
             $datajson['buyer_no'] = $buyer_info['buyer_no'];
             $datajson['email'] = $info['email'];
+
             $datajson['buyer_id'] = $info['buyer_id'];
             $datajson['show_name'] = $info['show_name'];
             $datajson['user_name'] = $info['user_name'];
+            $datajson['country_bn'] = $buyer_info['country_bn'];
             $datajson['token'] = $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), 18000);
+            $datajson['utime'] = 18000;
+            redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
             echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
             exit();
         } else {
             $datajson = [];
-            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124',$lang)));
+            echo json_encode(array("code" => "-124", "data" => $datajson, "message" => ShopMsg::getMessage('-124', $lang)));
         }
     }
 
@@ -250,7 +253,8 @@ class LoginController extends PublicController {
             $datajson['country']    =   $buyer_info['country_bn'];
             $datajson['phone']      =   $buyer_info['official_phone'];
             $datajson['token']      =   $jwtclient->encode($jwt); //加密
-            redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($datajson), 18000);
+            $datajson['utime'] = 18000;
+            redisSet('shopmall_user_info_' . $info['buyer_id'], json_encode($datajson), $datajson['utime']);
 
             jsonReturn($datajson, 1, 'success!');
         } else {
@@ -297,10 +301,10 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115',$lang));
         }
-        if (isset($data['source'])&&$data['source']='mobile') {
-            $data['source']=3;
+        if (isset($data['source'])&&$data['source']=='mobile') {
+            $arr['source']=3;
         } else {
-            $data['source']=2;
+            $arr['source']=2;
         }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
@@ -329,9 +333,9 @@ class LoginController extends PublicController {
         if ($id) {
             $buyer_account_data['buyer_id'] = $id;
             $account_id = $buyer_account_model->create_data($buyer_account_data);
-            if($account_id){
-                $datajson['key'] =  md5(uniqid());
-                redisSet('improve_info_key'.$datajson['key'], $id, 7200);
+            if ($account_id) {
+                $datajson['key'] = md5(uniqid());
+                redisSet('improve_info_key' . $datajson['key'], $id, 7200);
 
                 $jwtclient = new JWTClient();
                 $jwt['id'] = $id;
@@ -339,22 +343,23 @@ class LoginController extends PublicController {
                 $jwt['ext'] = time();
                 $jwt['iat'] = time();
                 $jwt['show_name'] = $buyer_account_data['show_name'];
-                $datajson['buyer_no']   =   $arr['buyer_no'];
-                $datajson['email']      =   $buyer_account_data['email'];
-                $datajson['buyer_id']   =   $id;
-                $datajson['show_name']  =   $buyer_account_data['show_name'];
-                $datajson['user_name']  =   '';
-                $datajson['country']    =   $arr['country_bn'];
-                $datajson['phone']      =   $arr['official_phone'];
-                $datajson['token']      =   $jwtclient->encode($jwt); //加密
-                redisSet('shopmall_user_info_' . $id, json_encode($datajson), 18000);
+                $datajson['buyer_no'] = $arr['buyer_no'];
+                $datajson['email'] = $buyer_account_data['email'];
+                $datajson['buyer_id'] = $id;
+                $datajson['show_name'] = $buyer_account_data['show_name'];
+                $datajson['user_name'] = '';
+                $datajson['country'] = $arr['country_bn'];
+                $datajson['phone'] = $arr['official_phone'];
+                $datajson['token'] = $jwtclient->encode($jwt); //加密
+                $datajson['utime'] = 18000;
+                redisSet('shopmall_user_info_' . $id, json_encode($datajson), $datajson['utime']);
                 jsonReturn($datajson, 1, 'Success!');
             }
             $where['id'] = $id;
             $model->delete_data($where);
-            jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));
+            jsonReturn('', -105, ShopMsg::getMessage('-105', $lang));
         }
-        jsonReturn('', -105, ShopMsg::getMessage('-105',$lang));
+        jsonReturn('', -105, ShopMsg::getMessage('-105', $lang));
     }
 
     /**

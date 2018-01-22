@@ -124,8 +124,10 @@ class SpecloginController extends PublicController {
             }
         }
         $catModel = new CustomCatModel();
-        $cat_no = $catModel->field('cat_no')->where(['cat_name'=>$data['cat_name'],'deleted_flag'=>'N'])->find();
-        $data['cat_no'] = $cat_no['cat_no']?$cat_no['cat_no']:'';
+        if(isset($data['cat_no']) || empty($data['cat_no'])) {
+            $cat_no = $catModel->field('cat_no')->where(['cat_name'=>$data['cat_name'],'deleted_flag'=>'N'])->find();
+            $data['cat_no'] = $cat_no['cat_no']?$cat_no['cat_no']:'';
+        }
         $res = $buyer_custom_model->create_data($data);
         if($res) {
             return $res;
@@ -177,7 +179,11 @@ class SpecloginController extends PublicController {
         } else {
             jsonReturn(null, -115, ShopMsg::getMessage('-115', $lang));
         }
-
+        if (isset($data['source'])&&$data['source']=='mobile') {
+            $arr['source']=3;
+        } else {
+            $arr['source']=2;
+        }
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
         $register_arr['email'] = $data['email'];

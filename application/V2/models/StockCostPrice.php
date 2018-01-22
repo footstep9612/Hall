@@ -67,7 +67,7 @@ class StockCostPriceModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function updateDatas($country_bn, $lang, $sku, $cost_prices) {
+    public function updateDatas($country_bn, $lang, $sku, $cost_prices, $is_verify = true) {
 
         $where['sku'] = $sku;
         $where['country_bn'] = $country_bn;
@@ -92,7 +92,8 @@ class StockCostPriceModel extends PublicModel {
                 $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
                 $data['min_purchase_qty'] = intval($data['min_purchase_qty']) > 0 ? intval($data['min_purchase_qty']) : 0;
                 $data['max_purchase_qty'] = intval($data['max_purchase_qty']) > 0 ? intval($data['max_purchase_qty']) : null;
-                if (empty($data['min_price'])) {
+                if (empty($data['min_price']) && $is_verify) {
+                    $this->rollback();
                     jsonReturn(null, '-1', '价格不能为空!');
                 }
                 $data['spu'] = $this->getSpu($sku, $lang);
@@ -134,7 +135,7 @@ class StockCostPriceModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function updateData($country_bn, $lang, $sku) {
+    public function updateData($country_bn, $lang, $sku, $is_verify = true) {
 
 
         $goods_cost_price_model = new GoodsCostPriceModel();
@@ -145,15 +146,18 @@ class StockCostPriceModel extends PublicModel {
                         ->where(['sku' => $sku, 'deleted_flag' => 'N'])->select();
 
         if ($cost_prices) {
-            $cost_prices['min_price'] = null;
-            $cost_prices['max_price'] = null;
-            $cost_prices['price_cur_bn'] = null;
-            $cost_prices['min_purchase_qty'] = null;
-            $cost_prices['max_purchase_qty'] = null;
+            foreach ($cost_prices as $key => $cost_price) {
+                $cost_price['min_price'] = null;
+                $cost_price['max_price'] = null;
+                $cost_price['price_cur_bn'] = null;
+                $cost_price['min_purchase_qty'] = null;
+                $cost_price['max_purchase_qty'] = null;
 //            $cost_prices['pricing_date'] = null;
-            $cost_prices['price_validity_start'] = null;
-            $cost_prices['price_validity_end'] = null;
-            return $this->updateDatas($country_bn, $lang, $sku, $cost_prices);
+                $cost_price['price_validity_start'] = null;
+                $cost_price['price_validity_end'] = null;
+                $cost_prices[$key] = $cost_price;
+            }
+            return $this->updateDatas($country_bn, $lang, $sku, $cost_prices, $is_verify);
         } else {
             return true;
         }

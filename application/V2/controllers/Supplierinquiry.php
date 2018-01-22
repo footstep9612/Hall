@@ -29,6 +29,7 @@ class SupplierinquiryController extends PublicController {
         $supplier_inquiry_model = new SupplierInquiryModel();
         list($data, $count) = $supplier_inquiry_model->getList($condition);
 
+
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
             $inquirycount = $supplier_inquiry_model->getInquiryCount();
@@ -90,6 +91,7 @@ class SupplierinquiryController extends PublicController {
 
     public function InquiryexportAction() {
         ini_set('memory_limit', '1G');
+        set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         $data = $supplier_inquiry_model->Inquiryexport($condition);

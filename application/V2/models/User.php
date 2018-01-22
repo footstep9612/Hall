@@ -35,6 +35,7 @@ class UserModel extends PublicModel {
         $sql = ' WHERE 1 = 1 ';
         if (isset($condition['deleted_flag'])) {
             $sql .= ' AND `employee`.`deleted_flag`= \'' . $condition['deleted_flag'] . '\'';
+            $sql .= ' AND `org`.`deleted_flag`= \'' . $condition['deleted_flag'] . '\'';
         }
         if (!empty($condition['status'])) {
             $sql .= ' AND `employee`.`status`= \'' . $condition['status'] . '\'';
@@ -257,6 +258,12 @@ class UserModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
+        if (isset($create['employee_flag'])) {
+            $data['employee_flag'] = $create['employee_flag'];
+        }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
+        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -337,6 +344,9 @@ class UserModel extends PublicModel {
         }
         if (isset($create['employee_flag'])) {
             $data['employee_flag'] = $create['employee_flag'];
+        }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
         }
         $datajson = $this->create($data);
         return $this->add($datajson);

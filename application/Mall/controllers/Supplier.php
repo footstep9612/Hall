@@ -34,6 +34,11 @@ class SupplierController extends PublicController {
         } else {
             $arr['source'] = 'Portal';
         }
+        if (!empty($data['contact_name'])) {
+            $arr['contact_name'] = $data['contact_name'];
+        } else {
+            jsonReturn('', -118, ShopMsg::getMessage('-115', $lang));
+        }
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {

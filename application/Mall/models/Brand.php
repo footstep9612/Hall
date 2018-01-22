@@ -119,4 +119,68 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取列表
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getbrand($condition, $lang = '', $field = 'brand') {
+        $where = $this->_getcondition($condition, $lang);
+
+        try {
+            $item = $this->where($where)
+                    ->field($field)
+                    ->order('id desc')
+                    ->find();
+            $brand_name = '';
+            if (!empty($item['brand']) && $item['brand']) {
+                $brand_langs = json_decode($item['brand'], true);
+                foreach ($brand_langs as $brand_lang) {
+                    if ($brand_lang['lang'] === $lang && $brand_lang['name']) {
+                        $brand_name = $brand_lang['name'];
+                    }
+                }
+            }
+            return $brand_name;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
+    /**
+     * 获取列表 区分大小写
+     * @param mix $brand_name 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getBrandByBrandName($brand_name, $lang = 'en') {
+
+
+        try {
+            $brand_name = str_replace('%', '\%', $brand_name);
+            $brand_name = str_replace('_', '\_', $brand_name);
+
+            $bind = [];
+            $bind[':new_brand_name'] = '%"name": "' . $brand_name . '"%';
+            $bind[':brand_name'] = '%"name":"' . $brand_name . '"%';
+            $bind[':lang'] = '%"lang": "' . strtolower($lang) . '"%';
+            $bind[':new_lang'] = '%"lang":"' . strtolower($lang) . '"%';
+            $sql = 'SELECT brand FROM ' . $this->getTableName() . ' WHERE  deleted_flag=\'N\' ';
+            $sql .= ' AND `status`=\'VALID\' ';
+            // 可以再 like后面加 binary 区分大小写
+            $sql .= ' AND (brand like  :brand_name OR brand  like  :new_brand_name escape \'/\')';
+            $sql .= ' AND (brand like :lang OR brand like :new_lang)';
+
+            $brand = $this->db()->query($sql, $bind);
+            return $brand;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
 }

@@ -127,11 +127,11 @@ class StockModel extends PublicModel {
             'sku' => $sku,
         ];
         $goods_model = new GoodsModel();
-        $data = $goods_model->field('spu,name,show_name')->where($where)->find();
+        $data = $goods_model->field('spu,name,show_name,model')->where($where)->find();
 
         if (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
             $prodcut_model = new ProductModel();
-            $where_spu = ['deleted_flag' => ' N',
+            $where_spu = ['deleted_flag' => 'N',
                 'lang' => $lang,
                 'spu' => $data['spu'],
             ];
@@ -142,6 +142,7 @@ class StockModel extends PublicModel {
         } elseif (empty($data['show_name']) && empty($data['show_name']) && $data['spu']) {
             $data['show_name'] = $data['name'];
         }
+
         return $data;
     }
 
@@ -161,6 +162,7 @@ class StockModel extends PublicModel {
             if (!$row) {
 
                 $goods_name = $this->getSpu($sku, $lang);
+
                 if (empty($goods_name['spu'])) {
 
                     return false;
@@ -172,18 +174,17 @@ class StockModel extends PublicModel {
                     'name' => $goods_name['name'],
                     'show_name' => $goods_name['show_name'],
                     'sku' => $sku,
+                    'model' => $goods_name['model'],
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => defined('UID') ? UID : 0
                 ];
                 $flag = $this->add($data);
                 if (!$flag) {
-
-
                     $this->rollback();
                     return false;
                 }
 
-                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku);
+                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku, false);
                 if (!$flag_price) {
 
                     $this->rollback();

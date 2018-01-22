@@ -760,6 +760,8 @@ class EsGoodsModel extends Model {
         $spu = $item['spu'];
 
         $body = $item;
+        $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
         $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
@@ -811,12 +813,12 @@ class EsGoodsModel extends Model {
 
             $body['brand'] = json_decode($body['brand'], true);
         } elseif ($body['brand']) {
-            $body['brand'] = ['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = ['lang' => $lang, 'name' => trim($body['brand']), 'logo' => '', 'manufacturer' => ''];
         } else {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
-            $body['name_loc'] = $name_locs[$sku];
+            $body['name_loc'] = htmlspecialchars_decode($name_locs[$sku]);
         } else {
             $body['name_loc'] = '';
         }
@@ -949,8 +951,8 @@ class EsGoodsModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => $name,
-                    'value' => $value];
+                $ret[] = ['name' => strtolower(trim($name)),
+                    'value' => strtolower(trim($value))];
             }
         }
         return $ret;

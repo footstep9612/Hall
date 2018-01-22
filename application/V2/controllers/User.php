@@ -347,6 +347,11 @@ class UserController extends PublicController {
         } else {
             $arr['employee_flag'] = "I";
         }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
+        } else {
+            $arr['citizenship'] = 'china';
+        }
         $password = randStr(6);
         $arr['password_hash'] = md5($password);
         $model = new UserModel();
@@ -492,6 +497,12 @@ class UserController extends PublicController {
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
         }
+        if (!empty($data['employee_flag'])) {
+            $arr['employee_flag'] = $data['employee_flag'];
+        }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
+        }
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
         if ($res !== false) {
@@ -558,6 +569,65 @@ class UserController extends PublicController {
         $results = $org_modle->getOrgUserlist($data);
 
         $this->jsonReturn($results);
+    }
+
+
+    /**
+     * 根据地理区域获取国家
+     * @return mixed
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function areaCountryAction()
+    {
+
+        $this->validateRequestParams();
+
+        $where = ['deleted_flag' => 'N','status'=> 'VALID','lang' => 'zh'];
+        $field = 'bn,name';
+        $region = (new MarketAreaModel)->where($where)->field($field)->select();
+
+        foreach ($region as &$item){
+            $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
+                                    ->join('erui_dict.country b ON a.country_bn=b.bn')
+                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh'])
+                                    ->field('b.name,b.bn')
+                                    ->select();
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $region
+        ]);
+
+    }
+
+
+    /**
+     * 根据国家简称获取国家名称
+     * @return array
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function countryNameAction()
+    {
+
+        $condition = $this->validateRequestParams('country_bns');
+
+        $countryNames = [];
+        foreach (explode(',',$condition['country_bns']) as $country_bn){
+            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $countryNames
+        ]);
+
     }
 
 }

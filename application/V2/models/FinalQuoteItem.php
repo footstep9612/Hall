@@ -9,10 +9,11 @@ class FinalQuoteItemModel extends PublicModel {
     protected $tableName = 'final_quote_item';
 	protected $joinTable1 = 'erui_rfq.quote_item b ON a.quote_item_id = b.id';
 	protected $joinTable2 = 'erui_rfq.inquiry_item c ON a.inquiry_item_id = c.id';
+	protected $joinTable3 = 'erui_rfq.inquiry_item_attach d ON a.inquiry_item_id = d.inquiry_item_id';
 	protected $joinField = 'a.id,a.inquiry_id,a.quote_id,a.sku,a.supplier_id,a.exw_unit_price as final_exw_unit_price,a.quote_unit_price as final_quote_unit_price,'.
 								'c.qty as quote_qty,c.unit as quote_unit,b.brand,b.exw_unit_price,b.quote_unit_price,b.net_weight_kg,b.gross_weight_kg,b.remarks as final_remarks,'.
 								'b.package_mode,b.package_size,b.delivery_days,b.period_of_validity,b.goods_source,b.stock_loc,b.reason_for_no_quote,b.pn,'.
-								'c.buyer_goods_no,c.name,c.name_zh,c.model,c.remarks,c.remarks_zh';
+								'c.buyer_goods_no,c.name,c.name_zh,c.model,c.remarks,c.remarks_zh,d.attach_name,d.attach_url';
 
 
     protected $finalSkuFields = 'a.id,a.sku,'.
@@ -83,6 +84,7 @@ class FinalQuoteItemModel extends PublicModel {
 		$count = $this->alias('a')
 				->join($this->joinTable1, 'LEFT')
 				->join($this->joinTable2, 'LEFT')
+				->join($this->joinTable3, 'LEFT')
 				->where($where)
 				->count('a.id');
     	
@@ -101,12 +103,13 @@ class FinalQuoteItemModel extends PublicModel {
 		try {
 			$count = $this->getCount($condition);
 			$list = $this->alias('a')
-					->join($this->joinTable1, 'LEFT')
-					->join($this->joinTable2, 'LEFT')
-					->field($this->joinField)
-					->where($where)
-					->order('a.id DESC')
-					->select();
+                				->join($this->joinTable1, 'LEFT')
+                				->join($this->joinTable2, 'LEFT')
+                				->join($this->joinTable3, 'LEFT')
+                				->field($this->joinField)
+                				->where($where)
+                				->order('a.id DESC')
+                				->select();
 
 			if($list){
 				$results['code'] = '1';

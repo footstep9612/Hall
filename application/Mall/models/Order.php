@@ -115,7 +115,7 @@ class OrderModel extends PublicModel {
         try{
             $data['infoAry']['order_no'] = $orerNo;
             $data['infoAry']['buyer_id'] = $data['buyer_id'];
-            $data['infoAry']['source'] = 'MALL';
+            $data['infoAry']['source'] = 'Mall';
             $dataInfo = $this->_getData($data['infoAry']);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
@@ -180,6 +180,7 @@ class OrderModel extends PublicModel {
         $amount = 0;
         $currency_bn = '';
         $skuAry = [];
+        $sku_stock = [];
         foreach($data as $sku => $number){
             $skuAry[] = $sku;
             $number = intval($number);
@@ -210,6 +211,7 @@ class OrderModel extends PublicModel {
                 'sku' => $sku,
                 'name' => $goodsInfo[$sku]['show_name'] ? $goodsInfo[$sku]['show_name'] : ($goodsInfo[$sku]['name'] ? $goodsInfo[$sku]['name'] : ($goodsInfo[$sku]['spu_show_name'] ? $goodsInfo[$sku]['spu_show_name'] :($goodsInfo[$sku]['spu_name'] ? $goodsInfo[$sku]['spu_name'] : ''))),    //商品名称
                 'spec_attrs' => $goodsInfo[$sku]['spec_attrs'],    //规格属性
+                'symbol' => $priceInfo ? $priceInfo['price_symbol'] : null,
                 'price' => $priceInfo ? $priceInfo['price'] : null,
                 'buy_number' => $number,
                 'lang' => $lang,    //语言
@@ -233,6 +235,23 @@ class OrderModel extends PublicModel {
                 $scModel->clear($skuAry, $buyer_id, 1);
             }
 
+            //修改库存
+            $stockModel = new StockModel();
+            foreach($data_insert as $r){
+                $stockWhere = [
+                    'sku'=>$r['sku'],
+                    'country_bn'=> $country_bn,
+                    'lang' => $r['lang']
+                ];
+                $stockUpData = [
+                    'stock' => ['exp', 'stock'.'-'.$r['buy_number']]
+                ];
+                $upstatue = $stockModel->where($stockWhere)->save($stockUpData);
+                if(!$upstatue){
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Order】stock更新失败'.$country_bn.'-'.$lang.'-'.$r['sku'].'库存应减'.$r['buy_number'] , Log::ERR);
+                }
+            }
+
             //更新订单金额
             $orderModel = new OrderModel();
             $result_order = $orderModel->where(['order_no'=>$order_no])->save(['amount'=>$amount, 'currency_bn'=>$currency_bn]);
@@ -251,7 +270,7 @@ class OrderModel extends PublicModel {
 
     public function info($order_id, $lang = 'en') {
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
-        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,quality,distributed,comment_flag,remark';
+        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,quality,distributed,comment_flag,remark,created_at';
         return $this->field($field)
                         ->where(['id' => $order_id])->find();
     }
@@ -338,7 +357,7 @@ class OrderModel extends PublicModel {
 
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,order_no,po_no,execute_no,contract_date,buyer_id,address,status,show_status,pay_status,amount,trade_terms_bn,currency_bn';
-        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn';
+        $field .= ',trans_mode_bn,from_country_bn,to_country_bn,from_port_bn,to_port_bn,created_at';
         return $this->field($field)
                     ->where($where)
                     ->limit($start_no, $pagesize)

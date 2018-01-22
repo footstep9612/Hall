@@ -279,9 +279,9 @@ class LogisticsController extends PublicController {
 	        $where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
-	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
-	        
 	        $quote = $this->quoteModel->where($where)->find();
+	        
+	        $data['premium_rate'] = $quote['premium_rate'];
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
@@ -586,7 +586,7 @@ class LogisticsController extends PublicController {
 	         
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        $inquiryModel = $this->inquiryModel;
+	        //$inquiryModel = $this->inquiryModel;
 	        
 	        $logiCheckId = $condition['logi_check_id'];//$this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
 	        
@@ -969,11 +969,11 @@ class LogisticsController extends PublicController {
 	            break;
 	        case $trade == 'DAP' || $trade == 'DAT' :
 	            $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
-	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
 	            break;
 	        case $trade == 'DDP' || $trade == '快递' :
 	            $tmpCaFee = ($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
-	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
 	    }
 	     
 	    $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
@@ -1004,18 +1004,20 @@ class LogisticsController extends PublicController {
 	/**
 	 * @desc 获取报出价格合计
 	 *
-	 * @param float $calcuFee, $shippingInsuRate, $calcuRate
+	 * @param float $calcuFee, $shippingInsuRate, $calcuRate, $extRate
+	 * @param string $trade
 	 * @return float
 	 * @author liujf
 	 * @time 2017-08-10
 	 */
-	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate) {
+	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate, $trade = 'CIF', $extRate = 1) {
 	    $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / 100 / $calcuRate, 8);
 	    
 	    if ($tmpIfFee >= 8 || $tmpIfFee == 0) {
 	        $totalQuotePrice = round($calcuFee / $calcuRate, 8);
 	    } else {
-	        $totalQuotePrice = round(($calcuFee + 8) / $calcuRate, 8);
+	        $tmpRate = $trade == 'DAP' || $trade == 'DAT' || $trade == 'DDP' || $trade == '快递' ? $extRate : $calcuRate;
+	        $totalQuotePrice = round(($calcuFee + 8) / $tmpRate, 8);
 	    }
 	    
 	    return $totalQuotePrice;

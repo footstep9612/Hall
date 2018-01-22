@@ -307,7 +307,7 @@ class DictController extends PublicController {
     public function paymentmodelistAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? strtolower($data['lang']) : 'en';
-        $pModel = new PaymentmodeModel();
+        $pModel = new PaymentModeModel();
         $payment = $pModel->getPaymentmode($lang);
         if ($payment) {
             jsonReturn($payment);
@@ -324,13 +324,13 @@ class DictController extends PublicController {
         $IpModel = new CountryModel();
 
         $ip = get_client_ip();
-        $iplocation = new IpLocation();
+        $iplocation = new IpLocation('Argentina');
         if ($ip != 'Unknown') {
             $country = $iplocation->getlocation($ip);
 
             $send = $IpModel->getCountrybynameandlang($country['country'], $this->getLang());
         } else {
-            $send = 'China';
+            $send = 'Argentina';
         }
         $this->setCode(1);
         $this->jsonReturn($send);
@@ -398,4 +398,29 @@ class DictController extends PublicController {
 //            jsonReturn('', '400', '失败');
 //        }
 //    }
+
+
+    /**
+     * 展示所有定制信息详情
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function customInfoAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $catModel = new CustomCatModel();
+        $itemModel = new CustomCatItemModel();
+        $catInfo = $catModel->info($lang,'');
+        if($catInfo) {
+            foreach ($catInfo as $k =>$v) {
+                $itemInfo = $itemModel->info($lang, $v['id'],'');
+                $catInfo[$k]['item'] = $itemInfo;
+            }
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'failed!');
+        }
+
+    }
 }

@@ -166,6 +166,28 @@ class ESClient {
         return $this->server->indices()->create($indexParams);
     }
 
+    /*     * ********************************---索引别名---***************************************
+     * createindices
+     * 创建索引
+     * @access public
+     * @param string $index 索引名称
+     * @param mix $body 资源定义
+     * @since 1.0
+     * @return array     *
+     */
+
+    public function index_aliases($index, $body) {
+        $indexParams['index'] = $index;
+        $indexParams['body'] = $body;
+        return $this->server->indices()->updateAliases($indexParams);
+    }
+
+    public function index_alias($index, $name) {
+        $indexParams['index'] = $index;
+        $indexParams['name'] = $name;
+        return $this->server->indices()->putAlias($indexParams);
+    }
+
     /*
      * 获取版本号
      */

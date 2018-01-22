@@ -228,7 +228,7 @@ class ProductModel extends PublicModel {
         //检测名称（必填）
         if(!isset($input['activename']) || empty($input['activename'])){
             if (empty($input['zh']['name']) && empty($input['en']['name']) && empty($input['es']['name']) && empty($input['ru']['name'])) {
-                jsonReturn('', ErrorMsg::FAILED, '请输出名称');
+                jsonReturn('', ErrorMsg::FAILED, '请输入名称');
             }
             foreach(['zh','en','es','ru'] as $lang){
                 if(isset($input[$lang])){
@@ -237,7 +237,7 @@ class ProductModel extends PublicModel {
             }
         }else{
             if(empty($input[$input['activename']]['name'])){
-                jsonReturn('', ErrorMsg::FAILED, '请输出名称');
+                jsonReturn('', ErrorMsg::FAILED, '请输入名称');
             }
             $datas[$input['activename']] = $input[$input['activename']];
         }
@@ -359,11 +359,13 @@ class ProductModel extends PublicModel {
                         }
                     //}
                     $data['status'] = $item['status'] ? $item['status'] : self::STATUS_DRAFT;
-                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->find();
+                    $exist_check = $this->field('id')->where(array('spu' => $spu, 'lang' => $lang))->order('deleted_flag ASC')->find();
                     if ($exist_check) {    //修改
                         $data['updated_by'] = isset($userInfo['id']) ? $userInfo['id'] : null; //修改人
                         $data['updated_at'] = date('Y-m-d H:i:s', time());
-                        $result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
+                        $data['deleted_flag'] = 'N';
+                        //$result = $this->where(array('spu' => $spu, 'lang' => $lang))->save($data);
+                        $result = $this->where(array('id' => $exist_check['id']))->save($data);
                         if (!$result) {
                             $this->rollback();
                             flock($fp, LOCK_UN);
@@ -1853,10 +1855,18 @@ class ProductModel extends PublicModel {
             }
             do {
                 unset($result);
-                $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status';
-                $result = $this->field($field)->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')->join($tablePS.' ON product.spu = '.$tablePS.'.spu','LEFT')->where($condition)->group('product.spu')->limit($i * $length, $length)->select();
+                $field = 'product.spu,product.name,product.show_name,product.material_cat_no,product.brand,product.advantages,product.tech_paras,product.exe_standard,product.warranty,product.keywords,product.status,show_cat_product.cat_no,show_cat_product.onshelf_flag,show_cat_product.status as showcat_status,show_cat_product.checked_at';
+                $result = $this->field($field)
+                    ->join($tableSCP . ' ON product.spu = ' . $tableSCP . '.spu AND product.lang = ' . $tableSCP . '.lang', 'LEFT')
+                    ->join($tablePS.' ON product.spu = '.$tablePS.'.spu','LEFT')
+                    ->where($condition)
+                    ->group('product.spu')
+                    ->limit($i * $length, $length)
+                    ->select();
+                //p($result);
                 if ($result) {
                     foreach ($result as $r) {
+                        $r['show_cat_name'] = $this->setShowCatName($r['cat_no'],$lang);
                         if (!isset($objPHPExcel) || !$objPHPExcel) {
                             PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
                             $objPHPExcel = new PHPExcel();
@@ -1872,7 +1882,7 @@ class ProductModel extends PublicModel {
                                     ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                                     ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
                             $objPHPExcel->getActiveSheet()->getStyle("A1:M1")->getFont()->setSize(11)->setBold(true);    //粗体
-                            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
+                            $column_width_25 = ["B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "N"];
                             foreach ($column_width_25 as $column) {
                                 $objPHPExcel->getActiveSheet(0)->getColumnDimension($column)->setWidth(25);
                             }
@@ -1892,6 +1902,8 @@ class ProductModel extends PublicModel {
                             $objPHPExcel->getActiveSheet(0)->setCellValue("K1", "关键字");
                             $objPHPExcel->getActiveSheet(0)->setCellValue("L1", "审核状态");
                             $objPHPExcel->getActiveSheet(0)->setCellValue("M1", "上架状态");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("N1", "展示分类");
+                            $objPHPExcel->getActiveSheet(0)->setCellValue("O1", "上/下架时间");
                         }
 
                         $objPHPExcel->getActiveSheet(0)->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
@@ -1933,6 +1945,9 @@ class ProductModel extends PublicModel {
                             $onshelf = '下架';
                         }
                         $objPHPExcel->getActiveSheet(0)->setCellValue("M" . $j, $onshelf);
+
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("N" . $j, $r['show_cat_name']);
+                        $objPHPExcel->getActiveSheet(0)->setCellValue("O" . $j, $r['checked_at']);
                         $j++;
                         if ($j > 2001) {    //2000条
                             //保存文件
@@ -1982,4 +1997,22 @@ class ProductModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据展示分类ID获取三级展示分类名称
+     * @param $show_cat_no 展示分类id
+     * @param $lang 语言
+     *
+     * @return string 三级分类拼接名称
+     * @author 买买提
+     */
+    private function setShowCatName($show_cat_no,$lang)
+    {
+
+        $show_cat_3 = (new ShowCatModel)-> where(['cat_no'=>$show_cat_no, 'lang'=>$lang ])->field('parent_cat_no,name')->find();
+        $show_cat_2 = (new ShowCatModel)-> where(['cat_no'=>$show_cat_3['parent_cat_no'], 'lang'=>$lang ])->field('parent_cat_no,name')->find();
+        $show_cat_1 = (new ShowCatModel)-> where(['cat_no'=>$show_cat_2['parent_cat_no'], 'lang'=>$lang ])->field('name')->find();
+
+        $show_cat_name =  $show_cat_1['name']."/".$show_cat_2['name']."/".$show_cat_3['name']."-".$show_cat_no;
+        return $show_cat_name;
+    }
 }

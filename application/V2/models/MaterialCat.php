@@ -1011,11 +1011,11 @@ class MaterialCatModel extends PublicModel {
         $objPHPExcel->setActiveSheetIndex(0);    //设置工作表
         $objSheet = $objPHPExcel->getActiveSheet();    //当前sheet
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("A1:G1")
+        $objSheet->getStyle("A1:H1")
                 ->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER)
                 ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         $objSheet->getStyle("A1:G1")->getFont()->setSize(12)->setBold(true);    //粗体
-        $column_width_25 = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+        $column_width_25 = ['A', 'B', 'C', 'E', 'F', 'G', 'H'];
         foreach ($column_width_25 as $column) {
             $objSheet->getColumnDimension($column)->setWidth(25);
         }
@@ -1027,10 +1027,11 @@ class MaterialCatModel extends PublicModel {
         $objSheet->setCellValue("A1", "序号");
         $objSheet->setCellValue("B1", "分类编码");
         $objSheet->setCellValue("C1", "父类编码");
-        $objSheet->setCellValue("D1", "分类名称(中)");
-        $objSheet->setCellValue("E1", "分类名称(英)");
-        $objSheet->setCellValue("F1", "分类名称(西)");
-        $objSheet->setCellValue("G1", "分类名称(俄)");
+        $objSheet->setCellValue("D1", "分类等级");
+        $objSheet->setCellValue("E1", "分类名称(中)");
+        $objSheet->setCellValue("F1", "分类名称(英)");
+        $objSheet->setCellValue("G1", "分类名称(西)");
+        $objSheet->setCellValue("H1", "分类名称(俄)");
         $j = 2;    //excel控制输出
         $result = $this->listall($input);
 
@@ -1040,13 +1041,14 @@ class MaterialCatModel extends PublicModel {
                 $objSheet->setCellValue("A" . $j, $j - 1, PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("B" . $j, $cat_no, PHPExcel_Cell_DataType::TYPE_STRING);
                 $objSheet->setCellValue("C" . $j, $item['parent_cat_no'] ? $item['parent_cat_no'] : '', PHPExcel_Cell_DataType::TYPE_STRING);
-                $objSheet->setCellValue("D" . $j, isset($item['zh']['name']) ? $item['zh']['name'] : '');
+                $objSheet->setCellValue("D" . $j, $item['level_no']);
+                $objSheet->setCellValue("E" . $j, isset($item['zh']['name']) ? $item['zh']['name'] : '');
 
-                $objSheet->setCellValue("E" . $j, isset($item['en']['name']) ? $item['en']['name'] : '');
+                $objSheet->setCellValue("F" . $j, isset($item['en']['name']) ? $item['en']['name'] : '');
 
-                $objSheet->setCellValue("F" . $j, isset($item['es']['name']) ? $item['es']['name'] : '');
+                $objSheet->setCellValue("G" . $j, isset($item['es']['name']) ? $item['es']['name'] : '');
 
-                $objSheet->setCellValue("G" . $j, isset($item['ru']['name']) ? $item['ru']['name'] : '');
+                $objSheet->setCellValue("H" . $j, isset($item['ru']['name']) ? $item['ru']['name'] : '');
 
                 $j++;
             }
@@ -1068,10 +1070,9 @@ class MaterialCatModel extends PublicModel {
         $data['name'] = pathinfo($localDir, PATHINFO_BASENAME);
 
         $fileId = postfile($data, $url);
-
-        if (!empty($fileId['url'])) {
+        if (!empty($fileId['fileId'])) {
             unlink($localDir);
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'] . '.xls', 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer . $fileId['fileId'] . '?filename=' . $fileId['file']['name'], 'name' => $fileId['name']);
         }
         Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $localDir . ' 上传到FastDFS失败', Log::INFO);
         return false;
