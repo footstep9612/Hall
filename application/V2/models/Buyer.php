@@ -1897,6 +1897,9 @@ EOF;
                     if(empty($v['build_time'])){
                         $info[$k]['build_time']=$v['created_at'];
                     }
+                    if(empty($v['level_at'])){
+                        $info[$k]['level_at']=$v['created_at'];
+                    }
                 }
             }
             $ids = array();
