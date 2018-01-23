@@ -1170,11 +1170,14 @@ EOF;
     public function getBuyerCountByStatus($condition) {
         $sql = "SELECT  buyer.`status` ,COUNT(*)  as number ";
         $sql .= ' FROM erui_buyer.buyer buyer';
-        $sql .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
-        $sql .= " on buyer_agent.buyer_id = buyer.id ";
-        $sql .= " Join `erui_sys`.`employee` employee";
-        $sql .= " on buyer_agent.`agent_id` = employee.`id`";
-        $where = " WHERE buyer.deleted_flag = 'N'  AND employee.deleted_flag='N' ";
+        if(!empty($condition['employee_name'])){
+            $sql .= " left Join `erui_buyer`.`buyer_agent` buyer_agent";
+            $sql .= " on buyer_agent.buyer_id = buyer.id ";
+            $sql .= " Join `erui_sys`.`employee` employee";
+            $sql .= " on buyer_agent.`agent_id` = employee.`id`";
+        }
+//        $where = " WHERE buyer.deleted_flag = 'N'  AND employee.deleted_flag='N' ";
+        $where = " WHERE buyer.deleted_flag = 'N'";
         if (!empty($condition['country_bn'])) {
             $where .= " And buyer.country_bn=$condition[country_bn] ";
         }
@@ -1234,19 +1237,25 @@ EOF;
         //统计客户数量
         $sqlTotal = "SELECT  COUNT(*)  as total_count ";
         $sqlTotal .= ' FROM erui_buyer.buyer buyer';
-        $sqlTotal .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
-        $sqlTotal .= " on buyer_agent.buyer_id = buyer.id ";
-        $sqlTotal .= " Join `erui_sys`.`employee` employee";
-        $sqlTotal .= " on buyer_agent.`agent_id` = employee.`id`";
+        if(!empty($condition['employee_name'])){
+            $sqlTotal .= " left Join `erui_buyer`.`buyer_agent` buyer_agent";
+            $sqlTotal .= " on buyer_agent.buyer_id = buyer.id ";
+            $sqlTotal .= " Join `erui_sys`.`employee` employee";
+            $sqlTotal .= " on buyer_agent.`agent_id` = employee.`id`";
+            $where.=" AND employee.deleted_flag='N'";
+        }
         $totalCount=$this->query($sqlTotal.$where);
         $totalCount=$totalCount[0]['total_count'];
         //统计等级-客户等级下的数量
         $sqlLevel = "SELECT  buyer.buyer_level,COUNT(*)  as level_count ";
         $sqlLevel .= ' FROM erui_buyer.buyer buyer';
-        $sqlLevel .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
-        $sqlLevel .= " on buyer_agent.buyer_id = buyer.id ";
-        $sqlLevel .= " Join `erui_sys`.`employee` employee";
-        $sqlLevel .= " on buyer_agent.`agent_id` = employee.`id`";
+        if(!empty($condition['employee_name'])){
+            $sqlLevel .= " left Join `erui_buyer`.`buyer_agent` buyer_agent";
+            $sqlLevel .= " on buyer_agent.buyer_id = buyer.id ";
+            $sqlLevel .= " Join `erui_sys`.`employee` employee";
+            $sqlLevel .= " on buyer_agent.`agent_id` = employee.`id`";
+            $where.=" AND employee.deleted_flag='N'";
+        }
         $level=$this->query($sqlLevel.$where."GROUP BY buyer.buyer_level");
         $arrLevel=array();
         foreach($level as $k => $v){
