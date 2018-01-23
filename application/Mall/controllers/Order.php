@@ -672,12 +672,12 @@ class OrderController extends PublicController {
                 ];
             }
 
-//            $arrEmail['info'] = '';                //客户
-//            $arrEmail['email'] = $res['email'];   //客户
-//            $this->orderEmail($arrEmail,$lang);
-            $arrEmail['info'] = '试试事实上所所所所所所所';     //我方
-            $arrEmail['email'] = '531499132@qq.com';   //我方
+            $arrEmail['info'] = 'submitted successfully';                //客户
+            $arrEmail['email'] = $res['email'];   //客户
             $this->orderEmail($arrEmail,$lang);
+//            $arrEmail['info'] = '试试事实上所所所所所所所';     //我方
+//            $arrEmail['email'] = '531499132@qq.com';   //我方
+//            $this->orderEmail($arrEmail,$lang);
         }
 
 

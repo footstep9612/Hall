@@ -22,7 +22,7 @@ class ProductModel extends PublicModel {
      * @param string $lang
      * @return bool|mixed
      */
-    public function getInfoBySpu($spu = '', $lang = '', $stock = false, $country_bn = '') {
+    public function getInfoBySpu($spu = '', $lang = '', $stock = false, $country_bn = '', $sku = '') {
         if (empty($spu) || empty($lang)) {
             return false;
         }
@@ -50,10 +50,13 @@ class ProductModel extends PublicModel {
                     }
                     $spuInfo['stock'] = $stocks;    //库存
                     //现货价格
-                    $scpModel = new StockCostPriceModel();
+                   /* $scpModel = new StockCostPriceModel();
                     $condition_price = ['country_bn' => $country_bn, 'sku' => ['in', $skus], 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
                     $priceInfo = $scpModel->field('min_price,price_symbol')->where($condition_price)->order('min_price')->find();
-                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];
+                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];*/
+
+                    //价格区间
+                    $spuInfo['priceList'] = $this->getSkuPriceBySku($sku, $country_bn);
 
                     $condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }

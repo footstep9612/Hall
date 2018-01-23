@@ -33,7 +33,7 @@ class ProductController extends PublicController {
         }
         $country_bn = $input['country_bn'] ? $input['country_bn'] : '';
         $productModel = new ProductModel();
-        $result = $productModel->getInfoBySpu($input['spu'], $input['lang'], $stock, $country_bn);
+        $result = $productModel->getInfoBySpu($input['spu'], $input['lang'], $stock, $country_bn,isset($input['sku']) ? $input['sku'] : '');
         if ($result !== false) {
             jsonReturn($result);
         } else {

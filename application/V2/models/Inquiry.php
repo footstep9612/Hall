@@ -153,11 +153,11 @@ class InquiryModel extends PublicModel {
                 case 'inquiry' :
                     $map[] = ['created_by' => $condition['user_id']];
                     
-                    foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::marketAgentRole) {
+                    //foreach ($condition['role_no'] as $roleNo) {
+                        //if ($roleNo == self::marketAgentRole) {
                             $map[] = ['agent_id' => $condition['user_id']];
-                        }
-                    }
+                        //}
+                    //}
                     break;
                 case 'erui' :
                     foreach ($condition['role_no'] as $roleNo) {
