@@ -43,7 +43,12 @@ class CreditModel extends PublicModel {
         $sql.=" where pid=0 and deleted_flag='N' order by sort";
         $type=$this->query($sql);
         foreach($type as $k => $v){
-            $level="select id level_id,en level_name from erui_config.credit where pid=$v[type_id] and deleted_flag='N' ORDER BY sort";
+            if($lang=='zh'){
+                $level="select id level_id,`name` level_name from erui_config.credit where pid=$v[type_id] and deleted_flag='N' ORDER BY sort";
+            }else{
+                $level="select id level_id,en level_name from erui_config.credit where pid=$v[type_id] and deleted_flag='N' ORDER BY sort";
+
+            }
             $name=$this->query($level);
             $type[$k]['credit_level']=$name;
         }
