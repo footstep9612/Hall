@@ -88,6 +88,7 @@ class StockModel extends PublicModel {
                         . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
                 ->where($where)
                 ->limit($from, $size)
+                ->order('s.created_at desc')
                 ->select();
 
         return $list;
