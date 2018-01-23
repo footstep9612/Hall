@@ -1418,7 +1418,6 @@ EOF;
         if($info !== true){
             return $info;
         }
-        echo 'hehe';die;
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
         $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
 
