@@ -834,7 +834,7 @@ class InquiryController extends PublicController {
             foreach ($results['data'] as $key => $val) {
                 //修改URL地址，增加下载文件改名
                 if(!empty($val['attach_name'])){
-                    $results['data'][$key]['attach_url'] = $val['attach_url'].'?filenamme='.$val['attach_name'];
+                    $results['data'][$key]['attach_url'] = $val['attach_url'].'?filename='.$val['attach_name'];
                 }
                 if ($val['attach_group'] == 'BUYER') {
                     $buyerdata = $buyer->field('id,name')->where('id=' . $val['created_by'])->find();
