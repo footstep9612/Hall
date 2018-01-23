@@ -1197,7 +1197,7 @@ EOF;
             $where .= ' And buyer.checked_at  <="' . $condition['checked_at_end'] . '"';
         }
         if (!empty($condition['source'])) {
-            $where .= " And buyer.source=$condition[source]";
+            $where .= " And buyer.source=$condition[source] ";
         }
         if (!empty($condition['buyer_level'])) {    //客户等级
             $where .= ' And buyer.buyer_level=\''.$condition['buyer_level'].'\'';
@@ -1244,7 +1244,7 @@ EOF;
             $sqlTotal .= " on buyer_agent.`agent_id` = employee.`id`";
             $where.=" AND employee.deleted_flag='N'";
         }
-        $totalCount=$this->query($sqlTotal.$where);
+        $totalCount=$this->query($sqlTotal.$where."");
         $totalCount=$totalCount[0]['total_count'];
         //统计等级-客户等级下的数量
         $sqlLevel = "SELECT  buyer.buyer_level,COUNT(*)  as level_count ";
@@ -1256,7 +1256,7 @@ EOF;
             $sqlLevel .= " on buyer_agent.`agent_id` = employee.`id`";
             $where.=" AND employee.deleted_flag='N'";
         }
-        $level=$this->query($sqlLevel.$where."GROUP BY buyer.buyer_level");
+        $level=$this->query($sqlLevel.$where." GROUP BY buyer.buyer_level");
         $arrLevel=array();
         foreach($level as $k => $v){
             $arrLevel[$v['buyer_level']]=$v['level_count'];
@@ -1599,15 +1599,15 @@ EOF;
             ->where($cond)
             ->find();
         if($data['is_check']==true){
-            if(!empty($info['credit_level'])){
-                $level=new CreditModel();
-                $levelName=$level->getCreditLevelNameById($info['credit_level'],$lang);
-                $info['credit_level']=$levelName['type_name'];
-            }
             if(!empty($info['credit_type'])){
                 $level=new CreditModel();
                 $levelName=$level->getCreditTpeNameById($info['credit_type'],$lang);
                 $info['credit_type']=$levelName['type_name'];
+            }
+            if(!empty($info['credit_level'])){
+                $level=new CreditModel();
+                $levelName=$level->getCreditLevelNameById($info['credit_level'],$lang);
+                $info['credit_level']=$levelName['type_name'];
             }
         }
 //        if(empty($info)){
