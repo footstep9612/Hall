@@ -1338,8 +1338,8 @@ EOF;
             }
         }
         if(!empty($base['official_phone'])){
-            if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$base['official_phone'])){
-                return $baseArr['official_phone'];
+            if(!preg_match ("/^(\d{2,4}-)\d{7,11}$/",$base['official_phone'])){
+                return '2~4位区号-(7~11位电话号码:如010-12345678或86-12345678910)';
             }
         }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
@@ -1384,8 +1384,8 @@ EOF;
                     return $v;
                 }
                 if(!empty($value['phone'])){
-                    if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$value['phone'])){
-                        return $contactArr['phone'];
+                    if(!preg_match ("/^(\d{2,4}-)\d{7,11}$/",$value['phone'])){
+                        return '联系人电话格式:2~4位区号-7~11电话号码:如010-12345678或86-12345678910)';
                     }
                 }
             }
