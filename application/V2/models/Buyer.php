@@ -1337,8 +1337,8 @@ EOF;
                 return $v;
             }
         }
-        if(!empty($value['official_phone'])){
-            if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$value['official_phone'])){
+        if(!empty($base['official_phone'])){
+            if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$base['official_phone'])){
                 return $baseArr['official_phone'];
             }
         }
@@ -1418,6 +1418,7 @@ EOF;
         if($info !== true){
             return $info;
         }
+        echo 'hehe';die;
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
         $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
 
