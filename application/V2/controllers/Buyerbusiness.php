@@ -104,7 +104,7 @@ class BuyerbusinessController extends PublicController
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $pay = $payment->paymentList($lang);
         $arr['payment']=$pay;
-        $tradeTerms = new TradeTermsModel();  //结算方式
+        $tradeTerms = new TradeTermsModel();  //贸易术语
         $trade = $tradeTerms->tradeList($lang);
         $arr['trade']=$trade;
         $purchase = new PurchaseModel();  //采购模式
@@ -112,10 +112,10 @@ class BuyerbusinessController extends PublicController
         $arr['purchase_mode']=$purchaseInfo;    //采购周期
         $purchaseInfo = $purchase->purchaseCycleNameList($lang);
         $arr['purchase_cycle']=$purchaseInfo;
-        $credit = new CreditModel();  //结算方式
-        $creditLevel = $credit->creditLevelNameList($lang);
+        $credit = new CreditModel();  //信用
         $creditType = $credit->creditTypeNameList($lang);
-        $arr['creditLevel']=$creditLevel;
+//        $creditLevel = $credit->creditLevelNameList($lang);
+//        $arr['creditLevel']=$creditLevel;
         $arr['creditType']=$creditType;
         $dataJson['code']=1;
         $dataJson['message']='结算和贸易和采购和信用配置';

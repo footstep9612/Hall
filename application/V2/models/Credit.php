@@ -35,11 +35,19 @@ class CreditModel extends PublicModel {
      */
     public function creditTypeNameList($lang='zh'){
         if($lang=='zh'){
-            $info=$this->field('id credit_id,name credit_name')->where(array('type'=>2,'deleted_flag'=>'N'))->order('sort asc')->select();
+            $sql="select id type_id,name credit_type ";
         }else{
-            $info=$this->field('id credit_id,en as credit_name')->where(array('type'=>2,'deleted_flag'=>'N'))->order('sort asc')->select();
+            $sql="select id type_id,en credit_type ";
         }
-        return $info;
+        $sql.="from erui_config.credit";
+        $sql.=" where pid=0 and deleted_flag='N' order by sort";
+        $type=$this->query($sql);
+        foreach($type as $k => $v){
+            $level="select id level_id,en level_name from erui_config.credit where pid=$v[type_id] and deleted_flag='N' ORDER BY sort";
+            $name=$this->query($level);
+            $type[$k]['credit_level']=$name;
+        }
+        return $type;
     }
     /**
      * @param $id 采购id

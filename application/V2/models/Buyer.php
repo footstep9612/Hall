@@ -1575,10 +1575,10 @@ EOF;
                 $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
                 $info['buyer_type'] = $buyerType['type_name'];
             }
-            if(!empty($info['country_bn'])){
-                $country = new CountryModel();
-                $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
-            }
+        }
+        if(!empty($info['country_bn'])){
+            $country = new CountryModel();
+            $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
         }
 
         return $info;
