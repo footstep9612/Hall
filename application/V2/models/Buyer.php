@@ -1168,76 +1168,51 @@ EOF;
      * @author jhw
      */
     public function getBuyerCountByStatus($condition) {
-        $sql = "SELECT  `erui_buyer`.buyer.`status` ,COUNT(*)  as number ";
-        $str = ' FROM ' . $this->g_table;
-        $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
-        $str .= " left Join `erui_sys`.`employee` on `erui_buyer`.`buyer_agent`.`agent_id` = `erui_sys`.`employee`.`id` AND `erui_sys`.`employee`.deleted_flag='N' ";
-        $sql .= $str;
-        $where = " WHERE buyer.deleted_flag = 'N'  ";
+        $sql = "SELECT  buyer.`status` ,COUNT(*)  as number ";
+        $sql .= ' FROM erui_buyer.buyer buyer';
+        $sql .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
+        $sql .= " on buyer_agent.buyer_id = buyer.id ";
+        $sql .= " Join `erui_sys`.`employee` employee";
+        $sql .= " on buyer_agent.`agent_id` = employee.`id`";
+        $where = " WHERE buyer.deleted_flag = 'N'  AND employee.deleted_flag='N' ";
         if (!empty($condition['country_bn'])) {
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-        }
-        if (!empty($condition['name'])) {
-            $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
+            $where .= " And buyer.country_bn=$condition[country_bn] ";
         }
         if (!empty($condition['buyer_no'])) {
-            $where .= ' And buyer_no  ="' . $condition['buyer_no'] . '"';
+            $where .= " And buyer.buyer_no like '%$condition[buyer_no]%'";
         }
         if (!empty($condition['employee_name'])) {
-            $where .= " And `erui_sys`.`employee`.`name`  like '%" . $condition['employee_name'] . "%'";
+            $where .= " And employee.`name`  like '%" . $condition['employee_name'] . "%'";
         }
         if (!empty($condition['status'])) {
-            $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
+            $where .= ' And buyer.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['checked_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer`.checked_at  >="' . $condition['checked_at_start'] . '"';
+            $where .= ' And buyer.checked_at  >="' . $condition['checked_at_start'] . '"';
         }
         if (!empty($condition['checked_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer`.checked_at  <="' . $condition['checked_at_end'] . '"';
+            $where .= ' And buyer.checked_at  <="' . $condition['checked_at_end'] . '"';
         }
-        if (!empty($condition['created_by'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_by  ="' . $condition['created_by'] . '"';
-        }
-
         if (!empty($condition['source'])) {
-            if ($condition['source'] == 1) {
-                $where .= ' And `erui_buyer`.`buyer`.source=1';
-            } else if ($condition['source'] == 2) {
-                $where .= ' And `erui_buyer`.`buyer`.source=2';
-            } else if ($condition['source'] == 3) {
-                $where .= ' And `erui_buyer`.`buyer`.source=3';
-            }
+            $where .= " And buyer.source=$condition[source]";
         }
         if (!empty($condition['buyer_level'])) {    //客户等级
-            $where .= ' And `erui_buyer`.`buyer`.buyer_level=\''.$condition['buyer_level'].'\'';
+            $where .= ' And buyer.buyer_level=\''.$condition['buyer_level'].'\'';
         }
         if (!empty($condition['created_at_start'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
+            $where .= ' And buyer.created_at  >="' . $condition['created_at_start'] . '"';
         }
         if (!empty($condition['created_at_end'])) {
-            $where .= ' And `erui_buyer`.`buyer`.created_at  <="' . $condition['created_at_end'] . '"';
+            $where .= ' And buyer.created_at  <="' . $condition['created_at_end'] . '"';
         }
         if (!empty($condition['buyer_code'])) {
-            $where .= ' And buyer_code  like "%' . $condition['buyer_code'] . '%"';
+            $where .= ' And buyer.buyer_code  like "%' . $condition['buyer_code'] . '%"';
         }
-        if ($condition['is_agent'] == 'Y') {
-            $where .= ' And (`erui_buyer`.`buyer`.created_by  ="' . $condition['agent']['user_id'] . '" OR `erui_buyer`.`buyer_agent`.`agent_id`  in ("' . $condition['agent']['agent_id'] . '"))';
-        }
+
         if ($where) {
             $sql .= $where;
-            // $sql_count .= $where;
         }
-        $sql .= ' Group By `buyer`.status';
-        //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
-//        $res['count'] = count($this->query($sql));
-//        if ($condition['num']) {
-//            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
-//        }
-
-        //$count = $this->query($sql_count);
-
-//        $res['data'] = $this->query($sql);
-
+        $sql .= ' Group By buyer.status';
 
         $statusCount = $this->query($sql);  //各状态下的客户数量
         $field=array(
@@ -1256,11 +1231,23 @@ EOF;
                 }
             }
         }
-        $sqlTotal="select count(*) total_count from erui_buyer.buyer buyer ".$where;   //客户总数量
-        $totalCount=$this->query($sqlTotal);
+        //统计客户数量
+        $sqlTotal = "SELECT  COUNT(*)  as total_count ";
+        $sqlTotal .= ' FROM erui_buyer.buyer buyer';
+        $sqlTotal .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
+        $sqlTotal .= " on buyer_agent.buyer_id = buyer.id ";
+        $sqlTotal .= " Join `erui_sys`.`employee` employee";
+        $sqlTotal .= " on buyer_agent.`agent_id` = employee.`id`";
+        $totalCount=$this->query($sqlTotal.$where);
         $totalCount=$totalCount[0]['total_count'];
-        $levelSql="select buyer_level,count(*) as level_count from erui_buyer.buyer buyer ".$where."GROUP BY buyer.buyer_level";
-        $level=$this->query($levelSql); //客户等级下的数量
+        //统计等级-客户等级下的数量
+        $sqlLevel = "SELECT  buyer.buyer_level,COUNT(*)  as level_count ";
+        $sqlLevel .= ' FROM erui_buyer.buyer buyer';
+        $sqlLevel .= " Join `erui_buyer`.`buyer_agent` buyer_agent";
+        $sqlLevel .= " on buyer_agent.buyer_id = buyer.id ";
+        $sqlLevel .= " Join `erui_sys`.`employee` employee";
+        $sqlLevel .= " on buyer_agent.`agent_id` = employee.`id`";
+        $level=$this->query($sqlLevel.$where."GROUP BY buyer.buyer_level");
         $arrLevel=array();
         foreach($level as $k => $v){
             $arrLevel[$v['buyer_level']]=$v['level_count'];
