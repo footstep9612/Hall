@@ -150,23 +150,6 @@ class OrderModel extends PublicModel {
                 $this->commit();
                 return $orerNo;
             }
-            $arrEmail = [
-                'email'=> '531499132@qq.com',//测试
-                'order_no'=> $orerNo,
-                'creted_at'=> $dataInfo['created_at'],
-                'status'=> 'Proceeding',
-                'pay_status'=> 'Unpaid',
-                'currency_bn'=> $dataInfo['currency_bn'],
-                'amount'=> $dataInfo['amount'],
-                'remark'=> $dataInfo['remark'],
-                'expected_receipt_date'=> '',
-                'name'=> $data['addrAry']['name'],
-                'phone'=> $data['addrAry']['phone'],
-                'zipcode'=> $data['addrAry']['zipcode'],
-                'url'=> 'http://mall.erui.com',
-                'time'=> date('Y-m-d H:i:s',time())
-            ];
-            orderEmail($arrEmail);
             return false;
         }catch (Exception $e){
             $this->rollback();
