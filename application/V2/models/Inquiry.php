@@ -964,6 +964,7 @@ class InquiryModel extends PublicModel {
         if(!empty($condition['agent_id'])){
             $data['agent_id'] = $condition['agent_id'];
             $data['now_agent_id'] = $condition['agent_id'];
+            $data['created_by'] = $condition['agent_id'];
         }
 
         try {
