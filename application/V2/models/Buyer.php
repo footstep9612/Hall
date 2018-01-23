@@ -1337,6 +1337,11 @@ EOF;
                 return $v;
             }
         }
+        if(!empty($value['official_phone'])){
+            if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$value['official_phone'])){
+                return $baseArr['official_phone'];
+            }
+        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
             return $baseArr['official_email'];
         }
@@ -1377,6 +1382,11 @@ EOF;
             foreach($contactArr as $k => $v){
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
                     return $v;
+                }
+                if(!empty($value['phone'])){
+                    if(!preg_match ("/(^(\d{3,4}-)?\d{7,8})$|(1[0-9]{10})/",$value['phone'])){
+                        return $contactArr['phone'];
+                    }
                 }
             }
             if(!empty($value['email'])){
