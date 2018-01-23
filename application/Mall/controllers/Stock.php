@@ -47,6 +47,8 @@ class StockController extends PublicController {
         $list = $stock_model->getListByKeyword($condition);
         if ($list) {
             $this->_setImage($list);
+            $count = $stock_model->getCountByKeyword($condition);
+            $this->setvalue('count', $count);
             $this->_setConstPrice($list, $condition['country_bn']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
