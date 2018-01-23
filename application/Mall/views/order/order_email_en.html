@@ -6,15 +6,6 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>email</title>
-    <link rel="stylesheet" href="<?php echo $url;?>/static/common/css/bootstrap.css">
-    <link rel="stylesheet" href="<?php echo $url;?>/static/common/css/base.css">
-    <!--<link rel="stylesheet" href="email.css">-->
-    <!-- HTML5 Shiv 和 Respond.js 用于让 IE8 支持 HTML5元素和媒体查询 -->
-    <!-- 注意： 如果通过 file://  引入 Respond.js 文件，则该文件无法起效果 -->
-    <!--[if lt IE 9]>
-    <script src="<?php echo $url;?>/static/common/js/html5shiv.min.js"></script>
-    <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.js"></script>
-    <![endif]-->
     <style>
         .container {
             width: 680px;
@@ -49,19 +40,30 @@
             font-size: 18px;
             color: #325588;
             line-height: normal;
+            margin: 0;
+            padding: 0;
         }
         .dl-horizontal {
             font-size: 14px;
-
+            clear:left;
+            margin: 0 auto;
         }
         .dl-horizontal dt {
             color: #a6b4ca;
             font-weight: normal;
             line-height: 28px;
+            text-align: right;
+            width: 200px;
+            display: inline-block;
+            float: left;
         }
         .dl-horizontal dd {
             color: #000;
             line-height: 28px;
+            display: inline-block;
+            margin-left: 10px;
+            width: 375px;
+            /*float: left;*/
         }
 
         .viewBtn {
@@ -76,13 +78,14 @@
             font-size: 18px;
             margin: 30px auto;
             margin-bottom: 0;
+            text-decoration: none;
         }
         .viewBtn:hover {
             color: #fff;
         }
         .mail-bottom {
             width: 100%;
-            height: auto;
+            height: 208px;
             padding: 20px 47px;
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
@@ -93,6 +96,7 @@
         .mail-bottom p {
             color: #666;
             line-height: 24px;
+            margin: 0;
         }
     </style>
 </head>
