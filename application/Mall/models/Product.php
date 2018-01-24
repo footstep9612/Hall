@@ -508,7 +508,7 @@ class ProductModel extends PublicModel {
             $where = ['deleted_flag' => 'N'];
             $where['lang'] = $lang;
             $where['spu'] = ['in', $spus];
-            $data = $this->field('brand,exe_standard,tech_paras,spu,customization_flag')->where($where)->select();
+            $data = $this->field('brand,exe_standard,tech_paras,spu,customization_flag,warranty')->where($where)->select();
             $ret = [];
             if ($data) {
                 foreach ($data as $item) {

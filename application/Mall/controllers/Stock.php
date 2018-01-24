@@ -195,14 +195,15 @@ class StockController extends PublicController {
             }
 
             $product_model = new ProductModel();
-            $products = $product_model->GetProductBySpus($spus, $country_bn);
+            $products = $product_model->GetProductBySpus($spus, $lang);
 
             foreach ($arr as $key => $val) {
 
                 if ($val['spu'] && isset($products[$val['spu']])) {
-
                     $val['tech_paras'] = $products[$val['spu']]['tech_paras'];
                     $val['exe_standard'] = $products[$val['spu']]['exe_standard'];
+                    $val['customization_flag'] = $products[$val['spu']]['customization_flag'];
+                    $val['warranty'] = $products[$val['spu']]['warranty'];
                     $brand = json_decode($products[$val['spu']]['brand'], true);
                     if ($brand && isset($brand['name'])) {
                         $val['brand'] = $brand['name'];
@@ -212,7 +213,9 @@ class StockController extends PublicController {
                 } else {
                     $val['tech_paras'] = '';
                     $val['exe_standard'] = '';
+                    $val['customization_flag'] = 'N';
                     $val['brand'] = '';
+                    $val['warranty'] = '';
                 }
                 $arr[$key] = $val;
             }
