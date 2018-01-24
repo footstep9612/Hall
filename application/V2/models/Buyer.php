@@ -1338,8 +1338,8 @@ EOF;
             }
         }
         if(!empty($base['official_phone'])){
-            if(!preg_match ("/^(\d{2,4}-)\d{6,11}$/",$base['official_phone'])){
-                return '公司电话2~4位区号-6~11位电话号码';
+            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
+                return '公司电话:(选)2~4位区号-6~11位电话号码';
             }
         }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
@@ -1384,8 +1384,8 @@ EOF;
                     return $v;
                 }
                 if(!empty($value['phone'])){
-                    if(!preg_match ("/^(\d{2,4}-)\d{6,11}$/",$value['phone'])){
-                        return '联系人电话2~4位区号-6~11位电话号码';
+                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
                     }
                 }
             }
