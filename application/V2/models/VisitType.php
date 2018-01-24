@@ -33,7 +33,11 @@ class VisitTypeModel extends PublicModel {
             'deleted_flag' => self::DELETED_N
         ];
         try{
-            $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
+            if($_input['lang']=='en'){
+                $result = $this->field('id,en as name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
+            }else{
+                $result = $this->field('id,name,is_show,created_by,created_at')->where($condition)->limit(($current_no-1)*$length, $length)->select();
+            }
             return $result ? $result : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【VisitType】getList:' . $e , Log::ERR);
