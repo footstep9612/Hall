@@ -420,6 +420,12 @@ class BuyerAgreementModel extends PublicModel
     //按单号查看数据及附件信息详情-------
     public function showAgree($execute_no){
         $agree = $this->where(array('execute_no'=>$execute_no))->find();
+        if(!empty($agree['number'])){
+            $agree['number']=(float)$agree['number'];
+        }
+        if(!empty($agree['amount'])){
+            $agree['amount']=(float)$agree['amount'];
+        }
         if(!empty($agree)){
             //附件
             $id = $agree['id'];
