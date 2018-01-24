@@ -1608,6 +1608,12 @@ EOF;
         $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
             ->where($cond)
             ->find();
+        if(empty($info)){
+            $info['credit_level'] = "";
+            $info['credit_type'] = "";
+            $info['line_of_credit'] = 0;
+            $info['credit_available'] = 0;
+        }
         if($data['is_check']==true){
             if(!empty($info['credit_type'])){
                 $level=new CreditModel();
@@ -1620,12 +1626,6 @@ EOF;
                 $info['credit_level']=$levelName['type_name'];
             }
         }
-//        if(empty($info)){
-//            $info['credit_level'] = "";
-//            $info['credit_type'] = "";
-//            $info['line_of_credit'] = 0;
-//            $info['credit_available'] = 0;
-//        }
         return $info;
     }
 
