@@ -1322,7 +1322,7 @@ EOF;
 //            'expiry_at'=>'有效期',
             'is_oilgas'=>'是否油气',
             'company_model'=>'公司性质',
-            'official_phone'=>'公司固话',
+            'official_phone'=>'公司电话',
             'official_email'=>'公司邮箱',
             'official_website'=>'公司网址',
             'company_reg_date'=>'公司成立日期',
@@ -1338,8 +1338,8 @@ EOF;
             }
         }
         if(!empty($base['official_phone'])){
-            if(!preg_match ("/^(\d{2,4}-)\d{7,11}$/",$base['official_phone'])){
-                return '公司电话2~4位区号-(7~11位电话号码:如010-12345678或86-12345678910)';
+            if(!preg_match ("/^(\d{2,4}-)\d{6,11}$/",$base['official_phone'])){
+                return '公司电话2~4位区号-6~11位电话号码';
             }
         }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
@@ -1384,8 +1384,8 @@ EOF;
                     return $v;
                 }
                 if(!empty($value['phone'])){
-                    if(!preg_match ("/^(\d{2,4}-)\d{7,11}$/",$value['phone'])){
-                        return '联系人电话:2~4位区号-7~11电话号码:如010-12345678或86-12345678910)';
+                    if(!preg_match ("/^(\d{2,4}-)\d{6,11}$/",$value['phone'])){
+                        return '联系人电话2~4位区号-6~11位电话号码';
                     }
                 }
             }
