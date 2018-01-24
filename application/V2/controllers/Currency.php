@@ -37,5 +37,4 @@ class CurrencyController extends PublicController {
         }
         $this->jsonReturn($data);
     }
-
 }

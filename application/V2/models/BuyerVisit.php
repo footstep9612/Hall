@@ -28,6 +28,7 @@ class BuyerVisitModel extends PublicModel {
      * @return array|bool|mixed
      */
     public function getList($data = []){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
@@ -41,7 +42,7 @@ class BuyerVisitModel extends PublicModel {
         $offset = ($current_no-1)*$length;
         $total = $this->field('id')->where($condition)->count();
         //按条件获取拜访记录数据
-        $result = $this->condGetVisitData($condition,$offset,$length);
+        $result = $this->condGetVisitData($lang,$condition,$offset,$length);
         $arr = [
                  'current_no' => $current_no,
                  'pagesize' => $length,
@@ -227,9 +228,9 @@ class BuyerVisitModel extends PublicModel {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择职位拜访类型');
         }
 
-        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
-        }
+//        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
+//            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
+//        }
 
         if(!isset($_input['visit_objective']) || empty($_input['visit_objective'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入拜访目的');
@@ -485,6 +486,7 @@ class BuyerVisitModel extends PublicModel {
      * 返回数组,已上传到服务器临时路径
      */
     public function getVisitStatiaList($data = [],$length = 1000){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
@@ -496,14 +498,14 @@ class BuyerVisitModel extends PublicModel {
         $i = 0;
         do {
             //按条件获取拜访记录数据
-            $result = $this->condGetVisitData($condition,$i,$length);
+            $result = $this->condGetVisitData($lang,$condition,$i,$length);
             $info = $this->getVisitStatisData($result); //整理excel导出的数据
             if($i==0){
                 $excelName = 'visit';
             }else{
                 $excelName = 'visit_'.($i/$length);
             }
-            $excelDir[] = $this->exportModel($excelName,$info); //导入excel,获取excel临时文件路径信息
+            $excelDir[] = $this->exportModel($lang,$excelName,$info); //导入excel,获取excel临时文件路径信息
             $i = $i+$length;
             $total =$total-$length;
         } while ($total > 0);
@@ -515,7 +517,7 @@ class BuyerVisitModel extends PublicModel {
      * execl导出的数据 $data
      * wangs
      */
-    public function exportModel($excelName,$data){
+    public function exportModel($lang='zh',$excelName,$data){
         ini_set("memory_limit", "1024M"); // 设置php可使用内存
         set_time_limit(0);  # 设置执行时间最大值
         //存放excel文件目录
@@ -532,7 +534,11 @@ class BuyerVisitModel extends PublicModel {
         $objActSheet->setTitle('sheet1');
         //填充表头信息
         $letter = range(A,Z);
-        $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+        if($lang=='zh'){
+            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+        }else{
+            $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category');
+        }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
             $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
@@ -550,8 +556,9 @@ class BuyerVisitModel extends PublicModel {
             //设置表头外的文字垂直居中
             $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
-        $excel->getActiveSheet()->getColumnDimension('G')->setWidth(30);
-        $excel->getActiveSheet()->getColumnDimension('H')->setWidth(30);
+        $excel->getActiveSheet()->getColumnDimension('E')->setWidth(40);
+        $excel->getActiveSheet()->getColumnDimension('G')->setWidth(40);
+        $excel->getActiveSheet()->getColumnDimension('H')->setWidth(40);
         //填充表格数据信息
         for ($i = 2;$i <= count($data) + 1;$i++) {
             $j = 0;
@@ -591,7 +598,7 @@ class BuyerVisitModel extends PublicModel {
      * @数据偏移量 $offset
      * wangs
      */
-    public function condGetVisitData($condition = [],$offset = 0,$pageSize = 10){
+    public function condGetVisitData($lang='zh',$condition = [],$offset = 0,$pageSize = 10){
         $vtModel = new VisitTypeModel();    //拜访类型
         $vpModel = new VisitPositionModel();    //拜访位置类型
         $vlModel = new VisitLevelModel();   //拜访级别
@@ -622,7 +629,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //目的拜访类型
             $vtype = json_decode($r['visit_type']);
-            $visitTypeInfo = $vtModel->field('name')->where(['id'=>['in',$vtype]])->select();
+            if($lang=='zh'){
+                $visitTypeInfo = $vtModel->field('name as name')->where(['id'=>['in',$vtype]])->select();
+            }else{
+                $visitTypeInfo = $vtModel->field('en as name')->where(['id'=>['in',$vtype]])->select();
+            }
             $visit_type = '';
             foreach($visitTypeInfo as $info){
                 $visit_type.= '、'.$info['name'];
@@ -632,7 +643,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //职位拜访类型
             $vposition = json_decode($r['visit_position']);
-            $vpInfo = $vpModel->field('name')->where(['id'=>['in',$vposition]])->select();
+            if($lang=='zh'){
+                $vpInfo = $vpModel->field('name as name')->where(['id'=>['in',$vposition]])->select();
+            }else{
+                $vpInfo = $vpModel->field('en as name')->where(['id'=>['in',$vposition]])->select();
+            }
             $visit_position = '';
             foreach($vpInfo as $info){
                 $visit_position.= '、'.$info['name'];
@@ -643,7 +658,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //拜访级别
             $vlevel = json_decode($r['visit_level']);
-            $vlInfo = $vlModel->field('name')->where(['id'=>['in',$vlevel]])->select();
+            if($lang=='zh'){
+                $vlInfo = $vlModel->field('name as name')->where(['id'=>['in',$vlevel]])->select();
+            }else{
+                $vlInfo = $vlModel->field('en as name')->where(['id'=>['in',$vlevel]])->select();
+            }
             $visit_level = '';
             foreach($vlInfo as $info){
                 $visit_level.= '、'.$info['name'];
@@ -653,7 +672,11 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //客户需求类型
             $dtype = json_decode($r['demand_type']);
-            $dpInfo = $dpModel->field('name')->where(['id'=>['in',$dtype]])->select();
+            if($lang=='zh'){
+                $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+            }else{
+                $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+            }
             $demand_type = '';
             foreach($dpInfo as $info){
                 $demand_type.= '、'.$info['name'];

@@ -269,4 +269,22 @@ $row = $this->query( $sql );
         return date('Y-m-d H:i:s', time());
     }
 
+    /**
+     * wangs
+     * 获取客户等级名称
+     */
+    public function getBuyerLevelById($id,$lang='zh'){
+        $cond=array(
+            'id'=>$id,
+            'deleted_flag'=>'N'
+        );
+        $name=$this->field('buyer_level')->where($cond)->find();
+        $json=$name['buyer_level'];
+        $arr=json_decode($json,true);
+        $info=array();
+        foreach($arr as $k => $v){
+            $info[$v['lang']]=$v['name'];
+        }
+        return $info[$lang];
+    }
 }
