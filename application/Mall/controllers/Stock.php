@@ -50,6 +50,7 @@ class StockController extends PublicController {
             $count = $stock_model->getCountByKeyword($condition);
             $this->setvalue('count', $count);
             $this->_setConstPrice($list, $condition['country_bn']);
+            $this->_SetProductInfo($list, $condition['lang']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -170,6 +171,48 @@ class StockController extends PublicController {
                     }
                 } else {
                     $val['costprices'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _SetProductInfo(&$arr, $lang = 'en') {
+        if ($arr) {
+
+            $spus = [];
+            foreach ($arr as $key => $val) {
+                $spus[] = $val['spu'];
+            }
+
+            $product_model = new ProductModel();
+            $products = $product_model->GetProductBySpus($spus, $country_bn);
+
+            foreach ($arr as $key => $val) {
+
+                if ($val['spu'] && isset($products[$val['spu']])) {
+
+                    $val['tech_paras'] = $products[$val['spu']]['tech_paras'];
+                    $val['exe_standard'] = $products[$val['spu']]['exe_standard'];
+                    $brand = json_decode($products[$val['spu']]['brand'], true);
+                    if ($brand && isset($brand['name'])) {
+                        $val['brand'] = $brand['name'];
+                    } else {
+                        $val['brand'] = $products[$val['spu']]['brand'];
+                    }
+                } else {
+                    $val['tech_paras'] = '';
+                    $val['exe_standard'] = '';
+                    $val['brand'] = '';
                 }
                 $arr[$key] = $val;
             }
