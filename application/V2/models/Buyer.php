@@ -2106,6 +2106,6 @@ EOF;
             'id'=>$id,
             'deleted_flag'=>'N'
         );
-        return $this->field('credit_level,credit_type,line_of_credit,credit_available')->where($cond)->find();
+        return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
     }
 }
