@@ -1025,8 +1025,8 @@ EOF;
             )
         );
         $context = stream_context_create($opt);
-        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
-//        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+//        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
+        $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
         $str = file_get_contents($url,false,$context);  //得到客户crm数据
         $need = strstr($str,'<biz_scope>');
         $need = strstr($need,'</rpc:QueryAccountResponse>',true);
