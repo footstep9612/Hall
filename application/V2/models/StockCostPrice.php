@@ -150,7 +150,7 @@ class StockCostPriceModel extends PublicModel {
                 $cost_price['min_price'] = null;
                 $cost_price['max_price'] = null;
                 $cost_price['price_cur_bn'] = null;
-                $cost_price['min_purchase_qty'] = null;
+                $cost_price['min_purchase_qty'] = 1;
                 $cost_price['max_purchase_qty'] = null;
 //            $cost_prices['pricing_date'] = null;
                 $cost_price['price_validity_start'] = null;

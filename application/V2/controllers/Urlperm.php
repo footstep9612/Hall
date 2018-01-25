@@ -41,7 +41,7 @@ class UrlpermController extends PublicController {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0,'source'=>'BOSS'],$limit); //($this->put_data);
+        $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
         $count = count($data);
         $res = $this -> get_urlperm_children($data);
 

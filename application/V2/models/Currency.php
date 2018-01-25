@@ -127,5 +127,4 @@ class CurrencyModel extends PublicModel {
             return '';
         }
     }
-
 }

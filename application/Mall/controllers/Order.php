@@ -645,7 +645,7 @@ class OrderController extends PublicController {
 //        ];
         $data = $this->getPut();
         $lang = empty($data['lang']) ? 'en' : $data['lang'];
-        if($data['order_no']='201801170111'){
+        if($data['order_no']){
             $ordr_model = new OrderModel();
             $result = $ordr_model->field('id,created_at,show_status,pay_status,currency_bn,amount,remark,expected_receipt_date')
                                  ->where(['order_no'=>$data['order_no'],'deleted_flag'=>'N'])
