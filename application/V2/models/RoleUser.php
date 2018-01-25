@@ -22,7 +22,7 @@ class RoleUserModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-    public function userRoleList($user_id, $pid = '') {
+    public function userRoleList($user_id, $pid = '',$where=null) {
         if ($user_id) {
             $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
             $sql .= ' FROM employee';
@@ -36,6 +36,9 @@ class RoleUserModel extends PublicModel {
             }
             if ($pid !== '') {
                 $sql .= ' and `func_perm`.`parent_id` = ' . $pid;
+            }
+            if($where['source']){
+                $sql .= " and `func_perm`.`source` = '"  . $where['source']."'";
             }
             $sql .= ' group by func_perm_id';
             $sql .= ' order by `func_perm`.`sort` desc';

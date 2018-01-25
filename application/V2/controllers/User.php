@@ -194,8 +194,11 @@ class UserController extends PublicController {
     public function userrolelistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
+        if (!empty($data['source'])) {
+            $where['source'] = trim($data['source']);
+        }
         $role_user_modle = new RoleUserModel();
-        $data = $role_user_modle->userRoleList($this->user['id']);
+        $data = $role_user_modle->userRoleList($this->user['id'],'',$where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
