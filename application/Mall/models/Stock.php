@@ -44,8 +44,9 @@ class StockModel extends PublicModel {
 
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
+
         return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn,s.model')
                         ->where($where)
                         ->order('sort_order desc')
                         ->limit($from, $size)
@@ -57,7 +58,6 @@ class StockModel extends PublicModel {
         $where = $this->_getCondition($condition);
 
         return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
                         ->where($where)
                         ->count();
     }
