@@ -37,6 +37,11 @@ foreach ($environments as $environment) {
         break;
     }
 }
+
+#added by liujf, 2018-01-25
+define('COMMON_CONF_PATH', COMMON_PATH . DS . 'conf');
+define('CONTROLLER_NAME', ucfirst($out[2]));
+
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH
