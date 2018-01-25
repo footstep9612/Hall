@@ -790,7 +790,7 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
-        $res = $model->createBuyerBaseInfo($data);      //创建基本信息
+        $res = $model->createBuyerBaseInfo($data);          //创建基本信息
         if($res !== true && $res !==false){
             $valid = array(
                 'code'=>0,
