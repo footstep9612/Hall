@@ -189,6 +189,8 @@ class DownloadController extends PublicController {
                 case 'APPROVING' : $data[$k]['status'] = '待审核'; break;
                 case 'APPROVED' : $data[$k]['status'] = '已通过'; break;
                 case 'REJECTED' : $data[$k]['status'] = '已驳回'; break;
+                case 'FIRST_APPROVED' : $data[$k]['status'] = '初审通过'; break;
+                case 'FIRST_REJECTED' : $data[$k]['status'] = '初审驳回'; break;
             }
         }
         return $data;
