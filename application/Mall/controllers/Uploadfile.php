@@ -3,7 +3,7 @@
 /**
   上传Controller
  */
-class UploadfileController extends Yaf_Controller_Abstract {
+class UploadfileController extends PublicController {
     /*
       上传地址
      */
