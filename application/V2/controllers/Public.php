@@ -22,7 +22,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
-
         $this->headers = getHeaders();
         $token = isset($this->headers['token']) ? $this->headers['token'] : '';
         //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
@@ -33,6 +32,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $jsondata = $data = $this->getPut();
         $lang = $this->getPut('lang', 'en');
         $this->setLang($lang);
+        
+        // 加载php公共配置文件
+        $commonConfig = $this->_loadCommonConfig();
+        C($commonConfig);
+        // 语言检查
+        $this->_checkLanguage();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
@@ -488,51 +493,69 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $code = $prefix . $time . '_' . $pad;
         return $code;
     }
-
-    /**
-     * @desc 获取当前用户信息
-     * @author liujf 2017-07-01
-     * @return array
-     */
-    public function getUserInfo() {
-        $userModel = new UserModel();
-        return $userModel->info($this->user['id']);
-    }
-
-    /**
-     * @desc 记录审核日志
-     *
-     * @param array $condition
-     * @param object $model
+    
+    /*
+     * @desc 加载php公共配置文件
+     * 
      * @return array
      * @author liujf
-     * @time 2017-08-10
+     * @time 2018-01-25
      */
-    public function addCheckLog($condition, &$model) {
-        if (is_object($model)) {
-            $inquiryCheckLogModel = &$model;
-        } else {
-            $inquiryCheckLogModel = new InquiryCheckLogModel();
+    private function _loadCommonConfig() {
+        $files = $commonConfig = $phpConfig = [];
+        searchDir(COMMON_CONF_PATH, $files);
+        foreach ($files as $file) {
+            if (preg_match('/.*\.php$/i', $file)) $phpConfig = include $file;
+            if (is_array($phpConfig) && !empty($phpConfig)) $commonConfig = array_merge($commonConfig, $phpConfig);
         }
-        $time = date('Y-m-d H:i:s');
-
-        $inquiryIdArr = explode(',', $condition['inquiry_id']);
-
-        $checkLogList = $checkLog = array();
-
-        foreach ($inquiryIdArr as $inquiryId) {
-            $data = $condition;
-            $data['op_id'] = $this->user['id'];
-            $data['inquiry_id'] = $inquiryId;
-            $data['created_by'] = $this->user['id'];
-            $data['created_at'] = $time;
-
-            $checkLog = $inquiryCheckLogModel->create($data);
-
-            $checkLogList[] = $checkLog;
+        return $commonConfig;
+    }
+    
+    /**
+     * @desc 语言检查(检查浏览器支持语言，并自动加载语言包)
+     *      
+     * @author liujf
+     * @time 2018-01-25
+     */
+    private function _checkLanguage() {
+        // 不开启语言包功能，仅仅加载框架语言文件直接返回
+        if (!C('LANG_SWITCH_ON', null, false)) {
+            return;
         }
-
-        return $inquiryCheckLogModel->addAll($checkLogList);
+        $langSet = C('DEFAULT_LANG');
+        $varLang = C('VAR_LANGUAGE', null, 'l');
+        $langList = C('LANG_LIST', null, 'zh');
+        // 启用了语言包功能
+        // 根据是否启用自动侦测设置获取语言选择
+        if (C('LANG_AUTO_DETECT', null, true)) {
+            $langParam = $this->getPut($varLang);
+            if (!empty($langParam)) {
+                $langSet = $langParam; // 参数中设置了语言变量
+            } else if (isset($_GET[$varLang])) {
+                $langSet = $_GET[$varLang]; // url中设置了语言变量
+                redisSet('erui_boss_language', $langSet, 3600);
+            } else if (redisSet('erui_boss_language')) { // 获取上次用户的选择
+                $langSet = redisSet('erui_boss_language');
+            } else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) { // 自动侦测浏览器语言
+                preg_match('/^([a-z\d\-]+)/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
+                $langSet = $matches[1];
+                redisSet('erui_boss_language', $langSet, 3600);
+            }
+            if(false === stripos($langList,$langSet)) { // 非法语言参数
+                $langSet = C('DEFAULT_LANG');
+            }
+        }
+        // 定义当前语言
+        define('LANG_SET', strtolower($langSet));
+        // 读取公共语言包
+        $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
+        if(is_file($file)) L(include $file);
+        // 读取模块语言包
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
+        if(is_file($file)) L(include $file);
+        // 读取当前控制器语言包
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . strtolower(CONTROLLER_NAME) . '.php';
+        if (is_file($file)) L(include $file);
     }
 
     /**
