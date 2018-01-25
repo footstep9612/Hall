@@ -1605,12 +1605,19 @@ EOF;
             'created_by'=>$data['created_by'],
             'deleted_flag'=>'N'
         );
-        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available')
+        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')
             ->where($cond)
             ->find();
         if(empty($info)){
             $info['credit_level'] = "";
             $info['credit_type'] = "";
+            $info['payment_behind'] = "";
+            $info['behind_time'] = "";
+            $info['reputation'] = "";
+            $info['violate_treaty'] = "";
+            $info['treaty_content'] = "";
+            $info['comments'] = "";
+
             $info['line_of_credit'] = 0;
             $info['credit_available'] = 0;
         }
@@ -1624,6 +1631,20 @@ EOF;
                 $level=new CreditModel();
                 $levelName=$level->getCreditLevelNameById($info['credit_level'],$lang);
                 $info['credit_level']=$levelName['type_name'];
+            }
+            if(!empty($info['payment_behind'])){    //是否拖欠过货款
+                if($lang=='zh'){
+                    $info['payment_behind']= $info['payment_behind']=="Y"?'是':'否';
+                }else{
+                    $info['payment_behind']= $info['payment_behind']=="Y"?'YES':'NO';
+                }
+            }
+            if(!empty($info['violate_treaty'])){    //是否有针对KERUI/ERUI的违约
+                if($lang=='zh'){
+                    $info['violate_treaty']=$info['violate_treaty']=="Y"?'是':'否';
+                }else{
+                    $info['violate_treaty']=$info['violate_treaty']=="Y"?'YES':'NO';
+                }
             }
         }
         return $info;
@@ -2059,6 +2080,14 @@ EOF;
         $arr=array(
             'line_of_credit'=>!empty($credit['line_of_credit'])?$credit['line_of_credit']:0,    //授信额度
             'credit_available'=>!empty($credit['credit_available'])?$credit['credit_available']:0,    //可用额度
+
+            'payment_behind'=>!empty($credit['credit_available'])?$credit['credit_available']:null,    //是否拖欠过货款
+            'behind_time'=>!empty($credit['credit_available'])?$credit['credit_available']:null,    //拖欠货款时间
+            'reputation'=>!empty($credit['credit_available'])?$credit['credit_available']:null,    //业内口碑
+            'violate_treaty'=>!empty($credit['credit_available'])?$credit['credit_available']:null,  //是否有针对KERUI/ERUI的违约
+            'treaty_content'=>!empty($credit['credit_available'])?$credit['credit_available']:null,    //有违约内容
+            'comments'=>!empty($credit['credit_available'])?$credit['credit_available']:null,    //KERUI/ERUI、KERUI对其评价
+
             'credit_type'=>$credit['credit_type'],    //授信类型
             'credit_level'=>$credit['credit_level'],    //信用等级
         );
