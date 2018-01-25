@@ -3,7 +3,7 @@
 class FastDFSclient {
 
     //上传附件
-    function uploadAttach($file) {
+    function uploadAttach($file, $group_name = 'group1') {
         $ret = array();
         $ret['errorcode'] = 0;
         $ret['errormsg'] = '';
@@ -29,7 +29,7 @@ class FastDFSclient {
         $fileSuffix = $this->getSuffix($curlFile->getPostFilename());
 
         $ret['file'] = $file;
-        $ret['fileId'] = $this->uploadToFastdfs($curlFile, $fileSuffix);
+        $ret['fileId'] = $this->uploadToFastdfs($curlFile, $fileSuffix, $group_name);
         return $ret;
     }
 
@@ -40,11 +40,11 @@ class FastDFSclient {
     }
 
     //上传文件到fastdfs
-    function uploadToFastdfs(CurlFile $file, $fileSuffix) {
+    function uploadToFastdfs(CurlFile $file, $fileSuffix, $group_name = 'group1') {
         if (extension_loaded('fastdfs_client')) {
             $fdfs = new FastDFS();
             $tracker = $fdfs->tracker_get_connection();
-            $fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($file->getFilename()), $fileSuffix);
+            $fileId = $fdfs->storage_upload_by_filebuff1(file_get_contents($file->getFilename()), $fileSuffix, [], $group_name);
             $fdfs->tracker_close_all_connections();
             return $fileId;
         } else {
