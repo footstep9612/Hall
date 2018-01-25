@@ -976,28 +976,29 @@ class BuyerController extends PublicController {
                 'message'=>'CRM已存在'
             );
             $this->jsonReturn($dataJson);
+        }
+//        else{
+//            $dataJson = array(
+//                'code'=>2,
+//                'message'=>'正常录入客户信息流程'
+//            );
+//            $this->jsonReturn($dataJson);
+//        }
+        //验证集团CRM存在,则展示数据
+        $group = $this->groupCrmCode($data['buyer_code']);
+        if(!empty($group)){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'集团CRM客户信息',
+                'data'=>$group
+            );
         }else{
             $dataJson = array(
                 'code'=>2,
                 'message'=>'正常录入客户信息流程'
             );
-            $this->jsonReturn($dataJson);
         }
-        //验证集团CRM存在,则展示数据
-//        $group = $this->groupCrmCode($data['buyer_code']);
-//        if(!empty($group)){
-//            $dataJson = array(
-//                'code'=>1,
-//                'message'=>'集团CRM客户信息',
-//                'data'=>$group
-//            );
-//        }else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>'正常录入客户信息流程'
-//            );
-//        }
-//        $this->jsonReturn($dataJson);
+        $this->jsonReturn($dataJson);
     }
 
     /**
