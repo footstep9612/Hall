@@ -24,7 +24,7 @@ class RoleUserModel extends PublicModel {
 
     public function userRoleList($user_id, $pid = '',$where=null) {
         if ($user_id) {
-            $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`parent_id` ';
+            $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`show_name`,`func_perm`.`parent_id` ';
             $sql .= ' FROM employee';
             $sql .= ' LEFT JOIN  `role_member` ON `employee`.`id` =`role_member`.`employee_id`';
             $sql .= ' LEFT JOIN  `role` ON `role`.`id` =`role_member`.`role_id` and  `role`.`deleted_flag` = "N"';
