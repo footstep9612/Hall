@@ -1810,7 +1810,6 @@ EOF;
                     $info[$key]['min_range']=sprintf("%.2f",$v['range']['min']);
                 }
             }
-            print_r($info);die;
         }
         return $info;
     }
