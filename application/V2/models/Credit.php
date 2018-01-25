@@ -54,6 +54,19 @@ class CreditModel extends PublicModel {
         }
         return $type;
     }
+    //客户档案信息管理展示
+    public function getCreditNameById($id,$lang='zh'){
+        $cond=array(
+            'id'=>$id,
+            'deleted_flag'=>'N'
+        );
+        if($lang=='zh'){
+            $name=$this->field('name name')->where($cond)->find();
+        }else{
+            $name=$this->field('en name')->where($cond)->find();
+        }
+        return $name['name'];
+    }
     /**
      * @param $id 采购id
      * @param string $lang  语言

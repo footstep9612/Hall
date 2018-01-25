@@ -1564,7 +1564,7 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
-        if(!empty($info['official_phone'])){
+        if(empty($info['official_phone'])){
             $info['official_phone'] = '';
         }
         if(!empty($info['buyer_level'])){
@@ -1805,9 +1805,9 @@ EOF;
             foreach($orderRes as $k => $v){
                 if($value['id']==$k){
                     $info[$key]['order_count']=$v['countaccount']['count'];
-                    $info[$key]['order_account']=$v['countaccount']['account'];
-                    $info[$key]['max_range']=$v['range']['max'];
-                    $info[$key]['min_range']=$v['range']['min'];
+                    $info[$key]['order_account']=sprintf("%.2f",$v['countaccount']['account']);
+                    $info[$key]['max_range']=sprintf("%.2f",$v['range']['max']);
+                    $info[$key]['min_range']=sprintf("%.2f",$v['range']['min']);
                 }
             }
         }
@@ -1912,6 +1912,7 @@ EOF;
             if(!empty($info)){
                 $country = new CountryModel();
                 $level = new BuyerLevelModel();
+                $credit = new CreditModel();
                 foreach($info as $k => $v){
                     $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                     if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
@@ -1922,6 +1923,12 @@ EOF;
                     }
                     if(empty($v['level_at'])){
                         $info[$k]['level_at']=substr($v['created_at'],0,10);
+                    }
+                    if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
+                        $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
+                    }
+                    if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
+                        $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
                     }
                 }
             }
