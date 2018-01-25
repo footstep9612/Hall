@@ -171,6 +171,10 @@ class DownloadController extends PublicController {
             //会员等级
             if (empty($v['buyer_level'])){
                 $data[$k]['buyer_level'] = '注册会员';
+            }else{
+                $level=new BuyerLevelModel();
+                $name=$level->getBuyerLevelById($v['buyer_level'],'zh');
+                $data[$k]['buyer_level']=$name;
             }
             //用户来源
             if ($v['source']==1){
