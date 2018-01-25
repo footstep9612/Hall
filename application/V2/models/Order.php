@@ -186,16 +186,16 @@ class OrderModel extends PublicModel {
      * wangs
      */
     public function statisOrder($buyer_id){
-        $sql = "select count(id) as `count`,sum(amount) as account from `erui_order`.`order` where buyer_id=$buyer_id";
+        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account from `erui_order`.`order` where buyer_id=$buyer_id";
         $info = $this->query($sql);
-        if(empty($info)){
+        if($info[0]['count']==0){
             $data = array(
                 'countaccount'=>array('count'=>0,'account'=>0),
                 'range'=>array('max'=>0,'min'=>0)
             );
             return $data;
         }
-        $sqlm = "select max(amount) as max,min(amount) as min from `erui_order`.`order` where buyer_id=$buyer_id";
+        $sqlm = "select FORMAT(max(amount),2) as max,FORMAT(min(amount),2) as min from `erui_order`.`order` where buyer_id=$buyer_id";
         $arr = $this->query($sqlm);
         $data = array(
             'countaccount'=>$info[0],
