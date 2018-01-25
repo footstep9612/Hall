@@ -63,6 +63,16 @@ class BuyerBusinessModel extends PublicModel
                 $payName=$pay->getSettlementNameById($info['settlement'],$lang);
                 $info['settlement']=$payName['name'];
             }
+            if(!empty($info['net_subject'])){
+                $info['net_subject']=implode(',',$info['net_subject']);
+                if($info['net_subject']=='equipment,erui'){
+                    $info['net_subject']='装备,易瑞';
+                }elseif($info['net_subject']=='equipment'){
+                    $info['net_subject']='装备';
+                }elseif($info['net_subject']=='erui'){
+                    $info['net_subject']='易瑞';
+                }
+            }
         }
         return $info;
     }

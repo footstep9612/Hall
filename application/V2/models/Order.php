@@ -186,8 +186,7 @@ class OrderModel extends PublicModel {
      * wangs
      */
     public function statisOrder($buyer_id){
-        $sql = "select count(id) as count,SUM(amount) as account from `erui_order`.`order` where buyer_id=$buyer_id GROUP BY amount
-";
+        $sql = "select count(id) as `count`,sum(amount) as account from `erui_order`.`order` where buyer_id=$buyer_id";
         $info = $this->query($sql);
         if(empty($info)){
             $data = array(
