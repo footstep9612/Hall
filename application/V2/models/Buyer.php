@@ -1605,7 +1605,7 @@ EOF;
             'created_by'=>$data['created_by'],
             'deleted_flag'=>'N'
         );
-        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments,')
+        $info = $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')
             ->where($cond)
             ->find();
         if(empty($info)){
@@ -1631,6 +1631,20 @@ EOF;
                 $level=new CreditModel();
                 $levelName=$level->getCreditLevelNameById($info['credit_level'],$lang);
                 $info['credit_level']=$levelName['type_name'];
+            }
+            if(!empty($info['payment_behind'])){    //是否拖欠过货款
+                if($lang=='zh'){
+                    $info['payment_behind']= $info['payment_behind']=="Y"?'是':'否';
+                }else{
+                    $info['payment_behind']= $info['payment_behind']=="Y"?'YES':'NO';
+                }
+            }
+            if(!empty($info['violate_treaty'])){    //是否有针对KERUI/ERUI的违约
+                if($lang=='zh'){
+                    $info['violate_treaty']=$info['violate_treaty']=="Y"?'是':'否';
+                }else{
+                    $info['violate_treaty']=$info['violate_treaty']=="Y"?'YES':'NO';
+                }
             }
         }
         return $info;
