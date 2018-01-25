@@ -27,7 +27,15 @@ class StockModel extends PublicModel {
         $where = ['s.deleted_flag' => 'N', 's.stock' => ['gt', 0]];
         $where['s.country_bn'] = trim($condition['country_bn']);
         $where['s.lang'] = $condition['lang'];
-        $this->_getValue($where, $condition, 'keyword', 'like', 's.show_name');
+        if (!empty($condition['keyword'])) {
+            $keyword = trim($condition['keyword']);
+            $map['s.show_name'] = ['like', '%' . $keyword . '%'];
+            $map['s.sku'] = $keyword;
+            $map['s.spu'] = $keyword;
+            $map['_logic'] = 'or';
+            $where['_complex'] = $map;
+        }
+//        $this->_getValue($where, $condition, 'keyword', 'like', 's.show_name');
         $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
 
         return $where;

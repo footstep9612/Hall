@@ -45,6 +45,7 @@ class StockController extends PublicController {
 
         $stock_model = new StockModel();
         $list = $stock_model->getListByKeyword($condition);
+
         if ($list) {
             $this->_setImage($list);
             $count = $stock_model->getCountByKeyword($condition);
