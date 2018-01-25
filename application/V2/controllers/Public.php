@@ -34,8 +34,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->setLang($lang);
         
         // 加载php公共配置文件
-        $commonConfig = $this->_loadCommonConfig();
-        C($commonConfig);
+        C($this->_loadCommonConfig());
         // 语言检查
         $this->_checkLanguage();
 
@@ -534,8 +533,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             } else if (isset($_GET[$varLang])) {
                 $langSet = $_GET[$varLang]; // url中设置了语言变量
                 redisSet('erui_boss_language', $langSet, 3600);
-            } else if (redisSet('erui_boss_language')) { // 获取上次用户的选择
-                $langSet = redisSet('erui_boss_language');
+            } else if (redisGet('erui_boss_language')) { // 获取上次用户的选择
+                $langSet = redisGet('erui_boss_language');
             } else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) { // 自动侦测浏览器语言
                 preg_match('/^([a-z\d\-]+)/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
                 $langSet = $matches[1];

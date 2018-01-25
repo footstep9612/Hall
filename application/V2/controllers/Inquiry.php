@@ -244,13 +244,13 @@ class InquiryController extends PublicController {
 
         if ($inquiryList) {
             $res['code'] = 1;
-            $res['message'] = '成功!';
+            $res['message'] = L('SUCCESS');
             $res['data'] = $inquiryList;
             $res['count'] = $inquiryModel->getCount_($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
     }
@@ -321,13 +321,13 @@ class InquiryController extends PublicController {
 
         if ($inquiryList) {
             $res['code'] = 1;
-            $res['message'] = '成功!';
+            $res['message'] = L('SUCCESS');
             $res['data'] = $inquiryList;
             $res['count'] = $inquiryModel->getViewCount($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
     }
@@ -358,7 +358,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -385,7 +385,7 @@ class InquiryController extends PublicController {
         }
 
         $res['code'] = 1;
-        $res['message'] = '成功!';
+        $res['message'] = L('SUCCESS');
         $res['data'] = $data;
 
         $this->jsonReturn($res);
@@ -418,7 +418,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -472,16 +472,16 @@ class InquiryController extends PublicController {
 
             if ($res) {
                 $this->setCode('1');
-                $this->setMessage('成功!');
+                $this->setMessage(L('SUCCESS'));
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -511,16 +511,16 @@ class InquiryController extends PublicController {
     
             if ($res) {
                 $this->setCode('1');
-                $this->setMessage('成功!');
+                $this->setMessage(L('SUCCESS'));
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -608,16 +608,16 @@ class InquiryController extends PublicController {
     
             if ($res) {
                 $this->setCode('1');
-                $this->setMessage('成功!');
+                $this->setMessage(L('SUCCESS'));
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -648,17 +648,17 @@ class InquiryController extends PublicController {
         
             if ($clarifyList) {
                 $res['code'] = 1;
-                $res['message'] = '成功!';
+                $res['message'] = L('SUCCESS');
                 $res['data'] = $clarifyList;
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -981,7 +981,7 @@ class InquiryController extends PublicController {
             $Item->commit();
         } else {
             $results['code'] = '-101';
-            $results['messaage'] = '修改失败!';
+            $results['messaage'] = L('FAIL');
         }
 
         $this->jsonReturn($results);
@@ -1073,18 +1073,18 @@ class InquiryController extends PublicController {
 
             if ($inquiryCheckLogList) {
                 $res['code'] = 1;
-                $res['message'] = '成功!';
+                $res['message'] = L('SUCCESS');
                 $res['data'] = $inquiryCheckLogList;
                 $res['count'] = $inquiryCheckLogModel->getCount($condition);
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -1139,16 +1139,16 @@ class InquiryController extends PublicController {
 
             if ($res) {
                 $this->setCode('1');
-                $this->setMessage('成功!');
+                $this->setMessage(L('SUCCESS'));
                 $this->jsonReturn($res);
             } else {
                 $this->setCode('-101');
-                $this->setMessage('失败!');
+                $this->setMessage(L('FAIL'));
                 $this->jsonReturn();
             }
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }
@@ -1216,11 +1216,11 @@ class InquiryController extends PublicController {
             }
 
             $results['code'] = '1';
-            $results['message'] = '成功！';
+            $results['message'] = L('SUCCESS');
             $results['data'] = $data;
         } else {
             $results['code'] = '-101';
-            $results['message'] = '找不到相关细信息！';
+            $results['message'] = L('FAIL');
         }
         $this->jsonReturn($results);
     }
@@ -1237,7 +1237,7 @@ class InquiryController extends PublicController {
         if ($localDir) {
             jsonReturn($localDir);
         } else {
-            jsonReturn('', ErrorMsg::FAILED);
+            jsonReturn('', L('FAIL'));
         }
     }
     
