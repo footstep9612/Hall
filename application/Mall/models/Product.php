@@ -374,10 +374,18 @@ class ProductModel extends PublicModel {
             return '';
         }
 
-        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'price_validity_end' => ['egt', date('Y-m-d', time())]];
-
+        $scpModel = new StockCostPriceModel();
+        $scpTable = $scpModel->getTableName();
+        $condition = [
+            'sku' => $sku,
+            'country_bn' => $country_bn,
+            'price_validity_start' => ['elt', date('Y-m-d', time())],
+        ];
+        $map['price_validity_end'] = ['egt', date('Y-m-d', time())];
+        $map[$scpTable.'.price_validity_end'] = ['exp', 'is null'];
+        $map['_logic'] = 'or';
+        $condition['_complex'] = $map;
         try {
-            $scpModel = new StockCostPriceModel();
             $priceInfo = $scpModel->field('min_price as price,min_purchase_qty,max_purchase_qty,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty ASC')->select();
             return $priceInfo ? $priceInfo : '';
         } catch (Exception $e) {
