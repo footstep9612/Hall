@@ -1751,7 +1751,7 @@ EOF;
             if($v['max_range']==0 && $v['max_range']==0){
                 $arr[$k]['min-max_range'] = '-';    //单笔金额偏重区间
             }else{
-                $arr[$k]['min-max_range'] = $v['max_range'].'-'.$v['min_range'];    //单笔金额偏重区间
+                $arr[$k]['min-max_range'] = $v['min_range'].'-'.$v['max_range'];    //单笔金额偏重区间
             }
         }
         return $arr;
