@@ -1001,7 +1001,7 @@ class InquiryModel extends PublicModel {
      */
     public function statisInquiry($buyer_id){
         $arr = $this->field('id')
-            ->where(array('buyer_id'=>$buyer_id))
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
             ->select();
         if(empty($arr)){
             $data = array(
@@ -1017,15 +1017,12 @@ class InquiryModel extends PublicModel {
         }
         $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select total_purchase from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select FORMAT(sum(total_purchase),2) as total_purchase from erui_rfq.quote where inquiry_id in ($str)";
         $info = $quote->query($sql);
-        $account = 0;
-        foreach($info as $v){
-            $account += $v['total_purchase'];
-        }
+
         $data = array(
             'count'=>$count,
-            'account'=>$account
+            'account'=>$info[0]['total_purchase']
         );
         return $data;
     }

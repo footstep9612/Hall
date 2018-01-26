@@ -195,7 +195,7 @@ class OrderModel extends PublicModel {
             );
             return $data;
         }
-        $sqlm = "select FORMAT(max(amount),2) as max,FORMAT(min(amount),2) as min from `erui_order`.`order` where buyer_id=$buyer_id";
+        $sqlm = "select FORMAT(min(amount),2) as `min`,FORMAT(max(amount),2) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
         $arr = $this->query($sqlm);
         $data = array(
             'countaccount'=>$info[0],
