@@ -554,11 +554,11 @@ class InquiryModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if($id){
-                $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['code'] = 1;
+                $results['message'] = L('SUCCESS');
             }else{
-                $results['code'] = '-101';
-                $results['message'] = '修改失败!';
+                $results['code'] = -101;
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
