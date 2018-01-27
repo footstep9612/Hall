@@ -50,21 +50,22 @@ class ProductModel extends PublicModel {
                     }
                     $spuInfo['stock'] = $stocks;    //库存
                     //现货价格
-                    /* $scpModel = new StockCostPriceModel();
-                      $condition_price = ['country_bn' => $country_bn, 'sku' => ['in', $skus], 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
-                      $priceInfo = $scpModel->field('min_price,price_symbol')->where($condition_price)->order('min_price')->find();
-                      $spuInfo['priceAry'] = $priceInfo ? $priceInfo : []; */
+                    $scpModel = new StockCostPriceModel();
+                    $condition_price = ['country_bn' => $country_bn, 'sku' => $sku, 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
+                    $priceInfo = $scpModel->field('min_price,price_symbol,price_cur_bn')->where($condition_price)->order('min_price')->find();
+                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];
 
                     //价格区间
                     $spuInfo['priceList'] = $this->getSkuPriceBySku($sku, $country_bn);
 
-                    $condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
+                    //$condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
                 $goodsModel = new GoodsModel();
-                $min_order_qty = $goodsModel->field('min_order_qty,min_pack_unit,exw_days')->where($condition_order)->order('min_order_qty')->find();
-                $spuInfo['min_order_qty'] = $min_order_qty ? $min_order_qty['min_order_qty'] : 1;
-                $spuInfo['min_pack_unit'] = $min_order_qty ? $min_order_qty['min_pack_unit'] : '';
-                $spuInfo['exw_days'] = $min_order_qty ? $min_order_qty['exw_days'] : '';
+                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where(['sku'=>$sku, 'lang' => $lang, 'deleted_flag'=>'N'])->find();
+                $spuInfo['min_order_qty'] = $skuInfo ? $skuInfo['min_order_qty'] : 1;
+                $spuInfo['min_pack_unit'] = $skuInfo ? $skuInfo['min_pack_unit'] : '';
+                $spuInfo['exw_days'] = $skuInfo ? $skuInfo['exw_days'] : '';
+                $spuInfo['model'] = $skuInfo ? $skuInfo['model'] : '';
             }
             return $spuInfo ? $spuInfo : false;
         } catch (Exception $e) {
