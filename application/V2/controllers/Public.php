@@ -562,6 +562,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     /**
      * @desc 语言缓存
      * 
+     * @param string $lang 语言
      * @return bool
      * @author liujf
      * @time 2018-01-28
