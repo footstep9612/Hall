@@ -30,13 +30,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         $this->put_data = $jsondata = $data = $this->getPut();
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
         
         // 加载php公共配置文件
         C($this->_loadCommonConfig());
         // 语言检查
         $this->_checkLanguage();
+        // 设置语言
+        $this->setLang(LANG_SET);
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
@@ -528,19 +528,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         // 根据是否启用自动侦测设置获取语言选择
         if (C('LANG_AUTO_DETECT', null, true)) {
             $langParam = $this->getPut($varLang);
+            $langCache = $this->_getLanguage();
             if (!empty($langParam)) {
                 $langSet = $langParam; // 参数中设置了语言变量
+                $this->_cacheLanguage($langSet);
             } else if (isset($_GET[$varLang])) {
                 $langSet = $_GET[$varLang]; // url中设置了语言变量
-                redisSet('erui_boss_language', $langSet, 3600);
-            } else if (redisGet('erui_boss_language')) { // 获取上次用户的选择
-                $langSet = redisGet('erui_boss_language');
+                $this->_cacheLanguage($langSet);
+            } else if ($langCache) { // 获取上次用户的选择
+                $langSet = $langCache;
             } else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) { // 自动侦测浏览器语言
                 preg_match('/^([a-z\d\-]+)/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
-                $langSet = $matches[1];
-                redisSet('erui_boss_language', $langSet, 3600);
+                $langSet = explode('-', $matches[1])[0];
+                $this->_cacheLanguage($langSet);
             }
-            if(false === stripos($langList,$langSet)) { // 非法语言参数
+            if(false === stripos($langList, $langSet)) { // 非法语言参数
                 $langSet = C('DEFAULT_LANG');
             }
         }
@@ -555,6 +557,28 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         // 读取当前控制器语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . strtolower(CONTROLLER_NAME) . '.php';
         if (is_file($file)) L(include $file);
+    }
+    
+    /**
+     * @desc 语言缓存
+     * 
+     * @return bool
+     * @author liujf
+     * @time 2018-01-28
+     */
+    private function _cacheLanguage($lang = 'zh') {
+        return redisSet('erui_boss_language', $lang, 3600 * 24);
+    }
+    
+    /**
+     * @desc 获取语言缓存
+     *
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-28
+     */
+    private function _getLanguage() {
+        return redisGet('erui_boss_language');
     }
 
     /**
