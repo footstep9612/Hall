@@ -57,7 +57,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $this->_setUid($this->user);
             if (isset($this->user['id']) && $this->user['id'] > 0) {
                 // 加载php公共配置文件
-                C($this->_loadCommonConfig());
+                $this->_loadCommonConfig();
                 // 语言检查
                 $this->_checkLanguage();
                 // 设置语言
@@ -494,7 +494,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     /*
      * @desc 加载php公共配置文件
      * 
-     * @return array
      * @author liujf
      * @time 2018-01-25
      */
@@ -503,9 +502,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         searchDir(COMMON_CONF_PATH, $files);
         foreach ($files as $file) {
             if (preg_match('/.*\.php$/i', $file)) $phpConfig = include $file;
-            if (is_array($phpConfig) && !empty($phpConfig)) $commonConfig = array_merge($commonConfig, $phpConfig);
+            if (is_array($phpConfig)) C($phpConfig);
         }
-        return $commonConfig;
     }
     
     /**

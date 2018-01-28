@@ -574,7 +574,7 @@ class InquiryController extends PublicController {
                 }
             } else $error = true;
             
-            if ($error) jsonReturn('', '-101', '流转环节有误!');
+            if ($error) jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
             
             $inquiryModel->startTrans();
     
@@ -677,6 +677,8 @@ class InquiryController extends PublicController {
         $org = new OrgModel();
 
         $where = $this->put_data;
+        
+        $inquiryStatus = $inquiry->getInquiryStatus();
 
         $results = $inquiry->getInfo($where);
 
@@ -734,10 +736,10 @@ class InquiryController extends PublicController {
         }
 
         if (!empty($results['data'])) {
-            $results['data']['status_name'] = $inquiry->inquiryStatus[$results['data']['status']];
-            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: '暂无';
-            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: '暂无';
-            //$results['data']['project_name'] = $results['data']['project_name'] ?: '暂无';
+            $results['data']['status_name'] = $inquiryStatus[$results['data']['status']];
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: L('NOTHING');
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: L('NOTHING');
+            //$results['data']['project_name'] = $results['data']['project_name'] ?: L('NOTHING');
         }
 
         $this->jsonReturn($results);
@@ -803,13 +805,13 @@ class InquiryController extends PublicController {
         //验证删除的数据是否全部是草稿状态
         if (empty($where['id'])) {
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             $this->jsonReturn($results);
         }
         $data = $inquiry->field('id,serial_no,status')->where('status!="DRAFT" and id in(' . $where['id'] . ')')->select();
         if (count($data) > 0) {
             $results['code'] = '-104';
-            $results['message'] = '存在不允许删除的询单!';
+            $results['message'] = L('INQUIRY_NOT_ALLOWED_DELETE');
             $this->jsonReturn($results);
         }
 
@@ -1056,18 +1058,20 @@ class InquiryController extends PublicController {
             $employeeModel = new EmployeeModel();
 
             $inquiryCheckLogList = $inquiryCheckLogModel->getList($condition);
+            
+            $inquiryStatus = $inquiryModel->getInquiryStatus();
 
             $action = [
-                'CREATE' => '流转',
-                'REJECT' => '驳回',
-                'APPROVE' => '审核',
-                'REMIND' => '催办'
+                'CREATE' => L('INQUIRY_LOG_CREATE'),
+                'REJECT' => L('INQUIRY_LOG_REJECT'),
+                'APPROVE' => L('INQUIRY_LOG_APPROVE'),
+                'REMIND' => L('INQUIRY_LOG_REMIND')
             ];
 
             foreach ($inquiryCheckLogList as &$inquiryCheckLog) {
                 $inquiryCheckLog['action_name'] = $action[$inquiryCheckLog['action']];
-                $inquiryCheckLog['in_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['in_node']];
-                $inquiryCheckLog['out_node_name'] = $inquiryModel->inquiryStatus[$inquiryCheckLog['out_node']];
+                $inquiryCheckLog['in_node_name'] = $inquiryStatus[$inquiryCheckLog['in_node']];
+                $inquiryCheckLog['out_node_name'] = $inquiryStatus[$inquiryCheckLog['out_node']];
                 $inquiryCheckLog['created_name'] = $employeeModel->getUserNameById($inquiryCheckLog['created_by']);
             }
 

@@ -676,6 +676,7 @@ class ExcelimportandexportController extends PublicController {
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = ['neq', 'DRAFT'];
         $lang = 'zh';
+        $inquiryStatus = $this->inquiryModel->getInquiryStatus();
         $inquiryList = $this->inquiryModel->alias('a')
                                                                      ->field('a.id, a.serial_no, a.created_at, a.buyer_code, b.name AS country_name, c.name AS area_name, d.name AS org_name')
                                                                      ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
@@ -709,7 +710,7 @@ class ExcelimportandexportController extends PublicController {
             $nodeList = $this->inquiryCheckLogModel->field('in_node, out_node, op_note')->where(['inquiry_id' => $inquiry['id'], 'action' => 'REJECT'])->order('id DESC')->select();
             $nodeName = [];
             foreach ($nodeList as $node) {
-                $nodeName[] = $this->inquiryModel->inquiryStatus[$node['in_node']] . '-' . $this->inquiryModel->inquiryStatus[$node['out_node']] . '（' . $node['op_note'] . '）';
+                $nodeName[] = $inquiryStatus[$node['in_node']] . '-' . $inquiryStatus[$node['out_node']] . '（' . $node['op_note'] . '）';
             }
             $where = ['inquiry_id' => $inquiry['id']];
             $skuName = $this->inquiryItemModel->where(array_merge($where, ['deleted_flag' => 'N']))->getField('name_zh', true);
