@@ -30,13 +30,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         }
 
         $this->put_data = $jsondata = $data = $this->getPut();
-        
-        // 加载php公共配置文件
-        C($this->_loadCommonConfig());
-        // 语言检查
-        $this->_checkLanguage();
-        // 设置语言
-        $this->setLang(LANG_SET);
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
@@ -63,7 +56,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $this->user = $GLOBALS['SSO_USER'];
             $this->_setUid($this->user);
             if (isset($this->user['id']) && $this->user['id'] > 0) {
-                return;
+                // 加载php公共配置文件
+                C($this->_loadCommonConfig());
+                // 语言检查
+                $this->_checkLanguage();
+                // 设置语言
+                $this->setLang(LANG_SET);
             } else {
                 header("Content-Type: application/json");
                 exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
@@ -568,7 +566,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @time 2018-01-28
      */
     private function _cacheLanguage($lang = 'zh') {
-        return redisSet('erui_boss_language', $lang, 3600 * 24);
+        return redisSet('erui_boss_language_' . $this->user['id'], $lang, 3600 * 24);
     }
     
     /**
@@ -579,7 +577,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @time 2018-01-28
      */
     private function _getLanguage() {
-        return redisGet('erui_boss_language');
+        return redisGet('erui_boss_language_' . $this->user['id']);
     }
 
     /**
