@@ -34,7 +34,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-
+            $this->setLang($this->getPut('lang', 'en'));
         } else {
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
