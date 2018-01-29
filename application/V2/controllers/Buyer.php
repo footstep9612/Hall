@@ -433,6 +433,7 @@ class BuyerController extends PublicController {
         }
         $buyer_contact_data['mobile'] = $data['mobile'];    //CRM添加客户
         $buyer_contact_data['email'] = $data['email'];
+        $buyer_contact_data['created_by'] = $this->user['id'];
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
