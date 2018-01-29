@@ -95,7 +95,7 @@ class UserModel extends PublicModel {
         $sql .= ' group by `employee`.`id`';
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
-        }echo $sql;
+        }
         $list =  $this->query($sql);
         return $list;
     }
