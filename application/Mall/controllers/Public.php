@@ -27,6 +27,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->token) {
             $this->_token();
         }
+        Log::write($this->getRequest()->getControllerName(), Log::INFO);
+        Log::write($this->getRequest()->getActionName(), Log::INFO);
+        Log::write(json_encode($this->getPut()), Log::INFO);
     }
 
     protected function _getUser() {

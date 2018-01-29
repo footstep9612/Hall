@@ -109,4 +109,44 @@ class StockcountryController extends PublicController {
         }
     }
 
+    /**
+     * Description of 获取现货楼层列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    public function getAllAdsAction() {
+
+        $condition = $this->getPut();
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+
+
+        $stock_country_ads_model = new StockCountryAdsModel();
+
+        $list = $stock_country_ads_model->getALLList($condition);
+        if ($list) {
+
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
 }
