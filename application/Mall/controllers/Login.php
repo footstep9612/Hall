@@ -73,7 +73,7 @@ class LoginController extends PublicController {
             $datajson['token'] = $jwtclient->encode($jwt); //加密
             $datajson['utime'] = 18000;
             redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
-            echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
+            echo json_encode(array("code" => "1", "data" => $datajson, "message" => ShopMsg::getMessage('102', $lang)));
             exit();
         } else {
             $datajson = [];
@@ -84,8 +84,9 @@ class LoginController extends PublicController {
     // 验证邮件
     public function checkEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         if (empty($data['key'])) {
-            jsonReturn('', -101, '邮箱不可以为空!');
+            jsonReturn('', -134, ShopMsg::getMessage('-134', $lang));
         }
         if (redisHashExist('login_reg_key', $data['key'])) {
             $arr['id'] = redisHashGet('login_reg_key', $data['key']);
@@ -98,9 +99,9 @@ class LoginController extends PublicController {
         $res = $buyer_account_model->update_data($buyer_data, $arr);
         if ($res) {
             redisHashDel('login_reg_key', $data['key']);
-            jsonReturn('', 1, '验证成功');
+            jsonReturn('', 1, ShopMsg::getMessage('136', $lang));
         } else {
-            jsonReturn('', -104, '验证失败');
+            jsonReturn('', -137, ShopMsg::getMessage('-137', $lang));
         }
     }
 
@@ -164,7 +165,7 @@ class LoginController extends PublicController {
             $body = $this->getView()->render('login/retrieve_email_' . $lang . '.html', $email_arr);
             $title = 'Erui.com';
             send_Mail($data_key['email'], $title, $body, $data_key['show_name']);
-            jsonReturn($data_key, 1, 'success!');
+            jsonReturn($data_key, 1, ShopMsg::getMessage('1', $lang));
         } else {
             jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang)); //'The company email is not registered yet'
         }
@@ -435,7 +436,7 @@ class LoginController extends PublicController {
     }
 
     // 激活邮箱
-    public function activeEmailAction() {
+    /*public function activeEmailAction() {
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
         if (!empty($data['buyer_id'])) {
@@ -482,7 +483,7 @@ class LoginController extends PublicController {
         } else {
             jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
         }
-    }
+    }*/
 
 
 }

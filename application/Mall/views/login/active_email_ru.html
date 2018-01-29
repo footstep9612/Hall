@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-        <title>Password reset</title>
+        <title>Сброс пароля</title>
         <style>
             .big_box {
                 width: 650px;
@@ -88,17 +88,21 @@
                     </a>
 				</div>
 				<div class="email_dear">
-					<h2>Dear you : </h2>
-					<p class="dear_tit">Hello! You are activating email, please click below link to activate the email,
-                        valid for 24 hours. Please finish within the valid time.</p>
+					<h2>Уважаемый пользователь : </h2>
+					<p class="dear_tit">Здравствуйте! Вы активируете электронную почту, нажмите ниже
+                        Ссылка для активации почтового ящика. Действует в течение 24 часов,
+                        Закончите в течение действительного времени.
+                    </p>
 					<a href="<?php echo $url;?>index/Ucenter/verifyEmail?key=<?php echo $key;?>">
                         <?php echo $url;?>index/Ucenter/verifyEmail?key=<?php echo $key;?>
                     </a>
-					<p class="dear_text">If not operated by yourself, you can neglect this email.</p>
+					<p class="dear_text">Если вы не являетесь управляющим то извените за неудобство которое мы Вам предоставили.
+                    </p>
 				</div>
 				<div class="email_footer">
-					<p>Please feel free to contact us if you have any questions or you need help.
-ERUI International <a href="http://www.erui.com">http://www.erui.com</a></p>
+					<p>Если у вас есть вопросы или нужна помощь, свяжитесь с нами.
+                        Международный Ижуй
+                     <a href="http://www.erui.com">http://www.erui.com</a></p>
 				</div>
 			</div>
 		</div>

@@ -8,7 +8,7 @@
 
 /**
  * Description of LoginController
- *
+ * 暂只使用了定制服务
  * @author  jhw
  */
 class SpecloginController extends PublicController {
@@ -20,6 +20,7 @@ class SpecloginController extends PublicController {
 
     public function addUcustomAction() {
         $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         if($data['sign'] == 'login') {
             $this->login($data);
         } elseif($data['sign'] == 'register') {
@@ -27,9 +28,9 @@ class SpecloginController extends PublicController {
         } elseif($data['sign'] == 'contact'){
             $res = $this->createUcustom($data);
             if($res) {
-                jsonReturn($res,1001,'提交成功!');
+                jsonReturn($res,143,ShopMsg::getMessage('143', $lang));
             } else{
-                jsonReturn('',-1,'提交失败!');
+                jsonReturn('',-107, ShopMsg::getMessage('-107', $lang));
             }
         }
     }
@@ -85,7 +86,7 @@ class SpecloginController extends PublicController {
                 $datajson['token'] = $jwtclient->encode($jwt); //加密
                 $datajson['utime'] = 18000;
                 redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
-                echo json_encode(array("code" => "1", "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
+                echo json_encode(array("code" => "138", "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
                 exit();
             }
             echo json_encode(array("code" => "-124", "data" => [], "message" => ShopMsg::getMessage('-124',$lang)));
@@ -124,8 +125,11 @@ class SpecloginController extends PublicController {
             }
         }
         $catModel = new CustomCatModel();
-        if(isset($data['cat_no']) || empty($data['cat_no'])) {
-            $cat_no = $catModel->field('cat_no')->where(['cat_name'=>$data['cat_name'],'deleted_flag'=>'N'])->find();
+        if($data['cat_no'] && !isset($data['cat_name'])) {
+            $cat_no = $catModel->field('cat_no,cat_name')->where(['cat_no'=>$data['cat_no'],'lang'=>$lang,'deleted_flag'=>'N'])->find();
+            $data['cat_name'] = $cat_no['cat_name']?$cat_no['cat_name']:'';
+        } else if(!isset($data['cat_no']) && $data['cat_name']){
+            $cat_no = $catModel->field('cat_no,cat_name')->where(['cat_name'=>$data['cat_name'],'deleted_flag'=>'N'])->find();
             $data['cat_no'] = $cat_no['cat_no']?$cat_no['cat_no']:'';
         }
         $res = $buyer_custom_model->create_data($data);

@@ -242,11 +242,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data) {
+    public function checkPassword($data,$lang) {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
-        } else {
-            jsonReturn('', '-1001', 'Token Expired');
         }
         if (!empty($data['oldpassword'])) {
             $password = $data['oldpassword'];
@@ -256,7 +254,7 @@ class BuyerAccountModel extends PublicModel {
         if ($pwd['password_hash'] == $password) {
             return true;
         } else {
-            return false;
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
         }
     }
 
@@ -265,7 +263,7 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data) {
+    public function update_pwd($data,$lang) {
 
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
@@ -275,7 +273,7 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['password'])) {
             $new['password_hash'] = $data['password'];
         } else {
-            jsonReturn('', '-1001', 'Password cannot be empty');
+            jsonReturn('', '-110', ShopMsg::getMessage('-110',$lang));
         }
         $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
         if ($res !== false) {
