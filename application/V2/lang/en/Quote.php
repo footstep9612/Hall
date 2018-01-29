@@ -5,10 +5,10 @@
  */
 return [
     'QUOTE_SUCCESS'             =>      'Success',
-    'QUOTE_HAS_RETURNED'        =>      'Unrepeatable return',
-    'QUOTE_RESUBMIT'            =>      'You can not resubmit',
     'QUOTE_NO_DATA'             =>      'No data',
     'QUOTE_VALIDATION'          =>      'Successfully validate',
+    'QUOTE_HAS_RETURNED'        =>      'Unrepeatable return',
+    'QUOTE_RESUBMIT'            =>      'You can not resubmit',
     'QUOTE_SUPPLIER_REQUIRED'   =>      'Supplier required',
     'QUOTE_BRAND_REQUIRED'      =>      'Brand required',
     'QUOTE_PUP_REQUIRED'        =>      'Purchase unit price required',
@@ -25,5 +25,16 @@ return [
     'QUOTE_DD_REQUIRED'         =>      'Delivery days required',
     'QUOTE_DD_NUMBER'           =>      'Delivery days must be number',
     'QUOTE_POF_REQUIRED'        =>      'Period of validity required',
+
+    'QUOTE_DELETE_FAIL'         =>      'Quote delete failed',
+
+    'QUOTE_TOTAL_WEIGHT_NUMBER'           =>      'Total weight must be number',
+    'QUOTE_PACKAGE_VOLUMN_NUMBER'         =>      'Package volumn must be number',
+    'QUOTE_PAYMENT_PRIOD_NUMBER'          =>      'Payment priod must be number',
+    'QUOTE_DELIVERY_PRIOD_NUMBER'         =>      'Delivery priod must be number',
+    'QUOTE_FUND_OCCUPATION_RATE_NUMBER'   =>      'Fund occupation rate must be number',
+    'QUOTE_BANK_INTEREST_NUMBER'          =>      'Bank interest must be number',
+    'QUOTE_GROSS_PROFIT_RATE_NUMBER'      =>      'Gross profit rate must be number',
+
 ];
 

@@ -5,11 +5,11 @@
  */
 return [
     'QUOTE_SUCCESS'             =>      '成功',
-    'QUOTE_HAS_RETURNED'        =>      '不能重复退回',
-    'QUOTE_RESUBMIT'            =>      '不能重复提交',
     'QUOTE_NO_DATA'             =>      '没有数据',
     'QUOTE_VALIDATION'          =>      '验证通过',
-    'QUOTE_SUPPLIER_REQUIRED'  =>      '未选择供应商',
+    'QUOTE_HAS_RETURNED'        =>      '不能重复退回',
+    'QUOTE_RESUBMIT'            =>      '不能重复提交',
+    'QUOTE_SUPPLIER_REQUIRED'   =>      '未选择供应商',
     'QUOTE_BRAND_REQUIRED'      =>      '品牌必填',
     'QUOTE_PUP_REQUIRED'        =>      '采购单价必填',
     'QUOTE_PUP_NUMBER'          =>      '采购单价必须是数字',
@@ -25,5 +25,16 @@ return [
     'QUOTE_DD_REQUIRED'         =>      '交货期必填',
     'QUOTE_DD_NUMBER'           =>      '交货期必须是数字',
     'QUOTE_POF_REQUIRED'        =>      '报价有效期必填',
+
+    'QUOTE_DELETE_FAIL'         =>      '删除失败',
+
+    'QUOTE_TOTAL_WEIGHT_NUMBER'           =>      '总重必须是数字',
+    'QUOTE_PACKAGE_VOLUMN_NUMBER'         =>      '包装总体积必须是数字',
+    'QUOTE_PAYMENT_PRIOD_NUMBER'          =>      '回款周期必须是数字',
+    'QUOTE_DELIVERY_PRIOD_NUMBER'         =>      '交货周期必须是数字',
+    'QUOTE_FUND_OCCUPATION_RATE_NUMBER'   =>      '资金占用比例必须是数字',
+    'QUOTE_BANK_INTEREST_NUMBER'          =>      '银行利息必须是数字',
+    'QUOTE_GROSS_PROFIT_RATE_NUMBER'      =>      '毛利率必须是数字',
+
 ];
 
