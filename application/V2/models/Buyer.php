@@ -1748,7 +1748,7 @@ EOF;
             $arr[$k]['inquiry_account'] = $v['inquiry_account'];    //询报价金额
             $arr[$k]['order_count'] = $v['order_count'];    //订单数量
             $arr[$k]['order_account'] = $v['order_account'];    //订单金额
-            if($v['max_range']==0 && $v['max_range']==0){
+            if($v['min_range']==0 && $v['max_range']==0){
                 $arr[$k]['min-max_range'] = '-';    //单笔金额偏重区间
             }else{
                 $arr[$k]['min-max_range'] = $v['min_range'].'-'.$v['max_range'];    //单笔金额偏重区间
