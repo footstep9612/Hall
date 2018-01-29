@@ -55,9 +55,6 @@ class UserModel extends PublicModel {
         if (!empty($condition['role_name'])) {
             $sql .= ' AND role.name like \'%' . $condition['role_name'] . '%\'';
         }
-        if (!empty($condition['status'])) {
-            $sql .= ' AND employee.status = \'' . $condition['status'] . '\'';
-        }
         if (!empty($condition['gender'])) {
             $sql .= ' AND employee.gender = \'' . $condition['gender'] . '\'';
         }
