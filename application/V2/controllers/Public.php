@@ -501,8 +501,10 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $files = $commonConfig = $phpConfig = [];
         searchDir(COMMON_CONF_PATH, $files);
         foreach ($files as $file) {
-            if (preg_match('/.*\.php$/i', $file)) $phpConfig = include $file;
-            if (is_array($phpConfig)) C($phpConfig);
+            if (preg_match('/.*\.php$/i', $file)) {
+                $phpConfig = include $file;
+                if (is_array($phpConfig)) C($phpConfig);
+            }
         }
     }
     
