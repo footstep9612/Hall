@@ -442,6 +442,7 @@ class BuyerController extends PublicController {
         if (!empty($data['first_name'])) {
             $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
             $buyer_account_data['show_name'] = $data['first_name'];  //account-姓名
+            $buyer_contact_data['name'] = $data['first_name'];  //account-姓名
         }
 
         if (!empty($data['is_group_crm'])) {
@@ -527,8 +528,8 @@ class BuyerController extends PublicController {
             }
             $buyer_contact_data['buyer_id'] = $id;
             //添加联系人
-//            $buyer_contact_model = new BuyercontactModel();
-//            $buyer_contact_model->create_data($buyer_contact_data);
+            $buyer_contact_model = new BuyercontactModel();
+            $buyer_contact_model->create_data($buyer_contact_data);
             //添加附件
             $buyer_attach_model = new BuyerattachModel();
             $buyer_attach_model->create_data($buyer_attach_data);

@@ -54,9 +54,9 @@ class MembercenterController extends PublicController {
         $result = $buyerModel->update_data($buyer_data, $where);
 
         if ($result !==false) {
-            jsonReturn('', 1, 'success!');
+            jsonReturn('', 1, ShopMsg::getMessage('1',$lang));
         } else {
-            jsonReturn('', '-1002', 'failed!');
+            jsonReturn('', -1, ShopMsg::getMessage('-1',$lang));
         }
         exit;
     }
@@ -68,18 +68,19 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         $buyerAccount = new BuyerAccountModel();
         $data['buyer_id'] = $this->user['buyer_id'];
-        $result = $buyerAccount->checkPassword($data);
+        $result = $buyerAccount->checkPassword($data,$lang);
         if ($result) {
-            $res = $buyerAccount->update_pwd($data);
+            $res = $buyerAccount->update_pwd($data,$lang);
             if ($res) {
-                jsonReturn('', 1, 'Password is reset successfully!');
+                jsonReturn('', 1, ShopMsg::getMessage('142',$lang));
             } else {
-                jsonReturn('', '-1002', 'Password is reset failed!');
+                jsonReturn('', '-135', ShopMsg::getMessage('-135',$lang));
             }
         } else {
-            jsonReturn('', '-1001', 'Current password is error!');
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
         }
     }
 
@@ -167,24 +168,25 @@ class MembercenterController extends PublicController {
     public function sendActiveEmailAction() {
 
         $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         if (!empty($data['email'])) {
             $arr['email'] = $data['email'];
         } else {
-            jsonReturn('', -101, '邮箱不可以为空!');
+            jsonReturn('', -134, ShopMsg::getMessage('-134', $lang));
         }
         $arr['key'] = md5(uniqid());
-        redisHashSet('mall_active_email', $arr['key'], $this->user['buyer_id'], 86400);
+        redisHashSet('mall_active_email_'.$lang, $arr['key'], $this->user['buyer_id'], 86400);
         $config_obj = Yaf_Registry::get("config");
         $config_shop = $config_obj->shop->toArray();
         $email_arr['url'] = $config_shop['url'];
         $email_arr['key'] = $arr['key'];
-        $body = $this->getView()->render('login/active_email_en.html', $email_arr);
+        $body = $this->getView()->render('login/active_email_'.$lang.'.html', $email_arr);
         $title = 'Erui.com';
         $res = send_Mail($arr['email'], $title, $body);
         if ($res['code'] == 1) {
-            jsonReturn('', 1, '发送成功');
+            jsonReturn('', 1, ShopMsg::getMessage('141', $lang));
         } else {
-            jsonReturn('', -104, $res['msg']);
+            jsonReturn('', -133, ShopMsg::getMessage('-133', $lang));
         }
     }
 
@@ -195,16 +197,16 @@ class MembercenterController extends PublicController {
         if (empty($data['key'])) {
             jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
         }
-        if (redisHashExist('mall_active_email', $data['key'])) {
-            $buyer_id = redisHashGet('mall_active_email', $data['key']);
+        if (redisHashExist('mall_active_email_'.$lang, $data['key'])) {
+            $buyer_id = redisHashGet('mall_active_email_'.$lang, $data['key']);
             $buyer_account_model = new BuyerAccountModel();
             $user_arr['status'] = 'VALID';
             $check = $buyer_account_model->update_data($user_arr, ['buyer_id' => $buyer_id]);
             if ($check) {
-                redisHashDel('mall_active_email', $data['key']);
-                jsonReturn('', 1, 'success!');
+                redisHashDel('mall_active_email_'.$lang, $data['key']);
+                jsonReturn('', 1, ShopMsg::getMessage('1', $lang));
             } else {
-                jsonReturn('', -131, 'failed!');
+                jsonReturn('', -1, ShopMsg::getMessage('-1', $lang));
             }
         } else {
             jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));

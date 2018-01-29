@@ -72,7 +72,7 @@ class LoginController extends PublicController {
             $datajson['token'] = $jwtclient->encode($jwt); //加密
             $datajson['utime'] = 18000;
             redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
-            echo json_encode(array("code" => "1", "data" => $datajson, "message" => "登陆成功"));
+            echo json_encode(array("code" => "1", "data" => $datajson, "message" => ShopMsg::getMessage('102', $lang)));
             exit();
         } else {
             $datajson = [];

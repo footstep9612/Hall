@@ -625,43 +625,28 @@ class OrderController extends PublicController {
         }
     }
     //发送邮件
-    public function sendAction()
-    {
-//        $arrEmail = [
-//            'email'=> '531499132@qq.com',//测试
-//            'order_no'=> '1213',
-//            'created_at'=> date('Y-m-d H:i:s',time()),
-//            'status'=> 'Proceeding',
-//            'pay_status'=> 'Unpaid',
-//            'currency_bn'=> 'CAD',
-//            'amount'=> '123.000',
-//            'remark'=> 'remark',
-//            'expected_receipt_date'=> date('Y-m-d H:i:s',time()),
-//            'name'=> 'name',
-//            'phone'=> 'phone',
-//            'zipcode'=> 'zipcode',
-//            'url'=> 'http://mall.erui.com',
-//            'time'=> date('Y-m-d H:i:s',time()),
-//        ];
+    public function sendAction(){
         $data = $this->getPut();
         $lang = empty($data['lang']) ? 'en' : $data['lang'];
+        $country_bn = empty($data['country_bn']) ? '' : strtolower($data['country_bn']);
         if($data['order_no']){
             $ordr_model = new OrderModel();
             $result = $ordr_model->field('id,created_at,show_status,pay_status,currency_bn,amount,remark,expected_receipt_date')
                                  ->where(['order_no'=>$data['order_no'],'deleted_flag'=>'N'])
                                  ->find();
+            $config_obj = Yaf_Registry::get("config");
+            $config_shop = $config_obj->shop->toArray();
+            $config_email = $config_obj->email->toArray();
             if($result['id']){
                 $order_address_model = new OrderAddressModel();
                 $res = $order_address_model->info($result['id']);
-                $config_obj = Yaf_Registry::get("config");
-                $config_shop = $config_obj->shop->toArray();
                 $arrEmail = [
                     'order_no'=> $data['order_no'],
-                    'created_at'=> $result['created_at'],
+                    'created_at'=> date('Y-m-d',strtotime($result['created_at'])),
                     'status'=> $ordr_model->getShowStatus($result['show_status']),
                     'pay_status'=> $ordr_model->getPayStatus($result['show_status']),
                     'currency_bn'=> $result['currency_bn'],
-                    'amount'=> $result['amount'],
+                    'amount'=> number_format($result['amount'],'2','.',','),
                     'remark'=> $result['remark'],
                     'expected_receipt_date'=> $result['expected_receipt_date'],
                     'name'=> $res['name'],
@@ -671,22 +656,38 @@ class OrderController extends PublicController {
                     'time'=> date('Y-m-d H:i:s',time()),
                 ];
             }
-
-            $arrEmail['info'] = 'submitted successfully';                //客户
-            $arrEmail['email'] = $res['email'];   //客户
-            $this->orderEmail($arrEmail,$lang);
-//            $arrEmail['info'] = '试试事实上所所所所所所所';     //我方
-//            $arrEmail['email'] = '531499132@qq.com';   //我方
-//            $this->orderEmail($arrEmail,$lang);
+            //客户(默认英文)
+            $arrEmail['preInfo'] = ShopMsg::getMessage('2001-1', $lang);   //客户(默认英文)
+            $arrEmail['info'] = ShopMsg::getMessage('2001-2', $lang);   //客户(默认英文)
+            $email = $res['email'];
+            $this->orderEmail($email,$arrEmail,$lang,$config_email['url']);
+            //我方(加拿大人员)
+            $order_address = APPLICATION_PATH . DS . 'conf' . DS . 'order_email.php';
+            $canada_email = include_once($order_address);
+            if(isset($canada_email[$country_bn])){
+                $arrEmail['preInfo'] = ShopMsg::getMessage('2002-1', $lang);   //我方(加拿大人员)
+                $arrEmail['info'] = ShopMsg::getMessage('2002-2', $lang);   //我方(加拿大人员)
+                $email_arr = $canada_email[$country_bn];
+                $this->orderEmail($email_arr,$arrEmail,$lang,$config_email['url']);
+            }
         }
-
-
     }
     //订单生产发送邮件
-    function orderEmail($arrEmail, $lang, $title= 'Erui.com') {
+    function orderEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
         $body = $this->getView()->render('order/order_email_'.$lang.'.html', $arrEmail);
-        $res = send_Mail($arrEmail['email'], $title, $body);
-        return $res;
+        $data = [
+            "title"        => $title,
+            "content"      => $body,
+            "groupSending" => 0,
+            "useType"      => "Order"
+        ];
+        if(is_array($email)) {
+            $arr = implode(',',$email);
+            $data["to"] = "[$arr]";
+        }elseif(is_string($email)){
+            $data["to"] = "[$email]";
+        }
+        PostData($emailUrl, $data, true);
     }
 
 }

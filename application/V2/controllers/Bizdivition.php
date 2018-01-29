@@ -216,7 +216,7 @@ class BizdivitionController extends PublicController{
         if ($params){
             $params = explode(',',$params);
             foreach ($params as $param){
-                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=> L('MISSING_PARAMETER')]);
             }
         }
 
