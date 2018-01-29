@@ -14,7 +14,8 @@ class IndustrychainController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new IndustrychainModel();
-        $res = $model->createChain($data);
+//        $res = $model->createChain($data);
+        $res = $model->updateChain($data);
         if($res !== false && $res !== true && $res !== 'nullData'){    //返回验证错误提示信息
             $valid = array(
                 'code'=>0,

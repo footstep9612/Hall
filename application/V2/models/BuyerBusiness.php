@@ -165,76 +165,34 @@ class BuyerBusinessModel extends PublicModel
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
 
-//        if(empty($arr['net_at'])){
-//            $arr['net_at']=null;
-//        }
-//        if(empty($arr['net_invalid_at'])){
-//            $arr['net_invalid_at']=null;
-//        }
         if(!empty($arr['net_subject'])){    //入网主题可多选
             $arr['net_subject']=implode(',',$arr['net_subject']);
         }
-        if($data['is_edit'] == true){
-            //业务数据
-            $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
-            if($businessExist){
-                $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
-            }else{
-                if(!empty($arr['id'])){
-                    unset($arr['id']);
-                }
-                $addRes = $this->add($arr);
-            }
-            //信用
-            $buyer = new BuyerModel();
-            $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
-            //分析报告+++++++++++++++++++++++++++
-            $attach = new BuyerattachModel();
-            $attach -> updateBuyerFinanceTableArr($data['report_attach'],'REPORT',$data['buyer_id'],$data['created_by']);
-            //采购计划附件
-//            $attach = new PurchasingAttachModel();
-//            if(!empty($data['purchase_attach'][0]['attach_url'])){
-//                $attachRes = $attach->updatePurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
-//            }else{
-//                $attachRes = $attach->delPurchasingAttach($data['buyer_id'],$data['created_by']);
-//            }
-            //采购计划
-            $purchase = new BuyerPurchasingModel();
-            $purchaseRes = $purchase->updatePurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            //里程碑事件
-            $event = new MilestoneEventModel();
-            $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
-            if($addRes || $eventRes || $purchaseRes ||$buyerRes){
-                return true;
-            }
+        //业务数据
+        $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
+        if($businessExist){
+            $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
         }else{
-            //添加数据
-            $addRes = $this -> add($arr);
-            //信用
-            $buyer = new BuyerModel();
-            $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
-            //创建分析报告附件++++++++++++++++++++++++
-            if(!empty($data['report_attach'][0]['attach_url'])){
-                $attach = new BuyerattachModel();
-                $attach -> createBuyerFinanceTableArr($data['report_attach'],'REPORT',$data['buyer_id'],$data['created_by']);
+            if(!empty($arr['id'])){
+                unset($arr['id']);
             }
-            //采购计划附件
-//            if(!empty($data['purchase_attach'][0]['attach_url'])){
-//                $attach = new PurchasingAttachModel();
-//                $attachRes = $attach->CreatePurchasingAttach($data['purchase_attach'],$data['buyer_id'],$data['created_by']);
-//            }
-            //采购计划
-            $purchase = new BuyerPurchasingModel();
-            $purchaseRes = $purchase->createPurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
-            //里程碑事件
-            $event = new MilestoneEventModel();
-            $eventRes = $event->createMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
-
-            if($addRes || $eventRes || $purchaseRes ||$buyerRes || $attachRes){
-                return true;
-            }
+            $addRes = $this->add($arr);
         }
-
+        //信用
+        $buyer = new BuyerModel();
+        $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
+        //分析报告+++++++++++++++++++++++++++
+        $attach = new BuyerattachModel();
+        $attach -> updateBuyerFinanceTableArr($data['report_attach'],'REPORT',$data['buyer_id'],$data['created_by']);
+        //采购计划
+        $purchase = new BuyerPurchasingModel();
+        $purchaseRes = $purchase->updatePurchase($data['purchase'],$data['buyer_id'],$data['created_by']);
+        //里程碑事件
+        $event = new MilestoneEventModel();
+        $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
+        if($addRes || $eventRes || $purchaseRes ||$buyerRes){
+            return true;
+        }
     }
     //删除业务信息
     public function delBusiness($buyer_id,$created_by){
