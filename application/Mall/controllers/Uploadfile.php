@@ -4,6 +4,10 @@
   上传Controller
  */
 class UploadfileController extends PublicController {
+    public function init() {
+        $this->token = false;
+        parent::init();
+    }
     /*
       上传地址
      */

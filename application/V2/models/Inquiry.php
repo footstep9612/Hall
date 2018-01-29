@@ -26,32 +26,52 @@ class InquiryModel extends PublicModel {
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
     const viewCountryRole = 'A015'; //查看国家角色编号(A014被占用)
     const buyerCountryAgent = 'B001'; //区域负责人或国家负责人
-    public $inquiryStatus = [
-        'DRAFT' => '草稿',
-        'CLARIFY' => '项目澄清',
-        'REJECT_MARKET' => '驳回市场',
-        'BIZ_DISPATCHING' => '事业部分单员',
-        'CC_DISPATCHING' => '易瑞客户中心分单员',
-        'BIZ_QUOTING' => '事业部报价',
-        'LOGI_DISPATCHING' => '物流分单员',
-        'LOGI_QUOTING' => '物流报价',
-        'LOGI_APPROVING' => '物流审核',
-        'BIZ_APPROVING' => '事业部核算',
-        'MARKET_APPROVING' => '事业部审核',
-        'MARKET_CONFIRMING' => '市场确认',
-        'QUOTE_SENT' => '报价单已发出',
-        'INQUIRY_CLOSED' => '报价关闭'
-    ];
-    public $quoteStatus = [
-        'DRAFT' => '草稿',
-        'NOT_QUOTED' => '未报价',
-        'ONGOING' => '报价中',
-        'QUOTED' => '已报价',
-        'COMPLETED' => '已完成'
-    ];
 
     public function __construct() {
         parent::__construct();
+    }
+    
+    /**
+     * @desc 获取询单状态
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-01-28
+     */
+    public function getInquiryStatus() {
+        return [
+            'DRAFT' => L('INQUIRY_DRAFT'),
+            'CLARIFY' => L('INQUIRY_CLARIFY'),
+            'REJECT_MARKET' => L('INQUIRY_REJECT_MARKET'),
+            'BIZ_DISPATCHING' => L('INQUIRY_BIZ_DISPATCHING'),
+            'CC_DISPATCHING' => L('INQUIRY_CC_DISPATCHING'),
+            'BIZ_QUOTING' => L('INQUIRY_BIZ_QUOTING'),
+            'LOGI_DISPATCHING' => L('INQUIRY_LOGI_DISPATCHING'),
+            'LOGI_QUOTING' => L('INQUIRY_LOGI_QUOTING'),
+            'LOGI_APPROVING' => L('INQUIRY_LOGI_APPROVING'),
+            'BIZ_APPROVING' => L('INQUIRY_BIZ_APPROVING'),
+            'MARKET_APPROVING' => L('INQUIRY_MARKET_APPROVING'),
+            'MARKET_CONFIRMING' => L('INQUIRY_MARKET_CONFIRMING'),
+            'QUOTE_SENT' => L('INQUIRY_QUOTE_SENT'),
+            'INQUIRY_CLOSED' => L('INQUIRY_INQUIRY_CLOSED')
+        ];
+    }
+    
+    /**
+     * @desc 获取报价状态
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-01-28
+     */
+    public function getQuoteStatus() {
+        return [
+            'DRAFT' => L('QUOTE_DRAFT'),
+            'NOT_QUOTED' => L('QUOTE_NOT_QUOTED'),
+            'ONGOING' => L('QUOTE_ONGOING'),
+            'QUOTED' => L('QUOTE_QUOTED'),
+            'COMPLETED' => L('QUOTE_COMPLETED')
+        ];
     }
 
     /**
@@ -391,12 +411,12 @@ class InquiryModel extends PublicModel {
 
             if($list){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
                 $results['count'] = $count;
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '没有找到相关信息!';
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
@@ -464,7 +484,7 @@ class InquiryModel extends PublicModel {
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有id!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -473,11 +493,11 @@ class InquiryModel extends PublicModel {
 
             if($info){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $info;
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '没有找到相关信息!';
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
@@ -500,7 +520,7 @@ class InquiryModel extends PublicModel {
             $data['serial_no'] = $condition['serial_no'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有流程编码!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -515,11 +535,11 @@ class InquiryModel extends PublicModel {
             $data['id'] = $id;
             if($id){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $data;
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '添加失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -541,7 +561,7 @@ class InquiryModel extends PublicModel {
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         
@@ -554,11 +574,11 @@ class InquiryModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if($id){
-                $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['code'] = 1;
+                $results['message'] = L('SUCCESS');
             }else{
-                $results['code'] = '-101';
-                $results['message'] = '修改失败!';
+                $results['code'] = -101;
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -579,7 +599,7 @@ class InquiryModel extends PublicModel {
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         
@@ -600,10 +620,10 @@ class InquiryModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if($id){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '修改失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -624,7 +644,7 @@ class InquiryModel extends PublicModel {
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -632,10 +652,10 @@ class InquiryModel extends PublicModel {
             $id = $this->where($where)->save(['deleted_flag' => 'Y']);
             if($id){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '删除失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -656,7 +676,7 @@ class InquiryModel extends PublicModel {
             $where['serial_no'] = $condition['serial_no'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有流程编码!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -664,10 +684,10 @@ class InquiryModel extends PublicModel {
             $id = $this->field('id')->where($where)->find();
             if($id){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '没有找到相关信息!';
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
@@ -956,7 +976,7 @@ class InquiryModel extends PublicModel {
             $where['buyer_id'] = $condition['buyer_id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         $where['status'] = !empty($condition['status'])?$condition['status']:'DRAFT';
@@ -971,10 +991,10 @@ class InquiryModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if($id){
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['message'] = '修改失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -1001,7 +1021,7 @@ class InquiryModel extends PublicModel {
      */
     public function statisInquiry($buyer_id){
         $arr = $this->field('id')
-            ->where(array('buyer_id'=>$buyer_id))
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
             ->select();
         if(empty($arr)){
             $data = array(
@@ -1017,15 +1037,12 @@ class InquiryModel extends PublicModel {
         }
         $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select total_purchase from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select FORMAT(sum(total_purchase),2) as total_purchase from erui_rfq.quote where inquiry_id in ($str)";
         $info = $quote->query($sql);
-        $account = 0;
-        foreach($info as $v){
-            $account += $v['total_purchase'];
-        }
+
         $data = array(
             'count'=>$count,
-            'account'=>$account
+            'account'=>$info[0]['total_purchase']
         );
         return $data;
     }

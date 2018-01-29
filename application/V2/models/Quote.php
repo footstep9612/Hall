@@ -187,11 +187,11 @@ class QuoteModel extends PublicModel {
         if ($quoteResult && $inquiryResult){
             $this->commit();
             $inquiry->commit();
-            return ['code'=>'1','message'=>'退回成功!'];
+            return ['code'=> 1, 'message'=>L('QUOTE_SUCCESS')];
         }else{
             $this->rollback();
             $inquiry->rollback();
-            return ['code'=>'-104','message'=>'不能重复退回!'];
+            return ['code'=> -104, 'message'=>L('QUOTE_HAS_RETURNED')];
         }
 
     }
@@ -217,7 +217,7 @@ class QuoteModel extends PublicModel {
             'status'       => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id'  => $orgId,
             'now_agent_id' => $inquiry->getInquiryIssueUserId($request['inquiry_id'], [$orgId], $inquiry::logiIssueAuxiliaryRole, $inquiry::logiIssueMainRole, 'lg'),
-            'inflow_time'   => $time,
+            'inflow_time'  => $time,
             'updated_by'   => $user['id'],
             'updated_at'   => $time
         ]);
@@ -297,14 +297,14 @@ class QuoteModel extends PublicModel {
             $inquiry->commit();
             $this->commit();
 
-            return ['code' => '1', 'message' => '提交成功!'];
+            return ['code' => 1, 'message' => L('QUOTE_SUCCESS')];
 
         } else {
 
             $inquiry->rollback();
             $this->rollback();
 
-            return ['code' => '-104', 'message' => '不能重复提交!'];
+            return ['code' => -104, 'message' => L('QUOTE_RESUBMIT')];
         }
 
     }

@@ -1751,7 +1751,7 @@ EOF;
             if($v['max_range']==0 && $v['max_range']==0){
                 $arr[$k]['min-max_range'] = '-';    //单笔金额偏重区间
             }else{
-                $arr[$k]['min-max_range'] = $v['max_range'].'-'.$v['min_range'];    //单笔金额偏重区间
+                $arr[$k]['min-max_range'] = $v['min_range'].'-'.$v['max_range'];    //单笔金额偏重区间
             }
         }
         return $arr;
@@ -1805,9 +1805,9 @@ EOF;
             foreach($orderRes as $k => $v){
                 if($value['id']==$k){
                     $info[$key]['order_count']=$v['countaccount']['count'];
-                    $info[$key]['order_account']=sprintf("%.2f",$v['countaccount']['account']);
-                    $info[$key]['max_range']=sprintf("%.2f",$v['range']['max']);
-                    $info[$key]['min_range']=sprintf("%.2f",$v['range']['min']);
+                    $info[$key]['order_account']=$v['countaccount']['account'];
+                    $info[$key]['min_range']=$v['range']['min'];
+                    $info[$key]['max_range']=$v['range']['max'];
                 }
             }
         }

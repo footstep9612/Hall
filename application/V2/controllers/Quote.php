@@ -33,7 +33,7 @@ class QuoteController extends PublicController{
      */
     public function infoAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequestParams('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
@@ -69,7 +69,11 @@ class QuoteController extends PublicController{
             $info['final_total_exw_price']   = $finalQuote['total_exw_price'];
             $info['final_total_quote_price'] = $finalQuote['total_quote_price'];
         }
-        $this->jsonReturn($info);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'data' => $info
+        ]);
 
     }
 
@@ -99,7 +103,11 @@ class QuoteController extends PublicController{
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);
 
         if (!$result) $this->jsonReturn($result);
-        $this->jsonReturn();
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS')
+        ]);
 
     }
 
@@ -258,7 +266,10 @@ class QuoteController extends PublicController{
 
         }
 
-        $this->jsonReturn();
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS')
+        ]);
 
     }
 
@@ -327,7 +338,8 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $list = $this->quoteItemModel->getList($request);
-        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+
+        if (!$list) $this->jsonReturn(['code'=> -104, 'message'=> L('QUOTE_NO_DATA')]);
 
         $supplier = new SupplierModel();
 
@@ -336,7 +348,11 @@ class QuoteController extends PublicController{
             $list[$key]['supplier_name']       = $supplier->where(['id' => $value['supplier_id']])->getField('name');
         }
 
-        $this->jsonReturn($list);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'data' => $list
+        ]);
 
     }
 
@@ -348,7 +364,7 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests();
         //验证必填项是否填写
         $checkitem = $this->checkSkuFieldsAction($request['data']);
-        if($checkitem['code'] == '1'){
+        if($checkitem['code'] == 1){
             $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
             $this->jsonReturn($response);
         }else{
@@ -640,7 +656,7 @@ class QuoteController extends PublicController{
             }
         }
 
-        return ['code'=>'1','message'=>'验证通过'];
+        return ['code'=> 1,'message'=> L('QUOTE_VALIDATION')];
     }
 }
 

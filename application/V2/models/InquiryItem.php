@@ -88,11 +88,11 @@ class InquiryitemModel extends PublicModel {
             $list = $this->where($where)->order('id')->select();
             if($list){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['messaage'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
@@ -113,7 +113,7 @@ class InquiryitemModel extends PublicModel {
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -122,11 +122,11 @@ class InquiryitemModel extends PublicModel {
 
             if($info){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
                 $results['data'] = $info;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['messaage'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
@@ -148,7 +148,7 @@ class InquiryitemModel extends PublicModel {
             $data['inquiry_id'] = $condition['inquiry_id'];
         } else {
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -159,10 +159,10 @@ class InquiryitemModel extends PublicModel {
             $id = $this->add($data);
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['messaage'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -181,12 +181,12 @@ class InquiryitemModel extends PublicModel {
     public function addDataBatch($condition = []) {
         if (empty($condition['inquiry_id'])) {
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         if (empty($condition['inquiry_rows'])) {
             $results['code'] = '-103';
-            $results['message'] = '没有询单行数!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -203,10 +203,10 @@ class InquiryitemModel extends PublicModel {
             $id = $this->addAll($inquirydata);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['messaage'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -227,7 +227,7 @@ class InquiryitemModel extends PublicModel {
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         //如果从报价过来，品牌是inquiry_brand
@@ -236,17 +236,17 @@ class InquiryitemModel extends PublicModel {
         }
 
         $data = $this->create($condition);
-        $data['status'] = !empty($createcondition['status']) ? $createcondition['status'] :'VALID';
+        $data['status'] = !empty($condition['status']) ? $condition['status'] :'VALID';
         $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '修改失败!';
+                $results['messaage'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -273,10 +273,10 @@ class InquiryitemModel extends PublicModel {
             $id = $this->where($where)->save(['deleted_flag'=>'Y']);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['messaage'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '删除失败!';
+                $results['messaage'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
@@ -394,11 +394,11 @@ class InquiryitemModel extends PublicModel {
                                 ->select();
             if ($list) {
                 $results['code'] = '1';
-                $results['message'] = '成功！';
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
             } else {
                 $results['code'] = '-101';
-                $results['message'] = '没有找到相关信息!';
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
