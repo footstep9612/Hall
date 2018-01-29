@@ -521,6 +521,13 @@ EOF;
             $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
+            if(!empty($buyerInfo['official_phone'])){
+                if(preg_match('/ /',$buyerInfo['official_phone'])){ //匹配空格
+                    $buyerInfo['official_phone']=str_replace(' ','-',$buyerInfo['official_phone']);
+                }elseif(!preg_match('/-/',$buyerInfo['official_phone']) && !preg_match('/ /',$buyerInfo['official_phone'])){
+                    $buyerInfo['official_phone']='-'.$buyerInfo['official_phone'];
+                }
+            }
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
@@ -1337,11 +1344,11 @@ EOF;
                 return $v;
             }
         }
-        if(!empty($base['official_phone'])){
-            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
-                return '公司电话:(选)2~4位区号-6~11位电话号码';
-            }
-        }
+//        if(!empty($base['official_phone'])){
+//            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
+//                return '公司电话:(选)2~4位区号-6~11位电话号码';
+//            }
+//        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
             return $baseArr['official_email'];
         }
@@ -1383,11 +1390,11 @@ EOF;
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
                     return $v;
                 }
-                if(!empty($value['phone'])){
-                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
-                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
-                    }
-                }
+//                if(!empty($value['phone'])){
+//                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+//                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
+//                    }
+//                }
             }
             if(!empty($value['email'])){
                 if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
@@ -1421,40 +1428,15 @@ EOF;
         $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
         $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
 
-        if($data['base_info']['is_edit'] == true){  //财务报表编辑,联系人编辑
-            //编辑财务报表
-            $attach = new BuyerattachModel();
-            $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
-            //公司人员组织架构
-            $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
-//            //分析报告
-//            $attach -> updateBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
-            //编辑联系人必填
-            $attach = new BuyercontactModel();
-            $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-            return true;
-        }else{
-            //创建财务报表附件
-            $attach = new BuyerattachModel();
-            if(!empty($data['base_info']['finance_attach'][0]['attach_url'])){
-                $attach -> createBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
-            }
-            //创建公司人员组织架构
-            if(!empty($data['base_info']['org_chart'][0]['attach_url'])){
-                $attach -> createBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
-            }
-            //创建分析报告附件
-//            if(!empty($data['base_info']['report_attach'][0]['attach_url'])){
-//                $attach -> createBuyerFinanceTableArr($data['base_info']['report_attach'],'REPORT',$data['base_info']['buyer_id'],$data['created_by']);
-//            }
-            //创建联系人信息
-            $model = new BuyercontactModel();
-            $conn = $model->createBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
-            if($conn){
-                return true;
-            }
-            return false;
-        }
+        //编辑财务报表
+        $attach = new BuyerattachModel();
+        $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['base_info']['buyer_id'],$data['created_by']);
+        //公司人员组织架构
+        $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
+        //编辑联系人必填
+        $attach = new BuyercontactModel();
+        $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+        return true;
     }
     /**
      * 组装客户基本信息创建所需数据
