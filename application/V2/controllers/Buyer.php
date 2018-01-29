@@ -31,23 +31,24 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         }
+        $country_model = new CountryModel();
         if (!empty($data['country_bn'])) {
             $pieces = explode(",", $data['country_bn']);
             for ($i = 0; $i < count($pieces); $i++) {
-                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+                $where['country_bn'] = $where['country_bn'] . "'" . $country_model->escapeString($pieces[$i]) . "',";
             }
             $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
         if (!empty($data['country_name'])) {
 
             $country_name = trim($data['country_name']);
-            $country_model = new CountryModel();
+
             $country_bns = $country_model->getBnByName($country_name);
 
             if ($country_bns) {
 
                 foreach ($country_bns as $country_bn) {
-                    $where['country_bns'] = $where['country_bns'] . '\'' . $country_bn . '\',';
+                    $where['country_bns'] = $where['country_bns'] . '\'' . $country_model->escapeString($country_bn) . '\',';
                 }
                 $where['country_bns'] = rtrim($where['country_bns'], ',');
             } else {
@@ -57,39 +58,39 @@ class BuyerController extends PublicController {
             }
         }
         if (!empty($data['area_bn'])) {
-            $where['area_bn'] = $data['area_bn'];
+            $where['area_bn'] = $country_model->escapeString($data['area_bn']);
         }
         if (!empty($data['created_by'])) {
-            $where['created_by'] = $data['created_by'];
+            $where['created_by'] = $country_model->escapeString($data['created_by']);
         }
         if (!empty($data['agent_id'])) {
-            $where['agent_id'] = $data['agent_id'];
+            $where['agent_id'] = $country_model->escapeString($data['agent_id']);
         }
         if ($data['is_agent'] == "Y") {
-            $where['is_agent'] = $data['is_agent'];
-            $where['agent']['user_id'] = $this->user['id'];
-            $where['agent']['agent_id'] = $this->user['id'];
+            $where['is_agent'] = $country_model->escapeString($data['is_agent']);
+            $where['agent']['user_id'] = $country_model->escapeString($this->user['id']);
+            $where['agent']['agent_id'] = $country_model->escapeString($this->user['id']);
         }
         if (!empty($data['buyer_no'])) {
-            $where['buyer_no'] = $data['buyer_no'];
+            $where['buyer_no'] = $country_model->escapeString($data['buyer_no']);
         }
         if (!empty($data['buyer_code'])) {
-            $where['buyer_code'] = $data['buyer_code'];
+            $where['buyer_code'] = $country_model->escapeString($data['buyer_code']);
         }
         if (!empty($data['official_phone'])) {
-            $where['official_phone'] = $data['official_phone'];
+            $where['official_phone'] = $country_model->escapeString($data['official_phone']);
         }
         if (!empty($data['status'])) {
-            $where['status'] = $data['status'];
+            $where['status'] = $country_model->escapeString($data['status']);
         }
         if (!empty($data['employee_name'])) {
-            $where['employee_name'] = $data['employee_name'];
+            $where['employee_name'] = $country_model->escapeString($data['employee_name']);
         }
         if (!empty($data['user_name'])) {
-            $where['user_name'] = $data['user_name'];
+            $where['user_name'] = $country_model->escapeString($data['user_name']);
         }
         if (!empty($data['source'])) {
-            $where['source'] = $data['source'];
+            $where['source'] = $country_model->escapeString($data['source']);
         }
         if (!empty($data['checked_at_start'])) {
             $where['checked_at_start'] = $data['checked_at_start'];
@@ -128,22 +129,22 @@ class BuyerController extends PublicController {
             $where['page'] = ($data['page'] - 1) * $where['num'];
         }
         if (!empty($data['credit_checked_name'])) {
-            $where['credit_checked_name'] = $data['credit_checked_name'];
+            $where['credit_checked_name'] = $country_model->escapeString($data['credit_checked_name']);
         }
         if (!empty($data['line_of_credit_min'])) {
-            $where['line_of_credit_min'] = $data['line_of_credit_min'];
+            $where['line_of_credit_min'] = $country_model->escapeString($data['line_of_credit_min']);
         }
         if (!empty($data['line_of_credit_max'])) {
-            $where['line_of_credit_max'] = $data['line_of_credit_max'];
+            $where['line_of_credit_max'] = $country_model->escapeString($data['line_of_credit_max']);
         }
         if (!empty($data['credit_status'])) {
-            $where['credit_status'] = $data['credit_status'];
+            $where['credit_status'] = $country_model->escapeString($data['credit_status']);
         }
         if (!empty($data['credit_status'])) {
-            $where['credit_status'] = $data['credit_status'];
+            $where['credit_status'] = $country_model->escapeString($data['credit_status']);
         }
         if (!empty($data['filter'])) {  //过滤状态
-            $where['filter'] = $data['filter'];
+            $where['filter'] = $country_model->escapeString($data['filter']);
         }
         if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
             $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
@@ -168,21 +169,20 @@ class BuyerController extends PublicController {
      * CRM系统优化客户统计列表
      * wangs
      */
-    public function buyersStatisListAction(){
-        $created_by = $this -> user['id'];
+    public function buyersStatisListAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
-            'code'=>1,
-            'message'=>'返回数据',
-            'count'=>intval($ststisInfo['totalCount']),
-            'currentPage'=>$ststisInfo['currentPage'],
-            'data'=>$ststisInfo['info']
+            'code' => 1,
+            'message' => '返回数据',
+            'count' => intval($ststisInfo['totalCount']),
+            'currentPage' => $ststisInfo['currentPage'],
+            'data' => $ststisInfo['info']
         );
         $this->jsonReturn($dataJson);
-
     }
 
     /*
@@ -706,7 +706,7 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED'  || $data['status'] == 'FIRST_REJECTED'  || $data['status'] == 'FIRST_APPROVED'  ) {
+            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED' || $data['status'] == 'FIRST_REJECTED' || $data['status'] == 'FIRST_APPROVED') {
                 $arr['checked_by'] = $this->user['id'];
                 $arr['checked_at'] = Date("Y-m-d H:i:s");
             }
@@ -781,6 +781,7 @@ class BuyerController extends PublicController {
             );
         }
     }
+
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
@@ -791,26 +792,26 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $res = $model->createBuyerBaseInfo($data);          //创建基本信息
-        if($res !== true && $res !==false){
+        if ($res !== true && $res !== false) {
             $valid = array(
-                'code'=>0,
-                'message'=>'请输入规范'.$res,
+                'code' => 0,
+                'message' => '请输入规范' . $res,
             );
-            $this -> jsonReturn($valid);
-        }elseif ($res === false){
+            $this->jsonReturn($valid);
+        } elseif ($res === false) {
             $valid = array(
-                'code'=>0,
-                'message'=>'客户基本信息失败',
+                'code' => 0,
+                'message' => '客户基本信息失败',
             );
             $this->jsonReturn($valid);
         }
         $valid = array(
-            'code'=>1,
-            'message'=>'基本信息成功',
+            'code' => 1,
+            'message' => '基本信息成功',
         );
         $this->jsonReturn($valid);
     }
-    
+
     /**
      * 客户管理：客户基本信息展示详情
      * wangs
@@ -821,11 +822,11 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
-        if(empty($buerInfo)){
+        if (empty($buerInfo)) {
             $dataJson = array(
-                'code'=>1,
-                'message'=>'返回数据',
-                'data'=>$buerInfo
+                'code' => 1,
+                'message' => '返回数据',
+                'data' => $buerInfo
             );
             $this->jsonReturn($dataJson);
         }
@@ -841,17 +842,17 @@ class BuyerController extends PublicController {
         //获取财务报表
         $attach = new BuyerattachModel();
 
-        $finance = $attach->showBuyerExistAttach('FINANCE',$data['buyer_id'],$data['created_by']);
-        if(!empty($finance)){
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id'], $data['created_by']);
+        if (!empty($finance)) {
             $buerInfo['finance_attach'] = $finance;
-        }else{
+        } else {
             $buerInfo['finance_attach'] = array();
         }
         //公司人员组织架构
-        $org_chart = $attach->showBuyerExistAttach('ORGCHART',$data['buyer_id'],$data['created_by']);
-        if(!empty($org_chart)){
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id'], $data['created_by']);
+        if (!empty($org_chart)) {
             $buerInfo['org_chart'] = $org_chart;
-        }else{
+        } else {
             $buerInfo['org_chart'] = array();
         }
         //分析报告
@@ -865,29 +866,29 @@ class BuyerController extends PublicController {
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'],$data['created_by']);
-        if(empty($contactInfo)){    //联系人为空
-            $contactInfo=[array(
-                'name'=>null, //联系人姓名
-                'title'=>null,    //联系人职位
-                'role'=>null, //角色
-                'phone'=>null,    //联系人电话
-                'email'=>null,  //联系人邮箱
-                'hobby'=>null,    //爱好
-                'address'=>null,    //详细地址
-                'experience'=>null,   //经历
-                'social_relations'=>null, //社会关系
-                'key_concern'=>null,  //决策主要关注点
-                'attitude_kerui'=>null,   //对科瑞的态度
-                'social_habits'=>null, //常去社交场所
-                'relatives_family'=>null, //家庭亲戚相关信息
+        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
+        if (empty($contactInfo)) {    //联系人为空
+            $contactInfo = [array(
+            'name' => null, //联系人姓名
+            'title' => null, //联系人职位
+            'role' => null, //角色
+            'phone' => null, //联系人电话
+            'email' => null, //联系人邮箱
+            'hobby' => null, //爱好
+            'address' => null, //详细地址
+            'experience' => null, //经历
+            'social_relations' => null, //社会关系
+            'key_concern' => null, //决策主要关注点
+            'attitude_kerui' => null, //对科瑞的态度
+            'social_habits' => null, //常去社交场所
+            'relatives_family' => null, //家庭亲戚相关信息
             )];
         }
         $arr['contact'] = $contactInfo;
         $dataJson = array(
-            'code'=>1,
-            'message'=>'返回数据',
-            'data'=>$arr
+            'code' => 1,
+            'message' => '返回数据',
+            'data' => $arr
         );
         $this->jsonReturn($dataJson);
     }
@@ -916,21 +917,22 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
+
     /**
      * 客户管理-客户档案--统计
      * wangs
      */
-    public function showBuyerStatisAction(){
-        $created_by = $this -> user['id'];
+    public function showBuyerStatisAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         //客户信用评价
         $model = new BuyerModel();
         $ststisInfo = $model->showBuyerStatis($data);
-        if($ststisInfo === false){
+        if ($ststisInfo === false) {
             $dataJson = array(
-                'code'=>0,
-                'message'=>'请求缺少规定参数'
+                'code' => 0,
+                'message' => '请求缺少规定参数'
             );
             $this->jsonReturn($dataJson);
         }
@@ -954,26 +956,27 @@ class BuyerController extends PublicController {
         $arr['order']['range'] = $orderInfo['range'];
         $arr['inquiry'] = $inquiryInfo;
         $dataJson = array(
-            'code'=>1,
-            'message'=>'返回数据',
-            'data'=>$arr
+            'code' => 1,
+            'message' => '返回数据',
+            'data' => $arr
         );
         $this->jsonReturn($dataJson);
     }
+
     /**
      * 添加客户验证输入CRM代码信息
      * wangs
      */
-    public function checkBuyerCrmAction(){
-        $created_by = $this -> user['id'];
+    public function checkBuyerCrmAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
-        if(!empty($info)){
+        if (!empty($info)) {
             $dataJson = array(
-                'code'=>0,
-                'message'=>'CRM已存在'
+                'code' => 0,
+                'message' => 'CRM已存在'
             );
             $this->jsonReturn($dataJson);
         }
@@ -986,16 +989,16 @@ class BuyerController extends PublicController {
 //        }
         //验证集团CRM存在,则展示数据
         $group = $this->groupCrmCode($data['buyer_code']);
-        if(!empty($group)){
+        if (!empty($group)) {
             $dataJson = array(
-                'code'=>1,
-                'message'=>'集团CRM客户信息',
-                'data'=>$group
+                'code' => 1,
+                'message' => '集团CRM客户信息',
+                'data' => $group
             );
-        }else{
+        } else {
             $dataJson = array(
-                'code'=>2,
-                'message'=>'正常录入客户信息流程'
+                'code' => 2,
+                'message' => '正常录入客户信息流程'
             );
         }
         $this->jsonReturn($dataJson);
@@ -1006,7 +1009,7 @@ class BuyerController extends PublicController {
      * 调用集团crm接口
      * 王帅
      */
-    public function groupCrmCode($code){
+    public function groupCrmCode($code) {
         //通过code验证并获取客户信息
         $soap = <<<EOF
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:acc="http://siebel.com/sales/account/">
@@ -1019,42 +1022,41 @@ class BuyerController extends PublicController {
 </soapenv:Envelope>
 EOF;
         $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Content-Type: text/xml",
+            'http' => array(
+                'method' => "POST",
+                'header' => "Content-Type: text/xml",
                 'content' => $soap
             )
         );
         $context = stream_context_create($opt);
 //        $url = 'http://172.16.26.152:8088/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
         $url = 'http://172.16.26.154:7780/eai_anon_chs/start.swe?SWEExtSource=AnonWebService&amp;SweExtCmd=Execute';
-        $str = file_get_contents($url,false,$context);  //得到客户crm数据
-        $need = strstr($str,'<biz_scope>');
-        $need = strstr($need,'</rpc:QueryAccountResponse>',true);
-        $xml = '<root>'.$need.'</root>';
+        $str = file_get_contents($url, false, $context);  //得到客户crm数据
+        $need = strstr($str, '<biz_scope>');
+        $need = strstr($need, '</rpc:QueryAccountResponse>', true);
+        $xml = '<root>' . $need . '</root>';
         $xmlObj = simplexml_load_string($xml);
-        $arr = json_decode(json_encode($xmlObj),true);
-        if(empty($arr['crm_code'])){
+        $arr = json_decode(json_encode($xmlObj), true);
+        if (empty($arr['crm_code'])) {
             return null;
         }
-        if(!empty($arr)){
+        if (!empty($arr)) {
             $country = new CountryModel();
             $nameAndCode = $country->getCountryBnCodeByName($arr['country_bn']);
             $arr['country_brief'] = $nameAndCode['bn'];
             $arr['country_code'] = $nameAndCode['int_tel_code'];
         }
         $info = array(
-            'official_email'=>!empty($arr['email'])?$arr['email']:null, //邮箱
-            'country_bn'=>!empty($arr['country_brief'])?$arr['country_brief']:null, //国家简称
-            'country_name'=>!empty($arr['country_bn'])?$arr['country_bn']:null, //国家名称
-            'areacode'=>!empty($arr['country_code'])?$arr['country_code']:null, //国家区号
-            'mobile'=>!empty($arr['mobile'])?$arr['mobile']:null, //区号,电话
-            'first_name'=>!empty($arr['first_name'])?$arr['first_name']:null, //姓名
-
-            'name'=>!empty($arr['name'])?$arr['name']:null, //公司名称
-            'biz_scope'=>!empty($arr['biz_scope'])?$arr['biz_scope']:null, //经营范围
-            'intent_product'=>NULL, //意向产品
-            'purchase_amount'=>NULL //预计年采购额
+            'official_email' => !empty($arr['email']) ? $arr['email'] : null, //邮箱
+            'country_bn' => !empty($arr['country_brief']) ? $arr['country_brief'] : null, //国家简称
+            'country_name' => !empty($arr['country_bn']) ? $arr['country_bn'] : null, //国家名称
+            'areacode' => !empty($arr['country_code']) ? $arr['country_code'] : null, //国家区号
+            'mobile' => !empty($arr['mobile']) ? $arr['mobile'] : null, //区号,电话
+            'first_name' => !empty($arr['first_name']) ? $arr['first_name'] : null, //姓名
+            'name' => !empty($arr['name']) ? $arr['name'] : null, //公司名称
+            'biz_scope' => !empty($arr['biz_scope']) ? $arr['biz_scope'] : null, //经营范围
+            'intent_product' => NULL, //意向产品
+            'purchase_amount' => NULL //预计年采购额
         );
         return $info;
     }
@@ -1062,23 +1064,23 @@ EOF;
     /**
      * CRM测试
      */
-    public function testCrmAction(){
-        $created_by = $this -> user['id'];
+    public function testCrmAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->testCrm($data);
-        if(!empty($info)){
+        if (!empty($info)) {
             $dataJson = array(
-                'code'=>1,
-                'message'=>'CRM返回数据',
-                'data'=>$info
+                'code' => 1,
+                'message' => 'CRM返回数据',
+                'data' => $info
             );
-        }else{
+        } else {
             $dataJson = array(
-                'code'=>2,
-                'message'=>'CRM正常流程',
-                'data'=>$info
+                'code' => 2,
+                'message' => 'CRM正常流程',
+                'data' => $info
             );
         }
         $this->jsonReturn($dataJson);
@@ -1087,16 +1089,17 @@ EOF;
     /**
      * 获取客户类型名称列表
      */
-    public function getBuyerTypeListAction(){
+    public function getBuyerTypeListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang=isset($data['lang'])?$data['lang']:'zh';
-        $type=new BuyerTypeModel();
-        $info=$type->buyerNameList($lang);
+        $lang = isset($data['lang']) ? $data['lang'] : 'zh';
+        $type = new BuyerTypeModel();
+        $info = $type->buyerNameList($lang);
         $dataJson = array(
-            'code'=>1,
-            'message'=>'客户类型名称列表',
-            'data'=>$info
+            'code' => 1,
+            'message' => '客户类型名称列表',
+            'data' => $info
         );
         $this->jsonReturn($dataJson);
     }
+
 }
