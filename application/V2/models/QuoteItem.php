@@ -163,22 +163,22 @@ class QuoteItemModel extends PublicModel {
 
             if(!empty($value['purchase_unit_price'])){
                 if (!is_numeric($value['purchase_unit_price'])){
-                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER') ];
                 }
             }
             if(!empty($value['gross_weight_kg'])) {
                 if (!is_numeric($value['gross_weight_kg'])) {
-                    return ['code' => '-104', 'message' => '毛重必须是数字'];
+                    return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER') ];
                 }
             }
             if(!empty($value['package_size'])){
                 if (!is_numeric($value['package_size'])){
-                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
                 }
             }
             if(!empty($value['delivery_days'])) {
                 if (!is_numeric($value['delivery_days'])) {
-                    return ['code' => '-104', 'message' => '交货期必须是数字'];
+                    return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
             }
 

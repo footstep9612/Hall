@@ -103,7 +103,7 @@ class LogisticsController extends PublicController {
 	            $this->jsonReturn($flag);
 	        } else {
 	            $this->setCode('-101');
-	            $this->setMessage('失败!');
+	            $this->setMessage(L('FAIL'));
 	            parent::jsonReturn($data);
 	        }
 	    } else {
@@ -225,29 +225,29 @@ class LogisticsController extends PublicController {
     	        $findFields = ['logi_check_org_id', $outField];
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
     	        $countryModel = New CountryModel();
-    	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : '暂无';
-    	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : '暂无';
-    	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : '暂无';
+    	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : L('NOTHING');
+    	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['from_country'])){
 				    //如果是空值赋值暂无
-					$quoteLogiFee['from_country'] = '暂无';
+					$quoteLogiFee['from_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
 					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
 				}
-    	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : '暂无';
+    	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['to_country'])){
 				    //如果是空值赋值暂无
-					$quoteLogiFee['to_country'] = '暂无';
+					$quoteLogiFee['to_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
 					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
 				}
-    	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : '暂无';
-    	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : '暂无';
-    	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : '暂无';
-    	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : '暂无';
-    	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : '暂无';
+    	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
 
     	    }
     	
@@ -485,7 +485,7 @@ class LogisticsController extends PublicController {
 	            $this->jsonReturn($flag);
 	        } else {
 	            $this->setCode('-101');
-	            $this->setMessage('失败!');
+	            $this->setMessage(L('FAIL'));
 	            parent::jsonReturn($data);
 	        }
 	    } else {
@@ -1186,7 +1186,7 @@ class LogisticsController extends PublicController {
 	private function _handleList($model, $data = [], $condition = [], $join = false) {
 	   if ($data) {
     		$res['code'] = 1;
-    		$res['message'] = '成功!';
+    		$res['message'] = L('SUCCESS');
     		$res['data'] = $data;
     		$res['count'] = $join ? $model->getJoinCount($condition) : $model->getCount($condition);
     		$this->jsonReturn($res);
@@ -1204,11 +1204,11 @@ class LogisticsController extends PublicController {
     public function jsonReturn($data = [], $type = 'JSON') {
     	if ($data) {
     		$this->setCode('1');
-            $this->setMessage('成功!');
+            $this->setMessage(L('SUCCESS'));
     		parent::jsonReturn($data, $type);
     	} else {
     		$this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage(L('FAIL'));
             parent::jsonReturn();
     	}
     }

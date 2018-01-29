@@ -113,12 +113,12 @@ class FinalQuoteItemModel extends PublicModel {
 
 			if($list){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 				$results['count'] = $count;
 				$results['data'] = $list;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '没有找到相关信息!';
+				$results['message'] = L('NO_DATA');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -144,11 +144,11 @@ class FinalQuoteItemModel extends PublicModel {
 
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '添加成功！';
+				$results['message'] = L('SUCCESS');
 				$results['data'] = $id;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '添加失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -169,7 +169,7 @@ class FinalQuoteItemModel extends PublicModel {
 			$where['id'] = $condition['id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 
@@ -178,11 +178,11 @@ class FinalQuoteItemModel extends PublicModel {
 
 			if($info){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 				$results['data'] = $info;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '没有找到相关信息!';
+				$results['message'] = L('NO_DATA');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -204,7 +204,7 @@ class FinalQuoteItemModel extends PublicModel {
 			$where['id'] = $condition['id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 		$data['updated_at'] = $this->getTime();
@@ -213,10 +213,10 @@ class FinalQuoteItemModel extends PublicModel {
 			$id = $this->where($where)->save($data);
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '修改成功！';
+				$results['message'] = L('SUCCESS');
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '修改失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -243,10 +243,10 @@ class FinalQuoteItemModel extends PublicModel {
 			$id = $this->where($where)->save(['deleted_flag' => 'Y']);
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '删除失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {

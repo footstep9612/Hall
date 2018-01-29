@@ -90,11 +90,11 @@ class CountryModel extends PublicModel {
 
             $row = $this->alias('country')
                     ->join($this->getTableName() . ' as  c on country.bn=c.bn')
-                    ->field('c.name')
+                    ->field('c.name,c.bn')
                     ->where($data)
                     ->find();
             if ($row) {
-                return $row['name'];
+                return $row['bn'];
             } else {
                 return 'Argentina';
             }
