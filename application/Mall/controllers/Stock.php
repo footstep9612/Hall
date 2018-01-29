@@ -45,9 +45,13 @@ class StockController extends PublicController {
 
         $stock_model = new StockModel();
         $list = $stock_model->getListByKeyword($condition);
+
         if ($list) {
             $this->_setImage($list);
+            $count = $stock_model->getCountByKeyword($condition);
+            $this->setvalue('count', $count);
             $this->_setConstPrice($list, $condition['country_bn']);
+            $this->_SetProductInfo($list, $condition['lang']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -168,6 +172,51 @@ class StockController extends PublicController {
                     }
                 } else {
                     $val['costprices'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取价格属性
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _SetProductInfo(&$arr, $lang = 'en') {
+        if ($arr) {
+
+            $spus = [];
+            foreach ($arr as $key => $val) {
+                $spus[] = $val['spu'];
+            }
+
+            $product_model = new ProductModel();
+            $products = $product_model->GetProductBySpus($spus, $lang);
+
+            foreach ($arr as $key => $val) {
+
+                if ($val['spu'] && isset($products[$val['spu']])) {
+                    $val['tech_paras'] = $products[$val['spu']]['tech_paras'];
+                    $val['exe_standard'] = $products[$val['spu']]['exe_standard'];
+                    $val['customization_flag'] = $products[$val['spu']]['customization_flag'];
+                    $val['warranty'] = $products[$val['spu']]['warranty'];
+                    $brand = json_decode($products[$val['spu']]['brand'], true);
+                    if ($brand && isset($brand['name'])) {
+                        $val['brand'] = $brand['name'];
+                    } else {
+                        $val['brand'] = $products[$val['spu']]['brand'];
+                    }
+                } else {
+                    $val['tech_paras'] = '';
+                    $val['exe_standard'] = '';
+                    $val['customization_flag'] = 'N';
+                    $val['brand'] = '';
+                    $val['warranty'] = '';
                 }
                 $arr[$key] = $val;
             }

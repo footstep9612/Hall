@@ -230,12 +230,13 @@ class ReportController extends PublicController {
             $marketAreaModel = new MarketAreaModel();
             $marketAreaCountryModel = new MarketAreaCountryModel();
             $nowTime = time();
+            $quoteStatus = $inquiryModel->getQuoteStatus();
             $inquiryList = $inquiryModel->getTimeIntervalList($condition);
             foreach ($inquiryList as &$inquiry) {
                 $where['inquiry_id'] = $inquiry['id'];
                 $createdTime = strtotime($inquiry['created_at']);
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
-                $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
+                $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 if (empty($inquiry['area_name'])) {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
                     $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
@@ -260,9 +261,9 @@ class ReportController extends PublicController {
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
                 foreach ($inquiryItemList as &$inquiryItem) {
                     // sku是否油气
-                    $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                    $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? L('OIL_TYPE_IS_OIL') : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? L('OIL_TYPE_NON_OIL') : '');
                     // sku是否平台
-                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
+                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? L('PLATFORM_TYPE_IS_PLATFORM') : L('PLATFORM_TYPE_NON_PLATFORM');
                 }
                 // sku记录数
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
@@ -272,7 +273,7 @@ class ReportController extends PublicController {
             $this->jsonReturn($inquiryList);
         } else {
             $this->setCode('-103');
-            $this->setMessage('缺少参数!');
+            $this->setMessage(L('MISSING_PARAMETER'));
             $this->jsonReturn();
         }
     }

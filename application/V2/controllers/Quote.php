@@ -33,7 +33,7 @@ class QuoteController extends PublicController{
      */
     public function infoAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequestParams('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
@@ -69,7 +69,11 @@ class QuoteController extends PublicController{
             $info['final_total_exw_price']   = $finalQuote['total_exw_price'];
             $info['final_total_quote_price'] = $finalQuote['total_quote_price'];
         }
-        $this->jsonReturn($info);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'data' => $info
+        ]);
 
     }
 
@@ -99,7 +103,11 @@ class QuoteController extends PublicController{
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);
 
         if (!$result) $this->jsonReturn($result);
-        $this->jsonReturn();
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS')
+        ]);
 
     }
 
@@ -258,7 +266,10 @@ class QuoteController extends PublicController{
 
         }
 
-        $this->jsonReturn();
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS')
+        ]);
 
     }
 
@@ -327,7 +338,8 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests('inquiry_id');
 
         $list = $this->quoteItemModel->getList($request);
-        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+
+        if (!$list) $this->jsonReturn(['code'=> -104, 'message'=> L('QUOTE_NO_DATA')]);
 
         $supplier = new SupplierModel();
 
@@ -336,7 +348,11 @@ class QuoteController extends PublicController{
             $list[$key]['supplier_name']       = $supplier->where(['id' => $value['supplier_id']])->getField('name');
         }
 
-        $this->jsonReturn($list);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'data' => $list
+        ]);
 
     }
 
@@ -348,7 +364,7 @@ class QuoteController extends PublicController{
         $request = $this->validateRequests();
         //验证必填项是否填写
         $checkitem = $this->checkSkuFieldsAction($request['data']);
-        if($checkitem['code'] == '1'){
+        if($checkitem['code'] == 1){
             $response = $this->quoteItemModel->updateItem($request['data'],$this->user['id']);
             $this->jsonReturn($response);
         }else{
@@ -382,7 +398,7 @@ class QuoteController extends PublicController{
 
         $finalQuoteItemModel = new FinalQuoteItemModel();
         $list = $finalQuoteItemModel->getFinalSku($request);
-        if (!$list) $this->jsonReturn(['code'=>'-104','message'=>'没有数据']);
+        if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
         foreach ($list as $key=>$value){
             $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
@@ -411,16 +427,6 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('id');
         $quoteItemIds = $request['id'];
-
-        //只能删除自己的SKU
-        /*
-        $quoteItems = $this->quoteItemModel->where('id IN('.$quoteItemIds.')')->getField('created_by',true);
-        foreach ($quoteItems as $item){
-            if ($item !== $this->user['id']){
-                $this->jsonReturn(['code'=>'-104','message'=>'你没有权限删除该SKU!']);
-            }
-        }
-        */
 
         $response = $this->quoteItemModel->delItem($quoteItemIds);
         $this->jsonReturn($response);
@@ -468,7 +474,7 @@ class QuoteController extends PublicController{
                         if(!$resfinal){
                             $this->inquiryItemModel->rollback();
                             $results['code'] = '-101';
-                            $results['messaage'] = '删除失败!';
+                            $results['messaage'] = L('QUOTE_DELETE_FAIL');
                             $this->jsonReturn($results);
                         }
                     }
@@ -477,7 +483,7 @@ class QuoteController extends PublicController{
                 }else{
                     $this->inquiryItemModel->rollback();
                     $results['code'] = '-101';
-                    $results['messaage'] = '删除失败!';
+                    $results['messaage'] = L('QUOTE_DELETE_FAIL');
                     $this->jsonReturn($results);
                 }
             }else{
@@ -524,7 +530,7 @@ class QuoteController extends PublicController{
         if ($params){
             $params = explode(',',$params);
             foreach ($params as $param){
-                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=> L('MISSING_PARAMETER')]);
             }
         }
 
@@ -541,39 +547,40 @@ class QuoteController extends PublicController{
 
         //总重
         if (!empty($request['total_weight']) && !is_numeric($request['total_weight'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '总重必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_TOTAL_WEIGHT_NUMBER')]);
         }
         //包装总体积
         if (!empty($request['package_volumn']) && !is_numeric($request['package_volumn'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '包装总体积必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_PACKAGE_VOLUMN_NUMBER')]);
         }
         //回款周期
         if (!empty($request['payment_period']) && !is_numeric($request['payment_period'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '回款周期必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_PAYMENT_PRIOD_NUMBER')]);
         }
         //交货周期
         if (!empty($request['delivery_period']) && !is_numeric($request['delivery_period'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '交货周期必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_DELIVERY_PRIOD_NUMBER')]);
         }
         //资金占用比例
         if (!empty($request['fund_occupation_rate']) && !is_numeric($request['fund_occupation_rate'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '资金占用比例必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_FUND_OCCUPATION_RATE_NUMBER')]);
         }
         //银行利息
         if (!empty($request['bank_interest']) && !is_numeric($request['bank_interest'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '银行利息必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_BANK_INTEREST_NUMBER')]);
         }
         //毛利率
         if (!empty($request['gross_profit_rate']) && !is_numeric($request['gross_profit_rate'])) {
-            $this->jsonReturn(['code' => '-104', 'message' => '毛利率必须是数字']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_GROSS_PROFIT_RATE_NUMBER')]);
         }
         return $request;
     }
 
     /**
      * 验证报价单SKU必填和数字字段
-     * @param $request
-     * @return mixed
+     * @param array $data
+     *
+     * @return array
      */
     public function checkSkuFieldsAction($data=[]){
 
@@ -581,66 +588,66 @@ class QuoteController extends PublicController{
             if(empty($value['reason_for_no_quote'])){
                 //供应商活着未报价分析
                 if(empty($value['supplier_id'])){
-                    return ['code'=>'-104','message'=>'供应商未选择'];
+                    return ['code'=>'-104','message'=> L('QUOTE_SUPPLIER_REQUIRED')];
                 }
                 //品牌
                 if (empty($value['brand'])){
-                    return ['code'=>'-104','message'=>'品牌必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_BRAND_REQUIRED')];
                 }
                 //采购单价
                 if (empty($value['purchase_unit_price'])){
-                    return ['code'=>'-104','message'=>'采购单价必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PUP_REQUIRED')];
                 }
                 if (!is_numeric($value['purchase_unit_price'])){
-                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER')];
                 }else if ($value['purchase_unit_price']<=0){
-                    return ['code'=>'-104','message'=>'采购单价必须大于0'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PUP_NOT_ZERO')];
                 }
                 //采购币种
                 if (empty($value['purchase_price_cur_bn'])){
-                    return ['code'=>'-104','message'=>'采购币种必选'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PPC_REQUIRED')];
                 }
                 //毛重
                 if (empty($value['gross_weight_kg'])){
-                    return ['code'=>'-104','message'=>'毛重必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_GW_REQUIRED')];
                 }
                 if (!is_numeric($value['gross_weight_kg'])){
-                    return ['code'=>'-104','message'=>'毛重必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_GW_NUMBER')];
                 }
                 //包装体积
                 if (empty($value['package_size'])){
-                    return ['code'=>'-104','message'=>'包装体积必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PS_REQUIRED')];
                 }
                 if (!is_numeric($value['package_size'])){
-                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
                 }
                 //包装方式
                 if (empty($value['package_mode'])){
-                    return ['code'=>'-104','message'=>'包装方式必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_PM_REQUIRED')];
                 }
                 //产品来源
                 if (empty($value['goods_source'])){
-                    return ['code'=>'-104','message'=>'产品来源必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_GS_REQUIRED')];
                 }
                 //存放地
                 if (empty($value['stock_loc'])){
-                    return ['code'=>'-104','message'=>'存放地必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_SL_REQUIRED')];
                 }
                 //交货期(天)，报价有效期
                 if (empty($value['delivery_days'])){
-                    return ['code'=>'-104','message'=>'交货期必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_DD_REQUIRED')];
                 }
                 if (!is_numeric($value['delivery_days'])){
-                    return ['code'=>'-104','message'=>'交货期必须是数字'];
+                    return ['code'=>'-104','message'=> L('QUOTE_DD_NUMBER')];
                 }
                 //报价有效期
                 if (empty($value['period_of_validity'])){
-                    return ['code'=>'-104','message'=>'报价有效期必填'];
+                    return ['code'=>'-104','message'=> L('QUOTE_POF_REQUIRED')];
                 }
             }
         }
 
-        return ['code'=>'1','message'=>'验证通过'];
+        return ['code'=> 1,'message'=> L('QUOTE_VALIDATION')];
     }
 }
 

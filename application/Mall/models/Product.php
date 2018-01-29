@@ -50,21 +50,22 @@ class ProductModel extends PublicModel {
                     }
                     $spuInfo['stock'] = $stocks;    //库存
                     //现货价格
-                   /* $scpModel = new StockCostPriceModel();
-                    $condition_price = ['country_bn' => $country_bn, 'sku' => ['in', $skus], 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
-                    $priceInfo = $scpModel->field('min_price,price_symbol')->where($condition_price)->order('min_price')->find();
-                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];*/
+                    $scpModel = new StockCostPriceModel();
+                    $condition_price = ['country_bn' => $country_bn, 'sku' => $sku, 'status' => 'VALID', 'deleted_flag' => 'N', 'price_validity_start' => ['elt', date('Y-m-d', time())]];
+                    $priceInfo = $scpModel->field('min_price,price_symbol,price_cur_bn')->where($condition_price)->order('min_price')->find();
+                    $spuInfo['priceAry'] = $priceInfo ? $priceInfo : [];
 
                     //价格区间
                     $spuInfo['priceList'] = $this->getSkuPriceBySku($sku, $country_bn);
 
-                    $condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
+                    //$condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
                 $goodsModel = new GoodsModel();
-                $min_order_qty = $goodsModel->field('min_order_qty,min_pack_unit,exw_days')->where($condition_order)->order('min_order_qty')->find();
-                $spuInfo['min_order_qty'] = $min_order_qty ? $min_order_qty['min_order_qty'] : 1;
-                $spuInfo['min_pack_unit'] = $min_order_qty ? $min_order_qty['min_pack_unit'] : '';
-                $spuInfo['exw_days'] = $min_order_qty ? $min_order_qty['exw_days'] : '';
+                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where(['sku'=>$sku, 'lang' => $lang, 'deleted_flag'=>'N'])->find();
+                $spuInfo['min_order_qty'] = $skuInfo ? $skuInfo['min_order_qty'] : 1;
+                $spuInfo['min_pack_unit'] = $skuInfo ? $skuInfo['min_pack_unit'] : '';
+                $spuInfo['exw_days'] = $skuInfo ? $skuInfo['exw_days'] : '';
+                $spuInfo['model'] = $skuInfo ? $skuInfo['model'] : '';
             }
             return $spuInfo ? $spuInfo : false;
         } catch (Exception $e) {
@@ -191,14 +192,13 @@ class ProductModel extends PublicModel {
                 if ($stock) {
                     //现货价格
                     foreach ($result as $index => $item) {
-                       /**
-                        * 单价格
-                        $priceInfo = self::getSkuPriceByCount($item['sku'], $input['country_bn'], $item['min_order_qty']);
-                        $result[$index]['price'] = $priceInfo['price'];
-                        $result[$index]['price_cur_bn'] = $priceInfo['price_cur_bn'];
-                        $result[$index]['price_symbol'] = $priceInfo['price_symbol'];
-                        */
-
+                        /**
+                         * 单价格
+                          $priceInfo = self::getSkuPriceByCount($item['sku'], $input['country_bn'], $item['min_order_qty']);
+                          $result[$index]['price'] = $priceInfo['price'];
+                          $result[$index]['price_cur_bn'] = $priceInfo['price_cur_bn'];
+                          $result[$index]['price_symbol'] = $priceInfo['price_symbol'];
+                         */
                         $priceInfo = self::getSkuPriceBySku($item['sku'], $input['country_bn']);
                         $result[$index]['priceAry'] = $priceInfo;
                     }
@@ -375,10 +375,18 @@ class ProductModel extends PublicModel {
             return '';
         }
 
-        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'price_validity_end' =>['egt', date('Y-m-d', time())]];
-
+        $scpModel = new StockCostPriceModel();
+        $scpTable = $scpModel->getTableName();
+        $condition = [
+            'sku' => $sku,
+            'country_bn' => $country_bn,
+            'price_validity_start' => ['elt', date('Y-m-d', time())],
+        ];
+        $map['price_validity_end'] = ['egt', date('Y-m-d', time())];
+        $map[$scpTable.'.price_validity_end'] = ['exp', 'is null'];
+        $map['_logic'] = 'or';
+        $condition['_complex'] = $map;
         try {
-            $scpModel = new StockCostPriceModel();
             $priceInfo = $scpModel->field('min_price as price,min_purchase_qty,max_purchase_qty,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty ASC')->select();
             return $priceInfo ? $priceInfo : '';
         } catch (Exception $e) {
@@ -497,6 +505,31 @@ class ProductModel extends PublicModel {
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e, Log::ERR);
             return false;
+        }
+    }
+
+    /**
+     * 我的购物车
+     */
+    public function GetProductBySpus($spus, $lang = 'en') {
+
+        try {
+            $where = ['deleted_flag' => 'N'];
+            $where['lang'] = $lang;
+            $where['spu'] = ['in', $spus];
+            $data = $this->field('brand,exe_standard,tech_paras,spu,customization_flag,warranty')->where($where)->select();
+            $ret = [];
+            if ($data) {
+                foreach ($data as $item) {
+                    $ret[$item['spu']] = $item;
+                }
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
+            Log::write($ex->getMessage(), Log::ERR);
+
+            return [];
         }
     }
 

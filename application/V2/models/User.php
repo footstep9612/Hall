@@ -35,7 +35,6 @@ class UserModel extends PublicModel {
         $sql = ' WHERE 1 = 1 ';
         if (isset($condition['deleted_flag'])) {
             $sql .= ' AND `employee`.`deleted_flag`= \'' . $condition['deleted_flag'] . '\'';
-            $sql .= ' AND `org`.`deleted_flag`= \'' . $condition['deleted_flag'] . '\'';
         }
         if (!empty($condition['status'])) {
             $sql .= ' AND `employee`.`status`= \'' . $condition['status'] . '\'';
@@ -54,9 +53,6 @@ class UserModel extends PublicModel {
         }
         if (!empty($condition['role_name'])) {
             $sql .= ' AND role.name like \'%' . $condition['role_name'] . '%\'';
-        }
-        if (!empty($condition['status'])) {
-            $sql .= ' AND employee.status = \'' . $condition['status'] . '\'';
         }
         if (!empty($condition['gender'])) {
             $sql .= ' AND employee.gender = \'' . $condition['gender'] . '\'';

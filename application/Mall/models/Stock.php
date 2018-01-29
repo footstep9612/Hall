@@ -27,7 +27,15 @@ class StockModel extends PublicModel {
         $where = ['s.deleted_flag' => 'N', 's.stock' => ['gt', 0]];
         $where['s.country_bn'] = trim($condition['country_bn']);
         $where['s.lang'] = $condition['lang'];
-        $this->_getValue($where, $condition, 'keyword', 'like', 's.show_name');
+        if (!empty($condition['keyword'])) {
+            $keyword = trim($condition['keyword']);
+            $map['s.show_name'] = ['like', '%' . $keyword . '%'];
+            $map['s.sku'] = $keyword;
+            $map['s.spu'] = $keyword;
+            $map['_logic'] = 'or';
+            $where['_complex'] = $map;
+        }
+//        $this->_getValue($where, $condition, 'keyword', 'like', 's.show_name');
         $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
 
         return $where;
@@ -45,14 +53,21 @@ class StockModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
 
-
-
         return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
+                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn,s.model')
                         ->where($where)
                         ->order('sort_order desc')
                         ->limit($from, $size)
                         ->select();
+    }
+
+    public function getCountByKeyword($condition) {
+
+        $where = $this->_getCondition($condition);
+
+        return $this->alias('s')
+                        ->where($where)
+                        ->count();
     }
 
     /**
