@@ -521,6 +521,13 @@ EOF;
             $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
                     ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
+            if(!empty($buyerInfo['official_phone'])){
+                if(preg_match('/ /',$buyerInfo['official_phone'])){ //匹配空格
+                    $buyerInfo['official_phone']=str_replace(' ','-',$buyerInfo['official_phone']);
+                }elseif(!preg_match('/-/',$buyerInfo['official_phone']) && !preg_match('/ /',$buyerInfo['official_phone'])){
+                    $buyerInfo['official_phone']='-'.$buyerInfo['official_phone'];
+                }
+            }
             $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
             $row = $this->query($sql);
             if ($row) {
@@ -1337,11 +1344,11 @@ EOF;
                 return $v;
             }
         }
-        if(!empty($base['official_phone'])){
-            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
-                return '公司电话:(选)2~4位区号-6~11位电话号码';
-            }
-        }
+//        if(!empty($base['official_phone'])){
+//            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
+//                return '公司电话:(选)2~4位区号-6~11位电话号码';
+//            }
+//        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
             return $baseArr['official_email'];
         }
@@ -1383,11 +1390,11 @@ EOF;
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
                     return $v;
                 }
-                if(!empty($value['phone'])){
-                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
-                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
-                    }
-                }
+//                if(!empty($value['phone'])){
+//                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+//                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
+//                    }
+//                }
             }
             if(!empty($value['email'])){
                 if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
