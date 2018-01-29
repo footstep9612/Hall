@@ -346,6 +346,7 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['type'] = $this->_getCreditTypeByName($data[1]);
                             $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
+                            $orderLogData['content'] = $data[4];
                             break;
                         case 'COLLECTION' :
                             $orderLogData['content'] = $data[1];
