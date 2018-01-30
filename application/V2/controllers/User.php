@@ -598,7 +598,7 @@ class UserController extends PublicController {
         foreach ($region as &$item){
             $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
                                     ->join('erui_dict.country b ON a.country_bn=b.bn')
-                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh'])
+                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh', 'b.deleted_flag'=>'N'])
                                     ->field('b.name,b.bn')
                                     ->select();
         }

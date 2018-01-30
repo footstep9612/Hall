@@ -148,6 +148,7 @@ class MallController extends PublicController
     public function editUlogisticsAction() {
         $data = $this->getPut();
         $where['buyer_id'] = $this->user['buyer_id'];
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         $logisticsModel = new BuyerLogisticsModel();
         $check = $logisticsModel->where(['buyer_id'=>$where['buyer_id'],'deleted_flag'=>'N'])->find();
         if($check) {
@@ -155,10 +156,10 @@ class MallController extends PublicController
         } else {
             $res = $logisticsModel->create_data($data, $where);
         }
-        if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        if ($res) {
+            jsonReturn($res, 1, ShopMsg::getMessage('1',$lang));
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
+            jsonReturn('', -1, ShopMsg::getMessage('-1',$lang));
         }
         exit;
     }

@@ -130,7 +130,7 @@ class BuyerCustomModel extends PublicModel
      */
     protected function _getCondition($condition = []) {
         $where = [];
-        if (isset($condition['cat_name']) && $condition['cat_name']) {
+        if (isset($condition['cat_name']) && $condition['cat_name'] && $condition['lang']=='en') {
             switch ($condition['cat_name']) {
                 case 'Technology':
                     $where['cat_name'] = 'Technology consulting and comprehensive solutions';
@@ -144,6 +144,9 @@ class BuyerCustomModel extends PublicModel
                 default :
                     break;
             }
+        }
+        if (isset($condition['cat_no']) && $condition['cat_no']) {
+            $where['cat_no'] = $condition['cat_no'];                  //服务类型编码
         }
         if (isset($condition['lang']) && $condition['lang']) {
             $where['lang'] = $condition['lang'];                  //语言

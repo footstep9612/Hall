@@ -5,7 +5,7 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Email</title>
+    <title>почта</title>
     <style>
         .container {
             width: 680px;
@@ -110,63 +110,63 @@
     </div>
     <div class="top-shadow"></div>
     <div class="mail-content">
-        <h2>Dear you ：</h2>
+        <h2>Уважаемый пользователь：</h2>
         <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;"><?php echo $preInfo;?>
             <span style="color: #ff7800"> <?php echo $info;?></span>.</p>
-        <h2 style="margin-bottom: 20px;">Order information</h2>
+        <h2 style="margin-bottom: 20px;">Информация о заказе</h2>
         <dl class="dl-horizontal">
-            <dt>No. Order：</dt>
+            <dt>Номер заказа：</dt>
             <dd><?php echo $order_no;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Order date：</dt>
+            <dt>Дата заказа：</dt>
             <dd><?php echo $created_at;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Order status：</dt>
+            <dt>Статус заказа：</dt>
             <dd><?php echo $status;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Payment status：</dt>
+            <dt>Статус платежа：</dt>
             <dd><?php echo $pay_status;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Order amount：</dt>
+            <dt>Сумма заказа：</dt>
             <dd style="color: #ff7800"><?php echo $currency_bn;?><?php echo $amount;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Destination：</dt>
+            <dt>Место назначения：</dt>
             <dd><?php echo $address;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Expected delivery date：</dt>
+            <dt>Ожидаемая дата получения：</dt>
             <dd><?php echo $expected_receipt_date;?></dd>
         </dl>
-        <h2 style="margin: 20px auto;">Consignee information</h2>
+        <h2 style="margin: 20px auto;">Информация о получателе</h2>
         <dl class="dl-horizontal">
-            <dt>Consignee：</dt>
+            <dt>грузополучатель：</dt>
             <dd><?php echo $name;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Phone：</dt>
+            <dt>Номер телефона：</dt>
             <dd><?php echo $phone;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Postcode：</dt>
+            <dt>Почтовый индекс：</dt>
             <dd><?php echo $zipcode;?></dd>
         </dl>
         <dl class="dl-horizontal">
-            <dt>Email：</dt>
+            <dt>почта：</dt>
             <dd><?php echo $email;?></dd>
         </dl>
-        <a href="<?php echo $url;?>" class="viewBtn">View order details</a>
+        <a href="<?php echo $url;?>" class="viewBtn">Информация о заказе</a>
         <div class="dashed-line" style="width: 100%;border-bottom: 1px dashed #a8a7a7;margin-top: 47px;"></div>
     </div>
     <div class="mail-bottom">
-        <p>If you have any questions or need help, please contact us</p>
-        <p>ERUI INTERNATION <a href="http://www.erui.com" style="color: #3e91f9;margin: 10px;">http://www.erui.com</a></p>
+        <p>Если у вас есть вопросы или нужна помощь, свяжитесь с нами.</p>
+        <p>Yi Rui International<a href="http://www.erui.com" style="color: #3e91f9;margin: 10px;">http://www.erui.com</a></p>
         <p style="float: right; text-align: right;margin: 70px 0 30px 0;"><?php echo $time;?><br>
-            This is an automatic response, please do not reply.</p>
+            Системная почта, не отвечайте!</p>
     </div>
 </div>
 </body>

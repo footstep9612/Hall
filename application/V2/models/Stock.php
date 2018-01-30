@@ -219,6 +219,32 @@ class StockModel extends PublicModel {
     }
 
     /**
+     * Description of 更新排序
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
+
+        $where = ['country_bn' => $country_bn, 'lang' => $lang];
+        if (is_array($sku)) {
+            $where['sku'] = ['in', $sku];
+        } else {
+            $where['sku'] = $sku;
+        }
+        $data = [
+            'sort_order' => intval($sort_order),
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => defined('UID') ? UID : 0
+        ];
+        $flag = $this->where($where)->save($data);
+
+
+        return $flag;
+    }
+
+    /**
      * Description of 更新现货
      * @author  zhongyg
      * @date    2017-12-6 9:12:49

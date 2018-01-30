@@ -73,12 +73,12 @@ class FinalQuoteModel extends PublicModel {
 
 			if($list){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 				$results['count'] = $count;
 				$results['data'] = $list;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '没有找到相关信息!';
+				$results['message'] = L('NO_DATA');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -99,7 +99,7 @@ class FinalQuoteModel extends PublicModel {
 			$where['inquiry_id'] = $condition['inquiry_id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有询价单id!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 
@@ -108,11 +108,11 @@ class FinalQuoteModel extends PublicModel {
 
 			if($info){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 				$results['data'] = $info;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '没有找到相关信息!';
+				$results['message'] = L('NO_DATA');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -135,21 +135,21 @@ class FinalQuoteModel extends PublicModel {
 			$data['inquiry_id'] = $condition['inquiry_id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有询单ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 		if(!empty($condition['buyer_id'])){
 			$data['buyer_id'] = $condition['buyer_id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有采购商ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 		if(!empty($condition['quote_id'])){
 			$data['quote_id'] = $condition['quote_id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有商务报价单ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 
@@ -159,11 +159,11 @@ class FinalQuoteModel extends PublicModel {
 			$id = $this->add($data);
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 				$results['data'] = $data;
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '添加失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -184,7 +184,7 @@ class FinalQuoteModel extends PublicModel {
 			$where['inquiry_id'] = $condition['inquiry_id'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 
@@ -195,10 +195,10 @@ class FinalQuoteModel extends PublicModel {
 			$id = $this->where($where)->save($data);
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '修改失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {
@@ -220,14 +220,14 @@ class FinalQuoteModel extends PublicModel {
 			$where['inquiry_id'] = array('in',explode(',',$condition['inquiry_id']));
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有ID!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 		if(isset($condition['status'])){
 			$data['status'] = $condition['status'];
 		}else{
 			$results['code'] = '-103';
-			$results['message'] = '没有要修改的状态值!';
+			$results['message'] = L('MISSING_PARAMETER');
 			return $results;
 		}
 		$data['updated_by'] = $condition['updated_by'];
@@ -237,10 +237,10 @@ class FinalQuoteModel extends PublicModel {
 			$id = $this->where($where)->save($data);
 			if($id){
 				$results['code'] = '1';
-				$results['message'] = '成功！';
+				$results['message'] = L('SUCCESS');
 			}else{
 				$results['code'] = '-101';
-				$results['message'] = '修改失败!';
+				$results['message'] = L('FAIL');
 			}
 			return $results;
 		} catch (Exception $e) {

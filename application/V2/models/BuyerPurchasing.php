@@ -51,8 +51,18 @@ class BuyerPurchasingModel extends PublicModel
                 $attachModel=new PurchasingAttachModel();
                 $attachModel->where(array('id'=>$value['attach_id']))->save($attach);
             }else{
-                unset($arr[$key]['id']);
-                $this->addPurchase($arr[$key],$buyer_id,$created_by);
+                $purchaseId=$this->add($arr[$key]);
+                $attach=array(
+                    'buyer_id'=>$buyer_id,
+                    'purchasing_id'=>$purchaseId,
+                    'attach_group'=>'PURCHASING',
+                    'attach_name'=>$value['attach_name'],
+                    'attach_url'=>$value['attach_url'],
+                    'created_by'=>$created_by,
+                    'created_at'=>date('Y-m-d H:i:s')
+                );
+                $attachModel=new PurchasingAttachModel();
+                $attachModel->add($attach);
             }
         }
 
