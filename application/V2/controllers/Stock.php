@@ -202,6 +202,52 @@ class StockController extends PublicController {
     }
 
     /**
+     * Description of 新加现货
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateSortAction() {
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $sku = $this->getPut('sku');
+        if (empty($sku)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择现货商品!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        $sort_order = $this->getPut('sort_order', 0);
+
+        $stock_model = new StockModel();
+        $flag = $stock_model->UpdateSort($country_bn, $sku, $lang, $sort_order);
+
+
+        if ($flag) {
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('更新失败!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
      * Description of 更新现货
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
