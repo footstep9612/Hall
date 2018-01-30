@@ -93,7 +93,6 @@ class UserModel extends PublicModel {
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
-        echo $sql;die;
         $list =  $this->query($sql);
         return $list;
     }
