@@ -75,7 +75,22 @@ class OpLogModel extends PublicModel {
 
             $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->create($create);
+            $this->deleted_data();
             return $this->add($data);
+        } catch (Exception $ex) {
+
+        }
+    }
+
+    /**
+     * 更新数据
+     * @param  mix $create 新增条件
+     * @return bool
+     * @author jhw
+     */
+    public function deleted_data() {
+        try {
+            $this->where(['created_at' => ['lt', date('Y-m-d H:i:s', strtotime(' -1 month'))]])->delete();
         } catch (Exception $ex) {
 
         }

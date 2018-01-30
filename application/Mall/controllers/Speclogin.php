@@ -86,7 +86,7 @@ class SpecloginController extends PublicController {
                 $datajson['token'] = $jwtclient->encode($jwt); //加密
                 $datajson['utime'] = 18000;
                 redisSet('shopmall_user_info_' . $info['id'], json_encode($info), $datajson['utime']);
-                echo json_encode(array("code" => "138", "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
+                echo json_encode(array("code" => 1, "data" => $datajson, "message" => ShopMsg::getMessage('138',$lang)));
                 exit();
             }
             echo json_encode(array("code" => "-124", "data" => [], "message" => ShopMsg::getMessage('-124',$lang)));
