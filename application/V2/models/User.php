@@ -70,7 +70,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND employee.user_no like \'%' . $condition['user_no'] . '%\'';
         }
         if (!empty($condition['bn'])) {
-            $sql .= ' AND country_member.country_bn =\'' . $condition['bn'] . '\'';
+            $sql .= ' AND country_member.country_bn in (' . $condition['bn'] . ')';
         }
         return $sql;
     }
@@ -96,6 +96,7 @@ class UserModel extends PublicModel {
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
+        echo $sql;die;
         $list =  $this->query($sql);
         return $list;
     }

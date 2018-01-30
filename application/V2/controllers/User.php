@@ -60,7 +60,11 @@ class UserController extends PublicController {
             $where['user_no'] = $user_no;
         }
         if (!empty($data['bn'])) {
-            $where['bn'] = trim($data['bn']);
+            $pieces = explode(",", $data['bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['bn'] = $where['bn'] . "'" . $pieces[$i] . "',";
+            }
+            $where['bn'] = rtrim($where['bn'], ",");
         }
         if (!empty($data['role_name'])) {
             $where['role_name'] = trim($data['role_name']);
