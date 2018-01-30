@@ -75,7 +75,7 @@ class OpLogModel extends PublicModel {
 
             $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->create($create);
-            $this->deleted_data();
+            //  $this->deleted_data();
             return $this->add($data);
         } catch (Exception $ex) {
 

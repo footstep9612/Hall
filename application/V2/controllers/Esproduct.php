@@ -36,35 +36,22 @@ class EsproductController extends PublicController {
         $keys = $redis->getKeys('*');
         $config = Yaf_Registry::get("config");
         $rconfig = $config->redis->config->toArray();
-        $rconfig['dbname'] = 3;
-        $redis3 = new phpredis($rconfig);
-        $key3s = $redis3->getKeys('*');
 
-        $rconfig['dbname'] = 4;
-        $redis4 = new phpredis($rconfig);
-        $key4s = $redis3->getKeys('*');
-        $delkeys = [];
-        foreach ($keys as $key) {
-            if (strpos($key, 'user_info_') === false) {
-                $delkeys[] = $key;
+        for ($i = 0; $i < 16; $i++) {
+            $rconfig['dbname'] = $i;
+            $redis = new phpredis($rconfig);
+            $keys = $redis->getKeys('*');
+            $delkeys = [];
+            foreach ($keys as $key) {
+                if (strpos($key, 'erui_boss_language') === false && strpos($key, 'user_info_') === false && strpos($key, 'shopmall_user_info') === false && strpos($key, 'sess') === false) {
+                    $delkeys[] = $key;
+                }
             }
+            $redis->delete($delkeys);
         }
-        $redis->delete($delkeys);
-        $delkeys = [];
-        foreach ($key3s as $key) {
-            if (strpos($key, 'shopmall_user_info') === false) {
-                $delkeys[] = $key;
-            }
-        }
-        $redis3->delete($delkeys);
-        $delkeys = [];
-        foreach ($key4s as $key) {
-            if (strpos($key, 'shopmall_user_info') === false) {
-                $delkeys[] = $key;
-            }
-        }
-        $redis4->delete($delkeys);
-        unset($redis, $redis3, $keys, $delkeys);
+        unset($redis, $delkeys, $keys, $delkeys);
+        $op_log_model = new OpLogModel();
+        $op_log_model->deleted_data();
         $this->jsonReturn();
     }
 
