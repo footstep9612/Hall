@@ -553,7 +553,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
         if(is_file($file)) L(include $file);
         // 读取当前控制器语言包
-        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . ucfirst(CONTROLLER_NAME) . '.php';
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
         if (is_file($file)) L(include $file);
     }
     
