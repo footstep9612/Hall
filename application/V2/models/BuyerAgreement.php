@@ -16,7 +16,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportModel($excelName,$sheetName,$data){
-        $tableheader = array('序号','框架执行单号','事业部','执行分公司','所属国家','客户名称','客户代码（CRM）','品名中文','数量/单位','框架金额（美元）','框架开始执行时间','框架结束执行时间','市场经办人','商务技术经办人');
+        $tableheader = array('序号','执行单号','事业部','执行分公司','所属国家','客户代码','油气/非油气','品名中文','数量','单位','框架开始执行时间','框架结束执行时间','框架金额（美元）','汇款方式','市场经办人','商务技术经办人');
         $excelDir = MYPATH.DS.'public'.DS.'tmp'.DS.'excelagree';
         if(!is_dir($excelDir)){
             mkdir($excelDir,0777,true);
@@ -171,14 +171,17 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['execute_no'] = $v['execute_no'];    //框架执行单号
             $arr[$k]['org_name'] = $v['org_name'];    //事业部
             $arr[$k]['execute_company'] = $v['execute_company'];    //执行分公司
-            $arr[$k]['country_name'] = $v['country_name'];    //所属地区
-            $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
+            $arr[$k]['country_name'] = $v['country_name'];    //所属国家
+//            $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
+            $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'油气':'非油气';    //是否油气
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
-            $arr[$k]['number'] = $v['number'].'/'.$v['unit'];    //数量/单位
-            $arr[$k]['amount'] = $v['amount'];    //项目金额（美元）
-            $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //项目开始执行时间
-            $arr[$k]['execute_end_at'] = $v['execute_end_at'];    //项目结束执行时间
+            $arr[$k]['number'] = $v['number'];    //数量
+            $arr[$k]['unit'] = $v['unit'];    //数量
+            $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //框架开始执行时间
+            $arr[$k]['execute_end_at'] = $v['execute_end_at'];    //框架结束执行时间
+            $arr[$k]['amount'] = $v['amount'];    //框架金额（美元）
+            $arr[$k]['payment_mode'] = $v['payment_mode'];    //汇款方式
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
         }
@@ -208,17 +211,18 @@ class BuyerAgreementModel extends PublicModel
             'execute_no',       //框架执行单号
             'org_id',           //事业部
             'execute_company',  //执行分公司
-            'country_bn',          //所属地区
+            'country_bn',          //所属国家
             'product_name',     //品名中文
             'number',           // 数量
             'unit',             //单位
             'amount',           //项目金额
+            'payment_mode',           //汇款方式
             'execute_start_at', //项目开始执行时间
             'execute_end_at', //项目结束执行时间
             'agent',            //市场经办人
             'technician'        //商务技术经办人
         );  //获取字段start
-        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name';
+        $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name,buyer.is_oilgas';
         foreach($fields as $v){
             $field .= ',agree.'.$v;
         }   //获取字段end

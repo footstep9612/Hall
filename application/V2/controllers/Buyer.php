@@ -116,6 +116,12 @@ class BuyerController extends PublicController {
         if (!empty($data['approved_at_end'])) {
             $where['approved_at_end'] = $data['approved_at_end'];
         }
+        if (!empty($data['min_percent'])) { //信息完整度小-wangs
+            $where['min_percent'] = $data['min_percent'];
+        }
+        if (!empty($data['max_percent'])) { //信息完整度大
+            $where['max_percent'] = $data['max_percent'];
+        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }

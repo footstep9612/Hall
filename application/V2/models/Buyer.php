@@ -41,7 +41,7 @@ class BuyerModel extends PublicModel {
     public function getlist($condition = [], $order = " id desc") {
         $sql = 'SELECT `erui_sys`.`employee`.`id` as employee_id,`erui_sys`.`employee`.`name` as employee_name,`erui_buyer`.`buyer`.`id`,`buyer_no`,`lang`,`buyer_type`,`erui_buyer`.`buyer`.`name`,`bn`,`profile`,`buyer`.`country_bn`,`erui_buyer`.`buyer`.`area_bn`,`buyer`.`province`,`buyer`.`city`,`official_email`,';
         $sql .= '`official_email`,`official_phone`,`official_fax`,`brand`,`official_website`,`logo`,`line_of_credit`,`credit_available`,`buyer_level`,`credit_level`,';
-        $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`source`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
+        $sql .= '`recommend_flag`,`erui_buyer`.`buyer`.`source`,`percent`,`erui_buyer`.`buyer`.`status`,`erui_buyer`.`buyer`.`remarks`,`apply_at`,`erui_buyer`.`buyer`.`created_by`,`erui_buyer`.`buyer`.`created_at`,`buyer`.`checked_by`,`buyer`.`checked_at`,';
         $sql .= '`erui_buyer`.`buyer`.address,`buyer_credit_log`.checked_by as credit_checked_by,`em`.`name` as credit_checked_name,`buyer_credit_log`.checked_at as credit_checked_at,`credit_apply_date`,`approved_at`,`buyer_credit_log`.in_status as credit_status,`buyer`.buyer_code ';
         $str = ' FROM ' . $this->g_table;
         $str .= " left Join `erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id` ";
@@ -105,6 +105,12 @@ class BuyerModel extends PublicModel {
             } else if ($condition['source'] == 3) {
                 $where .= ' And `erui_buyer`.`buyer`.source=3';
             }
+        }
+        if (!empty($condition['min_percent'])) { //信息完整度小
+            $where .= ' And `erui_buyer`.`buyer`.percent  >="' . $condition['min_percent'] . '"';
+        }
+        if (!empty($condition['max_percent'])) { //信息完整度大
+            $where .= ' And `erui_buyer`.`buyer`.percent  <="' . $condition['max_percent'] . '"';
         }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
@@ -1679,7 +1685,7 @@ EOF;
         $arr = [];
         foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];  //客户id
-//            $arr[$k]['area_bn'] = $v['area_bn'];    //地区
+            $arr[$k]['percent'] = $v['percent'];    //信息完整度百分比
             $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
@@ -1828,6 +1834,12 @@ EOF;
         if(!empty($data['line_of_credit'])){
             $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
         }
+        if(!empty($data['min_percent'])){    //信息完整度min
+            $cond .= " and buyer.percent >='$data[min_percent]'";
+        }
+        if(!empty($data['max_percent'])){    //信息完整度max
+            $cond .= " and buyer.percent <='$data[max_percent]'";
+        }
         return $cond;
     }
     /**
@@ -1855,7 +1867,8 @@ EOF;
             $field ='buyer.id'; //获取查询字段
             $fieldBuyerArr = array(
 //            'id',   //客户id
-                'area_bn',   //客地区
+//                'area_bn',   //客地区
+                'percent',   //信息完整度百分比
                 'country_bn',   //国家
                 'buyer_code',   //客户编码
                 'name as buyer_name',   //客户名称
@@ -1952,9 +1965,9 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号', '国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询报价数量', '询报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询报价数量', '询报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
-            $tableheader = array('Serial', 'Country', 'Customer code', 'Customer name', 'File creation date', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
+            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
         //创建对象
         $excel = new PHPExcel();

@@ -31,6 +31,7 @@ class DownloadController extends PublicController {
      */
     public function buyerListAction()
     {
+        set_time_limit(0);
         $data = json_decode(file_get_contents("php://input"), true);
         $where = [];
         if ($data['is_agent']=="Y") {
@@ -160,7 +161,7 @@ class DownloadController extends PublicController {
         if (!empty($where['country_bn'])) {
             $map['buyer.country_bn'] = ['in', $where['country_bn'] ];
         }
-        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.buyer_code,`erui_buyer`.`buyer`.country_bn,buyer_level,`erui_buyer`.`buyer`.source,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status')
+        $data = $buyerModel->field('buyer_no,`erui_buyer`.`buyer`.buyer_code,`erui_buyer`.`buyer`.country_bn,buyer_level,`erui_buyer`.`buyer`.source,`erui_buyer`.`buyer`.created_at,`erui_buyer`.`buyer`.status,`erui_buyer`.`buyer`.percent')
             ->join('`erui_buyer`.`buyer_agent` on `erui_buyer`.`buyer_agent`.`buyer_id` = `erui_buyer`.`buyer`.`id`', 'left')
             ->join('`erui_sys`.`employee` em on em.id=erui_buyer.buyer_agent.agent_id', 'left')
             ->where($map)
@@ -212,12 +213,13 @@ class DownloadController extends PublicController {
 
         //列表头
         $objSheet->setCellValue("A1","会员编号")->getColumnDimension("A")->setWidth('24');
-        $objSheet->setCellValue("B1","CRM编号")->getColumnDimension("B")->setWidth('24');
-        $objSheet->setCellValue("C1","所属国家")->getColumnDimension("C")->setWidth('24');
-        $objSheet->setCellValue("D1","会员等级")->getColumnDimension("D")->setWidth('24');
-        $objSheet->setCellValue("E1","用户来源")->getColumnDimension("E")->setWidth('24');
-        $objSheet->setCellValue("F1","注册时间")->getColumnDimension("F")->setWidth('24');
-        $objSheet->setCellValue("G1","审核状态")->getColumnDimension("G")->setWidth('24');
+        $objSheet->setCellValue("B1","CRM客户代码")->getColumnDimension("B")->setWidth('24');
+        $objSheet->setCellValue("C1","国家")->getColumnDimension("C")->setWidth('24');
+        $objSheet->setCellValue("D1","注册时间")->getColumnDimension("D")->setWidth('24');
+        $objSheet->setCellValue("E1","审核状态")->getColumnDimension("E")->setWidth('24');
+        $objSheet->setCellValue("F1","客户等级")->getColumnDimension("F")->setWidth('24');
+        $objSheet->setCellValue("G1","用户来源")->getColumnDimension("G")->setWidth('24');
+        $objSheet->setCellValue("H1","完整度")->getColumnDimension("H")->setWidth('24');
 
         //设置边框
         $objSheet->getStyle("A1:G1")->applyFromArray($this->borderStyle);
@@ -229,12 +231,13 @@ class DownloadController extends PublicController {
             $objSheet->setCellValue("A" . $rowNum, $v['buyer_no']);
             $objSheet->setCellValue("B" . $rowNum, $v['buyer_code']);
             $objSheet->setCellValue("C" . $rowNum, $v['country_name']);
-            $objSheet->setCellValue("D" . $rowNum, $v['buyer_level']);
-            $objSheet->setCellValue("E" . $rowNum, $v['source']);
-            $objSheet->setCellValue("F" . $rowNum, $v['created_at']);
-            $objSheet->setCellValue("G" . $rowNum, $v['status']);
+            $objSheet->setCellValue("D" . $rowNum, $v['created_at']);
+            $objSheet->setCellValue("E" . $rowNum, $v['status']);
+            $objSheet->setCellValue("F" . $rowNum, $v['buyer_level']);
+            $objSheet->setCellValue("G" . $rowNum, $v['source']);
+            $objSheet->setCellValue("H" . $rowNum, $v['percent']);
 
-            $objSheet->getStyle("A2:G" . $rowNum)->applyFromArray($this->borderStyle);
+            $objSheet->getStyle("A2:H" . $rowNum)->applyFromArray($this->borderStyle);
 
             $rowNum++;
 

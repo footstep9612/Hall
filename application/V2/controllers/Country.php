@@ -53,6 +53,7 @@ class CountryController extends PublicController {
         $data = $this->getPut();
 
         $data['lang'] = $this->getPut('lang', 'zh');
+        $data['deleted_flag'] = 'N';
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
 
