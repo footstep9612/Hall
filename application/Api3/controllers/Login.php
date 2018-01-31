@@ -314,6 +314,15 @@ class LoginController extends PublicController {
         if ($check) {
             jsonReturn('', -117, ShopMsg::getMessage('-117',$lang));
         }
+        /*if (isset($data['company_name']) && !empty($data['company_name'])) {
+            $arr['name'] = trim($data['company_name']);
+            $checkname = $model->where("name='" . $arr['name'] . "' AND deleted_flag='N'")->find();
+            if ($checkname) {
+                jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
+            }
+        } else {
+            jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
+        }*/
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
@@ -345,6 +354,7 @@ class LoginController extends PublicController {
                 $jwt['show_name'] = $buyer_account_data['show_name'];
                 $datajson['buyer_no'] = $arr['buyer_no'];
                 $datajson['email'] = $buyer_account_data['email'];
+                //$datajson['company_name'] = $arr['name'];
                 $datajson['buyer_id'] = $id;
                 $datajson['show_name'] = $buyer_account_data['show_name'];
                 $datajson['user_name'] = '';
@@ -380,6 +390,11 @@ class LoginController extends PublicController {
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
         }
+        /*if (isset($data['company_name']) && !empty($data['company_name'])) {
+            $buyer_data['name'] = trim($data['company_name']);
+        } else {
+            jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
+        }*/
         if (!empty($data['biz_scope'])) {
             $buyer_data['biz_scope'] = trim($data['biz_scope']);
         } else {

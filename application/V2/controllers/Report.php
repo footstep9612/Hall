@@ -19,6 +19,10 @@ class ReportController extends PublicController {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
+        // 加载php公共配置文件
+        $this->loadCommonConfig();
+        // 语言检查
+        $this->checkLanguage();
     }
 
     public function getPut($name = null, $default = null) {
@@ -239,14 +243,26 @@ class ReportController extends PublicController {
                 $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 if (empty($inquiry['area_name'])) {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => LANG_SET, 'deleted_flag' => 'N'])->getField('name');
+                }
+                // 项目澄清时间
+                $clarifyTotalTime = 0;
+                $clarifyList = $inquiryCheckLogModel->field('id, out_at')->where(array_merge($where, ['out_node' => 'CLARIFY']))->order('id ASC')->select();
+                foreach ($clarifyList as $clarify) {
+                    $clarifyTime = $inquiryCheckLogModel->where(array_merge($where, ['id' => ['gt', $clarify['id']], 'in_node' => 'CLARIFY']))->order('id ASC')->getField('out_at');
+                    if ($clarifyTime) {
+                        $clarifyTotalTime += strtotime($clarifyTime) - strtotime($clarify['out_at']);
+                    } else {
+                        $clarifyTotalTime += $nowTime - strtotime($clarify['out_at']);
+                        break;
+                    }
                 }
                 // 询单报价时间
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
                     $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'MARKET_CONFIRMING']))->getField('out_at');
-                    $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
+                    $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime - $clarifyTotalTime;
                 } else {
-                    $inquiry['quote_time'] = $nowTime - $createdTime;
+                    $inquiry['quote_time'] = $nowTime - $createdTime - $clarifyTotalTime;
                 }
                 // 询单驳回次数
                 $rejectWhere = array_merge($where, ['action' => 'REJECT']);

@@ -398,12 +398,7 @@ class QuoteController extends PublicController{
 
         $finalQuoteItemModel = new FinalQuoteItemModel();
         $list = $finalQuoteItemModel->getFinalSku($request);
-        //if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
-        if (!$list) {
-            $this->setCode('-101');
-            $this->setMessage(L('QUOTE_NO_DATA'));
-            $this->jsonReturn();
-        }
+        if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
         foreach ($list as $key=>$value){
             $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);

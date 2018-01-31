@@ -477,6 +477,7 @@ class ProductModel extends PublicModel {
                         $updata = array('status' => $status);
 
                         /** 报审走报审验证 */
+                        /*
                         if ($status == self::STATUS_CHECKING || $status == self::STATUS_VALID) {
                             $applyInfo = $this->applyExamine($r, $lang);
                             if ($applyInfo['code'] === false) {
@@ -484,6 +485,7 @@ class ProductModel extends PublicModel {
                                 continue;
                             }
                         }
+                        */
 
                         /**
                          * 审核人跟时间
@@ -521,6 +523,7 @@ class ProductModel extends PublicModel {
                     $updata = array('status' => $status);
 
                     /** 报审走报审验证 */
+                    /*
                     if ($status == self::STATUS_CHECKING || $status == self::STATUS_VALID) {
                         $applyInfo = $this->applyExamine($spu, $lang);
                         if ($applyInfo['code'] === false) {
@@ -528,7 +531,7 @@ class ProductModel extends PublicModel {
                             return array(0, $faild_ary);
                         }
                     }
-
+                    */
                     /**
                      * 审核人跟时间
                      */
