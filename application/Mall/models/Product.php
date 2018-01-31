@@ -61,7 +61,7 @@ class ProductModel extends PublicModel {
                     //$condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
                 $goodsModel = new GoodsModel();
-                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where(['sku'=>$sku, 'lang' => $lang, 'deleted_flag'=>'N'])->find();
+                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where(['sku' => $sku, 'lang' => $lang, 'deleted_flag' => 'N'])->find();
                 $spuInfo['min_order_qty'] = $skuInfo ? $skuInfo['min_order_qty'] : 1;
                 $spuInfo['min_pack_unit'] = $skuInfo ? $skuInfo['min_pack_unit'] : '';
                 $spuInfo['exw_days'] = $skuInfo ? $skuInfo['exw_days'] : '';
@@ -383,7 +383,7 @@ class ProductModel extends PublicModel {
             'price_validity_start' => ['elt', date('Y-m-d', time())],
         ];
         $map['price_validity_end'] = ['egt', date('Y-m-d', time())];
-        $map[$scpTable.'.price_validity_end'] = ['exp', 'is null'];
+        $map[$scpTable . '.price_validity_end'] = ['exp', 'is null'];
         $map['_logic'] = 'or';
         $condition['_complex'] = $map;
         try {
@@ -517,7 +517,7 @@ class ProductModel extends PublicModel {
             $where = ['deleted_flag' => 'N'];
             $where['lang'] = $lang;
             $where['spu'] = ['in', $spus];
-            $data = $this->field('brand,exe_standard,tech_paras,spu,customization_flag,warranty')->where($where)->select();
+            $data = $this->field('brand,exe_standard,tech_paras,spu')->where($where)->select();
             $ret = [];
             if ($data) {
                 foreach ($data as $item) {
