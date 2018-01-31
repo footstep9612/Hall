@@ -59,11 +59,9 @@ class EsgoodsController extends PublicController {
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
-
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
-
             $send['data'] = $list;
             $this->setCode(MSG::MSG_SUCCESS);
             $send['code'] = $this->getCode();

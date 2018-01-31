@@ -75,9 +75,36 @@ class OpLogModel extends PublicModel {
 
             $create['op_id'] = defined('UID') ? UID : 0;
             $data = $this->create($create);
+            //  $this->deleted_data();
             return $this->add($data);
         } catch (Exception $ex) {
 
+        }
+    }
+
+    private function index_exit() {
+
+        $sql = 'SELECT INDEX_NAME FROM information_schema.statistics WHERE table_schema=\'erui_sys\' AND table_name = \'op_log\' AND index_name = \'index_created_at\'';
+        $d = $this->query($sql);
+        if (!$d) {
+            $sql_addIndex = '  ALTER TABLE `' . $this->tableName . '` ADD INDEX index_created_at (`created_at` ) ';
+            $flag = $this->execute($sql_addIndex);
+        }
+    }
+
+    /**
+     * 更新数据
+     * @param  mix $create 新增条件
+     * @return bool
+     * @author jhw
+     */
+    public function deleted_data() {
+        try {
+            $this->index_exit();
+            $this->where(['created_at' => ['lt', date('Y-m-d H:i:s', strtotime(' -1 month'))]])->delete();
+            $this->where(['created_at' => '0000-00-00 00:00:00'])->delete();
+        } catch (Exception $ex) {
+            echo $ex->getMessage();
         }
     }
 
