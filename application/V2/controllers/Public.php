@@ -57,9 +57,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $this->_setUid($this->user);
             if (isset($this->user['id']) && $this->user['id'] > 0) {
                 // 加载php公共配置文件
-                $this->_loadCommonConfig();
+                $this->loadCommonConfig();
                 // 语言检查
-                $this->_checkLanguage();
+                $this->checkLanguage();
                 // 设置语言
                 $this->setLang(LANG_SET);
             } else {
@@ -497,7 +497,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author liujf
      * @time 2018-01-25
      */
-    private function _loadCommonConfig() {
+    public function loadCommonConfig() {
         $files = $commonConfig = $phpConfig = [];
         searchDir(COMMON_CONF_PATH, $files);
         foreach ($files as $file) {
@@ -514,7 +514,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author liujf
      * @time 2018-01-25
      */
-    private function _checkLanguage() {
+    public function checkLanguage() {
         // 不开启语言包功能，仅仅加载框架语言文件直接返回
         if (!C('LANG_SWITCH_ON', null, false)) {
             return;
@@ -553,7 +553,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
         if(is_file($file)) L(include $file);
         // 读取当前控制器语言包
-        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . ucfirst(CONTROLLER_NAME) . '.php';
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
         if (is_file($file)) L(include $file);
     }
     

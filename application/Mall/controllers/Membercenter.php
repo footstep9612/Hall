@@ -179,6 +179,9 @@ class MembercenterController extends PublicController {
         $config_obj = Yaf_Registry::get("config");
         $config_shop = $config_obj->shop->toArray();
         $email_arr['url'] = $config_shop['url'];
+        if($lang != 'en'){
+            $email_arr['url'] = $config_shop['url_'.$lang];
+        }
         $email_arr['key'] = $arr['key'];
         $body = $this->getView()->render('login/active_email_'.$lang.'.html', $email_arr);
         $title = 'Erui.com';
