@@ -54,7 +54,6 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
 
         return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn,s.model')
                         ->where($where)
                         ->order('sort_order desc')
                         ->limit($from, $size)
