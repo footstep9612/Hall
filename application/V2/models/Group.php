@@ -32,7 +32,7 @@ class GroupModel extends PublicModel {
         $data["org.deleted_flag"] = 'N';
         if (!empty($limit)) {
             $res = $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,'
-                            . 'org.parent_id,org.org,org.name,org.remarks,org.created_by,'
+                            . 'org.parent_id,org.org,org.name,org.name_en,org.name_es,org.name_ru,org.remarks,org.created_by,'
                             . 'org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
                     ->join('`erui_sys`.`org_member` om on om.org_id=org.id', 'left')
                     ->join('`erui_sys`.`employee` em on em.id=`om`.`employee_id` and `em`.deleted_flag=\'N\' and `em`.status=\'NORMAL\'', 'left')
@@ -44,7 +44,7 @@ class GroupModel extends PublicModel {
             return $res;
         } else {
             $res = $this->field('org.id,org.sort,org.show_name,org_node,org.membership,'
-                            . 'org.parent_id,org.org,org.name,org.remarks,org.created_by,'
+                            . 'org.parent_id,org.org,org.name,org.name_en,org.name_es,org.name_ru,org.remarks,org.created_by,'
                             . 'org.created_at,org.deleted_flag,group_concat(`em`.`name`) as employee_name')
                     ->join('`erui_sys`.`org_member` om on om.org_id=org.id ', 'left')
                     ->join('`erui_sys`.`employee` em on em.id=`om`.`employee_id`  and `em`.deleted_flag=\'N\' and `em`.status=\'NORMAL\'', 'left')
@@ -66,7 +66,7 @@ class GroupModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             $row = $this->where($where)
-                    ->field('id,membership,sort,parent_id,org,name,show_name,org_node,remarks,created_by,created_at,deleted_flag')
+                    ->field('id,membership,sort,parent_id,org,name,name_en,name_es,name_ru,show_name,org_node,remarks,created_by,created_at,deleted_flag')
                     ->find();
             return $row;
         } else {
