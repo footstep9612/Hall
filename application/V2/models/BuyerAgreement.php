@@ -30,7 +30,7 @@ class BuyerAgreementModel extends PublicModel
         //设置sheet的name
         $objActSheet->setTitle($sheetName);
         $objActSheet->getStyle('B')->getNumberFormat()->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_TEXT);
-        $objActSheet->getStyle('J')->getNumberFormat()->setFormatCode('0.00');
+        $objActSheet->getStyle('M')->getNumberFormat()->setFormatCode('0.00');
         //填充表头信息
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为15
