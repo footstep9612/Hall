@@ -26,8 +26,8 @@ class NetSubjectModel extends PublicModel {
             array(
                 'buyer_id'=>$buyer_id, //主题名称
                 'subject_name'=>$equipment['subject_name'], //主题名称
-                'net_at'=>$equipment['net_at'], //入网时间
-                'net_invalid_at'=>$equipment['net_invalid_at'], //入网失效时间
+                'net_at'=>!empty($equipment['net_at'])?$equipment['net_at']:null, //入网时间
+                'net_invalid_at'=>!empty($equipment['net_invalid_at'])?$equipment['net_invalid_at']:null, //入网失效时间
                 'net_goods'=>$equipment['net_goods'], //入网商品
                 'created_by'=>$created_by, //入网商品
                 'created_at'=>date('Y-m-d H:i:s'), //入网商品
@@ -35,8 +35,8 @@ class NetSubjectModel extends PublicModel {
             array(
                 'buyer_id'=>$buyer_id, //主题名称
                 'subject_name'=>$erui['subject_name'], //主题名称
-                'net_at'=>$erui['net_at'], //入网时间
-                'net_invalid_at'=>$erui['net_invalid_at'], //入网失效时间
+                'net_at'=>!empty($erui['net_at'])?$erui['net_at']:null, //入网时间
+                'net_invalid_at'=>!empty($erui['net_invalid_at'])?$erui['net_invalid_at']:null, //入网失效时间
                 'net_goods'=>$erui['net_goods'], //入网商品
                 'created_by'=>$created_by, //入网商品
                 'created_at'=>date('Y-m-d H:i:s'), //入网商品
@@ -49,8 +49,8 @@ class NetSubjectModel extends PublicModel {
         $equipmentArr=array(
             'buyer_id'=>$buyer_id, //主题名称
             'subject_name'=>$equipment['subject_name'], //主题名称
-            'net_at'=>$equipment['net_at'], //入网时间
-            'net_invalid_at'=>$equipment['net_invalid_at'], //入网失效时间
+            'net_at'=>!empty($equipment['net_at'])?$equipment['net_at']:null, //入网时间
+            'net_invalid_at'=>!empty($equipment['net_invalid_at'])?$equipment['net_invalid_at']:null, //入网失效时间
             'net_goods'=>$equipment['net_goods'], //入网商品
             'created_by'=>$created_by, //入网商品
             'created_at'=>date('Y-m-d H:i:s'), //入网商品
@@ -58,8 +58,8 @@ class NetSubjectModel extends PublicModel {
         $eruiArr=array(
             'buyer_id'=>$buyer_id, //主题名称
             'subject_name'=>$erui['subject_name'], //主题名称
-            'net_at'=>$erui['net_at'], //入网时间
-            'net_invalid_at'=>$erui['net_invalid_at'], //入网失效时间
+            'net_at'=>!empty($erui['net_at'])?$erui['net_at']:null, //入网时间
+            'net_invalid_at'=>!empty($erui['net_invalid_at'])?$erui['net_invalid_at']:null, //入网失效时间
             'net_goods'=>$erui['net_goods'], //入网商品
             'created_by'=>$created_by, //入网商品
             'created_at'=>date('Y-m-d H:i:s'), //入网商品
