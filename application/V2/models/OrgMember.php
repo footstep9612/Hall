@@ -253,10 +253,13 @@ class OrgMemberModel extends PublicModel {
         if ($obtain_ids && is_array($obtain_ids)) {
             $org_model = new OrgModel();
             $org_table = $org_model->getTableName();
-            $users = $this->field('employee_id,(select name from ' . $org_table . ' where id=org_id and deleted_flag=\'N\') as org_name')
-                    ->where(['id' => ['in', $obtain_ids]])
+            $users = $this->alias('om')
+                    ->join($org_table . ' org on org.id=om.org_id and org.deleted_flag=\'N\'')
+                    ->field('om.employee_id,org.name  as org_name')
+                    ->where(['employee_id' => ['in', $obtain_ids], 'org.name is not null and org.name<>\'\''])
                     ->group('employee_id')
                     ->select();
+
             if ($users) {
                 foreach ($users as $user) {
                     $ret[$user['employee_id']] = $user['org_name'];

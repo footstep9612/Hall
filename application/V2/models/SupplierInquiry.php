@@ -578,10 +578,12 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
 
 
+        $this->_setquoted_time($list);
         $this->_setTotalOilFlag($list);
         $this->_setBizDespatching($list);
         $this->_setTotalPrice($list);
         $this->_setObtainInfo($list);
+
         $this->_setClarificationTime($list);
 
 
@@ -872,6 +874,7 @@ class SupplierInquiryModel extends PublicModel {
         $org_member_model = new OrgMemberModel();
         $users = $employee_model->getNamesByids($obtain_ids);
         $orgs = $org_member_model->getOrgNamesByemployeeids($obtain_ids);
+
         foreach ($list as $key => $item) {
             if ($item['obtain_id'] && isset($users[$item['obtain_id']])) {
                 $list[$key]['obtain_name'] = $users[$item['obtain_id']];
