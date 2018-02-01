@@ -192,7 +192,7 @@ class ShowCatProductModel extends PublicModel {
                     $data[] = $data_tmp;
                 }
             }
-            p($data);
+
             if (!empty($data)) {
                 $result = $this->addAll($data);
                 /**
