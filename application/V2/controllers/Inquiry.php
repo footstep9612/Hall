@@ -234,7 +234,7 @@ class InquiryController extends PublicController {
         $inquiryList = $inquiryModel->getList_($condition);
 
         foreach ($inquiryList as &$inquiry) {
-            $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
             $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
             $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
             $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
@@ -310,7 +310,7 @@ class InquiryController extends PublicController {
             $inquiryList = $inquiryModel->getViewList($condition);
 
             foreach ($inquiryList as &$inquiry) {
-                $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
                 $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
                 $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
                 $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
@@ -724,11 +724,11 @@ class InquiryController extends PublicController {
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-            $results['data']['country_name'] = $countryModel->where(['bn' => $results['data']['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+            $results['data']['country_name'] = $countryModel->where(['bn' => $results['data']['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
         }
         //询单所在区域
         if (!empty($results['data']['area_bn'])) {
-            $results['data']['area_name'] = $marketAreaModel->where(['bn' => $results['data']['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+            $results['data']['area_name'] = $marketAreaModel->where(['bn' => $results['data']['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
         }
         //项目获取人
         if (!empty($results['data']['obtain_id'])) {

@@ -233,7 +233,7 @@ class LogisticsController extends PublicController {
 					$quoteLogiFee['from_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
-					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
 				}
     	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['to_country'])){
@@ -241,7 +241,7 @@ class LogisticsController extends PublicController {
 					$quoteLogiFee['to_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
-					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
 				}
     	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : L('NOTHING');
     	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : L('NOTHING');
