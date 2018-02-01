@@ -129,7 +129,7 @@ class BuyerfilesController extends PublicController
             'scale as up_scale', //规模
             'settlement as up_settlement', //结算方式
             'marketing_network as up_marketing_network', //营销网络
-            'buyer_type_name as up_buyer_type_name', //客户的客户类型名称
+//            'buyer_type_name as up_buyer_type_name', //客户的客户类型名称
             'buyer_project as up_buyer_project', //客户参与的项目
             'buyer_problem as up_buyer_problem', //客户遇到过的困难
             'solve_problem as up_solve_problem' //客户如何解决的困难
