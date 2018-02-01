@@ -157,35 +157,35 @@ class UrlpermController extends PublicController {
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($request['fn'])) {
+        if (empty($data['fn'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
         
-        if (empty($request['fn_en'])) {
+        if (empty($data['fn_en'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
         
-        if (empty($request['fn_es'])) {
+        if (empty($data['fn_es'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
         
-        if (empty($request['fn_ru'])) {
+        if (empty($data['fn_ru'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
 
-        if (empty($request['url'])) {
+        if (empty($data['url'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_LINK_URL_NOT_EMPTY')
