@@ -110,27 +110,6 @@ class UrlpermController extends PublicController {
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
-        
-        if (empty($request['fn_en'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
-        
-        if (empty($request['fn_es'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
-        
-        if (empty($request['fn_ru'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
 
         if (empty($request['url'])) {
             $this->jsonReturn([
@@ -158,27 +137,6 @@ class UrlpermController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         if (empty($data['fn'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
-        
-        if (empty($data['fn_en'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
-        
-        if (empty($data['fn_es'])) {
-            $this->jsonReturn([
-                'code' => -101,
-                'message' => L('URL_PERM_NAME_NOT_EMPTY')
-            ]);
-        }
-        
-        if (empty($data['fn_ru'])) {
             $this->jsonReturn([
                 'code' => -101,
                 'message' => L('URL_PERM_NAME_NOT_EMPTY')
