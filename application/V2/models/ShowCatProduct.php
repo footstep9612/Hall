@@ -78,6 +78,17 @@ class ShowCatProductModel extends PublicModel {
             $faild_ary = [];
             if (is_array($spu)) {
                 foreach ($spu as $item) {
+
+                    /**
+                     * 检查SPU对应的SKU是否通过审核
+                     * 修改人:买买提
+                     * 时间:2018/02/01 10:16:32
+                     */
+                    $checkResult = $this->checkSkuBySpu($item, $lang);
+                    if (!empty($checkResult['code'])){
+                        jsonReturn('', $checkResult['code'], $checkResult['message']);
+                    }
+
                     /**
                      * 当没有选择展示分类时根据物料分类查询所有展示分类
                      */
@@ -125,6 +136,18 @@ class ShowCatProductModel extends PublicModel {
                     }
                 }
             } else {
+
+                /**
+                 * 检查SPU对应的SKU是否通过审核
+                 * 修改人:买买提
+                 * 时间:2018/02/01 10:16:32
+                 */
+                $checkResult = $this->checkSkuBySpu($item, $lang);
+                if (!empty($checkResult['code'])){
+                    jsonReturn('', $checkResult['code'], $checkResult['message']);
+                }
+
+
                 /**
                  * 当没有选择展示分类时根据物料分类查询所有展示分类
                  */
@@ -169,7 +192,7 @@ class ShowCatProductModel extends PublicModel {
                     $data[] = $data_tmp;
                 }
             }
-
+            p($data);
             if (!empty($data)) {
                 $result = $this->addAll($data);
                 /**
@@ -417,4 +440,24 @@ class ShowCatProductModel extends PublicModel {
         }
     }
 
+    private function checkSkuBySpu ($spu, $lang)
+    {
+
+        $where = [
+            'spu'  => $spu,
+            'lang' => $lang,
+        ];
+
+        $sku = (new GoodsModel)->where($where)->field('id,sku,spu,status')->select();
+
+        foreach ($sku as $item) {
+            if ($item['status'] != self::STATUS_VALID){
+                return [
+                    'code'    => -101,
+                    'message' => '该SPU下有未通过审核的SKU，不能上架'
+                ];
+            }
+        }
+
+    }
 }
