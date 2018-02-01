@@ -13,8 +13,8 @@
  */
 class UrlpermController extends PublicController {
 
-    public function __init() {
-        //   parent::__init();
+    public function init() {
+        parent::init();
     }
     //递归获取子记录
     function get_urlperm_children($a,$pid =null,$employee=null){
