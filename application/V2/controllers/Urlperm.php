@@ -52,7 +52,7 @@ class UrlpermController extends PublicController {
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
-            $datajson['message'] = '数据为空!';
+            $datajson['message'] = L('NO_DATA');
         }
 
         $this->jsonReturn($datajson);
@@ -68,7 +68,7 @@ class UrlpermController extends PublicController {
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
-            $datajson['message'] = '数据为空!';
+            $datajson['message'] = L('NO_DATA');
         }
 
         $this->jsonReturn($datajson);
@@ -78,7 +78,7 @@ class UrlpermController extends PublicController {
         $id = $data['id'];
         if(empty($id)){
             $datajson['code'] = -101;
-            $datajson['message'] = 'id不可以都为空!';
+            $datajson['message'] = L('URL_PERM_ID_NOT_EMPTY');
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
@@ -86,11 +86,11 @@ class UrlpermController extends PublicController {
         if(!empty($data)){
             $datajson['code'] = 1;
             $datajson['data'] = $data;
-            $datajson['message'] = '获取成功!';
+            $datajson['message'] = L('SUCCESS');
         }else{
             $datajson['code'] = -104;
             $datajson['data'] = $data;
-            $datajson['message'] = '数据为空!';
+            $datajson['message'] = L('NO_DATA');
         }
         $this->jsonReturn($datajson);
     }
@@ -107,14 +107,35 @@ class UrlpermController extends PublicController {
         if (empty($request['fn'])) {
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '名称不能为空'
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_en'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_es'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_ru'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
 
         if (empty($request['url'])) {
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '链接URL不能为空'
+                'message' => L('URL_PERM_LINK_URL_NOT_EMPTY')
             ]);
         }
 
@@ -124,11 +145,11 @@ class UrlpermController extends PublicController {
 
         if($response){
             $datajson['code'] = 1;
-            $datajson['message'] = '添加成功';
+            $datajson['message'] = L('SUCCESS');
             $datajson['data']['id'] = $response;
         }else{
             $datajson['code'] = -104;
-            $datajson['message'] = '添加失败!';
+            $datajson['message'] = L('FAIL');
         }
         $this->jsonReturn($datajson);
     }
@@ -136,24 +157,45 @@ class UrlpermController extends PublicController {
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($data['fn'])) {
+        if (empty($request['fn'])) {
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '名称不能为空'
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_en'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_es'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
+            ]);
+        }
+        
+        if (empty($request['fn_ru'])) {
+            $this->jsonReturn([
+                'code' => -101,
+                'message' => L('URL_PERM_NAME_NOT_EMPTY')
             ]);
         }
 
-        if (empty($data['url'])) {
+        if (empty($request['url'])) {
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '链接URL不能为空'
+                'message' => L('URL_PERM_LINK_URL_NOT_EMPTY')
             ]);
         }
 
         if (empty($data['id'])) {
             $this->jsonReturn([
                 'code' => -101,
-                'message' => '缺少主键'
+                'message' => L('URL_PERM_ID_NOT_EMPTY')
             ]);
         }else{
             $where['id'] = $data['id'];
@@ -163,10 +205,10 @@ class UrlpermController extends PublicController {
         $id = $model_url_perm->update_data($data,$where);
         if($id > 0){
             $datajson['code'] = 1;
-            $datajson['message'] = '修改成功!';
+            $datajson['message'] = L('SUCCESS');
         }else{
             $datajson['code'] = -104;
-            $datajson['message'] = '修改失败!';
+            $datajson['message'] = L('FAIL');
         }
         $this->jsonReturn($datajson);
     }
@@ -176,7 +218,7 @@ class UrlpermController extends PublicController {
         $id = $data['id'];
         if(empty($id)){
             $datajson['code'] = -101;
-            $datajson['message'] = 'id不可以都为空!';
+            $datajson['message'] = L('URL_PERM_ID_NOT_EMPTY');
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
@@ -185,7 +227,7 @@ class UrlpermController extends PublicController {
             $datajson['code'] = 1;
         }else{
             $datajson['code'] = -104;
-            $datajson['message'] = '数据为空!';
+            $datajson['message'] = L('NO_DATA');
         }
         $this->jsonReturn($datajson);
     }
