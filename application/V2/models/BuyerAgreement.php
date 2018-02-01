@@ -16,7 +16,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportModel($excelName,$sheetName,$data){
-        $tableheader = array('序号','执行单号','事业部','执行分公司','所属国家','客户代码','油气/非油气','品名中文','数量','单位','框架开始执行时间','框架结束执行时间','框架金额（美元）','汇款方式','市场经办人','商务技术经办人');
+        $tableheader = array('序号','执行单号','事业部','执行分公司','所属国家','客户代码','油气/非油气','品名中文','数量','单位','框架开始时间','框架结束时间','框架金额（美元）','执行金额（美元）','回款方式','项目开始执行时间','市场经办人','商务技术部经办人');
         $excelDir = MYPATH.DS.'public'.DS.'tmp'.DS.'excelagree';
         if(!is_dir($excelDir)){
             mkdir($excelDir,0777,true);
@@ -177,11 +177,14 @@ class BuyerAgreementModel extends PublicModel
             $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'油气':'非油气';    //是否油气
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'];    //数量
-            $arr[$k]['unit'] = $v['unit'];    //数量
+            $arr[$k]['unit'] = $v['unit'];    //单位
             $arr[$k]['execute_start_at'] = $v['execute_start_at'];    //框架开始执行时间
             $arr[$k]['execute_end_at'] = $v['execute_end_at'];    //框架结束执行时间
             $arr[$k]['amount'] = $v['amount'];    //框架金额（美元）
-            $arr[$k]['payment_mode'] = $v['payment_mode'];    //汇款方式
+            $arr[$k]['project_amount'] = '';    //执行金额（美元）+++
+//            $arr[$k]['payment_mode'] = $v['payment_mode'];    //汇款方式
+            $arr[$k]['return_mode'] = '';    //回款方式
+            $arr[$k]['project_start_time'] = '';    //项目开始执行时间
             $arr[$k]['agent'] = $v['agent'];    //市场经办人
             $arr[$k]['technician'] = $v['technician'];    //商务技术经办人
         }
@@ -227,7 +230,7 @@ class BuyerAgreementModel extends PublicModel
             $field .= ',agree.'.$v;
         }   //获取字段end
         $i = 1;
-        $length = 100;
+        $length = 1000;
         if($excelPage==true){  //导出当前页数据长度
             $length = $pageSize;
         }
@@ -260,10 +263,10 @@ class BuyerAgreementModel extends PublicModel
                     }
                 }
             }
-            if($excel==false){
-                return array('info'=>$info,'totalCount'=>$totalCount);
-            }
             $arr = $this->packageAgreeStatisData($info);    //整合框架协议excel导出的数据
+            if($excel==false){
+                return array('info'=>$arr,'totalCount'=>$totalCount);
+            }
             $excelName = 'agree'.($i);
             $sheetName = '框架协议统计';
             $dir = $this->exportModel($excelName,$sheetName,$arr);    //excel导入模型

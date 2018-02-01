@@ -238,6 +238,12 @@ class BuyerController extends PublicController {
         if (!empty($data['created_at_start'])) {    //注册时间
             $where['created_at_start'] = $data['created_at_start'];
         }
+        if (!empty($data['min_percent'])) {
+            $where['min_percent'] = $data['min_percent'];
+        }
+        if (!empty($data['max_percent'])) {
+            $where['max_percent'] = $data['max_percent'];
+        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }

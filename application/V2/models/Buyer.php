@@ -1224,12 +1224,16 @@ EOF;
         if (!empty($condition['buyer_code'])) {
             $where .= ' And buyer.buyer_code  like "%' . $condition['buyer_code'] . '%"';
         }
-
+        if (!empty($condition['min_percent'])) {
+            $where .= ' And buyer.percent  >="' . $condition['min_percent'] . '"';
+        }
+        if (!empty($condition['max_percent'])) {
+            $where .= ' And buyer.percent  <="' . $condition['max_percent'] . '"';
+        }
         if ($where) {
             $sql .= $where;
         }
         $sql .= ' Group By buyer.status';
-
         $statusCount = $this->query($sql);  //各状态下的客户数量
         $field=array(
             'APPROVED', //审核通过

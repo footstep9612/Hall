@@ -60,7 +60,7 @@ class BuyerfilesController extends PublicController
     public function percentInfoAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $buyer_id=$data['buyer_id'];
-        $baseCond=array('id'=>$buyer_id,'deleted_flag'=>'N');
+        $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
         $cond=array(
             'buyer_id'=>$buyer_id,
             'deleted_flag'=>'N'
@@ -175,13 +175,29 @@ class BuyerfilesController extends PublicController
             'is_local_settlement', //是否支持本地结算
             'is_purchasing_relationship', //是否有采购关系
             'is_net', //是否入网
-            'net_subject', //入网主题
-            'net_at', //是否有采购关系
-            'net_invalid_at', //是否有采购关系
-            'net_goods' //是否有采购关系
+//            'net_subject', //入网主题
+//            'net_at', //是否有采购关系
+//            'net_invalid_at', //是否有采购关系
+//            'net_goods' //是否有采购关系
         );
         $businessCond=array('buyer_id'=>$buyer_id);
         $businessInfo=$business->field($businessField)->where($businessCond)->find();
+        //入网主题内容
+        $subject=new NetSubjectModel();
+        $equipmentField=array(
+            'subject_name as equipment_subject_name', //入网主题简称
+            'net_at as equipment_net_at', //入网时间
+            'net_invalid_at as equipment_net_invalid_at', //失效时间
+            'net_goods as equipment_net_goods' //入网商品
+        );
+        $eruiField=array(
+            'subject_name as erui_subject_name', //入网主题简称
+            'net_at as erui_net_at', //入网时间
+            'net_invalid_at as erui_net_invalid_at', //失效时间
+            'net_goods as erui_net_goods' //入网商品
+        );
+        $equipmentInfo=$subject->field($equipmentField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'equipment','deleted_flag'=>'N'))->find();
+        $eruiInfo=$subject->field($eruiField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'erui','deleted_flag'=>'N'))->find();
         //采购计划
         $purchasing=new BuyerPurchasingModel();
         $purchasingField=array(
@@ -205,8 +221,7 @@ class BuyerfilesController extends PublicController
             'event_contact' //里程碑负责人
         );
         $eventInfo=$milestone_event->field($eventField)->where($cond)->find();
-        $businessArr=array_merge($businessInfo,$purchasingInfo,$eventInfo);
-
+        $businessArr=array_merge($businessInfo,$equipmentInfo,$eruiInfo,$purchasingInfo,$eventInfo);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
         $attachInfo=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();

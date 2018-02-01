@@ -48,7 +48,7 @@ class IndustrychainModel extends PublicModel
         $arr = array(
             'name'=>'客户名称',
             'cooperation'=>'合作情况',
-            'business_type'=>'业务类型',
+//            'business_type'=>'业务类型',
             'scale'=>'规模',
             'settlement'=>'结算方式',
             'marketing_network'=>'营销网络',
@@ -82,6 +82,7 @@ class IndustrychainModel extends PublicModel
     public function chainList($buyer_id,$created_by){
         $chainExist = $this -> showChain($buyer_id,$created_by);
         $up = array(
+            "business_type",
             "profile",
             "goods",
             "warranty_terms",
