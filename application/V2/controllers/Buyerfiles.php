@@ -102,7 +102,7 @@ class BuyerfilesController extends PublicController
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
         //联系人
-        $contact = new BuyerContactModel();
+        $contact = new BuyercontactModel();
         $contactField=array(
             'name as contact_name', //联系人姓名
             'title as contact_title', //联系人职位
