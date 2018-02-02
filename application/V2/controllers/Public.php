@@ -526,9 +526,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         // 根据是否启用自动侦测设置获取语言选择
         if (C('LANG_AUTO_DETECT', null, true)) {
             $langParam = $this->getPut($varLang);
+            $langHeader = getHeaders()[$varLang];
+            $langCookie= $this->getCookie($varLang);
             $langCache = $this->_getLanguage();
             if (!empty($langParam)) {
-                $langSet = $langParam; // 参数中设置了语言变量
+                $langSet = $langParam; // 请求参数中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if (!empty($langHeader)) {
+                $langSet = $langHeader; // 请求头信息中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if (!empty($langCookie)) {
+                $langSet = $langCookie; // cookie中设置了语言变量
                 $this->_cacheLanguage($langSet);
             } else if (isset($_GET[$varLang])) {
                 $langSet = $_GET[$varLang]; // url中设置了语言变量
