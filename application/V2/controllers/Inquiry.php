@@ -12,7 +12,7 @@ class InquiryController extends PublicController {
     public function init() {
         parent::init();
         
-        $this->put_data = $this->_trim($this->put_data);
+        $this->put_data = dataTrim($this->put_data);
     }
 
     /**
@@ -1304,28 +1304,6 @@ class InquiryController extends PublicController {
         $this->cleanInquiryRemind($data['inquiry_id']);
 
         return $result;
-    }
-    
-    /**
-     * @desc 去掉数据两侧的空格
-     *
-     * @param mixed $data
-     * @return mixed
-     * @author liujf
-     * @time 2018-01-16
-     */
-    private function _trim($data) {
-        if (is_array($data)) {
-            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
-            return $data;
-        } else if (is_object($data)) {
-            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
-            return $data;
-        } else if (is_string($data)) {
-            return trim($data);
-        } else {
-            return $data;
-        }
     }
 
 }
