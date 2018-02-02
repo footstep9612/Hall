@@ -139,7 +139,7 @@ class EmployeeModel extends PublicModel {
      */
     public function getUserIdByNo($no) {
 
-        return $this->where(['user_no ' => trim($no), 'deleted_flag' => 'N'])->getField('id');
+        return $this->where(['user_no' => trim($no), 'deleted_flag' => 'N'])->getField('id');
     }
 
     /**
