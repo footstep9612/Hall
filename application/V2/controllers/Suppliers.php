@@ -69,7 +69,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function updateSupplierInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -394,7 +394,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-16
      */
     public function batchUpdateSupplierContactInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -492,7 +492,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function addSupplierSupplyRecordAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -695,7 +695,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function batchUpdateSupplierQualificationInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -809,7 +809,7 @@ class SuppliersController extends PublicController {
     private function _checkFieldsChange($data = [], $checkFields = [], $condition = []) {
         $change = false;
         if (is_string($checkFields)) {
-            $checkFields = $this->_trim(explode(',', $checkFields));
+            $checkFields = dataTrim(explode(',', $checkFields));
         }
         if ($data && $checkFields && $condition) {
             foreach ($data as $k => $v) {
@@ -837,28 +837,6 @@ class SuppliersController extends PublicController {
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn(false);
-        }
-    }
-
-    /**
-     * @desc 去掉数据两侧的空格
-     *
-     * @param mixed $data
-     * @return mixed
-     * @author liujf
-     * @time 2018-01-11
-     */
-    private function _trim($data) {
-        if (is_array($data)) {
-            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
-            return $data;
-        } else if (is_object($data)) {
-            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
-            return $data;
-        } else if (is_string($data)) {
-            return trim($data);
-        } else {
-            return $data;
         }
     }
 

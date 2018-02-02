@@ -289,7 +289,7 @@ class OrderController extends PublicController {
      */
 
     private function saveOrder($data) {
-        $data = $this->_trim($data);
+        $data = dataTrim($data);
         $order['po_no'] = $this->safeString($data['po_no']);
         $order['execute_no'] = $this->safeString($data['execute_no']);
         $contract_date = strtotime($data['contract_date']);
@@ -408,7 +408,7 @@ class OrderController extends PublicController {
      * @time 2018-01-10
      */
     private function _saveOrderGoods($data, $orderNo) {
-        $orderNo = $this->_trim($orderNo);
+        $orderNo = dataTrim($orderNo);
         if ($orderNo == '') $this->jsonReturn(['code'=>-105,'message'=>'订单ID不能为空']);
         $orderGoodsModel = new OrderGoodsModel();
         $time = date('Y-m-d H:i:s');
@@ -876,7 +876,7 @@ class OrderController extends PublicController {
      * @time 2018-01-10
      */
     public function getOrderGoodsListAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
         if ($condition['order_no'] == '') $this->jsonReturn(['code' => -101, 'message' => '缺少订单编号参数']);
         $orderGoodsModel = new OrderGoodsModel();
         $field = 'id, sku, name, name_zh, brand, model, price, buy_number, nude_cargo_unit';
@@ -885,28 +885,6 @@ class OrderController extends PublicController {
             $this->jsonReturn($data);
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '数据为空']);
-        }
-    }
-    
-    /**
-     * @desc 去掉数据两侧的空格
-     *
-     * @param mixed $data
-     * @return mixed
-     * @author liujf
-     * @time 2018-01-11
-     */
-    private function _trim($data) {
-        if (is_array($data)) {
-            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
-            return $data;
-        } else if (is_object($data)) {
-            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
-            return $data;
-        } else if (is_string($data)) {
-            return trim($data);
-        } else {
-            return $data;
         }
     }
 }
