@@ -46,12 +46,13 @@ class BuyerBusinessModel extends PublicModel
         //入网主题内容
         $subject = new NetSubjectModel();
         $subjectInfo=$subject->getNetSubject($data['buyer_id']);
-        if(!empty($subjectInfo)){
-            $info['equipment']=$subjectInfo['equipment'];
-            $info['erui']=$subjectInfo['erui'];
-        }else{
-            $info['equipment']=array('net_at'=>'','net_invalid_at'=>'','net_goods'=>'');
-            $info['erui']=array('net_at'=>'','net_invalid_at'=>'','net_goods'=>'');
+        $info['equipment']=$subjectInfo['equipment'];
+        $info['erui']=$subjectInfo['erui'];
+        if(empty($info['equipment'])){
+            $info['equipment']=array('net_at'=>null,'net_invalid_at'=>null,'net_goods'=>'');
+        }
+        if(empty($info['erui'])){
+            $info['erui']=array('net_at'=>null,'net_invalid_at'=>null,'net_goods'=>'');
         }
         if($data['is_check']==true){  //查看
             $purchasing=new PurchaseModel();
