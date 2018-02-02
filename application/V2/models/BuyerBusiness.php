@@ -32,7 +32,7 @@ class BuyerBusinessModel extends PublicModel
                 'is_local_settlement'=>null, //是否本地结算
                 'is_purchasing_relationship'=>null, //是否与KERUI/ERUI有关系
                 'is_net'=>null, //是否入网
-//                'net_subject', //入网主题
+                'net_subject', //入网主题
 //                'net_at'=>null, //入网时间
 //                'net_invalid_at'=>null, //如网失效时间
 //                'net_goods'=>null, //入网产品
