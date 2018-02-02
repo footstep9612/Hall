@@ -498,12 +498,12 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @time 2018-01-25
      */
     public function loadCommonConfig() {
-        $files = $commonConfig = $phpConfig = [];
+        $files = $commonConfig = [];
         searchDir(COMMON_CONF_PATH, $files);
         foreach ($files as $file) {
             if (preg_match('/.*\.php$/i', $file)) {
-                $phpConfig = include $file;
-                if (is_array($phpConfig)) C($phpConfig);
+                $commonConfig = include $file;
+                if (is_array($commonConfig)) C($commonConfig);
             }
         }
     }
