@@ -43,6 +43,7 @@ class BuyerBusinessModel extends PublicModel
         }else{
             $info['net_subject']=[];
         }
+        $info['net_subject']=[123,456];
         //入网主题内容
         $subject = new NetSubjectModel();
         $subjectInfo=$subject->getNetSubject($data['buyer_id']);
