@@ -64,8 +64,20 @@ class NetSubjectModel extends PublicModel {
             'created_by'=>$created_by, //入网商品
             'created_at'=>date('Y-m-d H:i:s'), //入网商品
         );
-        $this->where(array('buyer_id'=>$buyer_id,'subject_name'=>$equipment['subject_name']))->save($equipmentArr);
-        $this->where(array('buyer_id'=>$buyer_id,'subject_name'=>$erui['subject_name']))->save($eruiArr);
+        $equipmentCond=array('buyer_id'=>$buyer_id,'subject_name'=>$equipment['subject_name'],'deleted_flag'=>'N');
+        $eruiCond=array('buyer_id'=>$buyer_id,'subject_name'=>$erui['subject_name'],'deleted_flag'=>'N');
+        $equipmentExist=$this->where($equipmentCond)->find();
+        $eruiExist=$this->where($eruiCond)->find();
+        if($equipmentExist){
+            $this->where($equipmentCond)->save($equipmentArr);
+        }else{
+            $this->add($equipmentArr);
+        }
+        if($eruiExist){
+            $this->where($eruiCond)->save($eruiArr);
+        }else{
+            $this->add($equipmentArr);
+        }
         return true;
     }
     public function getNetSubject($buyer_id){

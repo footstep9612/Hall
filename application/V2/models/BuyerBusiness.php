@@ -182,22 +182,25 @@ class BuyerBusinessModel extends PublicModel
         $data['erui']['subject_name']='erui';
         //业务数据
         $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
-        $subject = new NetSubjectModel();   //入网主题
+
         if($businessExist){
             $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
-            $subjectExist=$subject ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
-            if($subjectExist){
-                $subjectRes = $subject->updateSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
-            }else{
-                $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
-            }
+//            $subjectExist=$subject ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+//            if($subjectExist){
+//            }else{
+//                $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
+//            }
+//            $subjectRes = $subject->updateSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         }else{
             if(!empty($arr['id'])){
                 unset($arr['id']);
             }
             $addRes = $this->add($arr);
-            $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
+//            $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         }
+        //入网主题
+        $subject = new NetSubjectModel();
+        $subjectRes = $subject->updateSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         //信用
         $buyer = new BuyerModel();
         $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);

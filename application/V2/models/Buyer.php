@@ -1347,7 +1347,7 @@ EOF;
             'company_address'=>'公司地址',  //  +
             'reg_capital'=>'注册资金',
             'reg_capital_cur'=>'注册资金货币',
-            'profile'=>'公司介绍',
+            'profile'=>'公司其他信息',
 
         );
         foreach($baseArr as $k => $v){
