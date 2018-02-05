@@ -296,11 +296,6 @@ class LogisticsController extends PublicController {
 	        //    $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
-	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
-	        if ($quoteLogiFee['logi_to_port'] != $condition['logi_to_port']) $data['logi_to_port'] = $condition['logi_to_port'];
-	        if ($quoteLogiFee['logi_trans_mode_bn'] != $condition['logi_trans_mode_bn']) $data['logi_trans_mode_bn'] = $condition['logi_trans_mode_bn'];
-	        if ($quoteLogiFee['logi_box_type_bn'] != $condition['logi_box_type_bn']) $data['logi_box_type_bn'] = $condition['logi_box_type_bn'];
-	        
 	        // 去掉暂无的数据
 	        $data['logi_from_port'] = $data['logi_from_port'] == L('NOTHING') ? null : $data['logi_from_port'];
 	        $data['logi_to_port'] = $data['logi_to_port'] == L('NOTHING') ? null : $data['logi_to_port'];
