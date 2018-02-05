@@ -13,7 +13,7 @@ class BuyerbusinessController extends PublicController
 {
     public function __init()
     {
-        parent::__init();
+        parent::init();
     }
     /*
      * 创建客户---业务信息及采购计划，附件

@@ -1840,10 +1840,10 @@ EOF;
             $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
         }
         if(!empty($data['min_percent'])){    //信息完整度min
-            $cond .= " and buyer.percent >='$data[min_percent]'";
+            $cond .= " and buyer.percent >='$data[min_percent]%'";
         }
         if(!empty($data['max_percent'])){    //信息完整度max
-            $cond .= " and buyer.percent <='$data[max_percent]'";
+            $cond .= " and buyer.percent <='$data[max_percent]%'";
         }
         return $cond;
     }
