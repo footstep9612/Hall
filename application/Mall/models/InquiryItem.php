@@ -99,16 +99,16 @@ class InquiryitemModel extends PublicModel {
 
             if ($list) {
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['data'] = $list;
             } else {
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -133,16 +133,16 @@ class InquiryitemModel extends PublicModel {
 
             if ($info) {
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['data'] = $info;
             } else {
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -183,15 +183,15 @@ class InquiryitemModel extends PublicModel {
                     $iiaModel->add($iiaModel->create($attach));
                 }
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             } else {
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['message'] = '添加失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

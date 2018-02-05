@@ -88,16 +88,16 @@ class InquiryitemModel extends PublicModel {
             $list = $this->where($where)->order('id')->select();
             if($list){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('NO_DATA');
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -122,16 +122,16 @@ class InquiryitemModel extends PublicModel {
 
             if($info){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $info;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('NO_DATA');
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
 
@@ -159,15 +159,15 @@ class InquiryitemModel extends PublicModel {
             $id = $this->add($data);
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -203,15 +203,15 @@ class InquiryitemModel extends PublicModel {
             $id = $this->addAll($inquirydata);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -243,15 +243,15 @@ class InquiryitemModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -273,15 +273,15 @@ class InquiryitemModel extends PublicModel {
             $id = $this->where($where)->save(['deleted_flag'=>'Y']);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

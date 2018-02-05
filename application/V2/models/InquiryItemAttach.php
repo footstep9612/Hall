@@ -63,16 +63,16 @@ class InquiryItemAttachModel extends PublicModel {
             $list = $this->where($where)->order('created_at desc')->select();
             if(isset($list)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('NO_DATA');
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -112,15 +112,15 @@ class InquiryItemAttachModel extends PublicModel {
             $id = $this->add($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -146,15 +146,15 @@ class InquiryItemAttachModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -178,15 +178,15 @@ class InquiryItemAttachModel extends PublicModel {
             $id = $this->where($where)->delete();
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = L('SUCCESS');
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = L('FAIL');
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

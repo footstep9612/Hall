@@ -461,7 +461,7 @@ class QuoteController extends PublicController{
                         if(!$reslogi){
                             $this->inquiryItemModel->rollback();
                             $results['code'] = '-101';
-                            $results['messaage'] = '删除失败!';
+                            $results['message'] = '删除失败!';
                             $this->jsonReturn($results);
                         }
                     }
@@ -474,7 +474,7 @@ class QuoteController extends PublicController{
                         if(!$resfinal){
                             $this->inquiryItemModel->rollback();
                             $results['code'] = '-101';
-                            $results['messaage'] = L('QUOTE_DELETE_FAIL');
+                            $results['message'] = L('QUOTE_DELETE_FAIL');
                             $this->jsonReturn($results);
                         }
                     }
@@ -483,7 +483,7 @@ class QuoteController extends PublicController{
                 }else{
                     $this->inquiryItemModel->rollback();
                     $results['code'] = '-101';
-                    $results['messaage'] = L('QUOTE_DELETE_FAIL');
+                    $results['message'] = L('QUOTE_DELETE_FAIL');
                     $this->jsonReturn($results);
                 }
             }else{

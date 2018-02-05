@@ -81,28 +81,28 @@ class InquiryItemModel extends PublicModel {
                                 //->select();
                 if(isset($list)){
                     $results['code'] = '1';
-                    $results['messaage'] = '成功！';
+                    $results['message'] = '成功！';
                     $results['data'] = $list;
                 }else{
                     $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
+                    $results['message'] = '没有找到相关信息!';
                 }
                 return $results;
             } else {
                 $list = $this->where($where)->select();
                 if(isset($list)){
                     $results['code'] = '1';
-                    $results['messaage'] = '成功！';
+                    $results['message'] = '成功！';
                     $results['data'] = $list;
                 }else{
                     $results['code'] = '-101';
-                    $results['messaage'] = '没有找到相关信息!';
+                    $results['message'] = '没有找到相关信息!';
                 }
                 return $results;
             }
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -130,16 +130,16 @@ class InquiryItemModel extends PublicModel {
 
             if(isset($info)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
                 $results['data'] = $info;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = '没有找到相关信息!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
 
@@ -171,15 +171,15 @@ class InquiryItemModel extends PublicModel {
             $id = $this->add($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['message'] = '添加失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -210,15 +210,15 @@ class InquiryItemModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '修改失败!';
+                $results['message'] = '修改失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -245,15 +245,15 @@ class InquiryItemModel extends PublicModel {
             $id = $this->where($where)->save(['status' => 'DELETED']);
             if(isset($id)){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = '成功！';
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '删除失败!';
+                $results['message'] = '删除失败!';
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

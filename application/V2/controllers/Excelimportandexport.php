@@ -8,7 +8,9 @@
 class ExcelimportandexportController extends PublicController {
 
     public function init() {
-        ini_set("display_errors", "On");
+        set_time_limit(0);
+        ini_set('memory_limit', '8G');
+        ini_set('display_errors', 'On');
         error_reporting(E_ERROR | E_STRICT);
         
         $this->inquiryModel = new InquiryModel();

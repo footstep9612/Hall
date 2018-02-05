@@ -983,7 +983,7 @@ class InquiryController extends PublicController {
             $Item->commit();
         } else {
             $results['code'] = '-101';
-            $results['messaage'] = L('FAIL');
+            $results['message'] = L('FAIL');
         }
 
         $this->jsonReturn($results);
