@@ -476,6 +476,15 @@ class ProductModel extends PublicModel {
                         }
                         $updata = array('status' => $status);
 
+                        //spu审核 只要有一条SKU审核通过，即可允许审核SPU
+                        $validSku = $this->checkValidSku($r, $lang);
+                        if (!$validSku){
+                            return [
+                                'code' => -104,
+                                'message' => 'SPU至少要有一个SKU审核通过才能审核'
+                            ];
+                        }
+
                         /** 报审走报审验证 */
                         /*
                         if ($status == self::STATUS_CHECKING || $status == self::STATUS_VALID) {
@@ -2017,5 +2026,10 @@ class ProductModel extends PublicModel {
 
         $show_cat_name =  $show_cat_1['name']."/".$show_cat_2['name']."/".$show_cat_3['name']."-".$show_cat_no;
         return $show_cat_name;
+    }
+
+    private function checkValidSku($spu ,$lang)
+    {
+        return (new GoodsModel)->where(['spu'=>$spu, 'lang'=>$lang, 'status'=>'VALID'])->count();
     }
 }
