@@ -241,7 +241,6 @@ class UserController extends PublicController {
                         $data[$i]['children'][$j]['check'] = false;
                         $data[$i]['children'][$j]['lang'] = LANG_SET;
                         $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
-                        $data[$i]['children'][$j]['children']['lang'] = LANG_SET;
                         if (!$data[$i]['children'][$j]['children']) {
                             unset($data[$i]['children'][$j]['children']);
                         }
