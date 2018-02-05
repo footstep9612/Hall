@@ -26,8 +26,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $this->getPut();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
-             $this->getRequest()->getControllerName() == 'User' &&
-             in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            $this->getRequest()->getControllerName() == 'User' &&
+            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             $this->setLang($this->getPut('lang', 'en'));
         } else {
             $this->user = $GLOBALS['SSO_USER'];
