@@ -232,14 +232,14 @@ class UserController extends PublicController {
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
-            $data[$i]['lang'] = LANG_SET;
+            $data[$i]['lang'] = $this->lang;
             $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id']);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     if (isset($data[$i]['children'][$j]['id'])) {
                         $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['lang'] = LANG_SET;
+                        $data[$i]['children'][$j]['lang'] = $this->lang;
                         $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
                         if (!$data[$i]['children'][$j]['children']) {
                             unset($data[$i]['children'][$j]['children']);
