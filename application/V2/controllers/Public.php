@@ -189,7 +189,14 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if (!$this->put_data) {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
-        if ($name) {
+        if ($name === 'lang') {
+            if (!empty($this->put_data [$name])) {
+                $lang = trim($this->put_data [$name]);
+            } else {
+                $lang = !empty($this->headers [$name]) ? trim($this->headers [$name]) : trim($default);
+            }
+            return $lang;
+        } elseif ($name) {
             if (isset($this->put_data [$name]) && is_string($this->put_data [$name])) {
                 $data = !empty($this->put_data [$name]) ? trim($this->put_data [$name]) : trim($default);
             } else {
@@ -490,27 +497,29 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $code = $prefix . $time . '_' . $pad;
         return $code;
     }
-    
+
     /*
      * @desc 加载php公共配置文件
-     * 
+     *
      * @author liujf
      * @time 2018-01-25
      */
+
     public function loadCommonConfig() {
         $files = $commonConfig = $phpConfig = [];
         searchDir(COMMON_CONF_PATH, $files);
         foreach ($files as $file) {
             if (preg_match('/.*\.php$/i', $file)) {
                 $phpConfig = include $file;
-                if (is_array($phpConfig)) C($phpConfig);
+                if (is_array($phpConfig))
+                    C($phpConfig);
             }
         }
     }
-    
+
     /**
      * @desc 语言检查(检查浏览器支持语言，并自动加载语言包)
-     *      
+     *
      * @author liujf
      * @time 2018-01-25
      */
@@ -540,7 +549,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $langSet = explode('-', $matches[1])[0];
                 $this->_cacheLanguage($langSet);
             }
-            if(false === stripos($langList, $langSet)) { // 非法语言参数
+            if (false === stripos($langList, $langSet)) { // 非法语言参数
                 $langSet = C('DEFAULT_LANG');
             }
         }
@@ -548,18 +557,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         define('LANG_SET', strtolower($langSet));
         // 读取公共语言包
         $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
-        if(is_file($file)) L(include $file);
+        if (is_file($file))
+            L(include $file);
         // 读取模块语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
-        if(is_file($file)) L(include $file);
+        if (is_file($file))
+            L(include $file);
         // 读取当前控制器语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
-        if (is_file($file)) L(include $file);
+        if (is_file($file))
+            L(include $file);
     }
-    
+
     /**
      * @desc 语言缓存
-     * 
+     *
      * @param string $lang 语言
      * @return bool
      * @author liujf
@@ -568,7 +580,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     private function _cacheLanguage($lang = 'zh') {
         return redisSet('erui_boss_language_' . $this->user['id'], $lang, 3600 * 24);
     }
-    
+
     /**
      * @desc 获取语言缓存
      *
