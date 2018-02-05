@@ -146,7 +146,10 @@ class QuoteItemModel extends PublicModel {
 
             }
         }
-        return true;
+        return [
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS')
+        ];
 
     }
 
