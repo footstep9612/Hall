@@ -44,15 +44,11 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             if (!empty($data["token"])) {
                 $token = $data["token"];
             }
-            $model = new UserModel();
+
             if (!empty($jsondata["token"])) {
                 $token = $jsondata["token"];
             }
-            $data = $this->getRequest()->getPost();
 
-            if (!empty($data["token"])) {
-                $token = $data["token"];
-            }
             $this->user = $GLOBALS['SSO_USER'];
             $this->_setUid($this->user);
             if (isset($this->user['id']) && $this->user['id'] > 0) {
@@ -511,8 +507,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         foreach ($files as $file) {
             if (preg_match('/.*\.php$/i', $file)) {
                 $commonConfig = include $file;
-                if (is_array($commonConfig))
+                if (is_array($commonConfig)) {
                     C($commonConfig);
+                }
             }
         }
     }
@@ -565,16 +562,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         define('LANG_SET', strtolower($langSet));
         // 读取公共语言包
         $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
-        if (is_file($file))
+        if (is_file($file)) {
             L(include $file);
+        }
         // 读取模块语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
-        if (is_file($file))
+        if (is_file($file)) {
             L(include $file);
+        }
         // 读取当前控制器语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
-        if (is_file($file))
+        if (is_file($file)) {
             L(include $file);
+        }
     }
 
     /**
@@ -674,8 +674,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($params) {
             $params = explode(',', $params);
             foreach ($params as $param) {
-                if (empty($request[$param]))
+                if (empty($request[$param])) {
                     $this->jsonReturn(['code' => '-104', 'message' => '缺少[' . $param . ']参数']);
+                }
             }
         }
         return $request;
