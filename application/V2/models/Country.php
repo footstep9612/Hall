@@ -579,7 +579,7 @@ class CountryModel extends PublicModel {
             } else {
                 return false;
             }
-            $where['lang'] = 'zh';
+            $where['lang'] = LANG_SET;
             $areas = $this->where($where)->field('bn,name')->select();
             $area_names = [];
             foreach ($areas as $area) {
