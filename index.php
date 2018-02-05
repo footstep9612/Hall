@@ -5,7 +5,7 @@ error_reporting(E_ERROR);
 $origin = empty($_SERVER['HTTP_ORIGIN']) ? '*' : $_SERVER['HTTP_ORIGIN'];
 header('Access-Control-Allow-Origin:' . $origin);
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Headers:x-requested-with,content-type,token');
+header('Access-Control-Allow-Headers:x-requested-with,content-type,token,lang');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     die('{"code":"200","message":"OK"}');

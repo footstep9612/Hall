@@ -1882,3 +1882,25 @@ function addSlash($dir) {
     if (!preg_match('/.*[\\\\\/]$/s', $dir)) $dir .= DS;
     return $dir;
 }
+
+/**
+ * @desc 去掉数据两侧的空格
+ *
+ * @param mixed $data
+ * @return mixed
+ * @author liujf
+ * @time 2018-02-02
+ */
+function dataTrim($data) {
+    if (is_array($data)) {
+        foreach ($data as $k => $v) $data[$k] = dataTrim($v);
+        return $data;
+    } else if (is_object($data)) {
+        foreach ($data as $k => $v) $data->$k = dataTrim($v);
+        return $data;
+    } else if (is_string($data)) {
+        return trim($data);
+    } else {
+        return $data;
+    }
+}
