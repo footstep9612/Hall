@@ -23,32 +23,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         error_reporting(E_ERROR | E_STRICT);
 
         $this->headers = getHeaders();
-        $token = isset($this->headers['token']) ? $this->headers['token'] : '';
-        //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
-        if ($this->getMethod() == 'GET') {
-            $token = $this->getQuery('token', '');
-        }
-
-        $this->put_data = $jsondata = $data = $this->getPut();
+        $this->put_data = $this->getPut();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
                 $this->getRequest()->getControllerName() == 'User' &&
                 in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             $this->setLang($this->getPut('lang', 'en'));
         } else {
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $data = $this->getRequest()->getPost();
-
-            if (!empty($data["token"])) {
-                $token = $data["token"];
-            }
-
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-
             $this->user = $GLOBALS['SSO_USER'];
             $this->_setUid($this->user);
             if (isset($this->user['id']) && $this->user['id'] > 0) {
