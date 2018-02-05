@@ -38,4 +38,7 @@ return array(
     // 是否平台
     'PLATFORM_TYPE_IS_PLATFORM' => '平台',
     'PLATFORM_TYPE_NON_PLATFORM' => '非平台',
+    // 籍贯
+    'ORIGIN_CHINA' => '中籍',
+    'ORIGIN_FOREIGN' => '外籍',
 );

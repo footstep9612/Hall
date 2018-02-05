@@ -652,13 +652,15 @@ class UserController extends PublicController {
         $countryModel = new CountryModel();
         $orgMemberModel = new OrgMemberModel();
         $orgModel = new OrgModel();
-        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'中籍\', \'外籍\') AS citizenship';
+        $originChina = L('ORIGIN_CHINA');
+        $originForeign = L('ORIGIN_FOREIGN');
+        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originForeign . '\', \'' . $originForeign . '\') AS citizenship';
         $userList = $userModel->getList_($condition, $field);
         foreach ($userList as &$user) {
             $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
             $countryList = [];
             foreach ($countryBnList as $countryBn) {
-                $countryName = $countryModel->where(['bn' => $countryBn, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                $countryName = $countryModel->where(['bn' => $countryBn, 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
                 if ($countryName) $countryList[] = $countryName;
             }
             $user['country_name'] = implode(',', $countryList);
@@ -672,13 +674,13 @@ class UserController extends PublicController {
         }
         if ($userList) {
             $res['code'] = 1;
-            $res['message'] = '成功!';
+            $res['message'] = L('SUCCESS');
             $res['data'] = $userList;
             $res['count'] = $userModel->getCount_($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
     }
