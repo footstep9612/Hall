@@ -20,9 +20,9 @@ class ReportController extends PublicController {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
         // 加载php公共配置文件
-        $this->loadCommonConfig();
+        //$this->loadCommonConfig();
         // 语言检查
-        $this->checkLanguage();
+        //$this->checkLanguage();
     }
 
     public function getPut($name = null, $default = null) {
@@ -242,11 +242,11 @@ class ReportController extends PublicController {
                 $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 if (empty($inquiry['area_name'])) {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => LANG_SET, 'deleted_flag' => 'N'])->getField('name');
+                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
                 }
                 // 最后一次流入事业部分单员的时间
                 $lastBizDispatchingLog = $inquiryCheckLogModel->field('id, into_at')->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find();
-                $lastBizDispatchingTime = $lastBizDispatchingLog['into_at'];
+                $lastBizDispatchingTime = strtotime($lastBizDispatchingLog['into_at']);
                 // 最后一次流入事业部分单员之后的项目澄清时间
                 $clarifyTotalTime = 0;
                 $clarifyList = $lastBizDispatchingLog['id'] ? $inquiryCheckLogModel->field('id, out_at')->where(array_merge($where, ['id' => ['gt', $lastBizDispatchingLog['id']], 'out_node' => 'CLARIFY']))->order('id ASC')->select() : [];
@@ -279,9 +279,9 @@ class ReportController extends PublicController {
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
                 foreach ($inquiryItemList as &$inquiryItem) {
                     // sku是否油气
-                    $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? L('OIL_TYPE_IS_OIL') : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? L('OIL_TYPE_NON_OIL') : '');
+                    $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
                     // sku是否平台
-                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? L('PLATFORM_TYPE_IS_PLATFORM') : L('PLATFORM_TYPE_NON_PLATFORM');
+                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
                 // sku记录数
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
@@ -291,7 +291,7 @@ class ReportController extends PublicController {
             $this->jsonReturn($inquiryList);
         } else {
             $this->setCode('-103');
-            $this->setMessage(L('MISSING_PARAMETER'));
+            $this->setMessage('缺少参数!');
             $this->jsonReturn();
         }
     }
