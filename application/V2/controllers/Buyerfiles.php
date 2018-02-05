@@ -231,13 +231,13 @@ class BuyerfilesController extends PublicController
         $infoCount=count($info)+3;  //总数
         //统计数据
         $infoExist=count(array_filter($info))+count($attachInfo);
-        $percent=floor(($infoExist / $infoCount)*100).'%';
+        $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
         $base->where(array('id'=>$buyer_id))->save(array('percent'=>$percent));
         $dataJson=array(
             'code'=>1,
             'message'=>'档案信息完整度',
-            'data'=>$percent
+            'data'=>$percent.'%'
         );
         return $this->jsonReturn($dataJson);
     }

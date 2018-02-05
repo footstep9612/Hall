@@ -107,10 +107,10 @@ class BuyerModel extends PublicModel {
             }
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
-            $where .= ' And `erui_buyer`.`buyer`.percent  >="' . $condition['min_percent'] . '%"';
+            $where .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
         }
         if (!empty($condition['max_percent'])) { //信息完整度大
-            $where .= ' And `erui_buyer`.`buyer`.percent  <="' . $condition['max_percent'] . '%"';
+            $where .= ' And `erui_buyer`.`buyer`.percent  <=' . $condition['max_percent'];
         }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
@@ -163,7 +163,6 @@ class BuyerModel extends PublicModel {
             $sql .= ' LIMIT ' . $condition['page'] . ', 10';
 //            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
         }
-
         //$count = $this->query($sql_count);
         $lang=isset($condition['lang'])?$condition['lang']:'zh';
         $info = $this->query($sql);
@@ -172,7 +171,11 @@ class BuyerModel extends PublicModel {
                 $level = new BuyerLevelModel();
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
+            if(!empty($v['percent'])){
+                $info[$k]['percent']=$v['percent'].'%';
+            }
         }
+
 //        $res['data'] = $this->query($sql);
         $res['data'] = $info;
         return $res;
@@ -1690,7 +1693,7 @@ EOF;
         $arr = [];
         foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];  //客户id
-            $arr[$k]['percent'] = $v['percent'];    //信息完整度百分比
+            $arr[$k]['percent'] = $v['percent'].'%';    //信息完整度百分比
             $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
@@ -1840,10 +1843,10 @@ EOF;
             $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
         }
         if(!empty($data['min_percent'])){    //信息完整度min
-            $cond .= " and buyer.percent >='$data[min_percent]%'";
+            $cond .= " and buyer.percent >=".$data['min_percent'];
         }
         if(!empty($data['max_percent'])){    //信息完整度max
-            $cond .= " and buyer.percent <='$data[max_percent]%'";
+            $cond .= " and buyer.percent <=".$data['max_percent'];
         }
         return $cond;
     }
