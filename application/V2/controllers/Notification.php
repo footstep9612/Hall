@@ -36,7 +36,7 @@ class NotificationController extends PublicController
 
         $this->jsonReturn([
             'code'    => 1,
-            'message' => '成功!',
+            'message' => L('NOTIFICATION_SUCCESS'),
             'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' and status !='QUOTE_SENT'")->field('id')->select()),
             'data'    => $list
         ]);
@@ -125,7 +125,7 @@ class NotificationController extends PublicController
         $hour = round( ($distance % 86400) / 3600 );
         $minut = round( ($distance % 3600) / 60 );
 
-        $distance_str = $day."天".$hour."小时".$minut."分钟";
+        $distance_str = $day.L('NOTIFICATION_DAYS').$hour.L('NOTIFICATION_HOURS').$minut.L('NOTIFICATION_MINUTES');
         return $distance_str;
 
     }
