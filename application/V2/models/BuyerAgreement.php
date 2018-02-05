@@ -16,7 +16,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportModel($excelName,$sheetName,$data){
-        $tableheader = array('序号','执行单号','事业部','执行分公司','所属国家','客户代码','油气/非油气','品名中文','数量','单位','框架开始时间','框架结束时间','框架金额（美元）','执行金额（美元）','回款方式','项目开始执行时间','市场经办人','商务技术部经办人');
+        $tableheader = array('序号','执行单号','事业部','执行分公司','所属国家','CRM客户代码','油气/非油气','品名中文','数量','单位','框架开始时间','框架结束时间','框架金额（美元）','执行金额（美元）','回款方式','项目开始执行时间','市场经办人','商务技术部经办人');
         $excelDir = MYPATH.DS.'public'.DS.'tmp'.DS.'excelagree';
         if(!is_dir($excelDir)){
             mkdir($excelDir,0777,true);
