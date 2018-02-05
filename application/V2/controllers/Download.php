@@ -212,14 +212,14 @@ class DownloadController extends PublicController {
         $objSheet->setTitle('会员列表');
 
         //列表头
-        $objSheet->setCellValue("A1","会员编号")->getColumnDimension("A")->setWidth('24');
-        $objSheet->setCellValue("B1","CRM客户代码")->getColumnDimension("B")->setWidth('24');
-        $objSheet->setCellValue("C1","国家")->getColumnDimension("C")->setWidth('24');
-        $objSheet->setCellValue("D1","注册时间")->getColumnDimension("D")->setWidth('24');
-        $objSheet->setCellValue("E1","审核状态")->getColumnDimension("E")->setWidth('24');
-        $objSheet->setCellValue("F1","客户等级")->getColumnDimension("F")->setWidth('24');
-        $objSheet->setCellValue("G1","用户来源")->getColumnDimension("G")->setWidth('24');
-        $objSheet->setCellValue("H1","完整度")->getColumnDimension("H")->setWidth('24');
+        $objSheet->setCellValue("A1","完整度")->getColumnDimension("A")->setWidth('24');
+        $objSheet->setCellValue("B1","会员编号")->getColumnDimension("B")->setWidth('24');
+        $objSheet->setCellValue("C1","CRM客户代码")->getColumnDimension("C")->setWidth('24');
+        $objSheet->setCellValue("D1","国家")->getColumnDimension("D")->setWidth('24');
+        $objSheet->setCellValue("E1","注册时间")->getColumnDimension("E")->setWidth('24');
+        $objSheet->setCellValue("F1","审核状态")->getColumnDimension("F")->setWidth('24');
+        $objSheet->setCellValue("G1","客户等级")->getColumnDimension("G")->setWidth('24');
+        $objSheet->setCellValue("H1","用户来源")->getColumnDimension("H")->setWidth('24');
 
         //设置边框
         $objSheet->getStyle("A1:G1")->applyFromArray($this->borderStyle);
@@ -228,14 +228,14 @@ class DownloadController extends PublicController {
         $rowNum = 2;
         foreach ($data as $v){
 
-            $objSheet->setCellValue("A" . $rowNum, $v['buyer_no']);
-            $objSheet->setCellValue("B" . $rowNum, $v['buyer_code']);
-            $objSheet->setCellValue("C" . $rowNum, $v['country_name']);
-            $objSheet->setCellValue("D" . $rowNum, $v['created_at']);
-            $objSheet->setCellValue("E" . $rowNum, $v['status']);
-            $objSheet->setCellValue("F" . $rowNum, $v['buyer_level']);
-            $objSheet->setCellValue("G" . $rowNum, $v['source']);
-            $objSheet->setCellValue("H" . $rowNum, $v['percent']);
+            $objSheet->setCellValue("A" . $rowNum, $v['percent']);
+            $objSheet->setCellValue("B" . $rowNum, $v['buyer_no']);
+            $objSheet->setCellValue("C" . $rowNum, $v['buyer_code']);
+            $objSheet->setCellValue("D" . $rowNum, $v['country_name']);
+            $objSheet->setCellValue("E" . $rowNum, $v['created_at']);
+            $objSheet->setCellValue("F" . $rowNum, $v['status']);
+            $objSheet->setCellValue("G" . $rowNum, $v['buyer_level']);
+            $objSheet->setCellValue("H" . $rowNum, $v['source']);
 
             $objSheet->getStyle("A2:H" . $rowNum)->applyFromArray($this->borderStyle);
 
