@@ -750,7 +750,7 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
 
-    public function addAction() {
+    /*public function addAction() {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['agent_id'] = $this->user['id'];
@@ -758,7 +758,7 @@ class InquiryController extends PublicController {
 
         $results = $inquiry->addData($data);
         $this->jsonReturn($results);
-    }
+    }*/
 
     /*
      * 修改询价单
@@ -768,6 +768,8 @@ class InquiryController extends PublicController {
     public function updateAction() {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
+        $data['inquiry_no'] = $data['inquiry_no'] == L('NOTHING') ? null : $data['inquiry_no'];
+        $data['dispatch_place'] = $data['dispatch_place'] == L('NOTHING') ? null : $data['dispatch_place'];
         $data['updated_by'] = $this->user['id'];
         unset($data['agent_id']);
 

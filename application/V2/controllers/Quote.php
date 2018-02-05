@@ -98,6 +98,9 @@ class QuoteController extends PublicController{
         if($request['total_exw_price'] == L('NOTHING')){
             unset($request['total_exw_price']);
         }
+        if($request['dispatch_place'] == L('NOTHING')){
+            unset($request['dispatch_place']);
+        }
         $condition = ['inquiry_id'=>$request['inquiry_id']];
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition,$request);
