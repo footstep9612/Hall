@@ -68,15 +68,15 @@ class NetSubjectModel extends PublicModel {
         $eruiCond=array('buyer_id'=>$buyer_id,'subject_name'=>$erui['subject_name'],'deleted_flag'=>'N');
         $equipmentExist=$this->where($equipmentCond)->find();
         $eruiExist=$this->where($eruiCond)->find();
-        if($equipmentExist){
+        if(!empty($equipmentExist)){
             $this->where($equipmentCond)->save($equipmentArr);
         }else{
             $this->add($equipmentArr);
         }
-        if($eruiExist){
+        if(!empty($eruiExist)){
             $this->where($eruiCond)->save($eruiArr);
         }else{
-            $this->add($equipmentArr);
+            $this->add($eruiArr);
         }
         return true;
     }
