@@ -227,7 +227,11 @@ class DownloadController extends PublicController {
         //写入数据
         $rowNum = 2;
         foreach ($data as $v){
-
+            if(!empty($v['percent'])){
+                $v['percent']=$v['percent'].'%';
+            }else{
+                $v['percent']='--';
+            }
             $objSheet->setCellValue("A" . $rowNum, $v['percent']);
             $objSheet->setCellValue("B" . $rowNum, $v['buyer_no']);
             $objSheet->setCellValue("C" . $rowNum, $v['buyer_code']);

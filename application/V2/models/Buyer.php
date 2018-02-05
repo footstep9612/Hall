@@ -173,6 +173,8 @@ class BuyerModel extends PublicModel {
             }
             if(!empty($v['percent'])){
                 $info[$k]['percent']=$v['percent'].'%';
+            }else{
+                $info[$k]['percent']='--';
             }
         }
 
@@ -1693,7 +1695,11 @@ EOF;
         $arr = [];
         foreach($data as $k => $v){
             $arr[$k]['id'] = $v['id'];  //客户id
-            $arr[$k]['percent'] = $v['percent'].'%';    //信息完整度百分比
+            if(!empty($v['percent'])){
+                $arr[$k]['percent'] = $v['percent'].'%';    //信息完整度百分比
+            }else{
+                $arr[$k]['percent'] = '--';    //信息完整度百分比
+            }
             $arr[$k]['country_name'] = $v['country_name'];  //国家
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
