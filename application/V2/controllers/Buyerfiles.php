@@ -89,16 +89,16 @@ class BuyerfilesController extends PublicController
 //            'biz_scope', //公司名称
 //            'intent_product', //公司名称
 //            'purchase_amount', //公司名称
-            'line_of_credit', //公司其他信息
-            'credit_available', //公司其他信息
-            'credit_type', //公司其他信息
-            'credit_level', //公司其他信息
-            'payment_behind', //公司其他信息
-            'behind_time', //公司其他信息
-            'reputation', //公司其他信息
-            'violate_treaty', //公司其他信息
-            'treaty_content', //公司其他信息
-            'comments', //公司其他信息
+            'line_of_credit', //授信额度
+            'credit_available', //可用额度
+            'credit_type', //授信类型
+            'credit_level', //信用等级
+            'payment_behind', //是否拖欠过货款
+            'behind_time', //拖欠货款时间
+            'reputation', //业内口碑
+            'violate_treaty', //是否有针对ERUI的违约
+            'treaty_content', //违约的内容
+            'comments' //ERUI对其评价
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
         //联系人

@@ -107,10 +107,10 @@ class BuyerModel extends PublicModel {
             }
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
-            $where .= ' And `erui_buyer`.`buyer`.percent  >="' . $condition['min_percent'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.percent  >="' . $condition['min_percent'] . '%"';
         }
         if (!empty($condition['max_percent'])) { //信息完整度大
-            $where .= ' And `erui_buyer`.`buyer`.percent  <="' . $condition['max_percent'] . '"';
+            $where .= ' And `erui_buyer`.`buyer`.percent  <="' . $condition['max_percent'] . '%"';
         }
         if (!empty($condition['created_at_start'])) {
             $where .= ' And `erui_buyer`.`buyer`.created_at  >="' . $condition['created_at_start'] . '"';
