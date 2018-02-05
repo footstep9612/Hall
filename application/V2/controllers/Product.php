@@ -213,6 +213,14 @@ class ProductController extends PublicController {
             } else {
                 $this->updateEsproduct(null, $this->put_data['spu']);
             }
+            //p($result['code']);
+            if ($result['code'] == -104) {
+                $this->jsonReturn([
+                    'code'    => $result['code'],
+                    'message' => $result['message'],
+                ]);
+            }
+
             $message = $result[0] > 0 ? '操作成功！' : '操作失败！';
             if ($result[1]) {
                 $message .= '[';    //失败数
