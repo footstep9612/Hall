@@ -60,8 +60,14 @@ class ProductModel extends PublicModel {
 
                     //$condition_order = ['sku' => ['in', $skus], 'lang' => $lang];    //现货初始化最小订货量查询条件
                 }
+                $condition_sku = [ 'lang' => $lang, 'deleted_flag' => 'N'];
+                if(empty($sku)){
+                    $condition_sku['spu'] = $spu;
+                }else{
+                    $condition_sku['sku'] = $sku;
+                }
                 $goodsModel = new GoodsModel();
-                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where(['sku' => $sku, 'lang' => $lang, 'deleted_flag' => 'N'])->find();
+                $skuInfo = $goodsModel->field('model,min_order_qty,min_pack_unit,exw_days')->where($condition_sku)->find();
                 $spuInfo['min_order_qty'] = $skuInfo ? $skuInfo['min_order_qty'] : 1;
                 $spuInfo['min_pack_unit'] = $skuInfo ? $skuInfo['min_pack_unit'] : '';
                 $spuInfo['exw_days'] = $skuInfo ? $skuInfo['exw_days'] : '';
