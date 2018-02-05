@@ -26,8 +26,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $this->getPut();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
-            $this->getRequest()->getControllerName() == 'User' &&
-            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             $this->setLang($this->getPut('lang', 'en'));
         } else {
             $this->user = $GLOBALS['SSO_USER'];
@@ -167,9 +167,13 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name === 'lang') {
+
             if (!empty($this->put_data [$name])) {
                 $lang = trim($this->put_data [$name]);
             } else {
+                if (!$this->headers) {
+                    $this->headers = getHeaders();
+                }
                 $lang = !empty($this->headers [$name]) ? trim($this->headers [$name]) : trim($default);
             }
             return $lang;
