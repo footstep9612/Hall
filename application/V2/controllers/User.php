@@ -667,8 +667,25 @@ class UserController extends PublicController {
             $orgIdList = $orgMemberModel->where(['employee_id' => $user['id']])->getField('org_id', true);
             $orgList = [];
             foreach ($orgIdList as $orgId) {
-                $orgName = $orgModel->where(['id' => $orgId, 'deleted_flag' => 'N'])->getField('name');
-                if ($orgName) $orgList[] = $orgName;
+                $org = $orgModel->field('name, name_en, name_es, name_ru')->where(['id' => $orgId, 'deleted_flag' => 'N'])->find();
+                if ($org) {
+                    switch ($this->lang) {
+                        case 'zh' :
+                            $orgList[] = $org['name'];
+                            break;
+                        case 'en' :
+                            $orgList[] = $org['name_en'];
+                            break;
+                        case 'es' :
+                            $orgList[] = $org['name_es'];
+                            break;
+                        case 'ru' :
+                            $orgList[] = $org['name_ru'];
+                            break;
+                        default :
+                            $orgList[] = $org['name'];
+                    }
+                }
             }
             $user['group_name'] = implode(',', $orgList);
         }
