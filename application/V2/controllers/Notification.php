@@ -95,17 +95,17 @@ class NotificationController extends PublicController
     {
         if (!empty($rolaArr)){
             if ($rolaArr['is_agent'] == 'Y'){
-                return "E市场经办人";
+                return L('NOTIFICATION_AGENT');
             }elseif ($rolaArr['is_check'] == 'Y'){
-                return "E报价审核人";
+                return L('NOTIFICATION_CHECK');
             }elseif ($rolaArr['is_country_agent'] == 'Y'){
-                return "E区域负责人";
+                return L('NOTIFICATION_COUNTRY_AGENT');
             }elseif ($rolaArr['is_erui'] == 'Y'){
-                return "E易瑞分单员";
+                return L('NOTIFICATION_ERUI');
             }elseif ($rolaArr['is_issue'] == 'Y'){
-                return "E事业部分单员";
+                return L('NOTIFICATION_ISSUE');
             }elseif ($rolaArr['is_quote'] == 'Y'){
-                return "E报价人";
+                return L('NOTIFICATION_QUOTE');
             }
         }
     }
