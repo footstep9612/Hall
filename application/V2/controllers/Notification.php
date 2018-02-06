@@ -68,7 +68,7 @@ class NotificationController extends PublicController
 
         $this->jsonReturn([
             'code'     => 1,
-            'messsage' => L('NOTIFICATION_SUCCESS')
+            'message' => L('NOTIFICATION_SUCCESS')
         ]);
 
     }
