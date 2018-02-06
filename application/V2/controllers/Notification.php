@@ -66,7 +66,10 @@ class NotificationController extends PublicController
             'created_at' => date('Y-m-d H:i:s')
         ]));
 
-        $this->jsonReturn();
+        $this->jsonReturn([
+            'code'     => 1,
+            'messsage' => L('NOTIFICATION_SUCCESS')
+        ]);
 
     }
 
