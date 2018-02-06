@@ -25,7 +25,6 @@ class ExcelimportandexportController extends PublicController {
         $this->orderAttachModel = new OrderAttachModel();
         $this->orderLogModel = new OrderLogModel();
         $this->supplierModel = new SupplierModel();
-        $this->employeeModel = new EmployeeModel();
         
         $this->time = date('Y-m-d H:i:s');
         
