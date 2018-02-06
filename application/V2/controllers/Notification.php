@@ -66,7 +66,10 @@ class NotificationController extends PublicController
             'created_at' => date('Y-m-d H:i:s')
         ]));
 
-        $this->jsonReturn();
+        $this->jsonReturn([
+            'code'     => 1,
+            'message' => L('NOTIFICATION_SUCCESS')
+        ]);
 
     }
 
@@ -92,17 +95,17 @@ class NotificationController extends PublicController
     {
         if (!empty($rolaArr)){
             if ($rolaArr['is_agent'] == 'Y'){
-                return "市场经办人";
+                return L('NOTIFICATION_AGENT');
             }elseif ($rolaArr['is_check'] == 'Y'){
-                return "报价审核人";
+                return L('NOTIFICATION_CHECK');
             }elseif ($rolaArr['is_country_agent'] == 'Y'){
-                return "区域负责人";
+                return L('NOTIFICATION_COUNTRY_AGENT');
             }elseif ($rolaArr['is_erui'] == 'Y'){
-                return "易瑞分单员";
+                return L('NOTIFICATION_ERUI');
             }elseif ($rolaArr['is_issue'] == 'Y'){
-                return "事业部分单员";
+                return L('NOTIFICATION_ISSUE');
             }elseif ($rolaArr['is_quote'] == 'Y'){
-                return "报价人";
+                return L('NOTIFICATION_QUOTE');
             }
         }
     }
