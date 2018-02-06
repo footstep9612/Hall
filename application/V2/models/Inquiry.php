@@ -948,7 +948,7 @@ class InquiryModel extends PublicModel {
             
             $where['_complex']['_logic'] = 'or';
             
-            $lang = empty($condition['lang']) ? LANG_SET : $condition['lang'] ;
+            $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
             
             return $this->alias('a')
                                 ->field('a.id, a.serial_no, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')

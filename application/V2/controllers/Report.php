@@ -19,10 +19,6 @@ class ReportController extends PublicController {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        // 加载php公共配置文件
-        //$this->loadCommonConfig();
-        // 语言检查
-        //$this->checkLanguage();
     }
 
     public function getPut($name = null, $default = null) {
@@ -234,12 +230,17 @@ class ReportController extends PublicController {
             $marketAreaModel = new MarketAreaModel();
             $marketAreaCountryModel = new MarketAreaCountryModel();
             $nowTime = time();
-            $quoteStatus = $inquiryModel->getQuoteStatus();
+            $quoteStatus = [
+                'DRAFT' => '草稿',
+                'NOT_QUOTED' => '未报价',
+                'ONGOING' => '报价中',
+                'QUOTED' => '已报价',
+                'COMPLETED' => '已完成'
+            ];
             $inquiryList = $inquiryModel->getTimeIntervalList($condition);
             foreach ($inquiryList as &$inquiry) {
                 $where['inquiry_id'] = $inquiry['id'];
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
-                $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 if (empty($inquiry['area_name'])) {
                     $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
                     $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
@@ -261,11 +262,13 @@ class ReportController extends PublicController {
                 }
                 // 询单报价时间
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'MARKET_CONFIRMING']))->getField('into_at');
+                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['out_node' => 'MARKET_CONFIRMING']))->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $lastBizDispatchingTime - $clarifyTotalTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $lastBizDispatchingTime - $clarifyTotalTime;
                 }
+                // 报价状态显示成中文
+                $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 // 询单驳回次数
                 $rejectWhere = array_merge($where, ['action' => 'REJECT']);
                 $inquiry['reject_count'] = $inquiryCheckLogModel->getCount($rejectWhere);
