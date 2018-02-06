@@ -94,10 +94,10 @@ class BuyerfilesController extends PublicController
             'credit_type', //授信类型
             'credit_level', //信用等级
             'payment_behind', //是否拖欠过货款
-            'behind_time', //拖欠货款时间
+//            'behind_time', //拖欠货款时间
             'reputation', //业内口碑
             'violate_treaty', //是否有针对ERUI的违约
-            'treaty_content', //违约的内容
+//            'treaty_content', //违约的内容
             'comments' //ERUI对其评价
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
