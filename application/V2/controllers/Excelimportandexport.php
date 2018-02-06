@@ -8,8 +8,6 @@
 class ExcelimportandexportController extends PublicController {
 
     public function init() {
-        set_time_limit(0);
-        ini_set('memory_limit', '8G');
         ini_set('display_errors', 'On');
         error_reporting(E_ERROR | E_STRICT);
         
@@ -26,6 +24,7 @@ class ExcelimportandexportController extends PublicController {
         $this->orderPaymentModel = new OrderPaymentModel();
         $this->orderAttachModel = new OrderAttachModel();
         $this->orderLogModel = new OrderLogModel();
+        $this->supplierModel = new SupplierModel();
         
         $this->time = date('Y-m-d H:i:s');
         
@@ -742,6 +741,41 @@ class ExcelimportandexportController extends PublicController {
                 ['value' => $logiIssueTime, 'type' => 'string'],
                 ['value' => $logiQuoteTime, 'type' => 'string'],
                 ['value' => $marketTime, 'type' => 'string'],
+            ];
+        }
+        $this->_exportExcel($fileName, $titleList, $outData);
+    }
+    
+    /**
+     * @desc 导出供应商数据
+     *
+     * @author liujf
+     * @time 2018-02-06
+     */
+    public function exportSupplierDataAction() {
+        $this->getPut();
+        $where['a.deleted_flag'] = 'N';
+        $supplierList = $this->supplierModel->alias('a')
+                                                                        ->field('a.name, a.checked_by, a.created_by, b.name AS org_name')
+                                                                        ->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
+                                                                        ->where($where)
+                                                                        ->order('a.id DESC')
+                                                                        ->select();
+        $date = date("Ymd");
+        $fileName = "supplier-$date.xlsx";
+        $titleList = [
+            '公司名称',
+            '所属事业部',
+            '审核人',
+            '创建人',
+        ];
+        $outData = [];
+        foreach ($supplierList as $supplier) {
+            $outData[] = [
+                ['value' => $supplier['name']],
+                ['value' => $supplier['org_name']],
+                ['value' => $this->employeeModel->getUserNameById($supplier['checked_by'])],
+                ['value' => $this->employeeModel->getUserNameById($supplier['created_by'])],
             ];
         }
         $this->_exportExcel($fileName, $titleList, $outData);
