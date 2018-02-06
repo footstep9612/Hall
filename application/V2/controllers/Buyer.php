@@ -116,6 +116,12 @@ class BuyerController extends PublicController {
         if (!empty($data['approved_at_end'])) {
             $where['approved_at_end'] = $data['approved_at_end'];
         }
+        if (!empty($data['min_percent'])) { //信息完整度小-wangs
+            $where['min_percent'] = $data['min_percent'];
+        }
+        if (!empty($data['max_percent'])) { //信息完整度大
+            $where['max_percent'] = $data['max_percent'];
+        }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
         }
@@ -231,6 +237,12 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['created_at_start'])) {    //注册时间
             $where['created_at_start'] = $data['created_at_start'];
+        }
+        if (!empty($data['min_percent'])) {
+            $where['min_percent'] = $data['min_percent'];
+        }
+        if (!empty($data['max_percent'])) {
+            $where['max_percent'] = $data['max_percent'];
         }
         if (!empty($data['pageSize'])) {
             $where['num'] = $data['pageSize'];
@@ -982,28 +994,28 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-//        else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>'正常录入客户信息流程'
-//            );
-//            $this->jsonReturn($dataJson);
-//        }
-        //验证集团CRM存在,则展示数据
-        $group = $this->groupCrmCode($data['buyer_code']);
-        if (!empty($group)) {
+        else{
             $dataJson = array(
-                'code' => 1,
-                'message' => '集团CRM客户信息',
-                'data' => $group
+                'code'=>2,
+                'message'=>'正常录入客户信息流程'
             );
-        } else {
-            $dataJson = array(
-                'code' => 2,
-                'message' => '正常录入客户信息流程'
-            );
+            $this->jsonReturn($dataJson);
         }
-        $this->jsonReturn($dataJson);
+        //验证集团CRM存在,则展示数据
+//        $group = $this->groupCrmCode($data['buyer_code']);
+//        if (!empty($group)) {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => '集团CRM客户信息',
+//                'data' => $group
+//            );
+//        } else {
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => '正常录入客户信息流程'
+//            );
+//        }
+//        $this->jsonReturn($dataJson);
     }
 
     /**

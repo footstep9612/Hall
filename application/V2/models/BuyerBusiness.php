@@ -32,16 +32,27 @@ class BuyerBusinessModel extends PublicModel
                 'is_local_settlement'=>null, //是否本地结算
                 'is_purchasing_relationship'=>null, //是否与KERUI/ERUI有关系
                 'is_net'=>null, //是否入网
-//                'net_subject', //入网主题
-                'net_at'=>null, //入网时间
-                'net_invalid_at'=>null, //如网失效时间
-                'net_goods'=>null, //入网产品
+                'net_subject'=>array(), //入网主题
+//                'net_at'=>null, //入网时间
+//                'net_invalid_at'=>null, //如网失效时间
+//                'net_goods'=>null, //入网产品
             );
         }
         if(!empty($info['net_subject'])){
             $info['net_subject']=explode(',',$info['net_subject']);
         }else{
-            $info['net_subject']=[];
+            $info['net_subject']=array();
+        }
+        //入网主题内容
+        $subject = new NetSubjectModel();
+        $subjectInfo=$subject->getNetSubject($data['buyer_id']);
+        $info['equipment']=$subjectInfo['equipment'];
+        $info['erui']=$subjectInfo['erui'];
+        if(empty($info['equipment'])){
+            $info['equipment']=array('net_at'=>null,'net_invalid_at'=>null,'net_goods'=>'');
+        }
+        if(empty($info['erui'])){
+            $info['erui']=array('net_at'=>null,'net_invalid_at'=>null,'net_goods'=>'');
         }
         if($data['is_check']==true){  //查看
             $purchasing=new PurchaseModel();
@@ -150,9 +161,9 @@ class BuyerBusinessModel extends PublicModel
             'is_purchasing_relationship',    //是否有采购关系
             'is_net',    //是否入网-------------入网管理
             'net_subject',   //入网主题
-            'net_at',    //入网时间
-            'net_invalid_at',    //失效时间
-            'net_goods'   //入网商品
+//            'net_at',    //入网时间
+//            'net_invalid_at',    //失效时间
+//            'net_goods'   //入网商品
         );
         foreach($optArr as $v){
             if(!empty($data[$v])){
@@ -168,16 +179,29 @@ class BuyerBusinessModel extends PublicModel
         if(!empty($arr['net_subject'])){    //入网主题可多选
             $arr['net_subject']=implode(',',$arr['net_subject']);
         }
+        $data['equipment']['subject_name']='equipment'; //入网主题信息
+        $data['erui']['subject_name']='erui';
         //业务数据
         $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
+
         if($businessExist){
             $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
+//            $subjectExist=$subject ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+//            if($subjectExist){
+//            }else{
+//                $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
+//            }
+//            $subjectRes = $subject->updateSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         }else{
             if(!empty($arr['id'])){
                 unset($arr['id']);
             }
             $addRes = $this->add($arr);
+//            $subjectRes = $subject->addSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         }
+        //入网主题
+        $subject = new NetSubjectModel();
+        $subjectRes = $subject->updateSubject($data['equipment'],$data['erui'],$data['buyer_id'],$data['created_by']);
         //信用
         $buyer = new BuyerModel();
         $buyerRes = $buyer->CrmCredite($data['credit'],$data['buyer_id']);
@@ -190,7 +214,7 @@ class BuyerBusinessModel extends PublicModel
         //里程碑事件
         $event = new MilestoneEventModel();
         $eventRes = $event->updateMilestoneEvent($data['milestone_event'],$data['buyer_id'],$data['created_by']);
-        if($addRes || $eventRes || $purchaseRes ||$buyerRes){
+        if($addRes|| $subjectRes || $eventRes || $purchaseRes ||$buyerRes){
             return true;
         }
     }
@@ -236,9 +260,9 @@ class BuyerBusinessModel extends PublicModel
             'is_purchasing_relationship',   //采购关系
             'is_net',   //是否入网
             'net_subject',  //入网主题
-            'net_at',   //入网时间
-            'net_invalid_at',   //失效时间
-            'net_goods',    //入网商品
+//            'net_at',   //入网时间
+//            'net_invalid_at',   //失效时间
+//            'net_goods',    //入网商品
             'created_by',   //创建人
             'created_at'    //床架时间
         );
