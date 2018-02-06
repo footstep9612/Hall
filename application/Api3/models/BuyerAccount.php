@@ -183,7 +183,7 @@ class BuyerAccountModel extends PublicModel {
         $buyer_model = new BuyerModel();
         $res = $buyer_model->field('deleted_flag')->where(['official_email'=>$where['email']])->find();
         if($res && $res['deleted_flag'] == 'Y'){
-            jsonReturn(null, -1, ShopMsg::getMessage('-124',$lang));
+            jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
         }
         //$where['status'] = 'VALID';
         $row = $this->where($where)->find();
