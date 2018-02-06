@@ -56,6 +56,7 @@ class ShopMsg {
             '142' => '密码重置成功!',
             '143' => '恭喜您，提交成功!',
             '144' => '密码修改成功!',
+            '-145' => '账号不存在或已冻结',
 
             '-101' => '失败',
             '-105' => '注册失败',
@@ -140,6 +141,7 @@ class ShopMsg {
             '-136' => 'Current password is error!',
             '-137' => 'Verification failed!',
             '142'  => 'Password is reset successfully!',
+            '-145' => 'The account does not exit or has been frozen',
         ),
         'es' => array(
             '102' => '登陆成功',
@@ -168,6 +170,7 @@ class ShopMsg {
             '136' => 'La verificación es exitosa！',
             '-137' => 'Fallo en la verificación!',
             '142' => 'Restablecimiento de contraseña con éxito!',
+            '-145' => 'La cuenta no existe o ha sido congelada',
 
         ),
         'ru' => array(
@@ -221,6 +224,7 @@ class ShopMsg {
             '142' => 'Восстановление пароля успешно',
             '143' => 'Поздравляем!Отправлено успешно',
             '144' => 'Пароль успешно изменен!',
+            '-145' => 'Учетная запись не существует или была заморожена',
         ),
     );
 
