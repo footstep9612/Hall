@@ -377,11 +377,26 @@ class InquiryController extends PublicController {
         if ($data['is_agent'] == 'Y') {
             $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
+            $org = $orgModel->field('id, name, name_en, name_es, name_ru')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
 
             // 事业部id和名称
             $data['ub_id'] = $org['id'];
-            $data['ub_name'] = $org['name'];
+            switch ($this->lang) {
+                case 'zh' :
+                    $data['ub_name'] = $org['name'];
+                    break;
+                case 'en' :
+                    $data['ub_name'] = $org['name_en'];
+                    break;
+                case 'es' :
+                    $data['ub_name'] = $org['name_es'];
+                    break;
+                case 'ru' :
+                    $data['ub_name'] = $org['name_ru'];
+                    break;
+                default :
+                    $data['ub_name'] = $org['name'];
+            }
         }
 
         $res['code'] = 1;
