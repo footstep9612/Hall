@@ -54,6 +54,9 @@ class LoginController extends PublicController {
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
+            if($info['deleted_flag']!=='N' || $info['status']!=='VALID'){
+                jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
+            }
             $buyer_model = new BuyerModel();
             $buyer_info = $buyer_model->info(['buyer_id' => $info['buyer_id']]);
             $jwtclient = new JWTClient();

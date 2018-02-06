@@ -54,7 +54,7 @@ class IndustrychainController extends PublicController {
                     'scale'=>null, //客户的规模
                     'settlement'=>null, //结算方式
                     'marketing_network'=>null, //营销网络
-                    'buyer_type_name'=>null, //客户类型
+//                    'buyer_type_name'=>null, //客户类型
                     'buyer_project'=>null, //客户参与的项目
                     'buyer_problem'=>null, //客户遇到的困难
                     'solve_problem'=>null, //如何解决困难

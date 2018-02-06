@@ -54,7 +54,7 @@ class SupplierModel extends PublicModel {
             $where .= " And supplier.name like '%" . $condition['name'] . "%'";
         }
         if (!empty($condition['supplier_no'])) {
-            $where .= ' And supplier_no  ="' . $condition['supplier_no'] . '"';
+            $where .= " And supplier.supplier_no like '%" . $condition['supplier_no'] . "%'";
         }
         if (!empty($condition['status'])) {
             $where .= ' And supplier.status  ="' . $condition['status'] . '"';
