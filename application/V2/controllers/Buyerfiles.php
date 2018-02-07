@@ -72,7 +72,7 @@ class BuyerfilesController extends PublicController
         $baseField=array(
             'buyer_code', //客户代码
             'buyer_no', //客户编码
-            'buyer_level', //客户等级
+//            'buyer_level', //客户等级
             'country_bn', //国家
             'buyer_type', //客户类型
             'is_oilgas', //是否油气
