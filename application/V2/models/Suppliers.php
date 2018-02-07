@@ -271,7 +271,8 @@ class SuppliersModel extends PublicModel {
     public function getSupplierNo() {
         $today = date('Ymd');
         $serialNo = $this->where(['serial_no' => ['like', $today . '%']])->order('id DESC')->getField('serial_no');
-        return $today . ($serialNo ? str_pad(intval(substr($serialNo, 8)) + 1, 6, '0', STR_PAD_LEFT) : '000001');
+        $no = $serialNo ? intval(substr($serialNo, 8)) + 1 : 1;
+        return $today . str_pad($no, 6, '0', STR_PAD_LEFT);
     }
 
 }
