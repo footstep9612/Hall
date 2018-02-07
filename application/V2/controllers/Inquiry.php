@@ -752,9 +752,14 @@ class InquiryController extends PublicController {
 
         if (!empty($results['data'])) {
             $results['data']['status_name'] = $inquiryStatus[$results['data']['status']];
-            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: L('NOTHING');
-            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: L('NOTHING');
-            //$results['data']['project_name'] = $results['data']['project_name'] ?: L('NOTHING');
+            $results['data']['agent_name'] = $results['data']['agent_name'] ? : L('NOTHING');
+            $results['data']['obtain_name'] = $results['data']['obtain_name'] ? : L('NOTHING');
+            $results['data']['current_name'] = $results['data']['current_name'] ? : L('NOTHING');
+            $results['data']['quote_name'] = $results['data']['quote_name'] ? : L('NOTHING');
+            $results['data']['logi_agent_name'] = $results['data']['logi_agent_name'] ? : L('NOTHING');
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : L('NOTHING');
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : L('NOTHING');
+            //$results['data']['project_name'] = $results['data']['project_name'] ? : L('NOTHING');
         }
 
         $this->jsonReturn($results);
