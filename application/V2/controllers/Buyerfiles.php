@@ -58,11 +58,13 @@ class BuyerfilesController extends PublicController
      * 客户档案信息管理计算信息完整度-王帅
      */
     public function percentInfoAction(){
+        $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $buyer_id=$data['buyer_id'];
         $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
         $cond=array(
             'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         //客户基本信息
