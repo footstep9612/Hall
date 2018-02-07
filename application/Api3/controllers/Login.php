@@ -54,7 +54,7 @@ class LoginController extends PublicController {
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
-            if($info['deleted_flag']!=='N' || $info['status']!=='VALID'){
+            if($info['deleted_flag']!=='N' || ($info['status']!=='VALID' && $info['status']!=='DRAFT')){
                 jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
             }
             $buyer_model = new BuyerModel();
