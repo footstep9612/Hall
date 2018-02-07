@@ -189,21 +189,8 @@ class SuppliersModel extends PublicModel {
      * @time 2017-11-10
      */
     public function addRecord($condition = []) {
-
-        $data_t_supplier = $this->field('max(serial_no) as serial_no')->find(); //($this->put_data);
-        if ($data_t_supplier && substr($data_t_supplier['serial_no'], 0, 8) == date("Ymd")) {
-            $no = substr($data_t_supplier['serial_no'], -1, 6);
-            $no++;
-        } else {
-            $no = 1;
-        }
-        $temp_num = 1000000;
-        $new_num = $no + $temp_num;
-        $real_num = date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
-        $condition['serial_no'] = $real_num;
-        if (!empty($condition['serial_no'])) {
-            $condition['supplier_no'] = $condition['serial_no'];
-        }
+        // 供应商编码
+        $condition['supplier_no'] = $condition['serial_no'] = $this->getSupplierNo();
 
         $data = $this->create($condition);
         return $this->add($data);
@@ -248,7 +235,7 @@ class SuppliersModel extends PublicModel {
      *
      * @param array $supplier_ids
      * @return bool
-     * @author liujf
+     * @author zyg
      * @time 2017-12-09
      */
     public function getSupplierNameByIds($supplier_ids = []) {
@@ -272,6 +259,19 @@ class SuppliersModel extends PublicModel {
             }
         }
         return $ret;
+    }
+    
+    /**
+     * @desc 获取生成的供应商编码
+     *
+     * @return string
+     * @author liujf
+     * @time 2018-02-07
+     */
+    public function getSupplierNo() {
+        $today = date('Ymd');
+        $serialNo = $this->where(['serial_no' => ['like', $today . '%']])->order('id DESC')->getField('serial_no');
+        return $today . ($serialNo ? str_pad(intval(substr($serialNo, 8)) + 1, 6, '0', STR_PAD_LEFT) : '000001');
     }
 
 }
