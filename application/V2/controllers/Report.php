@@ -262,7 +262,7 @@ class ReportController extends PublicController {
                 }
                 // 询单报价时间
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['out_node' => 'MARKET_CONFIRMING']))->getField('out_at');
+                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['out_node' => [['eq', 'MARKET_CONFIRMING'], ['eq', 'INQUIRY_CLOSED'], 'or']]))->getField('out_at');
                     $inquiry['quote_time'] = strtotime($quoteTime) - $lastBizDispatchingTime - $clarifyTotalTime;
                 } else {
                     $inquiry['quote_time'] = $nowTime - $lastBizDispatchingTime - $clarifyTotalTime;
