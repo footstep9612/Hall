@@ -349,7 +349,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= '(case i.buyer_oil WHEN \'Y\' THEN \'是\' '
                 . 'WHEN \'N\' THEN \'否\' '
                 . 'else  \'否\' END ) '
-                . ' as oil_flag,';
+                . ' as buyer_oil,';
         $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
         $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
                 . ' on mac.country_bn=c.bn '
@@ -462,7 +462,6 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setquoted_time($list);
         $this->_setProductName($list);
         $this->_setConstPrice($list);
-
         $this->_setMaterialCat($list, 'zh');
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
@@ -495,7 +494,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= '(case i.buyer_oil WHEN \'Y\' THEN \'是\' '
                 . 'WHEN \'N\' THEN \'否\' '
                 . 'else  \'否\' END ) '
-                . ' as oil_flag,';
+                . ' as buyer_oil,';
         // oil_flag
         $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
         $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
@@ -510,7 +509,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $inquiry_item_model = new InquiryItemModel();
         $inquiry_item_table = $inquiry_item_model->getTableName();
-        $field .= '(select count(it.id) from ' . $inquiry_item_table . ' it where  it.deleted_flag=\'N\' and it.inquiry_id=i.id ) as qty,';
+        $field .= '1 as qty,\'批\' as unit,';
 
         $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
         $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
@@ -535,6 +534,8 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+        $field .= $employee_sql . ' AND id=i.created_by)as created_by_name,'; //询单创建人
+
         $field .= 'i.trade_terms_bn,';
         $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
                 . 'WHEN \'CC_DISPATCHING\' THEN \'易瑞客户中心\' '
@@ -577,13 +578,12 @@ class SupplierInquiryModel extends PublicModel {
                 ->where($where)
                 ->select();
 
-
         $this->_setquoted_time($list);
         $this->_setTotalOilFlag($list);
         $this->_setBizDespatching($list);
         $this->_setTotalPrice($list);
         $this->_setObtainInfo($list);
-
+        $this->_setTotalOilFlag($list);
         $this->_setClarificationTime($list);
 
 
@@ -678,41 +678,50 @@ class SupplierInquiryModel extends PublicModel {
             'F' => ['ie_erui', '是否走易瑞'],
             'G' => ['buyer_code', '客户名称或代码'],
             'H' => ['project_basic_info', '客户及项目背景描述'],
-            'I' => ['name_zh', '品名中文'],
+            'I' => [null, '品名中文'],
             'J' => ['qty', '数量'],
             'K' => ['unit', '单位'],
-            'L' => ['oil_flag', '油气or非油气'],
-            'M' => ['category', '产品分类'],
-            'N' => ['keruiflag', '是否科瑞设备用配件'],
-            'O' => ['bidflag', '是否投标'],
-            'P' => ['inflow_time', '转入日期'],
-            'Q' => ['quote_deadline', '需用日期'],
-            'R' => ['max_inflow_time', '澄清完成日期'],
-            'S' => ['bq_time', '事业部报出日期'],
-            'T' => ['ld_time', '物流接收日期'],
-            'U' => ['la_time', '物流报出日期'],
-            'V' => ['qs_time', '报出日期'],
-            'W' => ['quoted_time', '报价用时(小时)'],
-            'X' => ['clarification_time', '项目澄清时间(小时)'], //项目澄清时间
-            'Y' => ['obtain_org_name', '获单主体单位)'], //获取人，获 取单位
-            'Z' => ['obtain_name', '获取人)'],
-            'AA' => ['agent_name', '市场负责人'],
-            'AB' => ['biz_despatching', '事业部分单人'],
-            'AC' => ['quote_name', '商务技术部报价人'],
-            'AD' => ['check_org_name', '事业部负责人'],
-            'AE' => ['total_quote_price', '报价总价（元）'],
-            'AF' => ['purchase_price_cur_bn', '币种'],
-            'AG' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AH' => ['total_kg', '总重(kg)'],
-            'AI' => ['package_size', '包装体积(mm)'],
-            'AJ' => ['package_mode', '包装方式'],
-            'AK' => ['delivery_days', '交货期（天）'],
-            'AL' => ['period_of_validity', '有效期（天）'],
-            'AM' => ['trade_terms_bn', '贸易术语'],
-            'AN' => ['istatus', '最新进度及解决方案'],
-            'AO' => ['iquote_status', '报价后状态'],
-            'AP' => ['quote_notes', '备注'],
-            'AQ' => ['reason_for_no_quote', '未报价分析'],
+            'L' => ['buyer_oil', '是否油气客户'],
+            'M' => ['oil_flag', '油气/非油气'],
+            'N' => [null, '平台产品分类'],
+            'O' => ['category', '产品分类'],
+            'P' => ['keruiflag', '是否科瑞设备用配件'],
+            'Q' => ['bidflag', '是否投标'],
+            'R' => ['inflow_time', '转入日期'],
+            'S' => ['quote_deadline', '需用日期'],
+            'T' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
+            'U' => ['max_inflow_time', '澄清完成日期'],
+            'V' => ['bq_time', '事业部报出日期'],
+            'W' => ['ld_time', '物流接收日期'],
+            'X' => ['la_time', '物流报出日期'],
+            'Y' => ['qs_time', '报出日期'],
+            'Z' => ['quoted_time', '报价用时(小时)'],
+            'AA' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AB' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AC' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AD' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AE' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AF' => ['clarification_time', '项目澄清时间(小时)'],
+            'AG' => ['obtain_org_name', '获单主体单位)'],
+            'AH' => ['obtain_name', '获取人'],
+            'AI' => ['created_by_name', '询单创建人'],
+            'AJ' => ['agent_name', '市场负责人'],
+            'AK' => ['biz_despatching', '事业部分单人'],
+            'AL' => ['quote_name', '商务技术部报价人'],
+            'AM' => ['check_org_name', '事业部负责人'],
+            'AN' => ['total_quote_price', '报价总价（元）'],
+            'AO' => ['purchase_price_cur_bn', '币种'],
+            'AP' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AQ' => ['total_kg', '总重(kg)'],
+            'AR' => ['package_size', '包装体积(mm)'],
+            'AS' => ['package_mode', '包装方式'],
+            'AT' => ['delivery_days', '交货期（天）'],
+            'AU' => ['period_of_validity', '有效期（天）'],
+            'AV' => ['trade_terms_bn', '贸易术语'],
+            'AW' => ['istatus', '最新进度及解决方案'],
+            'AX' => ['iquote_status', '报价后状态'],
+            'AY' => ['quote_notes', '备注'],
+            'AZ' => ['reason_for_no_quote', '未报价分析'],
         ];
     }
 
@@ -758,9 +767,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:AQ' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:AQ' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:AQ' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:BZ' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . $name . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -911,25 +920,63 @@ class SupplierInquiryModel extends PublicModel {
         $inquiryCheckLogTable = $inquiryCheckLogModel->getTableName();
         $where['icl.inquiry_id'] = ['in', $inquiry_ids];
         $where['icl.action'] = 'CLARIFY';
+        //  $where['icl.in_node'] = ['in', ['BIZ_QUOTING', 'LOGI_DISPATCHING', 'LOGI_QUOTING', 'BIZ_APPROVING', 'MARKET_APPROVING']];
         $where['icl.out_node'] = 'CLARIFY';
         $where[] = 'iclog.out_node is not null and iclog.out_node<>\'\'';
         $ClarificationTimes = $inquiryCheckLogModel
-                ->field('icl.inquiry_id,sum(UNIX_TIMESTAMP(iclog.out_at)-UNIX_TIMESTAMP(icl.into_at)) as clarification_time')
+                ->field('icl.inquiry_id,icl.in_node,sum(UNIX_TIMESTAMP(iclog.out_at)-UNIX_TIMESTAMP(icl.into_at)) as clarification_time')
                 ->alias('icl')
                 ->join($inquiryCheckLogTable . ' as iclog on icl.inquiry_id=iclog.inquiry_id'
                         . ' and icl.in_node=iclog.out_node and iclog.in_node=\'CLARIFY\'')
                 ->where($where)
-                ->group('icl.inquiry_id')
+                ->group('icl.inquiry_id,icl.into_at')
                 ->select();
         $clarification_times = [];
         foreach ($ClarificationTimes as $ClarificationTime) {
-            $clarification_times[$ClarificationTime['inquiry_id']] = intval($ClarificationTime['clarification_time'] / 3600);
-        }
 
+            $clarification_times[$ClarificationTime['inquiry_id']][$ClarificationTime['in_node']] = $ClarificationTime['clarification_time'] / 3600;
+            $clarification_times[$ClarificationTime['inquiry_id']]['TOTAL'] = intval($clarification_times[$ClarificationTime['inquiry_id']]['TOTAL']) + $ClarificationTime['clarification_time'];
+        }
         foreach ($list as $key => $item) {
             if ($item['inquiry_id'] && isset($clarification_times[$item['inquiry_id']])) {
-                $list[$key]['clarification_time'] = $clarification_times[$item['inquiry_id']];
+                //总澄清用时
+                $list[$key]['clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['TOTAL'] / 3600, 2, '.', ',');
+                //事业部报价人发起的澄清用时（小时）
+                if (isset($clarification_times[$item['inquiry_id']]['BIZ_QUOTING'])) {
+                    $list[$key]['biz_quoting_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['BIZ_QUOTING'], 2, '.', ',');
+                } else {
+                    $list[$key]['biz_quoting_clarification_time'] = '';
+                }
+                //物流分单员发起的澄清用时（小时）
+                if (isset($clarification_times[$item['inquiry_id']]['LOGI_DISPATCHING'])) {
+                    $list[$key]['logi_dispatching_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['LOGI_DISPATCHING'], 2, '.', ',');
+                } else {
+                    $list[$key]['logi_dispatching_clarification_time'] = '';
+                }
+                //物流报价人发起的澄清用时（小时）
+                if (isset($clarification_times[$item['inquiry_id']]['LOGI_QUOTING'])) {
+                    $list[$key]['logi_quoting_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['LOGI_QUOTING'], 2, '.', ',');
+                } else {
+                    $list[$key]['logi_quoting_clarification_time'] = '';
+                }
+                //事业部核算发起的澄清用时（小时）
+                if (isset($clarification_times[$item['inquiry_id']]['BIZ_APPROVING'])) {
+                    $list[$key]['biz_approving_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['BIZ_APPROVING'], 2, '.', ',');
+                } else {
+                    $list[$key]['biz_approving_clarification_time'] = '';
+                }
+                //事业部审核发起的澄清用时（小时）
+                if (isset($clarification_times[$item['inquiry_id']]['MARKET_APPROVING'])) {
+                    $list[$key]['market_approving_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['MARKET_APPROVING'], 2, '.', ',');
+                } else {
+                    $list[$key]['market_approving_clarification_time'] = '';
+                }
             } else {
+                $list[$key]['biz_quoting_clarification_time'] = '';
+                $list[$key]['logi_dispatching_clarification_time'] = '';
+                $list[$key]['logi_quoting_clarification_time'] = '';
+                $list[$key]['biz_approving_clarification_time'] = '';
+                $list[$key]['market_approving_clarification_time'] = '';
                 $list[$key]['clarification_time'] = '';
             }
         }
