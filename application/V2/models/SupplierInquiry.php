@@ -931,7 +931,7 @@ class SupplierInquiryModel extends PublicModel {
         $inquiryCheckLogTable = $inquiryCheckLogModel->getTableName();
         $where['icl.inquiry_id'] = ['in', $inquiry_ids];
         $where['icl.action'] = 'CLARIFY';
-        //  $where['icl.in_node'] = ['in', ['BIZ_QUOTING', 'LOGI_DISPATCHING', 'LOGI_QUOTING', 'BIZ_APPROVING', 'MARKET_APPROVING']];
+        $where['icl.in_node'] = ['in', ['BIZ_QUOTING', 'LOGI_DISPATCHING', 'LOGI_QUOTING', 'BIZ_APPROVING', 'MARKET_APPROVING']];
         $where['icl.out_node'] = 'CLARIFY';
         $where[] = 'iclog.out_node is not null and iclog.out_node<>\'\'';
         $ClarificationTimes = $inquiryCheckLogModel
@@ -940,7 +940,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->join($inquiryCheckLogTable . ' as iclog on icl.inquiry_id=iclog.inquiry_id'
                         . ' and icl.in_node=iclog.out_node and iclog.in_node=\'CLARIFY\'')
                 ->where($where)
-                ->group('icl.inquiry_id,icl.into_at')
+                ->group('icl.inquiry_id,icl.in_node')
                 ->select();
         $clarification_times = [];
         foreach ($ClarificationTimes as $ClarificationTime) {
@@ -1200,21 +1200,16 @@ class SupplierInquiryModel extends PublicModel {
         $notoilflags = ['通用机械设备', '劳动防护用品', '消防、医疗产品', '电力电工设备', '橡塑产品', '钢材', '包装物', '杂品'];
         if ($arr) {
             foreach ($arr as $item) {
-
-                if ($item['inquiry_id'] && $item['oil_flag'] == '是') {
-                    $oilinquiry_ids[] = $item['inquiry_id'];
-                } elseif ($item['inquiry_id'] && $item['oil_flag'] == '否') {
-                    $notoilinquiry_ids[] = $item['inquiry_id'];
-                }
+                $inquiry_ids[] = $item['inquiry_id'];
             }
             $where = ['deleted_flag' => 'N',
                 'category is not null and category<>\'\''
             ];
             $inquiry_item_model = new InquiryItemModel();
-            if ($oilinquiry_ids) {
-                $where['inquiry_id'] = ['in', $oilinquiry_ids];
+            if ($inquiry_ids) {
+                $where['inquiry_id'] = ['in', $inquiry_ids];
                 $where['category'] = ['in', $oilflag];
-                $oilinquiry_items = $inquiry_item_model->field('inquiry_id,category ')
+                $oilinquiry_items = $inquiry_item_model->field('inquiry_id,category ,count(`id`) as num')
                         ->where($where)
                         ->group('inquiry_id')
                         ->select();
@@ -1222,10 +1217,10 @@ class SupplierInquiryModel extends PublicModel {
                 $oilinquiry_items = [];
             }
 
-            if ($notoilinquiry_ids) {
-                $where['inquiry_id'] = ['in', $notoilinquiry_ids];
+            if ($inquiry_ids) {
+                $where['inquiry_id'] = ['in', $inquiry_ids];
                 $where['category'] = ['in', $notoilflags];
-                $notoilinquiry_items = $inquiry_item_model->field('inquiry_id,category ')
+                $notoilinquiry_items = $inquiry_item_model->field('inquiry_id,category,count(`id`) as num ')
                         ->where($where)
                         ->group('inquiry_id')
                         ->select();
@@ -1239,11 +1234,23 @@ class SupplierInquiryModel extends PublicModel {
             foreach ($notoilinquiry_items as $inquiry_item) {
                 $notoils[$inquiry_item['inquiry_id']] = $inquiry_item;
             }
+
             foreach ($arr as $key => $val) {
-                if ($val['oil_flag'] == '是' && isset($oils[$val['inquiry_id']]['category']) && in_array($oils[$val['inquiry_id']]['category'], $oilflag)) {
-                    $val['category'] = isset($oils[$val['inquiry_id']]['category']) ? $oils[$val['inquiry_id']]['category'] : '';
-                } elseif ($val['oil_flag'] == '否' && isset($notoils[$val['inquiry_id']]['category']) && in_array($notoilflags[$val['inquiry_id']]['category'], $notoilflags)) {
-                    $val['category'] = isset($notoils[$val['inquiry_id']]['category']) ? $notoils[$val['inquiry_id']]['category'] : '';
+                if (isset($oils[$val['inquiry_id']]['num']) && isset($notoils[$val['inquiry_id']]['num']) && $oils[$val['inquiry_id']]['num'] >= $notoils[$val['inquiry_id']]['num']) {
+                    $val['oil_flag'] = '油气';
+                } elseif (isset($oils[$val['inquiry_id']]['num']) && isset($notoils[$val['inquiry_id']]['num']) && $oils[$val['inquiry_id']]['num'] < $notoils[$val['inquiry_id']]['num']) {
+                    $val['oil_flag'] = '非油气';
+                } elseif (isset($oils[$val['inquiry_id']]['num']) && !isset($notoils[$val['inquiry_id']]['num'])) {
+                    $val['oil_flag'] = '油气';
+                } elseif (!isset($oils[$val['inquiry_id']]['num']) && isset($notoils[$val['inquiry_id']]['num'])) {
+                    $val['oil_flag'] = '非油气';
+                } else {
+                    $val['oil_flag'] = '';
+                }
+                if ($val['oil_flag'] === '油气' && isset($oils[$val['inquiry_id']]['category'])) {
+                    $val['category'] = $oils[$val['inquiry_id']]['category'];
+                } elseif ($val['oil_flag'] === '非油气' && isset($notoils[$val['inquiry_id']]['category'])) {
+                    $val['category'] = $notoils[$val['inquiry_id']]['category'];
                 } else {
                     $val['category'] = '';
                 }
