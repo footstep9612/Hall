@@ -10,7 +10,7 @@
     客户管理
  * 王帅
  */
-class BuyerTestController extends PublicController
+class BuyertestController extends PublicController
 {
 
     public function __init()
