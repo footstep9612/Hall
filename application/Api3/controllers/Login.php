@@ -388,11 +388,11 @@ class LoginController extends PublicController {
         } else {
             jsonReturn('', -117, ShopMsg::getMessage('-117',$lang) );//'key不存在'
         }
-        if (!empty($data['name'])) {
+       /* if (!empty($data['name'])) {
             $buyer_data['name'] = trim($data['name']);
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
-        }
+        }*/
         /*if (isset($data['company_name']) && !empty($data['company_name'])) {
             $buyer_data['name'] = trim($data['company_name']);
         } else {
