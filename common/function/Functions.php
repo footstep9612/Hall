@@ -1904,3 +1904,18 @@ function dataTrim($data) {
         return $data;
     }
 }
+
+/**
+ * @desc 获取UTF-8编码字符串长度
+ *
+ * @param string $str
+ * @return int
+ * @author liujf
+ * @time 2018-02-08
+ */ 
+function strlenUtf8($str) {
+    // 将字符串分解为单元
+    preg_match_all('/./us', $str, $match);
+    // 返回单元个数
+    return count($match[0]);
+}

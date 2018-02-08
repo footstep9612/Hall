@@ -49,6 +49,7 @@ class SupplierChainModel extends PublicModel {
                 'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING']]
             ];
         }
+        $this->_getValue($where, $condition, 'id');
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
         if (!empty($condition['created_at_end'])) {
