@@ -54,7 +54,7 @@ class LoginController extends PublicController {
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
-            if($info['deleted_flag']!=='N' || $info['status']!=='VALID'){
+            if($info['deleted_flag']!=='N' || ($info['status']!=='VALID' && $info['status']!=='DRAFT')){
                 jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
             }
             $buyer_model = new BuyerModel();
@@ -317,7 +317,7 @@ class LoginController extends PublicController {
         if ($check) {
             jsonReturn('', -117, ShopMsg::getMessage('-117',$lang));
         }
-        /*if (isset($data['company_name']) && !empty($data['company_name'])) {
+        if (isset($data['company_name']) && !empty($data['company_name'])) {
             $arr['name'] = trim($data['company_name']);
             $checkname = $model->where("name='" . $arr['name'] . "' AND deleted_flag='N'")->find();
             if ($checkname) {
@@ -325,7 +325,7 @@ class LoginController extends PublicController {
             }
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
-        }*/
+        }
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;

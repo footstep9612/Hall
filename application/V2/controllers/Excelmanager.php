@@ -53,7 +53,7 @@ class ExcelmanagerController extends PublicController {
     public function downloadInquirySkuTemplateAction() {
         $this->jsonReturn([
             'code' => 1,
-            'message' => '成功',
+            'message' => L('EXCEL_SUCCESS'),
             'data' => [
                 'url' => 'http://file01.erui.com/group1/M00/00/63/rBFgyFoSidKAZRkqAAAm7vzdxvQ96.xlsx'
             ]
@@ -69,7 +69,7 @@ class ExcelmanagerController extends PublicController {
     public function downloadOrderSkuTemplateAction() {
         $this->jsonReturn([
             'code' => 1,
-            'message' => '成功',
+            'message' => L('EXCEL_SUCCESS'),
             'data' => [
                 'url' => 'http://file01.erui.com/group1/M00/02/8F/rBFgyFpcB5WAC85pAAAn8H4MZrE92.xlsx'
             ]
@@ -119,7 +119,7 @@ class ExcelmanagerController extends PublicController {
 
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
-            return ['code' => '-104', 'message' => '没有可导入的数据'];
+            return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
         }
 
         //遍历重组
@@ -148,7 +148,7 @@ class ExcelmanagerController extends PublicController {
             if (is_file($localFile) && file_exists($localFile)) {
                 unlink($localFile);
             }
-            return ['code' => '1', 'message' => '导入成功'];
+            return ['code' => '1', 'message' => L('EXCEL_SUCCESS')];
         } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
@@ -169,7 +169,7 @@ class ExcelmanagerController extends PublicController {
     private function _importOrderSkuHandler($localFile, $data) {
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
-            return ['code' => '-104', 'message' => '没有可导入的数据'];
+            return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
         }
         //遍历重组
         foreach ($data as $k => $v) {
@@ -200,7 +200,7 @@ class ExcelmanagerController extends PublicController {
 		if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
 			$this->jsonReturn([
 				'code'    => '1',
-				'message' => '导出成功!',
+				'message' => L('EXCEL_SUCCESS'),
 				'data'    => [
 					'url' => $ret['data'][0]['attach_url']
 				]
@@ -308,7 +308,7 @@ class ExcelmanagerController extends PublicController {
         $remoteUrl = $this->postfile($data,$url);
 
         if (!$remoteUrl) {
-            $this->jsonReturn(['code' => '-104', 'message' => '失败']);
+            $this->jsonReturn(['code' => '-104', 'message' => L('EXCEL_FAILD')]);
         }
         //构建打包文件数组
         $fileName = date('YmdHis');
@@ -319,7 +319,7 @@ class ExcelmanagerController extends PublicController {
         $fileId = $this->packAndUpload($url,$zipFile,$files);
         //上传失败
         if(empty($fileId) || empty($fileId['url'])){
-            $this->jsonReturn(['code' => '-1', 'message' => '导出失败!',]);
+            $this->jsonReturn(['code' => '-1', 'message' => L('EXCEL_FAILD'),]);
             return;
         }
 
@@ -327,7 +327,7 @@ class ExcelmanagerController extends PublicController {
         @unlink($excelFile);
         $this->jsonReturn([
             'code' => '1',
-            'message' => '导出成功!',
+            'message' => L('EXCEL_SUCCESS'),
             'data' => [
                 'url' => $fileId['url']
             ]
