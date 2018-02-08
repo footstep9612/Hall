@@ -397,6 +397,8 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
+        $field .= $employee_sql . ' AND id=i.obtain_id)as obtain_name,'; //获取人
+        $field .= $employee_sql . ' AND id=i.created_by)as created_by_name,'; //询单创建人
 
 
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
@@ -465,6 +467,8 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setMaterialCat($list, 'zh');
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
+        $this->_setOilFlag($list);
+        $this->_setClarificationTime($list);
         return $this->_createXls($list);
     }
 
@@ -620,21 +624,21 @@ class SupplierInquiryModel extends PublicModel {
             'U' => ['bidflag', '是否投标'],
             'V' => ['inflow_time', '转入日期'],
             'W' => ['quote_deadline', '需用日期'],
-            'X' => ['last_biz_issue_time', '最后一次流入事业部分单员时间'],
+            'X' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
             'Y' => ['max_inflow_time', '澄清完成日期'],
             'Z' => ['bq_time', '事业部报出日期'],
             'AA' => ['ld_time', '物流接收日期'],
             'AB' => ['la_time', '物流报出日期'],
             'AC' => ['qs_time', '报出日期'],
             'AD' => ['quoted_time', '报价用时(小时)'],
-            'AE' => ['biz_quote_clarify_time', '事业部报价人发起的澄清用时（小时）'],
-            'AF' => ['logi_issue_clarify_time', '物流分单员发起的澄清用时（小时）'],
-            'AG' => ['logi_quote_clarify_time', '物流报价人发起的澄清用时（小时）'],
-            'AH' => ['biz_adjust_clarify_time', '事业部核算发起的澄清用时（小时）'],
-            'AI' => ['biz_check_clarify_time', '事业部审核发起的澄清用时（小时）'],
+            'AE' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AF' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AG' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AH' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AI' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
             'AJ' => [null, '获单主体单位)'],
             'AK' => ['obtain_name', '获取人)'],
-            'AL' => ['created_name', '询单创建人'],
+            'AL' => ['created_by_name', '询单创建人'],
             'AM' => ['agent_name', '市场负责人'],
             'AN' => ['biz_despatching', '事业部分单人'],
             'AO' => ['quote_name', '商务技术部报价人'],
