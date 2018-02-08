@@ -413,10 +413,10 @@ class LoginController extends PublicController {
         }
 
         $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
+      /*  $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
         if ($checkname) {
             jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
-        }
+        }*/
         $res = $buyerModel->update_data($buyer_data,$where);
         if($res) {
             redisDel('improve_info_key'.$data['key']);
