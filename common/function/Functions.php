@@ -1863,7 +1863,7 @@ function searchDir($path, &$files) {
     if (is_dir($path)) {
         $dp = dir($path);
         while($file = $dp->read()) {
-            if($file != '.' && $file != '..') searchDir(addSlash($path)  . $file, $files);
+            if($file != '.' && $file != '..') searchDir(addSlash($path) . $file, $files);
         }
         $dp->close();
     }
