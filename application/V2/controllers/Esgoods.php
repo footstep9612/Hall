@@ -234,6 +234,14 @@ class EsgoodsController extends PublicController {
         }
     }
 
+    public function importAction() {
+        if (PHP_SAPI !== 'cli') {
+            system('nohup /usr/local/php/bin/php/php -q ' . MYPATH . '/public/cli.php /v2/esgoods/import >>/data/esgoods.txt &”');
+        } else {
+            $this->import();
+        }
+    }
+
     /**
      * Description of 数据导入
      * @author  zhongyg
@@ -241,7 +249,7 @@ class EsgoodsController extends PublicController {
      * @version V2.0
      * @desc   ES 商品
      */
-    public function importAction($lang = 'en') {
+    public function import($lang = 'en') {
         try {
             //$lang = 'zh';
             set_time_limit(0);
