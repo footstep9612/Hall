@@ -1041,10 +1041,12 @@ class SupplierInquiryModel extends PublicModel {
                     $item[$clarifyMapping[$lastLog['in_node']]] += $nowTime - $lastLog['out_time'];
                 }
                 foreach ($clarifyMapping as $v) {
-                    // 计算总的项目澄清时间
-                    $item['clarification_time'] += $item[$v];
-                    // 项目澄清时间换算成小时
-                    $item[$v] = number_format($item[$v] / 3600, 2);
+                    if ($item[$v] > 0) {
+                        // 计算总的项目澄清时间
+                        $item['clarification_time'] += $item[$v];
+                        // 项目澄清时间换算成小时
+                        $item[$v] = number_format($item[$v] / 3600, 2);
+                    }
                 }
                 if ($item['clarification_time'] > 0)  {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
