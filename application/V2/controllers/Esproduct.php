@@ -400,6 +400,24 @@ class EsproductController extends PublicController {
         }
     }
 
+    public function importAction() {
+        $es = $this->getPut('es');
+        if ($es === true) {
+            system('nohup /data/es.sh >>/data/esproduct.txt &”');
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        }
+        if (PHP_SAPI !== 'cli') {
+            system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esproduct/import >>/data/esproduct.txt &”');
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        } else {
+            $this->import();
+        }
+    }
+
     /**
      * Description of 数据导入
      * @author  zhongyg
@@ -407,7 +425,7 @@ class EsproductController extends PublicController {
      * @version V2.0
      * @desc   ES 产品
      */
-    public function importAction($lang = 'en') {
+    public function import($lang = 'en') {
         try {
             set_time_limit(0);
             ini_set('memory_limi', '1G');

@@ -50,6 +50,9 @@ class ShowCatModel extends PublicModel {
                 $this->limit(0, 10);
             }
             $result = $this->select();
+            foreach ($result as $key => $val) {
+                $result[$key]['label'] = $val['label'] . '-' . $val['value'];
+            }
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -790,23 +793,24 @@ class ShowCatModel extends PublicModel {
 
     public function getCatNo($parent_cat_no = '', $level_no = 1) {
 
-        if ($level_no < 1) $level_no = 1;
-        if ($level_no >= 3) $level_no = 3;
+        if ($level_no < 1)
+            $level_no = 1;
+        if ($level_no >= 3)
+            $level_no = 3;
 
         //一级分类编码
         if (empty($parent_cat_no) && $level_no == 1) {
             $re = $this->field('cat_no')->where(['level_no' => 1])->order('id DESC')->find();
             if (!empty($re['cat_no'])) {
                 // 00+1:00:00
-                $cat_no_seeds = explode(':',$re['cat_no']);
-                $cat_no_seeds[0] = $cat_no_seeds[0]+1;
+                $cat_no_seeds = explode(':', $re['cat_no']);
+                $cat_no_seeds[0] = $cat_no_seeds[0] + 1;
 
-                if ($cat_no_seeds[0] < 10){
+                if ($cat_no_seeds[0] < 10) {
                     $cat_no_seeds[0] = str_pad($cat_no_seeds[0], 2, "0", STR_PAD_LEFT);
                 }
 
-                return implode(':',$cat_no_seeds);
-
+                return implode(':', $cat_no_seeds);
             } else {
 
                 return '01:00:00';
@@ -824,50 +828,47 @@ class ShowCatModel extends PublicModel {
             if (!empty($re['cat_no']) && $level_no == 3) {
 
                 //三级分类编码
-                $parent_cat_seeds = explode(':',$re['cat_no']);
+                $parent_cat_seeds = explode(':', $re['cat_no']);
 
                 $parent_cat_seeds[2] = $parent_cat_seeds[2] + 1;
 
-                if ($parent_cat_seeds[2] < 10){
+                if ($parent_cat_seeds[2] < 10) {
                     $parent_cat_seeds[2] = str_pad($parent_cat_seeds[2], 2, "0", STR_PAD_LEFT);
                 }
 
-                return implode(':',$parent_cat_seeds);
-
+                return implode(':', $parent_cat_seeds);
             } elseif ($level_no == 3) {
 
                 //三级分类编码
-                $parent_cat_seeds = explode(':',$parent_cat_no);
+                $parent_cat_seeds = explode(':', $parent_cat_no);
                 $parent_cat_seeds[2] = $parent_cat_seeds[2] + 1;
 
-                if ($parent_cat_seeds[2] < 10){
+                if ($parent_cat_seeds[2] < 10) {
                     $parent_cat_seeds[2] = str_pad($parent_cat_seeds[2], 2, "0", STR_PAD_LEFT);
                 }
 
-                return implode(':',$parent_cat_seeds);
-
+                return implode(':', $parent_cat_seeds);
             } elseif (!empty($re['cat_no']) && $level_no == 2) {
 
                 //二级分类编码
-                $parent_cat_seeds = explode(':',$re['cat_no']);
+                $parent_cat_seeds = explode(':', $re['cat_no']);
                 $parent_cat_seeds[1] = $parent_cat_seeds[1] + 1;
 
-                if ($parent_cat_seeds[1] < 10){
+                if ($parent_cat_seeds[1] < 10) {
                     $parent_cat_seeds[1] = str_pad($parent_cat_seeds[1], 2, "0", STR_PAD_LEFT);
                 }
 
-                return implode(':',$parent_cat_seeds);
-
+                return implode(':', $parent_cat_seeds);
             } elseif ($level_no == 2) {
                 //二级分类编码
-                $parent_cat_seeds = explode(':',$parent_cat_no);
+                $parent_cat_seeds = explode(':', $parent_cat_no);
                 $parent_cat_seeds[1] = $parent_cat_seeds[1] + 1;
 
-                if ($parent_cat_seeds[1] < 10){
+                if ($parent_cat_seeds[1] < 10) {
                     $parent_cat_seeds[1] = str_pad($parent_cat_seeds[1], 2, "0", STR_PAD_LEFT);
                 }
 
-                return implode(':',$parent_cat_seeds);
+                return implode(':', $parent_cat_seeds);
             }
         }
     }
