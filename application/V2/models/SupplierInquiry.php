@@ -468,7 +468,8 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
         $this->_setOilFlag($list);
-        $this->_setClarificationTime($list);
+        //$this->_setClarificationTime($list);
+        $this->_setClarifyTime($list);
         return $this->_createXls($list);
     }
 
@@ -588,7 +589,8 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalPrice($list);
         $this->_setObtainInfo($list);
         $this->_setTotalOilFlag($list);
-        $this->_setClarificationTime($list);
+        //$this->_setClarificationTime($list);
+        $this->_setClarifyTime($list);
 
 
         // $this->_setTotalCalculatePrice($list);
@@ -989,6 +991,64 @@ class SupplierInquiryModel extends PublicModel {
                 $list[$key]['biz_approving_clarification_time'] = '';
                 $list[$key]['market_approving_clarification_time'] = '';
                 $list[$key]['clarification_time'] = '';
+            }
+        }
+    }
+    
+    /**
+     * @desc 设置项目澄清时间
+     * 
+     * @param array $list  询单列表信息
+     * @author liujf
+     * @time 2018-02-09
+     */
+    private function _setClarifyTime(&$list) {
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
+        $nowTime = time();
+        $clarifyMapping = [
+            'BIZ_QUOTING' => 'biz_quoting_clarification_time',
+            'LOGI_DISPATCHING' => 'logi_dispatching_clarification_time',
+            'LOGI_QUOTING' => 'logi_quoting_clarification_time',
+            'BIZ_APPROVING' => 'biz_approving_clarification_time',
+            'MARKET_APPROVING' => 'market_approving_clarification_time'
+        ];
+        foreach ($clarifyMapping as $k => $v) {
+            $clarifyNode[] = $k;
+        }
+        foreach ($list as &$item) {
+            $where['inquiry_id'] = $item['inquiry_id'];
+            foreach ($clarifyMapping as $v) {
+                // 项目澄清时间初始化
+                $item[$v] = '';
+            }
+            $item['clarification_time'] = '';
+            // 最后一次流入事业部分单员的日志ID
+            $lastBizDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->getField('id');
+            // 最后一次流入客户中心的日志ID
+            $lastEruiDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'CC_DISPATCHING']))->order('id DESC')->getField('id');
+            // 项目澄清时间的参考ID
+            $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
+            if ($referenceID) {
+                // 各环节的项目澄清时间列表
+                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['id' => ['gt', $referenceID], 'in_node' => 'CLARIFY', 'out_node' => ['in', $clarifyNode]]))->order('id ASC')->select();
+                foreach ($clarifyList as $clarify) {
+                    // 计算各环节的项目澄清时间
+                    $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
+                }
+                // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
+                $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
+                if ($lastLog['out_node'] == 'CLARIFY' && in_array($lastLog['in_node'], $clarifyNode)) {
+                    $item[$clarifyMapping[$lastLog['in_node']]] += $nowTime - $lastLog['out_time'];
+                }
+                foreach ($clarifyMapping as $v) {
+                    // 计算总的项目澄清时间
+                    $item['clarification_time'] += $item[$v];
+                    // 项目澄清时间换算成小时
+                    $item[$v] = number_format($item[$v] / 3600, 2);
+                }
+                if ($item['clarification_time'] > 0)  {
+                    $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
+                }
             }
         }
     }
