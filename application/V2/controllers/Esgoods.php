@@ -236,7 +236,7 @@ class EsgoodsController extends PublicController {
 
     public function importAction() {
         if (PHP_SAPI !== 'cli') {
-            system('nohup /usr/local/php/bin/php/php -q ' . MYPATH . '/public/cli.php /v2/esgoods/import >>/data/esgoods.txt &”');
+            system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esgoods/import >>/data/esgoods.txt &”');
         } else {
             $this->import();
         }

@@ -402,7 +402,7 @@ class EsproductController extends PublicController {
 
     public function importAction() {
         if (PHP_SAPI !== 'cli') {
-            system('nohup /usr/local/php/bin/php/php -q ' . MYPATH . '/public/cli.php /v2/esproduct/import >>/data/esproduct.txt &”');
+            system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esproduct/import >>/data/esproduct.txt &”');
         } else {
             $this->import();
         }
