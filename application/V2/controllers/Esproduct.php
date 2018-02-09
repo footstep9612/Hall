@@ -401,6 +401,13 @@ class EsproductController extends PublicController {
     }
 
     public function importAction() {
+        $es = $this->getPut('es');
+        if ($es === true) {
+            system('nohup /data/es.sh >>/data/esproduct.txt &”');
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        }
         if (PHP_SAPI !== 'cli') {
             system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esproduct/import >>/data/esproduct.txt &”');
             $this->setCode(1);

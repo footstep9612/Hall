@@ -235,6 +235,13 @@ class EsgoodsController extends PublicController {
     }
 
     public function importAction() {
+        $es = $this->getPut('es');
+        if ($es === true) {
+            system('nohup /data/es.sh >>/data/esproduct.txt &”');
+            $this->setCode(1);
+            $this->setMessage('成功!');
+            $this->jsonReturn();
+        }
         if (PHP_SAPI !== 'cli') {
             system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esgoods/import >>/data/esgoods.txt &”');
             $this->setCode(1);
