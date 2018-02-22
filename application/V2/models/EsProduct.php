@@ -1072,9 +1072,19 @@ class EsProductModel extends Model {
         $attrs_arr = json_decode($attrs_json, true);
         $ret = [];
         if ($attrs_arr) {
-            foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => strtolower(trim($name)),
-                    'value' => strtolower(trim($value))];
+            foreach ($attrs_arr as $key => $items) {
+                if (is_array($items)) {
+                    foreach ($items as $name => $value) {
+                        if (!in_array(['name' => strtolower(trim($name)),
+                                    'value' => strtolower(trim($value))], $ret)) {
+                            $ret[] = ['name' => strtolower(trim($name)),
+                                'value' => strtolower(trim($value))];
+                        }
+                    }
+                } elseif (is_string($items)) {
+                    $ret[] = ['name' => strtolower(trim($key)),
+                        'value' => strtolower(trim($items))];
+                }
             }
         }
         return $ret;

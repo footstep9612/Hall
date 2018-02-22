@@ -313,50 +313,52 @@ class ProductAttrModel extends PublicModel {
                     ->select();
 
             $ret = [];
+
             if ($product_attrs) {
                 foreach ($product_attrs as $item) {
                     if (isset($ret[$item['spu']]['spec_attrs']) && $ret[$item['spu']]['spec_attrs'] && $item['spec_attrs']) {
+
                         if (json_decode($item['spec_attrs'], true)) {
-                            $ret[$item['spu']]['spec_attrs'] = array_merge($ret[$item['spu']]['spec_attrs'], json_decode($item['spec_attrs'], true));
+                            $ret[$item['spu']]['spec_attrs'] = $this->arraymerge($ret[$item['spu']]['spec_attrs'], json_decode($item['spec_attrs'], true));
                         }
                     } elseif (isset($ret[$item['spu']]['spec_attrs']) && $ret[$item['spu']]['spec_attrs']) {
 
                     } elseif ($item['spec_attrs']) {
-                        $ret[$item['spu']]['spec_attrs'] = json_decode($item['spec_attrs'], true);
+                        $ret[$item['spu']]['spec_attrs'][] = json_decode($item['spec_attrs'], true);
                     } else {
                         $ret[$item['spu']]['spec_attrs'] = [];
                     }
                     if (isset($ret[$item['spu']]['ex_hs_attrs']) && $ret[$item['spu']]['ex_hs_attrs'] && $item['ex_hs_attrs']) {
                         if (json_decode($item['ex_hs_attrs'], true)) {
-                            $ret[$item['spu']]['ex_hs_attrs'] = array_merge($ret[$item['spu']]['ex_hs_attrs'], json_decode($item['ex_hs_attrs'], true));
+                            $ret[$item['spu']]['ex_hs_attrs'] = $this->arraymerge($ret[$item['spu']]['ex_hs_attrs'], json_decode($item['ex_hs_attrs'], true));
                         }
                     } elseif (isset($ret[$item['spu']]['ex_hs_attrs']) && $ret[$item['spu']]['ex_hs_attrs']) {
 
                     } elseif ($item['ex_hs_attrs']) {
-                        $ret[$item['spu']]['ex_hs_attrs'] = json_decode($item['ex_hs_attrs'], true);
+                        $ret[$item['spu']]['ex_hs_attrs'][] = json_decode($item['ex_hs_attrs'], true);
                     } else {
                         $ret[$item['spu']]['ex_hs_attrs'] = [];
                     }
                     if (isset($ret[$item['spu']]['other_attrs']) && $ret[$item['spu']]['other_attrs'] && $item['other_attrs']) {
                         if (json_decode($item['other_attrs'], true)) {
-                            $ret[$item['spu']]['other_attrs'] = array_merge($ret[$item['spu']]['other_attrs'], json_decode($item['other_attrs'], true));
+                            $ret[$item['spu']]['other_attrs'][] = $this->arraymerge($ret[$item['spu']]['other_attrs'], json_decode($item['other_attrs'], true));
                         }
                     } elseif (isset($ret[$item['spu']]['other_attrs']) && $ret[$item['spu']]['other_attrs']) {
 
                     } elseif ($item['other_attrs']) {
-                        $ret[$item['spu']]['other_attrs'] = json_decode($item['other_attrs'], true);
+                        $ret[$item['spu']]['other_attrs'][] = json_decode($item['other_attrs'], true);
                     } else {
                         $ret[$item['spu']]['other_attrs'] = [];
                     }
 
                     if (isset($ret[$item['spu']]['ex_goods_attrs']) && $ret[$item['spu']]['ex_goods_attrs'] && $item['ex_goods_attrs']) {
                         if (json_decode($item['ex_goods_attrs'], true)) {
-                            $ret[$item['spu']]['ex_goods_attrs'] = array_merge($ret[$item['spu']]['ex_goods_attrs'], json_decode($item['ex_goods_attrs'], true));
+                            $ret[$item['spu']]['ex_goods_attrs'] = $this->arraymerge($ret[$item['spu']]['ex_goods_attrs'], json_decode($item['ex_goods_attrs'], true));
                         }
                     } elseif (isset($ret[$item['spu']]['ex_goods_attrs']) && $ret[$item['spu']]['ex_goods_attrs']) {
 
                     } elseif ($item['ex_goods_attrs']) {
-                        $ret[$item['spu']]['ex_goods_attrs'] = json_decode($item['ex_goods_attrs'], true);
+                        $ret[$item['spu']]['ex_goods_attrs'][] = json_decode($item['ex_goods_attrs'], true);
                     } else {
                         $ret[$item['spu']]['ex_goods_attrs'] = [];
                     }
@@ -395,6 +397,17 @@ class ProductAttrModel extends PublicModel {
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
+    }
+
+    public function arraymerge($array1, $array2) {
+        if (empty($array1)) {
+            $array1[] = $array2;
+        } else {
+            $array1[] = $array2;
+        }
+
+
+        return $array1;
     }
 
 }
