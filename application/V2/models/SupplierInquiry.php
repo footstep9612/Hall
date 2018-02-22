@@ -691,7 +691,7 @@ class SupplierInquiryModel extends PublicModel {
             'F' => ['ie_erui', '是否走易瑞'],
             'G' => ['buyer_code', '客户名称或代码'],
             'H' => ['project_basic_info', '客户及项目背景描述'],
-            'I' => [null, '品名中文'],
+            'I' => ['name_zh', '品名中文'],
             'J' => ['qty', '数量'],
             'K' => ['unit', '单位'],
             'L' => ['buyer_oil', '是否油气客户'],
