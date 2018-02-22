@@ -96,10 +96,10 @@ class BuyerfilesController extends PublicController
             'credit_type', //授信类型
             'credit_level', //信用等级
             'payment_behind', //是否拖欠过货款
-//            'behind_time', //拖欠货款时间
+            'behind_time', //拖欠货款时间
             'reputation', //业内口碑
             'violate_treaty', //是否有针对ERUI的违约
-//            'treaty_content', //违约的内容
+            'treaty_content', //违约的内容
             'comments' //ERUI对其评价
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
@@ -233,6 +233,28 @@ class BuyerfilesController extends PublicController
         $infoCount=count($info)+3;  //总数
         //统计数据
         $infoExist=count(array_filter($info))+count($attachInfo);
+        //判断
+        if(!empty($info['is_warehouse'])){  //仓库
+            if($info['is_warehouse']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($info['is_net']){    //入网
+            if($info['is_net']=='N'){
+                $infoExist += 6;
+            }
+        }
+        if($info['payment_behind']){    //拖欠货款
+            if($info['payment_behind']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($info['violate_treaty']){    //是否违约
+            if($info['violate_treaty']=='N'){
+                $infoExist += 1;
+            }
+        }
+        //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
         $base->where(array('id'=>$buyer_id))->save(array('percent'=>$percent));

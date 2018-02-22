@@ -17,6 +17,36 @@ class BuyertestController extends PublicController
     {
         parent::init();
     }
+    public function saveBuyerAction(){
+        set_time_limit(0);
+        $save=new SaveBuyerModel();
+//        $res=$save->saveAgent();
+        $res=$save->saveBuyer();
+        var_dump($res);
+    }
+    public function agentCountryAction(){
+        set_time_limit(0);
+        $buyer=new SaveBuyerModel();
+        $country=$buyer->field('agent_id,country_bn')->select();
+        $agent=new CountryUserModel();
+        $mem=[];
+        $arr=[];
+        $add='exist';
+        foreach($country as $k => $v){
+            if(!empty($v['agent_id'])){
+                $mem['employee_id']=$v['agent_id'];
+                $mem['country_bn']=$v['country_bn'];
+                $exist=$agent->where($mem)->find();
+                if(empty($exist)) {
+                    $mem['created_at'] = date('Y-m-d H:i:s');
+                    $add = $agent->add($mem);
+                }
+            }
+            $arr[]=$add;
+        }
+        print_r(count($arr));
+        print_r($arr);
+    }
     /**
      * 客户档案信息管理计算信息完整度-王帅
      */
