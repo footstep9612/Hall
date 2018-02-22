@@ -27,23 +27,23 @@ class SupplierInquiryModel extends PublicModel {
 
     private function _getCondition($condition, &$where) {
         if (!empty($condition['supplier_no'])) {
-            $supplier_no = $this->escapeString(trim($condition['supplier_no']));
+            $supplier_no = $this->escapeString($condition['supplier_no']);
             $where .= ' AND tmp.supplier_no=\'' . $supplier_no . '\'';
         }
         if (!empty($condition['supplier_name'])) {
-            $supplier_name = $this->escapeString(trim($condition['supplier_name']));
+            $supplier_name = $this->escapeString($condition['supplier_name']);
             $where .= ' AND tmp.supplier_name like \'%' . $supplier_name . '%\'';
         }
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = $this->escapeString(trim($condition['created_at_start']));
-            $created_at_end = $this->escapeString(trim($condition['created_at_end']));
+            $created_at_start = $this->escapeString($condition['created_at_start']);
+            $created_at_end = $this->escapeString($condition['created_at_end']);
             $where .= ' AND tmp.created_at between \'' . $created_at_start . '\''
                     . ' AND \'' . $created_at_end . '\'';
         } elseif (!empty($condition['created_at_start'])) {
-            $created_at_start = $this->escapeString(trim($condition['created_at_start']));
+            $created_at_start = $this->escapeString($condition['created_at_start']);
             $where .= ' AND tmp.created_at > \'' . $created_at_start . '\'';
         } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = $this->escapeString(trim($condition['created_at_end']));
+            $created_at_end = $this->escapeString($condition['created_at_end']);
             $where .= ' AND tmp.created_at < \'' . $created_at_end . '\'';
         }
     }
@@ -994,10 +994,10 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
     }
-    
+
     /**
      * @desc 设置项目澄清时间
-     * 
+     *
      * @param array $list  询单列表信息
      * @author liujf
      * @time 2018-02-09
@@ -1048,7 +1048,7 @@ class SupplierInquiryModel extends PublicModel {
                         $item[$v] = number_format($item[$v] / 3600, 2);
                     }
                 }
-                if ($item['clarification_time'] > 0)  {
+                if ($item['clarification_time'] > 0) {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }
             }
