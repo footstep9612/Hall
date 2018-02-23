@@ -117,7 +117,8 @@ class ProductModel extends PublicModel {
 
             //订货号
             if (isset($input['sku']) && !empty($input['sku'])) {
-                $condition["$gtable.sku"] = $input['sku'];
+                //$condition["$gtable.sku"] = $input['sku'];
+                $condition["$gtable.sku"] = ['exp', 'regexp \'' . $input['sku'] . '\''];
             }
 
             //型号
