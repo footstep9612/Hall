@@ -301,14 +301,23 @@ class ProductAttrModel extends PublicModel {
             return [];
         }
         try {
+            $goods_model = new GoodsModel();
+            $goods_table = $goods_model->getTableName();
+            $goods_attr_model = new GoodsAttrModel();
 
-            $goods_model = new GoodsAttrModel();
-
-            $product_attrs = $goods_model->field('spu,spec_attrs,ex_goods_attrs,ex_hs_attrs,other_attrs')
-                    ->where(['spu' => ['in', $spus],
-                        'lang' => $lang,
-                        'status' => 'VALID',
-                        'deleted_flag' => 'N'
+            $product_attrs = $goods_attr_model
+                    ->alias('ga')
+                    ->join($goods_table . ' g on g.sku=ga.sku and g.lang=ga.lang and g.spu=ga.spu')
+                    ->field('spu,spec_attrs,ex_goods_attrs,'
+                            . 'ex_hs_attrs,other_attrs')
+                    ->where(['g.spu' => ['in', $spus],
+                        'ga.spu' => ['in', $spus],
+                        'ga.lang' => $lang,
+                        'g.lang' => $lang,
+                        'ga.status' => 'VALID',
+                        'g.status' => 'VALID',
+                        'ga.deleted_flag' => 'N',
+                        'g.deleted_flag' => 'N'
                     ])
                     ->select();
 
