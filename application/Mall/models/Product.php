@@ -163,12 +163,13 @@ class ProductModel extends PublicModel {
                 $condition["$gatable.spec_attrs"] = $spec;
             }
 
-            $idAry = $goodsModel->field("$gtable.id")->join($gatable . " ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang", 'LEFT')->where($condition)->select();
+            $idAry = $goodsModel->field("$gtable.id,$gtable.sku")->join($gatable . " ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang", 'LEFT')->where($condition)->select();
             //Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $goodsModel->getLastSql(), Log::ERR);
-            $ids = [];
+            $ids = $skuAry = [];
             if ($idAry) {
                 foreach ($idAry as $id) {
                     $ids[] = $id['id'];
+                    $skuAry[] = $id['sku'];
                 }
             } else {
                 return [];
@@ -176,10 +177,10 @@ class ProductModel extends PublicModel {
 
             $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)->select();
             if ($result) {
-                $skuAry = [];
+              /*  $skuAry = [];
                 foreach ($result as $r) {
                     $skuAry[] = $r['sku'];
-                }
+                }*/
                 //扩展属性
                 $condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
