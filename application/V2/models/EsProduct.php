@@ -960,7 +960,7 @@ class EsProductModel extends Model {
         if (isset($product_attrs[$spu])) {
             $attrs = $product_attrs[$spu];
             $attrs = $this->_setattrs($attrs);
-            $body['attrs'] = $attrs;
+            $body['attrs'] = new stdClass(); // $attrs;
             if ($attrs['spec_attrs']) {
                 $body['spec_attrs'] = $attrs['spec_attrs'];
             } else {
@@ -1041,21 +1041,21 @@ class EsProductModel extends Model {
         } else {
             $ret['spec_attrs'] = [];
         }
-        if (!empty($attrs['ex_goods_attrs'])) {
-            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
-        } else {
-            $ret['ex_goods_attrs'] = [];
-        }
-        if (!empty($attrs['ex_hs_attrs'])) {
-            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
-        } else {
-            $ret['ex_hs_attrs'] = [];
-        }
-        if (!empty($attrs['other_attrs'])) {
-            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
-        } else {
-            $ret['other_attrs'] = [];
-        }
+//        if (!empty($attrs['ex_goods_attrs'])) {
+//            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
+//        } else {
+//            $ret['ex_goods_attrs'] = [];
+//        }
+//        if (!empty($attrs['ex_hs_attrs'])) {
+//            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
+//        } else {
+//            $ret['ex_hs_attrs'] = [];
+//        }
+//        if (!empty($attrs['other_attrs'])) {
+//            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
+//        } else {
+//            $ret['other_attrs'] = [];
+//        }
         return $ret;
     }
 
