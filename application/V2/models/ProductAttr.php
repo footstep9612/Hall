@@ -308,8 +308,8 @@ class ProductAttrModel extends PublicModel {
             $product_attrs = $goods_attr_model
                     ->alias('ga')
                     ->join($goods_table . ' g on g.sku=ga.sku and g.lang=ga.lang and g.spu=ga.spu')
-                    ->field('spu,spec_attrs,ex_goods_attrs,'
-                            . 'ex_hs_attrs,other_attrs')
+                    ->field('ga.spu,ga.spec_attrs,ga.ex_goods_attrs,'
+                            . 'ga.ex_hs_attrs,ga.other_attrs')
                     ->where(['g.spu' => ['in', $spus],
                         'ga.spu' => ['in', $spus],
                         'ga.lang' => $lang,
