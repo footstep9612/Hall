@@ -535,9 +535,9 @@ class BuyerVisitModel extends PublicModel {
         //填充表头信息
         $letter = range(A,Z);
         if($lang=='zh'){
-            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别');
+            $tableheader = array('序号','客户名称','客户代码（CRM）','拜访时间','目的拜访类型','职位拜访类型','拜访级别','客户需求类别','拜访目的','随访人员','拜访结果','创建人');
         }else{
-            $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category');
+            $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category','Purpose of visiting','Follow-up personnel','Visit the result','Founder');
         }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
@@ -589,6 +589,11 @@ class BuyerVisitModel extends PublicModel {
             $arr[$k]['visit_position'] = $v['visit_position'];    //职位拜访类型
             $arr[$k]['visit_level'] = $v['visit_level'];    //拜访级别
             $arr[$k]['demand_type'] = $v['demand_type'];    //客户需求类别
+
+            $arr[$k]['visit_objective'] = $v['visit_objective'];    //拜访目的
+            $arr[$k]['visit_personnel'] = $v['visit_personnel'];    //随访人员
+            $arr[$k]['visit_result'] = $v['visit_result'];    //拜访结果
+            $arr[$k]['created_name'] = $v['created_name'];    //创建人
         }
         return $arr;
     }
@@ -605,7 +610,17 @@ class BuyerVisitModel extends PublicModel {
         $buyerModel = new BuyerModel(); //客户
         $dpModel = new VisitDemadTypeModel();   //需求类型
         $bvrModel = new BuyerVisitReplyModel(); //拜访回复记录
-        $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')
+        $field='buyer_visit.id';
+        $fieldArr=array(
+            'buyer_id','name','phone','visit_at','visit_type','visit_level','visit_position','demand_type','demand_content','visit_objective','visit_personnel','visit_result','is_demand','created_by','created_at'
+        );
+        foreach($fieldArr as $v){
+            $field.=',buyer_visit.'.$v;
+        }
+        $field.=',employee.name as created_name';
+        $result = $this->alias('buyer_visit')
+            ->join('erui_sys.employee employee on buyer_visit.created_by=employee.id','left')
+            ->field($field)
             ->where($condition)
             ->limit($offset,$pageSize)
             ->select();
