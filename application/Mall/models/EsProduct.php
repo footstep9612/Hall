@@ -406,7 +406,7 @@ class EsProductModel extends Model {
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $this->_getEsShowCats($showcats, $keyword, $body);
+                $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
         }
         return $body;
