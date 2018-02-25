@@ -2083,7 +2083,6 @@ class GoodsModel extends PublicModel {
                         }
                         $data_tmp[$title_ary[$index]] = $value;
                     }
-
                     if ($col_value > 0) {    //非空行进行数据验证与处理
                         $supplie = $data_tmp['供应商名称'];    //先处理供应商 必填
                         if (empty($data_tmp['供应商名称'])) {
@@ -2350,7 +2349,7 @@ class GoodsModel extends PublicModel {
                         }
                         $data['regulatory_conds'] = $data_tmp['监管条件'];    //监管条件
                         $data['commodity_ori_place'] = $data_tmp['境内货源地'];    //境内货源地
-                        $data['source'] = 'ERUI';
+                        $data['source'] = $data_tmp['来源'] ? $data_tmp['来源'] : 'ERUI';
                         $data['source_detail'] = 'Excel批量导入';
 
                         /**
@@ -3011,7 +3010,7 @@ class GoodsModel extends PublicModel {
                         }
                         $data['regulatory_conds'] = $data_tmp['监管条件'];    //监管条件
                         $data['commodity_ori_place'] = $data_tmp['境内货源地'];    //境内货源地
-                        $data['source'] = 'ERUI';
+                        $data['source'] = $data_tmp['来源'] ? $data_tmp['来源'] : 'ERUI';
                         $data['source_detail'] = 'Excel临时导入';
 
                         /**
