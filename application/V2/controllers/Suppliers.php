@@ -20,8 +20,10 @@ class SuppliersController extends PublicController {
         $this->supplierAgentModel = new SupplierAgentModel();
         $this->supplierQualificationModel = new SupplierQualificationModel();
         $this->supplierCheckLogsModel = new SupplierCheckLogsModel();
+        $this->supplierAgentModel = new SupplierAgentModel();
         $this->inquiryModel = new InquiryModel();
         $this->employeeModel = new EmployeeModel();
+        $this->orgModel = new OrgModel();
 
         $this->time = date('Y-m-d H:i:s');
     }
@@ -152,6 +154,20 @@ class SuppliersController extends PublicController {
 
         if (strlenUtf8($condition['stocking_place']) > 40)
             jsonReturn('', -101, '备货地点长度不超过40个字!');
+        
+        if ($condition['status'] != 'DRAFT') {
+            $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
+            if (!$hasDeveloper) 
+                jsonReturn('', -101, '开发人不能为空!');
+            
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name']])->getField('id');
+            if ($hasSupplierName)
+                jsonReturn('', -101, '此公司名称已经存在!');
+            
+            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
+            if ($hasCreditCode)
+                jsonReturn('', -101, '此营业执照编码已经存在!');
+        }
 
         $this->suppliersModel->startTrans();
 
@@ -325,8 +341,15 @@ class SuppliersController extends PublicController {
      */
     public function getSupplierListAction() {
         $condition = dataTrim($this->put_data);
-
-        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+        
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
+        
+        if (!$isErui) {
+            // 非易瑞部门的看他所在事业部和易瑞的
+            $orgErui = $this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true);
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $condition['org_id'] = array_merge($orgErui, $orgUb ? : []);
+        }
         
         // 开发人
         if ($condition['developer'] != '') {
