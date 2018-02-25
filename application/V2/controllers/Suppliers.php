@@ -21,6 +21,7 @@ class SuppliersController extends PublicController {
         $this->supplierQualificationModel = new SupplierQualificationModel();
         $this->supplierCheckLogsModel = new SupplierCheckLogsModel();
         $this->inquiryModel = new InquiryModel();
+        $this->employeeModel = new EmployeeModel();
 
         $this->time = date('Y-m-d H:i:s');
     }
@@ -323,9 +324,19 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function getSupplierListAction() {
-        $condition = $this->put_data;
+        $condition = dataTrim($this->put_data);
 
         $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+        
+        // 开发人
+        if ($condition['developer'] != '') {
+            $condition['agent_id'] = $this->employeeModel->getUserIdByName($condition['developer']);
+        }
+        
+        // 创建人
+        if ($condition['created_name'] != '') {
+            $condition['created_by'] = $this->employeeModel->getUserIdByName($condition['created_name']);
+        }
 
         $data = $this->suppliersModel->getJoinList($condition);
 

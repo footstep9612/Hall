@@ -15,6 +15,7 @@ class SuppliersModel extends PublicModel {
     protected $joinTable2 = 'erui_dict.country c ON a.country_bn = c.bn ';
     protected $joinTable3 = 'erui_supplier.supplier_bank_info d ON a.id = d.supplier_id ';
     protected $joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ';
+    protected $joinTable5 = 'erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'';
     protected $joinField = 'a.*, b.name AS org_name';
     protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
 
@@ -82,16 +83,18 @@ class SuppliersModel extends PublicModel {
                 ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
         }
-//
+
         if (isset($condition['org_id'])) {
-            $where['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
+            $where['a.org_id'] = ['in', $condition['org_id'] ? : ['-1']];
         }
-//        if (isset($condition['org_id'])) {
-//            $map1['a.org_id'] = ['in', $condition['org_id'] ?: ['-1']];
-//            $map1[] = 'a.org_id is null';
-//            $map1['_logic'] = 'or';
-//            $where['_complex'] = $map1;
-//        }
+        
+        if (!empty($condition['agent_id'])) {
+            $where['f.agent_id'] = ['in', $condition['agent_id']];
+        }
+        
+        if (!empty($condition['created_by'])) {
+            $where['a.created_by'] = ['in', $condition['created_by']];
+        }
 
         return $where;
     }
@@ -109,9 +112,10 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         $count = $this->alias('a')
-                ->join($this->joinTable1, 'LEFT')
-                ->where($where)
-                ->count('a.id');
+                                 ->join($this->joinTable1, 'LEFT')
+                                 ->join($this->joinTable5, 'LEFT')
+                                 ->where($where)
+                                 ->count('a.id');
 
         return $count > 0 ? $count : 0;
     }
@@ -133,6 +137,7 @@ class SuppliersModel extends PublicModel {
 
         return $this->alias('a')
                         ->join($this->joinTable1, 'LEFT')
+                        ->join($this->joinTable5, 'LEFT')
                         ->field($this->joinField)
                         ->where($where)
                         ->page($currentPage, $pageSize)
