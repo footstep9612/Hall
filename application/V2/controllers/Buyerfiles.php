@@ -58,11 +58,13 @@ class BuyerfilesController extends PublicController
      * 客户档案信息管理计算信息完整度-王帅
      */
     public function percentInfoAction(){
+        $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $buyer_id=$data['buyer_id'];
         $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
         $cond=array(
             'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         //客户基本信息
@@ -70,7 +72,7 @@ class BuyerfilesController extends PublicController
         $baseField=array(
             'buyer_code', //客户代码
             'buyer_no', //客户编码
-            'buyer_level', //客户等级
+//            'buyer_level', //客户等级
             'country_bn', //国家
             'buyer_type', //客户类型
             'is_oilgas', //是否油气
@@ -94,10 +96,10 @@ class BuyerfilesController extends PublicController
             'credit_type', //授信类型
             'credit_level', //信用等级
             'payment_behind', //是否拖欠过货款
-//            'behind_time', //拖欠货款时间
+            'behind_time', //拖欠货款时间
             'reputation', //业内口碑
             'violate_treaty', //是否有针对ERUI的违约
-//            'treaty_content', //违约的内容
+            'treaty_content', //违约的内容
             'comments' //ERUI对其评价
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
@@ -231,6 +233,28 @@ class BuyerfilesController extends PublicController
         $infoCount=count($info)+3;  //总数
         //统计数据
         $infoExist=count(array_filter($info))+count($attachInfo);
+        //判断
+        if(!empty($info['is_warehouse'])){  //仓库
+            if($info['is_warehouse']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($info['is_net']){    //入网
+            if($info['is_net']=='N'){
+                $infoExist += 6;
+            }
+        }
+        if($info['payment_behind']){    //拖欠货款
+            if($info['payment_behind']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($info['violate_treaty']){    //是否违约
+            if($info['violate_treaty']=='N'){
+                $infoExist += 1;
+            }
+        }
+        //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
         $base->where(array('id'=>$buyer_id))->save(array('percent'=>$percent));

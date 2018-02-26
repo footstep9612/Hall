@@ -960,7 +960,7 @@ class EsProductModel extends Model {
         if (isset($product_attrs[$spu])) {
             $attrs = $product_attrs[$spu];
             $attrs = $this->_setattrs($attrs);
-            $body['attrs'] = $attrs;
+            $body['attrs'] = new stdClass(); // $attrs;
             if ($attrs['spec_attrs']) {
                 $body['spec_attrs'] = $attrs['spec_attrs'];
             } else {
@@ -1041,21 +1041,21 @@ class EsProductModel extends Model {
         } else {
             $ret['spec_attrs'] = [];
         }
-        if (!empty($attrs['ex_goods_attrs'])) {
-            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
-        } else {
-            $ret['ex_goods_attrs'] = [];
-        }
-        if (!empty($attrs['ex_hs_attrs'])) {
-            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
-        } else {
-            $ret['ex_hs_attrs'] = [];
-        }
-        if (!empty($attrs['other_attrs'])) {
-            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
-        } else {
-            $ret['other_attrs'] = [];
-        }
+//        if (!empty($attrs['ex_goods_attrs'])) {
+//            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
+//        } else {
+//            $ret['ex_goods_attrs'] = [];
+//        }
+//        if (!empty($attrs['ex_hs_attrs'])) {
+//            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
+//        } else {
+//            $ret['ex_hs_attrs'] = [];
+//        }
+//        if (!empty($attrs['other_attrs'])) {
+//            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
+//        } else {
+//            $ret['other_attrs'] = [];
+//        }
         return $ret;
     }
 
@@ -1072,9 +1072,19 @@ class EsProductModel extends Model {
         $attrs_arr = json_decode($attrs_json, true);
         $ret = [];
         if ($attrs_arr) {
-            foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => strtolower(trim($name)),
-                    'value' => strtolower(trim($value))];
+            foreach ($attrs_arr as $key => $items) {
+                if (is_array($items)) {
+                    foreach ($items as $name => $value) {
+                        if (!in_array(['name' => strtolower(trim($name)),
+                                    'value' => strtolower(trim($value))], $ret)) {
+                            $ret[] = ['name' => strtolower(trim($name)),
+                                'value' => strtolower(trim($value))];
+                        }
+                    }
+                } elseif (is_string($items)) {
+                    $ret[] = ['name' => strtolower(trim($key)),
+                        'value' => strtolower(trim($items))];
+                }
             }
         }
         return $ret;
@@ -1690,25 +1700,66 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function Update_Attrs($spu, $lang = 'en') {
+    public function Update_Attrs($spus, $lang = 'en') {
         $es = new ESClient();
-        if (empty($spu)) {
+        if (empty($spus)) {
             return false;
         }
-        $product_attr_model = new ProductAttrModel();
-        $product_attrs = $product_attr_model->getproduct_attrbyspus([$spu], $lang);
+        if (is_string($spus)) {
+            $product_attr_model = new ProductAttrModel();
+            $product_attrs = $product_attr_model->getproduct_attrbyspus([$spus], $lang);
 
-        $id = $spu;
-        $data['attrs'] = $this->_getValue($product_attrs, $spu, [], 'json');
-        if ($data['attrs'][0]['spec_attrs']) {
-            $data['specs'] = $data['attrs'][0]['spec_attrs'];
-        } else {
-            $data['specs'] = json_encode([]);
+            $id = $spus;
+            if (isset($product_attrs[$spus])) {
+                $attrs = $product_attrs[$spus];
+                $attrs = $this->_setattrs($attrs);
+                $data['attrs'] = new stdClass(); // $attrs;
+                if ($attrs['spec_attrs']) {
+                    $data['spec_attrs'] = $attrs['spec_attrs'];
+                } else {
+                    $data['spec_attrs'] = [];
+                }
+            } else {
+                $data['spec_attrs'] = [];
+
+                $data['attrs'] = new stdClass();
+            }
+            $type = $this->tableName . '_' . $lang;
+            $es->update_document($this->dbName, $type, $data, $id);
+
+            return true;
+        } elseif (is_array($spus)) {
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'product_' . $lang;
+            $product_attr_model = new ProductAttrModel();
+            $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang);
+            foreach ($spus as $spu) {
+                $data = [];
+                if (isset($product_attrs[$spus])) {
+                    $attrs = $product_attrs[$spus];
+                    $attrs = $this->_setattrs($attrs);
+                    $data['attrs'] = new stdClass(); // $attrs;
+                    if ($attrs['spec_attrs']) {
+                        $data['spec_attrs'] = $attrs['spec_attrs'];
+                    } else {
+                        $data['spec_attrs'] = [];
+                    }
+                } else {
+                    $data['spec_attrs'] = [];
+
+                    $data['attrs'] = new stdClass();
+                }
+                $updateParams['body'][] = ['update' => ['_id' => $spu]];
+                $updateParams['body'][] = ['doc' => $data];
+            }
+
+            if (!empty($updateParams['body'])) {
+                $es->bulk($updateParams);
+            }
+
+            return true;
         }
-        $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
-
-        return true;
     }
 
     /* 更新附件

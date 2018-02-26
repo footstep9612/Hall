@@ -406,9 +406,10 @@ class EsProductModel extends Model {
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $this->_getEsShowCats($showcats, $keyword, $body);
+                $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
         }
+
         return $body;
     }
 
@@ -454,21 +455,57 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getEsShowCats($showcats, $keyword, &$body) {
+    private function _getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, &$body) {
         $show_cat_bool = [];
+
+
+        $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+        $body['query']['bool']['must'][] = [ESClient::NESTED =>
+            [
+                'path' => "show_cats_nested",
+                'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+        ]];
+
         foreach ($showcats as $showcat) {
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
         }
         if ($show_cat_bool) {
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
+
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            if ($country_bn) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            }
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
+
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
         } else {
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERM => ['show_cats.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
-                        [ESClient::TERM => ['show_cats.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
-                        [ESClient::TERM => ['show_cats.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
+            $show_cats_nested = [];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats_nested.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
             ]]];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            if ($country_bn) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            }
+
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
         }
     }
 

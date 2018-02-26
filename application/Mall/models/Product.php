@@ -117,7 +117,8 @@ class ProductModel extends PublicModel {
 
             //订货号
             if (isset($input['sku']) && !empty($input['sku'])) {
-                $condition["$gtable.sku"] = $input['sku'];
+                //$condition["$gtable.sku"] = $input['sku'];
+                $condition["$gtable.sku"] = ['exp', 'regexp \'' . $input['sku'] . '\''];
             }
 
             //型号
@@ -176,12 +177,13 @@ class ProductModel extends PublicModel {
 
             $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)->select();
             if ($result) {
-                $skuAry = [];
+              /*  $skuAry = [];
                 foreach ($result as $r) {
                     $skuAry[] = $r['sku'];
-                }
+                }*/
                 //扩展属性
-                $condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
+                //$condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
+                $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
                 $attr_key = $attr_value = [];

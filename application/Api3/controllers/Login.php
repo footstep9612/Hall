@@ -54,7 +54,7 @@ class LoginController extends PublicController {
         $model = new BuyerAccountModel();
         $info = $model->login($arr, $lang);
         if ($info) {
-            if($info['deleted_flag']!=='N' || $info['status']!=='VALID'){
+            if($info['deleted_flag']!=='N' || ($info['status']!=='VALID' && $info['status']!=='DRAFT')){
                 jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
             }
             $buyer_model = new BuyerModel();
@@ -186,6 +186,11 @@ class LoginController extends PublicController {
         $check_arr['email'] = trim($data['email']);
         $check = $buyer_account_model->Exist($check_arr);
         if ($check) {
+            //验证账号状态
+            $accountInfo = (is_array($check) && isset($check[0])) ? $check[0] : [];
+            if(!$accountInfo || $accountInfo['deleted_flag'] !== 'N' || ($accountInfo['status']!=='VALID' && $accountInfo['status']!=='DRAFT')){
+                jsonReturn(null, -145, ShopMsg::getMessage('-145', $lang));//'The company email is not registered yet'
+            }
             //生成邮件验证码
             $data_key['key'] = md5(uniqid());
             $data_key['email'] = $check_arr['email'];
@@ -199,7 +204,7 @@ class LoginController extends PublicController {
             $email_arr['show_name'] = $check[0]['show_name'];
             $body = $this->getView()->render('login/retrieve_email_'.$lang.'.html', $email_arr);
             $title = 'Erui.com';
-            send_Mail($data_key['email'], $title, $body, $data_key['show_name']);
+            //send_Mail($data_key['email'], $title, $body, $data_key['show_name']);
             jsonReturn($data_key, 1, 'success!');
         } else {
             jsonReturn(null, -122, ShopMsg::getMessage('-122', $lang));//'The company email is not registered yet'
@@ -317,7 +322,7 @@ class LoginController extends PublicController {
         if ($check) {
             jsonReturn('', -117, ShopMsg::getMessage('-117',$lang));
         }
-        /*if (isset($data['company_name']) && !empty($data['company_name'])) {
+        if (isset($data['company_name']) && !empty($data['company_name'])) {
             $arr['name'] = trim($data['company_name']);
             $checkname = $model->where("name='" . $arr['name'] . "' AND deleted_flag='N'")->find();
             if ($checkname) {
@@ -325,7 +330,7 @@ class LoginController extends PublicController {
             }
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
-        }*/
+        }
         // 生成用户编码
         $condition['page'] = 0;
         $condition['countPerPage'] = 1;
@@ -388,11 +393,11 @@ class LoginController extends PublicController {
         } else {
             jsonReturn('', -117, ShopMsg::getMessage('-117',$lang) );//'key不存在'
         }
-        if (!empty($data['name'])) {
+       /* if (!empty($data['name'])) {
             $buyer_data['name'] = trim($data['name']);
         } else {
             jsonReturn(null, -118, ShopMsg::getMessage('-118',$lang));
-        }
+        }*/
         /*if (isset($data['company_name']) && !empty($data['company_name'])) {
             $buyer_data['name'] = trim($data['company_name']);
         } else {
@@ -413,10 +418,10 @@ class LoginController extends PublicController {
         }
 
         $buyerModel = new BuyerModel();
-        $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
+      /*  $checkname = $buyerModel->where("name='" . $buyer_data['name'] . "' AND deleted_flag='N' AND id != ".$where['id'])->find();
         if ($checkname) {
             jsonReturn('', -125,  ShopMsg::getMessage('-125',$lang));
-        }
+        }*/
         $res = $buyerModel->update_data($buyer_data,$where);
         if($res) {
             redisDel('improve_info_key'.$data['key']);

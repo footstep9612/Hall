@@ -472,9 +472,10 @@ class UserController extends PublicController {
         }
         if (!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
-            if (!isMobile($arr['mobile'])) {
+            /* 去掉手机格式验证 修改于2018-2-24 19:55 张玉良
+             * if (!isMobile($arr['mobile'])) {
                 $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
-            }
+            }*/
         }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];

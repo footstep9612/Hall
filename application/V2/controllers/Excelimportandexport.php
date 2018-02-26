@@ -560,11 +560,8 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getNewOrderNo() {
         $today = date('Ymd');
-        $orderNo = $this->orderModel->where(['order_no' => ['like', $today . '%']])->order('id desc')->getField('order_no');
-        if (empty($orderNo)) {
-            return $today . '0001';
-        }
-        $no = intval(substr($orderNo, 8)) + 1;
+        $orderNo = $this->orderModel->where(['order_no' => ['like', $today . '%']])->order('id DESC')->getField('order_no');
+        $no = $orderNo ? intval(substr($orderNo, 8)) + 1 : 1;
         return $this->_jointMark($today, $no);
     }
     

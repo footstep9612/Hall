@@ -1413,10 +1413,10 @@ class EsGoodsModel extends Model {
 
         try {
             $type = 'goods_' . $lang;
+            $spus = [];
             if (is_string($skus)) {
-
                 $goods_model = new GoodsModel();
-                $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
+                $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku,spu')
                                 ->where(['sku' => $skus, 'lang' => $lang])->find();
                 $sku = $skus;
                 $data = [];
@@ -1427,6 +1427,7 @@ class EsGoodsModel extends Model {
                 $data['updated_at'] = $goods_info['updated_at'];
                 $data['status'] = $goods_info['status'];
                 $type = $this->tableName . '_' . $lang;
+                $spus[] = $goods_info['spu'];
                 $es->update_document($this->dbName, $type, $data, $sku);
             } elseif (is_array($skus)) {
 
@@ -1435,8 +1436,9 @@ class EsGoodsModel extends Model {
                 $updateParams['index'] = $this->dbName;
                 $updateParams['type'] = 'goods_' . $lang;
                 $goods_model = new GoodsModel();
-                $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
+                $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku,spu')
                                 ->where(['sku' => ['in', $skus], 'lang' => $lang])->select();
+
                 foreach ($goods_list as $goods_info) {
                     $data = [];
                     $data['deleted_flag'] = strval($goods_info['deleted_flag']);
@@ -1445,6 +1447,7 @@ class EsGoodsModel extends Model {
                     $data['updated_by'] = intval($goods_info['updated_by']);
                     $data['updated_at'] = strval($goods_info['updated_at']);
                     $data['status'] = strval($goods_info['status']);
+                    $spus[] = $goods_info['spu'];
                     $updateParams['body'][] = ['update' => ['_id' => $goods_info['sku']]];
                     $updateParams['body'][] = ['doc' => $data];
                 }
@@ -1452,6 +1455,11 @@ class EsGoodsModel extends Model {
                 if (!empty($updateParams['body'])) {
                     $es->bulk($updateParams);
                 }
+            }
+
+            if ($spus && $status = 'VALID') {
+                $esproduct_model = new EsProductModel();
+                $esproduct_model->Update_Attrs($spus, $lang);
             }
             $es->refresh($this->dbName);
             return true;
