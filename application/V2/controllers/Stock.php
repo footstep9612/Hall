@@ -419,9 +419,9 @@ class StockController extends PublicController {
                 }
                 if ($val['spu'] && isset($supplier_idsBySku[$val['sku']])) {
 
-                    $val['supplier_name'] = $this->_getSuppliernames($supplier_idsBySku[$val['sku']], $suppliers);
+                    $val['supplier_names'] = $this->_getSuppliernames($supplier_idsBySku[$val['sku']], $suppliers);
                 } else {
-                    $val['supplier_name'] = '';
+                    $val['supplier_names'] = '';
                 }
 
 
