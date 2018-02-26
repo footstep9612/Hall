@@ -396,17 +396,18 @@ class StockController extends PublicController {
                 $skus[] = $val['sku'];
             }
 
-            $product_attach_model = new StockCostPriceModel();
+            $stock_cost_price_model = new StockCostPriceModel();
             $supplier_model = new SuppliersModel();
-            $stockcostprices = $product_attach_model->getCostPriceBySkus($skus, $country_bn);
+            $stockcostprices = $stock_cost_price_model->getCostPriceBySkus($skus, $country_bn);
 
-
-            $supplier_idsBySku = $product_attach_model->getSupplierIds($skus, $country_bn);
-            foreach ($supplier_idsBySku as $supplier_ids) {
-                foreach ($supplier_ids as $supplier_id) {
+            $supplier_idsBySku = $stock_cost_price_model->getSupplierIds($skus, $country_bn);
+            $supplier_ids = [];
+            foreach ($supplier_idsBySku as $supplierids) {
+                foreach ($supplierids as $supplier_id) {
                     $supplier_ids[] = $supplier_id;
                 }
             }
+
             $suppliers = $supplier_model->getSupplierNameByIds($supplier_ids);
             foreach ($arr as $key => $val) {
 
@@ -418,7 +419,6 @@ class StockController extends PublicController {
                     $val['costprices'] = '';
                 }
                 if ($val['spu'] && isset($supplier_idsBySku[$val['sku']])) {
-
                     $val['supplier_names'] = $this->_getSuppliernames($supplier_idsBySku[$val['sku']], $suppliers);
                 } else {
                     $val['supplier_names'] = '';
@@ -440,6 +440,8 @@ class StockController extends PublicController {
      */
 
     private function _getSuppliernames($supplier_ids, $suppliers) {
+
+
         foreach ($supplier_ids as $supplier_id) {
             if (isset($suppliers[$supplier_id])) {
                 $supplier_names[$supplier_id] = $suppliers[$supplier_id];
