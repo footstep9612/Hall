@@ -65,6 +65,8 @@ class StockModel extends PublicModel {
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['sku'] = $sku;
+        $where['deleted_flag'] = 'N';
+
         return $this->where($where)->field('id,floor_id')->find();
     }
 
@@ -159,13 +161,9 @@ class StockModel extends PublicModel {
         $this->startTrans();
         foreach ($skus as $sku) {
             $row = $this->getExit($country_bn, $lang, $sku);
-
             if (!$row) {
-
                 $goods_name = $this->getSpu($sku, $lang);
-
                 if (empty($goods_name['spu'])) {
-
                     return false;
                 }
                 $data = [
