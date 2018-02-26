@@ -31,12 +31,12 @@ class StockcountryController extends PublicController {
 
         $condition = $this->getPut();
         $stock_country_model = new StockCountryModel();
-
+        $lang = isset($condition['lang']) ? $condition['lang'] : 'zh';
         $list = $stock_country_model->getList($condition);
 
         if ($list) {
             $this->_setCountry($list);
-            $count = $stock_country_model->getCount($condition);
+            $count = $stock_country_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -59,7 +59,7 @@ class StockcountryController extends PublicController {
      * @desc
      */
 
-    private function _setCountry(&$arr) {
+    private function _setCountry(&$arr, $lang = 'zh') {
         if ($arr) {
             $country_model = new CountryModel();
             $market_area_country_model = new MarketAreaCountryModel();
@@ -67,8 +67,8 @@ class StockcountryController extends PublicController {
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val['country_bn']);
             }
-            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
-            $market_areas = $market_area_country_model->getAreasBybns($country_bns, 'zh');
+            $countrynames = $country_model->getNamesBybns($country_bns, $lang);
+            $market_areas = $market_area_country_model->getAreasBybns($country_bns, $lang);
             foreach ($arr as $key => $val) {
 
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
