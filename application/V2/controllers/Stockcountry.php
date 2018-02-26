@@ -70,6 +70,7 @@ class StockcountryController extends PublicController {
             $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
             $market_areas = $market_area_country_model->getAreasBybns($country_bns, 'zh');
             foreach ($arr as $key => $val) {
+
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
                     $val['country_name'] = $countrynames[trim($val['country_bn'])];
                 } else {
@@ -80,7 +81,7 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = $market_areas[trim($val['country_bn'])]['market_area_name'];
                     $val['market_area_bn'] = $market_areas[trim($val['country_bn'])]['market_area_bn'];
                 } else {
-                    $val['country_name'] = '';
+                    $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
                 $arr[$key] = $val;
