@@ -400,10 +400,11 @@ class StockController extends PublicController {
             $supplier_model = new SuppliersModel();
             $stockcostprices = $product_attach_model->getCostPriceBySkus($skus, $country_bn);
 
-            $supplier_ids = [];
-            foreach ($stockcostprices as $stockcostprice) {
-                foreach ($stockcostprice as $costprice) {
-                    $supplier_ids[] = $costprice['supplier_id'];
+
+            $supplier_idsBySku = $product_attach_model->getSupplierIds($skus, $country_bn);
+            foreach ($supplier_idsBySku as $supplier_ids) {
+                foreach ($supplier_ids as $supplier_id) {
+                    $supplier_ids[] = $supplier_id;
                 }
             }
             $suppliers = $supplier_model->getSupplierNameByIds($supplier_ids);
@@ -412,12 +413,18 @@ class StockController extends PublicController {
                 if ($val['spu'] && isset($stockcostprices[$val['sku']])) {
                     if (isset($stockcostprices[$val['sku']])) {
                         $val['costprices'] = $stockcostprices[$val['sku']];
-                        $val['supplier_names'] = $this->_getSuppliernames($stockcostprices[$val['sku']], $suppliers);
                     }
                 } else {
                     $val['costprices'] = '';
-                    $val['supplier_names'] = [];
                 }
+                if ($val['spu'] && isset($supplier_idsBySku[$val['sku']])) {
+
+                    $val['supplier_name'] = $this->_getSuppliernames($supplier_idsBySku[$val['sku']], $suppliers);
+                } else {
+                    $val['supplier_name'] = '';
+                }
+
+
                 $arr[$key] = $val;
             }
         }
@@ -432,15 +439,14 @@ class StockController extends PublicController {
      * @desc
      */
 
-    private function _getSuppliernames($stockcostprices, $suppliers) {
-        foreach ($stockcostprices as $stockcostprice) {
-            $supplier_id = $stockcostprice['supplier_id'];
+    private function _getSuppliernames($supplier_ids, $suppliers) {
+        foreach ($supplier_ids as $supplier_id) {
             if (isset($suppliers[$supplier_id])) {
                 $supplier_names[$supplier_id] = $suppliers[$supplier_id];
             }
         }
         rsort($supplier_names);
-        unset($stockcostprices, $suppliers);
+        unset($supplier_ids, $suppliers);
         return $supplier_names;
     }
 
