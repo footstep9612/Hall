@@ -567,7 +567,7 @@ class CountryModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getNamesBybns($bns) {
+    public function getNamesBybns($bns, $lang = null) {
 
         try {
             $where = [];
@@ -579,12 +579,17 @@ class CountryModel extends PublicModel {
             } else {
                 return false;
             }
-            $where['lang'] = LANG_SET;
+            if ($lang) {
+                $where['lang'] = $lang;
+            } else {
+                $where['lang'] = LANG_SET;
+            }
             $areas = $this->where($where)->field('bn,name')->select();
             $area_names = [];
             foreach ($areas as $area) {
                 $area_names[$area['bn']] = $area['name'];
             }
+
             return $area_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -663,9 +668,10 @@ class CountryModel extends PublicModel {
     /**
      * 通过集团CRM的国家名称获取country_bn和电话区号
      * 王帅
-     * @param $bn
+     * @param $country_name
      */
-    public function getCountryBnCodeByName($country_name){
-        return $this->field('bn,int_tel_code')->where(array('name'=>$country_name))->find();
+    public function getCountryBnCodeByName($country_name) {
+        return $this->field('bn,int_tel_code')->where(array('name' => $country_name))->find();
     }
+
 }
