@@ -35,7 +35,7 @@ class StockcountryController extends PublicController {
         $list = $stock_country_model->getList($condition);
 
         if ($list) {
-            $this->_setCountry($list);
+            $this->_setCountry($list, $lang);
             $count = $stock_country_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
             $this->jsonReturn($list);
