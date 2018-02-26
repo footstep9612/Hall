@@ -691,12 +691,15 @@ class EsGoodsModel extends Model {
                     $where['sku'] = ['in', $goods_skus];
                 }
                 $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
-                $spus = $skus = [];
+                $nonamespus = $spus = $skus = [];
 
                 if ($goods) {
                     foreach ($goods as $item) {
                         $skus[] = $item['sku'];
                         $spus[] = $item['spu'];
+                        if (empty($item['name']) || empty($item['show_name'])) {
+                            $nonamespus[] = $item['spu'];
+                        }
                     }
                 } else {
                     return false;
@@ -714,6 +717,8 @@ class EsGoodsModel extends Model {
                 }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
+                $product_model = new ProductModel();
+                $product_names = $product_model->getProductNames($nonamespus, $lang);
                 $goods_attach_model = new GoodsAttachModel();
                 $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
@@ -734,7 +739,7 @@ class EsGoodsModel extends Model {
 //                $updateParams['index'] = $this->dbName;
 //                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
@@ -754,7 +759,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = []) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = []) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -821,6 +826,16 @@ class EsGoodsModel extends Model {
             $body['name_loc'] = htmlspecialchars_decode($name_locs[$sku]);
         } else {
             $body['name_loc'] = '';
+        }
+        if (empty($body['show_name'])) {
+            if (isset($product_names[$spu]['show_name']) && $product_names[$spu]['show_name']) {
+                $body['show_name'] = $product_names[$spu]['show_name'];
+            }
+        }
+        if (empty($body['name'])) {
+            if (isset($product_names[$spu]['name']) && $product_names[$spu]['name']) {
+                $body['name'] = $product_names[$spu]['name'];
+            }
         }
 
         if (isset($attachs[$sku])) {
@@ -1316,6 +1331,9 @@ class EsGoodsModel extends Model {
                 foreach ($goods as $item) {
                     $skus[] = $item['sku'];
                     $spus[] = $item['spu'];
+                    if (empty($item['name']) || empty($item['show_name'])) {
+                        $nonamespus[] = $item['spu'];
+                    }
                 }
             } else {
                 return false;
@@ -1332,7 +1350,8 @@ class EsGoodsModel extends Model {
             }
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
+            $product_model = new ProductModel();
+            $product_names = $product_model->getProductNames($nonamespus, $lang);
             $goods_attach_model = new GoodsAttachModel();
             $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
@@ -1348,7 +1367,7 @@ class EsGoodsModel extends Model {
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
 
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
             }
 
             $es->refresh($this->dbName);

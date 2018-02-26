@@ -194,4 +194,35 @@ class StockCostPriceModel extends PublicModel {
         return array();
     }
 
+    /**
+     * 获取商品价格属性
+     * @param array $skus
+     * @return array|mixed
+     */
+    public function getSupplierIds($skus = [], $country_bn = null) {
+        $where = array(
+            'sku' => ['in', $skus],
+            'deleted_flag' => 'N',
+            'country_bn' => $country_bn,
+            'status' => 'VALID'
+        );
+        $field = 'sku,supplier_id';
+        $result = $this->field($field)->where($where)
+                ->order('id asc')
+                ->group('supplier_id,sku')
+                ->select();
+
+        if ($result) {
+            $data = array();
+            //按类型分组
+
+            foreach ($result as $item) {
+                $data[$item['sku']][] = $item['supplier_id'];
+            }
+            $result = $data;
+            return $result;
+        }
+        return array();
+    }
+
 }
