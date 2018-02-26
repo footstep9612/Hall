@@ -57,7 +57,10 @@ class QuoteModel extends PublicModel {
             $this->where($condition)->save($this->create($data));
             //处理计算相关逻辑
             $this->calculate($condition);
-            return true;
+            return [
+                'code'    => 1,
+                'message' => L('QUOTE_SUCCESS')
+            ];
 
         }catch (Exception $exception){
             return [
