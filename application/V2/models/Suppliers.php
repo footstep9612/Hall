@@ -88,12 +88,16 @@ class SuppliersModel extends PublicModel {
             $where['a.org_id'] = ['in', $condition['org_id'] ? : ['-1']];
         }
         
-        if (!empty($condition['agent_id'])) {
-            $where['f.agent_id'] = ['in', $condition['agent_id']];
+        if (isset($condition['agent_ids'])) {
+            $where['f.agent_id'] = ['in', $condition['agent_ids'] ? : ['-1']];
         }
         
-        if (!empty($condition['created_by'])) {
-            $where['a.created_by'] = ['in', $condition['created_by']];
+        if (isset($condition['created_ids'])) {
+            $where['a.created_by'] = ['in', $condition['created_ids'] ? : ['-1']];
+        }
+        
+        if (isset($condition['supplier_ids'])) {
+            $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
         }
 
         return $where;

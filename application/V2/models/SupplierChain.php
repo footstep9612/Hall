@@ -56,6 +56,27 @@ class SupplierChainModel extends PublicModel {
             $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
         }
         $this->_getValue($where, $condition, 'created_at', 'between');
+        $employee_model = new EmployeeModel();
+        $supplierAgentModel = new SupplierAgentModel();
+        $supplierMaterialCatModel = new SupplierMaterialCatModel();
+        // 开发人
+        if (!empty($condition['developer'])) {
+            $developerIds = $employee_model->getUserIdByName($condition['developer']);
+            $supplierIds = $developerIds ? ($supplierAgentModel->getSupplierIdsByUserIds($developerIds) ? : []) : [];
+            $where['id'] = ['in', $supplierIds ? : ['-1']];
+        }
+        // 创建人
+        if (!empty($condition['created_name'])) {
+            $where['created_by'] = ['in', $employee_model->getUserIdByName($condition['created_name']) ? : ['-1']];
+        }
+        // 供货范围
+        if (!empty($condition['cat_name'])) {
+            $catSupplierIds = $supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+            if (isset($supplierIds)) {
+                $catSupplierIds = array_merge($catSupplierIds, $supplierIds);
+            }
+            $where['id'] = ['in', array_unique($catSupplierIds) ? : ['-1']];
+        }
         if ($is_Chain) {
             if (isset($condition['org_id'])) {
 //                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
@@ -71,7 +92,6 @@ class SupplierChainModel extends PublicModel {
             }
             $this->_getValue($where, $condition, 'erui_checked_at', 'between');
             if (!empty($condition['erui_checked_name'])) {
-                $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['erui_checked_name']));
                 if ($userids) {
                     $where['erui_checked_by'] = ['in', $userids];
@@ -94,7 +114,6 @@ class SupplierChainModel extends PublicModel {
             }
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
-                $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['checked_name']));
                 if ($userids) {
                     $where['checked_by'] = ['in', $userids];

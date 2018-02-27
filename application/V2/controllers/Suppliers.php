@@ -353,12 +353,17 @@ class SuppliersController extends PublicController {
         
         // 开发人
         if ($condition['developer'] != '') {
-            $condition['agent_id'] = $this->employeeModel->getUserIdByName($condition['developer']);
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']);
         }
         
         // 创建人
         if ($condition['created_name'] != '') {
-            $condition['created_by'] = $this->employeeModel->getUserIdByName($condition['created_name']);
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']);
+        }
+        
+        // 供货范围
+        if ($condition['cat_name'] != '') {
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']);
         }
 
         $data = $this->suppliersModel->getJoinList($condition);

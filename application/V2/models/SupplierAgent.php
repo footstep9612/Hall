@@ -261,5 +261,19 @@ class SupplierAgentModel extends PublicModel {
     
         return $this->where($where)->delete();
     }
+    
+    /**
+     * @desc 根据员工ID集合获取供应商ID集合
+     *
+     * @param array $ids 员工ID集合
+     * @param string $type 类别
+     * @return mixed
+     * @author liujf
+     * @time 2018-02-27
+     */
+    public function getSupplierIdsByUserIds($ids, $type = 'DEVELOPER') {
+        $ids = $this->where(['agent_id' => ['in', $ids ? : ['-1']], 'agent_type' => $type])->getField('supplier_id', true);
+        return array_unique($ids);
+    }
 
 }
