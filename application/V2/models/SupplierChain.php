@@ -406,10 +406,11 @@ class SupplierChainModel extends PublicModel {
      * 批量更新供应商等级
      * @param mix $supplier_ids 供应商ID 数组
      * @param int $supplier_level 供应商等级
+     * @param string $supplier_note 供应商评级内容
      * @return
      * @author zyg
      */
-    public function batchUpdateLevel($supplier_ids, $supplier_level, $org_ids = []) {
+    public function batchUpdateLevel($supplier_ids, $supplier_level, $supplier_note, $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => ['in', $supplier_ids],
@@ -418,35 +419,33 @@ class SupplierChainModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 
-        //  $this->startTrans();
+        $this->startTrans();
         $flag = $this->where($where)->save($data);
-        return $flag;
-//        if (!$flag) {
-//            $this->rollback();
-//            return FALSE;
-//        }
-//        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
-//        /*
-//         * 更新日志
-//         */
-//        $supplierchecklog_model = new SupplierCheckLogModel();
-//
-//        foreach ($suppliers as $supplier) {
-//
-//            $condition = [];
-//            $condition['supplier_id'] = $supplier['id'];
-//            $condition['erui_member_flag'] = $supplier['is_erui'];
-//            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
-//
-//            $condition['rating'] = $supplier_level;
-////            $condition['note'] = '批设置供应商量等级';
-//            $flag_log = $supplierchecklog_model->create_data($condition);
-//            if (!$flag_log) {
-//                $this->rollback();
-//                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
-//            }
-//        }
-        //  $this->commit();
+        if (!$flag) {
+            $this->rollback();
+            return FALSE;
+        }
+       $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
+       /*
+        * 更新日志
+        */
+       $supplierchecklog_model = new SupplierCheckLogModel();
+
+       foreach ($suppliers as $supplier) {
+           $condition['supplier_id'] = $supplier['id'];
+           $condition['erui_member_flag'] = $supplier['is_erui'];
+           $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+           $condition['rating'] = $supplier_level;
+           $condition['group'] = 'RATING';
+           $condition['note'] = $supplier_note;
+           $flag_log = $supplierchecklog_model->create_data($condition);
+           if (!$flag_log) {
+               $this->rollback();
+               jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】评级日志失败!');
+           }
+       }
+       $this->commit();
+       return true;
     }
 
     /**
