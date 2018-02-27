@@ -134,7 +134,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where, false);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,'
+        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
                         . 'created_at')
                 ->limit($offset, $size)
                 ->where($where)
@@ -158,7 +158,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
+        $data = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,created_by,'
                         . 'org_id,is_erui,created_at')
                 ->limit($offset, $size)
                 ->where($where)
@@ -312,6 +312,7 @@ class SupplierChainModel extends PublicModel {
      */
     private function _setEruiCheckedName(&$data) {
         if ($data) {
+            $employee_model = new EmployeeModel();
             $erui_checked_bys = [];
             foreach ($data as $item) {
                 if ($item['erui_checked_by']) {
@@ -319,7 +320,6 @@ class SupplierChainModel extends PublicModel {
                 }
             }
             if ($erui_checked_bys) {
-                $employee_model = new EmployeeModel();
                 $usernames = $employee_model->getUserNamesByUserids($erui_checked_bys);
             }
             foreach ($data as $key => $val) {
@@ -328,7 +328,7 @@ class SupplierChainModel extends PublicModel {
                 } else {
                     $val['erui_checked_name'] = '';
                 }
-
+                $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
                 $data[$key] = $val;
             }
         }
@@ -342,6 +342,7 @@ class SupplierChainModel extends PublicModel {
      */
     private function _setCheckedName(&$data) {
         if ($data) {
+            $employee_model = new EmployeeModel();
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
@@ -349,7 +350,6 @@ class SupplierChainModel extends PublicModel {
                 }
             }
             if ($checked_bys) {
-                $employee_model = new EmployeeModel();
                 $usernames = $employee_model->getUserNamesByUserids($checked_bys);
             }
             foreach ($data as $key => $val) {
@@ -358,7 +358,7 @@ class SupplierChainModel extends PublicModel {
                 } else {
                     $val['checked_name'] = '';
                 }
-
+                $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
                 $data[$key] = $val;
             }
         }
