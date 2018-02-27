@@ -345,6 +345,9 @@ class OrderModel extends PublicModel {
         if(!empty($data['crm_code'])){  //newOrder-crm_code
             $info=$buyer->field('id,buyer_code,buyer_level,level_at,expiry_at')->where(array('buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'))->find();
         }
+        if(empty($info)){
+            return 'void';
+        }
         $buyer_id=$info['id'];
         $buyer_code=$info['buyer_code'];
         $buyer_level=$info['buyer_level'];
