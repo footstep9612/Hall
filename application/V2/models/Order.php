@@ -335,7 +335,6 @@ class OrderModel extends PublicModel {
      * 客户会员自动升级-wangs
      */
     public function autoUpgradeByOrder($data){
-        print_r($data);die;
         if(empty($data['buyer_id']) && empty($data['crm_code']) && empty($data['order_id'])){
             return 'param';
         }
@@ -375,6 +374,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         $sqlOrder.=" AND DATE_FORMAT(`order`.execute_date,'%Y') =  DATE_FORMAT(now(),'%Y') ";
         $order = $this->query($sqlOrder);
+        print_r($order);die;
         //erui_order
         if(!empty($order)){
             $orderRes=$this->sumAmount($order);
