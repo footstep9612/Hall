@@ -41,7 +41,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->setLang(LANG_SET);
             } else {
                 header("Content-Type: application/json");
-//                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
+                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
             }
         }
     }
