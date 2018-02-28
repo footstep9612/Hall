@@ -115,6 +115,29 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
+    public function usercountrybnredislistAction() {
+        if(!redisExist(user_country_bn_redis_list)){
+            $user_modle = new UserModel();
+            $data = $user_modle->getlist();
+            $user_arr = [];
+            foreach ($data as $k => $value){
+                $user_arr[$value['id']] =  $value['country'];
+            }
+            redisSet('user_country_bn_redis_list',json_encode($user_arr), 600);
+        }else{
+            $user_arr = json_decode(redisGet("user_country_bn_redis_list"),true);
+        }
+        if (!empty($user_arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $user_arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户角色列表
      *
