@@ -1076,12 +1076,12 @@ class EsProductModel extends Model {
                 if (is_array($items)) {
                     foreach ($items as $name => $value) {
                         if (!in_array(['name' => strtolower(trim($name)),
-                                    'value' => strtolower(trim($value))], $ret)) {
+                                    'value' => strtolower(trim($value))], $ret) && !empty($name) && !empty($value) && $value != '/') {
                             $ret[] = ['name' => strtolower(trim($name)),
                                 'value' => strtolower(trim($value))];
                         }
                     }
-                } elseif (is_string($items)) {
+                } elseif (is_string($items) && !empty($key) && !empty($items)) {
                     $ret[] = ['name' => strtolower(trim($key)),
                         'value' => strtolower(trim($items))];
                 }
