@@ -742,6 +742,6 @@ class BuyerVisitModel extends PublicModel {
         }
         //	拜访时间visit_at_start开始时间   visit_at_end结束时间条件
         $this->_getValue($condition, $data, 'visit_at', 'between'); //搜索条件end
-        return $condition;
+        return $condition;  //
     }
 }

@@ -933,7 +933,7 @@ class BuyerController extends PublicController {
     }
 
     /**
-     * 客户管理-客户档案--统计
+     * 客户管理-客户档案--4页签统计展示
      * wangs
      */
     public function showBuyerStatisAction() {
@@ -965,9 +965,9 @@ class BuyerController extends PublicController {
         $arr['credit'] = $ststisInfo;
         $arr['visit'] = $visitInfo;
         $arr['demand'] = $demandInfo;
-        $arr['order']['count'] = $orderInfo['countaccount']['count'];
-        $arr['order']['account'] = $orderInfo['countaccount']['account'];
-        $arr['order']['range'] = $orderInfo['range'];
+        $arr['order']['count'] = $orderInfo['count'];
+        $arr['order']['account'] = $orderInfo['account'];
+        $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['inquiry'] = $inquiryInfo;
         $dataJson = array(
             'code' => 1,
@@ -1115,5 +1115,24 @@ EOF;
         );
         $this->jsonReturn($dataJson);
     }
-
+    /*
+     * 客户会员自动升级-wnags
+     * */
+    public function autoUpgradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $order=new OrderModel();
+        $auto=$order->autoUpgradeByOrder($data);
+        $dataJson['code'] = 1;
+        if($auto=='senior'){
+            $dataJson['message'] = '高级';
+        }elseif($auto=='general'){
+            $dataJson['message'] = '普通';
+        }elseif($auto=='void'){
+            $dataJson['message'] = '无交易';
+        }elseif($auto=='param'){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '缺少参数';
+        }
+        $this->jsonReturn($dataJson);
+    }
 }

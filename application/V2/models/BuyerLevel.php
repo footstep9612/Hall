@@ -160,7 +160,6 @@ $row = $this->query( $sql );
         $fields = 'id, buyer_level, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             $result = $this->field($fields)->where($where)->order('id')->group('buyer_level')->select();
-
             $arr = $data = $level = array();
             if ($result) {
                 $employee = new EmployeeModel();
@@ -187,7 +186,11 @@ $row = $this->query( $sql );
             return array();
         }
     }
-
+    //等级生效的条件描述
+    public function levelByCond(){
+        $info=$this->field('lang,brief,cond')->where(array('type'=>1,'deleted_flag'=>'N'))->select();
+        return $info;
+    }
     /**
      * 新增/编辑数据
      * @param  mix $createcondition 新增条件

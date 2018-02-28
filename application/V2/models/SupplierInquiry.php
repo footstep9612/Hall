@@ -859,8 +859,9 @@ class SupplierInquiryModel extends PublicModel {
 
     private function _setProductName(&$list) {
         $skus = [];
+
         foreach ($list as $item) {
-            if ($item['sku']) {
+            if (!empty($item['sku'])) {
                 $skus[] = $item['sku'];
             }
         }
@@ -868,7 +869,7 @@ class SupplierInquiryModel extends PublicModel {
         $product_names = $goods_model->getProductNamesAndMaterialCatNoBySkus($skus);
 
         foreach ($list as $key => $item) {
-            if ($item['sku'] && isset($product_names[$item['sku']])) {
+            if (!empty($item['sku']) && isset($product_names[$item['sku']])) {
                 $list[$key]['product_name'] = $product_names[$item['sku']]['product_name'];
                 $list[$key]['material_cat_no'] = $product_names[$item['sku']]['material_cat_no'];
             }
