@@ -73,9 +73,9 @@ class SupplierChainModel extends PublicModel {
         if (!empty($condition['cat_name'])) {
             $catSupplierIds = $supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
             if (isset($supplierIds)) {
-                $catSupplierIds = array_merge($catSupplierIds, $supplierIds);
+                $catSupplierIds = array_intersect($catSupplierIds, $supplierIds);
             }
-            $where['id'] = ['in', array_unique($catSupplierIds) ? : ['-1']];
+            $where['id'] = ['in', $catSupplierIds ? : ['-1']];
         }
         if ($is_Chain) {
             if (isset($condition['org_id'])) {
