@@ -152,6 +152,7 @@ class OrderlogController extends PublicController{
         $results = $OrderLog->addData($data);
         //会员升级-start-wnags-订单order_id
         $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
+        echo 'order_id';
         $auto=new OrderModel();
         $auto->autoUpgradeByOrder($param);
         //会员升级-end

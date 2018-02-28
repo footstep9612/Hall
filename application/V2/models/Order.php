@@ -335,6 +335,7 @@ class OrderModel extends PublicModel {
      * 客户会员自动升级-wangs
      */
     public function autoUpgradeByOrder($data){
+        print_r($data);die;
         if(empty($data['buyer_id']) && empty($data['crm_code']) && empty($data['order_id'])){
             return 'param';
         }
