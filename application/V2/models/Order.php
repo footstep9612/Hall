@@ -198,7 +198,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" left join erui_order.order_log order_log";
         $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrder.=" AND (`order`.show_status='COMPLETED' or `order`.show_status='GOING')";
+        $sqlOrder.=" AND `order`.show_status='GOING'";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
@@ -208,8 +208,14 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
-//        $sqlOrder.=" AND DATE_FORMAT(`order`.execute_date,'%Y') =  DATE_FORMAT(now(),'%Y') ";
-        $order = $this->query($sqlOrder);
+        $orderi = $this->query($sqlOrder);
+        //订单已完成
+        $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
+        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+        $ordero = $this->query($sqlOrdero);
+        $order=array_merge($orderi,$ordero);
         $orderArr=$this->sumAccountAtatis($order);  //order
         $orderAmount=$orderArr['amount'];   //order arr
         $orderCount=count($orderArr['count']); //order count
@@ -410,7 +416,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" left join erui_order.order_log order_log";
         $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrder.=" AND (`order`.show_status='COMPLETED' or `order`.show_status='GOING')";
+        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
@@ -420,7 +426,14 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
-        $order = $this->query($sqlOrder);
+        $orderi = $this->query($sqlOrder);
+        //订单已完成
+        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
+        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+        $ordero = $this->query($sqlOrdero);
+        $order=array_merge($orderi,$ordero);
         //erui_order
         if(!empty($order)){
             $orderRes=$this->sumAmount($order);
