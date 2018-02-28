@@ -364,6 +364,7 @@ class OrderModel extends PublicModel {
         if($buyer_level==53 && $level_at<=$date && $date<$expiry_at){   //高级
             return 'senior';
         }
+        print_r($buyer_id);
         //订单已完成+当年订单
         $sqlOrder="select order_log.amount,`order`.currency_bn,order_log.log_at as create_time from erui_order.order `order`";
         $sqlOrder.=" left join erui_order.order_log order_log";
@@ -373,8 +374,8 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         $sqlOrder.=" AND DATE_FORMAT(`order`.execute_date,'%Y') =  DATE_FORMAT(now(),'%Y') ";
+        echo $sqlOrder;die;
         $order = $this->query($sqlOrder);
-        print_r($order);die;
         //erui_order
         if(!empty($order)){
             $orderRes=$this->sumAmount($order);
