@@ -406,9 +406,10 @@ class EsProductModel extends Model {
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $this->_getEsShowCats($showcats, $keyword, $body);
+                $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
         }
+
         return $body;
     }
 
@@ -458,7 +459,6 @@ class EsProductModel extends Model {
         $show_cat_bool = [];
 
 
-
         $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
         $body['query']['bool']['must'][] = [ESClient::NESTED =>
             [
@@ -490,9 +490,9 @@ class EsProductModel extends Model {
         } else {
             $show_cats_nested = [];
             $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERM => ['show_cats_nested.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
-                        [ESClient::TERM => ['show_cats_nested.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
-                        [ESClient::TERM => ['show_cats_nested.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
             ]]];
             if ($onshelf_flag) {
                 $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];

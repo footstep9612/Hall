@@ -260,7 +260,7 @@ class SupplierMaterialCatModel extends PublicModel {
      * @param string $material_cat_no1
      * @param array $condition
      * @return bool
-     * @author liujf
+     * @author zyg
      * @time 2017-11-11
      */
     public function getCatSupplierCount($material_cat_no1, $condition = []) {
@@ -289,6 +289,19 @@ class SupplierMaterialCatModel extends PublicModel {
         } else {
             return 0;
         }
+    }
+    
+    /**
+     * @desc 模糊查询供货范围的三级分类获取供应商ID集合
+     *
+     * @param string $name 分类名称
+     * @return mixed
+     * @author liujf
+     * @time 2018-02-27
+     */
+    public function getSupplierIdsByCat($name) {
+        $ids = $this->where(['material_cat_name3' => ['like', '%' . trim($name) . '%']])->getField('supplier_id', true);
+        return array_unique($ids);
     }
 
 }

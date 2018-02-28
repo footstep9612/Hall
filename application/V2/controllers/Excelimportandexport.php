@@ -25,6 +25,8 @@ class ExcelimportandexportController extends PublicController {
         $this->orderAttachModel = new OrderAttachModel();
         $this->orderLogModel = new OrderLogModel();
         $this->supplierModel = new SupplierModel();
+        $this->productModel = new ProductModel();
+        $this->goodsModel = new GoodsModel();
         
         $this->time = date('Y-m-d H:i:s');
         
@@ -747,35 +749,102 @@ class ExcelimportandexportController extends PublicController {
      * @desc 导出供应商数据
      *
      * @author liujf
-     * @time 2018-02-06
+     * @time 2018-02-26
      */
     public function exportSupplierDataAction() {
         $this->getPut();
         $where['a.deleted_flag'] = 'N';
+        $where['a.status'] = 'APPROVED';
         $supplierList = $this->supplierModel->alias('a')
-                                                                        ->field('a.name, a.checked_by, a.created_by, b.name AS org_name')
-                                                                        ->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
+                                                                        ->field('a.id, a.name, a.social_credit_code, a.created_at, a.created_by, a.erui_status, a.checked_by, b.material_cat_name3')
+                                                                        //->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
+                                                                        ->join('erui_supplier.supplier_material_cat b ON a.id = b.supplier_id', 'LEFT')
                                                                         ->where($where)
                                                                         ->order('a.id DESC')
                                                                         ->select();
         $date = date("Ymd");
         $fileName = "supplier-$date.xlsx";
         $titleList = [
+            '供应商ID',
             '公司名称',
-            '所属事业部',
-            '审核人',
+            '营业执照编码',
+            '注册时间',
             '创建人',
+            '审核状态',
+            //'所属事业部',
+            '审核人',
+            '英语SPU数量',
+            '中文SPU数量',
+            '英语SKU数量',
+            '中文SKU数量',
+            '供货范围',
+        ];
+        $status = [
+            'CHECKING' => '待审核',
+            'VALID' => '审核通过'
         ];
         $outData = [];
         foreach ($supplierList as $supplier) {
             $outData[] = [
+                ['value' => $supplier['id']],
                 ['value' => $supplier['name']],
-                ['value' => $supplier['org_name']],
-                ['value' => $this->employeeModel->getUserNameById($supplier['checked_by'])],
+                ['value' => $supplier['social_credit_code']],
+                ['value' => $supplier['created_at']],
                 ['value' => $this->employeeModel->getUserNameById($supplier['created_by'])],
+                ['value' => $status[$supplier['erui_status']]],
+                ['value' => $this->employeeModel->getUserNameById($supplier['checked_by'])],
+                ['value' => $this->_getSupplierSpuCount($supplier['id'], 'en')],
+                ['value' => $this->_getSupplierSpuCount($supplier['id'], 'zh')],
+                ['value' => $this->_getSupplierSkuCount($supplier['id'], 'en')],
+                ['value' => $this->_getSupplierSkuCount($supplier['id'], 'zh')],
+                ['value' => $supplier['material_cat_name3']],
             ];
         }
         $this->_exportExcel($fileName, $titleList, $outData);
+    }
+    
+    /**
+     * @desc 获取供应商SPU数量
+     *
+     * @param int $supplierId 供应商ID
+     * @param string $lang 语言
+     * @author liujf
+     * @time 2018-02-26
+     */
+    private function _getSupplierSpuCount($supplierId, $lang) {
+        $where = [
+            'a.deleted_flag' => 'N',
+            'a.lang' => $lang,
+            'b.supplier_id' => $supplierId,
+            'b.deleted_flag' => 'N',
+        ];
+        $count = $this->productModel->alias('a')
+                                                               ->join('erui_goods.product_supplier b ON a.spu = b.spu', 'LEFT')
+                                                               ->where($where)
+                                                               ->count('a.id');
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取供应商SKU数量
+     *
+     * @param int $supplierId 供应商ID
+     * @param string $lang 语言
+     * @author liujf
+     * @time 2018-02-26
+     */
+    private function _getSupplierSkuCount($supplierId, $lang) {
+        $where = [
+            'a.deleted_flag' => 'N',
+            'a.lang' => $lang,
+            'b.supplier_id' => $supplierId,
+            'b.deleted_flag' => 'N',
+        ];
+        $count = $this->goodsModel->alias('a')
+                                                            ->join('erui_goods.goods_supplier b ON a.sku = b.sku', 'LEFT')
+                                                            ->where($where)
+                                                            ->count('a.id');
+        return $count > 0 ? $count : 0;
     }
     
     /**
