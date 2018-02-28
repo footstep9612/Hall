@@ -345,10 +345,9 @@ class SuppliersController extends PublicController {
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
         if (!$isErui) {
-            // 非易瑞部门的看他所在事业部和易瑞的
-            $orgErui = $this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true);
+            // 非易瑞事业部门的看他所在事业部和易瑞的
             $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
-            $condition['org_id'] = array_merge($orgErui, $orgUb ? : []);
+            $condition['org_id'] = $orgUb ? array_merge($this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
         }
         
         // 开发人
