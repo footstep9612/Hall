@@ -188,13 +188,13 @@ class OrderModel extends PublicModel {
     public function statisOrder($buyer_id){
 //        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account,min(amount) as `min`,max(amount) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
 //        $sql = "select amount,currency_bn from `erui_order`.`order` where buyer_id=$buyer_id AND deleted_flag='N'";
-        $sqlOrder="select order_payment.order_id,order_payment.amount,`order`.currency_bn from erui_order.order `order`";
-        $sqlOrder.=" left join erui_order.order_payment order_payment";
-        $sqlOrder.=" on order.id=order_payment.order_id";
+        $sqlOrder="select order_log.order_id,order_log.amount,`order`.currency_bn from erui_order.order `order`";
+        $sqlOrder.=" left join erui_order.order_log order_log";
+        $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
         $sqlOrder.=" AND (`order`.show_status='COMPLETED' or `order`.show_status='GOING')";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
-        $sqlOrder.=" AND order_payment.deleted_flag='N'";
+        $sqlOrder.=" AND order_log.deleted_flag='N'";
         $sqlOrder.=" AND DATE_FORMAT(`order`.execute_date,'%Y') =  DATE_FORMAT(now(),'%Y') ";
         $order = $this->query($sqlOrder);
         $orderArr=$this->sumAccountAtatis($order);  //order
@@ -335,8 +335,15 @@ class OrderModel extends PublicModel {
      * 客户会员自动升级-wangs
      */
     public function autoUpgradeByOrder($data){
-        if(empty($data['buyer_id']) && empty($data['crm_code'])){
+        if(empty($data['buyer_id']) && empty($data['crm_code']) && empty($data['order_id'])){
             return 'param';
+        }
+        if(!empty($data['order_id'])){
+            $order_id=$data['order_id'];
+            $sql="select buyer_id from erui_order.order where id=$order_id and deleted_flag='N' and (show_status='GOING' or show_status='COMPLETED') limit 1";
+            $orderOld=$this->query($sql);
+            $buyer_id=$orderOld[0]['buyer_id'];
+            $data['buyer_id']=$buyer_id;
         }
         $buyer=new BuyerModel();
         if(!empty($data['buyer_id'])){  //order-buyer_id
@@ -358,13 +365,13 @@ class OrderModel extends PublicModel {
             return 'senior';
         }
         //订单已完成+当年订单
-        $sqlOrder="select order_payment.amount,`order`.currency_bn,order_payment.payment_at as create_time from erui_order.order `order`";
-        $sqlOrder.=" left join erui_order.order_payment order_payment";
-        $sqlOrder.=" on order.id=order_payment.order_id";
+        $sqlOrder="select order_log.amount,`order`.currency_bn,order_log.log_at as create_time from erui_order.order `order`";
+        $sqlOrder.=" left join erui_order.order_log order_log";
+        $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
         $sqlOrder.=" AND (`order`.show_status='COMPLETED' or `order`.show_status='GOING')";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
-        $sqlOrder.=" AND order_payment.deleted_flag='N'";
+        $sqlOrder.=" AND order_log.deleted_flag='N'";
         $sqlOrder.=" AND DATE_FORMAT(`order`.execute_date,'%Y') =  DATE_FORMAT(now(),'%Y') ";
         $order = $this->query($sqlOrder);
         //erui_order

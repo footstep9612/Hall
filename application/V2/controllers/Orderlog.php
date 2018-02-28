@@ -150,6 +150,11 @@ class OrderlogController extends PublicController{
             }
         }
         $results = $OrderLog->addData($data);
+        //会员升级-start-wnags-订单order_id
+        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
         if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
             $order_model->where($where)->setField(['pay_status'=>'PARTPAY']);
         }
@@ -188,7 +193,11 @@ class OrderlogController extends PublicController{
 
         $OrderLog->startTrans();
         $results = $OrderLog->updateData($data);
-
+        //会员升级-start-wnags-订单order_id
+        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
         if($results['code'] == 1){
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
