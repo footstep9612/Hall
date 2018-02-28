@@ -695,6 +695,11 @@ class OrderController extends PublicController {
                 }
             }
         }
+        //会员升级-start-wnags
+        $param['buyer_id']=isset($data['buyer_id'])?$data['buyer_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
     }
 
     /**

@@ -1806,10 +1806,10 @@ EOF;
         foreach($info as $key => $value){
             foreach($orderRes as $k => $v){
                 if($value['id']==$k){
-                    $info[$key]['order_count']=$v['countaccount']['count'];
-                    $info[$key]['order_account']=$v['countaccount']['account'];
-                    $info[$key]['min_range']=$v['range']['min'];
-                    $info[$key]['max_range']=$v['range']['max'];
+                    $info[$key]['order_count']=$v['count'];
+                    $info[$key]['order_account']=$v['account'];
+                    $info[$key]['min_range']=$v['min'];
+                    $info[$key]['max_range']=$v['max'];
                 }
             }
         }
