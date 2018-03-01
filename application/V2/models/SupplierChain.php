@@ -488,10 +488,10 @@ class SupplierChainModel extends PublicModel {
         $condition['group'] = 'RATING';
         $condition['note'] = $supplier_note;
         $rating_log = $supplierchecklog_model->create_data($condition);
-        if (!$flag_log && !$rating_log && $this->error) {
+        if ((!$flag_log || !$rating_log) && $this->error) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, $this->error);
-        } elseif (!$flag_log) {
+        } elseif ((!$flag_log || !$rating_log)) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {
