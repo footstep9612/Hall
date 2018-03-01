@@ -208,12 +208,12 @@ class OrderModel extends PublicModel {
 //            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
 //            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
 //        }
-        $orderi = $this->query($sqlOrder);
+        $order = $this->query($sqlOrder);
         //订单已完成
-        $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
-        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
-        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+//        $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
+//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
 //        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
 //            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
 //            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
@@ -221,8 +221,8 @@ class OrderModel extends PublicModel {
 //            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
 //            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
 //        }
-        $ordero = $this->query($sqlOrdero);
-        $order=array_merge($orderi,$ordero);
+//        $ordero = $this->query($sqlOrdero);
+//        $order=array_merge($orderi,$ordero);
         $orderArr=$this->sumAccountAtatis($order);  //order
         $orderAmount=$orderArr['amount'];   //order arr
         $orderCount=count($orderArr['count']); //order count
@@ -435,7 +435,6 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
         $order = $this->query($sqlOrder);
-        print_r($order);die;
         //订单已完成
 //        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
 //        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
