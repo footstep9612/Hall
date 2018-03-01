@@ -201,26 +201,26 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" AND `order`.show_status='GOING'";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
         $orderi = $this->query($sqlOrder);
         //订单已完成
         $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
         $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
         $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
         $sqlOrdero.=" AND `order`.deleted_flag='N'";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
         $ordero = $this->query($sqlOrdero);
         $order=array_merge($orderi,$ordero);
         $orderArr=$this->sumAccountAtatis($order);  //order
@@ -540,7 +540,7 @@ class OrderModel extends PublicModel {
         }
         $arr['num']=$num;   //总交易
         $arr['Single']=$oneArr;   //50万以上交易集合
-        $arr['time']=end($time);
+        $arr['time']=reset($time);
         return $arr;
     }
     //会员自动升级end---------------------------------------------------------------------------------------
