@@ -198,7 +198,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" left join erui_order.order_log order_log";
         $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrder.=" AND `order`.show_status='GOING'";
+//        $sqlOrder.=" AND `order`.show_status='GOING'";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
 //        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
@@ -424,7 +424,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" left join erui_order.order_log order_log";
         $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
+//        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
@@ -435,6 +435,7 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
         $order = $this->query($sqlOrder);
+        print_r($order);die;
         //订单已完成
 //        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
 //        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
