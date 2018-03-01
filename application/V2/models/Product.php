@@ -2039,7 +2039,10 @@ class ProductModel extends PublicModel {
     }
 
     private function checkValidSku($spu, $lang) {
-        return (new GoodsModel)->where(['spu' => $spu, 'lang' => $lang, 'status' => 'VALID'])->count();
+        return (new GoodsModel)->where(['spu' => $spu,
+                    'lang' => $lang,
+                    'deleted_flag' => 'N',
+                    'status' => 'VALID'])->count();
     }
 
     public function getProductNames($spus, $lang = 'en') {
