@@ -234,13 +234,13 @@ class OrderModel extends PublicModel {
         $sqlNewOrder.=" and (`order`.status=4 or `order`.status=3)";
         $sqlNewOrder.=" and `order`.delete_flag=0";
         $sqlNewOrder.=" and order_account.del_yn=1";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
         $newOrder=$this->query($sqlNewOrder);
         $orderNewArr=$this->sumAccountAtatis($newOrder);    //newOrder
         $orderNewAmount=$orderNewArr['amount'];   //newOrder arr
@@ -434,21 +434,21 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
-        $orderi = $this->query($sqlOrder);
+        $order = $this->query($sqlOrder);
         //订单已完成
-        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
-        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
-        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
-        $sqlOrdero.=" AND `order`.deleted_flag='N'";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
-        $ordero = $this->query($sqlOrdero);
-        $order=array_merge($orderi,$ordero);
+//        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
+//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+//        $ordero = $this->query($sqlOrdero);
+//        $order=array_merge($orderi,$ordero);
         //erui_order
         if(!empty($order)){
             $orderRes=$this->sumAmount($order);
@@ -497,6 +497,9 @@ class OrderModel extends PublicModel {
         $one=0;
         $oneArr=array();
         foreach($amount as $k => $v){
+            if(empty($v['currency_bn'])){
+                $v['currency_bn']='USD';
+            }
             if($v['currency_bn']=='USD'){   //一次交易50万=高级
                 $one=$v['amount'];
             }elseif($v['currency_bn']=='CNY'){
