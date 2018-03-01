@@ -951,7 +951,7 @@ class InquiryModel extends PublicModel {
             $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
             
             return $this->alias('a')
-                                ->field('a.id, a.serial_no, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                                ->field('a.id, a.serial_no, a.buyer_code, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
                                 ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
