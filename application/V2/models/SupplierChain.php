@@ -77,6 +77,7 @@ class SupplierChainModel extends PublicModel {
             }
             $where['id'] = ['in', $catSupplierIds ? : ['-1']];
         }
+        $this->_getValue($where, $condition, 'supplier_level');
         if ($is_Chain) {
             if (isset($condition['org_id'])) {
 //                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
