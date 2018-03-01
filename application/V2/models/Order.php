@@ -318,7 +318,7 @@ class OrderModel extends PublicModel {
     }
     //会员自动升级start-------------------------------------------------------------------------------------
     public function autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderRes){
-        $level_at=$at['level_at'];
+        $level_at_prev=$at['level_at_prev'];
         $expiry_at=$at['expiry_at'];
         $date=$at['date'];
         $prev=$at['prev'];
@@ -332,7 +332,7 @@ class OrderModel extends PublicModel {
         $sqlNewOrder.=" and `order`.delete_flag=0";
         $sqlNewOrder.=" and order_account.del_yn=1";
         if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
             $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
         }else{
             $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
@@ -408,11 +408,12 @@ class OrderModel extends PublicModel {
         $buyer_code=$info['buyer_code'];
         $buyer_level=$info['buyer_level'];
         $level_at=$info['level_at'];    //会员定级日期
+        $level_at_prev=(substr($level_at,0,4)-1).substr($level_at,4,10);    //会员定级日期
         $expiry_at=$info['expiry_at'];  //会员过期日期
         $date=date('Y-m-d');    //今天
         $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
         //时间参数
-        $at['level_at']=$level_at;
+        $at['level_at_prev']=$level_at_prev;
         $at['expiry_at']=$expiry_at;
         $at['date']=$date;
         $at['prev']=$prev;
@@ -428,7 +429,7 @@ class OrderModel extends PublicModel {
         $sqlOrder.=" AND `order`.deleted_flag='N'";
         $sqlOrder.=" AND order_log.deleted_flag='N'";
         if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
         }else{
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
