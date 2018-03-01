@@ -112,6 +112,11 @@ class OrderController extends PublicController {
             $orderModel = new OrderModel();
             $complete_at=date('Y-m-d H:i:s');
             $ret = $orderModel->where(['id' => $id])->setField(['show_status' => 'COMPLETED', 'pay_status' => 'PAY','complete_at'=>$complete_at]);
+            //会员升级-start-wnags-订单order_id
+            $param['order_id']=isset($data['id'])?$data['id']:'';
+            $auto=new OrderModel();
+            $auto->autoUpgradeByOrder($param);
+            //会员升级-end
             $this->jsonReturn(['code' => 1, 'message' => '处理完成']);
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);

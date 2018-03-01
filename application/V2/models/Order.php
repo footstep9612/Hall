@@ -214,6 +214,13 @@ class OrderModel extends PublicModel {
         $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
         $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
         $sqlOrdero.=" AND `order`.deleted_flag='N'";
+        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+        }else{
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+        }
         $ordero = $this->query($sqlOrdero);
         $order=array_merge($orderi,$ordero);
         $orderArr=$this->sumAccountAtatis($order);  //order
@@ -432,6 +439,13 @@ class OrderModel extends PublicModel {
         $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
         $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
         $sqlOrdero.=" AND `order`.deleted_flag='N'";
+        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+        }else{
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+        }
         $ordero = $this->query($sqlOrdero);
         $order=array_merge($orderi,$ordero);
         //erui_order
