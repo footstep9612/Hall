@@ -1025,7 +1025,8 @@ class InquiryModel extends PublicModel {
             ->select();
         if(empty($arr)){
             $data = array(
-                'count'=>0,
+                'inquiry_count'=>0,
+                'quote_count'=>0,
                 'account'=>0
             );
             return $data;
@@ -1037,13 +1038,21 @@ class InquiryModel extends PublicModel {
         }
         $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select FORMAT(sum(total_purchase),2) as total_purchase from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select count(id) AS quote_id,FORMAT(sum(total_purchase),2) as total_purchase from erui_rfq.quote where inquiry_id in ($str)";
         $info = $quote->query($sql);
-
-        $data = array(
-            'count'=>$count,
-            'account'=>$info[0]['total_purchase']
-        );
+        if(empty($info)){
+            $data = array(
+                'inquiry_count'=>0,
+                'quote_count'=>0,
+                'account'=>0
+            );
+        }else{
+            $data = array(
+                'inquiry_count'=>$count,
+                'quote_count'=>$info[0]['quote_id'],
+                'account'=>$info[0]['total_purchase']
+            );
+        }
         return $data;
     }
     

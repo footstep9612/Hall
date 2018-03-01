@@ -186,21 +186,21 @@ class OrderModel extends PublicModel {
      * wangs
      */
     public function statisOrder($buyer_id){
-        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
-        $buyer=$this->query($sql);
-        $level_at=$buyer[0]['level_at'];
-        $expiry_at=$buyer[0]['expiry_at'];
-        $date=date('Y-m-d');    //今天
-        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
+//        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
+//        $buyer=$this->query($sql);
+//        $level_at=$buyer[0]['level_at'];
+//        $expiry_at=$buyer[0]['expiry_at'];
+//        $date=date('Y-m-d');    //今天
+//        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
 //        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account,min(amount) as `min`,max(amount) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
 //        $sql = "select amount,currency_bn from `erui_order`.`order` where buyer_id=$buyer_id AND deleted_flag='N'";
-        $sqlOrder="select order_log.order_id,order_log.amount,`order`.currency_bn from erui_order.order `order`";
-        $sqlOrder.=" left join erui_order.order_log order_log";
-        $sqlOrder.=" on order.id=order_log.order_id";
+        $sqlOrder="select `order`.id AS order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
+//        $sqlOrder.=" left join erui_order.order_log order_log";
+//        $sqlOrder.=" on order.id=order_log.order_id";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
 //        $sqlOrder.=" AND `order`.show_status='GOING'";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
-        $sqlOrder.=" AND order_log.deleted_flag='N'";
+//        $sqlOrder.=" AND order_log.deleted_flag='N'";
 //        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
 //            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
 //            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
