@@ -367,8 +367,14 @@ class OrderlogController extends PublicController{
     public function deleteAction() {
         $OrderLog = new OrderLogModel();
         $where = $this->put_data;
-
         $results = $OrderLog->deleteData($where);
+        //会员升级-start-wnags-订单order_id
+        $log=new OrderLogModel();
+        $order=$log->field('order_id')->where(array('id'=>$where['id'][0]))->find();
+        $param['order_id']=isset($order['order_id'])?$order['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
 
         $this->jsonReturn($results);
     }
