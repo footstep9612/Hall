@@ -110,7 +110,8 @@ class OrderController extends PublicController {
         if (isset($data['id']) && $data['id'] > 0) {
             $id = intval($data['id']);
             $orderModel = new OrderModel();
-            $ret = $orderModel->where(['id' => $id])->setField(['show_status' => 'COMPLETED', 'pay_status' => 'PAY','complete_at'=>time()]);
+            $complete_at=date('Y-m-d H:i:s');
+            $ret = $orderModel->where(['id' => $id])->setField(['show_status' => 'COMPLETED', 'pay_status' => 'PAY','complete_at'=>$complete_at]);
             $this->jsonReturn(['code' => 1, 'message' => '处理完成']);
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
