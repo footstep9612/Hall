@@ -453,10 +453,11 @@ class SupplierChainModel extends PublicModel {
      * 供应链审核
      * @param int $supplier_id 供应商ID 数组
      * @param int $supplier_level 供应商等级
+     * @param string $supplier_note 供应商评级内容
      * @return
      * @author zyg
      */
-    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_ids = []) {
+    public function ChainChecked($supplier_id, $supplier_level, $supplier_note, $is_erui = 'N', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
@@ -484,10 +485,13 @@ class SupplierChainModel extends PublicModel {
         $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
         $condition['rating'] = $supplier_level;
         $flag_log = $supplierchecklog_model->create_data($condition);
-        if (!$flag_log && $this->error) {
+        $condition['group'] = 'RATING';
+        $condition['note'] = $supplier_note;
+        $rating_log = $supplierchecklog_model->create_data($condition);
+        if ((!$flag_log || !$rating_log) && $this->error) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, $this->error);
-        } elseif (!$flag_log) {
+        } elseif ((!$flag_log || !$rating_log)) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {
