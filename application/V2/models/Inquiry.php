@@ -1043,9 +1043,9 @@ class InquiryModel extends PublicModel {
         $res=$this->sumAccountQuote($info);
         $amount=array_sum($res['amount']);
         $qCount=count($res['count']);
-        if(empty($res['count'])){
+        if(empty($res['count']) && empty($res['amount'])){
             $data = array(
-                'inquiry_count'=>0,
+                'inquiry_count'=>$count,
                 'quote_count'=>0,
                 'account'=>0
             );
