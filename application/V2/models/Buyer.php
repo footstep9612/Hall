@@ -1746,7 +1746,8 @@ EOF;
 //            $arr[$k]['quarter_visit'] = $v['quarter_visit'];    //季度访问次数
 //            $arr[$k]['month_visit'] = $v['month_visit'];    //月访问次数
 //            $arr[$k]['week_visit'] = $v['week_visit'];      //周访问次数
-            $arr[$k]['inquiry_count'] = $v['inquiry_count'];    //询报价数量
+            $arr[$k]['inquiry_count'] = $v['inquiry_count'];    //询价数量
+            $arr[$k]['quote_count'] = $v['quote_count'];    //报价金额
             $arr[$k]['inquiry_account'] = $v['inquiry_account'];    //询报价金额
             $arr[$k]['order_count'] = $v['order_count'];    //订单数量
             $arr[$k]['order_account'] = $v['order_account'];    //订单金额
@@ -1795,7 +1796,8 @@ EOF;
         foreach($info as $key => $value){
             foreach($inquiryRes as $k => $v){
                 if($value['id']==$k){
-                    $info[$key]['inquiry_count']=$v['count'];
+                    $info[$key]['inquiry_count']=$v['inquiry_count'];
+                    $info[$key]['quote_count']=$v['quote_count'];
                     $info[$key]['inquiry_account']=$v['account'];
                 }
             }
@@ -1979,9 +1981,9 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询报价数量', '询报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
-            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
+            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quotes', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
         //创建对象
         $excel = new PHPExcel();

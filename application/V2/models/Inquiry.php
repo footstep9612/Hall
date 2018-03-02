@@ -1050,7 +1050,7 @@ class InquiryModel extends PublicModel {
             $data = array(
                 'inquiry_count'=>$count,
                 'quote_count'=>$info[0]['quote_id'],
-                'account'=>$info[0]['total_purchase']
+                'account'=>isset($info[0]['total_purchase'])?$info[0]['total_purchase']:0
             );
         }
         return $data;
