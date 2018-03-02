@@ -347,7 +347,7 @@ class OrderModel extends PublicModel {
                 $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
                 $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
             }
-            $sqlNewOrder.=" and order by order_account.payment_date";
+            $sqlNewOrder.=" order by order_account.payment_date";
             $newOrder=$this->query($sqlNewOrder);   //订单所有回款
         }
 
