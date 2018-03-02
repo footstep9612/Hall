@@ -435,6 +435,7 @@ class OrderModel extends PublicModel {
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
             $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
+        $sqlOrder.=" order by order_log.log_at";
         $order = $this->query($sqlOrder);
         //订单已完成
 //        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
