@@ -55,10 +55,10 @@ class ShowCatProductModel extends PublicModel {
 
     /**
      * 产品上架
-     * @param array $spu spu编码 必填
-     * @param string $lang 语言  必填
-     * @param array $cat_no 展示分类  选填
-     * @author link
+     * @param string $spu SPU 必填
+     * @param string $lang  语言 必填
+     * @param array $cat_no  展示分类 选填
+     * @return array|bool
      * @example: onShelf(array('000001'),'en',array('001','002'));
      */
     public function onShelf($spu = '', $lang = '', $cat_no = []) {
@@ -128,7 +128,13 @@ class ShowCatProductModel extends PublicModel {
                         }
 
                         //检查上架
-                        $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+                        $exist = $this->field('id')->where(array(
+                            'spu' => $data_tmp['spu'],
+                            'cat_no' => $data_tmp['cat_no'],
+                            'lang' => $data_tmp['lang'],
+                            'onshelf_flag' => self::STATUS_ONSHELF
+                        ))->where("status != 'DELETED' ")->find();
+
                         if ($exist) {
                             continue;
                         }
@@ -180,12 +186,21 @@ class ShowCatProductModel extends PublicModel {
                     $data_tmp['status'] = self::STATUS_VALID;    //这里上架默认状态是有效的，按常规说应该是审核。
                     $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     $data_tmp['created_at'] = date('Y-m-d H:i:s', time());
+
                     if (is_array($r)) {
                         $data_tmp['cat_no'] = $r['show_cat_no'];
                     } else {
                         $data_tmp['cat_no'] = $r;
                     }
-                    $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+
+                    //检查上架
+                    $exist = $this->field('id')->where(array(
+                        'spu' => $data_tmp['spu'],
+                        'cat_no' => $data_tmp['cat_no'],
+                        'lang' => $data_tmp['lang'],
+                        'onshelf_flag' => self::STATUS_ONSHELF
+                    ))->where("status != 'DELETED' ")->find();
+
                     if ($exist) {
                         continue;
                     }
