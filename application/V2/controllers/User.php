@@ -36,7 +36,12 @@ class UserController extends PublicController {
             $where['role_id'] = trim($data['role_id']);
         }
         if (!empty($data['role_no'])) {
-            $where['role_no'] = trim($data['role_no']);
+           //$where['role_no'] = trim($data['role_no']);
+            $role_no = explode(",", $data['role_no']);
+            for ($i = 0; $i < count($role_no); $i++) {
+                $where['role_no'] = $where['role_no'] . "'" . $role_no[$i] . "',";
+            }
+            $where['role_no'] = rtrim($where['role_no'], ",");
         }
         if (!empty($data['status'])) {
             $where['status'] = trim($data['status']);
@@ -74,7 +79,6 @@ class UserController extends PublicController {
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
-
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
