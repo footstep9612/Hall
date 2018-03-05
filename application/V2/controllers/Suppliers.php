@@ -438,6 +438,9 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierContactInfoAction() {
         $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -739,6 +742,9 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierQualificationInfoAction() {
         $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -765,6 +771,9 @@ class SuppliersController extends PublicController {
 
             if ($item['issue_date'] == '')
                 $item['issue_date'] = null;
+            
+            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
+                jsonReturn('', -101, '到期时间不能为空!');
 
             if (strlenUtf8($item['issuing_authority']) > 50)
                 jsonReturn('', -101, '您输入的发证机构长度超过限制!');
@@ -795,6 +804,12 @@ class SuppliersController extends PublicController {
                 if ($flag)
                     $flag = false;
             }
+        }
+        
+        // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
+        $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
+        if ($expiryDateCount > 30) {
+            $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING']);
         }
 
         if ($flag) {
