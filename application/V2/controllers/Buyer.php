@@ -1135,5 +1135,17 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
-    
+    protected function testUpgradeAction(){
+        set_time_limit(0);
+        $model=new BuyerModel();
+        $buyer=$model->field('id as buyer_id')->where(array('deleted_flag'=>'N'))->select();
+        $order=new OrderModel();
+        $arr=[];
+        foreach($buyer as $k => $v){
+            $auto=$order->autoUpgradeByOrder($v);
+            $arr[]=$auto;
+        }
+        print_r(count($arr));
+        print_r($arr);
+    }
 }
