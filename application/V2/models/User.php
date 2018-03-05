@@ -49,7 +49,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND role_member.role_id =' . $condition['role_id'];
         }
         if (!empty($condition['role_no'])) {
-            $sql .= ' AND role.role_no =\'' . $condition['role_no'] . '\'';
+            $sql .= ' AND role.role_no in (' . $condition['role_no'] . ')';
         }
         if (!empty($condition['role_name'])) {
             $sql .= ' AND role.name like \'%' . $condition['role_name'] . '%\'';
