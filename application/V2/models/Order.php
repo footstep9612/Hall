@@ -331,26 +331,15 @@ class OrderModel extends PublicModel {
 //        $sqlNewOrder.=" and `order`.status=3";
         $sqlNewOrder.=" and `order`.delete_flag=0";
         $sqlNewOrder.=" and order_account.del_yn=1";
-        $newOrder=$this->query($sqlNewOrder);   //订单所有回款
-        if(!empty($newOrder)){
-            $sqlNewOrder="select `order`.id,crm_code,currency_bn,order_account.money as amount, order_account.payment_date as create_time from erui_new_order.order `order`";
-            $sqlNewOrder.=" left join erui_new_order.order_account order_account";
-            $sqlNewOrder.=" on `order`.id=order_account.order_id";
-            $sqlNewOrder.=" where `order`.crm_code='$buyer_code'";
-//        $sqlNewOrder.=" and `order`.status=3";
-            $sqlNewOrder.=" and `order`.delete_flag=0";
-            $sqlNewOrder.=" and order_account.del_yn=1";
-            if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-                $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
-                $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-            }else{
-                $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-                $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-            }
-            $sqlNewOrder.=" order by order_account.payment_date";
-            $newOrder=$this->query($sqlNewOrder);   //订单所有回款
+        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+        }else{
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
         }
-
+        $sqlNewOrder.=" order by order_account.payment_date";
+        $newOrder=$this->query($sqlNewOrder);   //订单所有回款
         if(empty($orderRes) && empty($newOrder)){   //order&&newOrder=null
             $this->autoUpgrade($buyer_id,null,null);
             return 'void';
