@@ -326,6 +326,8 @@ class ShowcatController extends PublicController {
         $redis3 = new phpredis($rconfig);
         $keys = $redis3->getKeys('ShowCats_*');
         $redis3->delete($keys);
+        $eruikeys = $redis3->getKeys('eruiShowCats_*');
+        $redis3->delete($eruikeys);
         unset($redis3);
     }
 
@@ -439,6 +441,34 @@ class ShowcatController extends PublicController {
         }
     }
 
+    public function updateiconAction() {
+        $data = $this->getPut();
+        $cat_no = $this->getPut('cat_no');
+        if (empty($cat_no)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('物料分类编码不能为空!');
+            $this->jsonReturn();
+        } else {
+            $info = $this->_model->where(['cat_no' => $cat_no])->find();
+            if (intval($info['level_no'])) {
+
+            } else {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('分类编码对应的分类不存在!');
+                $this->jsonReturn();
+            }
+        }
+        $result = $this->_model->updateico_data($cat_no, $data);
+        if ($result) {
+            $this->delcache();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($result);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
     public function deleteAction() {
         $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang', '');
@@ -517,4 +547,52 @@ class ShowcatController extends PublicController {
         }
     }
 
+    /*
+     * 更新展示分类编码规则，临时方法，只用一次
+     * 张玉良
+     * 2018-2-10
+     */
+    public function updateShowCats(){
+        $show_cat = new ShowCatModel();
+        $show_cat_goods = new ShowCatGoodsModel();
+        $show_cat_product = new ShowCatProductModel();
+        $country_bn = $this->getPut('country_bn');
+        $show_cat_res = $show_cat->field('id,cat_no')->where('country_bn='.$country_bn)->select();
+
+        if(!empty($show_cat_res)){
+            $show_cat->startTrans();
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            foreach($show_cat_res as $val){
+                if(strlen($val['cat_no'])<7){
+                    $a = substr($val['cat_no'],0,2);
+                    $b = substr($val['cat_no'],2,2);
+                    $c = substr($val['cat_no'],4,2);
+                    $cat_no_arr = $a.':'.$b.':'.$c;
+
+                    $re = $show_cat->where('id='.$val['id'])->save(['cat_no'=>$cat_no_arr]);
+                    if($re){
+                        $re2 = $show_cat_goods->where('cat_no='.$val['cat_no'])->save(['cat_no'=>$cat_no_arr]);
+                        if(!$re2){
+                            $show_cat->rollback();
+                            $results['code'] = '-101';
+                            $results['message'] = '失败！';
+                        }
+                        $re3 = $show_cat_product->where('cat_no='.$val['cat_no'])->save(['cat_no'=>$cat_no_arr]);
+                        if(!$re3){
+                            $show_cat->rollback();
+                            $results['code'] = '-101';
+                            $results['message'] = '失败！';
+                        }
+                    }else{
+                        $show_cat->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '失败！';
+                    }
+                }
+            }
+            $show_cat->commit();
+            $this->jsonReturn($results);
+        }
+    }
 }

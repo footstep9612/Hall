@@ -46,6 +46,9 @@ class StockController extends PublicController {
             $this->_setCountry($list);
             $this->_setConstPrice($list, $condition['country_bn']);
             $this->_setShowcats($list, $lang, $condition['country_bn']);
+            $this->_setUser($list);
+            $count = $stock_model->getCount($condition, $lang);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -139,6 +142,107 @@ class StockController extends PublicController {
         } else {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 新加现货
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateStockAction() {
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $sku = $this->getPut('sku');
+        if (empty($sku)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择现货商品!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        $stock = $this->getPut('stock');
+        if (empty($stock)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('库存不能为空!');
+            $this->jsonReturn();
+        }
+        if (intval($stock) < 0) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('库存必须是大于零的整数!');
+            $this->jsonReturn();
+        }
+        $stock_model = new StockModel();
+        $flag = $stock_model->UpdateStock($country_bn, $sku, $lang, $stock);
+
+
+        if ($flag) {
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('更新失败!');
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 新加现货
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function UpdateSortAction() {
+        $country_bn = $this->getPut('country_bn');
+        if (empty($country_bn)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $sku = $this->getPut('sku');
+        if (empty($sku)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择现货商品!');
+            $this->jsonReturn();
+        }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+
+        $sort_order = $this->getPut('sort_order', 0);
+
+        $stock_model = new StockModel();
+        $flag = $stock_model->UpdateSort($country_bn, $sku, $lang, $sort_order);
+
+
+        if ($flag) {
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('更新失败!');
             $this->jsonReturn();
         }
     }
@@ -292,28 +396,35 @@ class StockController extends PublicController {
                 $skus[] = $val['sku'];
             }
 
-            $product_attach_model = new StockCostPriceModel();
+            $stock_cost_price_model = new StockCostPriceModel();
             $supplier_model = new SuppliersModel();
-            $stockcostprices = $product_attach_model->getCostPriceBySkus($skus, $country_bn);
+            $stockcostprices = $stock_cost_price_model->getCostPriceBySkus($skus, $country_bn);
 
+            $supplier_idsBySku = $stock_cost_price_model->getSupplierIds($skus, $country_bn);
             $supplier_ids = [];
-            foreach ($stockcostprices as $stockcostprice) {
-                foreach ($stockcostprice as $costprice) {
-                    $supplier_ids[] = $costprice['supplier_id'];
+            foreach ($supplier_idsBySku as $supplierids) {
+                foreach ($supplierids as $supplier_id) {
+                    $supplier_ids[] = $supplier_id;
                 }
             }
+
             $suppliers = $supplier_model->getSupplierNameByIds($supplier_ids);
             foreach ($arr as $key => $val) {
 
                 if ($val['spu'] && isset($stockcostprices[$val['sku']])) {
                     if (isset($stockcostprices[$val['sku']])) {
                         $val['costprices'] = $stockcostprices[$val['sku']];
-                        $val['supplier_names'] = $this->_getSuppliernames($stockcostprices[$val['sku']], $suppliers);
                     }
                 } else {
                     $val['costprices'] = '';
-                    $val['supplier_names'] = [];
                 }
+                if ($val['spu'] && isset($supplier_idsBySku[$val['sku']])) {
+                    $val['supplier_names'] = $this->_getSuppliernames($supplier_idsBySku[$val['sku']], $suppliers);
+                } else {
+                    $val['supplier_names'] = '';
+                }
+
+
                 $arr[$key] = $val;
             }
         }
@@ -328,15 +439,16 @@ class StockController extends PublicController {
      * @desc
      */
 
-    private function _getSuppliernames($stockcostprices, $suppliers) {
-        foreach ($stockcostprices as $stockcostprice) {
-            $supplier_id = $stockcostprice['supplier_id'];
+    private function _getSuppliernames($supplier_ids, $suppliers) {
+
+
+        foreach ($supplier_ids as $supplier_id) {
             if (isset($suppliers[$supplier_id])) {
                 $supplier_names[$supplier_id] = $suppliers[$supplier_id];
             }
         }
         rsort($supplier_names);
-        unset($stockcostprices, $suppliers);
+        unset($supplier_ids, $suppliers);
         return $supplier_names;
     }
 
@@ -365,6 +477,44 @@ class StockController extends PublicController {
                 }
                 $arr[$key] = $val;
             }
+        }
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUser(&$arr) {
+        $user_ids = [];
+
+        //  $esgoods = new EsGoodsModel();
+        foreach ($arr as $key => $item) {
+            if ($item['created_by']) {
+                $user_ids[] = $item['created_by'];
+            }
+            if ($item['updated_by']) {
+                $user_ids[] = $item['updated_by'];
+            }
+        }
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        foreach ($arr as $key => $val) {
+            if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                $val['created_by_name'] = $usernames[$val['created_by']];
+            } else {
+                $val['created_by_name'] = '';
+            }
+            if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                $val['updated_by_name'] = $usernames[$val['updated_by']];
+            } else {
+                $val['updated_by_name'] = '';
+            }
+            $arr[$key] = $val;
         }
     }
 

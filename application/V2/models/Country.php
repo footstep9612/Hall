@@ -73,7 +73,7 @@ class CountryModel extends PublicModel {
                     ->join('erui_operation.market_area_country mac on c.bn=mac.country_bn', 'left')
                     ->join('erui_operation.market_area ma on ma.bn=mac.market_area_bn and ma.lang=c.lang and ma.deleted_flag=\'N\'', 'left')
                     ->join('erui_dict.region r on r.bn=c.region_bn and r.lang=c.lang and r.deleted_flag=\'N\'', 'left')
-                    ->field('c.id,c.lang,c.bn,c.name,c.time_zone,c.region_bn,r.name as region_name,'
+                    ->field('c.id,c.lang,c.bn,c.name,c.int_tel_code,c.time_zone,c.region_bn,r.name as region_name,'
                             . 'ma.name as market_area_name ,mac.market_area_bn,c.int_tel_code')
                     ->where($where);
             if ($type) {
@@ -567,7 +567,7 @@ class CountryModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getNamesBybns($bns) {
+    public function getNamesBybns($bns, $lang = null) {
 
         try {
             $where = [];
@@ -579,12 +579,17 @@ class CountryModel extends PublicModel {
             } else {
                 return false;
             }
-            $where['lang'] = 'zh';
+            if ($lang) {
+                $where['lang'] = $lang;
+            } else {
+                $where['lang'] = LANG_SET;
+            }
             $areas = $this->where($where)->field('bn,name')->select();
             $area_names = [];
             foreach ($areas as $area) {
                 $area_names[$area['bn']] = $area['name'];
             }
+
             return $area_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -658,6 +663,15 @@ class CountryModel extends PublicModel {
         } catch (Exception $e) {
             return [];
         }
+    }
+
+    /**
+     * 通过集团CRM的国家名称获取country_bn和电话区号
+     * 王帅
+     * @param $country_name
+     */
+    public function getCountryBnCodeByName($country_name) {
+        return $this->field('bn,int_tel_code')->where(array('name' => $country_name))->find();
     }
 
 }

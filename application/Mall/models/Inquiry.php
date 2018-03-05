@@ -16,44 +16,34 @@ class InquiryModel extends PublicModel {
         parent::__construct();
     }
 
-
-
-    /**
-     * @param  int $inquiryNo 询单号.
-     * 验证询单号是否存在
-     * @author zhangyuliang
+    /*
+     * 检查流程编码是否存在　－在用
+     * @param string $serial_no  流水号
+     * @return true/false
+     * @author link    2017-12-19
      */
-    public function checkInquiryNo($inquiryNo) {
-        if (!empty($inquiryNo)) {
-            $where['inquiry_no'] = $inquiryNo;
+
+    public function checkSerialNo($serial_no) {
+        if (!empty($serial_no)) {
+            $where['serial_no'] = $serial_no;
         } else {
             return false;
         }
 
         try {
-            $info = $this->field('id')->where($where)->find();
-            if (!empty($info)) {
-                $results['code'] = '-101';
-                $results['message'] = '询单号已经存在！';
-            } else {
-                $results['code'] = '1';
-                $results['message'] = '没有找到询单号!';
-            }
-            return $results;
+            $id = $this->field('id')->where($where)->find();
+            return $id ? false : true ;
         } catch (Exception $e) {
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
-            return $results;
+            return false;
         }
     }
 
     /**
-     * @param  添加询单/添加sku询单项明细.
+     * @param  添加询单/添加sku询单项明细.　　－在用
      * 验证询单号是否存在
-     * @author zhangyuliang
+     * @author link
      */
-    public function addInquiry($data, $buyerInfo) {
-
+    public function addInquiry($data) {
         $this->startTrans();
         try {
             $res = $this->addData($data);
@@ -67,15 +57,17 @@ class InquiryModel extends PublicModel {
             //添加sku询单项明细
             $InquiryItemModel = new InquiryItemModel();
             if ($res['code'] == 1 && isset($data['arr_sku']) && !empty($data['arr_sku'])) {
+                $scModel = new ShoppingCarModel();
                 foreach ($data['arr_sku'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
-                    $item['created_by'] = $buyerInfo;
+                    $item['created_by'] = $data['buyer_id'];
                     $resItem = $InquiryItemModel->addData($item);
                     if (!$resItem || $resItem['code'] != 1) {
-
                         $this->rollback();
                         return false;
                     }
+                    //清询单车
+                    $scModel->clear($item['sku'],$data['buyer_id'],0);
                 }
             }
             //添加附件询单
@@ -83,13 +75,24 @@ class InquiryModel extends PublicModel {
             if ($res['code'] == 1 && isset($data['files_attach']) && !empty($data['files_attach'])) {
                 foreach ($data['files_attach'] as $item) {
                     $item['inquiry_id'] = $res['data']['id'];
-                    $item['created_by'] = $buyerInfo;
+                    $item['created_by'] = $data['buyer_id'];
                     $resAttach = $inquiryAttachModel->addData($item);
                     if (!$resAttach || $resAttach['code'] != 1) {
 
                         $this->rollback();
                         return false;
                     }
+                }
+            }
+            //添加询单联系人信息
+            $inquiryContactModel = new InquiryContactModel();
+            if ($res['code'] == 1 && isset($data['arr_contact']) && !empty($data['arr_contact'])) {
+                $data['arr_contact']['inquiry_id'] = $res['data']['id'];
+                $data['arr_contact']['created_by'] = $data['buyer_id'];
+                $resContact = $inquiryContactModel->addData($data['arr_contact']);
+                if (!$resContact || $resContact['code'] != 1) {
+                    $this->rollback();
+                    return false;
                 }
             }
             $this->commit();
@@ -122,6 +125,17 @@ class InquiryModel extends PublicModel {
 //                break;
 //        }
 
+        switch ($condition['status']) {
+            case'waiting_for_quotation':
+                $where['quote_status'] = ['notin', ['QUOTED', 'COMPLETED']];
+                break;
+            case'quotation_finished':
+                $where['quote_status'] = ['in', ['QUOTED', 'COMPLETED']];
+                break;
+            default :
+                break;
+        }
+
         if (!empty($condition['term'])) {
             $where['trade_terms_bn'] = $condition['term'];    //贸易术语简称
         }
@@ -136,6 +150,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['buyer_id'])) {
             $where['buyer_id'] = $condition['buyer_id'];  //客户名称
+        } else {
+            jsonReturn('',-104,'用户ID不能为空!');
         }
 
         if (!empty($condition['agent_id'])) {
@@ -146,8 +162,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('gt', $condition['start_time']),
-                array('lt', $condition['end_time'])
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
@@ -247,12 +263,8 @@ class InquiryModel extends PublicModel {
         if (empty($data['est_delivery_date']) || !strtotime($data['est_delivery_date'])) {
             unset($data['est_delivery_date']);
         }
-        if (!empty($condition['buyer_no'])) {
-            $data['buyer_code'] = $condition['buyer_no'];
-        } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有采购商编号!';
-            return $results;
+        if (!empty($condition['buyer_code'])) {
+            $data['buyer_code'] = $condition['buyer_code'];
         }
 //        if (!empty($condition['buyer_account_id'])) {
 //            $data['buyer_account_id'] = $condition['buyer_account_id'];
@@ -282,9 +294,17 @@ class InquiryModel extends PublicModel {
             $results['message'] = '没有国家简称!';
             return $results;
         }
+        //根据客户查询市场负责人
+        $bagentModel = new BuyerAgentModel();
+        $agentIds = $bagentModel->getAgentIdByBuyerId($condition['buyer_id']);
+        if($agentIds){
+            $data['agent_id'] = $agentIds[0]['agent_id'];
+            $data['now_agent_id'] = $agentIds[0]['agent_id'];
+        }
         $data['status'] = 'DRAFT';
         $data['quote_status'] = 'NOT_QUOTED';
         $data['created_at'] = $this->getTime();
+        $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);

@@ -180,6 +180,11 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
+        $buyer_model = new BuyerModel();
+        $res = $buyer_model->field('deleted_flag')->where(['official_email'=>$where['email']])->find();
+        if($res && $res['deleted_flag'] == 'Y'){
+            jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
+        }
         //$where['status'] = 'VALID';
         $row = $this->where($where)->find();
         return $row;
@@ -260,10 +265,8 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['show_name'])) {
             $arr['show_name'] = $create['show_name'];
         }
-        if (isset($create['status'])) {
-            $arr['status'] = $create['status'];
-        }
         $arr['created_at'] = Date("Y-m-d H:i:s");
+        $arr['status']='DRAFT';
         $data = $this->create($arr);
         return $this->add($data);
     }
@@ -272,9 +275,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data, $userId) {
-        if (!empty($userId['buyer_id'])) {
-            $where['buyer_id'] = $userId['buyer_id'];
+    public function checkPassword($data) {
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }

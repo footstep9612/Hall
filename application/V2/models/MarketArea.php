@@ -291,7 +291,7 @@ class MarketAreaModel extends PublicModel {
             } else {
                 return false;
             }
-            $where['lang'] = 'zh';
+            $where['lang'] = LANG_SET;
             $areas = $this->where($where)->field('bn,name')->select();
 
 

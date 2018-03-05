@@ -21,7 +21,12 @@ class NotificationController extends PublicController
 
         $inquiry = new InquiryModel();
 
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' ")->order('id DESC')->field('id,serial_no,inflow_time,status,quote_status,country_bn')->page($page, $pagesize)->select();
+        $list = $inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])
+                        ->where("status !='INQUIRY_CLOSED' and status !='QUOTE_SENT'")
+                        ->order('id DESC')
+                        ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
+                        ->page($page, $pagesize)
+                        ->select();
 
         foreach ($list as &$item){
             $item['remind_count'] = count($this->remindList($item['id']));
@@ -31,8 +36,8 @@ class NotificationController extends PublicController
 
         $this->jsonReturn([
             'code'    => 1,
-            'message' => '成功!',
-            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' ")->field('id')->select()),
+            'message' => L('NOTIFICATION_SUCCESS'),
+            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' and status !='QUOTE_SENT'")->field('id')->select()),
             'data'    => $list
         ]);
 
@@ -61,7 +66,10 @@ class NotificationController extends PublicController
             'created_at' => date('Y-m-d H:i:s')
         ]));
 
-        $this->jsonReturn();
+        $this->jsonReturn([
+            'code'     => 1,
+            'message' => L('NOTIFICATION_SUCCESS')
+        ]);
 
     }
 
@@ -87,17 +95,17 @@ class NotificationController extends PublicController
     {
         if (!empty($rolaArr)){
             if ($rolaArr['is_agent'] == 'Y'){
-                return "市场经办人";
+                return L('NOTIFICATION_AGENT');
             }elseif ($rolaArr['is_check'] == 'Y'){
-                return "报价审核人";
+                return L('NOTIFICATION_CHECK');
             }elseif ($rolaArr['is_country_agent'] == 'Y'){
-                return "区域负责人";
+                return L('NOTIFICATION_COUNTRY_AGENT');
             }elseif ($rolaArr['is_erui'] == 'Y'){
-                return "易瑞分单员";
+                return L('NOTIFICATION_ERUI');
             }elseif ($rolaArr['is_issue'] == 'Y'){
-                return "事业部分单员";
+                return L('NOTIFICATION_ISSUE');
             }elseif ($rolaArr['is_quote'] == 'Y'){
-                return "报价人";
+                return L('NOTIFICATION_QUOTE');
             }
         }
     }
@@ -120,7 +128,7 @@ class NotificationController extends PublicController
         $hour = round( ($distance % 86400) / 3600 );
         $minut = round( ($distance % 3600) / 60 );
 
-        $distance_str = $day."天".$hour."小时".$minut."分钟";
+        $distance_str = $day.L('NOTIFICATION_DAYS').$hour.L('NOTIFICATION_HOURS').$minut.L('NOTIFICATION_MINUTES');
         return $distance_str;
 
     }

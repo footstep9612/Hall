@@ -77,14 +77,14 @@ class EsProductModel extends Model {
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$name => ['gte' => $created_at_start, 'lt' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lt' => $created_at_end,]]];
             }
         }
     }
@@ -246,8 +246,8 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH, 'tech_paras', 'tech_paras.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'source_detail', 'source_detail.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'keywords', 'keywords.' . $analyzer);
-
-
+        $this->_getQureyByBool($condition, $body, ESClient::TERM, 'relation_flag', 'relation_flag');
+        $this->_getQureyByBool($condition, $body, ESClient::TERM, 'recommend_flag', 'recommend_flag');
 
         $this->_getQurey($condition, $body, ESClient::TERM, 'created_by');
         $this->_getQurey($condition, $body, ESClient::TERM, 'updated_by');
@@ -291,8 +291,10 @@ class EsProductModel extends Model {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
+
+
         if (isset($condition['show_name']) && $condition['show_name']) {
             $show_name = trim($condition['show_name']);
             $body['query']['bool']['must'][] = [ESClient::MATCH_PHRASE => ['show_name.' . $analyzer => ['query' => $name, 'boost' => 1, 'operator' => 'and']]];
@@ -738,10 +740,10 @@ class EsProductModel extends Model {
             $onshelf_flags = $this->table('erui_goods.show_cat_product')
                             ->field('spu,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
-                                    . ' ,max(updated_by) as min_updated_by'
+                                    . ' ,max(updated_by) as max_updated_by'
                                     . ',max(updated_at) as max_updated_at'
-                                    . ' ,max(checked_by) as min_checked_by'
-                                    . ' ,max(checked_by) as min_checked_at')
+                                    . ' ,max(checked_by) as max_checked_by'
+                                    . ' ,max(checked_by) as max_checked_at')
                             ->where(['spu' => ['in', $spus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('spu')->select();
             $ret = [];
@@ -888,11 +890,15 @@ class EsProductModel extends Model {
         $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
 
         $body = $item;
+        $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['tech_paras'] = htmlspecialchars_decode($item['tech_paras']);
+        $body['exe_standard'] = htmlspecialchars_decode($item['exe_standard']);
+        $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $item['brand'] = str_replace("\t", '', str_replace("\n", '', str_replace("\r", '', $item['brand'])));
         if (json_decode($item['brand'], true)) {
             $body['brand'] = json_decode($item['brand'], true);
         } elseif ($item['brand']) {
-            $body['brand'] = ['lang' => $lang, 'name' => $item['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = ['lang' => $lang, 'name' => trim($item['brand']), 'logo' => '', 'manufacturer' => ''];
         } else {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
@@ -941,20 +947,28 @@ class EsProductModel extends Model {
         } else {
             $body['show_cats'] = [];
         }
+        $body['show_cats_nested'] = $body['show_cats'];
 
         if ($es_product && ($es_product['_source']['brand'] != $body['brand'] || $es_product['_source']['material_cat_no'] !== $item['material_cat_no'])) {
             $this->BatchSKU($spu, $lang, $body['brand'], $body['brand_childs'], $item['material_cat_no'], $body['material_cat'], $body['material_cat_zh']);
         }
         if (isset($name_locs[$spu]) && $name_locs[$spu]) {
-            $body['name_loc'] = $name_locs[$spu];
+            $body['name_loc'] = htmlspecialchars_decode($name_locs[$spu]);
         } else {
             $body['name_loc'] = '';
         }
         if (isset($product_attrs[$spu])) {
             $attrs = $product_attrs[$spu];
             $attrs = $this->_setattrs($attrs);
-            $body['attrs'] = $attrs;
+            $body['attrs'] = new stdClass(); // $attrs;
+            if ($attrs['spec_attrs']) {
+                $body['spec_attrs'] = $attrs['spec_attrs'];
+            } else {
+                $body['spec_attrs'] = [];
+            }
         } else {
+            $body['spec_attrs'] = [];
+
             $body['attrs'] = new stdClass();
         }
         if (isset($minimumorderouantitys[$id])) {
@@ -971,15 +985,15 @@ class EsProductModel extends Model {
         }
         if (isset($onshelf_flags[$id])) {
             $body['onshelf_flag'] = 'Y';
-            if ($onshelf_flags[$id]['checked_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['checked_by'];
-            } elseif ($onshelf_flags[$id]['updated_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['updated_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['updated_by'];
-            } elseif ($onshelf_flags[$id]['created_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['created_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['created_by'];
+            if ($onshelf_flags[$id]['max_checked_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_checked_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_checked_at'];
+            } elseif ($onshelf_flags[$id]['max_updated_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_updated_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
+            } elseif ($onshelf_flags[$id]['max_created_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_at'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';
@@ -1027,21 +1041,21 @@ class EsProductModel extends Model {
         } else {
             $ret['spec_attrs'] = [];
         }
-        if (!empty($attrs['ex_goods_attrs'])) {
-            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
-        } else {
-            $ret['ex_goods_attrs'] = [];
-        }
-        if (!empty($attrs['ex_hs_attrs'])) {
-            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
-        } else {
-            $ret['ex_hs_attrs'] = [];
-        }
-        if (!empty($attrs['other_attrs'])) {
-            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
-        } else {
-            $ret['other_attrs'] = [];
-        }
+//        if (!empty($attrs['ex_goods_attrs'])) {
+//            $ret['ex_goods_attrs'] = $this->_formatattr($attrs['ex_goods_attrs']);
+//        } else {
+//            $ret['ex_goods_attrs'] = [];
+//        }
+//        if (!empty($attrs['ex_hs_attrs'])) {
+//            $ret['ex_hs_attrs'] = $this->_formatattr($attrs['ex_hs_attrs']);
+//        } else {
+//            $ret['ex_hs_attrs'] = [];
+//        }
+//        if (!empty($attrs['other_attrs'])) {
+//            $ret['other_attrs'] = $this->_formatattr($attrs['other_attrs']);
+//        } else {
+//            $ret['other_attrs'] = [];
+//        }
         return $ret;
     }
 
@@ -1058,9 +1072,19 @@ class EsProductModel extends Model {
         $attrs_arr = json_decode($attrs_json, true);
         $ret = [];
         if ($attrs_arr) {
-            foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => $name,
-                    'value' => $value];
+            foreach ($attrs_arr as $key => $items) {
+                if (is_array($items)) {
+                    foreach ($items as $name => $value) {
+                        if (!in_array(['name' => strtolower(trim($name)),
+                                    'value' => strtolower(trim($value))], $ret) && !empty($name) && !empty($value) && $value != '/') {
+                            $ret[] = ['name' => strtolower(trim($name)),
+                                'value' => strtolower(trim($value))];
+                        }
+                    }
+                } elseif (is_string($items) && !empty($key) && !empty($items)) {
+                    $ret[] = ['name' => strtolower(trim($key)),
+                        'value' => strtolower(trim($items))];
+                }
             }
         }
         return $ret;
@@ -1581,7 +1605,9 @@ class EsProductModel extends Model {
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
                     $updateParams['body'][] = ['update' => ['_id' => $item['_id']]];
-                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($item['_source']['spu'], $lang)]];
+                    $updateParams['body'][] = ['doc' => ['show_cats' => $this->getshowcats($item['_source']['spu'], $lang),
+                            'show_cats_nested' => $this->getshowcats($item['_source']['spu'], $lang)
+                    ]];
                 }
 
                 $es = new ESClient();
@@ -1674,25 +1700,66 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function Update_Attrs($spu, $lang = 'en') {
+    public function Update_Attrs($spus, $lang = 'en') {
         $es = new ESClient();
-        if (empty($spu)) {
+        if (empty($spus)) {
             return false;
         }
-        $product_attr_model = new ProductAttrModel();
-        $product_attrs = $product_attr_model->getproduct_attrbyspus([$spu], $lang);
+        if (is_string($spus)) {
+            $product_attr_model = new ProductAttrModel();
+            $product_attrs = $product_attr_model->getproduct_attrbyspus([$spus], $lang);
 
-        $id = $spu;
-        $data['attrs'] = $this->_getValue($product_attrs, $spu, [], 'json');
-        if ($data['attrs'][0]['spec_attrs']) {
-            $data['specs'] = $data['attrs'][0]['spec_attrs'];
-        } else {
-            $data['specs'] = json_encode([]);
+            $id = $spus;
+            if (isset($product_attrs[$spus])) {
+                $attrs = $product_attrs[$spus];
+                $attrs = $this->_setattrs($attrs);
+                $data['attrs'] = new stdClass(); // $attrs;
+                if ($attrs['spec_attrs']) {
+                    $data['spec_attrs'] = $attrs['spec_attrs'];
+                } else {
+                    $data['spec_attrs'] = [];
+                }
+            } else {
+                $data['spec_attrs'] = [];
+
+                $data['attrs'] = new stdClass();
+            }
+            $type = $this->tableName . '_' . $lang;
+            $es->update_document($this->dbName, $type, $data, $id);
+
+            return true;
+        } elseif (is_array($spus)) {
+            $updateParams = [];
+            $updateParams['index'] = $this->dbName;
+            $updateParams['type'] = 'product_' . $lang;
+            $product_attr_model = new ProductAttrModel();
+            $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang);
+            foreach ($spus as $spu) {
+                $data = [];
+                if (isset($product_attrs[$spus])) {
+                    $attrs = $product_attrs[$spus];
+                    $attrs = $this->_setattrs($attrs);
+                    $data['attrs'] = new stdClass(); // $attrs;
+                    if ($attrs['spec_attrs']) {
+                        $data['spec_attrs'] = $attrs['spec_attrs'];
+                    } else {
+                        $data['spec_attrs'] = [];
+                    }
+                } else {
+                    $data['spec_attrs'] = [];
+
+                    $data['attrs'] = new stdClass();
+                }
+                $updateParams['body'][] = ['update' => ['_id' => $spu]];
+                $updateParams['body'][] = ['doc' => $data];
+            }
+
+            if (!empty($updateParams['body'])) {
+                $es->bulk($updateParams);
+            }
+
+            return true;
         }
-        $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
-
-        return true;
     }
 
     /* 更新附件
@@ -1810,11 +1877,13 @@ class EsProductModel extends Model {
             $data['onshelf_flag'] = 'N';
             $data['deleted_flag'] = 'Y';
             $data['show_cats'] = [];
+            $data['show_cats_nested'] = [];
 
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $spu);
+            unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
@@ -1828,13 +1897,15 @@ class EsProductModel extends Model {
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
+
                 $data['onshelf_flag'] = 'N';
                 $data['deleted_flag'] = 'Y';
                 $data['show_cats'] = [];
-
+                $data['show_cats_nested'] = [];
                 $data['status'] = self::STATUS_DELETED;
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
+                unset($data['show_cats_nested']);
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [
@@ -1942,20 +2013,33 @@ class EsProductModel extends Model {
         $type = 'product_' . $lang;
         if (is_string($spus)) {
             $spu = $spus;
-
+            $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
             $data = [];
             $data['onshelf_flag'] = $onshelf_flag;
             $data['onshelf_by'] = $onshelf_by;
             $data['show_cats'] = $this->getshowcats($spu, $lang);
+            $data['show_cats_nested'] = $data['show_cats'];
             $data['onshelf_at'] = date('Y-m-d H:i:s');
             $type = $this->tableName . '_' . $lang;
             $es->update_document($this->dbName, $type, $data, $spu);
+            unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
             $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            if ($data['show_cats']) {
+                $show_cat = new ShowCatModel();
+                foreach ($data['show_cats'] as $showcat) {
+                    $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no3'], $lang);
+                }
+            } elseif (!empty($es_product['_source']['show_cats'])) {
+                $show_cat = new ShowCatModel();
+                foreach ($es_product['_source']['show_cats'] as $showcat) {
+                    $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no3'], $lang);
+                }
+            }
         } elseif (is_array($spus)) {
             $show_cat_product_model = new ShowCatProductModel();
             $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang);
@@ -1971,20 +2055,35 @@ class EsProductModel extends Model {
                 } else {
                     $data['show_cats'] = [];
                 }
+                $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
 
                 rsort($data['show_cats']);
+                $data['show_cats_nested'] = $data['show_cats'];
                 $data['onshelf_at'] = date('Y-m-d H:i:s');
                 $updateParams['body'][] = ['update' => ['_id' => $spu]];
                 $updateParams['body'][] = ['doc' => $data];
+                unset($data['show_cats_nested']);
                 $esgoodsdata = [
                     "doc" => $data,
                     "query" => ['bool' => [ESClient::MUST => [
                                 [ESClient::TERM => ["spu" => $spu]],
                 ]]]];
                 $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+                if ($data['show_cats']) {
+                    $show_cat = new ShowCatModel();
+                    foreach ($data['show_cats'] as $showcat) {
+                        $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no3'], $lang);
+                    }
+                } elseif (!empty($es_product['_source']['show_cats'])) {
+                    $show_cat = new ShowCatModel();
+                    foreach ($es_product['_source']['show_cats'] as $showcat) {
+                        $show_cat->UpdateSpuCountByShowCatNo($showcat['cat_no3'], $lang);
+                    }
+                }
             }
             $ret = $es->bulk($updateParams);
         }
+
         $es->refresh($this->dbName);
         $this->_delcache();
         return true;
@@ -2053,6 +2152,11 @@ class EsProductModel extends Model {
             'K' => 'exe_standard',
             'L' => 'warranty',
             'M' => 'keywords',
+            'N' => 'material_cat',
+            'O' => 'show_cat',
+            'P' => 'created_at',
+            'Q' => 'checked_at',
+            'R' => 'onshelf_at',
         ];
     }
 
@@ -2099,7 +2203,6 @@ class EsProductModel extends Model {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Export failed:' . $e, Log::ERR);
             return false;
         }
-
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
         rmdir($tmpDir);
         $dirName = $tmpDir . $date;
@@ -2170,18 +2273,46 @@ class EsProductModel extends Model {
         $objSheet->getColumnDimension('C')->setWidth(25);
         $objSheet->setTitle('SPU导出_' . ($xlsNum + 1) . '_' . $lang);
         $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
-        $objSheet->getStyle("N1")->getFont()->setBold(true);    //粗体
-        $objSheet->setCellValue("N1", '审核状态');
 
+        $objSheet->setCellValue("N1", '物料分类');
+        $objSheet->setCellValue("O1", '展示分类');
+        $objSheet->setCellValue("P1", '创建时间');
+        $objSheet->setCellValue("Q1", '审核时间');
+        $objSheet->setCellValue("R1", '上架时间');
+        $objSheet->setCellValue("S1", '审核状态');
+        $objSheet->getStyle("S1")->getFont()->setBold(true);    //粗体
         $keys = $this->_getKeys();
-        $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand', 'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty', 'status', 'bizline'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
+
+        $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
+            'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
+            'status', 'bizline', 'created_at', 'material_cat', 'show_cats', 'checked_at', 'onshelf_at'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
 
         foreach ($result as $j => $item) {
             foreach ($keys as $letter => $key) {
 
+
+
                 if ($key === 'brand' && isset($item['brand']['name']) && $item['brand']['name']) {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['brand']['name']);
+                } elseif ($key === 'material_cat' && $item['material_cat']) {
+
+                    $material_cat = (isset($item['material_cat']['cat_name1']) ? $item['material_cat']['cat_name1'] : '') . '/'
+                            . (isset($item['material_cat']['cat_name2']) ? $item['material_cat']['cat_name2'] : '') . '/'
+                            . (isset($item['material_cat']['cat_name3']) ? $item['material_cat']['cat_name3'] : '') . '-'
+                            . $item['material_cat_no'];
+                    $objSheet->setCellValue($letter . ($j + 2), $material_cat);
+                } elseif ($key === 'show_cat' && $item['show_cats']) {
+                    $show_cats = null;
+                    foreach ($item['show_cats'] as $show_cat) {
+                        $show_cats .= (isset($show_cat['cat_name1']) ? $show_cat['cat_name1'] : '') . '/'
+                                . (isset($item['material_cat']['cat_name2']) ? $show_cat['cat_name2'] : '') . '/'
+                                . (isset($show_cat['cat_name3']) ? $show_cat['cat_name3'] : '') . '-'
+                                . $show_cat['cat_no3'] . PHP_EOL;
+                    }
+
+
+                    $objSheet->setCellValue($letter . ($j + 2), $show_cats);
                 } elseif ($key === 'bizline' && isset($item['bizline']['name']) && $item['bizline']['name']) {
 
                     $objSheet->setCellValue($letter . ($j + 2), $item['bizline']['name']);
@@ -2215,10 +2346,10 @@ class EsProductModel extends Model {
                     $status = $item['status'];
                     break;
             }
-            $objSheet->setCellValue("N" . ($j + 2), ' ' . $status);
+            $objSheet->setCellValue("S" . ($j + 2), ' ' . $status);
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:N' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:S' . ($j + 2))->applyFromArray($styleArray);
 
         $objSheet->freezePaneByColumnAndRow(3, 2);
 //
@@ -2229,6 +2360,7 @@ class EsProductModel extends Model {
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $objWriter->save($dirName . '/' . $date . '_' . ($xlsNum + 1) . '_' . $lang . '.xls');
         unset($objPHPExcel, $objSheet);
+
         return true;
     }
 

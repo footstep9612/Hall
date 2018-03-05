@@ -31,14 +31,14 @@ class UrlPermModel extends PublicModel {
     public function getlist($data,$limit,$order='sort desc') {
         if(!empty($limit)){
             //,'false' as check
-            return $this->field("id,fn,fn_group,show_name,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
+            return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         }else{
             //,'false' as `check`
-            return $this->field("id,fn,fn_group,show_name,url,remarks,sort,parent_id,grant_flag,created_by,created_at")
+            return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")
                 ->where($data)
                 ->order($order)
                 ->select();
@@ -55,7 +55,7 @@ class UrlPermModel extends PublicModel {
         $where['id'] = $id;
         if(!empty($where['id'])){
             $row = $this->where($where)
-                ->field('id,fn,fn_group,show_name,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
+                ->field('id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
                 ->find();
             return $row;
         }else{

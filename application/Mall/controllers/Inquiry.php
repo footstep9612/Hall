@@ -9,7 +9,7 @@
 class InquiryController extends PublicController {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 
@@ -31,15 +31,11 @@ class InquiryController extends PublicController {
     public function addAction() {
         $inquiry = new InquiryModel();
         $data = $this->getPut();
-
-        $inquiryNo = $inquiry->checkInquiryNo($data['inquiry_no']);
-        if ($inquiryNo['code'] == 1) {
+        if ($inquiry->checkSerialNo($data['serial_no'])) {
             $data['buyer_id'] = $this->user['buyer_id'];
             $data['inquirer'] = $this->user['user_name'];
             $data['inquirer_email'] = $this->user['email'];
-            $buyerInfo = $this->user['buyer_id'];
-
-            $results = $inquiry->addInquiry($data, $buyerInfo);
+            $results = $inquiry->addInquiry($data);
             if (!$results) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
@@ -48,9 +44,8 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-            $results = $inquiryNo;
+           jsonReturn('', MSG::MSG_FAILED, '已存在');
         }
-        $this->jsonReturn($results);
     }
 
     //询价单列表
@@ -75,7 +70,7 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $where = $this->getPut();
 
-        $results = $inquiry->getinfo($where);
+        $results = $inquiry->getInfo($where);
 
         if (isset($results['data'])) {
             $data = $results['data'];
@@ -84,6 +79,37 @@ class InquiryController extends PublicController {
         }
 
         $this->jsonReturn($results);
+    }
+
+    //询单联系人信息
+    public function getContactInfoAction() {
+        $inquiry = new InquiryContactModel();
+        $where = $this->getPut();
+
+        $results = $inquiry->getInfo($where);
+
+        if (!$results) {
+            $buyer_account_model = new BuyerAccountModel();
+            $data['buyer_id'] = $this->user['buyer_id'];
+            $account_info = $buyer_account_model->getinfo($data);
+            if($account_info) {
+                $arr['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
+                $arr['phone'] = $account_info['official_phone'];
+                $arr['email'] = $account_info['email'] ? $account_info['email'] : $account_info['official_email'];
+                $arr['country_bn'] = $account_info['country_bn'];
+                $arr['city_bn'] = $account_info['city'];
+                $arr['addr'] = $account_info['address'];
+                $arr['company'] = $account_info['name'];
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        } else {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($results);
+        }
     }
 
 

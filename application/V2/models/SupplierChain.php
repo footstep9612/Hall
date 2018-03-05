@@ -49,12 +49,35 @@ class SupplierChainModel extends PublicModel {
                 'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING']]
             ];
         }
+        $this->_getValue($where, $condition, 'id');
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
         if (!empty($condition['created_at_end'])) {
             $condition['created_at_end'] = date('Y-m-d H:i:s', strtotime($condition['created_at_end']) + 86399);
         }
         $this->_getValue($where, $condition, 'created_at', 'between');
+        $employee_model = new EmployeeModel();
+        $supplierAgentModel = new SupplierAgentModel();
+        $supplierMaterialCatModel = new SupplierMaterialCatModel();
+        // 开发人
+        if (!empty($condition['developer'])) {
+            $developerIds = $employee_model->getUserIdByName($condition['developer']);
+            $supplierIds = $developerIds ? ($supplierAgentModel->getSupplierIdsByUserIds($developerIds) ? : []) : [];
+            $where['id'] = ['in', $supplierIds ? : ['-1']];
+        }
+        // 创建人
+        if (!empty($condition['created_name'])) {
+            $where['created_by'] = ['in', $employee_model->getUserIdByName($condition['created_name']) ? : ['-1']];
+        }
+        // 供货范围
+        if (!empty($condition['cat_name'])) {
+            $catSupplierIds = $supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+            if (isset($supplierIds)) {
+                $catSupplierIds = array_intersect($catSupplierIds, $supplierIds);
+            }
+            $where['id'] = ['in', $catSupplierIds ? : ['-1']];
+        }
+        $this->_getValue($where, $condition, 'supplier_level');
         if ($is_Chain) {
             if (isset($condition['org_id'])) {
 //                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
@@ -70,7 +93,6 @@ class SupplierChainModel extends PublicModel {
             }
             $this->_getValue($where, $condition, 'erui_checked_at', 'between');
             if (!empty($condition['erui_checked_name'])) {
-                $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['erui_checked_name']));
                 if ($userids) {
                     $where['erui_checked_by'] = ['in', $userids];
@@ -93,7 +115,6 @@ class SupplierChainModel extends PublicModel {
             }
             $this->_getValue($where, $condition, 'checked_at', 'between');
             if (!empty($condition['checked_name'])) {
-                $employee_model = new EmployeeModel();
                 $userids = $employee_model->getUseridsByUserName(trim($condition['checked_name']));
                 if ($userids) {
                     $where['checked_by'] = ['in', $userids];
@@ -114,7 +135,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where, false);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,'
+        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
                         . 'created_at')
                 ->limit($offset, $size)
                 ->where($where)
@@ -138,7 +159,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,'
+        $data = $this->field('id,supplier_no,serial_no,name,erui_status,erui_checked_at,erui_checked_by,supplier_level,created_by,'
                         . 'org_id,is_erui,created_at')
                 ->limit($offset, $size)
                 ->where($where)
@@ -292,6 +313,8 @@ class SupplierChainModel extends PublicModel {
      */
     private function _setEruiCheckedName(&$data) {
         if ($data) {
+            $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $erui_checked_bys = [];
             foreach ($data as $item) {
                 if ($item['erui_checked_by']) {
@@ -299,7 +322,6 @@ class SupplierChainModel extends PublicModel {
                 }
             }
             if ($erui_checked_bys) {
-                $employee_model = new EmployeeModel();
                 $usernames = $employee_model->getUserNamesByUserids($erui_checked_bys);
             }
             foreach ($data as $key => $val) {
@@ -308,7 +330,9 @@ class SupplierChainModel extends PublicModel {
                 } else {
                     $val['erui_checked_name'] = '';
                 }
-
+                $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }
@@ -322,6 +346,8 @@ class SupplierChainModel extends PublicModel {
      */
     private function _setCheckedName(&$data) {
         if ($data) {
+            $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
@@ -329,7 +355,6 @@ class SupplierChainModel extends PublicModel {
                 }
             }
             if ($checked_bys) {
-                $employee_model = new EmployeeModel();
                 $usernames = $employee_model->getUserNamesByUserids($checked_bys);
             }
             foreach ($data as $key => $val) {
@@ -338,7 +363,9 @@ class SupplierChainModel extends PublicModel {
                 } else {
                     $val['checked_name'] = '';
                 }
-
+                $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }
@@ -386,10 +413,11 @@ class SupplierChainModel extends PublicModel {
      * 批量更新供应商等级
      * @param mix $supplier_ids 供应商ID 数组
      * @param int $supplier_level 供应商等级
+     * @param string $supplier_note 供应商评级内容
      * @return
      * @author zyg
      */
-    public function batchUpdateLevel($supplier_ids, $supplier_level, $org_ids = []) {
+    public function batchUpdateLevel($supplier_ids, $supplier_level, $supplier_note, $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => ['in', $supplier_ids],
@@ -398,45 +426,44 @@ class SupplierChainModel extends PublicModel {
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
 
-        //  $this->startTrans();
+        $this->startTrans();
         $flag = $this->where($where)->save($data);
-        return $flag;
-//        if (!$flag) {
-//            $this->rollback();
-//            return FALSE;
-//        }
-//        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
-//        /*
-//         * 更新日志
-//         */
-//        $supplierchecklog_model = new SupplierCheckLogModel();
-//
-//        foreach ($suppliers as $supplier) {
-//
-//            $condition = [];
-//            $condition['supplier_id'] = $supplier['id'];
-//            $condition['erui_member_flag'] = $supplier['is_erui'];
-//            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
-//
-//            $condition['rating'] = $supplier_level;
-////            $condition['note'] = '批设置供应商量等级';
-//            $flag_log = $supplierchecklog_model->create_data($condition);
-//            if (!$flag_log) {
-//                $this->rollback();
-//                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】修改等级日志失败!');
-//            }
-//        }
-        //  $this->commit();
+        if (!$flag) {
+            $this->rollback();
+            return FALSE;
+        }
+       $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
+       /*
+        * 更新日志
+        */
+       $supplierchecklog_model = new SupplierCheckLogModel();
+
+       foreach ($suppliers as $supplier) {
+           $condition['supplier_id'] = $supplier['id'];
+           $condition['erui_member_flag'] = $supplier['is_erui'];
+           $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+           $condition['rating'] = $supplier_level;
+           $condition['group'] = 'RATING';
+           $condition['note'] = $supplier_note;
+           $flag_log = $supplierchecklog_model->create_data($condition);
+           if (!$flag_log) {
+               $this->rollback();
+               jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】评级日志失败!');
+           }
+       }
+       $this->commit();
+       return true;
     }
 
     /**
      * 供应链审核
      * @param int $supplier_id 供应商ID 数组
      * @param int $supplier_level 供应商等级
+     * @param string $supplier_note 供应商评级内容
      * @return
      * @author zyg
      */
-    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_ids = []) {
+    public function ChainChecked($supplier_id, $supplier_level, $supplier_note, $is_erui = 'N', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
@@ -464,10 +491,13 @@ class SupplierChainModel extends PublicModel {
         $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
         $condition['rating'] = $supplier_level;
         $flag_log = $supplierchecklog_model->create_data($condition);
-        if (!$flag_log && $this->error) {
+        $condition['group'] = 'RATING';
+        $condition['note'] = $supplier_note;
+        $rating_log = $supplierchecklog_model->create_data($condition);
+        if ((!$flag_log || !$rating_log) && $this->error) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, $this->error);
-        } elseif (!$flag_log) {
+        } elseif ((!$flag_log || !$rating_log)) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {

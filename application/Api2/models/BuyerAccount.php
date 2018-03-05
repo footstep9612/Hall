@@ -241,9 +241,7 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['phone'])) {
             $arr['phone'] = $create['phone'];
         }
-        if (isset($create['status'])) {
-            $arr['status'] = $create['status'];
-        }
+        $arr['status']='DRAFT';
         $arr['created_at'] = Date("Y-m-d H:i:s");
         $data = $this->create($arr);
         return $this->add($data);
@@ -253,9 +251,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data, $userId) {
-        if (!empty($userId['buyer_id'])) {
-            $where['buyer_id'] = $userId['buyer_id'];
+    public function checkPassword($data) {
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
             jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
@@ -276,19 +274,23 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data, $token) {
+    public function update_pwd($data) {
 
-        if (!empty($token['buyer_id'])) {
-            $where['buyer_id'] = $token['buyer_id'];
+        if (!empty($data['buyer_id'])) {
+            $where['buyer_id'] = $data['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
+            jsonReturn('', '-1001', 'Token Expired');//用户buyer_id不可以为空
         }
         if (!empty($data['password'])) {
             $new['password_hash'] = $data['password'];
         } else {
-            jsonReturn('', '-1001', '新密码不可以为空');
+            jsonReturn('', '-1001', 'Password cannot be empty');
         }
-        return $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
 
     /*

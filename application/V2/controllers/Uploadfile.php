@@ -21,7 +21,7 @@ class UploadfileController extends PublicController {
         $file = $this->getRequest()->getFiles();
         $upload_type = $this->getPost('upload_type', '');
         $max_size = $this->getPost('max_size', '20');
-
+        $group_name = $this->getPost('group_name', 'group1');
         if (empty($file)) {
             return false;
         }
@@ -42,7 +42,7 @@ class UploadfileController extends PublicController {
         }
         //上传到fastDFS
         $fastdfs = new FastDFSclient();
-        $ret = $fastdfs->uploadAttach($file['upFile']);
+        $ret = $fastdfs->uploadAttach($file['upFile'], $group_name);
 
         if (!empty($ret['fileId'])) {
             $result = array(

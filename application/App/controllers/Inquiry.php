@@ -143,13 +143,12 @@ class InquiryController extends PublicController
 
         $condition = array_merge($condition,$this->listAuth);
 
-        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
+        $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status,trade_terms_bn,quote_deadline,created_at');
 
         foreach ($inquiryList as &$inquiry) {
 
-            $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
-            $inquiry['name'] = $nowAgent['name'];
-
+            $inquiry['name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
+            $inquiry['quantity'] = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry['id'],'deleted_flag'=>'N'])->count();
             unset($inquiry['now_agent_id']);
 
         }
@@ -168,6 +167,37 @@ class InquiryController extends PublicController
         }
     }
 
+    /**
+     * 询单SKU列表(包含所有状态的询单)
+     */
+    public function sku_listAction()
+    {
+        $condition = $this->validateRequestParams('id');
+
+        //询单信息
+        $inquiryFields = 'serial_no,inquiry_source,trade_terms_bn,payment_mode,country_bn,area_bn,buyer_id,buyer_name,
+                            buyer_code,to_country,to_port,destination,quote_deadline,quote_notes,trans_mode_bn,cur_bn';
+        $inquiry = $this->inquiryModel->getDetail(['id' => $condition['id']], $inquiryFields);
+
+        //sku信息
+        $skuFields = 'name,name_zh,brand,model,qty,unit,sku,remarks';
+        $where = ['inquiry_id' => $condition['id'], 'deleted_flag' => 'N'];
+        $inquiry['sku_list'] = (new InquiryItemModel)->where($where)->field($skuFields)->select();
+
+        //附件
+        $inquiry['attach_list'] = (new InquiryAttachModel)->where(['inquiry_id' => $condition['id']])->field('attach_name,attach_url')->select();
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $inquiry
+        ]);
+
+    }
+
+    /**
+     * 下载询单价
+     */
     public function downListAction()
     {
 

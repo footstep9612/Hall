@@ -30,6 +30,7 @@ class HomeCountryModel extends PublicModel {
         $this->_getValue($where, $condition, 'display_position');
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'show_flag', 'bool');
+        $this->_getValue($where, $condition, 'lang');
         return $where;
     }
 
@@ -40,9 +41,10 @@ class HomeCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $id = null) {
+    public function getExit($country_bn, $lang = 'en', $id = null) {
 
         $where['country_bn'] = $country_bn;
+        $where['lang'] = $lang;
         if ($id) {
             $where['id'] = ['neq', $id];
         }

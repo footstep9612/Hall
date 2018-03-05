@@ -97,6 +97,7 @@ class SupplierchainController extends PublicController {
     public function batchUpdateLevelAction() {
 
         $supplier_ids = $this->getPut('supplier_id');
+        $supplier_note = $this->getPut('note');
         $org_model = new OrgModel();
         $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
 
@@ -127,7 +128,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
         $supplier_model = new SupplierChainModel();
-        $data = $supplier_model->batchUpdateLevel($supplier_ids, $supplier_level, $condition['org_id']);
+        $data = $supplier_model->batchUpdateLevel($supplier_ids, $supplier_level, $supplier_note, $condition['org_id']);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');
@@ -148,6 +149,7 @@ class SupplierchainController extends PublicController {
      */
     public function CheckedAction() {
         $supplier_level = $this->getPut('supplier_level');
+        $supplier_note = $this->getPut('note');
 
         $org_model = new OrgModel();
         $org_ids = $org_model->getOrgIdsById($this->user['group_id'], 'ERUI', null);
@@ -204,7 +206,7 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
 
-        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $is_erui, $org_ids);
+        $data = $supplier_model->ChainChecked($supplier_id, $supplier_level, $supplier_note, $is_erui, $org_ids);
         if ($data) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('更新成功!');

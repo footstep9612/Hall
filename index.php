@@ -5,7 +5,7 @@ error_reporting(E_ERROR);
 $origin = empty($_SERVER['HTTP_ORIGIN']) ? '*' : $_SERVER['HTTP_ORIGIN'];
 header('Access-Control-Allow-Origin:' . $origin);
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Headers:x-requested-with,content-type,token');
+header('Access-Control-Allow-Headers:x-requested-with,content-type,token,lang');
 header('Access-Control-Allow-Methods:GET,POST,PUT,DELETE,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     die('{"code":"200","message":"OK"}');
@@ -18,7 +18,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 
 $module = ucfirst($out[1]);
 
-if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall'])) {
+if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall','v3'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
@@ -37,6 +37,11 @@ foreach ($environments as $environment) {
         break;
     }
 }
+
+#added by liujf, 2018-01-25
+define('COMMON_CONF_PATH', COMMON_PATH . DS . 'conf');
+define('CONTROLLER_NAME', ucfirst($out[2]));
+
 /**
  * 默认的, Yaf_Application将会读取配置文件中在php.ini中设置的ap.environ的配置节
  * 另外在配置文件中, 可以替换PHP的常量, 比如此处的APPLICATION_PATH

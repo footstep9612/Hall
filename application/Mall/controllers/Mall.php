@@ -9,7 +9,7 @@ class MallController extends PublicController
 {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 
@@ -58,6 +58,24 @@ class MallController extends PublicController
         }
         $this->jsonReturn($datajson);
     }*/
+
+    /**
+     * 获取服务类型列表
+     * @param mix $condition
+     * @author klp
+     */
+    public function catnameListAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $catModel = new CustomCatModel();
+        $catInfo = $catModel->listName($lang);
+        if($catInfo) {
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+
+    }
 
     /**
      * 展示所有定制信息详情
@@ -130,6 +148,7 @@ class MallController extends PublicController
     public function editUlogisticsAction() {
         $data = $this->getPut();
         $where['buyer_id'] = $this->user['buyer_id'];
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         $logisticsModel = new BuyerLogisticsModel();
         $check = $logisticsModel->where(['buyer_id'=>$where['buyer_id'],'deleted_flag'=>'N'])->find();
         if($check) {
@@ -137,10 +156,10 @@ class MallController extends PublicController
         } else {
             $res = $logisticsModel->create_data($data, $where);
         }
-        if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        if ($res) {
+            jsonReturn($res, 1, ShopMsg::getMessage('1',$lang));
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
+            jsonReturn('', -1, ShopMsg::getMessage('-1',$lang));
         }
         exit;
     }
@@ -254,16 +273,16 @@ class MallController extends PublicController
         if ($info['buyer_id']) {
             $buyer_model = new BuyerAccountModel();
             $custom_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
-            if (isset($custom_buyer_contact[$info['buyer_id']]) && isset($custom_buyer_contact['show_name'])) {
-                $info['buyer_name'] = $custom_buyer_contact[$info['buyer_id']];
-                $info['show_name'] = $custom_buyer_contact['show_name'];
+            if (isset($custom_buyer_contact[$info['buyer_id']]) && isset($custom_buyer_contact['user_name'])) {
+                $info['show_name'] = $custom_buyer_contact[$info['buyer_id']];
+                $info['user_name'] = $custom_buyer_contact['user_name'];
             } else {
-                $info['buyer_name'] = null;
                 $info['show_name'] = null;
+                $info['user_name'] = null;
             }
         } else {
-            $info['buyer_name'] = '';
             $info['show_name'] = '';
+            $info['user_name'] = '';
         }
     }
 

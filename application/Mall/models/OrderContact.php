@@ -20,10 +20,63 @@ class OrderContactModel extends PublicModel {
     protected $dbName = 'erui_order'; //数据库名称
 
     //状态
-//pay_status status show_status
-
     public function __construct() {
         parent::__construct();
+    }
+
+    /**
+     * 数据字典
+     * @var array
+     * @author link 2017-12-20
+     */
+    private $_field = [
+        'order_id',    //订单id
+        'name',    //联系人姓名
+        'company',    //公司名称（供应商）
+        'phone',    //电话
+        'email',    //邮箱
+        'remarks',    //备注
+        'created_at',    //创建时间
+        'created_by',    //创建人
+    ];
+
+    /**
+     * 格式化数据
+     * @var $data
+     * @author link 2017-12-20
+     */
+    private function _getData($data){
+        if(empty($data)){
+            return [];
+        }
+        foreach($data as $key =>$value){
+            if(!in_array($key,$this->_field)){
+                unset($data[$key]);
+            }
+            if(empty($value)){
+                $data[$key] = null;
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * 添加
+     * @var $data
+     * @author link 2017-12-20
+     */
+    public function addInfo($data){
+        if(!isset($data['order_id'])){
+            jsonReturn('订单联系人添加，orer_id不能为空');
+        }
+        try{
+            $data = $this->_getData($data);
+            $result = $this->add($this->create($data));
+            return $result ? $result : false;
+        }catch (Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【OrderContactModel】 add:' . $e , Log::ERR);
+            return false;
+        }
     }
 
     /* 获取订单详情

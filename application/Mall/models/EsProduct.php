@@ -196,15 +196,8 @@ class EsProductModel extends Model {
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::TERM, 'spu');
         $this->_getQureyByArr($condition, $body, ESClient::TERM, 'spus', 'spu');
-        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-            $show_cat_no = trim($condition['show_cat_no']);
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERM => ['show_cats.cat_no1' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats.cat_no2' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats.cat_no3' => $show_cat_no]],
-            ]]];
-        }
-        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'China') {
+
+        if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'Argentina') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
             $showcat = $show_cat_model->field('id')->where(['lang' => $lang,
@@ -216,17 +209,12 @@ class EsProductModel extends Model {
             if ($showcat) {
                 $condition['country_bn'] = $country_bn;
             } else {
-                $condition['country_bn'] = 'China';
+                $condition['country_bn'] = 'Argentina';
             }
         } else {
-            $country_bn = $condition['country_bn'] = 'China';
+            $country_bn = $condition['country_bn'] = 'Argentina';
         }
 
-        // $this->_getQurey($condition, $body, ESClient::TERM, 'market_area_bn', 'show_cats.market_area_bn');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'country_bn', 'show_cats.country_bn');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no1', 'show_cats.cat_no1');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no2', 'show_cats.cat_no2');
-        $this->_getQurey($condition, $body, ESClient::TERM, 'scat_no3', 'show_cats.cat_no3');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         $this->_getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
@@ -239,9 +227,12 @@ class EsProductModel extends Model {
             $recommend_flag = $condition['recommend_flag'] === 'Y' ? 'Y' : 'N';
             $body['query']['bool']['must'][] = [ESClient::TERM => ['recommend_flag' => $recommend_flag]];
         }
-
-// $this->_getStatus($condition, $body, ESClient::MATCH_PHRASE, 'shelves_status', 'shelves_status', ['VALID', 'INVALID']);
-        $this->_getQurey($condition, $body, ESClient::WILDCARD, 'brand', 'brand.name.all');
+        if (!empty($condition['brand'])) {
+            $brandmodel = new BrandModel();
+            $brand = $brandmodel->getbrand(['name' => trim($condition['brand'])], $lang);
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
+        }
         $this->_getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');
         $this->_getQurey($condition, $body, ESClient::TERM, 'source');
         $this->_getQurey($condition, $body, ESClient::MATCH, 'exe_standard', 'exe_standard.' . $analyzer);
@@ -276,27 +267,50 @@ class EsProductModel extends Model {
             }
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $checked_by_bool]];
         }
+        $onshelf_flag = '';
         if (isset($condition['onshelf_flag']) && $condition['onshelf_flag']) {
             $onshelf_flag = trim($condition['onshelf_flag']) == 'N' ? 'N' : 'Y';
             if (trim($condition['onshelf_flag']) === 'A') {
-
-            } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
-            } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+                $onshelf_flag = '';
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+            $onshelf_flag = 'Y';
         }
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
+            $show_cat_no = trim($condition['show_cat_no']);
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
+            ]]];
 
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        } elseif ($country_bn) {
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        }
         if (!empty($condition['min_exw_day']) && intval($condition['min_exw_day']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['min_exw_day' => ['lte' => intval($condition['min_exw_day']),]]];
         }
         if (!empty($condition['minimumorderouantity']) && intval($condition['minimumorderouantity']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['minimumorderouantity' => ['lte' => intval($condition['minimumorderouantity']),]]];
         }
-
-
         $this->_getQurey($condition, $body, ESClient::MATCH, 'show_name', 'show_name.' . $analyzer);
         $this->_getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
         if (isset($condition['attrs']) && $condition['attrs']) {
@@ -313,38 +327,53 @@ class EsProductModel extends Model {
             ]]];
         }
         if (isset($condition['spec_attrs']) && $condition['spec_attrs']) {
-            $attrs = trim($condition['attrs']);
+            $attrs = strtolower(trim($condition['attrs']));
             $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::MATCH_PHRASE => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $attrs, 'boost' => 99]]],
-                        [ESClient::WILDCARD => ['attrs.spec_attrs.name.all' => '*' . $attrs . '*']],
+                        [ESClient::TERM => ['attrs.spec_attrs.value.all' => ['value' => $attrs, 'boost' => 99]]],
+                        [ESClient::TERM => ['attrs.spec_attrs.name.all' => ['value' => $attrs, 'boost' => 99]]],
             ]]];
         }
-        if (isset($condition['spec_name']) && $condition['spec_name']) {
+
+        if (isset($condition['spec_value']) && $condition['spec_value'] && isset($condition['spec_name']) && $condition['spec_name']) {
+            $spec_value = strtolower(trim($condition['spec_value']));
+            $spec_name = strtolower(trim($condition['spec_name']));
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::TERM => ['spec_attrs.value.all' => ['value' => $spec_value, 'boost' => 99]]],
+                                [ESClient::TERM => ['spec_attrs.name.all' => ['value' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_name']) && $condition['spec_name']) {
             $spec_name = trim($condition['spec_name']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 2, 'operator' => 'and']]];
-        }
-        if (isset($condition['spec_value']) && $condition['spec_value']) {
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.name.' . $analyzer => ['query' => $spec_name, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
+        } elseif (isset($condition['spec_value']) && $condition['spec_value']) {
             $spec_value = trim($condition['spec_value']);
-            $body['query']['bool']['must'][] = [ESClient::MATCH => ['attrs.spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 2, 'operator' => 'and']]];
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "spec_attrs",
+                    'query' => ['bool' => [ESClient::MUST => [
+                                [ESClient::MATCH_PHRASE => ['spec_attrs.value.' . $analyzer => ['query' => $spec_value, 'boost' => 99]]],
+                            ]]]
+                ]
+            ];
         }
+
 
         $this->_getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
         if (isset($condition['keyword']) && $condition['keyword']) {
-            $keyword = $condition['keyword'];
+            $keyword = trim($condition['keyword']);
 
-//            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-//                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-//                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-//                        // [ESClient::MATCH => ['keywords.' . $analyzer => ['query' => $keyword, 'boost' => 2]]],
-//                        [ESClient::MATCH_PHRASE => ['brand.name.all' => ['query' => $keyword, 'boost' => 39]]],
-//                        // [ESClient::WILDCARD => ['attr.spec_attrs.name.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-//                        //   [ESClient::WILDCARD => ['attr.spec_attrs.value.all' => ['value' => '*' . $keyword . '*', 'boost' => 1]]],
-//                        [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-//                        [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-//                        [ESClient::MATCH_PHRASE => ['spu' => ['query' => $keyword, 'boost' => 100]]],
-//            ]]];
-//
             if (empty($show_cat_model)) {
                 $show_cat_model = new ShowCatModel();
             }
@@ -356,16 +385,15 @@ class EsProductModel extends Model {
                                 'status' => 'VALID',
                                 'deleted_flag' => 'N'
                             ])->select();
-
-
             if (empty($showcats)) {
                 $brand_model = new BrandModel();
-                $brands = $brand_model->getlist(['name' => $keyword], $lang);
+                $brands = $brand_model->getBrandByBrandName($keyword, $lang);
+
                 if (empty($brands)) {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                                 [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
+                                //  [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                                 [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
@@ -378,9 +406,10 @@ class EsProductModel extends Model {
             } else {
                 $show_cat_name = $keyword;
                 $is_show_cat = true;
-                $this->_getEsShowCats($showcats, $keyword, $body);
+                $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
         }
+
         return $body;
     }
 
@@ -426,21 +455,57 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getEsShowCats($showcats, $keyword, &$body) {
+    private function _getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, &$body) {
         $show_cat_bool = [];
+
+
+        $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+        $body['query']['bool']['must'][] = [ESClient::NESTED =>
+            [
+                'path' => "show_cats_nested",
+                'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+        ]];
+
         foreach ($showcats as $showcat) {
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
-            $show_cat_bool[] = [ESClient::TERM => ['show_cats.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no2' => ['value' => $showcat['cat_no'], 'boost' => 95]]];
+            $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
         }
         if ($show_cat_bool) {
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
+
+            $show_cats_nested = [];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            if ($country_bn) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            }
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
+
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
         } else {
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERM => ['show_cats.cat_name3' => ['value' => $keyword, 'boost' => 99]]],
-                        [ESClient::TERM => ['show_cats.cat_name2' => ['value' => $keyword, 'boost' => 95]]],
-                        [ESClient::TERM => ['show_cats.cat_name1' => ['value' => $keyword, 'boost' => 90]]],
+            $show_cats_nested = [];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [
+                        [ESClient::TERM => ['show_cats_nested.cat_name3.all' => ['value' => $keyword, 'boost' => 99]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name2.all' => ['value' => $keyword, 'boost' => 95]]],
+                        [ESClient::TERM => ['show_cats_nested.cat_name1.all' => ['value' => $keyword, 'boost' => 90]]],
             ]]];
+            if ($onshelf_flag) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
+            }
+            if ($country_bn) {
+                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            }
+
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
         }
     }
 
@@ -547,6 +612,13 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
+            $ret_count = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang, '');
+            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
+
+                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
+                $current_no = intval($ret_count['count'] / $pagesize);
+            }
+
             unset($condition['source']);
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
@@ -554,12 +626,11 @@ class EsProductModel extends Model {
             $es->setbody($body);
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
-                $es->setpreference('_primary_first');
             }
+            $es->setpreference('_primary_first');
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
-
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
@@ -572,46 +643,36 @@ class EsProductModel extends Model {
     }
 
     public function getCatList($condition, $lang) {
-        unset($condition['show_cat_no']);
+        $show_cat_model = new ShowCatModel();
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
+            $show_cat = $show_cat_model->field('level_no')->where(['cat_no' => $condition['show_cat_no'], 'lang' => $lang])->find();
+            $show_cat['level_no'] > 1 ? $condition['show_cat_no'] = null : '';
+        }
         $country_bn = null;
         $body = $this->getCondition($condition, $lang, $country_bn);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->body['aggs']['country_bn'] = [
-            'terms' => [
-                'field' => 'show_cats.country_bn',
-                // 'values' => 'China',
-                'size' => 10,
-                'order' => ['_count' => 'desc'],
-            ],
-            'aggs' => ['cat_no2' =>
-                [
-                    'terms' => [
-                        'field' => 'show_cats.cat_no2',
-                        'size' => 10,
-                        'order' => ['_count' => 'desc']
-                    ],
-                    'aggs' => ['cat_no3' => [
-                            'terms' => [
-                                'field' => 'show_cats.cat_no3',
-                                'size' => 10,
-                                'order' => ['_count' => 'desc']
-                            ]
-                        ]
-                    ]
-        ]]];
+        $es->body['aggs'] = ['show_cats_nested' => [
+                'nested' => [
+                    'path' => 'show_cats_nested'
+                ],
+                'aggs' => ['country_bn' => [
+                        'terms' => ['field' => 'show_cats_nested.country_bn', 'size' => 10, 'order' => ['_count' => 'desc'],],
+                        'aggs' => ['cat_no2' =>
+                            ['terms' => ['field' => 'show_cats_nested.cat_no2', 'size' => 10, 'order' => ['_count' => 'desc']],
+                                'aggs' => ['cat_no3' => [
+                                        'terms' => ['field' => 'show_cats_nested.cat_no3', 'size' => 10, 'order' => ['_count' => 'desc']]
+                                    ]]]
+        ]]]]];
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
         $show_cat_nos = [];
         $show_cats = [];
-        if (isset($ret['aggregations']['country_bn']['buckets'])) {
-            foreach ($ret['aggregations']['country_bn']['buckets'] as $countrys) {
+        if (isset($ret['aggregations']['show_cats_nested']['country_bn']['buckets'])) {
+            foreach ($ret['aggregations']['show_cats_nested']['country_bn']['buckets'] as $countrys) {
 
-                if ($countrys['key'] != $country_bn) {
-                    continue;
-                }
                 if (isset($countrys['cat_no2']['buckets'])) {
                     foreach ($countrys['cat_no2']['buckets'] as $cats) {
                         $show_cat_nos[] = $cats['key'];
@@ -631,6 +692,7 @@ class EsProductModel extends Model {
                                     'count' => $cat['doc_count'],
                                 ];
                             }
+
                             $show_cats[$cats['key']]['childs'] = $child_cats;
                         }
                     }
@@ -639,12 +701,12 @@ class EsProductModel extends Model {
         }
 
         if ($show_cat_nos) {
-            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $lang;
+            $catno_key = 'ShowCats_' . md5(http_build_query($show_cat_nos)) . '_' . $country_bn . '_' . $lang;
             $newshowcats = json_decode(redisGet($catno_key), true);
             $newshow_cats = [];
             if (!$newshowcats) {
                 $showcatmodel = new ShowCatModel();
-                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false);
+                $showcats = $showcatmodel->getshowcatsByshowcatnos($show_cat_nos, $lang, false, $country_bn);
                 foreach ($showcats as $showcat) {
                     $newshow_cats[$showcat['cat_no']] = $showcat['name'];
                 }
@@ -658,15 +720,16 @@ class EsProductModel extends Model {
                 } else {
                     continue;
                 }
-                foreach ($show_cat['childs'] as $key => $child_showcat) {
+
+                foreach ($show_cat['childs'] as $K => $child_showcat) {
                     if (isset($newshow_cats[$child_showcat['cat_no']])) {
                         $child_showcat['name'] = $newshow_cats[$child_showcat['cat_no']];
-                        $show_cat['childs'][$key] = $child_showcat;
+                        $show_cat['childs'][$K] = $child_showcat;
                     } else {
-                        unset($show_cat['childs'][$key]);
+                        unset($show_cat['childs'][$K]);
                     }
                 }
-                rsort($show_cat['childs']);
+//                rsort($show_cat['childs']);
                 $newshowcats[] = $show_cat;
             }
 
@@ -678,59 +741,119 @@ class EsProductModel extends Model {
     }
 
     public function getBrandsList($condition, $lang = 'en') {
+        $brand = $condition['brand'];
         unset($condition['brand']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
-        $es->setaggs('brand.name.all', 'brand_name', 'terms', 0);
+        $brand_terms = [
+            'field' => 'brand.name.all',
+            'size' => 10,
+            'order' => ['_count' => 'desc']
+        ];
+
+        $es->body['aggs']['brand_name'] = [
+            'terms' => $brand_terms
+        ];
+
+
+
         $es->body['size'] = 0;
-        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 10);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $brand_names = [];
+        if ($brand) {
+            $is_include = false;
+        } else {
+            $is_include = true;
+        }
         if (isset($ret['aggregations']['brand_name']['buckets'])) {
             foreach ($ret['aggregations']['brand_name']['buckets'] as $brand_name) {
-                $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                if ($brand_name['key']) {
+                    $brand_names[] = ['brand_name' => $brand_name['key'], 'count' => $brand_name['doc_count']];
+                }
+                if (!$is_include && strtolower($brand_name['key']) == strtolower($brand)) {
+                    $is_include = true;
+                }
             }
+        }
+        if ($is_include === false) {
+
+            $brand_names[count($brand_names) - 1] = ['brand_name' => strtoupper($brand), 'count' => 0];
         }
         return $brand_names;
     }
 
     public function getSpecsList($condition, $lang = 'en') {
+
+        $specname = $condition['spec_name'];
+        $specvalue = $condition['spec_value'];
         unset($condition['spec_name'], $condition['spec_value']);
         $body = $this->getCondition($condition);
         $es = new ESClient();
         $es->setbody($body);
         $es->setfields(['spu']);
+        $spec_name_terms = ['field' => 'spec_attrs.name.all',
+            'size' => 20,
+            'order' => ['_count' => 'desc']];
+        $spec_value_terms = ['field' => 'spec_attrs.value.all',
+            'size' => 10,
+            'order' => ['_count' => 'desc']];
 
-        $es->body['aggs']['spec_name'] = [
-            'terms' => [
-                'field' => 'attrs.spec_attrs.name.all',
-                'size' => 20,
-                'order' => ['_count' => 'desc']
-            ],
-            'aggs' => ['spec_value' => [
-                    'terms' => [
-                        'field' => 'attrs.spec_attrs.value.all',
-                        'size' => 10,
-                        'order' => ['_count' => 'desc']
-                    ]
-                ]
-            ]
-        ];
+        $es->body['aggs']['spec_attrs'] = ['nested' => ['path' => 'spec_attrs'],
+            'aggs' => ['spec_name' => ['terms' => $spec_name_terms,
+                    'aggs' => ['spec_value' => [
+                            'terms' => $spec_value_terms
+        ]]]]];
+        if ($specname) {
+            $is_spec_name_include = false;
+        } else {
+            $is_spec_name_include = true;
+        }
+        if ($specvalue) {
+            $is_spec_value_include = false;
+        } else {
+            $is_spec_value_include = true;
+        }
+
+
         $es->body['size'] = 0;
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
+
         $spec_names = [];
-        if (isset($ret['aggregations']['spec_name']['buckets'])) {
-            foreach ($ret['aggregations']['spec_name']['buckets'] as $spec_name) {
+        if (isset($ret['aggregations']['spec_attrs']['spec_name']['buckets'])) {
+            foreach ($ret['aggregations']['spec_attrs']['spec_name']['buckets'] as $spec_name) {
                 $spec_values = [];
+                if ($spec_name['key']) {
 
-                foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
-                    $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                    foreach ($spec_name['spec_value']['buckets'] as $spec_value) {
+                        if ($spec_value['key']) {
+                            $spec_values[] = ['spec_value' => $spec_value['key'], 'count' => $spec_value['doc_count']];
+                        }
+                        if (!$is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname) && strtolower($spec_value['key']) == strtolower($specvalue)) {
+                            $is_spec_value_include = true;
+                        }
+                    }
+                    if ($is_spec_value_include && strtolower($spec_name['key']) == strtolower($specname)) {
+
+                        $is_spec_name_include = true;
+                    } elseif (strtolower($spec_name['key']) == strtolower($specname)) {
+                        $is_spec_name_include = true;
+                        $spec_values[count($spec_values) - 1] = ['spec_value' => $specvalue, 'count' => 0];
+                    }
+                    $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'],
+                        'spec_values' => $spec_values];
                 }
-
-                $spec_names[] = ['spec_name' => $spec_name['key'], 'count' => $spec_name['doc_count'], 'spec_values' => $spec_values];
             }
         }
+        if ($is_spec_name_include === false) {
+
+            $spec_names[count($spec_names) - 1] = ['spec_name' => strtolower($specname),
+                'count' => 0,
+                'spec_values' => [['spec_value' => strtolower($specvalue), 'count' => 0]]];
+        }
+
         return $spec_names;
     }
 

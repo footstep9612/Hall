@@ -46,7 +46,7 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,logi_quote_flag';
+            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,logi_quote_flag,certification_fee';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
@@ -77,7 +77,7 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
                 $quoteinfo['gross_profit_rate'] = $quoteModel->where($quotewhere)->getField('gross_profit_rate');    //毛利率
                 $quoteinfo['premium_rate'] = $quoteModel->where($quotewhere)->getField('premium_rate');    //保险税率
-
+                $quoteinfo['certification_fee'] = $quotedata['certification_fee'];
 
                 $results['quotedata'] = $quoteinfo;
             }
@@ -161,6 +161,8 @@ class FinalquoteController extends PublicController {
                 $logidata['shipping_insu_rate'] = $quoteLogiFee['shipping_insu_rate'];  //国际运输险率
                 $logidata['dest_tariff_rate'] = $quoteLogiFee['dest_tariff_rate'];  //目的地关税税率
                 $logidata['dest_va_tax_rate'] = $quoteLogiFee['dest_va_tax_rate'];  //目的地增值税率
+                $logidata['certification_fee'] = $data['certification_fee'];
+                $logidata['certification_fee_cur'] = 'CNY';
 
                 $computedata = $logistics->calcuTotalLogiFee($logidata);
 
@@ -183,7 +185,7 @@ class FinalquoteController extends PublicController {
 
                     if($itemrs['code'] != 1){
                         $finalitem->rollback();
-                        $this->jsonReturn('','-101','修改报价EXW价格失败！');die;
+                        $this->jsonReturn('','-101', L('FINAL_QUOTE_UPDATE_EXW_FAIL'));die;
                     }
                 }
             }
@@ -215,7 +217,7 @@ class FinalquoteController extends PublicController {
                 $this->jsonReturn($results);die;
             }else{
                 $finalitem->rollback();
-                $this->jsonReturn('','-101','修改报价单失败！');die;
+                $this->jsonReturn('','-101', L('FAIL'));die;
             }
         }
     }
@@ -293,7 +295,6 @@ class FinalquoteController extends PublicController {
 	 * @time 2017-09-20
 	 */
 	private function _getOverlandInsuFee($totalExwPrice = 0, $overlandInsuRate = 0) {
-	    
 	    // 美元兑人民币汇率
 	   $rate = $this->_getRateUSD('CNY');
 	    
@@ -304,8 +305,11 @@ class FinalquoteController extends PublicController {
 	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
-	   } else {
+	   } else if ($overlandInsuCNY >= 50) {
 	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   } else {
+	       $overlandInsuCNY = 0;
+	       $overlandInsuUSD = 0;
 	   }
 	   
 	   return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
@@ -321,7 +325,6 @@ class FinalquoteController extends PublicController {
 	 * @time 2017-09-20
 	 */
 	private function _getShippingInsuFee($totalExwPrice = 0, $shippingInsuRate = 0) {
-	
 	    // 美元兑人民币汇率
 	    $rate = $this->_getRateUSD('CNY');
 	    
@@ -332,8 +335,11 @@ class FinalquoteController extends PublicController {
 	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
-	    } else {
+	    } else if ($shippingInsuCNY >= 50) {
 	        $shippingInsuUSD = round($tmpPrice, 8);
+	    } else {
+	        $shippingInsuCNY = 0;
+	        $shippingInsuUSD = 0;
 	    }
 	    
 	    return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];

@@ -34,16 +34,38 @@ class CustomservicesController extends PublicController
          $model = new BuyerCustomModel();
          $res = $model->getlist($data, $limit);
          if (!empty($res)) {
+             foreach($res['data'] as $item){
+                 $arr['data'][$item['lang']][] = $item;
+             }
              $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
              $datajson['count'] = $res['count'];
-             $datajson['data'] = $res['data'];
+             $datajson['data'] = $arr['data'];
          } else {
              $datajson['code'] = ShopMsg::CUSTOM_FAILED;
              $datajson['data'] = "";
              $datajson['message'] = 'Data is empty!';
          }
+
          $this->jsonReturn($datajson);
      }
+
+    /**
+     * 获取服务类型列表
+     * @param mix $condition
+     * @author klp
+     */
+    public function catnameListAction() {
+        $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
+        $catModel = new CustomCatModel();
+        $catInfo = $catModel->listName($lang);
+        if($catInfo) {
+            jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+
+    }
 
     /**
      * 展示所有定制信息详情
@@ -53,7 +75,7 @@ class CustomservicesController extends PublicController
      */
     public function customInfoAction() {
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         $catModel = new CustomCatModel();
         $itemModel = new CustomCatItemModel();
         $catInfo = $catModel->info($lang,'');
@@ -77,12 +99,13 @@ class CustomservicesController extends PublicController
      */
     public function getUcustomInfoAction() {
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
-        if(!isset($data['custom_id']) || empty($data['custom_id'])) {
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
+        if(!isset($data['id']) || empty($data['id'])) {
             jsonReturn(null, -203, '定制服务ID不能为空!');
         }
         $buyer_custom_model = new BuyerCustomModel();
-        $customInfo = $buyer_custom_model->info($data['custom_id'], $lang);
+        $customInfo = $buyer_custom_model->info($data['id'], $lang);
+        $this->_setBuyerName($customInfo);
         if($customInfo) {
             jsonReturn($customInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
@@ -99,6 +122,24 @@ class CustomservicesController extends PublicController
 
         $cat_model = new CustomCatModel();
         $res = $cat_model->edit($data);
+    }
+
+    //获取采购商name
+    private function _setBuyerName(&$info) {
+        if ($info['buyer_id']) {
+            $buyer_model = new BuyerAccountModel();
+            $custom_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
+            if (isset($custom_buyer_contact[$info['buyer_id']]) && isset($custom_buyer_contact['show_name'])) {
+                $info['buyer_name'] = $custom_buyer_contact[$info['buyer_id']];
+                $info['show_name'] = $custom_buyer_contact['show_name'];
+            } else {
+                $info['buyer_name'] = null;
+                $info['show_name'] = null;
+            }
+        } else {
+            $info['buyer_name'] = '';
+            $info['show_name'] = '';
+        }
     }
 
 }

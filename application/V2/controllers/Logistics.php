@@ -103,7 +103,7 @@ class LogisticsController extends PublicController {
 	            $this->jsonReturn($flag);
 	        } else {
 	            $this->setCode('-101');
-	            $this->setMessage('失败!');
+	            $this->setMessage(L('FAIL'));
 	            parent::jsonReturn($data);
 	        }
 	    } else {
@@ -225,29 +225,29 @@ class LogisticsController extends PublicController {
     	        $findFields = ['logi_check_org_id', $outField];
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
     	        $countryModel = New CountryModel();
-    	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : '暂无';
-    	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : '暂无';
-    	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : '暂无';
+    	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : L('NOTHING');
+    	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['from_country'])){
 				    //如果是空值赋值暂无
-					$quoteLogiFee['from_country'] = '暂无';
+					$quoteLogiFee['from_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
-					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
 				}
-    	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : '暂无';
+    	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['to_country'])){
 				    //如果是空值赋值暂无
-					$quoteLogiFee['to_country'] = '暂无';
+					$quoteLogiFee['to_country'] = L('NOTHING');
 				}else{
 				    //否则改成中文
-					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
 				}
-    	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : '暂无';
-    	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : '暂无';
-    	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : '暂无';
-    	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : '暂无';
-    	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : '暂无';
+    	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
 
     	    }
     	
@@ -279,14 +279,16 @@ class LogisticsController extends PublicController {
 	        $where['inquiry_id'] = $condition['inquiry_id'];
 	        
 	        $quoteLogiFee = $this->quoteLogiFeeModel->getDetail($where);
-	        $data['premium_rate'] = $quoteLogiFee['premium_rate'];
-	        
 	        $quote = $this->quoteModel->where($where)->find();
+	        
+	        $data['premium_rate'] = $quote['premium_rate'];
 	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
 	        $data['payment_period'] = $quote['payment_period'];
 	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
 	        $data['bank_interest'] = $quote['bank_interest'];
 	        $data['total_exw_price'] = $quote['total_exw_price'];
+	        $data['certification_fee'] = $quote['certification_fee'];
+	        $data['certification_fee_cur'] = 'CNY';
 	        
 	        $data = $this->calcuTotalLogiFee($data);
 	        
@@ -294,31 +296,26 @@ class LogisticsController extends PublicController {
 	        //    $data['logi_agent_id'] = $this->user['id'];
 	        //}
 	        
-	        if ($quoteLogiFee['logi_from_port'] != $condition['logi_from_port']) $data['logi_from_port'] = $condition['logi_from_port'];
-	        if ($quoteLogiFee['logi_to_port'] != $condition['logi_to_port']) $data['logi_to_port'] = $condition['logi_to_port'];
-	        if ($quoteLogiFee['logi_trans_mode_bn'] != $condition['logi_trans_mode_bn']) $data['logi_trans_mode_bn'] = $condition['logi_trans_mode_bn'];
-	        if ($quoteLogiFee['logi_box_type_bn'] != $condition['logi_box_type_bn']) $data['logi_box_type_bn'] = $condition['logi_box_type_bn'];
+	        // 去掉暂无的数据
+	        $data['logi_from_port'] = $data['logi_from_port'] == L('NOTHING') ? null : $data['logi_from_port'];
+	        $data['logi_to_port'] = $data['logi_to_port'] == L('NOTHING') ? null : $data['logi_to_port'];
+	        $data['logi_trans_mode_bn'] = $data['logi_trans_mode_bn'] == L('NOTHING') ? null : $data['logi_trans_mode_bn'];
+	        $data['logi_box_type_bn'] = $data['logi_box_type_bn'] == L('NOTHING') ? null : $data['logi_box_type_bn'];
 	        
 	        $data['updated_by'] = $this->user['id'];
 	        $data['updated_at'] = $this->time;
 	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
-	        
-	        $quoteData = [];
 	       
-	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
-	        
-	        if ($data['total_logi_fee'] != $quote['total_logi_fee']) $quoteData['total_logi_fee'] = $data['total_logi_fee'];
-	        if ($data['total_quote_price'] != $quote['total_quote_price']) $quoteData['total_quote_price'] = $data['total_quote_price'];
-	        if ($data['total_bank_fee'] != $quote['total_bank_fee']) $quoteData['total_bank_fee'] = $data['total_bank_fee'];
-	        if ($data['total_insu_fee'] != $quote['total_insu_fee']) $quoteData['total_insu_fee'] = $data['total_insu_fee'];
-	        
-	        if ($quoteData) {
-	            $quoteData['updated_by'] = $this->user['id'];
-	            $quoteData['updated_at'] = $this->time;
-	            $res2 = $this->quoteModel->where($where)->save($quoteData);
-	        }
+	        $quoteData['quote_remarks'] = $condition['quote_remarks'];
+	        $quoteData['total_logi_fee'] = $data['total_logi_fee'];
+	        $quoteData['total_quote_price'] = $data['total_quote_price'];
+	        $quoteData['total_bank_fee'] = $data['total_bank_fee'];
+	        $quoteData['total_insu_fee'] = $data['total_insu_fee'];
+	        $quoteData['updated_by'] = $this->user['id'];
+	        $quoteData['updated_at'] = $this->time;
+	        $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        
 	        $quoteItemList = $this->quoteItemModel->where($where)->select();
 	        
@@ -333,23 +330,13 @@ class LogisticsController extends PublicController {
                 }
 	        }
 	        
-	        if (isset($res2)) {
-	            if ($res1 && $res2 && $res3) {
-	                $this->quoteLogiFeeModel->commit();
-	                $res = true;
-	            } else {
-	                $this->quoteLogiFeeModel->rollback();
-	                $res = false;
-	            }
-	        } else {
-	            if ($res1 && $res3) {
-	                $this->quoteLogiFeeModel->commit();
-	                $res = true;
-	            } else {
-	                $this->quoteLogiFeeModel->rollback();
-	                $res = false;
-	            }
-	        }
+	       if ($res1 && $res2 && $res3) {
+                $this->quoteLogiFeeModel->commit();
+                $res = true;
+            } else {
+                $this->quoteLogiFeeModel->rollback();
+                $res = false;
+            }
 	
 	        $this->jsonReturn($res);
 	    } else {
@@ -483,7 +470,7 @@ class LogisticsController extends PublicController {
 	            $this->jsonReturn($flag);
 	        } else {
 	            $this->setCode('-101');
-	            $this->setMessage('失败!');
+	            $this->setMessage(L('FAIL'));
 	            parent::jsonReturn($data);
 	        }
 	    } else {
@@ -584,7 +571,7 @@ class LogisticsController extends PublicController {
 	         
 	        $res = $this->quoteLogiFeeModel->updateInfo($where, $data);*/
 	        
-	        $inquiryModel = $this->inquiryModel;
+	        //$inquiryModel = $this->inquiryModel;
 	        
 	        $logiCheckId = $condition['logi_check_id'];//$this->inquiryModel->getRoleUserId($this->user['group_id'], $inquiryModel::logiCheckRole, 'lg');
 	        
@@ -842,6 +829,8 @@ class LogisticsController extends PublicController {
 	 *     payment_period 回款周期(天)
 	 *     bank_interest 银行利息
 	 *     fund_occupation_rate 资金占用比例
+	 *     certification_fee 商品检测费（如第三方检验费、认证费等）
+	 *     certification_fee_cur 商品检测费（如第三方检验费、认证费等）币种
 	 *     inspection_fee 商检费
 	 *     inspection_fee_cur 商检费币种
 	 *     land_freight 陆运费
@@ -872,7 +861,6 @@ class LogisticsController extends PublicController {
 	   
 	    $data = $condition;
 	     
-	    $data['inspection_fee'] = 0;
 	    $data['land_freight'] = 0;
 	    $data['port_surcharge'] = 0;
 	    $data['inter_shipping'] = 0;
@@ -883,6 +871,7 @@ class LogisticsController extends PublicController {
 	    $data['dest_tariff_rate'] = 0;
 	    $data['dest_va_tax_rate'] = 0;
 	     
+	    $data['certification_fee'] = $condition['certification_fee'] > 0 ? $condition['certification_fee'] : 0;
 	    $data['inspection_fee'] = $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
 	     
 	    switch (true) {
@@ -930,6 +919,7 @@ class LogisticsController extends PublicController {
 	            $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
 	    }
 	     
+	    $certificationFeeUSD = round($data['certification_fee'] / $this->_getRateUSD($data['certification_fee_cur']), 8);
 	    $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
 	    $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
 	    $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
@@ -947,28 +937,28 @@ class LogisticsController extends PublicController {
 	     
 	    switch (true) {
 	        case $trade == 'EXW' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FCA' || $trade == 'FAS' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'FOB' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CPT' || $trade == 'CFR' :
-	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
+	            $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
 	            break;
 	        case $trade == 'CIF' || $trade == 'CIP' :
-	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
+	            $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
 	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
 	            break;
 	        case $trade == 'DAP' || $trade == 'DAT' :
-	            $tmpCaFee = $data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
-	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
+	            $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
 	            break;
 	        case $trade == 'DDP' || $trade == '快递' :
-	            $tmpCaFee = ($data['total_exw_price'] + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
-	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
+	            $tmpCaFee = ($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
+	            $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
 	    }
 	     
 	    $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
@@ -999,18 +989,20 @@ class LogisticsController extends PublicController {
 	/**
 	 * @desc 获取报出价格合计
 	 *
-	 * @param float $calcuFee, $shippingInsuRate, $calcuRate
+	 * @param float $calcuFee, $shippingInsuRate, $calcuRate, $extRate
+	 * @param string $trade
 	 * @return float
 	 * @author liujf
 	 * @time 2017-08-10
 	 */
-	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate) {
+	private function _getTotalQuotePrice($calcuFee, $shippingInsuRate, $calcuRate, $trade = 'CIF', $extRate = 1) {
 	    $tmpIfFee = round($calcuFee * 1.1 * $shippingInsuRate / 100 / $calcuRate, 8);
 	    
 	    if ($tmpIfFee >= 8 || $tmpIfFee == 0) {
 	        $totalQuotePrice = round($calcuFee / $calcuRate, 8);
 	    } else {
-	        $totalQuotePrice = round(($calcuFee + 8) / $calcuRate, 8);
+	        $tmpRate = $trade == 'DAP' || $trade == 'DAT' || $trade == 'DDP' || $trade == '快递' ? $extRate : $calcuRate;
+	        $totalQuotePrice = round(($calcuFee + 8) / $tmpRate, 8);
 	    }
 	    
 	    return $totalQuotePrice;
@@ -1033,11 +1025,14 @@ class LogisticsController extends PublicController {
 	   
 	   $overlandInsuCNY = round($tmpPrice * $rate, 8);
 	   
-	   if ($overlandInsuCNY < 50) {
+	   if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
 	       $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8); 
 	       $overlandInsuCNY = 50;
-	   } else {
+	   } else if ($overlandInsuCNY >= 50) {
 	       $overlandInsuUSD = round($tmpPrice, 8); 
+	   } else {
+	       $overlandInsuCNY = 0;
+	       $overlandInsuUSD = 0;
 	   }
 	   
 	   return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
@@ -1060,11 +1055,14 @@ class LogisticsController extends PublicController {
 	    
 	    $shippingInsuCNY = round($tmpPrice * $rate, 8);
 	    
-	    if ($shippingInsuCNY < 50) {
+	    if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
 	        $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
 	        $shippingInsuCNY = 50;
-	    } else {
+	    } else if ($shippingInsuCNY >= 50) {
 	        $shippingInsuUSD = round($tmpPrice, 8);
+	    } else {
+	        $shippingInsuCNY = 0;
+	        $shippingInsuUSD = 0;
 	    }
 	    
 	    return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];
@@ -1173,7 +1171,7 @@ class LogisticsController extends PublicController {
 	private function _handleList($model, $data = [], $condition = [], $join = false) {
 	   if ($data) {
     		$res['code'] = 1;
-    		$res['message'] = '成功!';
+    		$res['message'] = L('SUCCESS');
     		$res['data'] = $data;
     		$res['count'] = $join ? $model->getJoinCount($condition) : $model->getCount($condition);
     		$this->jsonReturn($res);
@@ -1191,11 +1189,11 @@ class LogisticsController extends PublicController {
     public function jsonReturn($data = [], $type = 'JSON') {
     	if ($data) {
     		$this->setCode('1');
-            $this->setMessage('成功!');
+            $this->setMessage(L('SUCCESS'));
     		parent::jsonReturn($data, $type);
     	} else {
     		$this->setCode('-101');
-            $this->setMessage('失败!');
+            $this->setMessage(L('FAIL'));
             parent::jsonReturn();
     	}
     }

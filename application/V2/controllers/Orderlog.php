@@ -34,6 +34,16 @@ class OrderlogController extends PublicController{
         $where = $this->put_data;
 
         $results = $OrderLog->getLogiList($where);
+        
+        foreach ($results['data'] as &$res) {
+            $orderLogList = $OrderLog->field('waybill_no')->where(['order_id' => $res['order_id'], 'log_group' => 'LOGISTICS', 'deleted_flag' => 'N'])->select();
+            $waybillNo = [];
+            foreach ($orderLogList as $orderLog) {
+                if (trim($orderLog['waybill_no']) != '') $waybillNo[] = $orderLog['waybill_no'];
+            }
+            if ($waybillNo) $res['waybill_no'] = implode(',', $waybillNo);
+        }
+        
         $this->jsonReturn($results);
     }
 
@@ -74,14 +84,16 @@ class OrderlogController extends PublicController{
 
     public function addAction() {
         $OrderLog = new OrderLogModel();
+        $order_model = new OrderModel();
 
         $data = $this->put_data;
         $data['created_by'] = $this->user['id'];
+        $where = ['id' => $data['order_id'], 'deleted_flag' => 'N'];
+        $logWhere = ['order_id' => $data['order_id'], 'deleted_flag' => 'N'];
 
         $OrderLog->startTrans();
         if($data['log_group']=="CREDIT"&&isset($data["order_id"])&&$data["order_id"]) {
-            $order_model = new OrderModel();
-            $order_info = $order_model->where(['id'=>$data["order_id"]])->find();
+            $order_info = $order_model->where($where)->find();
             if($order_info){
                 if($order_info['buyer_id']){
                     $buyer_model = new BuyerModel();
@@ -125,10 +137,26 @@ class OrderlogController extends PublicController{
                 $this->jsonReturn($results);
             }
         }
+        if($data['log_group'] == 'OUTBOUND') {
+            $hasOut = $OrderLog->where(array_merge($logWhere, ['log_group' => 'OUTBOUND']))->getField('id');
+            if (!$hasOut) {
+                $order_model->where($where)->setField(['show_status'=>'OUTGOING']);
+            }
+        }
+        if($data['log_group'] == 'LOGISTICS') {
+            $hasLogi = $OrderLog->where(array_merge($logWhere, ['log_group' => 'LOGISTICS']))->getField('id');
+            if (!$hasLogi) {
+                $order_model->where($where)->setField(['show_status'=>'DISPATCHED']);
+            }
+        }
         $results = $OrderLog->addData($data);
+        //会员升级-start-wnags-订单order_id
+        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
         if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
-            $order_model = new OrderModel();
-            $order_model->where(['id'=>$data["order_id"]])->setField(['pay_status'=>'PARTPAY']);
+            $order_model->where($where)->setField(['pay_status'=>'PARTPAY']);
         }
         if($results['code'] == 1){
             //如果有附件，添加附件
@@ -165,7 +193,11 @@ class OrderlogController extends PublicController{
 
         $OrderLog->startTrans();
         $results = $OrderLog->updateData($data);
-
+        //会员升级-start-wnags-订单order_id
+        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
         if($results['code'] == 1){
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
@@ -335,8 +367,15 @@ class OrderlogController extends PublicController{
     public function deleteAction() {
         $OrderLog = new OrderLogModel();
         $where = $this->put_data;
-
         $results = $OrderLog->deleteData($where);
+        //会员升级-start-wnags-订单order_id
+        $log=new OrderLogModel();
+        $crm=explode(',',$where['id'])[0];
+        $order=$log->field('order_id')->where(array('id'=>$crm))->find();
+        $param['order_id']=isset($order['order_id'])?$order['order_id']:'';
+        $auto=new OrderModel();
+        $auto->autoUpgradeByOrder($param);
+        //会员升级-end
 
         $this->jsonReturn($results);
     }

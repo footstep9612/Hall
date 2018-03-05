@@ -30,12 +30,14 @@ class HomecountryController extends PublicController {
     public function ListAction() {
 
         $condition = $this->getPut();
-        $home_country_model = new HomeCountryModel();
+        $stock_country_model = new StockCountryModel();
 
-        $list = $home_country_model->getList($condition);
+        $list = $stock_country_model->getList($condition);
 
         if ($list) {
             $this->_setCountry($list);
+            $count = $stock_country_model->getCount($condition);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -131,8 +133,8 @@ class HomecountryController extends PublicController {
             $this->jsonReturn();
         }
         $home_country_model = new HomeCountryModel();
-
-        if ($home_country_model->getExit($country_bn)) {
+        $lang = $this->getPut('lang', 'en');
+        if ($home_country_model->getExit($country_bn, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -140,7 +142,8 @@ class HomecountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $list = $home_country_model->createData($country_bn, $show_flag, $display_position);
+
+        $list = $home_country_model->createData($country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -176,8 +179,8 @@ class HomecountryController extends PublicController {
         }
 
         $home_country_model = new HomeCountryModel();
-
-        if ($home_country_model->getExit($country_bn, $id)) {
+        $lang = $this->getPut('lang', 'en');
+        if ($home_country_model->getExit($country_bn, $lang, $id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -186,7 +189,7 @@ class HomecountryController extends PublicController {
         $display_position = $this->getPut('display_position');
 
 
-        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $display_position);
+        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

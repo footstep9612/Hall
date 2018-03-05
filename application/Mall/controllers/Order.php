@@ -16,9 +16,46 @@
 class OrderController extends PublicController {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
+
+    /**
+     * 订单添加
+     * @example:
+     * createAction($data[
+     *      'country_bn',
+     *      'lang',
+     *      'skuAry' =>[sku=>数量，sku=>数量....]
+     *      'infoAry'=>[],
+     *      'addrAry'=>[],
+     *      'contactAry'=>[]
+     * ])
+     * @author link 2017-12-20
+     */
+    public function createAction(){
+        $input = $this->getPut();
+        if(!isset($input['country_bn']) || empty($input['country_bn'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'country_bn not null');
+        }
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'lang not null');
+        }
+        if(!isset($input['skuAry']) || empty($input['skuAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'skuAry not null');
+        }
+        if(!isset($input['infoAry']) || empty($input['infoAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'infoAry not null');
+        }
+        if(!isset($input['addrAry']) || empty($input['addrAry'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'addrAry not null');
+        }
+        $input['buyer_id'] = $this->user['buyer_id'];
+        $order_moder = new OrderModel();
+        $orderNo = $order_moder->addOrder($input);
+        jsonReturn($orderNo,$orderNo ? MSG::MSG_SUCCESS : MSG::MSG_FAILED);
+    }
+
 
     /* 获取订单列表
      * @date    2017-8-1 16:50:09
@@ -29,8 +66,7 @@ class OrderController extends PublicController {
     //put your code here
     public function listAction() {
 
-        $condition = $this->getPut(); //查询条件
-
+        $condition = $this->getPut();
         $order_moder = new OrderModel();
         $condition['buyer_id'] = $this->user['buyer_id'];
         $data = $order_moder->getList($condition);
@@ -85,6 +121,7 @@ class OrderController extends PublicController {
                 $info['delivery_left'] = null;
             }
             $this->_setBuyerName($info);
+            $this->_setOrderCurrency($info); //获取订单的单位
             $this->_setOrderAttachOther($info, $order_id); //获取附件
             $this->_setOrderAttachPo($info, $order_id); //获取附件
             $this->_setOrderBuyerContact($info, $order_id); //获取采购商信息
@@ -104,7 +141,7 @@ class OrderController extends PublicController {
      * @param int $order_id // 订单ID
      * @desc   交收信息
      */
-    public function LastAdressAction() {
+    public function ListAdressAction() {
 
         $order_id = $this->getPut('order_id');
         if (!$order_id) {
@@ -120,6 +157,39 @@ class OrderController extends PublicController {
 
             $this->jsonReturn($order_address);
         } elseif ($order_address === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+
+            $this->jsonReturn(null);
+        }
+    }
+
+    /* 订单商品信息
+    * @param int $order_id // 订单ID
+    * @desc   商品信息
+    */
+    public function ListGoodsAction() {
+
+        $order_no = $this->getPut('order_no');
+        if (!$order_no) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
+        }
+        $condition['order_no'] = $order_no;
+        $order_goods_model = new OrderGoodsModel();
+        $order_goods = $order_goods_model->getList($condition);
+        $order_count = $order_goods_model->getCount($condition);
+
+        if ($order_goods) {
+            /*foreach($order_goods as $item) {
+                $this->_setOrderCurrency($item); //获取商品的单位
+            }*/
+            $this->_setinfos($order_goods);
+            $this->setvalue('count', intval($order_count));
+            $this->jsonReturn($order_goods);
+        } elseif ($order_goods === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
         } else {
@@ -199,7 +269,7 @@ class OrderController extends PublicController {
     }
 
     //订单评论
-    public function AddAction() {
+    public function AddCommentAction() {
         $condition = $this->getPut(); //查询条件
 
         if (!isset($condition['order_id']) || empty($condition['order_id'])) {
@@ -292,7 +362,6 @@ class OrderController extends PublicController {
     public function ListLogAction() {
 
         $order_id = $this->getPut('order_id');
-        $order_id = 912;
         if (!$order_id) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->jsonReturn(null);
@@ -384,15 +453,37 @@ class OrderController extends PublicController {
             $buyer_model = new BuyerAccountModel();
             $order_buyer_contact = $buyer_model->getBuyerNamesByBuyerids([$info['buyer_id']]);
             if (isset($order_buyer_contact[$info['buyer_id']])) {
-                $info['buyer_name'] = $order_buyer_contact[$info['buyer_id']];
-                $info['show_name'] = $order_buyer_contact[$info['show_name']];
+                $info['show_name'] = $order_buyer_contact[$info['buyer_id']];
+                $info['user_name'] = $order_buyer_contact[$info['user_name']];
             } else {
-                $info['buyer_name'] = null;
                 $info['show_name'] = null;
+                $info['user_name'] = null;
             }
         } else {
-            $info['buyer_name'] = '';
             $info['show_name'] = '';
+            $info['user_name'] = '';
+        }
+    }
+
+    /* 获取采购商信息
+   * @param int $order_id // 订单ID
+   * @author  zhongyg
+   * @date    2017-8-1 16:50:09
+   * @version V2.0
+   * @desc   订单
+   */
+
+    private function _setOrderCurrency(&$info) {
+        if ($info['currency_bn']) {
+            $currency_model = new CurrencyModel();
+            $order_currency = $currency_model->field('bn,symbol,name')->where(['bn'=>$info['currency_bn']])->find();
+            if (isset($order_currency['symbol'])) {
+                $info['symbol'] = $order_currency['symbol'];
+            } else {
+                $info['symbol'] = null;
+            }
+        } else {
+            $info['symbol'] = '';
         }
     }
 
@@ -532,6 +623,71 @@ class OrderController extends PublicController {
             $val['pay_status_text'] = $order_moder->getPayStatus($val['pay_status']);
             $list[$key] = $val;
         }
+    }
+    //发送邮件
+    public function sendAction(){
+        $data = $this->getPut();
+        $lang = empty($data['lang']) ? 'en' : $data['lang'];
+        $country_bn = empty($data['country_bn']) ? '' : strtolower($data['country_bn']);
+        if($data['order_no']){
+            $ordr_model = new OrderModel();
+            $result = $ordr_model->field('id,created_at,show_status,pay_status,currency_bn,amount,remark,expected_receipt_date')
+                                 ->where(['order_no'=>$data['order_no'],'deleted_flag'=>'N'])
+                                 ->find();
+            $config_obj = Yaf_Registry::get("config");
+            $config_shop = $config_obj->shop->toArray();
+            $config_email = $config_obj->email->toArray();
+            if($result['id']){
+                $order_address_model = new OrderAddressModel();
+                $res = $order_address_model->info($result['id']);
+                $arrEmail = [
+                    'order_no'=> $data['order_no'],
+                    'created_at'=> date('Y-m-d',strtotime($result['created_at'])),
+                    'status'=> $ordr_model->getShowStatus($result['show_status']),
+                    'pay_status'=> $ordr_model->getPayStatus($result['show_status']),
+                    'currency_bn'=> $result['currency_bn'],
+                    'amount'=> number_format($result['amount'],'2','.',','),
+                    'remark'=> $result['remark'],
+                    'expected_receipt_date'=> $result['expected_receipt_date'],
+                    'name'=> $res['name'],
+                    'phone'=> $res['phone'],
+                    'zipcode'=> $res['zipcode'],
+                    'url'=> $config_shop['url'],
+                    'time'=> date('Y-m-d H:i:s',time()),
+                ];
+            }
+            //客户(默认英文)
+            $arrEmail['preInfo'] = ShopMsg::getMessage('2001-1', $lang);   //客户(默认英文)
+            $arrEmail['info'] = ShopMsg::getMessage('2001-2', $lang);   //客户(默认英文)
+            $email = $res['email'];
+            $this->orderEmail($email,$arrEmail,$lang,$config_email['url']);
+            //我方(加拿大人员)
+            $order_address = COMMON_CONF_PATH  . DS . 'order_email.php';
+            $canada_email = include_once($order_address);
+            if(isset($canada_email[$country_bn])){
+                $arrEmail['preInfo'] = ShopMsg::getMessage('2002-1', $lang);   //我方(加拿大人员)
+                $arrEmail['info'] = ShopMsg::getMessage('2002-2', $lang);   //我方(加拿大人员)
+                $email_arr = $canada_email[$country_bn];
+                $this->orderEmail($email_arr,$arrEmail,$lang,$config_email['url']);
+            }
+        }
+    }
+    //订单生产发送邮件
+    function orderEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
+        $body = $this->getView()->render('order/order_email_'.$lang.'.html', $arrEmail);
+        $data = [
+            "title"        => $title,
+            "content"      => $body,
+            "groupSending" => 0,
+            "useType"      => "Order"
+        ];
+        if(is_array($email)) {
+            $arr = implode(',',$email);
+            $data["to"] = "[$arr]";
+        }elseif(is_string($email)){
+            $data["to"] = "[$email]";
+        }
+        PostData($emailUrl, $data, true);
     }
 
 }

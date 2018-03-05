@@ -26,6 +26,7 @@ class StockCountryModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
+        $this->_getValue($where, $condition, 'lang');
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'display_position');
         $this->_getValue($where, $condition, 'created_by');
@@ -42,7 +43,35 @@ class StockCountryModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-        return $this->where($where)->select();
+
+        list($row_start, $pagesize) = $this->_getPage($condition);
+        return $this->where($where)
+                        ->order('id desc')
+                        ->limit($row_start, $pagesize)
+                        ->select();
+    }
+
+    /**
+     * 获取数据条数
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function getCount($condition) {
+        $where = $this->_getCondition($condition);
+
+
+        try {
+            $count = $this->where($where)
+                    ->count('id');
+
+
+            return $count;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return 0;
+        }
     }
 
     /**
@@ -52,9 +81,10 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $id = null) {
+    public function getExit($country_bn, $lang = 'en', $id = null) {
 
         $where['country_bn'] = $country_bn;
+        $where['lang'] = $lang;
         if ($id) {
             $where['id'] = ['neq', $id];
         }
@@ -81,9 +111,10 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $show_flag, $display_position = null) {
+    public function createData($country_bn, $show_flag, $lang = 'en', $display_position = null) {
 
         $data['country_bn'] = $country_bn;
+        $data['lang'] = $lang;
         $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
@@ -100,11 +131,12 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $show_flag, $display_position) {
+    public function updateData($id, $country_bn, $show_flag, $lang = 'en', $display_position = null) {
 
 
 
         $data['country_bn'] = $country_bn;
+        $data['lang'] = $lang;
         $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;

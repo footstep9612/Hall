@@ -8,55 +8,129 @@ class BuyerPurchasingModel extends PublicModel
     {
         parent::__construct();
     }
+    public function updatePurchase($purchase,$buyer_id,$created_by){
+        $cond=array(
+            'buyer_id'=>$buyer_id,
+            'created_by'=>$created_by,
+            'deleted_flag'=>'N'
+        );
+        $arrId=array();
+        $existId=$this->field('id')->where($cond)->select();
+        foreach($existId as $v){
+            $arrId[]=$v['id'];
+        }
+        $inputId=array();
+        $field=array(
+            'id', //采购时间
+            'purchasing_at', //采购时间
+            'purchasing_budget', //采购时采购预算间
+            'purchasing_plan' //采购计划
+        );
+        $arr=array();
+        foreach($purchase as $key => $value){
+            foreach($field as $k => $v){
+                if(!empty($value[$v])){
+                    $arr[$key][$v]=$value[$v];
+                }else{
+                    $arr[$key][$v]=null;
+                }
+            }
+            $arr[$key]['buyer_id']=$buyer_id;
+            $arr[$key]['created_by']=$created_by;
+            $arr[$key]['created_at']=date('Y-m-d H:i:s');
+            if(!empty($arr[$key]['id'])){
+                $inputId[]=$arr[$key]['id'];
+                $this->where(array('id'=>$arr[$key]['id']))->save($arr[$key]);
+                $attach=array(
+                    'attach_group'=>'PURCHASING',
+                    'attach_name'=>$value['attach_name'],
+                    'attach_url'=>$value['attach_url'],
+                    'created_by'=>$created_by,
+                    'created_at'=>date('Y-m-d H:i:s')
+                );
+                $attachModel=new PurchasingAttachModel();
+                $attachModel->where(array('id'=>$value['attach_id']))->save($attach);
+            }else{
+                $purchaseId=$this->add($arr[$key]);
+                $attach=array(
+                    'buyer_id'=>$buyer_id,
+                    'purchasing_id'=>$purchaseId,
+                    'attach_group'=>'PURCHASING',
+                    'attach_name'=>$value['attach_name'],
+                    'attach_url'=>$value['attach_url'],
+                    'created_by'=>$created_by,
+                    'created_at'=>date('Y-m-d H:i:s')
+                );
+                $attachModel=new PurchasingAttachModel();
+                $attachModel->add($attach);
+            }
+        }
+
+        $diff=array_diff($arrId,$inputId);
+        if(!empty($diff)){
+            $strId=implode(',',$diff);
+            $this->where("id in ($strId)")->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+            $attachModel->where("purchasing_id in ($strId)")->save(array('deleted_flag'=>'Y','created_at'=>date('Y-m-d H:i:s')));
+        }
+        return true;
+    }
+    public function addPurchase($data,$buyer_id,$created_by){
+        $purchase=array(
+            'buyer_id'=>$buyer_id,
+            'purchasing_at'=>$data['purchasing_at'], //采购时间
+            'purchasing_budget'=>$data['purchasing_budget'], //采购时采购预算间
+            'purchasing_plan'=>$data['purchasing_plan'], //采购计划
+            'created_by'=>$created_by,
+            'created_at'=>date('Y-m-d H:i:s')
+        );
+        $purchaseId=$this->add($purchase);
+        $attach=array(
+            'buyer_id'=>$buyer_id,
+            'purchasing_id'=>$purchaseId,
+            'attach_group'=>'PURCHASING',
+            'attach_name'=>$data['attach_name'],
+            'attach_url'=>$data['attach_url'],
+            'created_by'=>$created_by,
+            'created_at'=>date('Y-m-d H:i:s')
+        );
+        $attachModel=new PurchasingAttachModel();
+        $attachModel->add($attach);
+        return true;
+    }
     //创建采购计划
     public function createPurchase($purchase,$buyer_id,$created_by)
     {
-        $info = $this -> showPurchase($buyer_id,$created_by);
-        //采购计划数据存在，则删除，再重新添加
-        $this->startTrans();    //开启事务
-        if(!empty($info)){
-            $this->delPurchase($buyer_id,$created_by);
-        }
-        $packageArr = array(
-            'buyer_id', //采购商ID
-            'purchasing_at',    //采购时间-date
-            'purchasing_budget',    //采购预算
-            'purchasing_plan',  //采购计划
-            'created_by',   //创建人
-            'created_at',   //创建时间
-//            'attach_name',   //采购计划附件名称
-//            'attach_url',   //采购计划附件url
+        $field=array(
+            'purchasing_at', //采购时间
+            'purchasing_budget', //采购时采购预算间
+            'purchasing_plan' //采购计划
         );
-        $arr = [];
-        $result = [];
-        $flag = true;
+        $arr=array();
         foreach($purchase as $key => $value){
-            foreach($packageArr as $k => $v){
+            foreach($field as $k => $v){
                 if(!empty($value[$v])){
-                    if(!empty($value['attach_name']) || !empty($value['attach_url'])){
-                        $arr['attach'][$key]['attach_name'] = $value['attach_name'];
-                        $arr['attach'][$key]['attach_url'] = $value['attach_url'];
-                    }
-                    $arr[$key][$v] = $value[$v];
-                    $arr[$key]['buyer_id'] = $buyer_id;
-                    $arr[$key]['created_by'] = $created_by;
-                    $arr[$key]['created_at'] = date('Y-m-d H:i:s');
+                    $arr[$key][$v]=$value[$v];
+                }else{
+                    $arr[$key][$v]=null;
                 }
             }
-            $res = $this -> add($arr[$key]);
-            if($res && $flag){
-                $result[$res]=$arr['attach'][$key];
-            }else{
-                $flag = false;
-            }
+            $arr[$key]['buyer_id']=$buyer_id;
+            $arr[$key]['created_by']=$created_by;
+            $arr[$key]['created_at']=date('Y-m-d H:i:s');
+            $purchaseId=$this->add($arr[$key]);
+                $arrach=array(
+                    'buyer_id'=>$buyer_id,
+                    'purchasing_id'=>$purchaseId,
+                    'attach_group'=>'PURCHASING',
+                    'attach_name'=>$value['attach_name'],
+                    'attach_url'=>$value['attach_url'],
+                    'created_by'=>$created_by,
+                    'created_at'=>date('Y-m-d H:i:s')
+                );
+                $attachModel=new PurchasingAttachModel();
+                $attachModel->add($arrach);
         }
-        if($flag){
-            $this->commit();
-            return $result;
-        }else{
-            $this->rollback();
-            return $flag;
-        }
+        return true;
     }
     //采购计划删除
     public function delPurchase($buyer_id,$created_by){
@@ -72,33 +146,29 @@ class BuyerPurchasingModel extends PublicModel
         $map = array(
             'purchasing.buyer_id'=>$buyer_id,
             'purchasing.created_by'=>$created_by,
+            'purchasing.deleted_flag'=>'N',
+            'attach.attach_group'=>'PURCHASING',
+            'attach.deleted_flag'=>'N',
         );
         $fieldArr = array(
-            'id as purchasing_id',   //采购计划id
+            'id',   //采购计划id
             'buyer_id',   //采购商id
-            'purchasing_at',   //采购计划日期
+//            'purchasing_at',   //采购计划日期 DATE_FORMAT(purchasing_at,'%Y')
             'purchasing_budget',   //采购预算
             'purchasing_plan',   //采购计划
-            'created_by',   //创建人
-            'created_at',   //创建时间
+//            'created_by',   //创建人
+//            'created_at',   //创建时间
         );
-        $field = 'attach.attach_name,attach.attach_url';
+        $field = 'DATE_FORMAT(purchasing.purchasing_at,\'%Y\') as purchasing_at,';
+        $field .= 'attach.id as attach_id,attach.attach_name,attach.attach_url';
         foreach($fieldArr as $v){
             $field .= ',purchasing.'.$v;
         }
         $info = $this->alias('purchasing')
-            ->join('erui_buyer.buyer_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
             ->field($field)
             ->where($map)
-            -> select();
-        foreach($info as $k => $v){
-            $info[$k]['purchasing_at'] = substr($v['purchasing_at'],0,4);
-        }
-        if(empty($info)){
-            $info[0]['purchasing_budget']='';
-            $info[0]['purchasing_plan']='';
-            $info[0]['purchasing_at']='';
-        }
+            ->select();
         return $info;
     }
 }

@@ -66,16 +66,16 @@ class InquiryAttachModel extends PublicModel {
             $list = $this->where($where)->order('created_at desc')->select();
             if($list){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '没有找到相关信息!';
+                $results['message'] = L('NO_DATA');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -92,14 +92,14 @@ class InquiryAttachModel extends PublicModel {
             $data['inquiry_id'] = $condition['inquiry_id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         if(isset($condition['attach_url'])){
             $data['attach_url'] = $condition['attach_url'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有文件URL!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         $data['created_at'] = $this->getTime();
@@ -109,15 +109,15 @@ class InquiryAttachModel extends PublicModel {
             $id = $this->add($data);
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '添加失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -133,7 +133,7 @@ class InquiryAttachModel extends PublicModel {
             $where['id'] = $condition['id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -142,15 +142,15 @@ class InquiryAttachModel extends PublicModel {
             $id = $this->where($where)->save($data);
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '修改失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -166,7 +166,7 @@ class InquiryAttachModel extends PublicModel {
             $where['id'] = array('in',explode(',',$condition['id']));
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -174,15 +174,15 @@ class InquiryAttachModel extends PublicModel {
             $id = $this->where($where)->delete();
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '删除失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }
@@ -198,7 +198,7 @@ class InquiryAttachModel extends PublicModel {
             $where['inquiry_id'] = $condition['inquiry_id'];
         }else{
             $results['code'] = '-103';
-            $results['message'] = '没有询单ID!';
+            $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
 
@@ -206,15 +206,15 @@ class InquiryAttachModel extends PublicModel {
             $id = $this->where($where)->delete();
             if($id){
                 $results['code'] = '1';
-                $results['messaage'] = '成功！';
+                $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
-                $results['messaage'] = '删除失败!';
+                $results['message'] = L('FAIL');
             }
             return $results;
         } catch (Exception $e) {
             $results['code'] = $e->getCode();
-            $results['messaage'] = $e->getMessage();
+            $results['message'] = $e->getMessage();
             return $results;
         }
     }

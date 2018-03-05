@@ -27,6 +27,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if ($this->token) {
             $this->_token();
         }
+        Log::write($this->getRequest()->getControllerName(), Log::INFO);
+        Log::write($this->getRequest()->getActionName(), Log::INFO);
+        Log::write(json_encode($this->getPut()), Log::INFO);
     }
 
     protected function _getUser() {
@@ -252,7 +255,11 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
         if ($name) {
-            $data = isset($this->put_data [$name]) ? trim($this->put_data [$name]) : trim($default);
+            if (isset($this->put_data [$name]) && is_string($this->put_data [$name])) {
+                $data = !empty($this->put_data [$name]) ? trim($this->put_data [$name]) : trim($default);
+            } else {
+                $data = !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            }
             return $data;
         } else {
             $data = $this->put_data;

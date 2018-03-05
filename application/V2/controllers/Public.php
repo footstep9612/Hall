@@ -22,47 +22,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
-
         $this->headers = getHeaders();
-        $token = isset($this->headers['token']) ? $this->headers['token'] : '';
-        //Log::write('Method:'.$this->getMethod().' Token:'.$this->getQuery('token',''),Log::INFO);
-        if ($this->getMethod() == 'GET') {
-            $token = $this->getQuery('token', '');
-        }
-
-        $this->put_data = $jsondata = $data = $this->getPut();
-        $lang = $this->getPut('lang', 'en');
-        $this->setLang($lang);
+        $this->put_data = $this->getPut();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-
+            $this->getRequest()->getControllerName() == 'User' &&
+            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            $this->setLang($this->getPut('lang', 'en'));
         } else {
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $data = $this->getRequest()->getPost();
-
-            if (!empty($data["token"])) {
-                $token = $data["token"];
-            }
-            $model = new UserModel();
-            if (!empty($jsondata["token"])) {
-                $token = $jsondata["token"];
-            }
-            $data = $this->getRequest()->getPost();
-
-            if (!empty($data["token"])) {
-                $token = $data["token"];
-            }
-            $this->user =$GLOBALS['SSO_USER'];
+            $this->user = $GLOBALS['SSO_USER'];
             $this->_setUid($this->user);
-            if(isset($this->user['id']) && $this->user['id'] >0){
-                return;
-            }else{
+            if (isset($this->user['id']) && $this->user['id'] > 0) {
+                // 加载php公共配置文件
+                $this->loadCommonConfig();
+                // 语言检查
+                $this->checkLanguage();
+                // 设置语言
+                $this->setLang(LANG_SET);
+            } else {
                 header("Content-Type: application/json");
-                exit(json_encode(['code'=>403,'message'=>'Token Expired.']));
+                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
             }
         }
     }
@@ -164,9 +143,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             }
             $this->send['code'] = $this->getCode();
             if ($this->send['code'] == "1" && !$this->getMessage()) {
-                $this->send['message'] = '成功!';
+                $this->send['message'] = L('SUCCESS', null, '成功！');
             } elseif (!$this->getMessage()) {
-                $this->send['message'] = '未知错误!';
+                $this->send['message'] = L('ERROR', null, '未知错误！');
             } else {
                 $this->send['message'] = $this->getMessage();
             }
@@ -187,8 +166,23 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         if (!$this->put_data) {
             $data = $this->put_data = json_decode(file_get_contents("php://input"), true);
         }
-        if ($name) {
-            $data = isset($this->put_data [$name]) && !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
+        if ($name === 'lang') {
+
+            if (!empty($this->put_data [$name])) {
+                $lang = trim($this->put_data [$name]);
+            } else {
+                if (!$this->headers) {
+                    $this->headers = getHeaders();
+                }
+                $lang = !empty($this->headers [$name]) ? trim($this->headers [$name]) : trim($default);
+            }
+            return $lang;
+        } elseif ($name) {
+            if (isset($this->put_data [$name]) && is_string($this->put_data [$name])) {
+                $data = !empty($this->put_data [$name]) ? trim($this->put_data [$name]) : trim($default);
+            } else {
+                $data = !empty($this->put_data [$name]) ? $this->put_data [$name] : $default;
+            }
             return $data;
         } else {
             $data = $this->put_data;
@@ -485,50 +479,109 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $code;
     }
 
-    /**
-     * @desc 获取当前用户信息
-     * @author liujf 2017-07-01
-     * @return array
+    /*
+     * @desc 加载php公共配置文件
+     *
+     * @author liujf
+     * @time 2018-01-25
      */
-    public function getUserInfo() {
-        $userModel = new UserModel();
-        return $userModel->info($this->user['id']);
+    public function loadCommonConfig() {
+        $files = $commonConfig = [];
+        searchDir(COMMON_CONF_PATH, $files);
+        foreach ($files as $file) {
+            if (preg_match('/.*\.php$/i', $file)) {
+                $commonConfig = include $file;
+                if (is_array($commonConfig)) {
+                    C($commonConfig);
+                }
+            }
+        }
     }
 
     /**
-     * @desc 记录审核日志
+     * @desc 语言检查(检查浏览器支持语言，并自动加载语言包)
      *
-     * @param array $condition
-     * @param object $model
-     * @return array
      * @author liujf
-     * @time 2017-08-10
+     * @time 2018-01-25
      */
-    public function addCheckLog($condition, &$model) {
-        if (is_object($model)) {
-            $inquiryCheckLogModel = &$model;
-        } else {
-            $inquiryCheckLogModel = new InquiryCheckLogModel();
+    public function checkLanguage() {
+        // 不开启语言包功能，仅仅加载框架语言文件直接返回
+        if (!C('LANG_SWITCH_ON', null, false)) {
+            return;
         }
-        $time = date('Y-m-d H:i:s');
-
-        $inquiryIdArr = explode(',', $condition['inquiry_id']);
-
-        $checkLogList = $checkLog = array();
-
-        foreach ($inquiryIdArr as $inquiryId) {
-            $data = $condition;
-            $data['op_id'] = $this->user['id'];
-            $data['inquiry_id'] = $inquiryId;
-            $data['created_by'] = $this->user['id'];
-            $data['created_at'] = $time;
-
-            $checkLog = $inquiryCheckLogModel->create($data);
-
-            $checkLogList[] = $checkLog;
+        $langSet = C('DEFAULT_LANG');
+        $varLang = C('VAR_LANGUAGE', null, 'l');
+        $langList = C('LANG_LIST', null, 'zh');
+        // 启用了语言包功能
+        // 根据是否启用自动侦测设置获取语言选择
+        if (C('LANG_AUTO_DETECT', null, true)) {
+            $langParam = $this->getPut($varLang);
+            $langHeader = getHeaders()[$varLang];
+            $langCookie = $this->getCookie($varLang);
+            $langCache = $this->_getLanguage();
+            if (!empty($langParam)) {
+                $langSet = $langParam; // 请求参数中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if (!empty($langHeader)) {
+                $langSet = $langHeader; // 请求头信息中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if (!empty($langCookie)) {
+                $langSet = $langCookie; // cookie中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if (isset($_GET[$varLang])) {
+                $langSet = $_GET[$varLang]; // url中设置了语言变量
+                $this->_cacheLanguage($langSet);
+            } else if ($langCache) { // 获取上次用户的选择
+                $langSet = $langCache;
+            } else if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) { // 自动侦测浏览器语言
+                preg_match('/^([a-z\d\-]+)/i', $_SERVER['HTTP_ACCEPT_LANGUAGE'], $matches);
+                $langSet = explode('-', $matches[1])[0];
+                $this->_cacheLanguage($langSet);
+            }
+            if (false === stripos($langList, $langSet)) { // 非法语言参数
+                $langSet = C('DEFAULT_LANG');
+            }
         }
+        // 定义当前语言
+        define('LANG_SET', strtolower($langSet));
+        // 读取公共语言包
+        $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
+        if (is_file($file)) {
+            L(include $file);
+        }
+        // 读取模块语言包
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
+        if (is_file($file)) {
+            L(include $file);
+        }
+        // 读取当前控制器语言包
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
+        if (is_file($file)) {
+            L(include $file);
+        }
+    }
 
-        return $inquiryCheckLogModel->addAll($checkLogList);
+    /**
+     * @desc 语言缓存
+     *
+     * @param string $lang 语言
+     * @return bool
+     * @author liujf
+     * @time 2018-01-28
+     */
+    private function _cacheLanguage($lang = 'zh') {
+        return redisSet('erui_boss_language_' . $this->user['id'], $lang, 3600 * 24);
+    }
+
+    /**
+     * @desc 获取语言缓存
+     *
+     * @return mixed
+     * @author liujf
+     * @time 2018-01-28
+     */
+    private function _getLanguage() {
+        return redisGet('erui_boss_language_' . $this->user['id']);
     }
 
     /**
@@ -544,8 +597,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author 买买提
      * @return string
      */
-
-
     public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode = "86", $subType = 1, $groupSending = 0, $useType = "询报价系统") {
 
         if (empty($receiver)) {
@@ -595,20 +646,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return;
     }
 
-
     /**
      * 验证指定参数是否存在
      * @param string $params 初始的请求字段
      * @return array 验证后的请求字段
      */
-    public function validateRequestParams($params=''){
+    public function validateRequestParams($params = '') {
         $request = $this->getPut();
         unset($request['token']);
 
-        if ($params){
-            $params = explode(',',$params);
-            foreach ($params as $param){
-                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少['.$param.']参数']);
+        if ($params) {
+            $params = explode(',', $params);
+            foreach ($params as $param) {
+                if (empty($request[$param])) {
+                    $this->jsonReturn(['code' => '-104', 'message' => '缺少[' . $param . ']参数']);
+                }
             }
         }
         return $request;

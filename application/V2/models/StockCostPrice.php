@@ -47,6 +47,7 @@ class StockCostPriceModel extends PublicModel {
                                 . 'min_promotion_price,price_unit,price_cur_bn,min_purchase_qty,'
                                 . 'max_purchase_qty,trade_terms_bn,price_validity_start,price_validity_end')
                         ->where($where)
+                        ->order('min_purchase_qty asc')
                         ->select();
     }
 
@@ -66,44 +67,65 @@ class StockCostPriceModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function updateDatas($country_bn, $lang, $sku, $cost_prices) {
+    public function updateDatas($country_bn, $lang, $sku, $cost_prices, $is_verify = true) {
 
         $where['sku'] = $sku;
         $where['country_bn'] = $country_bn;
+        $this->startTrans();
         $this->where($where)->save(['deleted_flag' => 'Y']);
         $current_model = new CurrencyModel();
-        foreach ($cost_prices as $cost_price) {
+        try {
+            foreach ($cost_prices as $cost_price) {
 
-            $id = empty($cost_price['id']) ? null : $cost_price['id'];
-            if (isset($cost_price['id'])) {
-                unset($cost_price['id']);
-            }
+                $id = empty($cost_price['id']) ? null : $cost_price['id'];
+                if (isset($cost_price['id'])) {
+                    unset($cost_price['id']);
+                }
 
-            if ($cost_price['price_cur_bn']) {
-                $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
+                if ($cost_price['price_cur_bn']) {
+                    $cost_price['price_symbol'] = $current_model->getSymbolByBns($cost_price['price_cur_bn']);
+                }
+                $data = $this->create($cost_price);
+                $data['supplier_id'] = empty($data['supplier_id']) ? 0 : intval($data['supplier_id']);
+                $data['max_price'] = floatval($data['max_price']) > 0 ? intval($data['max_price']) : null;
+                $data['max_promotion_price'] = floatval($data['max_promotion_price']) > 0 ? intval($data['max_promotion_price']) : null;
+                $data['min_promotion_price'] = floatval($data['min_promotion_price']) > 0 ? intval($data['min_promotion_price']) : null;
+                $data['min_purchase_qty'] = intval($data['min_purchase_qty']) > 0 ? intval($data['min_purchase_qty']) : 0;
+                $data['max_purchase_qty'] = intval($data['max_purchase_qty']) > 0 ? intval($data['max_purchase_qty']) : null;
+                if (empty($data['min_price']) && $is_verify) {
+                    $this->rollback();
+                    jsonReturn(null, '-1', '价格不能为空!');
+                }
+                $data['spu'] = $this->getSpu($sku, $lang);
+                $data['sku'] = $sku;
+                $data['country_bn'] = $country_bn;
+                $flag = false;
+                if (empty($id)) {
+                    $data['created_by'] = defined('UID') ? UID : 0;
+                    $data['created_at'] = date('Y-m-d H:i:s');
+                    $data['deleted_flag'] = 'N';
+
+                    $flag = $this->add($data);
+                } else {
+                    $data['updated_by'] = defined('UID') ? UID : 0;
+                    $data['updated_at'] = date('Y-m-d H:i:s');
+                    $data['deleted_flag'] = 'N';
+
+                    $flag = $this->where(['id' => $id])->save($data);
+                }
+                if (!$flag) {
+                    $this->rollback();
+                    return false;
+                }
             }
-            $data = $this->create($cost_price);
-            $data['spu'] = $this->getSpu($sku, $lang);
-            $data['sku'] = $sku;
-            $data['country_bn'] = $country_bn;
-            $flag = false;
-            if (empty($id)) {
-                $data['created_by'] = defined('UID') ? UID : 0;
-                $data['created_at'] = date('Y-m-d H:i:s');
-                $data['deleted_flag'] = 'N';
-                $flag = $this->add($data);
-            } else {
-                $data['updated_by'] = defined('UID') ? UID : 0;
-                $data['updated_at'] = date('Y-m-d H:i:s');
-                $data['deleted_flag'] = 'N';
-                $flag = $this->where(['id' => $id])->save($data);
-            }
-            if (!$flag) {
-                return false;
-            }
+            $this->commit();
+            return true;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            $this->rollback();
+            return false;
         }
-
-        return true;
     }
 
     /**
@@ -113,19 +135,29 @@ class StockCostPriceModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function updateData($country_bn, $lang, $sku) {
+    public function updateData($country_bn, $lang, $sku, $is_verify = true) {
 
 
         $goods_cost_price_model = new GoodsCostPriceModel();
         $field = 'supplier_id,price as min_price,max_price,price_unit,price_cur_bn,'
-                . 'min_purchase_qty,max_purchase_qty,pricing_date,price_validity_start,'
+                . 'min_purchase_qty,max_purchase_qty,price_validity_start,'
                 . 'price_validity as price_validity_end';
         $cost_prices = $goods_cost_price_model->field($field)
                         ->where(['sku' => $sku, 'deleted_flag' => 'N'])->select();
 
         if ($cost_prices) {
-
-            return $this->updateDatas($country_bn, $lang, $sku, $cost_prices);
+            foreach ($cost_prices as $key => $cost_price) {
+                $cost_price['min_price'] = null;
+                $cost_price['max_price'] = null;
+                $cost_price['price_cur_bn'] = null;
+                $cost_price['min_purchase_qty'] = 1;
+                $cost_price['max_purchase_qty'] = null;
+//            $cost_prices['pricing_date'] = null;
+                $cost_price['price_validity_start'] = null;
+                $cost_price['price_validity_end'] = null;
+                $cost_prices[$key] = $cost_price;
+            }
+            return $this->updateDatas($country_bn, $lang, $sku, $cost_prices, $is_verify);
         } else {
             return true;
         }
@@ -136,7 +168,7 @@ class StockCostPriceModel extends PublicModel {
      * @param array $skus
      * @return array|mixed
      */
-    public function getCostPriceBySkus($skus = [], $country_bn) {
+    public function getCostPriceBySkus($skus = [], $country_bn = null) {
         $where = array(
             'sku' => ['in', $skus],
             'deleted_flag' => 'N',
@@ -155,6 +187,37 @@ class StockCostPriceModel extends PublicModel {
 
             foreach ($result as $item) {
                 $data[$item['sku']][] = $item;
+            }
+            $result = $data;
+            return $result;
+        }
+        return array();
+    }
+
+    /**
+     * 获取商品价格属性
+     * @param array $skus
+     * @return array|mixed
+     */
+    public function getSupplierIds($skus = [], $country_bn = null) {
+        $where = array(
+            'sku' => ['in', $skus],
+            'deleted_flag' => 'N',
+            'country_bn' => $country_bn,
+            'status' => 'VALID'
+        );
+        $field = 'sku,supplier_id';
+        $result = $this->field($field)->where($where)
+                ->order('id asc')
+                ->group('supplier_id,sku')
+                ->select();
+
+        if ($result) {
+            $data = array();
+            //按类型分组
+
+            foreach ($result as $item) {
+                $data[$item['sku']][] = $item['supplier_id'];
             }
             $result = $data;
             return $result;

@@ -29,7 +29,7 @@ class ReportController extends PublicController {
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
             $sign = md5($key . $input['input']);
-
+//            echo $sign;
             if ($input['sign'] != $sign) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->setMessage('验证失败!');
@@ -223,41 +223,74 @@ class ReportController extends PublicController {
      */
     public function getTimeIntervalDataAction() {
         $condition = $this->getPut();
-
         if (!empty($condition['creat_at_start']) && !empty($condition['creat_at_end'])) {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $inquiryItemModel = new InquiryItemModel();
-
+            $marketAreaModel = new MarketAreaModel();
+            $marketAreaCountryModel = new MarketAreaCountryModel();
             $nowTime = time();
-
+            $quoteStatus = [
+                'DRAFT' => '草稿',
+                'NOT_QUOTED' => '未报价',
+                'ONGOING' => '报价中',
+                'QUOTED' => '已报价',
+                'COMPLETED' => '已完成'
+            ];
             $inquiryList = $inquiryModel->getTimeIntervalList($condition);
-
             foreach ($inquiryList as &$inquiry) {
                 $where['inquiry_id'] = $inquiry['id'];
-                $createdTime = strtotime($inquiry['created_at']);
-
                 $inquiry['gross_profit_rate'] = $inquiry['gross_profit_rate'] / 100;
-                $inquiry['quote_status'] = $inquiryModel->quoteStatus[$inquiry['quote_status']];
-
+                if (empty($inquiry['area_name'])) {
+                    $area = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
+                    $inquiry['area_name'] = $marketAreaModel->where(['bn' => $area, 'lang' => 'zh', 'deleted_flag' => 'N'])->getField('name');
+                }
+                // 最后一次流入事业部分单员的时间
+                $lastBizDispatchingLog = $inquiryCheckLogModel->field('id, into_at')->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find();
+                $lastBizDispatchingTime = strtotime($lastBizDispatchingLog['into_at']);
+                // 最后一次流入事业部分单员之后的项目澄清时间
+                $clarifyTotalTime = 0;
+                $clarifyList = $lastBizDispatchingLog['id'] ? $inquiryCheckLogModel->field('id, out_at')->where(array_merge($where, ['id' => ['gt', $lastBizDispatchingLog['id']], 'out_node' => 'CLARIFY']))->order('id ASC')->select() : [];
+                foreach ($clarifyList as $clarify) {
+                    $clarifyTime = $inquiryCheckLogModel->where(array_merge($where, ['id' => ['gt', $clarify['id']], 'in_node' => 'CLARIFY']))->order('id ASC')->getField('out_at');
+                    if ($clarifyTime) {
+                        $clarifyTotalTime += strtotime($clarifyTime) - strtotime($clarify['out_at']);
+                    } else {
+                        $clarifyTotalTime += $nowTime - strtotime($clarify['out_at']);
+                        break;
+                    }
+                }
+                // 询单报价时间
                 if ($inquiry['quote_status'] == 'QUOTED' || $inquiry['quote_status'] == 'COMPLETED') {
-                    $quoteTime = $inquiryCheckLogModel->where(['inquiry_id' => $inquiry['id'], 'in_node' => 'MARKET_CONFIRMING'])->getField('out_at');
-                    $inquiry['quote_time'] = strtotime($quoteTime) - $createdTime;
+                    $quoteTime = $inquiryCheckLogModel->where(array_merge($where, ['out_node' => [['eq', 'MARKET_CONFIRMING'], ['eq', 'INQUIRY_CLOSED'], 'or']]))->getField('out_at');
+                    $inquiry['quote_time'] = strtotime($quoteTime) - $lastBizDispatchingTime - $clarifyTotalTime;
                 } else {
-                    $inquiry['quote_time'] = $nowTime - $createdTime;
+                    $inquiry['quote_time'] = $nowTime - $lastBizDispatchingTime - $clarifyTotalTime;
                 }
-
+                // 报价状态显示成中文
+                $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
+                // 询单驳回次数
+                $rejectWhere = array_merge($where, ['action' => 'REJECT']);
+                $inquiry['reject_count'] = $inquiryCheckLogModel->getCount($rejectWhere);
+                // 询单驳回理由
+                $rejectReasonList = $inquiryCheckLogModel->where($rejectWhere)->order('id DESC')->getField('op_note', true);
+                $inquiry['reject_reason'] = [];
+                foreach ($rejectReasonList as $rejectReason) {
+                     $tmpArr = explode(',', $rejectReason);
+                     $inquiry['reject_reason'][] = $tmpArr[0];
+                }
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
-
                 foreach ($inquiryItemList as &$inquiryItem) {
+                    // sku是否油气
                     $inquiryItem['oil_type'] = in_array($inquiryItem['category'], $inquiryItemModel->isOil) ? '油气' : (in_array($inquiryItem['category'], $inquiryItemModel->noOil) ? '非油气' : '');
+                    // sku是否平台
+                    $inquiryItem['sku_type'] = empty($inquiryItem['sku']) ? '非平台' : '平台';
                 }
-                
+                // sku记录数
                 $inquiry['sku_count'] = $inquiryItemModel->getJoinCount($where);
                 $inquiry['other'] = $inquiryItemList;
                 unset($inquiry['id']);
             }
-
             $this->jsonReturn($inquiryList);
         } else {
             $this->setCode('-103');

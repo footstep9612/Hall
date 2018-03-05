@@ -54,7 +54,7 @@ class SupplierModel extends PublicModel {
             $where .= " And supplier.name like '%" . $condition['name'] . "%'";
         }
         if (!empty($condition['supplier_no'])) {
-            $where .= ' And supplier_no  ="' . $condition['supplier_no'] . '"';
+            $where .= " And supplier.supplier_no like '%" . $condition['supplier_no'] . "%'";
         }
         if (!empty($condition['status'])) {
             $where .= ' And supplier.status  ="' . $condition['status'] . '"';
@@ -326,7 +326,7 @@ class SupplierModel extends PublicModel {
     public function getSkuSupplierList($condition = []) {
         $where = ' where s.deleted_flag="N" ';
         if (!empty($condition['name'])) {
-            $where .= 'and s.name like "' . $condition['name'] . '%"';
+            $where .= 'and s.name like "%' . $condition['name'] . '%"';
         }
         if (!empty($condition['sec_ex_listed_on'])) {
             $where .= 'and s.sec_ex_listed_on like "%' . $condition['sec_ex_listed_on'] . '%"';

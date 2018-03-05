@@ -6,7 +6,7 @@
  * Date: 2017/12/9
  * Time: 21:16
  */
-class ShoppingCarModel extends publicModel{
+class ShoppingCarModel extends PublicModel{
     protected $tableName = 'shopping_car';
     protected $dbName = 'erui_mall';
 
@@ -17,7 +17,7 @@ class ShoppingCarModel extends publicModel{
     /**
      * 我的购物车
      */
-    public function myShoppingCar($condition){
+    public function myShoppingCar($condition,$country_bn = ''){
         if(empty($condition) || !isset($condition['lang'])){
             return false;
         }
@@ -30,22 +30,34 @@ class ShoppingCarModel extends publicModel{
             if($result){
                 $skus = [];
                 $spus = [];
-                foreach($result as $item){
+                foreach($result as $index =>$item){
                     $skus[] = $item['sku'];
                     $spus[] = $item['spu'];
+                    $result[$item['sku']] = $item;
+                    unset($result[$index]);
                 }
 
                 $goodsModel= new GoodsModel();
                 $goodsTable = $goodsModel->getTableName();
                 $productModel = new ProductModel();
                 $productTable =$productModel->getTableName();
-                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status")
+                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
                     ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku"=>['in',$skus], "$goodsTable.lang"=>$condition['lang'], "$goodsTable.deleted_flag"=>'N'])->select();
 				$goodsAry = [];
 				foreach($goods as $r){
 					$r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']): $r['show_name'];
+                    if($condition['type']){
+                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $country_bn, $result[$r['sku']]['buy_number']);
+                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $country_bn);
+                    }
 					$goodsAry[$r['sku']] = $r;
 				}
+
+                //库存
+                $stockAry = [];
+                if($condition['type']) {
+                    $stockAry = $productModel->getSkuStockBySku( $skus , $country_bn , $condition[ 'lang' ] );
+                }
 					
                 //扩展属性
                 $gattrModel = new GoodsAttrModel();
@@ -70,7 +82,7 @@ class ShoppingCarModel extends publicModel{
                     $dataAttach[ $r[ 'spu' ] ] = $r[ 'attach_url' ];
                 }
             }
-            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry] : [];
+            return $result ? ['skuAry'=>$result, 'infoAry' =>$goodsAry, 'thumbs'=>$dataAttach, 'attrAry'=>$attrAry, 'stockAry'=>$stockAry] : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e , Log::ERR);
             return false;
@@ -82,7 +94,7 @@ class ShoppingCarModel extends publicModel{
      * @param $input
      * @param type 0 询单车  1购物车
      */
-    public function edit($input){
+    public function edit($input,$userInfo){
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('',ErrorMsg::NOTNULL_SPU);
         }
@@ -96,12 +108,11 @@ class ShoppingCarModel extends publicModel{
         }
 
         try{
-            $userInfo = getLoinInfo();
             $this->startTrans();
             foreach($input['skus'] as $sku => $count){
                 $data = [
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id'],
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id'],
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'buy_number' => trim($count),
@@ -113,10 +124,11 @@ class ShoppingCarModel extends publicModel{
                     'spu' => trim($input['spu']),
                     'sku' => trim($sku),
                     'lang' => $input['lang'],
-                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['id']
+                    'buyer_id' => isset($input['buyer_id']) ? $input['buyer_id'] : $userInfo['buyer_id']
                 ];
-                $result = $this->field('id')->where($condition)->find();
+                $result = $this->field('id,buy_number')->where($condition)->find();
                 if($result){
+                    $data['buy_number'] = $data['buy_number'] + $result['buy_number'];
                     $data['updated_at'] = date('Y-m-d H:i:s');
                     $result = $this->where(['id'=>$result['id']])->save($data);
                 }else{
@@ -143,12 +155,17 @@ class ShoppingCarModel extends publicModel{
 		if(!isset($input['idAry']) || empty($input['idAry'])){
             jsonReturn('','请选择要删除的ID');
         }
+        if(!isset($input['type'])){
+            jsonReturn('','type不能为空');
+        }
 		
 		$userInfo = getLoinInfo();
-		$condition = [
-			'id' => ['in',$input['idAry']],
-			//'buyer_id' => $userInfo['id']
-		];
+        $condition['type'] = $input['type'] ? 1 : 0;
+        if(is_array($input['idAry'])){
+            $condition['id'] = ['in',$input['idAry']];
+        }else{
+            $condition['id'] = $input['idAry'];
+        }
 		try{
 			$data = [
 				'deleted_flag' => 'Y',
@@ -161,6 +178,33 @@ class ShoppingCarModel extends publicModel{
              return false;
 		}
 	}
+
+    /**
+     * 清用户车
+     */
+    public function clear($sku='',$buyer_id='',$type=''){
+        if(empty($sku) || empty($buyer_id)){
+            return false;
+        }
+        if(is_array($sku)){
+            $condition['sku'] = ['in',$sku];
+        }else{
+            $condition['sku'] = $sku;
+        }
+        $condition[ 'type'] = $type;
+        $condition[ 'buyer_id'] = $buyer_id;
+        try{
+            $data = [
+                'deleted_flag' => 'Y',
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+            $result = $this->where($condition)->save($data);
+            return $result ? $result : false;
+        }catch(Exception $e){
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】clear:' . $e , Log::ERR);
+            return false;
+        }
+    }
 
 
 }

@@ -14,7 +14,7 @@
 class MembercenterController extends PublicController {
 
     public function init() {
-        $this->token = false;
+        //$this->token = false;
         parent::init();
     }
 
@@ -25,7 +25,7 @@ class MembercenterController extends PublicController {
     public function getUserInfoAction() {
         $buyer_data = $this->getPut();
         $buyerModel = new BuyerAccountModel();
-        //$this->user['buyer_id'] = 955;//测试
+        //$this->user['buyer_id'] = 1;//测试  后期去掉哦
         $result = $buyerModel->getinfo($this->user);
         if (!empty($result)) {
             jsonReturn($result, 1, 'success!');
@@ -34,6 +34,7 @@ class MembercenterController extends PublicController {
         }
         exit;
     }
+
 
     /**
      * 个人信息中心更新保存
@@ -53,29 +54,13 @@ class MembercenterController extends PublicController {
         $result = $buyerModel->update_data($buyer_data, $where);
 
         if ($result !==false) {
-            jsonReturn('', 1, 'success!');
+            jsonReturn('', 1, ShopMsg::getMessage('1',$lang));
         } else {
-            jsonReturn('', '-1002', 'failed!');
+            jsonReturn('', -1, ShopMsg::getMessage('-1',$lang));
         }
         exit;
     }
 
-
-
-    /**
-     * 源密码校验
-     * @author klp
-     */
-    public function checkOldPwdAction() {
-        $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut());
-        if ($result) {
-            jsonReturn('', 1, '原密码输入正确!');
-        } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
-        }
-        exit;
-    }
 
     /**
      * 修改密码
@@ -83,17 +68,19 @@ class MembercenterController extends PublicController {
      */
     public function upPasswordAction() {
         $data = $this->getPut();
+        $lang = $data['lang'] ? $data['lang'] : 'en';
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($data);
+        $data['buyer_id'] = $this->user['buyer_id'];
+        $result = $buyerAccount->checkPassword($data,$lang);
         if ($result) {
-            $res = $buyerAccount->update_pwd($data);
+            $res = $buyerAccount->update_pwd($data,$lang);
             if ($res) {
-                jsonReturn('', 1, '修改密码成功!');
+                jsonReturn('', 1, ShopMsg::getMessage('142',$lang));
             } else {
-                jsonReturn('', '-1002', '修改密码失败!');
+                jsonReturn('', '-135', ShopMsg::getMessage('-135',$lang));
             }
         } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
         }
     }
 
@@ -127,22 +114,12 @@ class MembercenterController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
 
         list($start_no, $pagesize) = $this->_getPage($data);
+        $condition['buyer_id'] = $this->user['buyer_id'];
+        $condition['log_group'] = 'CREDIT';
         $OrderLog = new OrderLogModel();
-        list($result, $count) = $OrderLog->CerditList($this->user, $start_no, $pagesize);
-        if (!empty($result)) {
-            $datajson['code'] = 1;
-            $datajson['count'] = $count;
-            $datajson['data'] = $result;
-        } elseif ($result === null) {
-            $datajson['code'] = -1002;
-            $datajson['count'] = 0;
-            $datajson['message'] = '参数错误!';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['count'] = 0;
-            $datajson['message'] = '失败!';
-        }
-        $this->jsonReturn($datajson);
+        $results = $OrderLog->getBuyerLogList($condition, $start_no, $pagesize);
+        $this->jsonReturn($results);
+
     }
 
     /**
@@ -151,9 +128,9 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function agentlistAction() {
-        $where['buyer_id'] = $this->user['buyer_id'];
+        $buyer_id = $this->user['buyer_id'];
         $model = new BuyerAgentModel();
-        $res = $model->getlist($where);
+        $res = $model->getlist($buyer_id);
         if (!empty($res)) {
             $datajson['code'] = 1;
             $datajson['data'] = $res;
@@ -187,7 +164,102 @@ class MembercenterController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    // 发送激活邮件
+    public function sendActiveEmailAction() {
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        if (!empty($data['email'])) {
+            $arr['email'] = $data['email'];
+        } else {
+            jsonReturn('', -134, ShopMsg::getMessage('-134', $lang));
+        }
+        $arr['key'] = md5(uniqid());
+        redisHashSet('mall_active_email_'.$lang, $arr['key'], $this->user['buyer_id'], 86400);
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        if($lang != 'en'){
+            $email_arr['url'] = $config_shop['url_'.$lang];
+        }
+        $email_arr['key'] = $arr['key'];
+        $body = $this->getView()->render('login/active_email_'.$lang.'.html', $email_arr);
+        $title = 'Erui.com';
+        $res = send_Mail($arr['email'], $title, $body);
+        if ($res['code'] == 1) {
+            jsonReturn('', 1, ShopMsg::getMessage('141', $lang));
+        } else {
+            jsonReturn('', -133, ShopMsg::getMessage('-133', $lang));
+        }
+    }
+
+    //验证邮件
+    public function checkActiveEmailAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang = $data['lang'] ? $data['lang'] : 'en';
+        if (empty($data['key'])) {
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
+        }
+        if (redisHashExist('mall_active_email_'.$lang, $data['key'])) {
+            $buyer_id = redisHashGet('mall_active_email_'.$lang, $data['key']);
+            $buyer_account_model = new BuyerAccountModel();
+            $user_arr['status'] = 'VALID';
+            $check = $buyer_account_model->update_data($user_arr, ['buyer_id' => $buyer_id]);
+            if ($check) {
+                redisHashDel('mall_active_email_'.$lang, $data['key']);
+                jsonReturn('', 1, ShopMsg::getMessage('1', $lang));
+            } else {
+                jsonReturn('', -1, ShopMsg::getMessage('-1', $lang));
+            }
+        } else {
+            jsonReturn('', -121, ShopMsg::getMessage('-121', $lang));
+        }
+    }
+
     /**
+     * 采购商联系人信息
+     * @author klp
+     */
+    public function getContactInfoAction() {
+        $data = $this->getPut();
+        $buyerModel = new BuyerContactModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
+        $result = $buyerModel->info($data);
+        if (!empty($result)) {
+            jsonReturn($result, 1, 'Success!');
+        } else {
+            jsonReturn('', '-1002', 'Data is empty!');
+        }
+        exit;
+    }
+
+    /**
+     * 采购商联系人编辑
+     * @author klp
+     */
+    public function contactEditAction()
+    {
+        $data = $this->getPut();
+        $buyerModel = new BuyerContactModel();
+        $data['buyer_id'] = $this->user['buyer_id'];
+        if(!empty($data['id'])){
+            $check = $buyerModel->field('id')->where(['buyer_id' => $this->user['buyer_id'],'id' => $data['id'], 'deleted_flag' => 'N'])->find();
+            if ($check){
+                $result = $buyerModel->update_data($data);
+            }
+            $result = $buyerModel->create_data($data);
+        } else {
+            $result = $buyerModel->create_data($data);
+        }
+        if($result) {
+            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CUSTOM_FAILED , 'failed!');
+        }
+        exit;
+    }
+
+        /**
      * 分页处理
      * @param array $condition 条件
      * @return array

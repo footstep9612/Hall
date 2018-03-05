@@ -18,6 +18,8 @@ class HomecountryController extends PublicController {
     //put your code here
     public function init() {
         //  parent::init();
+        $this->token = false;
+        parent::init();
     }
 
     /**
@@ -35,9 +37,15 @@ class HomecountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn(null);
         }
-        $home_country_model = new HomeCountryModel();
+        $lang = $this->getPut('lang', 'en');
+        if (empty($lang)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn(null);
+        }
+        $home_country_model = new ShowCatModel();
 
-        $list = $home_country_model->getExit($country_bn);
+        $list = $home_country_model->getExit($country_bn, $lang);
 
         if ($list) {
             $this->jsonReturn($list);

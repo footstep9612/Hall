@@ -107,18 +107,19 @@ class MembercenterController extends PublicController {
      * @author klp
      */
     public function upPasswordAction() {
+        $data = $this->getPut();
         $buyerAccount = new BuyerAccountModel();
-        $result = $buyerAccount->checkPassword($this->getPut(), $this->user);
+        $data['buyer_id'] = $this->user['buyer_id'];
+        $result = $buyerAccount->checkPassword($data);
         if ($result) {
-            $buyerAccount = new BuyerAccountModel();
-            $res = $buyerAccount->update_pwd($this->getPut(), $this->user);
+            $res = $buyerAccount->update_pwd($data);
             if ($res) {
-                jsonReturn('', 1, '修改密码成功!');
+                jsonReturn('', 1, 'Password is reset successfully!');
             } else {
-                jsonReturn('', '-1002', '修改密码失败!');
+                jsonReturn('', '-1002', 'Password is reset failed!');
             }
         } else {
-            jsonReturn('', '-1003', '原密码输入错误!');
+            jsonReturn('', '-1001', 'The original password is wrong!');
         }
     }
 

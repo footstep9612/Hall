@@ -216,7 +216,7 @@ class BizdivitionController extends PublicController{
         if ($params){
             $params = explode(',',$params);
             foreach ($params as $param){
-                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=>'缺少参数']);
+                if (empty($request[$param])) $this->jsonReturn(['code'=>'-104','message'=> L('MISSING_PARAMETER')]);
             }
         }
 
@@ -236,6 +236,23 @@ class BizdivitionController extends PublicController{
     {
 
         $this->sendSms("17326916890","SUBMIT","买买提","INQ_20171026_00001",$this->user['name'],"DRAFT","BIZ_DISPATCH");
+
+    }
+
+    public function sendEmailAction()
+    {
+        $name = $this->user['name'];
+
+        $inquiry = new InquiryModel();
+        $role_name = $inquiry->setRoleName($inquiry->getUserRoleById($this->user['id']));
+        $serial_no = '23456789';
+
+        $body = <<< Stilly
+        <h2>【{$role_name}】{$name}</h2>
+        <p>您好！由【{$role_name}】{$name}，提交的【询单流水号：{$serial_no}】，需要您的办理，请登录BOSS系统及时进行处理。</p>
+Stilly;
+
+        MailHelper::sendEmail('learnfans@aliyun.com', '【询报价】办理通知', $body,$name);
 
     }
 }

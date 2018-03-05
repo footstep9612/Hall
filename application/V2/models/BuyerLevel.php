@@ -160,7 +160,6 @@ $row = $this->query( $sql );
         $fields = 'id, buyer_level, status, created_by, created_at, updated_by, updated_at, checked_by, checked_at, deleted_flag';
         try{
             $result = $this->field($fields)->where($where)->order('id')->group('buyer_level')->select();
-
             $arr = $data = $level = array();
             if ($result) {
                 $employee = new EmployeeModel();
@@ -187,7 +186,11 @@ $row = $this->query( $sql );
             return array();
         }
     }
-
+    //等级生效的条件描述
+    public function levelByCond(){
+        $info=$this->field('lang,brief,cond')->where(array('type'=>1,'deleted_flag'=>'N'))->select();
+        return $info;
+    }
     /**
      * 新增/编辑数据
      * @param  mix $createcondition 新增条件
@@ -269,4 +272,22 @@ $row = $this->query( $sql );
         return date('Y-m-d H:i:s', time());
     }
 
+    /**
+     * wangs
+     * 获取客户等级名称
+     */
+    public function getBuyerLevelById($id,$lang='zh'){
+        $cond=array(
+            'id'=>$id,
+            'deleted_flag'=>'N'
+        );
+        $name=$this->field('buyer_level')->where($cond)->find();
+        $json=$name['buyer_level'];
+        $arr=json_decode($json,true);
+        $info=array();
+        foreach($arr as $k => $v){
+            $info[$v['lang']]=$v['name'];
+        }
+        return $info[$lang];
+    }
 }

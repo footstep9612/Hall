@@ -120,12 +120,13 @@ class HomeFloorKeywordModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function updateData($id, $condition) {
-        $condition['country_bn'] = trim($condition['country_bn']);
-        $condition['keyword'] = trim($condition['keyword']);
-        $condition['sort_order'] = intval($condition['sort_order']);
-        $condition['floor_id'] = intval($condition['floor_id']);
-        $condition['deleted_flag'] = 'N';
+    public function updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword, $deleted_flag = 'N') {
+        $condition['country_bn'] = trim($country_bn);
+        $condition['keyword'] = trim($keyword);
+        $condition['lang'] = trim($lang);
+        $condition['sort_order'] = intval($sort_order);
+        $condition['floor_id'] = intval($floor_id);
+        $condition['deleted_flag'] = $deleted_flag == 'Y' ? 'Y' : 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;

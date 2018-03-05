@@ -138,9 +138,9 @@ class BuyerAccountModel extends PublicModel {
         if (isset($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
         }
-        if (isset($data['password_hash'])) {
-            $arr['password_hash'] = md5($data['password_hash']);
-        }
+//        if (isset($data['password_hash'])) {
+//            $arr['password_hash'] = md5($data['password_hash']);
+//        }
         if (isset($data['role'])) {
             $arr['role'] = $data['role'];
         }
@@ -189,9 +189,9 @@ class BuyerAccountModel extends PublicModel {
         if (isset($create['mobile'])) {
             $arr['mobile'] = $create['mobile'];
         }
-        if (isset($create['password_hash'])) {
-            $arr['password_hash'] = $create['password_hash'];
-        }
+//        if (isset($create['password_hash'])) {
+//            $arr['password_hash'] = $create['password_hash'];
+//        }
         if (isset($create['role'])) {
             $arr['role'] = $create['role'];
         }
@@ -210,42 +210,42 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data) {
-        if (!empty($data['id'])) {
-            $where['id'] = $data['id'];
-        } else {
-            jsonReturn('', '-1001', '用户id不可以为空');
-        }
-        if (!empty($data['password'])) {
-            $password = $data['password'];
-        }
-        $pwd = $this->where($where)->field('password_hash')->find();
-        if ($pwd == $password) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    public function checkPassword($data) {
+//        if (!empty($data['id'])) {
+//            $where['id'] = $data['id'];
+//        } else {
+//            jsonReturn('', '-1001', '用户id不可以为空');
+//        }
+//        if (!empty($data['password'])) {
+//            $password = $data['password'];
+//        }
+//        $pwd = $this->where($where)->field('password_hash')->find();
+//        if ($pwd == $password) {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
     /**
      * 密码修改
      * @author klp
      * return bool
      */
-    public function update_pwd($data, $token) {
-
-        if (!empty($token['customer_id'])) {
-            $where['customer_id'] = $token['customer_id'];
-        } else {
-            jsonReturn('', '-1001', '用户id不可以为空');
-        }
-        if (!empty($data['password_hash'])) {
-            $new['password_hash'] = $data['password_hash'];
-        } else {
-            jsonReturn('', '-1001', '新密码不可以为空');
-        }
-        return $this->where($where)->save($new);
-    }
+//    public function update_pwd($data, $token) {
+//
+//        if (!empty($token['customer_id'])) {
+//            $where['customer_id'] = $token['customer_id'];
+//        } else {
+//            jsonReturn('', '-1001', '用户id不可以为空');
+//        }
+//        if (!empty($data['password_hash'])) {
+//            $new['password_hash'] = $data['password_hash'];
+//        } else {
+//            jsonReturn('', '-1001', '新密码不可以为空');
+//        }
+//        return $this->where($where)->save($new);
+//    }
 
     /*
      * 根据用户ID 获取用户名 姓
@@ -269,10 +269,11 @@ class BuyerAccountModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('buyer_id,first_name,last_name')->select();
+            $buyers = $this->where($where)->field('buyer_id,show_name,first_name,last_name')->select();
             $buyer_names = [];
             foreach ($buyers as $buyer) {
                 $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
+                $buyer_names['show_name'] = $buyer['show_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

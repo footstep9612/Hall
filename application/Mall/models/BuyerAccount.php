@@ -25,6 +25,7 @@ class BuyerAccountModel extends PublicModel {
     const STATUS_VALID = 'VALID'; //有效
     const STATUS_INVALID = 'INVALID'; //无效；
     const STATUS_DELETE = 'DELETE'; //删除；
+    const STATUS_DRAFT = 'DRAFT'; //草稿；
 
     /**
      * 判断用户是否存在
@@ -229,6 +230,8 @@ class BuyerAccountModel extends PublicModel {
         }
         if (isset($create['status'])) {
             $arr['status'] = $create['status'];
+        } else {
+            $arr['status'] = self::STATUS_DRAFT;
         }
         $arr['created_at'] = Date("Y-m-d H:i:s");
         $data = $this->create($arr);
@@ -239,11 +242,9 @@ class BuyerAccountModel extends PublicModel {
      * 密码校验
      * @author klp
      */
-    public function checkPassword($data) {
+    public function checkPassword($data,$lang) {
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
-        } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
         }
         if (!empty($data['oldpassword'])) {
             $password = $data['oldpassword'];
@@ -253,7 +254,7 @@ class BuyerAccountModel extends PublicModel {
         if ($pwd['password_hash'] == $password) {
             return true;
         } else {
-            return false;
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
         }
     }
 
@@ -262,19 +263,23 @@ class BuyerAccountModel extends PublicModel {
      * @author klp
      * return bool
      */
-    public function update_pwd($data) {
+    public function update_pwd($data,$lang) {
 
         if (!empty($data['buyer_id'])) {
             $where['buyer_id'] = $data['buyer_id'];
         } else {
-            jsonReturn('', '-1001', '用户buyer_id不可以为空');
+            jsonReturn('', '-1001', 'Token Expired');//用户buyer_id不可以为空
         }
         if (!empty($data['password'])) {
             $new['password_hash'] = $data['password'];
         } else {
-            jsonReturn('', '-1001', '新密码不可以为空');
+            jsonReturn('', '-110', ShopMsg::getMessage('-110',$lang));
         }
-        return $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        $res = $this->where(['buyer_id' => $where['buyer_id']])->save($new);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
 
     /*
@@ -299,11 +304,11 @@ class BuyerAccountModel extends PublicModel {
             } else {
                 return false;
             }
-            $buyers = $this->where($where)->field('buyer_id,show_name,first_name,last_name')->select();
+            $buyers = $this->where($where)->field('buyer_id,show_name,user_name,first_name,last_name')->select();
             $buyer_names = [];
             foreach ($buyers as $buyer) {
-                $buyer_names[$buyer['buyer_id']] = $buyer['first_name'] . $buyer['last_name'];
-                $buyer_names['show_name'] = $buyer['show_name'];
+                $buyer_names[$buyer['buyer_id']] = $buyer['show_name'];
+                $buyer_names['user_name'] = $buyer['user_name'];
             }
             return $buyer_names;
         } catch (Exception $ex) {

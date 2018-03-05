@@ -36,7 +36,7 @@ class BuyerCustomModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_id,service_no,title,cat_name,item_id,content,remarks,add_desc';
+        $field = 'id,lang,buyer_id,service_no,title,cat_name,cat_no,item_no,content,remarks,add_desc';
         $field .= ',email,contact_name,company,country_bn,city,tel,status,created_by,created_at';
         return $this->field($field)
                      ->where($where)
@@ -130,33 +130,40 @@ class BuyerCustomModel extends PublicModel
      */
     protected function _getCondition($condition = []) {
         $where = [];
-        /*if (isset($condition['status']) && $condition['status']) {
-            switch ($condition['status']) {
-                case 'unsent':
-                    $where['status'] = 'UNSENT';
+        if (isset($condition['cat_name']) && $condition['cat_name'] && $condition['lang']=='en') {
+            switch ($condition['cat_name']) {
+                case 'Technology':
+                    $where['cat_name'] = 'Technology consulting and comprehensive solutions';
                     break;
-                case 'sented':
-                    $where['status'] = 'SENTED';
+                case 'Talent':
+                    $where['cat_name'] = 'Talent training';
+                    break;
+                case 'Human':
+                    $where['cat_name'] = 'Human resources';
                     break;
                 default :
                     break;
             }
-        }*/
-
+        }
+        if (isset($condition['cat_no']) && $condition['cat_no']) {
+            $where['cat_no'] = $condition['cat_no'];                  //服务类型编码
+        }
         if (isset($condition['lang']) && $condition['lang']) {
             $where['lang'] = $condition['lang'];                  //语言
         }
         if (isset($condition['buyer_id']) && $condition['buyer_id']) {
             $where['buyer_id'] = $condition['buyer_id'];                  //客户ID
         }
-        if (isset($condition['cat_id']) && $condition['cat_id']) {
-            $where['cat_id'] = $condition['cat_id'];                 //服务类型名称
+        if (isset($condition['cat_no']) && $condition['cat_no']) {
+            $where['cat_no'] = $condition['cat_no'];                 //服务类型名称
         }
-
+        /*if (isset($condition['tel']) && $condition['tel']) {
+            $where['tel'] = ['REGEXP','([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$'];
+        }*/
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
             $where['created_at'] = array(
-                array('gt', $condition['start_time']),
-                array('lt', $condition['end_time'])
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
@@ -229,11 +236,11 @@ class BuyerCustomModel extends PublicModel
 //        if (isset($create['item_name']) && !empty($create['item_name'])) {
 //            $arr['item_name'] = json_encode(trim($create['item_name']));
 //        }
-        if (isset($create['cat_id']) && !empty($create['cat_id'])) {
-            $arr['cat_id'] = trim($create['cat_id']);
+        if (isset($create['cat_no']) && !empty($create['cat_no'])) {
+            $arr['cat_no'] = trim($create['cat_no']);
         }
-//        if (isset($create['item_id']) && !empty($create['item_id'])) {
-//            $arr['item_id'] = json_encode(trim($create['item_id']));
+//        if (isset($create['item_no']) && !empty($create['item_no'])) {
+//            $arr['item_no'] = json_encode(trim($create['item_no']));
 //        }
         if (isset($create['content']) && !empty($create['content'])) {
             $arr['content'] = trim($create['content']);
@@ -254,7 +261,7 @@ class BuyerCustomModel extends PublicModel
             $arr['company'] = trim($create['company']);
         }
         if (isset($create['country']) && !empty($create['country'])) {
-            $arr['country_bn'] = trim($create['country_bn']);
+            $arr['country_bn'] = trim($create['country']);
         }
         if (isset($create['city']) && !empty($create['city'])) {
             $arr['city'] = trim($create['city']);
@@ -290,12 +297,12 @@ class BuyerCustomModel extends PublicModel
         if (isset($data['title']) && !empty($where['title'])) {
             $arr['title'] = trim($data['title']);
         }
-        if (isset($data['cat_id']) && !empty($where['cat_id'])) {
-            $arr['cat_id'] = trim($data['cat_id']);
+        if (isset($data['cat_no']) && !empty($where['cat_no'])) {
+            $arr['cat_no'] = trim($data['cat_no']);
         }
-        if (isset($data['item_id']) && !empty($where['item_id'])) {
-            $arr['item_id'] = json_encode(trim($data['item_id']));
-        }
+        /*if (isset($data['item_no']) && !empty($where['item_no'])) {
+            $arr['item_no'] = json_encode(trim($data['item_no']));
+        }*/
         if (isset($data['content']) && !empty($where['content'])) {
             $arr['content'] = trim($data['content']);
         }

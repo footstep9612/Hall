@@ -31,11 +31,13 @@ class StockcountryController extends PublicController {
 
         $condition = $this->getPut();
         $stock_country_model = new StockCountryModel();
-
+        $lang = isset($condition['lang']) ? $condition['lang'] : 'zh';
         $list = $stock_country_model->getList($condition);
 
         if ($list) {
-            $this->_setCountry($list);
+            $this->_setCountry($list, $lang);
+            $count = $stock_country_model->getCount($condition, $lang);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -57,7 +59,7 @@ class StockcountryController extends PublicController {
      * @desc
      */
 
-    private function _setCountry(&$arr) {
+    private function _setCountry(&$arr, $lang = 'zh') {
         if ($arr) {
             $country_model = new CountryModel();
             $market_area_country_model = new MarketAreaCountryModel();
@@ -65,9 +67,10 @@ class StockcountryController extends PublicController {
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val['country_bn']);
             }
-            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
-            $market_areas = $market_area_country_model->getAreasBybns($country_bns, 'zh');
+            $countrynames = $country_model->getNamesBybns($country_bns, $lang);
+            $market_areas = $market_area_country_model->getAreasBybns($country_bns, $lang);
             foreach ($arr as $key => $val) {
+
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
                     $val['country_name'] = $countrynames[trim($val['country_bn'])];
                 } else {
@@ -78,7 +81,7 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = $market_areas[trim($val['country_bn'])]['market_area_name'];
                     $val['market_area_bn'] = $market_areas[trim($val['country_bn'])]['market_area_bn'];
                 } else {
-                    $val['country_name'] = '';
+                    $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
                 $arr[$key] = $val;
@@ -131,8 +134,8 @@ class StockcountryController extends PublicController {
             $this->jsonReturn();
         }
         $stock_country_model = new StockCountryModel();
-
-        if ($stock_country_model->getExit($country_bn)) {
+        $lang = $this->getPut('lang', 'en');
+        if ($stock_country_model->getExit($country_bn, $lang)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -140,7 +143,8 @@ class StockcountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $list = $stock_country_model->createData($country_bn, $show_flag, $display_position);
+
+        $list = $stock_country_model->createData($country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -176,8 +180,8 @@ class StockcountryController extends PublicController {
         }
 
         $stock_country_model = new StockCountryModel();
-
-        if ($stock_country_model->getExit($country_bn, $id)) {
+        $lang = $this->getPut('lang', 'en');
+        if ($stock_country_model->getExit($country_bn, $lang, $id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -185,8 +189,7 @@ class StockcountryController extends PublicController {
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
 
-
-        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $display_position);
+        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

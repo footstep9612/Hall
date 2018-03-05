@@ -98,9 +98,9 @@ class EmployeeModel extends PublicModel {
             return false;
         }
 
-        /*if (!isset($condition['deleted_flag'])) {
-            $condition['deleted_flag'] = self::DELETE_N;
-        }*/
+        /* if (!isset($condition['deleted_flag'])) {
+          $condition['deleted_flag'] = self::DELETE_N;
+          } */
 
         if (empty($field)) {
             $field = 'id,user_no,email,mobile,password_hash,name,name_en,avatar,gender,mobile2,phone,ext,remarks,status';
@@ -115,7 +115,7 @@ class EmployeeModel extends PublicModel {
             return false;
         }
     }
-    
+
     /**
      * @desc 根据用户姓名获取ID
      *
@@ -125,8 +125,21 @@ class EmployeeModel extends PublicModel {
      * @time 2017-11-29
      */
     public function getUserIdByName($name) {
-        
-        return $this->where(['name'=>['like', '%' . trim($name) . '%'], 'deleted_flag' => 'N'])->getField('id', true);
+
+        return $this->where(['name' => ['like', '%' . trim($name) . '%'], 'deleted_flag' => 'N'])->getField('id', true);
+    }
+
+    /**
+     * @desc 根据用户编号获取ID
+     *
+     * @param string $no
+     * @return array
+     * @author liujf
+     * @time 2017-12-25
+     */
+    public function getUserIdByNo($no) {
+
+        return $this->where(['user_no' => trim($no), 'deleted_flag' => 'N'])->getField('id');
     }
 
     /**
@@ -137,8 +150,7 @@ class EmployeeModel extends PublicModel {
      */
     public function getUserNameById($id) {
 
-        return $this->where(['id'=>$id])->getField('name');
-
+        return $this->where(['id' => $id])->getField('name');
     }
 
     /**
@@ -149,40 +161,79 @@ class EmployeeModel extends PublicModel {
      */
     public function getMobileByUserId($id) {
 
-        return $this->where(['id'=>$id])->getField('mobile');
-
+        return $this->where(['id' => $id])->getField('mobile');
     }
 
     /**
      * 框架协议-商务技术经办人-列表
      * wangs
      */
-    public function buyerTechAgent($data){
+    public function buyerTechAgent($data) {
         $cond = "1=1";
-        if(!empty($data['name'])){
+        if (!empty($data['name'])) {
             $cond .= " and name like '%$data[name]%'";
         }
-        if(!empty($data['user_no'])){
+        if (!empty($data['user_no'])) {
             $cond .= " and user_no like '%$data[user_no]%'";
         }
         $page = 1;
         $pageSize = 10;
-        $totalCont = $this -> where($cond) -> count();
-        $totalPage = ceil($totalCont/$pageSize);
-        if(!empty($data['page']) && is_numeric($data['page']) && $data['page']>0){
+        $totalCont = $this->where($cond)->count();
+        $totalPage = ceil($totalCont / $pageSize);
+        if (!empty($data['page']) && is_numeric($data['page']) && $data['page'] > 0) {
             $page = ceil($data['page']);
         }
-        if($page > $totalPage && $totalPage > 0){
+        if ($page > $totalPage && $totalPage > 0) {
             $page = $totalPage;
         }
-        $offset = ($page-1)*$pageSize;
-        $info = $this -> field('id,user_no,name') ->where($cond) -> limit($offset,$pageSize) -> select();
+        $offset = ($page - 1) * $pageSize;
+        $info = $this->field('id,user_no,name')->where($cond)->limit($offset, $pageSize)->select();
         $arr = array(
-            'info'=>$info,
-            'page'=>$page,
-            'totalCount'=>$totalCont,
-            'totalPage'=>$totalPage
+            'info' => $info,
+            'page' => $page,
+            'totalCount' => $totalCont,
+            'totalPage' => $totalPage
         );
         return $arr;
     }
+
+    /**
+     * @param $id
+     * 根据id获取技术人员名称-王帅
+     */
+    public function getNameByid($id) {
+        return $this->field('id,name')->where(array('id' => $id))->find();
+    }
+
+    public function getIdByName($name) {
+        return $this->field('id,name')->where(array('name' => $name))->find();
+    }
+
+    /*
+     * 根据ID数组获取用户名称
+     * @author  zhongyg
+     * @param array $obtain_ids // 用户ID
+     * @return array //返回用户数组
+     * @date    2018-02-011 11:45:09
+     * @version V2.0
+     * @desc  获取人信息处理
+     */
+
+    public function getNamesByids($obtain_ids) {
+        $ret = [];
+        if ($obtain_ids && is_array($obtain_ids)) {
+
+
+            $users = $this->field('id,name')
+                    ->where(['id' => ['in', $obtain_ids], 'deleted_flag' => 'N'])
+                    ->select();
+            if ($users) {
+                foreach ($users as $user) {
+                    $ret[$user['id']] = $user['name'];
+                }
+            }
+        }
+        return $ret;
+    }
+
 }

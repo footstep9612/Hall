@@ -42,10 +42,6 @@ class ShowCatModel extends PublicModel {
      */
     public function tree($condition = [], $limit = null) {
         $where = $this->_getcondition($condition);
-        $redis_key = md5(json_encode($where));
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         try {
             $this->where($where)
                     ->order('sort_order DESC')
@@ -54,8 +50,9 @@ class ShowCatModel extends PublicModel {
                 $this->limit(0, 10);
             }
             $result = $this->select();
-
-            redisHashSet($this->tableName, $redis_key, json_encode($result));
+            foreach ($result as $key => $val) {
+                $result[$key]['label'] = $val['label'] . '-' . $val['value'];
+            }
             return $result;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -78,10 +75,7 @@ class ShowCatModel extends PublicModel {
         //语言默认取en 统一小写
         $condition['lang'] = isset($condition['lang']) ? strtolower($condition['lang']) : ( browser_lang() ? browser_lang() : 'en');
         $condition['status'] = self::STATUS_VALID;
-        $redis_key = md5(json_encode($condition) . $field);
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         try {
             //后期优化缓存的读取
             //这里需要注意排序的顺序（注意与后台一致）
@@ -94,7 +88,7 @@ class ShowCatModel extends PublicModel {
                 $data['data'] = $resouce;
                 $data['count'] = count($resouce);
             }
-            redisHashSet($this->tableName, $redis_key, json_encode($data));
+
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -140,15 +134,12 @@ class ShowCatModel extends PublicModel {
         } else {
             $where['status'] = self::STATUS_VALID;
         }
-        $redis_key = md5(json_encode($where)) . '_cat_no';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
+
         try {
             $data = $this->field(['cat_no'])->where($where)->order('sort_order DESC')
                     ->group('cat_no')
                     ->select();
-            redisHashSet($this->tableName, $redis_key, json_encode($data));
+
             return $data;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -224,15 +215,12 @@ class ShowCatModel extends PublicModel {
     public function getcount($condition = []) {
         $where = $this->_getcondition($condition);
 
-        $redis_key = md5(json_encode($where)) . '_COUNT';
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return redisHashGet($this->tableName, $redis_key);
-        }
+
         try {
             $count = $this->where($where)
                     //  ->field('id,user_id,name,email,mobile,status')
                     ->count('id');
-            redisHashSet($this->tableName, $redis_key, $count);
+
             return $count;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -249,16 +237,7 @@ class ShowCatModel extends PublicModel {
     public function getlist($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
         $where['lang'] = $lang;
-        if (isset($condition['page']) && isset($condition['countPerPage'])) {
 
-            $redis_key = md5(json_encode($where) . $condition['page'] . ',' . $condition['countPerPage']) . '_LIST';
-        } else {
-            $redis_key = md5(json_encode($where)) . '_LIST';
-        }
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $this->where($where);
         if (isset($condition['page']) && isset($condition['countPerPage'])) {
             return $this->limit($condition['page'] . ',' . $condition['countPerPage']);
@@ -268,7 +247,7 @@ class ShowCatModel extends PublicModel {
                         . 'status,sort_order,created_at,created_by')
                 ->order('sort_order DESC')
                 ->select();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -290,18 +269,12 @@ class ShowCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-        $redis_key = md5(json_encode($condition)) . '_GETLIST';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($condition)
                 ->field('id, cat_no, lang, name, status, sort_order')
                 ->order('sort_order DESC')
                 ->select();
 
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
         return $data;
     }
 
@@ -318,18 +291,13 @@ class ShowCatModel extends PublicModel {
         if ($lang) {
             $where['lang'] = $lang;
         }
-        $redis_key = md5(json_encode($where)) . '_INFO';
 
-
-        if (redisHashExist($this->tableName, $redis_key)) {
-            return json_decode(redisHashGet($this->tableName, $redis_key), true);
-        }
         $data = $this->where($where)
                 ->field('id, cat_no, parent_cat_no, level_no, lang, name, status, '
                         . 'sort_order, created_at, created_by, big_icon, middle_icon, '
                         . 'small_icon, market_area_bn, country_bn,updated_at,updated_by')
                 ->find();
-        redisHashSet($this->tableName, $redis_key, json_encode($data));
+
         return $data;
     }
 
@@ -557,7 +525,7 @@ class ShowCatModel extends PublicModel {
             if (isset($condition[$lang]) && !empty($condition[$lang]['name'])) {
                 $old_info[$lang] = $this->where(['cat_no' => $where['cat_no'], 'lang' => $lang])->field('id,cat_no,name')->find();
                 $data['lang'] = $lang;
-                $data['name'] = $condition[$lang]['name'];
+                $data['name'] = trim($condition[$lang]['name']);
                 $where['lang'] = $lang;
                 $add = $data;
                 $add['cat_no'] = $cat_no;
@@ -577,6 +545,29 @@ class ShowCatModel extends PublicModel {
             return false;
         }
         $this->commit();
+        return $flag;
+    }
+
+    /**
+     * 更新数据
+     * @param  mix $upcondition 更新条件
+     * @return bool
+     * @author zyg
+     */
+    public function updateico_data($cat_no, $upcondition = []) {
+        $data = [];
+        if (!empty($upcondition['small_icon'])) {
+            $data['small_icon'] = trim($upcondition['small_icon']);
+        }
+        if (!empty($upcondition['middle_icon'])) {
+            $data['middle_icon'] = trim($upcondition['middle_icon']);
+        }
+        if (!empty($upcondition['big_icon'])) {
+            $data['big_icon'] = trim($upcondition['big_icon']);
+        }
+        $data['updated_by'] = defined('UID') ? UID : 0;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+        $flag = $this->where(['cat_no' => $cat_no])->save($data);
         return $flag;
     }
 
@@ -802,46 +793,82 @@ class ShowCatModel extends PublicModel {
 
     public function getCatNo($parent_cat_no = '', $level_no = 1) {
 
-        if ($level_no < 1) {
+        if ($level_no < 1)
             $level_no = 1;
-        } elseif ($level_no >= 3) {
+        if ($level_no >= 3)
             $level_no = 3;
-        }
+
+        //一级分类编码
         if (empty($parent_cat_no) && $level_no == 1) {
-            $re = $this->field('max(cat_no) as max_cat_no')->where(['level_no' => 1])->find();
-            if (!empty($re['max_cat_no'])) {
-                if ($re['max_cat_no'] >= 990000) {
-                    Log::write($re['max_cat_no'] . '一级展示分类超过限制!');
-                    return false;
+            $re = $this->field('cat_no')->where(['level_no' => 1])->order('id DESC')->find();
+            if (!empty($re['cat_no'])) {
+                // 00+1:00:00
+                $cat_no_seeds = explode(':', $re['cat_no']);
+                $cat_no_seeds[0] = $cat_no_seeds[0] + 1;
+
+                if ($cat_no_seeds[0] < 10) {
+                    $cat_no_seeds[0] = str_pad($cat_no_seeds[0], 2, "0", STR_PAD_LEFT);
                 }
-                return sprintf('%06d', intval($re['max_cat_no']) + 10000);
+
+                return implode(':', $cat_no_seeds);
             } else {
-                return '010000';
+
+                return '01:00:00';
             }
         } elseif (empty($parent_cat_no)) {
             return false;
         } else {
-            $re = $this->field('max(cat_no) as max_cat_no')
+            $re = $this->field('cat_no,parent_cat_no')
                     ->where(['parent_cat_no' => $parent_cat_no])
+                    ->order('id DESC')
                     ->find();
-            $format = '%06d';
-            if (!empty($re['max_cat_no']) && $level_no == 3) {
+            //p($re);
+            //p($this->getLastSql());
 
-                if ((intval($re['max_cat_no']) + 1) % 100 === 0) {
-                    Log::write($re['max_cat_no'] . '三级展示分类超过限制!');
-                    return false;
+            if (!empty($re['cat_no']) && $level_no == 3) {
+
+                //三级分类编码
+                $parent_cat_seeds = explode(':', $re['cat_no']);
+
+                $parent_cat_seeds[2] = $parent_cat_seeds[2] + 1;
+
+                if ($parent_cat_seeds[2] < 10) {
+                    $parent_cat_seeds[2] = str_pad($parent_cat_seeds[2], 2, "0", STR_PAD_LEFT);
                 }
-                return sprintf($format, (intval($re['max_cat_no']) + 1));
+
+                return implode(':', $parent_cat_seeds);
             } elseif ($level_no == 3) {
-                return sprintf($format, (intval($parent_cat_no) + 1));
-            } elseif (!empty($re['max_cat_no']) && $level_no == 2) {
-                if ((intval($re['max_cat_no']) + 100) % 10000 === 0) {
-                    Log::write($re['max_cat_no'] . '二级展示分类超过限制!');
-                    return false;
+
+                //三级分类编码
+                $parent_cat_seeds = explode(':', $parent_cat_no);
+                $parent_cat_seeds[2] = $parent_cat_seeds[2] + 1;
+
+                if ($parent_cat_seeds[2] < 10) {
+                    $parent_cat_seeds[2] = str_pad($parent_cat_seeds[2], 2, "0", STR_PAD_LEFT);
                 }
-                return sprintf($format, (intval($re['max_cat_no']) + 100));
+
+                return implode(':', $parent_cat_seeds);
+            } elseif (!empty($re['cat_no']) && $level_no == 2) {
+
+                //二级分类编码
+                $parent_cat_seeds = explode(':', $re['cat_no']);
+                $parent_cat_seeds[1] = $parent_cat_seeds[1] + 1;
+
+                if ($parent_cat_seeds[1] < 10) {
+                    $parent_cat_seeds[1] = str_pad($parent_cat_seeds[1], 2, "0", STR_PAD_LEFT);
+                }
+
+                return implode(':', $parent_cat_seeds);
             } elseif ($level_no == 2) {
-                return sprintf($format, (intval($parent_cat_no) + 100));
+                //二级分类编码
+                $parent_cat_seeds = explode(':', $parent_cat_no);
+                $parent_cat_seeds[1] = $parent_cat_seeds[1] + 1;
+
+                if ($parent_cat_seeds[1] < 10) {
+                    $parent_cat_seeds[1] = str_pad($parent_cat_seeds[1], 2, "0", STR_PAD_LEFT);
+                }
+
+                return implode(':', $parent_cat_seeds);
             }
         }
     }
@@ -904,8 +931,8 @@ class ShowCatModel extends PublicModel {
         $langs = ['en', 'es', 'zh', 'ru'];
         foreach ($langs as $lang) {
             if (isset($createcondition[$lang]) && !empty($createcondition[$lang]['name'])) {
-                $data['lang'] = $lang;
-                $data['name'] = $createcondition[$lang]['name'];
+                $data['lang'] = trim($lang);
+                $data['name'] = trim($createcondition[$lang]['name']);
                 $flag = $this->add($data);
                 if (!$flag) {
                     $this->rollback();
@@ -1064,7 +1091,7 @@ class ShowCatModel extends PublicModel {
                         'cat_no2' => '',
                         'cat_name2' => '',
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn']
                     ];
@@ -1088,11 +1115,11 @@ class ShowCatModel extends PublicModel {
                 foreach ($cat3s as $val) {
                     $newcat3s[$val['cat_no']] = [
                         'cat_no3' => $val['cat_no'],
-                        'cat_name3' => $val['name'],
+                        'cat_name3' => trim($val['name']),
                         'market_area_bn' => $val['market_area_bn'],
                         'country_bn' => $val['country_bn'],
                         'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                        'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                        'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                         'cat_no1' => '',
                         'cat_name1' => '',
                     ];
@@ -1106,13 +1133,13 @@ class ShowCatModel extends PublicModel {
             foreach ($cat3s as $val) {
                 $newcat3s[$val['cat_no']] = [
                     'cat_no1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['cat_no'],
-                    'cat_name1' => $newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name'],
+                    'cat_name1' => trim($newcat1s[$newcat2s[$val['parent_cat_no']]['parent_cat_no']]['name']),
                     'cat_no2' => $newcat2s[$val['parent_cat_no']]['cat_no'],
-                    'cat_name2' => $newcat2s[$val['parent_cat_no']]['name'],
+                    'cat_name2' => trim($newcat2s[$val['parent_cat_no']]['name']),
                     'cat_no3' => $val['cat_no'],
                     'market_area_bn' => $val['market_area_bn'],
                     'country_bn' => $val['country_bn'],
-                    'cat_name3' => $val['name']];
+                    'cat_name3' => trim($val['name'])];
             }
             return $newcat3s;
         } catch (Exception $ex) {
@@ -1136,7 +1163,7 @@ class ShowCatModel extends PublicModel {
             $where['level_no'] = ['eq', $level_no];
             $where['deleted_flag'] = 'N';
             $where['lang'] = $lang;
-            $where['name'] = $name;
+            $where['name'] = trim($name);
             $where['market_area_bn'] = $market_area_bn;
             $where['country_bn'] = $country_bn;
             $flag = $this->field('id')->where($where)
@@ -1336,6 +1363,35 @@ class ShowCatModel extends PublicModel {
         unset($currentSheet, $PHPExcel, $objReader);
         //unlink($localFile);
         return $result;
+    }
+
+    public function UpdateSpuCountByShowCatNo($cat_no, $lang = 'en') {
+
+        $data = $this->field('cat_no,parent_cat_no,spu_count')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+            $product_model = new ShowCatProductModel();
+            $count = $product_model->where(['onshelf_flag' => 'Y', 'cat_no' => $cat_no])->count();
+
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $count]);
+            if ($flag && $data['parent_cat_no']) {
+                $num = intval($count) - intval($data['spu_count']);
+                $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+            }
+        }
+    }
+
+    public function UpdateSpuCountByCatno($cat_no, $lang = 'en') {
+
+        $data = $this->field('cat_no,parent_cat_no')->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->find();
+        if ($data) {
+
+            $spu_count = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'parent_cat_no' => $cat_no])->sum('spu_count');
+            $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $spu_count]);
+            if ($flag && $data['parent_cat_no']) {
+                $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+            }
+        }
+        return $flag;
     }
 
 }

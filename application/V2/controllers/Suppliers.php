@@ -20,7 +20,10 @@ class SuppliersController extends PublicController {
         $this->supplierAgentModel = new SupplierAgentModel();
         $this->supplierQualificationModel = new SupplierQualificationModel();
         $this->supplierCheckLogsModel = new SupplierCheckLogsModel();
+        $this->supplierAgentModel = new SupplierAgentModel();
         $this->inquiryModel = new InquiryModel();
+        $this->employeeModel = new EmployeeModel();
+        $this->orgModel = new OrgModel();
 
         $this->time = date('Y-m-d H:i:s');
     }
@@ -69,7 +72,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function updateSupplierInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -86,7 +89,7 @@ class SuppliersController extends PublicController {
         if ($condition['status'] != 'DRAFT' && $condition['name'] == '')
             jsonReturn('', -101, '公司名称不能为空!');
 
-        if (strlen($condition['name']) > 100 || strlen($condition['name_en']) > 100)
+        if (strlenUtf8($condition['name']) > 100 || strlenUtf8($condition['name_en']) > 100)
             jsonReturn('', -101, '您输入的公司名称超出长度!');
 
         if ($condition['status'] != 'DRAFT' && $condition['country_bn'] == '')
@@ -95,28 +98,28 @@ class SuppliersController extends PublicController {
         if ($condition['status'] != 'DRAFT' && $condition['address'] == '')
             jsonReturn('', -101, '公司地址不能为空!');
 
-        if (strlen($condition['address']) > 100)
+        if (strlenUtf8($condition['address']) > 100)
             jsonReturn('', -101, '您输入的公司地址大于100字!');
 
         if ($condition['status'] != 'DRAFT' && $condition['social_credit_code'] == '')
             jsonReturn('', -101, '营业执照（统一社会信用代码）编码不能为空!');
 
-        if (strlen($condition['social_credit_code']) > 20)
+        if (strlenUtf8($condition['social_credit_code']) > 20)
             jsonReturn('', -101, '您输入的营业执照（统一社会信用代码）编码有误!');
 
         if ($condition['status'] != 'DRAFT' && $condition['reg_capital'] == '')
             jsonReturn('', -101, '注册资本不能为空!');
 
-        if (strlen($condition['reg_capital']) > 20)
+        if (strlenUtf8($condition['reg_capital']) > 20)
             jsonReturn('', -101, '请输入正确的注册资本!');
 
-        if (strlen($condition['profile']) > 500)
+        if (strlenUtf8($condition['profile']) > 500)
             jsonReturn('', -101, '您输入的企业简介大于500字!');
 
         if ($condition['status'] != 'DRAFT' && $condition['bank_name'] == '')
             jsonReturn('', -101, '开户行名称不能为空!');
 
-        if (strlen($condition['bank_name']) > 60)
+        if (strlenUtf8($condition['bank_name']) > 60)
             jsonReturn('', -101, '您输入的开户行名称大于60字!');
 
         if ($condition['status'] != 'DRAFT' && $condition['bank_account'] == '')
@@ -125,10 +128,10 @@ class SuppliersController extends PublicController {
         if ($condition['bank_account'] != '' && !is_numeric($condition['bank_account']))
             jsonReturn('', -101, '开户账号只能输入数字!');
 
-        if (strlen($condition['bank_account']) > 20)
-            jsonReturn('', -101, '您输入的开户账号超过20位!');
+        //if (strlenUtf8($condition['bank_account']) > 20)
+            //jsonReturn('', -101, '您输入的开户账号超过20位!');
 
-        if (strlen($condition['bank_address']) > 100)
+        if (strlenUtf8($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');
 
         if ($condition['org_id'] == '')
@@ -143,14 +146,28 @@ class SuppliersController extends PublicController {
         if ($condition['status'] != 'DRAFT' && $condition['providing_sample_flag'] == '')
             jsonReturn('', -101, '是否提供样品不能为空!');
 
-        if (strlen($condition['distribution_products']) > 200)
+        if (strlenUtf8($condition['distribution_products']) > 200)
             jsonReturn('', -101, '您输入的铺货产品大于200字!');
 
         if ($condition['distribution_amount'] != '' && preg_match('/[^\.\d]/i', $condition['distribution_amount']))
             jsonReturn('', -101, '易瑞铺货金额只能输入正数 0 和点（.）!');
 
-        if (strlen($condition['stocking_place']) > 40)
+        if (strlenUtf8($condition['stocking_place']) > 40)
             jsonReturn('', -101, '备货地点长度不超过40个字!');
+        
+        if ($condition['status'] != 'DRAFT') {
+            $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
+            if (!$hasDeveloper) 
+                jsonReturn('', -101, '开发人不能为空!');
+            
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name']])->getField('id');
+            if ($hasSupplierName)
+                jsonReturn('', -101, '此公司名称已经存在!');
+            
+            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
+            if ($hasCreditCode)
+                jsonReturn('', -101, '此营业执照编码已经存在!');
+        }
 
         $this->suppliersModel->startTrans();
 
@@ -165,13 +182,13 @@ class SuppliersController extends PublicController {
             if ($condition['status'] != 'DRAFT' && $item['contact_name'] == '')
                 jsonReturn('', -101, '联系人姓名不能为空!');
 
-            if (strlen($item['contact_name']) > 40)
+            if (strlenUtf8($item['contact_name']) > 40)
                 jsonReturn('', -101, '您输入的联系人姓名过长!');
 
             if ($condition['status'] != 'DRAFT' && $item['phone'] == '')
                 jsonReturn('', -101, '联系方式不能为空!');
 
-            if (strlen($item['phone']) > 20)
+            if (strlenUtf8($item['phone']) > 20)
                 jsonReturn('', -101, '您输入的联系方式不正确!');
 
             if ($condition['status'] != 'DRAFT' && $item['email'] == '')
@@ -180,16 +197,16 @@ class SuppliersController extends PublicController {
             if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
                 jsonReturn('', -101, '您输入的邮箱格式不正确!');
 
-            if (strlen($item['email']) > 50)
+            if (strlenUtf8($item['email']) > 50)
                 jsonReturn('', -101, '您输入的邮箱大于50字!');
 
-            if (strlen($item['title']) > 20)
+            if (strlenUtf8($item['title']) > 20)
                 jsonReturn('', -101, '您输入的职位大于20字!');
 
-            if (strlen($item['station']) > 20)
+            if (strlenUtf8($item['station']) > 20)
                 jsonReturn('', -101, '您输入的岗位大于20字!');
 
-            if (strlen($item['remarks']) > 100)
+            if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
             
             if ($count == 1 && !isset($item['id'])) {
@@ -323,13 +340,39 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function getSupplierListAction() {
-        $condition = $this->put_data;
+        $condition = dataTrim($this->put_data);
+        
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
+        
+        if (!$isErui) {
+            // 非易瑞事业部门的看他所在事业部和易瑞的
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $condition['org_id'] = $orgUb ? array_merge($this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
+        }
+        
+        // 开发人
+        if ($condition['developer'] != '') {
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
+        }
+        
+        // 创建人
+        if ($condition['created_name'] != '') {
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
+        }
+        
+        // 供货范围
+        if ($condition['cat_name'] != '') {
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+        }
 
-        $condition['org_id'] = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+        
+        foreach ($supplierList as &$supplier) {
+            $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
+            $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+        }
 
-        $data = $this->suppliersModel->getJoinList($condition);
-
-        $this->_handleList($this->suppliersModel, $data, $condition, true);
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
     /**
@@ -394,7 +437,10 @@ class SuppliersController extends PublicController {
      * @time 2017-11-16
      */
     public function batchUpdateSupplierContactInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -407,13 +453,13 @@ class SuppliersController extends PublicController {
             if ($item['contact_name'] == '')
                 jsonReturn('', -101, '联系人姓名不能为空!');
 
-            if (strlen($item['contact_name']) > 40)
+            if (strlenUtf8($item['contact_name']) > 40)
                 jsonReturn('', -101, '您输入的联系人姓名过长!');
 
             if ($item['phone'] == '')
                 jsonReturn('', -101, '联系方式不能为空!');
 
-            if (strlen($item['phone']) > 20)
+            if (strlenUtf8($item['phone']) > 20)
                 jsonReturn('', -101, '您输入的联系方式不正确!');
 
             if ($item['email'] == '')
@@ -422,16 +468,16 @@ class SuppliersController extends PublicController {
             if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
                 jsonReturn('', -101, '您输入的邮箱格式不正确!');
 
-            if (strlen($item['email']) > 50)
+            if (strlenUtf8($item['email']) > 50)
                 jsonReturn('', -101, '您输入的邮箱大于50字!');
 
-            if (strlen($item['title']) > 20)
+            if (strlenUtf8($item['title']) > 20)
                 jsonReturn('', -101, '您输入的职位大于20字!');
 
-            if (strlen($item['station']) > 20)
+            if (strlenUtf8($item['station']) > 20)
                 jsonReturn('', -101, '您输入的岗位大于20字!');
 
-            if (strlen($item['remarks']) > 100)
+            if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
 
             if ($count == 1 && !isset($item['id'])) {
@@ -492,7 +538,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function addSupplierSupplyRecordAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -695,7 +741,10 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function batchUpdateSupplierQualificationInfoAction() {
-        $condition = $this->_trim($this->put_data);
+        $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -708,13 +757,13 @@ class SuppliersController extends PublicController {
         $count = count($condition['items']);
 
         foreach ($condition['items'] as $item) {
-            if (strlen($item['name']) > 50)
+            if (strlenUtf8($item['name']) > 50)
                 jsonReturn('', -101, '您输入的资质名称长度超过限制!');
 
             if ($condition['status'] != 'DRAFT' && $item['code'] == '')
                 jsonReturn('', -101, '资质编码不能为空!');
 
-            if (strlen($item['code']) > 50)
+            if (strlenUtf8($item['code']) > 50)
                 jsonReturn('', -101, '您输入的资质编码长度超过限制!');
 
             if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '')
@@ -722,11 +771,14 @@ class SuppliersController extends PublicController {
 
             if ($item['issue_date'] == '')
                 $item['issue_date'] = null;
+            
+            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
+                jsonReturn('', -101, '到期时间不能为空!');
 
-            if (strlen($item['issuing_authority']) > 50)
+            if (strlenUtf8($item['issuing_authority']) > 50)
                 jsonReturn('', -101, '您输入的发证机构长度超过限制!');
 
-            if (strlen($item['remarks']) > 100)
+            if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的认证产品长度超过限制!');
             
             if ($count == 1 && !isset($item['id'])) {
@@ -752,6 +804,12 @@ class SuppliersController extends PublicController {
                 if ($flag)
                     $flag = false;
             }
+        }
+        
+        // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
+        $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
+        if ($expiryDateCount > 30) {
+            $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING']);
         }
 
         if ($flag) {
@@ -796,6 +854,39 @@ class SuppliersController extends PublicController {
 
         $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
     }
+    
+    /**
+     * @desc 获取供应商资质过期列表接口
+     *
+     * @author liujf
+     * @time 2018-03-05
+     */
+    public function getSupplierQualificationOverdueListAction() {
+        $condition = dataTrim($this->put_data);
+    
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
+    
+        if (!$isErui) {
+            // 事业部门的看他所在事业部的
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $condition['org_id'] = $orgUb ? : [];
+        }
+        
+        if ($condition['expiry_start_date'] != '' && $condition['expiry_end_date'] != '') {
+            $condition['supplier_ids'] = $this->supplierQualificationModel->getOverduePeriodSupplierIds($condition['expiry_start_date'], $condition['expiry_end_date']);
+        }
+        
+        // 供应商状态为资质过期
+        $condition['qualification_status'] = 'OVERDUE';
+    
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+    
+        foreach ($supplierList as &$supplier) {
+            $supplier['expiry_date'] = $this->supplierQualificationModel->getExpiryDate($supplier['id']);
+        }
+    
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
+    }
 
     /**
      * @desc 校验字段值是否改变
@@ -809,7 +900,7 @@ class SuppliersController extends PublicController {
     private function _checkFieldsChange($data = [], $checkFields = [], $condition = []) {
         $change = false;
         if (is_string($checkFields)) {
-            $checkFields = $this->_trim(explode(',', $checkFields));
+            $checkFields = dataTrim(explode(',', $checkFields));
         }
         if ($data && $checkFields && $condition) {
             foreach ($data as $k => $v) {
@@ -838,23 +929,6 @@ class SuppliersController extends PublicController {
         } else {
             $this->jsonReturn(false);
         }
-    }
-
-    /**
-     * @desc 去掉参数数据两侧的空格
-     *
-     * @author liujf
-     * @time 2017-11-10
-     */
-    private function _trim($condition = []) {
-        foreach ($condition as $k => $v) {
-            if (is_array($v)) {
-                $condition[$k] = $this->_trim($v);
-            } else {
-                $condition[$k] = trim($v);
-            }
-        }
-        return $condition;
     }
 
     /**

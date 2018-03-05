@@ -54,9 +54,6 @@ class UserModel extends PublicModel {
         if (!empty($condition['role_name'])) {
             $sql .= ' AND role.name like \'%' . $condition['role_name'] . '%\'';
         }
-        if (!empty($condition['status'])) {
-            $sql .= ' AND employee.status = \'' . $condition['status'] . '\'';
-        }
         if (!empty($condition['gender'])) {
             $sql .= ' AND employee.gender = \'' . $condition['gender'] . '\'';
         }
@@ -70,7 +67,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND employee.user_no like \'%' . $condition['user_no'] . '%\'';
         }
         if (!empty($condition['bn'])) {
-            $sql .= ' AND country_member.country_bn =\'' . $condition['bn'] . '\'';
+            $sql .= ' AND country_member.country_bn in (' . $condition['bn'] . ')';
         }
         return $sql;
     }
@@ -83,7 +80,7 @@ class UserModel extends PublicModel {
      */
     public function getlist($condition = [], $order = " employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
         $sql .= ' FROM ' . $this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';
@@ -257,6 +254,12 @@ class UserModel extends PublicModel {
         if (isset($create['remarks'])) {
             $data['remarks'] = $create['remarks'];
         }
+        if (isset($create['employee_flag'])) {
+            $data['employee_flag'] = $create['employee_flag'];
+        }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
+        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
@@ -338,8 +341,64 @@ class UserModel extends PublicModel {
         if (isset($create['employee_flag'])) {
             $data['employee_flag'] = $create['employee_flag'];
         }
+        if (isset($create['citizenship'])) {
+            $data['citizenship'] = $create['citizenship'];
+        }
         $datajson = $this->create($data);
         return $this->add($datajson);
+    }
+    
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getWhere($condition = []) {
+        $where['deleted_flag'] = 'N';
+        if(!empty($condition['user_no'])) {
+            $where['user_no'] = ['like', '%' . trim($condition['user_no']) . '%'];
+        }
+        if(!empty($condition['username'])) {
+            $where['name'] = ['like', '%' . trim($condition['username']) . '%'];
+        }
+        return $where;
+    }
+    
+    /**
+     * @desc 获取记录总数
+     *
+     * @param array $condition
+     * @return int $count
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getCount_($condition = []) {
+        $where = $this->getWhere($condition);
+        $count = $this->where($where)->count('id');
+        return $count > 0 ? $count : 0;
+    }
+    
+    /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getList_($condition = [], $field = '*') {
+        $where = $this->getWhere($condition);
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        return $this->field($field)
+                            ->where($where)
+                            ->page($currentPage, $pageSize)
+                            ->order('id DESC')
+                            ->select();
     }
 
 }

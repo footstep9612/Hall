@@ -26,20 +26,29 @@ class GoodsModel extends PublicModel{
         }
 
         try{
+            $thisTable = $this->getTableName();
             if(is_array($sku)){
-                $condition = ['sku' => ['in',$sku]];
+                $condition = ["$thisTable.sku" => ['in',$sku]];
             }else{
-                $condition = ['sku' => $sku];
+                $condition = ["$thisTable.sku" => $sku];
             }
-            $condition['lang'] = $lang;
-            $condition['status'] = 'VALID';
-            $condition['deleted_flag'] = 'N';
+            $condition["$thisTable.lang"] = $lang;
+            $condition["$thisTable.status"] = 'VALID';
+            $condition["$thisTable.deleted_flag"] = 'N';
 
             $productModel = new ProductModel();
             $productTable = $productModel->getTableName();
-
-            $result = $this->field("spu,sku,name,show_name_loc,model,lang,min_pack_unit,$productTable.brand")
-                ->join($productTable." ON spu=$productTable.spu AND lang=$productTable.lang")->where($condition)->select();
+            $gaModel = new GoodsAttrModel();
+            $gaTable = $gaModel->getTableName();
+            $result = $this->field("$thisTable.spu,$thisTable.sku,$thisTable.name,$thisTable.show_name,$thisTable.show_name_loc,$thisTable.model,$thisTable.lang,$thisTable.min_pack_unit,$thisTable.min_pack_naked_qty,$thisTable.nude_cargo_unit,$productTable.brand,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$gaTable.spec_attrs")
+                ->join($productTable." ON $thisTable.spu=$productTable.spu AND $thisTable.lang=$productTable.lang")->join($gaTable." ON $thisTable.sku=$gaTable.sku AND $thisTable.lang=$gaTable.lang")->where($condition)->select();
+            if($result){
+                foreach($result as $index =>$item){
+                    $item['name'] = empty($item['show_name']) ? (empty($item['name']) ? (empty($item['spu_show_name']) ? $item['spu_name'] : $item['spu_show_name']) : $item['name']) : $item['show_name'];
+                    $result[$item['sku']] = $item;
+                    unset($result[$index]);
+                }
+            }
             return $result ? $result : [];
         }catch (Exception $e){
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);

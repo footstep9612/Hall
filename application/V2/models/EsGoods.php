@@ -76,14 +76,14 @@ class EsGoodsModel extends Model {
             if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start, 'lt' => $created_at_end,]]];
             } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
                 $created_at_start = trim($condition[$name . '_start']);
 
                 $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['gte' => $created_at_start,]]];
             } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
                 $created_at_end = trim($condition[$name . '_end']);
-                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lte' => $created_at_end,]]];
+                $body['query']['bool']['must'][] = [ESClient::RANGE => [$field => ['lt' => $created_at_end,]]];
             }
         }
     }
@@ -506,6 +506,44 @@ class EsGoodsModel extends Model {
     }
 
     /*
+     * 获取SKU总数
+     * @param array $spus //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getStatusSkuCountBySpu($spus, $lang = 'en') {
+
+        try {
+
+            $where = ['spu' => ['in', $spus],
+                'lang' => $lang,
+                'deleted_flag' => 'N',
+                'status' => ['in', ['DRAFT', 'CHECKING', 'INVALID', 'VALID']]
+            ];
+            $data = $this->field('spu,sum(if (`status`=\'DRAFT\',1,0)) as draft_count,'
+                            . 'sum(if (`status`=\'CHECKING\',1,0)) as checking_count,'
+                            . 'sum(if (`status`=\'INVALID\',1,0)) as invalid_count,'
+                            . 'sum(if (`status`=\'VALID\',1,0)) as valid_count')
+                    ->where($where)
+                    ->group('spu')
+                    ->select();
+            $ret = [];
+            foreach ($data as $item) {
+                $ret[$item['spu']] = $item;
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
      * 根据SPUS 获取产品属性信息
      * @param mix $spus // 产品SPU数组
      * @param string $lang // 语言 zh en ru es
@@ -517,10 +555,10 @@ class EsGoodsModel extends Model {
             $onshelf_flags = $this->table('erui_goods.show_cat_goods')
                             ->field('sku,max(created_by) as max_created_by'
                                     . ',max(created_at) as max_created_at'
-                                    . ',max(updated_by) as min_updated_by'
+                                    . ',max(updated_by) as max_updated_by'
                                     . ',max(updated_at) as max_updated_at'
-                                    . ',max(checked_by) as min_checked_by'
-                                    . ',max(checked_by) as min_checked_at')
+                                    . ',max(checked_by) as max_checked_by'
+                                    . ',max(checked_by) as max_checked_at')
                             ->where(['sku' => ['in', $skus], 'lang' => $lang, 'onshelf_flag' => 'Y'])
                             ->group('sku')->select();
             $ret = [];
@@ -653,12 +691,15 @@ class EsGoodsModel extends Model {
                     $where['sku'] = ['in', $goods_skus];
                 }
                 $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
-                $spus = $skus = [];
+                $nonamespus = $spus = $skus = [];
 
                 if ($goods) {
                     foreach ($goods as $item) {
                         $skus[] = $item['sku'];
                         $spus[] = $item['spu'];
+                        if (empty($item['name']) || empty($item['show_name'])) {
+                            $nonamespus[] = $item['spu'];
+                        }
                     }
                 } else {
                     return false;
@@ -676,6 +717,8 @@ class EsGoodsModel extends Model {
                 }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
+                $product_model = new ProductModel();
+                $product_names = $product_model->getProductNames($nonamespus, $lang);
                 $goods_attach_model = new GoodsAttachModel();
                 $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
@@ -696,7 +739,7 @@ class EsGoodsModel extends Model {
 //                $updateParams['index'] = $this->dbName;
 //                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
@@ -716,12 +759,14 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = []) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = []) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
 
         $body = $item;
+        $body['name'] = htmlspecialchars_decode($item['name']);
+        $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
         $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
@@ -773,14 +818,24 @@ class EsGoodsModel extends Model {
 
             $body['brand'] = json_decode($body['brand'], true);
         } elseif ($body['brand']) {
-            $body['brand'] = ['lang' => $lang, 'name' => $body['brand'], 'logo' => '', 'manufacturer' => ''];
+            $body['brand'] = ['lang' => $lang, 'name' => trim($body['brand']), 'logo' => '', 'manufacturer' => ''];
         } else {
             $body['brand'] = ['lang' => $lang, 'name' => '', 'logo' => '', 'manufacturer' => ''];
         }
         if (isset($name_locs[$sku]) && $name_locs[$sku]) {
-            $body['name_loc'] = $name_locs[$sku];
+            $body['name_loc'] = htmlspecialchars_decode($name_locs[$sku]);
         } else {
             $body['name_loc'] = '';
+        }
+        if (empty($body['show_name'])) {
+            if (isset($product_names[$spu]['show_name']) && $product_names[$spu]['show_name']) {
+                $body['show_name'] = $product_names[$spu]['show_name'];
+            }
+        }
+        if (empty($body['name'])) {
+            if (isset($product_names[$spu]['name']) && $product_names[$spu]['name']) {
+                $body['name'] = $product_names[$spu]['name'];
+            }
         }
 
         if (isset($attachs[$sku])) {
@@ -795,8 +850,14 @@ class EsGoodsModel extends Model {
             $attrs = $goods_attrs[$sku];
             $attrs = $this->_setattrs($attrs);
             $body['attrs'] = $attrs;
+            if ($attrs['spec_attrs']) {
+                $body['spec_attrs'] = $attrs['spec_attrs'];
+            } else {
+                $body['spec_attrs'] = [];
+            }
         } else {
             $body['attrs'] = new stdClass();
+            $body['spec_attrs'] = [];
             //json_encode([], JSON_UNESCAPED_UNICODE);
         }
 
@@ -822,15 +883,15 @@ class EsGoodsModel extends Model {
         if (isset($onshelf_flags[$id])) {
 
             $body['onshelf_flag'] = 'Y';
-            if ($onshelf_flags[$id]['checked_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['checked_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['checked_by'];
-            } elseif ($onshelf_flags[$id]['updated_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['updated_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['updated_by'];
-            } elseif ($onshelf_flags[$id]['created_at']) {
-                $body['onshelf_by'] = $onshelf_flags[$id]['created_at'];
-                $body['onshelf_at'] = $onshelf_flags[$id]['created_by'];
+            if ($onshelf_flags[$id]['max_checked_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_checked_at'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_checked_at'];
+            } elseif ($onshelf_flags[$id]['max_updated_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_updated_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_updated_at'];
+            } elseif ($onshelf_flags[$id]['max_created_at']) {
+                $body['onshelf_by'] = $onshelf_flags[$id]['max_created_by'];
+                $body['onshelf_at'] = $onshelf_flags[$id]['max_created_at'];
             } else {
                 $body['onshelf_by'] = '';
                 $body['onshelf_at'] = '';
@@ -905,8 +966,8 @@ class EsGoodsModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => $name,
-                    'value' => $value];
+                $ret[] = ['name' => strtolower(trim($name)),
+                    'value' => strtolower(trim($value))];
             }
         }
         return $ret;
@@ -1270,6 +1331,9 @@ class EsGoodsModel extends Model {
                 foreach ($goods as $item) {
                     $skus[] = $item['sku'];
                     $spus[] = $item['spu'];
+                    if (empty($item['name']) || empty($item['show_name'])) {
+                        $nonamespus[] = $item['spu'];
+                    }
                 }
             } else {
                 return false;
@@ -1286,7 +1350,8 @@ class EsGoodsModel extends Model {
             }
             $espoducmodel = new EsProductModel();
             $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
-
+            $product_model = new ProductModel();
+            $product_names = $product_model->getProductNames($nonamespus, $lang);
             $goods_attach_model = new GoodsAttachModel();
             $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
@@ -1302,7 +1367,7 @@ class EsGoodsModel extends Model {
             $onshelf_flags = $this->getonshelf_flag($skus, $lang);
 
             foreach ($goods as $item) {
-                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices);
+                $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
             }
 
             $es->refresh($this->dbName);
@@ -1367,10 +1432,10 @@ class EsGoodsModel extends Model {
 
         try {
             $type = 'goods_' . $lang;
+            $spus = [];
             if (is_string($skus)) {
-
                 $goods_model = new GoodsModel();
-                $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
+                $goods_info = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku,spu')
                                 ->where(['sku' => $skus, 'lang' => $lang])->find();
                 $sku = $skus;
                 $data = [];
@@ -1381,6 +1446,7 @@ class EsGoodsModel extends Model {
                 $data['updated_at'] = $goods_info['updated_at'];
                 $data['status'] = $goods_info['status'];
                 $type = $this->tableName . '_' . $lang;
+                $spus[] = $goods_info['spu'];
                 $es->update_document($this->dbName, $type, $data, $sku);
             } elseif (is_array($skus)) {
 
@@ -1389,8 +1455,9 @@ class EsGoodsModel extends Model {
                 $updateParams['index'] = $this->dbName;
                 $updateParams['type'] = 'goods_' . $lang;
                 $goods_model = new GoodsModel();
-                $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku')
+                $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku,spu')
                                 ->where(['sku' => ['in', $skus], 'lang' => $lang])->select();
+
                 foreach ($goods_list as $goods_info) {
                     $data = [];
                     $data['deleted_flag'] = strval($goods_info['deleted_flag']);
@@ -1399,6 +1466,7 @@ class EsGoodsModel extends Model {
                     $data['updated_by'] = intval($goods_info['updated_by']);
                     $data['updated_at'] = strval($goods_info['updated_at']);
                     $data['status'] = strval($goods_info['status']);
+                    $spus[] = $goods_info['spu'];
                     $updateParams['body'][] = ['update' => ['_id' => $goods_info['sku']]];
                     $updateParams['body'][] = ['doc' => $data];
                 }
@@ -1406,6 +1474,11 @@ class EsGoodsModel extends Model {
                 if (!empty($updateParams['body'])) {
                     $es->bulk($updateParams);
                 }
+            }
+
+            if ($spus && $status = 'VALID') {
+                $esproduct_model = new EsProductModel();
+                $esproduct_model->Update_Attrs($spus, $lang);
             }
             $es->refresh($this->dbName);
             return true;

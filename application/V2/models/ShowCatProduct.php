@@ -55,10 +55,10 @@ class ShowCatProductModel extends PublicModel {
 
     /**
      * 产品上架
-     * @param array $spu spu编码 必填
-     * @param string $lang 语言  必填
-     * @param array $cat_no 展示分类  选填
-     * @author link
+     * @param string $spu SPU 必填
+     * @param string $lang  语言 必填
+     * @param array $cat_no  展示分类 选填
+     * @return array|bool
      * @example: onShelf(array('000001'),'en',array('001','002'));
      */
     public function onShelf($spu = '', $lang = '', $cat_no = []) {
@@ -78,6 +78,17 @@ class ShowCatProductModel extends PublicModel {
             $faild_ary = [];
             if (is_array($spu)) {
                 foreach ($spu as $item) {
+
+                    /**
+                     * 检查SPU对应的SKU是否通过审核
+                     * 修改人:买买提
+                     * 时间:2018/02/01 10:16:32
+                     */
+                    $checkResult = $this->checkSkuBySpu($item, $lang);
+                    if (!empty($checkResult['code'])) {
+                        jsonReturn('', $checkResult['code'], $checkResult['message']);
+                    }
+
                     /**
                      * 当没有选择展示分类时根据物料分类查询所有展示分类
                      */
@@ -117,7 +128,13 @@ class ShowCatProductModel extends PublicModel {
                         }
 
                         //检查上架
-                        $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+                        $exist = $this->field('id')->where(array(
+                            'spu' => $data_tmp['spu'],
+                            'cat_no' => $data_tmp['cat_no'],
+                            'lang' => $data_tmp['lang'],
+                            'onshelf_flag' => self::STATUS_ONSHELF
+                        ))->where("status != 'DELETED' ")->find();
+
                         if ($exist) {
                             continue;
                         }
@@ -125,6 +142,18 @@ class ShowCatProductModel extends PublicModel {
                     }
                 }
             } else {
+
+                /**
+                 * 检查SPU对应的SKU是否通过审核
+                 * 修改人:买买提
+                 * 时间:2018/02/01 10:16:32
+                 */
+                $checkResult = $this->checkSkuBySpu($item, $lang);
+                if (!empty($checkResult['code'])) {
+                    jsonReturn('', $checkResult['code'], $checkResult['message']);
+                }
+
+
                 /**
                  * 当没有选择展示分类时根据物料分类查询所有展示分类
                  */
@@ -157,12 +186,21 @@ class ShowCatProductModel extends PublicModel {
                     $data_tmp['status'] = self::STATUS_VALID;    //这里上架默认状态是有效的，按常规说应该是审核。
                     $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                     $data_tmp['created_at'] = date('Y-m-d H:i:s', time());
+
                     if (is_array($r)) {
                         $data_tmp['cat_no'] = $r['show_cat_no'];
                     } else {
                         $data_tmp['cat_no'] = $r;
                     }
-                    $exist = $this->field('id')->where(array('spu' => $data_tmp['spu'], 'cat_no' => $data_tmp['cat_no'], 'lang' => $data_tmp['lang'], 'onshelf_flag' => self::STATUS_ONSHELF))->find();
+
+                    //检查上架
+                    $exist = $this->field('id')->where(array(
+                        'spu' => $data_tmp['spu'],
+                        'cat_no' => $data_tmp['cat_no'],
+                        'lang' => $data_tmp['lang'],
+                        'onshelf_flag' => self::STATUS_ONSHELF
+                    ))->where("status != 'DELETED' ")->find();
+
                     if ($exist) {
                         continue;
                     }
@@ -300,6 +338,8 @@ class ShowCatProductModel extends PublicModel {
 
     public function getOnshelfFlagBySpus($spus, $lang = 'en') {
         try {
+
+
             if ($spus && is_array($spus)) {
                 $show_cat_products = $this->alias('scp')
                         ->field('scp.spu,scp.onshelf_flag')
@@ -413,6 +453,33 @@ class ShowCatProductModel extends PublicModel {
                 'onshelf_flag' => 'Y',
                 'status' => 'VALID']);
         }
+    }
+
+    private function checkSkuBySpu($spu, $lang) {
+
+        $where = [
+            'spu' => $spu,
+            'lang' => $lang,
+            'deleted_flag' => 'N',
+            'status' => ['neq', self::STATUS_VALID],
+        ];
+
+        $count = (new GoodsModel)->where($where)->field('id,sku,spu,status')->count();
+        if ($count) {
+            return [
+                'code' => -101,
+                'message' => '该SPU【' . $spu . '】下有未通过审核的SKU，不能上架'
+            ];
+        }
+//
+//        foreach ($sku as $item) {
+//            if ($item['status'] != self::STATUS_VALID) {
+//                return [
+//                    'code' => -101,
+//                    'message' => '该SPU下有未通过审核的SKU，不能上架'
+//                ];
+//            }
+//        }
     }
 
 }

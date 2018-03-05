@@ -60,7 +60,11 @@ class UserController extends PublicController {
             $where['user_no'] = $user_no;
         }
         if (!empty($data['bn'])) {
-            $where['bn'] = trim($data['bn']);
+            $pieces = explode(",", $data['bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $where['bn'] = $where['bn'] . "'" . $pieces[$i] . "',";
+            }
+            $where['bn'] = rtrim($where['bn'], ",");
         }
         if (!empty($data['role_name'])) {
             $where['role_name'] = trim($data['role_name']);
@@ -100,6 +104,29 @@ class UserController extends PublicController {
             redisSet('user_redis_list',json_encode($user_arr), 600);
         }else{
             $user_arr = json_decode(redisGet("user_redis_list"),true);
+        }
+        if (!empty($user_arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $user_arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    public function usercountrybnredislistAction() {
+        if(!redisExist(user_country_bn_redis_list)){
+            $user_modle = new UserModel();
+            $data = $user_modle->getlist();
+            $user_arr = [];
+            foreach ($data as $k => $value){
+                $user_arr[$value['id']] =  $value['country'];
+            }
+            redisSet('user_country_bn_redis_list',json_encode($user_arr), 600);
+        }else{
+            $user_arr = json_decode(redisGet("user_country_bn_redis_list"),true);
         }
         if (!empty($user_arr)) {
             $datajson['code'] = 1;
@@ -194,8 +221,11 @@ class UserController extends PublicController {
     public function userrolelistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
+        if (!empty($data['source'])) {
+            $where['source'] = trim($data['source']);
+        }
         $role_user_modle = new RoleUserModel();
-        $data = $role_user_modle->userRoleList($this->user['id']);
+        $data = $role_user_modle->userRoleList($this->user['id'],'',$where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -225,10 +255,12 @@ class UserController extends PublicController {
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
+            $data[$i]['lang'] = $this->lang;
             $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id']);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
+                    $data[$i]['children'][$j]['lang'] = $this->lang;
                     if (isset($data[$i]['children'][$j]['id'])) {
                         $data[$i]['children'][$j]['check'] = false;
                         $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
@@ -347,6 +379,11 @@ class UserController extends PublicController {
         } else {
             $arr['employee_flag'] = "I";
         }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
+        } else {
+            $arr['citizenship'] = 'china';
+        }
         $password = randStr(6);
         $arr['password_hash'] = md5($password);
         $model = new UserModel();
@@ -456,13 +493,13 @@ class UserController extends PublicController {
                 $this->jsonReturn(array("code" => "-101", "message" => "邮箱格式不正确"));
             }
         }
-        /* 去掉手机验证规则，修改于2018-2-24 19:15 张玉良
-         * if (!empty($data['mobile'])) {
+        if (!empty($data['mobile'])) {
             $arr['mobile'] = $data['mobile'];
-            if (!isMobile($arr['mobile'])) {
+            /* 去掉手机格式验证 修改于2018-2-24 19:55 张玉良
+             * if (!isMobile($arr['mobile'])) {
                 $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
-            }
-        }*/
+            }*/
+        }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];
         }
@@ -492,6 +529,12 @@ class UserController extends PublicController {
         }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
+        }
+        if (!empty($data['employee_flag'])) {
+            $arr['employee_flag'] = $data['employee_flag'];
+        }
+        if (!empty($data['citizenship'])) {
+            $arr['citizenship'] = $data['citizenship'];
         }
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
@@ -559,6 +602,128 @@ class UserController extends PublicController {
         $results = $org_modle->getOrgUserlist($data);
 
         $this->jsonReturn($results);
+    }
+
+
+    /**
+     * 根据地理区域获取国家
+     * @return mixed
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function areaCountryAction()
+    {
+
+        $this->validateRequestParams();
+
+        $where = ['deleted_flag' => 'N','status'=> 'VALID','lang' => 'zh'];
+        $field = 'bn,name';
+        $region = (new MarketAreaModel)->where($where)->field($field)->select();
+
+        foreach ($region as &$item){
+            $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
+                                    ->join('erui_dict.country b ON a.country_bn=b.bn')
+                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh', 'b.deleted_flag'=>'N'])
+                                    ->field('b.name,b.bn')
+                                    ->select();
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $region
+        ]);
+
+    }
+
+
+    /**
+     * 根据国家简称获取国家名称
+     * @return array
+     *
+     * @author 买买提
+     * @time 2018-01-12 11:42:46
+     */
+    public function countryNameAction()
+    {
+
+        $condition = $this->validateRequestParams('country_bns');
+
+        $countryNames = [];
+        foreach (explode(',',$condition['country_bns']) as $country_bn){
+            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        }
+
+        $this->jsonReturn([
+            'code'    => 1,
+            'message' => '成功',
+            'data'    => $countryNames
+        ]);
+
+    }
+    
+    /**
+     * @desc 项目获取用户列表
+     *
+     * @author liujf
+     * @time 2018-01-22
+     */
+    public function getObtainUserListAction() {
+        $condition = json_decode(file_get_contents("php://input"), true);
+        $userModel = new UserModel();
+        $countryUserModel = new CountryUserModel();
+        $countryModel = new CountryModel();
+        $orgMemberModel = new OrgMemberModel();
+        $orgModel = new OrgModel();
+        $originChina = L('ORIGIN_CHINA');
+        $originForeign = L('ORIGIN_FOREIGN');
+        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originForeign . '\', \'' . $originForeign . '\') AS citizenship';
+        $userList = $userModel->getList_($condition, $field);
+        foreach ($userList as &$user) {
+            $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
+            $countryList = [];
+            foreach ($countryBnList as $countryBn) {
+                $countryName = $countryModel->where(['bn' => $countryBn, 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+                if ($countryName) $countryList[] = $countryName;
+            }
+            $user['country_name'] = implode(',', $countryList);
+            $orgIdList = $orgMemberModel->where(['employee_id' => $user['id']])->getField('org_id', true);
+            $orgList = [];
+            foreach ($orgIdList as $orgId) {
+                $org = $orgModel->field('name, name_en, name_es, name_ru')->where(['id' => $orgId, 'deleted_flag' => 'N'])->find();
+                if ($org) {
+                    switch ($this->lang) {
+                        case 'zh' :
+                            $orgList[] = $org['name'];
+                            break;
+                        case 'en' :
+                            $orgList[] = $org['name_en'];
+                            break;
+                        case 'es' :
+                            $orgList[] = $org['name_es'];
+                            break;
+                        case 'ru' :
+                            $orgList[] = $org['name_ru'];
+                            break;
+                        default :
+                            $orgList[] = $org['name'];
+                    }
+                }
+            }
+            $user['group_name'] = implode(',', $orgList);
+        }
+        if ($userList) {
+            $res['code'] = 1;
+            $res['message'] = L('SUCCESS');
+            $res['data'] = $userList;
+            $res['count'] = $userModel->getCount_($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
     }
 
 }

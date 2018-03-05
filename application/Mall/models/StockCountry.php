@@ -30,12 +30,19 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn) {
+    public function getExit($country_bn, $lang = 'en') {
 
         $where['country_bn'] = trim($country_bn);
         $where['show_flag'] = 'Y';
-
-        return $this->where($where)->field('id,country_bn')->find();
+        $where['deleted_flag'] = 'N';
+        $where['lang'] = $lang;
+        $country_model = new CountryModel();
+        $country_table = $country_model->getTableName();
+        return $this
+                        ->alias('sc')
+                        ->where($where)
+                        ->field('id,country_bn,(select `name` from ' . $country_table . ' where bn=sc.country_bn and lang=sc.lang and deleted_flag=\'N\' group by `name` ) as country_name')
+                        ->find();
     }
 
 }

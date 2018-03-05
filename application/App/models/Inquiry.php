@@ -162,6 +162,45 @@ class InquiryModel extends PublicModel
                     }
                 }
 
+                //处理sku信息
+                if (isset($data['sku_list']) && !empty($data['sku_list'])){
+
+                    $inquiryItem = new InquiryItemModel();
+
+                    foreach ($data['sku_list'] as $v) {
+
+                        $flag = $inquiryItem->where(['inquiry_id'=>$data['id'],'sku'=>$v['sku']])->find();
+                        if ($flag){
+                            $inquiryItem->save($inquiryItem->create([
+                                'sku'        => $v['sku'],
+                                'qty'        => $v['qty'],
+                                'name'       => $v['name'],
+                                'unit'       => $v['unit'],
+                                'brand'      => $v['brand'],
+                                'model'      => $v['model'],
+                                'name_zh'    => $v['name_zh'],
+                                'remarks'    => $v['remarks'],
+                                'inquiry_id' => $data['id'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }else{
+                            $inquiryItem->add($inquiryItem->create([
+                                'sku'        => $v['sku'],
+                                'qty'        => $v['qty'],
+                                'name'       => $v['name'],
+                                'unit'       => $v['unit'],
+                                'brand'      => $v['brand'],
+                                'model'      => $v['model'],
+                                'name_zh'    => $v['name_zh'],
+                                'remarks'    => $v['remarks'],
+                                'inquiry_id' => $data['id'],
+                                'created_at' => $this->getTime()
+                            ]));
+                        }
+
+                    }
+                }
+
                 $results['code'] = 1;
                 $results['message'] = '成功！';
 
