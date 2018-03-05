@@ -365,9 +365,14 @@ class SuppliersController extends PublicController {
             $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
         }
 
-        $data = $this->suppliersModel->getJoinList($condition);
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+        
+        foreach ($supplierList as &$supplier) {
+            $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
+            $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+        }
 
-        $this->_handleList($this->suppliersModel, $data, $condition, true);
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
     /**
@@ -833,6 +838,39 @@ class SuppliersController extends PublicController {
         $data = $this->supplierCheckLogsModel->getJoinList($condition);
 
         $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
+    }
+    
+    /**
+     * @desc 获取供应商资质过期列表接口
+     *
+     * @author liujf
+     * @time 2018-03-05
+     */
+    public function getSupplierQualificationOverdueListAction() {
+        $condition = dataTrim($this->put_data);
+    
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
+    
+        if (!$isErui) {
+            // 事业部门的看他所在事业部的
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $condition['org_id'] = $orgUb ? : [];
+        }
+        
+        if ($condition['expiry_start_date'] != '' && $condition['expiry_end_date'] != '') {
+            $condition['supplier_ids'] = $this->supplierQualificationModel->getOverduePeriodSupplierIds($condition['expiry_start_date'], $condition['expiry_end_date']);
+        }
+        
+        // 供应商状态为资质过期
+        $condition['qualification_status'] = 'OVERDUE';
+    
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+    
+        foreach ($supplierList as &$supplier) {
+            $supplier['expiry_date'] = $this->supplierQualificationModel->getExpiryDate($supplier['id']);
+        }
+    
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
     /**
