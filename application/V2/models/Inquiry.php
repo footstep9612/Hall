@@ -1038,21 +1038,50 @@ class InquiryModel extends PublicModel {
         }
         $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select count(id) AS quote_id,FORMAT(sum(total_purchase),2) as total_purchase from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select id as quote_id,total_purchase as amount,purchase_cur_bn as currency_bn from erui_rfq.quote where inquiry_id in ($str)";
         $info = $quote->query($sql);
-        if(empty($info)){
+        $res=$this->sumAccountQuote($info);
+        $amount=array_sum($res['amount']);
+        $qCount=count($res['count']);
+        if(empty($res['count']) && empty($res['amount'])){
             $data = array(
-                'inquiry_count'=>0,
+                'inquiry_count'=>$count,
                 'quote_count'=>0,
                 'account'=>0
             );
         }else{
             $data = array(
                 'inquiry_count'=>$count,
-                'quote_count'=>$info[0]['quote_id'],
-                'account'=>$info[0]['total_purchase']
+                'quote_count'=>$qCount,
+                'account'=>!empty($amount)?$amount:0
             );
         }
+        return $data;
+    }
+    //计算询报价王帅
+    public function sumAccountQuote($order=[]){
+        $count=array();
+        $arr=[];
+        $val=0;
+        foreach($order as $k => $v){
+            if($v['currency_bn']=='USD'){   //一次交易50万=高级
+                $val=$v['amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $val=$v['amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $val=$v['amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $val=$v['amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $val=$v['amount']*0.01785;
+            }else{
+                $val=$v['amount'];
+            }
+            $arr[]=$val;
+            $count[]=$v['quote_id'];
+        }
+        $data['amount']=$arr;
+        $data['count']=array_flip(array_flip($count));
         return $data;
     }
     
