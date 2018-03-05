@@ -1261,7 +1261,7 @@ class ProductModel extends PublicModel {
                             fclose($fp);
                             continue;
                         }
-                        $data_tmp['source'] = 'ERUI';
+                        $data_tmp['source'] = !empty($r[0]) ? $r[0] : 'ERUI';
                         $data_tmp['source_detail'] = 'Excel批量导入';
                         $data_tmp['created_by'] = isset($userInfo['id']) ? $userInfo['id'] : null;
                         $data_tmp['created_at'] = date('Y-m-d H:i:s');
@@ -1489,7 +1489,7 @@ class ProductModel extends PublicModel {
                         $data_tmp['exe_standard'] = trim($r[10]);   //执行标准
                         $data_tmp['warranty'] = trim($r[11]);    //质保期
                         $data_tmp['keywords'] = trim($r[12]);    //关键字
-                        $data_tmp['source'] = 'ERUI';
+                        $data_tmp['source'] = !empty($r[0]) ? $r[0] : 'ERUI';
                         $data_tmp['source_detail'] = 'Excel临时导入';
 
 //根据lang,material_cat_no,brand查询name是否存在
@@ -2039,7 +2039,10 @@ class ProductModel extends PublicModel {
     }
 
     private function checkValidSku($spu, $lang) {
-        return (new GoodsModel)->where(['spu' => $spu, 'lang' => $lang, 'status' => 'VALID'])->count();
+        return (new GoodsModel)->where(['spu' => $spu,
+                    'lang' => $lang,
+                    'deleted_flag' => 'N',
+                    'status' => 'VALID'])->count();
     }
 
     public function getProductNames($spus, $lang = 'en') {

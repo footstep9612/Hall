@@ -207,6 +207,10 @@ class HandleController extends Yaf_Controller_Abstract
 
     }
 
+    /**
+     * 导出驳回的询单
+     * @return mixed
+     */
     public function rejectedInquiryAction()
     {
 

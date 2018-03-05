@@ -77,6 +77,7 @@ class SupplierChainModel extends PublicModel {
             }
             $where['id'] = ['in', $catSupplierIds ? : ['-1']];
         }
+        $this->_getValue($where, $condition, 'supplier_level');
         if ($is_Chain) {
             if (isset($condition['org_id'])) {
 //                $map1['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
@@ -313,6 +314,7 @@ class SupplierChainModel extends PublicModel {
     private function _setEruiCheckedName(&$data) {
         if ($data) {
             $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $erui_checked_bys = [];
             foreach ($data as $item) {
                 if ($item['erui_checked_by']) {
@@ -329,6 +331,8 @@ class SupplierChainModel extends PublicModel {
                     $val['erui_checked_name'] = '';
                 }
                 $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }
@@ -343,6 +347,7 @@ class SupplierChainModel extends PublicModel {
     private function _setCheckedName(&$data) {
         if ($data) {
             $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
@@ -359,6 +364,8 @@ class SupplierChainModel extends PublicModel {
                     $val['checked_name'] = '';
                 }
                 $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }
@@ -452,10 +459,11 @@ class SupplierChainModel extends PublicModel {
      * 供应链审核
      * @param int $supplier_id 供应商ID 数组
      * @param int $supplier_level 供应商等级
+     * @param string $supplier_note 供应商评级内容
      * @return
      * @author zyg
      */
-    public function ChainChecked($supplier_id, $supplier_level, $is_erui = 'N', $org_ids = []) {
+    public function ChainChecked($supplier_id, $supplier_level, $supplier_note, $is_erui = 'N', $org_ids = []) {
 
         $where = ['deleted_flag' => 'N',
             'id' => $supplier_id,
@@ -483,10 +491,13 @@ class SupplierChainModel extends PublicModel {
         $condition['org_id'] = in_array($info['org_id'], $org_ids) ? $info['org_id'] : $org_ids[0];
         $condition['rating'] = $supplier_level;
         $flag_log = $supplierchecklog_model->create_data($condition);
-        if (!$flag_log && $this->error) {
+        $condition['group'] = 'RATING';
+        $condition['note'] = $supplier_note;
+        $rating_log = $supplierchecklog_model->create_data($condition);
+        if ((!$flag_log || !$rating_log) && $this->error) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, $this->error);
-        } elseif (!$flag_log) {
+        } elseif ((!$flag_log || !$rating_log)) {
             $this->rollback();
             jsonReturn(null, MSG::MSG_FAILED, '更新审核日志失败!');
         } else {
