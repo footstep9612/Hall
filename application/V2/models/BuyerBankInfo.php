@@ -84,34 +84,54 @@ class BuyerBankInfoModel extends PublicModel
      * 新建银行信息
      */
     public function create_data($data) {
-
-        $dataInfo['remarks'] = $data['bank_remarks'];
-        $dataInfo = $this->_getData($data);
-        $dataInfo['deleted_flag'] = 'N';
-        $dataInfo['status'] = 'VALID';
-        $dataInfo['created_by'] = $data['buyer_id'];
-        $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
-        $result = $this->add($this->create($dataInfo));
-        if($result){
-            return true;
+        try{
+            $dataInfo['remarks'] = $data['bank_remarks'];
+            $dataInfo = $this->_getData($data);
+            $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['status'] = 'VALID';
+            $dataInfo['created_by'] = $data['agent_by'];
+            $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
+            $result = $this->add($this->create($dataInfo));
+            if($result){
+                //添加审核信息
+                $credit_model = new BuyerCreditModel();
+                $credit_arr['status'] = 'ERUI_APPROVING';
+                $credit_arr['buyer_no'] = $data['buyer_no'];
+                $credit_model->update_data($credit_arr);
+                //添加申请日志,状态修改
+                $credit_log_model = new BuyerCreditLogModel();
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $credit_log_model->update_data($dataArr);
+                return true;
+            }
+            return false;
+        }catch (Exception $e){
+            $this->rollback();
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerBankModel】create_data:' . $e , Log::ERR);
+            return false;
         }
-        return false;
     }
 
     /**
      * 更新银行信息
      */
     public function update_data($data) {
-
-        $dataInfo = $this->_getData($data);
-        $dataInfo['deleted_flag'] = 'N';
-        $dataInfo['updated_by'] = $data['buyer_id'];
-        $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
-        $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
-        if ($result !== false) {
-            return true;
+        try{
+            $dataInfo = $this->_getData($data);
+            $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['updated_by'] = $data['agent_by'];
+            $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
+            $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+            if ($result !== false) {
+                return $result;
+            }
+            return false;
+        }catch (Exception $e){
+            $this->rollback();
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerBankModel】update_data:' . $e , Log::ERR);
+            return false;
         }
-        return false;
     }
 
     /**
