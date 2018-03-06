@@ -46,7 +46,7 @@ class SupplierModel extends PublicModel {
         $str .= ' left join `erui_sys`.`employee` as `em` on `em`.`id` = `erui_supplier`.`supplier`.`checked_by` ';
         $sql .= $str;
         $sql_count .= $str;
-        $where = " WHERE deleted_flag = 'N'";
+        $where = " WHERE supplier.deleted_flag = 'N'";
         if (!empty($condition['country_bn'])) {
             $where .= ' And country_bn ="' . $condition['country_bn'] . '"';
         }
