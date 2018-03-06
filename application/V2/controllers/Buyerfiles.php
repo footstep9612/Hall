@@ -17,6 +17,31 @@ class BuyerfilesController extends PublicController
     {
         parent::__init();
     }
+    //获取用户的角色
+    public function getUserRole(){
+        $config = \Yaf_Application::app()->getConfig();
+        $ssoServer=$config['ssoServer'];
+        $token=$_COOKIE['eruitoken'];
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+        "Cookie: ".$_COOKIE."\r\n",
+                'content' =>json_encode(array('token'=>$token))
+
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($ssoServer,false,$context);
+        $info=json_decode($json,true);
+        $roles=$info['role_no'];
+        if(in_array('档案信息统计',$roles)){  //查看档案信息统计角色
+            $admin=true;
+        }else{
+            $admin=false;
+        }
+        return $admin;
+    }
     /*
      * 客户管理列表搜索展示
      * */
@@ -25,6 +50,7 @@ class BuyerfilesController extends PublicController
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->getUserRole();
         $model = new BuyerModel();
         $arr = $model->buyerList($data);
         $dataJson['code'] = 1;
@@ -39,6 +65,7 @@ class BuyerfilesController extends PublicController
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->getUserRole();
         $model = new BuyerModel();
         $res = $model->exportBuyerExcel($data);
         if($res['code'] == 1){

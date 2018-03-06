@@ -1824,7 +1824,10 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond = "buyer.created_by=$data[created_by] and is_build=1 and status='APPROVED'";
+        $cond=" 1=1 and is_build=1 and status='APPROVED' and deleted_flag='N'";
+        if(!empty($data['admin']) && $data['admin'] == false){   //统计
+            $cond = " and buyer.created_by=$data[created_by] ";
+        }
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
