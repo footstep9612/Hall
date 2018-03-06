@@ -755,6 +755,11 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
+        $agentArr['user_ids']=isset($data['agent'])?$data['agent']:$this->user['id'];    //crm更新市场经办人-start
+        $agentArr['id']=$data['id'];
+        $agentArr['created_by']=$this->user['id'];
+        $agent=new BuyerAgentModel($agentArr);
+        $agent->crmUpdateAgent($agentArr);  //crm 更新市场经办人end
 //        if (!empty($data['password'])) {
 //            $account['password_hash'] = $data['password'];
 //            // $buyer_account_model->update_data($arr_account, $where_account);
