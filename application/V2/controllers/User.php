@@ -254,20 +254,21 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $data = $role_user_modle->userRoleList($user_id, 0);
+        $where['source'] = 'BOSS';
+        $data = $role_user_modle->userRoleList($user_id, 0, $where);
         $count = count($data);
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
             $data[$i]['lang'] = $this->lang;
-            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id']);
+            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id'], $where);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     $data[$i]['children'][$j]['lang'] = $this->lang;
                     if (isset($data[$i]['children'][$j]['id'])) {
                         $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
+                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id'], $where);
                         if (!$data[$i]['children'][$j]['children']) {
                             unset($data[$i]['children'][$j]['children']);
                         }
