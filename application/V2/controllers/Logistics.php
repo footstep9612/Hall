@@ -307,21 +307,15 @@ class LogisticsController extends PublicController {
 	        
 	        $this->quoteLogiFeeModel->startTrans();
 	        $res1 = $this->quoteLogiFeeModel->updateInfo($where, $data);
-	        
-	        $quoteData = [];
 	       
-	        if ($quote['quote_remarks'] != $condition['quote_remarks']) $quoteData['quote_remarks'] = $condition['quote_remarks'];
-	        
-	        if ($data['total_logi_fee'] != $quote['total_logi_fee']) $quoteData['total_logi_fee'] = $data['total_logi_fee'];
-	        if ($data['total_quote_price'] != $quote['total_quote_price']) $quoteData['total_quote_price'] = $data['total_quote_price'];
-	        if ($data['total_bank_fee'] != $quote['total_bank_fee']) $quoteData['total_bank_fee'] = $data['total_bank_fee'];
-	        if ($data['total_insu_fee'] != $quote['total_insu_fee']) $quoteData['total_insu_fee'] = $data['total_insu_fee'];
-	        
-	        if ($quoteData) {
-	            $quoteData['updated_by'] = $this->user['id'];
-	            $quoteData['updated_at'] = $this->time;
-	            $res2 = $this->quoteModel->where($where)->save($quoteData);
-	        }
+	        $quoteData['quote_remarks'] = $condition['quote_remarks'];
+	        $quoteData['total_logi_fee'] = $data['total_logi_fee'];
+	        $quoteData['total_quote_price'] = $data['total_quote_price'];
+	        $quoteData['total_bank_fee'] = $data['total_bank_fee'];
+	        $quoteData['total_insu_fee'] = $data['total_insu_fee'];
+	        $quoteData['updated_by'] = $this->user['id'];
+	        $quoteData['updated_at'] = $this->time;
+	        $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        
 	        $quoteItemList = $this->quoteItemModel->where($where)->select();
 	        
@@ -336,23 +330,13 @@ class LogisticsController extends PublicController {
                 }
 	        }
 	        
-	        if (isset($res2)) {
-	            if ($res1 && $res2 && $res3) {
-	                $this->quoteLogiFeeModel->commit();
-	                $res = true;
-	            } else {
-	                $this->quoteLogiFeeModel->rollback();
-	                $res = false;
-	            }
-	        } else {
-	            if ($res1 && $res3) {
-	                $this->quoteLogiFeeModel->commit();
-	                $res = true;
-	            } else {
-	                $this->quoteLogiFeeModel->rollback();
-	                $res = false;
-	            }
-	        }
+	       if ($res1 && $res2 && $res3) {
+                $this->quoteLogiFeeModel->commit();
+                $res = true;
+            } else {
+                $this->quoteLogiFeeModel->rollback();
+                $res = false;
+            }
 	
 	        $this->jsonReturn($res);
 	    } else {

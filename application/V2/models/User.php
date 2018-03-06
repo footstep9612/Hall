@@ -49,7 +49,7 @@ class UserModel extends PublicModel {
             $sql .= ' AND role_member.role_id =' . $condition['role_id'];
         }
         if (!empty($condition['role_no'])) {
-            $sql .= ' AND role.role_no =\'' . $condition['role_no'] . '\'';
+            $sql .= ' AND role.role_no in (' . $condition['role_no'] . ')';
         }
         if (!empty($condition['role_name'])) {
             $sql .= ' AND role.name like \'%' . $condition['role_name'] . '%\'';
@@ -80,7 +80,7 @@ class UserModel extends PublicModel {
      */
     public function getlist($condition = [], $order = " employee.id desc") {
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
         $sql .= ' FROM ' . $this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id ';

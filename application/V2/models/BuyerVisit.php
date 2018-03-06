@@ -687,14 +687,16 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r){
             //客户需求类型
             $dtype = json_decode($r['demand_type']);
-            if($lang=='zh'){
-                $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
-            }else{
-                $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
-            }
-            $demand_type = '';
-            foreach($dpInfo as $info){
-                $demand_type.= '、'.$info['name'];
+            if(!empty($dtype)){
+                if($lang=='zh'){
+                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+                }else{
+                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+                }
+                $demand_type = '';
+                foreach($dpInfo as $info){
+                    $demand_type.= '、'.$info['name'];
+                }
             }
             $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
         }
@@ -742,6 +744,6 @@ class BuyerVisitModel extends PublicModel {
         }
         //	拜访时间visit_at_start开始时间   visit_at_end结束时间条件
         $this->_getValue($condition, $data, 'visit_at', 'between'); //搜索条件end
-        return $condition;
+        return $condition;  //
     }
 }

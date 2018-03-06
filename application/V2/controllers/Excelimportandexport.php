@@ -756,7 +756,7 @@ class ExcelimportandexportController extends PublicController {
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = 'APPROVED';
         $supplierList = $this->supplierModel->alias('a')
-                                                                        ->field('a.id, a.name, a.social_credit_code, a.created_at, a.created_by, a.status, a.checked_by, b.material_cat_name3')
+                                                                        ->field('a.id, a.name, a.social_credit_code, a.created_at, a.created_by, a.erui_status, a.checked_by, b.material_cat_name3')
                                                                         //->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
                                                                         ->join('erui_supplier.supplier_material_cat b ON a.id = b.supplier_id', 'LEFT')
                                                                         ->where($where)
@@ -780,10 +780,8 @@ class ExcelimportandexportController extends PublicController {
             '供货范围',
         ];
         $status = [
-            'DRAFT' => '草稿',
-            'APPROVING' => '审核中',
-            'APPROVED' => '通过',
-            'INVALID' => '驳回'
+            'CHECKING' => '待审核',
+            'VALID' => '审核通过'
         ];
         $outData = [];
         foreach ($supplierList as $supplier) {
@@ -793,7 +791,7 @@ class ExcelimportandexportController extends PublicController {
                 ['value' => $supplier['social_credit_code']],
                 ['value' => $supplier['created_at']],
                 ['value' => $this->employeeModel->getUserNameById($supplier['created_by'])],
-                ['value' => $status[$supplier['status']]],
+                ['value' => $status[$supplier['erui_status']]],
                 ['value' => $this->employeeModel->getUserNameById($supplier['checked_by'])],
                 ['value' => $this->_getSupplierSpuCount($supplier['id'], 'en')],
                 ['value' => $this->_getSupplierSpuCount($supplier['id'], 'zh')],

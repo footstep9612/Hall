@@ -182,25 +182,127 @@ class OrderModel extends PublicModel {
 
     /**
      * @param $buyer_id
-     * 获取订单数，和金额
+     * 获取订单数，金额-统计
      * wangs
      */
     public function statisOrder($buyer_id){
-        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account from `erui_order`.`order` where buyer_id=$buyer_id";
-        $info = $this->query($sql);
-        if($info[0]['count']==0){
-            $data = array(
-                'countaccount'=>array('count'=>0,'account'=>0),
-                'range'=>array('max'=>0,'min'=>0)
+//        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
+//        $buyer=$this->query($sql);
+//        $level_at=$buyer[0]['level_at'];
+//        $expiry_at=$buyer[0]['expiry_at'];
+//        $date=date('Y-m-d');    //今天
+//        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
+//        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account,min(amount) as `min`,max(amount) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
+//        $sql = "select amount,currency_bn from `erui_order`.`order` where buyer_id=$buyer_id AND deleted_flag='N'";
+        $sqlOrder="select `order`.id AS order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
+//        $sqlOrder.=" left join erui_order.order_log order_log";
+//        $sqlOrder.=" on order.id=order_log.order_id";
+        $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrder.=" AND `order`.show_status='GOING'";
+        $sqlOrder.=" AND `order`.deleted_flag='N'";
+//        $sqlOrder.=" AND order_log.deleted_flag='N'";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+        $order = $this->query($sqlOrder);
+        //订单已完成
+//        $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
+//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+//        $ordero = $this->query($sqlOrdero);
+//        $order=array_merge($orderi,$ordero);
+        $orderArr=$this->sumAccountAtatis($order);  //order
+        $orderAmount=$orderArr['amount'];   //order arr
+        $orderCount=count($orderArr['count']); //order count
+
+        $sqlNewOrder="select `order_account`.order_id,currency_bn,order_account.money as amount from erui_new_order.order `order`";
+        $sqlNewOrder.=" left join erui_new_order.order_account order_account";
+        $sqlNewOrder.=" on `order`.id=order_account.order_id";
+        $sqlNewOrder.=" where crm_code=(SELECT buyer_code from erui_buyer.buyer where id=$buyer_id)";
+        $sqlNewOrder.=" and (`order`.status=4 or `order`.status=3)";
+        $sqlNewOrder.=" and `order`.delete_flag=0";
+        $sqlNewOrder.=" and order_account.del_yn=1";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+        $newOrder=$this->query($sqlNewOrder);
+        $orderNewArr=$this->sumAccountAtatis($newOrder);    //newOrder
+        $orderNewAmount=$orderNewArr['amount'];   //newOrder arr
+        $orderNewCount=count($orderNewArr['count']); //newOrder count
+
+        $mergeAmount=array_merge($orderAmount,$orderNewAmount); //总订单金额arr
+        sort($mergeAmount);
+        $count=$orderCount+$orderNewCount;  //总订单个数
+        $sum=array_sum($mergeAmount);   //总订单金额
+        //返回数据
+        if($count==0){
+            $arr=array(
+                'count'=>0,
+                'account'=>0,
+                'min'=>0,
+                'max'=>0
             );
-            return $data;
+        }elseif($count==1){
+            $arr=array(
+                'count'=>1,
+                'account'=>$sum,
+                'min'=>0,
+                'max'=>$sum
+            );
+        }else{
+            $arr=array(
+                'count'=>$count,
+                'account'=>$sum,
+                'min'=>reset($mergeAmount),
+                'max'=>end($mergeAmount)
+            );
         }
-        $sqlm = "select FORMAT(min(amount),2) as `min`,FORMAT(max(amount),2) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
-        $arr = $this->query($sqlm);
-        $data = array(
-            'countaccount'=>$info[0],
-            'range'=>$arr[0]
+        $data=array(
+            'count'=>$arr['count'],
+            'account'=>sprintf("%.2f",$arr['account']),
+            'min'=>sprintf("%.2f",$arr['min']),
+            'max'=>sprintf("%.2f",$arr['max']),
         );
+        return $data;
+    }
+    //计算统计订单金额,货币=USD
+    public function sumAccountAtatis($order=[]){
+        $count=array();
+        $arr=[];
+        $val=0;
+        foreach($order as $k => $v){
+            if($v['currency_bn']=='USD'){   //一次交易50万=高级
+                $val=$v['amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $val=$v['amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $val=$v['amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $val=$v['amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $val=$v['amount']*0.01785;
+            }
+            $arr[]=$val;
+            $count[]=$v['order_id'];
+        }
+        $data['amount']=$arr;
+        $data['count']=array_flip(array_flip($count));
         return $data;
     }
     /**
@@ -214,5 +316,239 @@ class OrderModel extends PublicModel {
         }
         return $arr;
     }
+    //会员自动升级start-------------------------------------------------------------------------------------
+    public function autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderRes){
+        $level_at_prev=$at['level_at_prev'];
+        $expiry_at=$at['expiry_at'];
+        $date=$at['date'];
+        $prev=$at['prev'];
 
+        //new_order=当年订单签约日期+订单执行中或完成
+        $sqlNewOrder="select `order`.id,crm_code,currency_bn,order_account.money as amount, order_account.payment_date as create_time from erui_new_order.order `order`";
+        $sqlNewOrder.=" left join erui_new_order.order_account order_account";
+        $sqlNewOrder.=" on `order`.id=order_account.order_id";
+        $sqlNewOrder.=" where `order`.crm_code='$buyer_code'";
+//        $sqlNewOrder.=" and `order`.status=3";
+        $sqlNewOrder.=" and `order`.delete_flag=0";
+        $sqlNewOrder.=" and order_account.del_yn=1";
+        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+        }else{
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+        }
+        $sqlNewOrder.=" order by order_account.payment_date";
+        $newOrder=$this->query($sqlNewOrder);   //订单所有回款
+        if(empty($orderRes) && empty($newOrder)){   //order&&newOrder=null
+            $this->autoUpgrade($buyer_id,null,null);
+            return 'void';
+        }
+        if(empty($newOrder) && !empty($orderRes)){  //order newOrder=null
+            $time=$orderRes['time'];
+            $this->autoUpgrade($buyer_id,52,$time);
+            return 'general';
+        }
+        //newOrder
+        $orderNew=$this->sumAmount($newOrder);
+        if(!empty($orderNew['time'])){  //高级
+            $time=substr($orderNew['time'],0,10);
+            if($time>=$prev){
+                $this->autoUpgrade($buyer_id,53,$time);
+                return 'senior';
+            }
+        }else{
+            $time=substr($newOrder[0]['create_time'],0,10);
+            $orderNew['time']=$time;
+        }
+        if(empty($orderRes)){   //order=null
+            $time=$orderNew['time'];
+            $this->autoUpgrade($buyer_id,52,$time);
+            return 'general';
+        }
+        $total=$orderRes['num']+$orderNew['num'];    //订单总金额
+        if($total>=1000000){
+            $time=$orderNew['time'];
+            $this->autoUpgrade($buyer_id,53,$time);
+            return 'senior';
+        }else{
+            $time=$orderRes['time'];
+            $this->autoUpgrade($buyer_id,52,$time);
+            return 'general';
+        }
+    }
+    /**
+     * 客户会员自动升级-wangs
+     */
+    public function autoUpgradeByOrder($data){
+        set_time_limit(0);
+        if(empty($data['buyer_id']) && empty($data['crm_code']) && empty($data['order_id'])){
+            return 'param';
+        }
+        if(!empty($data['order_id'])){
+            $order_id=$data['order_id'];
+            $sql="select buyer_id from erui_order.order where id=$order_id and deleted_flag='N' and (show_status='GOING' or show_status='COMPLETED') limit 1";
+            $orderOld=$this->query($sql);
+            $buyer_id=$orderOld[0]['buyer_id'];
+            $data['buyer_id']=$buyer_id;
+            if(empty($data['buyer_id'])){
+                return 'param';
+            }
+        }
+        $buyer=new BuyerModel();
+        if(!empty($data['buyer_id'])){  //order-buyer_id
+            $info=$buyer->field('id,buyer_code,buyer_level,level_at,expiry_at')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        }
+        if(!empty($data['crm_code'])){  //newOrder-crm_code
+            $info=$buyer->field('id,buyer_code,buyer_level,level_at,expiry_at')->where(array('buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'))->find();
+        }
+        if(empty($info)){
+            return 'void';  //no buyer
+        }
+        $buyer_id=$info['id'];
+        $buyer_code=$info['buyer_code'];
+        $buyer_level=$info['buyer_level'];
+        $level_at=$info['level_at'];    //会员定级日期
+        $level_at_prev=(substr($level_at,0,4)-1).substr($level_at,4,10);    //会员定级日期
+        $expiry_at=$info['expiry_at'];  //会员过期日期
+        $date=date('Y-m-d');    //今天
+        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
+        //时间参数
+        $at['level_at_prev']=$level_at_prev;
+        $at['expiry_at']=$expiry_at;
+        $at['date']=$date;
+        $at['prev']=$prev;
+//        if($buyer_level==53 && $level_at<=$date && $date<$expiry_at){   //高级
+//            return 'senior';
+//        }
+        //订单已完成+当年订单
+        $sqlOrder="select order_log.amount,`order`.currency_bn,order_log.log_at as create_time from erui_order.order `order`";
+        $sqlOrder.=" left join erui_order.order_log order_log";
+        $sqlOrder.=" on order.id=order_log.order_id";
+        $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
+        $sqlOrder.=" AND `order`.deleted_flag='N'";
+        $sqlOrder.=" AND order_log.deleted_flag='N'";
+        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
+            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+        }else{
+            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+        }
+        $sqlOrder.=" order by order_log.log_at";
+        $order = $this->query($sqlOrder);
+        //订单已完成
+//        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
+//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
+//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
+//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+//        $ordero = $this->query($sqlOrdero);
+//        $order=array_merge($orderi,$ordero);
+        //erui_order
+        if(!empty($order)){
+            $orderRes=$this->sumAmount($order);
+            if(!empty($orderRes['time'])){    //高级
+                $time=substr($orderRes['time'],0,10);
+                if($time>=$prev){
+                    $this->autoUpgrade($buyer_id,53,$time);
+                    return 'senior';
+                }
+            }else{
+                $time=substr(reset($order)['create_time'],0,10);
+                $orderRes['time']=$time;    //普通
+            }
+        }else{
+            $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$order); //null
+            return $res;    //senior or general or null
+        }
+        //erui_new_order
+        $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderRes);
+        return $res;    //senior or general
+    }
+    //实现自动升级
+    public function autoUpgrade($buyer_id,$buyer_level,$time){
+        $cond=array(
+            'id'=>$buyer_id,
+            'deleted_flag'=>'N'
+        );
+        if(!empty($time)){
+            $expiry_at=(substr($time,0,4)+1).substr($time,4);
+        }else{
+            $expiry_at=null;
+        }
+        $data=array(
+            'buyer_level'=>$buyer_level,
+            'level_at'=>$time,
+            'expiry_at'=>$expiry_at
+        );
+        $buyer=new BuyerModel();
+        return $buyer->where($cond)->save($data);
+    }
+    //计算多订单总金额-wnags
+    public function sumAmount($amount){
+        $arr=array();
+        $time=array();
+        $num=0;
+        $one=0;
+        $oneArr=array();
+        foreach($amount as $k => $v){
+            if(empty($v['currency_bn'])){
+                $v['currency_bn']='USD';
+            }
+            if($v['currency_bn']=='USD'){   //一次交易50万=高级
+                $one=$v['amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $one=$v['amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $one=$v['amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $one=$v['amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $one=$v['amount']*0.01785;
+            }
+            if($one>=500000){
+                $oneArr[]=$v['amount']; //50万以上的集合
+                $time[]=$v['create_time'];
+            }
+            if($v['currency_bn'] == 'USD'){ //累计100万=高级
+                $num+=$v['amount'];
+                if($num>=1000000){
+                    $time[]=$v['create_time'];
+                }
+            }elseif($v['currency_bn']=='CNY'){
+                $num+=$v['amount']*0.1583;
+                if($num>=1000000){
+                    $time[]=$v['create_time'];
+                }
+            }elseif($v['currency_bn']=='EUR'){
+                $num+=$v['amount']*1.2314;
+                if($num>=1000000){
+                    $time[]=$v['create_time'];
+                }
+            }elseif($v['currency_bn']=='CAD'){
+                $num+=$v['amount']*0.7918;
+                if($num>=1000000){
+                    $time[]=$v['create_time'];
+                }
+            }elseif($v['currency_bn']=='RUB'){
+                $num+=$v['amount']*0.01785;
+                if($num>=1000000){
+                    $time[]=$v['create_time'];
+                }
+            }
+        }
+        $arr['num']=$num;   //总交易
+        $arr['Single']=$oneArr;   //50万以上交易集合
+        $arr['time']=reset($time);
+        return $arr;
+    }
+    //会员自动升级end---------------------------------------------------------------------------------------
 }

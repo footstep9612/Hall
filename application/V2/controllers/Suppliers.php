@@ -345,25 +345,34 @@ class SuppliersController extends PublicController {
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
         if (!$isErui) {
-            // 非易瑞部门的看他所在事业部和易瑞的
-            $orgErui = $this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true);
+            // 非易瑞事业部门的看他所在事业部和易瑞的
             $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
-            $condition['org_id'] = array_merge($orgErui, $orgUb ? : []);
+            $condition['org_id'] = $orgUb ? array_merge($this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
         }
         
         // 开发人
         if ($condition['developer'] != '') {
-            $condition['agent_id'] = $this->employeeModel->getUserIdByName($condition['developer']);
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
         }
         
         // 创建人
         if ($condition['created_name'] != '') {
-            $condition['created_by'] = $this->employeeModel->getUserIdByName($condition['created_name']);
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
+        }
+        
+        // 供货范围
+        if ($condition['cat_name'] != '') {
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
         }
 
-        $data = $this->suppliersModel->getJoinList($condition);
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+        
+        foreach ($supplierList as &$supplier) {
+            $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
+            $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+        }
 
-        $this->_handleList($this->suppliersModel, $data, $condition, true);
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
     /**
@@ -429,6 +438,9 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierContactInfoAction() {
         $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -730,6 +742,9 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierQualificationInfoAction() {
         $condition = dataTrim($this->put_data);
+        
+        if ($condition['supplier_id'] == '')
+            jsonReturn('', -101, '缺少供应商id参数!');
 
         if ($condition['items'] == '')
             jsonReturn('', -101, '缺少items参数!');
@@ -756,6 +771,9 @@ class SuppliersController extends PublicController {
 
             if ($item['issue_date'] == '')
                 $item['issue_date'] = null;
+            
+            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
+                jsonReturn('', -101, '到期时间不能为空!');
 
             if (strlenUtf8($item['issuing_authority']) > 50)
                 jsonReturn('', -101, '您输入的发证机构长度超过限制!');
@@ -785,6 +803,14 @@ class SuppliersController extends PublicController {
                 $data[] = $where['id'];
                 if ($flag)
                     $flag = false;
+            }
+        }
+        
+        if ($condition['status'] != 'DRAFT') {
+            // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
+            $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
+            if ($expiryDateCount > 30) {
+                $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING']);
             }
         }
 
@@ -829,6 +855,39 @@ class SuppliersController extends PublicController {
         $data = $this->supplierCheckLogsModel->getJoinList($condition);
 
         $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
+    }
+    
+    /**
+     * @desc 获取供应商资质过期列表接口
+     *
+     * @author liujf
+     * @time 2018-03-05
+     */
+    public function getSupplierQualificationOverdueListAction() {
+        $condition = dataTrim($this->put_data);
+    
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
+    
+        if (!$isErui) {
+            // 事业部门的看他所在事业部的
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $condition['org_id'] = $orgUb ? : [];
+        }
+        
+        if ($condition['expiry_start_date'] != '' && $condition['expiry_end_date'] != '') {
+            $condition['supplier_ids'] = $this->supplierQualificationModel->getOverduePeriodSupplierIds($condition['expiry_start_date'], $condition['expiry_end_date']);
+        }
+        
+        // 供应商状态为资质过期
+        $condition['qualification_status'] = 'OVERDUE';
+    
+        $supplierList = $this->suppliersModel->getJoinList($condition);
+    
+        foreach ($supplierList as &$supplier) {
+            $supplier['expiry_date'] = $this->supplierQualificationModel->getExpiryDate($supplier['id']);
+        }
+    
+        $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
     /**

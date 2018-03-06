@@ -36,7 +36,12 @@ class UserController extends PublicController {
             $where['role_id'] = trim($data['role_id']);
         }
         if (!empty($data['role_no'])) {
-            $where['role_no'] = trim($data['role_no']);
+           //$where['role_no'] = trim($data['role_no']);
+            $role_no = explode(",", $data['role_no']);
+            for ($i = 0; $i < count($role_no); $i++) {
+                $where['role_no'] = $where['role_no'] . "'" . $role_no[$i] . "',";
+            }
+            $where['role_no'] = rtrim($where['role_no'], ",");
         }
         if (!empty($data['status'])) {
             $where['status'] = trim($data['status']);
@@ -74,7 +79,6 @@ class UserController extends PublicController {
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
-
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
@@ -104,6 +108,29 @@ class UserController extends PublicController {
             redisSet('user_redis_list',json_encode($user_arr), 600);
         }else{
             $user_arr = json_decode(redisGet("user_redis_list"),true);
+        }
+        if (!empty($user_arr)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $user_arr;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    public function usercountrybnredislistAction() {
+        if(!redisExist(user_country_bn_redis_list)){
+            $user_modle = new UserModel();
+            $data = $user_modle->getlist();
+            $user_arr = [];
+            foreach ($data as $k => $value){
+                $user_arr[$value['id']] =  $value['country'];
+            }
+            redisSet('user_country_bn_redis_list',json_encode($user_arr), 600);
+        }else{
+            $user_arr = json_decode(redisGet("user_country_bn_redis_list"),true);
         }
         if (!empty($user_arr)) {
             $datajson['code'] = 1;
@@ -227,20 +254,21 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $data = $role_user_modle->userRoleList($user_id, 0);
+        $where['source'] = 'BOSS';
+        $data = $role_user_modle->userRoleList($user_id, 0, $where);
         $count = count($data);
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
             $data[$i]['lang'] = $this->lang;
-            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id']);
+            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id'], $where);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     $data[$i]['children'][$j]['lang'] = $this->lang;
                     if (isset($data[$i]['children'][$j]['id'])) {
                         $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
+                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id'], $where);
                         if (!$data[$i]['children'][$j]['children']) {
                             unset($data[$i]['children'][$j]['children']);
                         }

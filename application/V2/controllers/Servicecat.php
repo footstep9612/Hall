@@ -204,6 +204,24 @@ class ServicecatController extends PublicController {
         }*/
         $MemberServiceModel = new BuyerLevelModel();
         $result = $MemberServiceModel->levelInfo();
+        unset($result[2]);
+//        print_r($result);die;
+        $cond = $MemberServiceModel->levelByCond();
+        foreach($result[0] as $key => $value){
+            foreach($cond as $k => $v){
+                if($key==$v['lang'] && $v['brief']=='general'){
+                    $result[0][$key]['desc']=$v['cond'];
+                }
+            }
+        }
+        foreach($result[1] as $key => $value){
+            foreach($cond as $k => $v){
+                if($key==$v['lang'] && $v['brief']=='senior'){
+                    $result[1][$key]['desc']=$v['cond'];
+                }
+            }
+        }
+
         if(!empty($result)) {
             jsonReturn($result);
         } else {

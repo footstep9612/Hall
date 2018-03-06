@@ -53,6 +53,7 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
+        $where['a.status'] = ['neq', 'OVERDUE'];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
@@ -65,9 +66,13 @@ class SuppliersModel extends PublicModel {
         if (!empty($condition['name'])) {
             $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
         }
+        
+        if (!empty($condition['supplier_level'])) {
+            $where['a.supplier_level'] = $condition['supplier_level'];
+        }
 
         if (!empty($condition['status'])) {
-            $where['a.status'] = $condition['status'];
+            $where['a.status'] = [['eq', $condition['status']], $where['a.status']];
         }
 
         if (!empty($condition['check_start_time']) && !empty($condition['check_end_time'])) {
@@ -88,12 +93,20 @@ class SuppliersModel extends PublicModel {
             $where['a.org_id'] = ['in', $condition['org_id'] ? : ['-1']];
         }
         
-        if (!empty($condition['agent_id'])) {
-            $where['f.agent_id'] = ['in', $condition['agent_id']];
+        if (isset($condition['agent_ids'])) {
+            $where['f.agent_id'] = ['in', $condition['agent_ids'] ? : ['-1']];
         }
         
-        if (!empty($condition['created_by'])) {
-            $where['a.created_by'] = ['in', $condition['created_by']];
+        if (isset($condition['created_ids'])) {
+            $where['a.created_by'] = ['in', $condition['created_ids'] ? : ['-1']];
+        }
+        
+        if (isset($condition['supplier_ids'])) {
+            $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
+        }
+        
+        if (isset($condition['qualification_status'])) {
+            $where['a.status'] = $condition['qualification_status'];
         }
 
         return $where;
