@@ -90,7 +90,8 @@ class BuyercreditController extends PublicController {
                 "buyer_no"=> "C20171208000019",
                 "sinosure_no"=> null,
                 "credit_apply_date"=> "2018-03-01 00:00:00",
-                "status"=> "ERUI_APPROVED, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
+                "status"=> "ERUI_APPROVED",
+                "info"=>'待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'
             ],
             1=>[
                 "id"=> "1",
@@ -99,7 +100,7 @@ class BuyercreditController extends PublicController {
                 "buyer_no"=> "C20171208000019",
                 "sinosure_no"=> null,
                 "credit_apply_date"=> "2018-03-01 00:00:00",
-                "status"=> "ERUI_APPROVING, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
+                "status"=> "ERUI_APPROVING"
             ]
         ];
         jsonReturn($data);
