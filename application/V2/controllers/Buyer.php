@@ -746,13 +746,13 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['status'])) {
-            $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED' || $data['status'] == 'FIRST_REJECTED' || $data['status'] == 'FIRST_APPROVED') {
-                $arr['checked_by'] = $this->user['id'];
-                $arr['checked_at'] = Date("Y-m-d H:i:s");
-            }
-        }
+//        if (!empty($data['status'])) {
+//            $arr['status'] = $data['status'];
+//            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED' || $data['status'] == 'FIRST_REJECTED' || $data['status'] == 'FIRST_APPROVED') {
+//                $arr['checked_by'] = $this->user['id'];
+//                $arr['checked_at'] = Date("Y-m-d H:i:s");
+//            }
+//        }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
         }
