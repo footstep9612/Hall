@@ -297,12 +297,15 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerModel();
         $res = $model->info($data);
+        $agent=new BuyerAgentModel();
+        $agentRes=$agent->getBuyerAgentList($data['id']);
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
         $res_arr = [$res];
         $this->_setArea($res_arr, 'area');
         $this->_setCountry($res_arr, 'country');
         if (!empty($res_arr[0])) {
+            $res_arr[0]['agent']=$agentRes;
             $datajson['code'] = 1;
             $datajson['data'] = $res_arr[0];
         } else {

@@ -464,4 +464,12 @@ class BuyerAgentModel extends PublicModel {
         }
         return $this->addAll($arr);   //添加
     }
+    //buyer_id 获取 客户的经办人list
+    public function getBuyerAgentList($buyer_id){
+        return $this->alias('agent')
+                    ->join('erui_sys.employee employee on agent.agent_id=employee.id', 'left')
+                    ->field('agent.agent_id,employee.name')
+                    ->where(array('buyer_id'=>$buyer_id))
+                    ->select();
+    }
 }
