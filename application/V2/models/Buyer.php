@@ -60,9 +60,9 @@ class BuyerModel extends PublicModel {
             $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
         }
 
-        if (!empty($condition['area_bn'])) {
-            $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
-        }
+//        if (!empty($condition['area_bn'])) {
+//            $where .= ' And `buyer`.area_bn ="' . $condition['area_bn'] . '"';
+//        }
         if (!empty($condition['name'])) {
             $where .= " And `erui_buyer`.`buyer`.name like '%" . $condition['name'] . "%'";
         }
@@ -78,9 +78,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['status'])) {
             $where .= ' And `erui_buyer`.`buyer`.status  ="' . $condition['status'] . '"';
         }
-        if(!empty($condition['filter'])){   //过滤状态
-            $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
-        }
+//        if(!empty($condition['filter'])){   //过滤状态
+//            $where .= ' And `erui_buyer`.`buyer`.status !=\'APPROVING\' and `erui_buyer`.`buyer`.status !=\'FIRST_REJECTED\' ';
+//        }
         if(!empty($condition['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $where .= ' And `erui_buyer`.`buyer`.is_build=0 and `erui_buyer`.`buyer`.deleted_flag=\'N\' and `erui_buyer`.`buyer`.status=\'APPROVED\' ';
         }
@@ -148,9 +148,9 @@ class BuyerModel extends PublicModel {
         if (!empty($condition['credit_status'])) {
             $where .= ' And `erui_buyer`.`buyer_credit_log`.in_status  ="' . $condition['credit_status'] . '"';
         }
-        if ($condition['is_agent'] == 'Y') {
-            $where .= ' And (`erui_buyer`.`buyer`.created_by  ="' . $condition['agent']['user_id'] . '" OR `erui_buyer`.`buyer_agent`.`agent_id`  in ("' . $condition['agent']['agent_id'] . '"))';
-        }
+//        if ($condition['is_agent'] == 'Y') {
+//            $where .= ' And (`erui_buyer`.`buyer`.created_by  ="' . $condition['agent']['user_id'] . '" OR `erui_buyer`.`buyer_agent`.`agent_id`  in ("' . $condition['agent']['agent_id'] . '"))';
+//        }
         if ($where) {
             $sql .= $where;
             //  $sql_count .= $where;

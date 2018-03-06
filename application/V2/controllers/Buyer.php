@@ -66,11 +66,11 @@ class BuyerController extends PublicController {
         if (!empty($data['agent_id'])) {
             $where['agent_id'] = $country_model->escapeString($data['agent_id']);
         }
-        if ($data['is_agent'] == "Y") {
-            $where['is_agent'] = $country_model->escapeString($data['is_agent']);
-            $where['agent']['user_id'] = $country_model->escapeString($this->user['id']);
-            $where['agent']['agent_id'] = $country_model->escapeString($this->user['id']);
-        }
+//        if ($data['is_agent'] == "Y") {
+//            $where['is_agent'] = $country_model->escapeString($data['is_agent']);
+//            $where['agent']['user_id'] = $country_model->escapeString($this->user['id']);
+//            $where['agent']['agent_id'] = $country_model->escapeString($this->user['id']);
+//        }
         if (!empty($data['buyer_no'])) {
             $where['buyer_no'] = $country_model->escapeString($data['buyer_no']);
         }
@@ -149,9 +149,9 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $country_model->escapeString($data['credit_status']);
         }
-        if (!empty($data['filter'])) {  //过滤状态
-            $where['filter'] = $country_model->escapeString($data['filter']);
-        }
+//        if (!empty($data['filter'])) {  //过滤状态
+//            $where['filter'] = $country_model->escapeString($data['filter']);
+//        }
         if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
             $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
         }
@@ -621,7 +621,7 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-    //crm 更新客户市场经办人-王帅 
+    //crm 更新客户市场经办人-王帅
     public function crmUpdateAgentAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
