@@ -87,46 +87,36 @@ class BuyerRegInfoModel extends PublicModel
      */
     public function create_data($data)
     {
-        $this->startTrans();
         try{
             $dataInfo['remarks'] = $data['remarks'];
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
-            $dataInfo['created_by'] = $data['buyer_id'];
+            $dataInfo['created_by'] = $data['agent_by'];
             $dataInfo['created_at'] = date('Y-m-d H:i:s', time());
             $result = $this->add($this->create($dataInfo));
             if($result){
-                //添加银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->create_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '添加银行信息失败');
-                }
                 //添加审核信息
                 $credit_model = new BuyerCreditModel();
-                $data['source'] = 'PORTAL';
+                $data['source'] = 'BOSS';
                 $credit_model->create_data($data);
-
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'DRAFT';
+                $dataArr['in_status'] = 'DRAFT';  //草稿,银行信息提交后->状态:待审核
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['sign'] = 1;
                 $credit_log_model->create_data($dataArr);
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
-
-                $this->commit();
                 return $result;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCreditModel】create_data:' . $e , Log::ERR);
-            //jsonReturn($e->getMessage());
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】create_data:' . $e , Log::ERR);
             return false;
         }
     }
@@ -136,35 +126,19 @@ class BuyerRegInfoModel extends PublicModel
      */
     public function update_data($data)
     {
-        $this->startTrans();
         try{
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
-            $dataInfo['updated_by'] = $data['buyer_id'];
+            $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
             $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
             if ($result !== false) {
-                //更新银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->update_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新银行信息失败');
-                }
-                //更新审核信息
-                $credit_model = new BuyerCreditModel();
-                $credit_res = $credit_model->update_data($data);
-                /*if(!$credit_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新审核信息失败');
-                }*/
-                $this->commit();
                 return $result;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCreditModel】update_data:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】update_data:' . $e , Log::ERR);
             return false;
         }
     }

@@ -18,57 +18,6 @@ class BuyerCreditLogModel extends PublicModel{
     const STATUS_APPROVED = 'APPROVED'; //审核通过
     const STATUS_ERUI = 'ERUI'; //ERUI
 
-
-    /**
-     * 获取申请日志列表   银行或企业信息--银行sign:1;企业sign:2
-     * @param mix $condition
-     * @return mix
-     * @author klp
-     */
-    public function getList($condition = []) {
-
-        $where = $this->_getCondition($condition);
-        $condition['current_no'] = $condition['currentPage'];
-
-        list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_no,in_status,sign,in_remarks,agent_by,agent_at,checked_by,checked_at,out_status,out_remarks';
-        return $this->field($field)
-            ->where($where)
-            ->limit($start_no, $pagesize)
-            ->order('id desc')
-            ->select();
-    }
-
-    /**
-     *获取定制数量
-     * @param array $condition
-     * @author  klp
-     */
-    public function getCount($condition) {
-
-        $where = $this->_getCondition($condition);
-
-        return $this->where($where)->count();
-    }
-
-    /**
-     * 根据条件获取查询条件.
-     * @param Array $condition
-     * @return mix
-     * @author klp
-     */
-    protected function _getCondition($condition = []) {
-        $where = [];
-        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
-            $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
-        }
-        if (isset($condition['sign']) && $condition['sign']) {
-            $where['sign'] = intval($condition['sign']);         //银行或企业信息--银行:1;企业:2
-        }
-        return $where;
-    }
-
-
     /**
      * 新建信息
      */
@@ -221,7 +170,54 @@ class BuyerCreditLogModel extends PublicModel{
     }
 
 
+    /**
+     * 获取申请日志列表   银行或企业信息--银行sign:1;企业sign:2
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getList($condition = []) {
 
+        $where = $this->_getCondition($condition);
+        $condition['current_no'] = $condition['currentPage'];
+
+        list($start_no, $pagesize) = $this->_getPage($condition);
+        $field = 'id,buyer_no,in_status,sign,in_remarks,agent_by,agent_at,checked_by,checked_at,out_status,out_remarks';
+        return $this->field($field)
+            ->where($where)
+            ->limit($start_no, $pagesize)
+            ->order('id desc')
+            ->select();
+    }
+
+    /**
+     *获取定制数量
+     * @param array $condition
+     * @author  klp
+     */
+    public function getCount($condition) {
+
+        $where = $this->_getCondition($condition);
+
+        return $this->where($where)->count();
+    }
+
+    /**
+     * 根据条件获取查询条件.
+     * @param Array $condition
+     * @return mix
+     * @author klp
+     */
+    protected function _getCondition($condition = []) {
+        $where = [];
+        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
+            $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
+        }
+        if (isset($condition['sign']) && $condition['sign']) {
+            $where['sign'] = intval($condition['sign']);         //银行或企业信息--银行:2;企业:1
+        }
+        return $where;
+    }
 
 
 
