@@ -548,6 +548,17 @@ class BuyerController extends PublicController {
             $buyer_attach_model->create_data($buyer_attach_data);
             //采购商帐号表
             $buyer_account_model->create_data($buyer_account_data);
+            //新建客户,添加市场经办人,默认创建人-wnags  -start
+            $createBuyerAgent = isset($data['agent'])?$data['agent']:$this->user['id'];    //创建客户时,添加市场经办人
+            $createBuyerAgentArr=explode(',',$createBuyerAgent);
+            foreach($createBuyerAgentArr as $k => $v){
+                $createBuyerAgentArrAdd[$k]['buyer_id']=$id;
+                $createBuyerAgentArrAdd[$k]['agent_id']=$v;
+                $createBuyerAgentArrAdd[$k]['created_by']=$this->user['id'];
+                $createBuyerAgentArrAdd[$k]['created_at']=date('Y-m-d H:i:s');
+            }
+            $buyerAgent=new BuyerAgentModel();
+            $buyerAgent->addAll($createBuyerAgentArrAdd);   //添加市场经办人end
             //获取营销区域信息 -- link 2017-10-31
             //$mareaModel = new MarketAreaModel();
             //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
@@ -607,7 +618,21 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    //crm 更新客户市场经办人-王帅
+    public function crmUpdateAgentAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $agent = new BuyerAgentModel();
+        $res=$agent->crmUpdateAgent($data);
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+        }else{
+            $datajson['code'] = 0;
+            $datajson['message'] = '失败或缺少参数';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function updateagentAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['id'])) {
@@ -994,28 +1019,28 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-//        else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>'正常录入客户信息流程'
-//            );
-//            $this->jsonReturn($dataJson);
-//        }
-        //验证集团CRM存在,则展示数据
-        $group = $this->groupCrmCode($data['buyer_code']);
-        if (!empty($group)) {
+        else{
             $dataJson = array(
-                'code' => 1,
-                'message' => '集团CRM客户信息',
-                'data' => $group
+                'code'=>2,
+                'message'=>'正常录入客户信息流程'
             );
-        } else {
-            $dataJson = array(
-                'code' => 2,
-                'message' => '正常录入客户信息流程'
-            );
+            $this->jsonReturn($dataJson);
         }
-        $this->jsonReturn($dataJson);
+        //验证集团CRM存在,则展示数据
+//        $group = $this->groupCrmCode($data['buyer_code']);
+//        if (!empty($group)) {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => '集团CRM客户信息',
+//                'data' => $group
+//            );
+//        } else {
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => '正常录入客户信息流程'
+//            );
+//        }
+//        $this->jsonReturn($dataJson);
     }
 
     /**
