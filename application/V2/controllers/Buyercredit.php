@@ -17,19 +17,36 @@ class BuyercreditController extends PublicController {
      */
     public function getCreditListAction() {
         $data = [
-          "id"=> "2",
-          "name"=> "test1",
-          "buyer_no"=> "C20171208000019",
-          "bank_swift"=> null,
-          "sinosure_no"=> null,
-          "credit_apply_date"=> "2018-03-01 00:00:00",
-          "credit_valid_date"=> null,
-          "source"=> "PORTAL",
-          "status"=> "DRAFT",
-          "agent_id"=> "37959",
-          "country_code"=> "ALB",
-          "country"=> "Albania",
-          "crm_code"=> null
+            0=>[
+                "id"=> "1",
+                "name"=> "test1",
+                "buyer_no"=> "C20171208000019",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT",
+                "agent_id"=> "37959",
+                "country_code"=> "ALB",
+                "country"=> "Albania",
+                "crm_code"=> null
+            ],
+            1=>[
+                "id"=> "2",
+                "name"=> "test1",
+                "buyer_no"=> "C20171208000020",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT",
+                "agent_id"=> "37959",
+                "country_code"=> "ALB",
+                "country"=> "Albania",
+                "crm_code"=> null
+            ]
         ];
         jsonReturn($data);
 
@@ -66,13 +83,24 @@ class BuyercreditController extends PublicController {
      */
     public function getListAction() {
         $data = [
-              "id"=> "2",
-              "agent_id"=> "37959",
-              "name"=> "test",
-              "buyer_no"=> "C20171208000019",
-              "sinosure_no"=> null,
-              "credit_apply_date"=> "2018-03-01 00:00:00",
-              "status"=> "DRAFT, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
+            0=>[
+                "id"=> "2",
+                "agent_id"=> "37959",
+                "name"=> "test",
+                "buyer_no"=> "C20171208000019",
+                "sinosure_no"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "status"=> "ERUI_APPROVED, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
+            ],
+            1=>[
+                "id"=> "1",
+                "agent_id"=> "37959",
+                "name"=> "test",
+                "buyer_no"=> "C20171208000019",
+                "sinosure_no"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "status"=> "ERUI_APPROVING, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
+            ]
         ];
         jsonReturn($data);
 
@@ -300,16 +328,45 @@ class BuyercreditController extends PublicController {
      */
     public function grantQuotaAction() {
         $data = $this->getPut();
+        $lang = empty($data['lang']) ? 'en' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $credit_model = new BuyerCreditModel();
         $result = $credit_model->grantInfo($data);
         if($result) {
+            //发送邮件
+            $config_obj = Yaf_Registry::get("config");
+            $config_email = $config_obj->email->toArray();
+            $email = $this->_getBuyerEmail($data['buyer_no']);
+            $this->orderEmail($email['official_email'], '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
         }
+    }
+
+    //分配额度发送邮件
+    function orderEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
+        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arrEmail);
+        $data = [
+            "title"        => $title,
+            "content"      => $body,
+            "groupSending" => 0,
+            "useType"      => "Credit"
+        ];
+        if(is_array($email)) {
+            $arr = implode(',',$email);
+            $data["to"] = "[$arr]";
+        }elseif(is_string($email)){
+            $data["to"] = "[$email]";
+        }
+        PostData($emailUrl, $data, true);
+    }
+
+    private function _getBuyerEmail($buyer_no){
+        $buyerModel = new BuyerModel();
+        return $buyerModel->field('official_email')->where(['buyer_no' => $buyer_no, 'deleted_flag' => 'N'])->find();
     }
 
     /**
@@ -340,22 +397,42 @@ class BuyercreditController extends PublicController {
      */
     public function getCreditInfoAction(){
         $data = [
-            "id"=> "1",
-            "agent_id"=> "37959",
-            "name"=> "name",
-            "buyer_no"=> "C20171208000019",
-            "bank_swift"=> null,
-            "sinosure_no"=> null,
-            "nolc_granted"=> null,
-            "nolc_deadline"=> null,
-            "lc_granted"=> null,
-            "lc_deadline"=> null,
-            "deadline_cur_unit"=> "day",
-            "credit_cur_bn"=> null,
-            "credit_apply_date"=> "2018-03-01 00:00:00",
-            "credit_valid_date"=> null,
-            "source"=> "PORTAL",
-            "status"=> "DRAFT"
+            0=>[
+                "id"=> "1",
+                "agent_id"=> "37959",
+                "name"=> "name",
+                "buyer_no"=> "C20171208000019",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "nolc_granted"=> null,
+                "nolc_deadline"=> null,
+                "lc_granted"=> null,
+                "lc_deadline"=> null,
+                "deadline_cur_unit"=> "day",
+                "credit_cur_bn"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT"
+            ],
+            1=>[
+                "id"=> "2",
+                "agent_id"=> "37959",
+                "name"=> "name",
+                "buyer_no"=> "C20171208000020",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "nolc_granted"=> null,
+                "nolc_deadline"=> null,
+                "lc_granted"=> null,
+                "lc_deadline"=> null,
+                "deadline_cur_unit"=> "day",
+                "credit_cur_bn"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT"
+            ]
         ];
         jsonReturn($data);
 
