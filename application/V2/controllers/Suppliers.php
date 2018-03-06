@@ -806,10 +806,12 @@ class SuppliersController extends PublicController {
             }
         }
         
-        // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
-        $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
-        if ($expiryDateCount > 30) {
-            $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING']);
+        if ($condition['status'] != 'DRAFT') {
+            // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
+            $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
+            if ($expiryDateCount > 30) {
+                $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING']);
+            }
         }
 
         if ($flag) {
