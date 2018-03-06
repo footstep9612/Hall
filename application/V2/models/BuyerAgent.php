@@ -435,33 +435,4 @@ class BuyerAgentModel extends PublicModel {
             ->find();
         return $info['name'];
     }
-    //crm 更新市场经办人-wangs
-    public function crmUpdateAgent($data=[]){
-        if(empty($data['id']) || empty($data['user_ids'])){
-            return false;
-        }
-        $buyer_arr = explode(',', $data['id']);
-        $agent_arr = explode(',', $data['user_ids']);
-        $array=array();
-        $arr=array();
-
-        foreach ($buyer_arr as $key => $value) {
-            foreach ($agent_arr as $k => $v) {
-                $array[$key][$k]['buyer_id'] = $value;
-                $array[$key][$k]['agent_id'] = $v;
-            }
-        }
-        foreach ($array as $key => $value) {
-            foreach ($value as $K => $v) {
-                $v['created_by'] = $data['created_by'];
-                $v['created_at'] = date('Y-m-d H:i:s');
-                $arr[] = $v;
-            }
-        }
-        $exist=$this->where("buyer_id in ($data[id])")->find();
-        if($exist){
-            $this->where("buyer_id in ($data[id])")->delete();
-        }
-        return $this->addAll($arr);   //添加
-    }
 }
