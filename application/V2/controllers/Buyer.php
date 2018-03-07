@@ -404,6 +404,7 @@ class BuyerController extends PublicController {
 //            jsonReturn('', -101, '密码不可以都为空!');
 //        }
         if (!empty($data['email'])) {
+            $data['email']=trim($data['email'],' ');
             $buyer_account_data['email'] = $data['email'];
             if (!isEmail($buyer_account_data['email'])) {
                 jsonReturn('', -101, '邮箱格式不正确!');
@@ -722,6 +723,7 @@ class BuyerController extends PublicController {
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {
+            $data['email']=trim($data['email'],' ');
             $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
