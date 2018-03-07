@@ -529,7 +529,10 @@ EOF;
     public function info($data) {
 
         if ($data['id']) {
-            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field('buyer.*,em.name as checked_name')
+            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
+            $field.=',em.name as checked_name';
+
+            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field($field)
                     ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')
                     ->find();
             if(!empty($buyerInfo['official_phone'])){
@@ -539,11 +542,11 @@ EOF;
                     $buyerInfo['official_phone']='-'.$buyerInfo['official_phone'];
                 }
             }
-            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
-            $row = $this->query($sql);
-            if ($row) {
-                $buyerInfo['attach'] = $row[0];
-            }
+//            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
+//            $row = $this->query($sql);
+//            if ($row) {
+//                $buyerInfo['attach'] = $row[0];
+//            }
             $account=new BuyerAccountModel();
             $show_name=$account->field('show_name')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
             $buyerInfo['first_name'] = $show_name['show_name'];
@@ -2140,9 +2143,10 @@ EOF;
      */
     public function clickEditCheck($buyer_id){
         $arr=array('company'=>0,'email'=>0);
-        $buyer=$this->field('id,name as company_name,buyer_code')->where(array('id'=>$buyer_id,'deleted_flag'=>'N'))->find();
+        $buyer=$this->field('id,name as company_name,buyer_code,official_email')->where(array('id'=>$buyer_id,'deleted_flag'=>'N'))->find();
         $company_name=$buyer['company_name'];   //公司名称
         $buyer_code=$buyer['buyer_code'];   //crmcode
+        $official_email=$buyer['official_email'];   //公司邮箱
         $buyerAccountModel=new BuyerAccountModel();
         $account=$buyerAccountModel->field('email')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->find();
         $accountEmail=$account['email'];    //账户邮箱
@@ -2151,12 +2155,14 @@ EOF;
         if(!empty($info) && count($info)>1){
             $arr['company']=1;
         }
-        $sqlEmail="select official_email as email from erui_buyer.buyer WHERE official_email='$accountEmail' union all";
-        $sqlEmail.=" select email from erui_buyer.buyer_account WHERE email='$accountEmail' union ALL ";
-        $sqlEmail.=" select email from erui_sys.employee WHERE email='$accountEmail'";
-        $existEmail=$this->query($sqlEmail);
-        if(!empty($existEmail) && count($existEmail)>1){
-            $arr['email']=1;
+        if($official_email!=$accountEmail){
+            $sqlEmail="select official_email as email from erui_buyer.buyer WHERE official_email='$accountEmail' union all";
+            $sqlEmail.=" select email from erui_buyer.buyer_account WHERE email='$accountEmail' union ALL ";
+            $sqlEmail.=" select email from erui_sys.employee WHERE email='$accountEmail'";
+            $existEmail=$this->query($sqlEmail);
+            if(!empty($existEmail) && count($existEmail)>1){
+                $arr['email']=1;
+            }
         }
         return $arr;
     }
