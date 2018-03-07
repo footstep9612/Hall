@@ -35,14 +35,31 @@ class BuyerAgentModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = [],$order=" id desc") {
-        return $this->where($condition)
-            ->field('buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
-            ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
-            ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
-            ->join('erui_sys.org on org.id=org_member.org_id', 'left')
-            ->group('em.id')
-            ->order('buyer_agent.id desc')
-            ->select();
+        $counrty=$condition['country_bn'];
+        $field='buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at';
+        if(!empty($counrty)){
+            unset($condition['country_bn']);
+            $field .= ',country_member.country_bn';
+            return $this->where($condition)
+                ->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->join('erui_sys.country_member on buyer_agent.agent_id=country_member.employee_id', 'left')
+                ->where("country_member.country_bn in ($counrty)")
+                ->group('em.id')
+                ->order('buyer_agent.id desc')
+                ->select();
+        }else{
+            return $this->where($condition)
+                ->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->group('em.id')
+                ->order('buyer_agent.id desc')
+                ->select();
+        }
     }
 
     public function create_data($create = [])

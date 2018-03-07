@@ -608,6 +608,15 @@ class BuyerController extends PublicController {
         if (!empty($data['agent_id'])) {
             $array['agent_id'] = $data['agent_id'];
         }
+        //国家
+        $country_model = new CountryModel();
+        if (!empty($data['country_bn'])) {
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $array['country_bn'] = $array['country_bn'] . "'" . $country_model->escapeString($pieces[$i]) . "',";
+            }
+            $array['country_bn'] = rtrim($array['country_bn'], ",");
+        }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
         if (!empty($res)) {
