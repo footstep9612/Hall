@@ -554,7 +554,7 @@ class BuyerController extends PublicController {
             $buyer_account_model->create_data($buyer_account_data);
             //新建客户,添加市场经办人,默认创建人-wnags  -start
             if(!empty($data['agent'])){
-                $createBuyerAgent = $data['agent']    //创建客户时,添加市场经办人
+                $createBuyerAgent = $data['agent'];    //创建客户时,添加市场经办人
                 $createBuyerAgentArr=explode(',',$createBuyerAgent);
                 foreach($createBuyerAgentArr as $k => $v){
                     $createBuyerAgentArrAdd[$k]['buyer_id']=$id;
