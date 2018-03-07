@@ -852,7 +852,7 @@ class BuyerController extends PublicController {
             $emailJson['code']=1;
             $emailJson['message']='邮箱正常';
         }
-        $arr['compnay']=$companyJson;
+        $arr['company']=$companyJson;
         $arr['email']=$emailJson;
         $this->jsonReturn($arr);
     }
