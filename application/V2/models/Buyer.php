@@ -1367,6 +1367,14 @@ EOF;
 //        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
             return $baseArr['official_email'];
+        }else{
+            $email=$this->field('official_email')->where(array('id'=>$base['buyer_id']))->find();//默认邮箱
+            if($base['official_email']!=$email['official_email']){  //修改邮箱
+                $exist=$this->field('official_email')->where(array('official_email'=>trim($base['official_email'],' ')))->find();
+                if($exist){
+                    return $baseArr['official_email'].'已存在';
+                }
+            }
         }
         if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
         }else{
@@ -1477,9 +1485,9 @@ EOF;
             'build_modify_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'id'    => $data['buyer_id'], //客户id
             'name'  => $data['buyer_name'], //客户名称
-            'official_phone'    => $data['official_phone'],    //公司固话
-            'official_email'    => $data['official_email'],    //公司邮箱
-            'official_website'  => $data['official_website'],  //公司网址
+            'official_phone'    => trim($data['official_phone'],' '),    //公司固话
+            'official_email'    => trim($data['official_email'],' '),    //公司邮箱
+            'official_website'  => trim($data['official_website'],' '),  //公司网址
             'company_reg_date'  => $data['company_reg_date'],  //成立日期
             'company_address'  => $data['company_address'],  //公司地址+
             'reg_capital'   => $data['reg_capital'],   //注册资金
