@@ -25,11 +25,11 @@ class BuyerModel extends PublicModel {
 
     //状态
 
-    const STATUS_APPROVING = 'APPROVING'; //待报审；
-    const STATUS_FIRST_APPROVED = 'FIRST_APPROVED'; //待报审；
-    const STATUS_FIRST_REJECTED = 'FIRST_REJECTED'; //初审驳回
-    const STATUS_APPROVED = 'APPROVED'; //审核；
-    const STATUS_REJECTED = 'REJECTED'; //无效；
+    const STATUS_APPROVING = 'APPROVING'; //待分配；
+//    const STATUS_FIRST_APPROVED = 'FIRST_APPROVED'; //待报审；
+//    const STATUS_FIRST_REJECTED = 'FIRST_REJECTED'; //初审驳回
+    const STATUS_APPROVED = 'APPROVED'; //已分配；
+    const STATUS_REJECTED = 'REJECTED'; //关闭；
 
     /**
      * 获取列表
@@ -677,28 +677,6 @@ EOF;
                     break;
                 case self::STATUS_APPROVING:
                     $data['status'] = $create['status'];
-                    break;
-                case self::STATUS_FIRST_APPROVED:
-                    $data['status'] = $create['status'];
-                    if ($where['id']) {
-                        $checked_log_arr['id'] = $where['id'];
-                        $checked_log_arr['status'] = self::STATUS_FIRST_APPROVED;
-                        $checked_log_arr['checked_by'] = $create['checked_by'];
-                        $checked_log_arr['remarks'] = $create['remarks'];
-                        $checked_log = new BuyerCheckedLogModel();
-                        $checked_log->create_data($checked_log_arr);
-                    }
-                    break;
-                case self::STATUS_FIRST_REJECTED:
-                    $data['status'] = $create['status'];
-                    if ($where['id']) {
-                        $checked_log_arr['id'] = $where['id'];
-                        $checked_log_arr['status'] = self::STATUS_FIRST_REJECTED;
-                        $checked_log_arr['checked_by'] = $create['checked_by'];
-                        $checked_log_arr['remarks'] = $create['remarks'];
-                        $checked_log = new BuyerCheckedLogModel();
-                        $checked_log->create_data($checked_log_arr);
-                    }
                     break;
                 case self::STATUS_REJECTED:
                     $data['status'] = $create['status'];
