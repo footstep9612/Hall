@@ -2133,4 +2133,31 @@ EOF;
         );
         return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
     }
+
+    /**
+     * @param $buyer_id
+     * 验证:邮箱,手机号,公司名称
+     */
+    public function clickEditCheck($buyer_id){
+        $arr=array('company'=>0,'email'=>0);
+        $buyer=$this->field('id,name as company_name,buyer_code')->where(array('id'=>$buyer_id,'deleted_flag'=>'N'))->find();
+        $company_name=$buyer['company_name'];   //公司名称
+        $buyer_code=$buyer['buyer_code'];   //crmcode
+        $buyerAccountModel=new BuyerAccountModel();
+        $account=$buyerAccountModel->field('email')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->find();
+        $accountEmail=$account['email'];    //账户邮箱
+        //验证
+        $info=$this->field('id')->where(array('name'=>$company_name,'deleted_flag'=>'N'))->select();
+        if(!empty($info) && count($info)>1){
+            $arr['company']=1;
+        }
+        $sqlEmail="select official_email as email from erui_buyer.buyer WHERE official_email='$accountEmail' union all";
+        $sqlEmail.=" select email from erui_buyer.buyer_account WHERE email='$accountEmail' union ALL ";
+        $sqlEmail.=" select email from erui_sys.employee WHERE email='$accountEmail'";
+        $existEmail=$this->query($sqlEmail);
+        if(!empty($existEmail) && count($existEmail)>1){
+            $arr['email']=1;
+        }
+        return $arr;
+    }
 }

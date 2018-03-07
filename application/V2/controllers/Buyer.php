@@ -730,7 +730,7 @@ class BuyerController extends PublicController {
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {
             $data['email']=trim($data['email'],' ');
-            $arr['official_email'] = $data['email'];
+//            $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
@@ -830,7 +830,26 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    //点击编辑验证准备客户信息的验证-wangs0-参数buyer_id
+    public function clickEditCheckAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            $this->jsonReturn(array("code" => 0, "message" => "请输入正确参数"));
+        }
+        $buyerModel=new BuyerModel();
+        $res=$buyerModel->clickEditCheck($data['buyer_id']);
+        if($res['company']==1){
+            $companyJson['code']=2;
+            $companyJson['message']='公司名称已存在';
+        }
+        if($res['email']==1){
+            $emailJson['code']=2;
+            $emailJson['message']='邮箱已存在';
+        }
+        $arr['compnay']=$companyJson;
+        $arr['email']=$emailJson;
+        $this->jsonReturn($arr);
+    }
     public function getRoleAction() {
         if ($this->user['id']) {
             $role_user = new RoleUserModel();
