@@ -529,7 +529,8 @@ EOF;
     public function info($data) {
 
         if ($data['id']) {
-            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
+//            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
+            $field='buyer.*';
             $field.=',em.name as checked_name';
 
             $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field($field)
