@@ -690,7 +690,13 @@ class BuyerController extends PublicController {
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
         }
-        if (!empty($data['name'])) {
+        if (!empty($data['name'])) {    //公司名称
+            $data['name']=trim($data['name']);
+            $buyer=new BuyerModel();
+            $existId=$buyer->field('id')->where(array('name'=>$data['name']))->find();
+            if(!empty($existId['id']) && $existId['id']!=$data['id']){
+                $this->jsonReturn(array("code" => "-101", "message" => "该公司名称已存在"));
+            }
             $arr['name'] = $data['name'];
         }
         if (!empty($data['first_name'])) {
@@ -709,16 +715,16 @@ class BuyerController extends PublicController {
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
         }
-        if (!empty($data['country_bn'])) {
+        if (!empty($data['country_bn'])) {  //国家
             $account['country_bn'] = $data['country_bn'];
         }
-        if (!empty($data['biz_scope'])) {
+        if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
         }
-        if (!empty($data['intent_product'])) {
+        if (!empty($data['intent_product'])) {  //意向产品
             $arr['intent_product'] = $data['intent_product'];
         }
-        if (!empty($data['purchase_amount'])) {
+        if (!empty($data['purchase_amount'])) {     //年采购额
             $arr['purchase_amount'] = $data['purchase_amount'];
         }
         $buyer_account_model = new BuyerAccountModel();
@@ -759,13 +765,13 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-//        if (!empty($data['status'])) {
-//            $arr['status'] = $data['status'];
-//            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED' || $data['status'] == 'FIRST_REJECTED' || $data['status'] == 'FIRST_APPROVED') {
-//                $arr['checked_by'] = $this->user['id'];
-//                $arr['checked_at'] = Date("Y-m-d H:i:s");
-//            }
-//        }
+        if (!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+                $arr['checked_by'] = $this->user['id'];
+                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            }
+        }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
         }
