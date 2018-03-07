@@ -841,10 +841,16 @@ class BuyerController extends PublicController {
         if($res['company']==1){
             $companyJson['code']=2;
             $companyJson['message']='公司名称已存在';
+        }else{
+            $companyJson['code']=1;
+            $companyJson['message']='公司名称正常';
         }
         if($res['email']==1){
             $emailJson['code']=2;
             $emailJson['message']='邮箱已存在';
+        }else{
+            $emailJson['code']=1;
+            $emailJson['message']='邮箱正常';
         }
         $arr['compnay']=$companyJson;
         $arr['email']=$emailJson;
