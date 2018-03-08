@@ -465,7 +465,7 @@ class SuppliersController extends PublicController {
             if ($item['email'] == '')
                 jsonReturn('', -101, '邮箱不能为空!');
 
-            if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_\-.]+@[a-zA-Z0-9_\-.]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
+            if ($item['email'] != '' && !preg_match('/^[a-zA-Z0-9_\-.]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
                 jsonReturn('', -101, '您输入的邮箱格式不正确!');
 
             if (strlenUtf8($item['email']) > 50)
