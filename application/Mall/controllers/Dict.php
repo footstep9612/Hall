@@ -30,6 +30,9 @@ class DictController extends PublicController {
         if (!empty($data['name'])) {
             $where['name'] = $data['name'];
         }
+        if (!empty($data['code'])) {
+            $where['code'] = $data['code'];
+        }
         if (!empty($data['status'])) {
             $where['status'] = $data['status'];
         } else {
