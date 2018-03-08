@@ -58,13 +58,13 @@ class CountryModel extends PublicModel {
     public function getlist($data, $limit, $order = 'id desc') {
 
         if (!empty($limit)) {
-            return $this->field('id,lang,bn,name,time_zone,region_bn,int_tel_code')
+            return $this->field('id,lang,code,bn,name,time_zone,region_bn,int_tel_code')
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
         } else {
-            return $this->field('id,lang,bn,name,time_zone,region_bn,int_tel_code')
+            return $this->field('id,lang,code,bn,name,time_zone,region_bn,int_tel_code')
                             ->where($data)
                             ->order($order)
                             ->select();

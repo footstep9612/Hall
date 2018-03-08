@@ -740,12 +740,15 @@ class InquiryModel extends PublicModel {
         $orgMemberModel = new OrgMemberModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
+        $employeeModel = new EmployeeModel();
         
         $orgId = $this->getDeptOrgId($groupId, $orgNode);
 	        
-        $roleId = $roleModel->where(['role_no' => $roleNo])->getField('id', true);
+        $roleId = $roleModel->where(['role_no' => $roleNo, 'deleted_flag' => 'N'])->getField('id', true);
         
         $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ? : ['-1']]])->getField('employee_id', true);
+        
+        $employeeId = $employeeModel->where(['id' => ['in', $employeeId ? : ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
         
         return $orgMemberModel->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->getField('employee_id', true);
     }
@@ -764,7 +767,7 @@ class InquiryModel extends PublicModel {
     
         $roleId = $roleUserModel->where(['employee_id' => $userId ? : '-1'])->getField('role_id', true);
     
-        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']]])->getField('role_no', true);
+        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']], 'deleted_flag' => 'N'])->getField('role_no', true);
     
         return $this->getUserRoleByNo($roleNoArr);
     }
