@@ -285,6 +285,9 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
             $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
         }
+        if(isset($data['approved_date']) && !empty($data['approved_date'])){
+            $dataInfo['approved_date'] = trim($data['approved_date']);
+        }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
         }
@@ -361,7 +364,8 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataArr['credit_cur_bn'] = '$';
         }
-        $dataArr['status'] = 'EDI_APPROVED';
+        $data['credit_valid_date'] = date('Y-m-d H:i:s',time());
+        $dataArr['status'] = 'APPROVED';   //分配额度为通过   银行和企业通过为信保通过
         return $dataArr;
     }
 }
