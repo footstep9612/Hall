@@ -1477,7 +1477,8 @@ EOF;
             'profile'   => $data['profile'],   //公司介绍txt
             'level_at' => $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
-            'is_build' =>'1',//有效期
+            'is_build' =>'1',//建立档案标识
+            'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
             'company_model' =>$data['company_model']    //公司性质
         );
