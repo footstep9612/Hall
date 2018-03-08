@@ -461,7 +461,6 @@ class BuyerAgentModel extends PublicModel {
         $agent_arr = explode(',', $data['user_ids']);
         $array=array();
         $arr=array();
-
         foreach ($buyer_arr as $key => $value) {
             foreach ($agent_arr as $k => $v) {
                 $array[$key][$k]['buyer_id'] = $value;

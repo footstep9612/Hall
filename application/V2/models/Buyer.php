@@ -1815,7 +1815,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and is_build=1 and status='APPROVED' and deleted_flag='N'";
+        $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
         if(!empty($data['admin']) && $data['admin'] == false){   //统计
             $cond = " and buyer.created_by=$data[created_by] ";
         }
