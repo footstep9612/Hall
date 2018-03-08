@@ -305,7 +305,7 @@ class BuyerController extends PublicController {
         $this->_setArea($res_arr, 'area');
         $this->_setCountry($res_arr, 'country');
         if (!empty($res_arr[0])) {
-            $res_arr[0]['agent']=$agentRes[0];
+            $res_arr[0]['agent']=$agentRes;
             $datajson['code'] = 1;
             $datajson['data'] = $res_arr[0];
         } else {

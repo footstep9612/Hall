@@ -457,36 +457,88 @@ class BuyerAgentModel extends PublicModel {
         if(empty($data['id']) || empty($data['user_ids'])){
             return false;
         }
-        $buyer_arr = explode(',', $data['id']);
+        $buyer_id=$data['id'];
         $agent_arr = explode(',', $data['user_ids']);
-        $array=array();
-        $arr=array();
-        foreach ($buyer_arr as $key => $value) {
-            foreach ($agent_arr as $k => $v) {
-                $array[$key][$k]['buyer_id'] = $value;
-                $array[$key][$k]['agent_id'] = $v;
+        $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id))->select();
+        //
+        if(empty($agent)){ //
+            $agentArr=array();
+            foreach($agent_arr as $k => $v){
+                $agentArr[$k]['buyer_id']=$buyer_id;
+                $agentArr[$k]['agent_id']=$v;
+                $agentArr[$k]['created_by']=$data['created_by'];
+                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
             }
+            $res=$this->addAll($agentArr);
+            return $res;
         }
-        foreach ($array as $key => $value) {
-            foreach ($value as $K => $v) {
-                $v['created_by'] = $data['created_by'];
-                $v['created_at'] = date('Y-m-d H:i:s');
-                $arr[] = $v;
+        $exsitArr=array();
+        foreach($agent as $k => $v){
+            $exsitArr[]=$v['agent_id'];
+        }
+        $delArr=array_diff($exsitArr,$agent_arr);
+        $addArr=array_merge(array_diff($agent_arr,$exsitArr));
+        if(!empty($delArr)){
+            $delStr=implode(',',$delArr);
+            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->delete();
+        }
+        if(!empty($addArr)){    //添加
+            $agentArr=array();
+            foreach($addArr as $k => $v){
+                $agentArr[$k]['buyer_id']=$buyer_id;
+                $agentArr[$k]['agent_id']=$v;
+                $agentArr[$k]['created_by']=$data['created_by'];
+                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
             }
+            $res=$this->addAll($agentArr);
+            return $res;
         }
-        $exist=$this->where("buyer_id in ($data[id])")->find();
-        if($exist){
-            $this->where("buyer_id in ($data[id])")->delete();
-        }
-        return $this->addAll($arr);   //添加
+        return true;
+//        $buyer_arr = explode(',', $data['id']);
+//        $agent_arr = explode(',', $data['user_ids']);
+//        $array=array();
+//        $arr=array();
+//        foreach ($buyer_arr as $key => $value) {
+//            foreach ($agent_arr as $k => $v) {
+//                $array[$key][$k]['buyer_id'] = $value;
+//                $array[$key][$k]['agent_id'] = $v;
+//            }
+//        }
+//        foreach ($array as $key => $value) {
+//            foreach ($value as $K => $v) {
+//                $v['created_by'] = $data['created_by'];
+//                $v['created_at'] = date('Y-m-d H:i:s');
+//                $arr[] = $v;
+//            }
+//        }
+//        $exist=$this->where("buyer_id in ($data[id])")->find();
+//        if($exist){
+//            $this->where("buyer_id in ($data[id])")->delete();
+//        }
+//        return $this->addAll($arr);   //添加
     }
     //buyer_id 获取 客户的经办人list
     public function getBuyerAgentList($buyer_id){
-        return $this->alias('agent')
+        $info=$this->alias('agent')
                     ->join('erui_sys.employee employee on agent.created_by=employee.id', 'left')
-                    ->field('agent.created_by,employee.name as created_name,agent.created_at,agent.created_at as update_at')
+                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
                     ->where(array('buyer_id'=>$buyer_id))
-                    ->group('agent.created_by')
                     ->select();
+        if(!empty($info)){
+            $agent=array(
+                'created_by'=>reset($info)['created_by'],
+                'created_name'=>reset($info)['created_name'],
+                'created_at'=>reset($info)['created_at'],
+                'update_at'=>end($info)['created_at']
+            );
+        }else{
+            $agent=array(
+                'created_by'=>null,
+                'created_name'=>null,
+                'created_at'=>null,
+                'update_at'=>null
+            );
+        }
+        return $agent;
     }
 }
