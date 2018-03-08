@@ -106,6 +106,64 @@ class CountryController extends PublicController {
         $this->jsonReturn($return);
     }
 
+    /*
+     * 国家列表.全部
+     */
+    public function CountryListAction() {
+        $data = $this->getPut();
+        $limit = [];
+        $where = [];
+        if (!empty($data['bn'])) {
+            $where['bn'] = $data['bn'];
+        }
+        if (!empty($data['name'])) {
+            $where['name'] = $data['name'];
+        }
+        if (!empty($data['code'])) {
+            $where['code'] = $data['code'];
+        }
+        if (!empty($data['status'])) {
+            $where['status'] = $data['status'];
+        } else {
+            $where['status'] = 'VALID';
+        }
+        if (!empty($data['time_zone'])) {
+            $where['time_zone'] = $data['time_zone'];
+        }
+        if (!empty($data['region_bn'])) {
+            $where['region_bn'] = $data['region_bn'];
+        }
+        if (!empty($data['page'])) {
+            $limit['page'] = $data['page'];
+        }
+        if (!empty($data['countPerPage'])) {
+            $limit['num'] = $data['countPerPage'];
+        }
+        $where['code'] = array('neq','');
+        $lang = '';
+        if (!empty($data['lang'])) {
+            $lang = $data['lang'];
+        }
+        $model_group = new CountryModel();
+        if (empty($where) && empty($limit)) {
+            if (!$lang) {
+                $lang = 'zh';
+            }
+            $where['lang'] = $lang;
+            $arr = $model_group->getlist($where, $limit, 'bn asc');
+        } else {
+            if (!empty($data['lang'])) {
+                $where['lang'] = $data['lang'];
+            }
+            $arr = $model_group->getlist($where, $limit, 'bn asc');
+        }
+        if ($arr) {
+            jsonReturn($arr);
+        } else {
+            jsonReturn('', -104, '数据为空!');
+        }
+    }
+
     /**
      * 取汉字的第一个字的首字母
      * @param type $str
