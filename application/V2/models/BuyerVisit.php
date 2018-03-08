@@ -724,7 +724,14 @@ class BuyerVisitModel extends PublicModel {
         if (!empty($data['buyer_code'])) {  //客户code
             $cond .= " and buyer_code like '%$data[buyer_code]%'";
         }
-        if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
+        if (!empty($data['country_bn'])) {  //国家权限
+            $countryArr=explode(',',$data['country_bn']);
+            $countryStr='';
+            foreach($countryArr as $v){
+                $countryStr.=",'".$v."'";
+            }
+            $countryStr=substr($countryStr,1);
+            $cond .= " and buyer.country_bn in ($countryStr)";
             $buyerModel= new BuyerModel();
             $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
             if (empty($buyer_ids)) {
@@ -736,6 +743,18 @@ class BuyerVisitModel extends PublicModel {
             }
             $condition['buyer_id'] = ['in', $buyer_id];
         }
+//        if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
+//            $buyerModel= new BuyerModel();
+//            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
+//            if (empty($buyer_ids)) {
+//                return false;   //数据为空
+//            }
+//            $buyer_id = [];
+//            foreach ($buyer_ids as $v) {
+//                $buyer_id[] = $v['id'];
+//            }
+//            $condition['buyer_id'] = ['in', $buyer_id];
+//        }
         if (isset($data['visit_level']) && !empty($data['visit_level'])) {    //拜访级别
             $condition['visit_level'] = ['exp', 'regexp \'"' . $data['visit_level'] . '"\''];
         }
