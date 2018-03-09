@@ -150,7 +150,7 @@ class Edi {
             $results['code'] = -101;
             $results['message'] = '[name]不能为空!';
         }
-        if(!isset($BuyerCodeApply['registered_in'])){
+        if(!isset($BuyerCodeApply['address'])){
             $results['code'] = -101;
             $results['message'] = '[address]不能为空!';
         }
@@ -176,13 +176,13 @@ class Edi {
             //买方中文名称(必填)  --国内买方中文名称必填
             $BuyerCodeApplyInfo['areano'] = intval($BuyerCodeApply['area_no']);
             //区域代码--(必填)    --国内买家 必填
-            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['address'];
             //买方中文地址--(必填)--国内买家 必填
         } else {
             //-----------国外买家必填项:
             $BuyerCodeApplyInfo['engName'] = $BuyerCodeApply['name'];
             //买方英文名称(必填) --国外买家英文名称必填
-            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['address'];
             //买方英文地址(必填) --国外买家 英文地址必填
         }
 
