@@ -211,6 +211,7 @@ class InquiryController extends PublicController {
         $buyerModel = new BuyerModel();
         $countryUserModel = new CountryUserModel();
         $org = new OrgModel();
+        $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
         $transModeModel = new TransModeModel();
 
@@ -246,6 +247,7 @@ class InquiryController extends PublicController {
             $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
             $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
             $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['area_bn'] = $marketAreaCountryModel->where(['bn' => $inquiry['country_bn']])->getField('market_area_bn');
             $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
             $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
             $inquiry['trans_mode_bn'] = $transMode['bn'];
