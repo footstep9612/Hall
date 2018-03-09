@@ -24,7 +24,7 @@ class EdiController extends PublicController{
 
     private $params = array();
 
-    private $serverIP = '172.18.20.74';
+    private $serverIP = '172.18.20.125';
 
     private $serverPort = '8081';
 
@@ -57,7 +57,7 @@ class EdiController extends PublicController{
         if ($this->mode == 'wsdl') {
             $this->serviceUri .= '?wsdl';
         }
-        $this->client = new SoapClient( $this->serviceUri);
+        $this->client = new SoapClient($this->serviceUri);
 
     }
 
@@ -73,7 +73,7 @@ class EdiController extends PublicController{
     public function testAction(){
         header("content-type:text/html;charset=utf-8");
         try {
-            $client = new SoapClient("http://localhost:81/ediserver/ws_services/SolEdiProxyWebService?wsdl");
+            $client = new SoapClient("http://localhost:8121/ediserver/ws_services/SolEdiProxyWebService?wsdl");
             echo '<pre>';
             print_r($client->__getFunctions());
             print_r($client->__getTypes());
