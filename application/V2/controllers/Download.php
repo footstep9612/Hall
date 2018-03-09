@@ -8,11 +8,19 @@
 class DownloadController extends PublicController {
 
 
-    public function init()
-    {
-       // parent::init();
+    public function __init() {
+        parent::init();
     }
-
+    private function crmUserRole($user_id){
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array('crm市场专员',$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     /**
      * 通用边框
      * @var array
@@ -33,18 +41,17 @@ class DownloadController extends PublicController {
     {
         set_time_limit(0);
         $data = json_decode(file_get_contents("php://input"), true);
+        $admin=$this->crmUserRole($this->user['id']);   //=1市场专员
         $where = [];
-        if ($data['is_agent']=="Y") {
-            $where['is_agent'] = $data['is_agent'];
-            $where['agent']['user_id'] = $this->user['id'];
-            $where['agent']['agent_id'] = $this->user['id'];
-        }
-        if (!empty($data['country_bn'])) {
-            $pieces = explode(",", $data['country_bn']);
-            for ($i = 0; $i < count($pieces); $i++) {
-                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+
+        if($admin!=1){
+            if (!empty($data['country_bn'])) {
+                $pieces = explode(",", $data['country_bn']);
+                for ($i = 0; $i < count($pieces); $i++) {
+                    $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
+                }
+                $where['country_bn'] = rtrim($where['country_bn'], ",");
             }
-            $where['country_bn'] = rtrim($where['country_bn'], ",");
         }
         $buyerList = $this->getBuyerList($where);
         $this->_setCountry($buyerList, 'country');

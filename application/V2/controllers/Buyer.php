@@ -16,7 +16,7 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-    public function crmUserRole($user_id){
+    private function crmUserRole($user_id){
         $role=new RoleUserModel();
         $arr=$role->crmGetUserRole($user_id);
         if(in_array('crm市场专员',$arr)){
