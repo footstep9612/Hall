@@ -345,6 +345,8 @@ class OrderModel extends PublicModel {
         $sqlNewOrder.=" where crm_code='$buyer_code' and signing_date>='2018-01-01' and signing_date<='$date' and delete_flag=0";
         $sqlNewOrder.=" order by signing_date";
         $newOrderArr=$this->query($sqlNewOrder);   //订单所有回款
+        $orderArr=$this->removeNullOrder($orderArr);
+        $newOrderArr=$this->removeNullOrder($newOrderArr);
         //验证升级
         if(empty($newOrderArr) && empty($orderArr)){   //订单为空,无交易
             $this->autoUpgrade($buyer_id,null,null);
@@ -394,6 +396,15 @@ class OrderModel extends PublicModel {
             $this->autoUpgrade($buyer_id,52,$time);
             return 'general';
         }
+    }
+    //会员自动升级,去除订单为0的空值-wangs
+    public function removeNullOrder($order=[]){
+        foreach($order as $k => $v){
+            if($v['amount']==0 || empty($v['currency_bn'])){
+                unset($order[$k]);
+            }
+        }
+        return $order;
     }
     /**
      * 客户会员自动升级-wangs
