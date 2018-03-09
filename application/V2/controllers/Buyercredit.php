@@ -172,16 +172,23 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '不符合申请条件!');
             jsonReturn(null, -110, '企业所在国家简称代码');
         }
-        $buyerModel = new BuyerModel();
         $company_model = new BuyerRegInfoModel();
-
-        $data['agent_by'] = UID;
-        $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
-        if($check){
-            $res = $company_model->update_data($data);
-        } else {
+        if($data['sign'] == 'ADD') {
+            $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
+            if($check) {
+                jsonReturn(null, -110, '该用户已申请!');
+            }
             $res = $company_model->create_data($data);
+        } else {
+            $data['agent_by'] = UID;
+            $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
+            if($check){
+                $res = $company_model->update_data($data);
+            } else {
+                $res = $company_model->create_data($data);
+            }
         }
+
         if($res) {
             jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
@@ -195,7 +202,7 @@ class BuyercreditController extends PublicController {
     public function editBankAction(){
         $bank_data = json_decode(file_get_contents("php://input"), true);
         $lang = $bank_data['lang'] ? $bank_data['lang'] : 'en';
-        if (empty($data['buyer_no'])) {
+        if (empty($bank_data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         if (empty($bank_data['bank_country_code'])) {
@@ -233,10 +240,11 @@ class BuyercreditController extends PublicController {
     public function getCompanyInfoAction(){
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        $buyerModel = new BuyerModel();
-        $buyer_no = $buyerModel->field('buyer_no')->where(['id' => UID, 'deleted_flag' => 'N'])->find();
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
         $company_model = new BuyerRegInfoModel();
-        $comInfo = $company_model->getInfo($buyer_no);
+        $comInfo = $company_model->getInfo($data['buyer_no']);
         if($comInfo) {
             jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
@@ -250,10 +258,11 @@ class BuyercreditController extends PublicController {
     public function getBankInfoAction(){
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        $buyerModel = new BuyerModel();
-        $buyer_no = $buyerModel->field('buyer_no')->where(['id' => UID, 'deleted_flag' => 'N'])->find();
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
         $bank_model = new BuyerBankInfoModel();
-        $bankInfo = $bank_model->getInfo($buyer_no);
+        $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
             jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
@@ -269,9 +278,7 @@ class BuyercreditController extends PublicController {
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
-            jsonReturn(null, -110, '客户编号缺失!');
-        }
+
 
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
@@ -306,7 +313,11 @@ class BuyercreditController extends PublicController {
             }
 
         }
-
+        if($res) {
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+        }
     }
 
     private function _checkStatus($status){
@@ -450,6 +461,23 @@ class BuyercreditController extends PublicController {
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
         }
+    }
+
+    /**
+     * 请求信保审核
+     */
+    public function EdiApplyAction() {
+        $data = $this->getPut();
+        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        $edi_apply_model = new EdiBuyerApplyModel();
+        $res_buyer = $edi_apply_model->BuyerApply($data['buyer_no']);
+        $res_bank = $edi_apply_model->BankApply($data['buyer_no']);
+        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+        }
+        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
     }
 
     /* 代办人信息

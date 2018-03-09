@@ -249,7 +249,7 @@ class BuyerCreditModel extends PublicModel
     }
 
     /**
-     * 更新银行信息
+     * 更新信息
      */
     public function update_data($data) {
 
@@ -287,15 +287,14 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['approved_date']) && !empty($data['approved_date'])){
             $dataInfo['approved_date'] = trim($data['approved_date']);
+        } else{
+            $dataInfo['approved_date'] = date('Y-m-d H:i:s',time());
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
         }
-        $agent_model = new BuyerAgentModel();
-        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
-        if($agent_id){
-            $dataInfo['agent_id'] = $agent_id['agent_id'];
-        }
+        $dataInfo['agent_id'] = UID;  //市场经办人
+
         $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;
@@ -316,9 +315,9 @@ class BuyerCreditModel extends PublicModel
             $dataLog['credit_cur_bn'] = $dataArr['credit_cur_bn'];
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
 
-            $valid_date = $this->field('credit_valid_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['credit_valid_date'])));
-            $dataLog['credit_at'] = $valid_date['credit_valid_date'];
+            /*$valid_date = $this->field('credit_valid_date')->where(['buyer_no'=>$data['buyer_no']])->find();
+            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['credit_valid_date'])));*/
+            $dataLog['credit_at'] = $dataArr['credit_valid_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];
