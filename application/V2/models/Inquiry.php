@@ -146,6 +146,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
         }
+        
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
 
         if (!empty($condition['buyer_inquiry_no'])) {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
