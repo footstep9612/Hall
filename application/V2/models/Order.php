@@ -317,62 +317,80 @@ class OrderModel extends PublicModel {
         return $arr;
     }
     //会员自动升级start-------------------------------------------------------------------------------------
-    public function autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderRes){
-        $level_at_prev=$at['level_at_prev'];
+    public function autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderArr){
+//        $level_at_prev=$at['level_at_prev'];
+//        $expiry_at=$at['expiry_at'];
+//        $date=$at['date'];
+//        $prev=$at['prev'];
+
+//        //new_order=当年订单签约日期+订单执行中或完成
+//        $sqlNewOrder="select `order`.id,crm_code,currency_bn,order_account.money as amount, order_account.payment_date as create_time from erui_new_order.order `order`";
+//        $sqlNewOrder.=" left join erui_new_order.order_account order_account";
+//        $sqlNewOrder.=" on `order`.id=order_account.order_id";
+//        $sqlNewOrder.=" where `order`.crm_code='$buyer_code'";
+////        $sqlNewOrder.=" and `order`.status=3";
+//        $sqlNewOrder.=" and `order`.delete_flag=0";
+//        $sqlNewOrder.=" and order_account.del_yn=1";
+//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//        }else{
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//        }
+//        $sqlNewOrder.=" order by order_account.payment_date";
         $expiry_at=$at['expiry_at'];
         $date=$at['date'];
-        $prev=$at['prev'];
-
-        //new_order=当年订单签约日期+订单执行中或完成
-        $sqlNewOrder="select `order`.id,crm_code,currency_bn,order_account.money as amount, order_account.payment_date as create_time from erui_new_order.order `order`";
-        $sqlNewOrder.=" left join erui_new_order.order_account order_account";
-        $sqlNewOrder.=" on `order`.id=order_account.order_id";
-        $sqlNewOrder.=" where `order`.crm_code='$buyer_code'";
-//        $sqlNewOrder.=" and `order`.status=3";
-        $sqlNewOrder.=" and `order`.delete_flag=0";
-        $sqlNewOrder.=" and order_account.del_yn=1";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
-        $sqlNewOrder.=" order by order_account.payment_date";
-        $newOrder=$this->query($sqlNewOrder);   //订单所有回款
-        if(empty($orderRes) && empty($newOrder)){   //order&&newOrder=null
+        $sqlNewOrder="select total_price as amount,currency_bn,signing_date as create_time from erui_new_order.order `order`";
+        $sqlNewOrder.=" where crm_code='$buyer_code' and signing_date>='2018-01-01' and signing_date<='$date' and delete_flag=0";
+        $sqlNewOrder.=" order by signing_date";
+        $newOrderArr=$this->query($sqlNewOrder);   //订单所有回款
+        //验证升级
+        if(empty($newOrderArr) && empty($orderArr)){   //订单为空,无交易
             $this->autoUpgrade($buyer_id,null,null);
             return 'void';
         }
-        if(empty($newOrder) && !empty($orderRes)){  //order newOrder=null
-            $time=$orderRes['time'];
-            $this->autoUpgrade($buyer_id,52,$time);
-            return 'general';
-        }
-        //newOrder
-        $orderNew=$this->sumAmount($newOrder);
-        if(!empty($orderNew['time'])){  //高级
-            $time=substr($orderNew['time'],0,10);
-            if($time>=$prev){
+        if(empty($newOrderArr) && !empty($orderArr)){  //新订单为空,老订单有数据
+            $orderRes=$this->sumAmount($orderArr);
+            if(!empty($orderRes['time'])){    //高级
+                $time=substr($orderRes['time'],0,10);
                 $this->autoUpgrade($buyer_id,53,$time);
                 return 'senior';
+            }else{
+                $time=substr($orderArr[0]['create_time'],0,10);
+                $this->autoUpgrade($buyer_id,52,$time);
+                return 'general';
             }
-        }else{
-            $time=substr($newOrder[0]['create_time'],0,10);
-            $orderNew['time']=$time;
         }
-        if(empty($orderRes)){   //order=null
-            $time=$orderNew['time'];
-            $this->autoUpgrade($buyer_id,52,$time);
-            return 'general';
+        //newOrder有交易
+        if(empty($orderArr)){
+            $orderNew=$this->sumAmount($newOrderArr);
+            if(!empty($orderNew['time'])){  //高级
+                $time=substr($orderNew['time'],0,10);
+                $this->autoUpgrade($buyer_id,53,$time);
+                return 'senior';
+            }else{
+                $time=substr($newOrderArr[0]['create_time'],0,10);
+                $this->autoUpgrade($buyer_id,52,$time);
+                return 'general';
+            }
         }
-        $total=$orderRes['num']+$orderNew['num'];    //订单总金额
-        if($total>=1000000){
-            $time=$orderNew['time'];
+        $merge=array_merge($orderArr,$newOrderArr);
+        $arrSort = array();
+        foreach($merge AS $key => $value){
+            foreach($value AS $k=>$v){
+                $arrSort[$k][$key] = $v;
+            }
+        }
+        array_multisort($arrSort['create_time'], SORT_ASC, $merge);
+        //两订单总计
+        $total=$this->sumAmount($merge);
+        if(!empty($total['time'])){  //高级
+            $time=substr($total['time'],0,10);
             $this->autoUpgrade($buyer_id,53,$time);
             return 'senior';
         }else{
-            $time=$orderRes['time'];
+            $time=substr($merge[0]['create_time'],0,10);
             $this->autoUpgrade($buyer_id,52,$time);
             return 'general';
         }
@@ -407,70 +425,54 @@ class OrderModel extends PublicModel {
         }
         $buyer_id=$info['id'];
         $buyer_code=$info['buyer_code'];
-        $buyer_level=$info['buyer_level'];
         $level_at=$info['level_at'];    //会员定级日期
-        $level_at_prev=(substr($level_at,0,4)-1).substr($level_at,4,10);    //会员定级日期
         $expiry_at=$info['expiry_at'];  //会员过期日期
         $date=date('Y-m-d');    //今天
-        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
         //时间参数
-        $at['level_at_prev']=$level_at_prev;
         $at['expiry_at']=$expiry_at;
         $at['date']=$date;
-        $at['prev']=$prev;
-//        if($buyer_level==53 && $level_at<=$date && $date<$expiry_at){   //高级
-//            return 'senior';
-//        }
-        //订单已完成+当年订单
-        $sqlOrder="select order_log.amount,`order`.currency_bn,order_log.log_at as create_time from erui_order.order `order`";
-        $sqlOrder.=" left join erui_order.order_log order_log";
-        $sqlOrder.=" on order.id=order_log.order_id";
-        $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-//        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
-        $sqlOrder.=" AND `order`.deleted_flag='N'";
-        $sqlOrder.=" AND order_log.deleted_flag='N'";
-        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-        }else{
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-        }
-        $sqlOrder.=" order by order_log.log_at";
+
+        $sqlOrder="select `order`.amount,`order`.currency_bn,`order`.execute_date as create_time from erui_order.order `order`";
+        $sqlOrder.=" where buyer_id=$buyer_id and execute_date>='2018-01-01' and execute_date<='$date' and
+        deleted_flag='N'";
+        $sqlOrder.=" order by execute_date";
         $order = $this->query($sqlOrder);
-        //订单已完成
-//        $sqlOrdero="select `order`.amount,`order`.currency_bn,now() as create_time from erui_order.order `order`";
-//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
-//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
-//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
+//        //会员等级有效期内的回款
+//        $sqlOrder="select order_log.amount,`order`.currency_bn,order_log.log_at as create_time from erui_order.order `order`";
+//        $sqlOrder.=" left join erui_order.order_log order_log";
+//        $sqlOrder.=" on order.id=order_log.order_id";
+//        $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
+////        $sqlOrder.=" AND `order`.show_status='GOING'";  //订单经行中
+//        $sqlOrder.=" AND `order`.deleted_flag='N'";
+//        $sqlOrder.=" AND order_log.deleted_flag='N'";
 //        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at_prev','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
 //        }else{
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
+//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
 //        }
-//        $ordero = $this->query($sqlOrdero);
-//        $order=array_merge($orderi,$ordero);
+//        $sqlOrder.=" order by order_log.log_at";
+//        $order = $this->query($sqlOrder);
         //erui_order
-        if(!empty($order)){
-            $orderRes=$this->sumAmount($order);
-            if(!empty($orderRes['time'])){    //高级
-                $time=substr($orderRes['time'],0,10);
-                if($time>=$prev){
-                    $this->autoUpgrade($buyer_id,53,$time);
-                    return 'senior';
-                }
-            }else{
-                $time=substr(reset($order)['create_time'],0,10);
-                $orderRes['time']=$time;    //普通
-            }
-        }else{
-            $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$order); //null
-            return $res;    //senior or general or null
-        }
+//        if(!empty($order)){
+//            $orderRes=$this->sumAmount($order);
+//            if(!empty($orderRes['time'])){    //高级
+//                $time=substr($orderRes['time'],0,10);
+//                if($time>=$prev){
+//                    $this->autoUpgrade($buyer_id,53,$time);
+//                    return 'senior';
+//                }
+//            }else{
+//                $time=substr(reset($order)['create_time'],0,10);
+//                $orderRes['time']=$time;    //普通
+//            }
+//        }else{
+//            $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$order); //null
+//            return $res;    //senior or general or null
+//        }
         //erui_new_order
-        $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$orderRes);
+        $res=$this->autoUpgradeByNewOrder($at,$buyer_id,$buyer_code,$order);
         return $res;    //senior or general
     }
     //实现自动升级

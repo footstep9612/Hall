@@ -70,6 +70,13 @@ class OrderController extends PublicController {
         $ret = $this->checkOrderData($data);
         if ($ret === true) {
             $send = $this->saveOrder($data);
+            //会员升级-start-wnags-订单order_id---------------------wangs
+            if(!empty($data['buyer_id'])){
+                $param['buyer_id']=$data['buyer_id'];
+                $auto=new OrderModel();
+                $auto->autoUpgradeByOrder($param);
+            }
+            //会员升级-end
             $this->jsonReturn($send);
         } else {
             $this->jsonReturn($ret);
@@ -90,6 +97,13 @@ class OrderController extends PublicController {
         $ret = $this->checkOrderData($data, true);
         if ($ret === true) {
             $send = $this->saveOrder($data);
+            //会员升级-start-wnags-订单order_id---------------------wangs
+            if(!empty($data['buyer_id'])){
+                $param['buyer_id']=$data['buyer_id'];
+                $auto=new OrderModel();
+                $auto->autoUpgradeByOrder($param);
+            }
+            //会员升级-end
             $this->jsonReturn($send);
         } else {
             $this->jsonReturn($ret);
@@ -112,11 +126,6 @@ class OrderController extends PublicController {
             $orderModel = new OrderModel();
             $complete_at=date('Y-m-d H:i:s');
             $ret = $orderModel->where(['id' => $id])->setField(['show_status' => 'COMPLETED', 'pay_status' => 'PAY','complete_at'=>$complete_at]);
-            //会员升级-start-wnags-订单order_id
-            $param['order_id']=isset($data['id'])?$data['id']:'';
-            $auto=new OrderModel();
-            $auto->autoUpgradeByOrder($param);
-            //会员升级-end
             $this->jsonReturn(['code' => 1, 'message' => '处理完成']);
         } else {
             $this->jsonReturn(['code' => -101, 'message' => '订单不存在']);
@@ -870,6 +879,11 @@ class OrderController extends PublicController {
             $this->jsonReturn(['code' => -101, 'message' => '订单已出库，删除失败']);
         }else{
             $hasOrder = $order->where($cond)->limit(1)->save(['deleted_flag'=>'Y']);
+            //会员升级-start-wnags-订单order_id---------------------wangs
+            $param['order_id']=$order_id;
+            $auto=new OrderModel();
+            $auto->autoUpgradeByOrder($param);
+            //会员升级-end
             $this->jsonReturn(['code' => 1, 'message' => '删除成功']);
         }
     }
