@@ -51,13 +51,15 @@ class BuyerModel extends PublicModel {
         $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` AND em.deleted_flag='N' ";
         $sql .= $str;
         $where = " WHERE buyer.deleted_flag = 'N'  ";
-        if (!empty($condition['country_bn']) && !empty($condition['country_bns'])) {
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
-        } elseif (!empty($condition['country_bn'])) {
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-        } elseif (!empty($condition['country_bns'])) {
-            $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
+        if($condition['admin']!=1){
+            if (!empty($condition['country_bn']) && !empty($condition['country_bns'])) {
+                $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+                $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
+            } elseif (!empty($condition['country_bn'])) {
+                $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            } elseif (!empty($condition['country_bns'])) {
+                $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
+            }
         }
 
 //        if (!empty($condition['area_bn'])) {

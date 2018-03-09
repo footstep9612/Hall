@@ -16,15 +16,26 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-
+    public function crmUserRole($user_id){
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array('crm市场专员',$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     /*
      * 用户列表
      * */
 
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $admin=$this->crmUserRole($this->user['id']);   //=1市场专员
         $limit = [];
         $where = [];
+        $where['admin'] =$admin;
         if (!empty($data['lang'])) {    //en/zh 王帅-客户等级
             $where['lang'] = $data['lang'];
         }
@@ -170,7 +181,6 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
     /**
      * CRM系统优化客户统计列表
      * wangs
