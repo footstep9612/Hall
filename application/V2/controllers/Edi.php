@@ -24,9 +24,9 @@ class EdiController extends PublicController{
 
     private $params = array();
 
-    private $serverIP = '172.18.20.125';
+    private $serverIP = 'localhost';
 
-    private $serverPort = '8081';
+    private $serverPort = '8121';
 
     private $serverDir = 'ediserver';
 
@@ -38,7 +38,9 @@ class EdiController extends PublicController{
 
     private $mode = 'wsdl';
 
-    private $client;
+    static private $policyNo = 'SCH043954-181800';
+
+    static private $client;
 
     public function init(){
         error_reporting(E_ALL & ~E_NOTICE);
@@ -57,8 +59,76 @@ class EdiController extends PublicController{
         if ($this->mode == 'wsdl') {
             $this->serviceUri .= '?wsdl';
         }
-        $this->client = new SoapClient($this->serviceUri);
+        self::$client = new SoapClient($this->serviceUri);
 
+    }
+    /**
+     * 请求信保审核
+     */
+    public function EdiApplyAction() {
+        $data = $this->getPut();
+        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        //$edi_apply_model = new EdiBuyerApplyModel();
+        $res_buyer = $this->BuyerApply($data['buyer_no']);
+        $res_bank = $this->BankApply($data['buyer_no']);
+        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+        }
+        $credit_model = new BuyerCreditModel();
+        $arr['status'] = 'EDI_APPROVING';
+        $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);;
+        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+    }
+    /**
+     *
+     *买家代码申请
+     * @author klp
+     */
+    public function BuyerApply($buyer_no){
+
+        $buyerModel = new BuyerModel();          //企业信息
+//        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
+        $company_model = new BuyerRegInfoModel();
+        $BuyerCodeApply = $company_model->getInfo($buyer_no);
+        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+        if(!$BuyerCodeApply || !$lang){
+            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+        }
+        $BuyerCodeApply['lang'] = $lang['lang'];
+        $resBuyer = self::EdiBuyerCodeApply($BuyerCodeApply);
+        if($resBuyer['code'] != 1) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        jsonReturn($resBuyer);
+        /* $this->setCode(MSG::MSG_SUCCESS);
+         $this->setMessage('申请成功!');
+         $this->jsonReturn($resBuyer);*/
+    }
+
+    /**
+     *
+     *银行代码申请
+     * @author klp
+     */
+    public function BankApply($buyer_no){
+//        $buyerModel = new BuyerModel();          //银行信息
+//        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+        $bank_model = new BuyerBankInfoModel();
+        $BuyerBankApply = $bank_model->getInfo($buyer_no);
+        if(!$BuyerBankApply){
+            jsonReturn(null, -101 ,'银行信息不存在或已删除!');
+        }
+        $resBank = self::EdiBankCodeApply($BuyerBankApply);
+
+        if($resBank['code'] != 1) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        jsonReturn($resBank);
+        /*  $this->setCode(MSG::MSG_SUCCESS);
+          $this->setMessage('申请成功!');
+          $this->jsonReturn($resBank);*/
     }
 
     static public function getStartDate(){
@@ -111,11 +181,108 @@ class EdiController extends PublicController{
 
     /**
      * 买家代码申请
+     *
+     */
+    static public function EdiBuyerCodeApply($BuyerCodeApply){
+        self::checkParamBuyer($BuyerCodeApply);
+        $result = self::_EdiBuyerCodeApply($BuyerCodeApply);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+
+    static public function checkParamBuyer(&$BuyerCodeApply){
+        $results = array();
+        if(!isset($BuyerCodeApply['lang'])){
+            $results['code'] = -101;
+            $results['message'] = '[lang]不能为空!';
+        }
+        if($BuyerCodeApply['lang'] == 'zh') {
+            if(!isset($BuyerCodeApply['area_no']) || !is_numeric($BuyerCodeApply['area_no'])){
+                $results['code'] = -101;
+                $results['message'] = '[area_no]不能为空或不为整型!';
+            }
+        }
+        if(!isset($BuyerCodeApply['buyer_no'])){
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]不能为空!';
+        }
+        if(!isset($BuyerCodeApply['country_code'])){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能为空!';
+        }
+        if(strlen($BuyerCodeApply['country_code']) > 3){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能超过三位!';
+        }
+        if(!isset($BuyerCodeApply['name'])){
+            $results['code'] = -101;
+            $results['message'] = '[name]不能为空!';
+        }
+        if(!isset($BuyerCodeApply['registered_in'])){
+            $results['code'] = -101;
+            $results['message'] = '[address]不能为空!';
+        }
+        if($results){
+            jsonReturn($results);
+        }
+    }
+
+    static private function _EdiBuyerCodeApply($BuyerCodeApply){
+        $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerCodeApply['buyer_no'];
+        //企业内部买方代码--(必填)
+        $BuyerCodeApplyInfo['clientNo'] = self::$policyNo;
+        //被保险人信保通编号(非必填)
+        $BuyerCodeApplyInfo['policyNo'] = '';
+        //保险单号  --动态配置项-SCH017067-161600
+        $BuyerCodeApplyInfo['countryCode'] = $BuyerCodeApply['country_code'];
+        //买方国家代码--(必填)
+        $BuyerCodeApplyInfo['applyTime'] =  strtotime('now');
+        //申请时间--(必填)
+        if($BuyerCodeApply['lang'] == 'zh') {
+            //-----------国内买家必填项:
+            $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
+            //买方中文名称(必填)  --国内买方中文名称必填
+            $BuyerCodeApplyInfo['areano'] = intval($BuyerCodeApply['area_no']);
+            //区域代码--(必填)    --国内买家 必填
+            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['registered_in'];
+            //买方中文地址--(必填)--国内买家 必填
+        } else {
+            //-----------国外买家必填项:
+            $BuyerCodeApplyInfo['engName'] = $BuyerCodeApply['name'];
+            //买方英文名称(必填) --国外买家英文名称必填
+            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['registered_in'];
+            //买方英文地址(必填) --国外买家 英文地址必填
+        }
+
+        $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
+        try{
+            $response = self::$client->doEdiBuyerCodeApply($data);
+            if (is_object($response)) {
+                $results['code'] = 1;
+            } else {
+                $results['code'] = -101;
+            }
+            return $results;
+        } catch (Exception $e) {
+            self::exception($e,$e->getMessage());
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
+        }
+
+    }
+    /**
+     * 买家代码申请测试
      */
     protected function doEdiBuyerCodeApplyAction(){
-
-//        $BuyerModel = new BuyerModel();
-//        $BuyerInfo = $BuyerModel->getBuyerInfo($this->params);
 
         $BuyerCodeApplyInfo['corpSerialNo'] = '1';       //企业内部买方代码--
         $BuyerCodeApplyInfo['clientNo'] = '1';       //被保险人信保通编号
@@ -161,6 +328,87 @@ class EdiController extends PublicController{
             }
         }catch (Exception $e){
             $this->exception($e);
+        }
+    }
+
+    /**
+     * 银行代码申请
+     */
+    static public function EdiBankCodeApply($BuyerBankApply){
+        self::checkParamBank($BuyerBankApply);
+        $result = self::_EdiBankCodeApply($BuyerBankApply);
+        if($result && $result['code']  == 1){
+            $res['code'] = 1;
+            $res['message'] = '申请成功!';
+        } else{
+            $res['code'] = -101;
+            $res['message'] = '申请失败!';
+        }
+        return $res;
+    }
+
+    static public function checkParamBank(&$BuyerBankApply){
+        $results = array();
+        if(!isset($BuyerBankApply['buyer_no'])){
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]采购商编号不能为空!';
+        }
+        if(!isset($BuyerBankApply['bank_country_code'])){
+            $results['code'] = -101;
+            $results['message'] = '[bank_country_code]银行国家代码不能为空!';
+        }
+        if(strlen($BuyerBankApply['bank_country_code']) > 3){
+            $results['code'] = -101;
+            $results['message'] = '[bank_country_code]不能超过三位!';
+        }
+        if(!isset($BuyerBankApply['bank_name'])){
+            $results['code'] = -101;
+            $results['message'] = '[bank_name]银行名称不能为空!';
+        }
+        if(!isset($BuyerBankApply['bank_address'])){
+            $results['code'] = -101;
+            $results['message'] = '[bank_address]银行地址不能为空!';
+        }
+        if(isset($BuyerBankApply['swift_code'])){
+            $BuyerBankApply['bank_swift'] = $BuyerBankApply['swift_code'];
+        }
+        if($results){
+            jsonReturn($results);
+        }
+    }
+
+    static private function _EdiBankCodeApply($BankCodeApply){
+
+        $BankCodeApplyInfo['corpSerialNo'] = $BankCodeApply['buyer_no'];
+        //企业内部银行代码--(必填)
+        $BankCodeApplyInfo['policyNo'] = self::$policyNo;
+        //保险单号(非必填)
+        $BankCodeApplyInfo['engName'] =  $BankCodeApply['bank_name'];
+        //银行英文名称--(必填)
+        $BankCodeApplyInfo['countryCode'] = $BankCodeApply['bank_country_code'];
+        //银行国家代码--(必填)
+        $BankCodeApplyInfo['address'] = $BankCodeApply['bank_address'];
+        //银行地址(英文)--(必填)
+        $BankCodeApplyInfo['bankswift'] = $BankCodeApply['bank_swift'];
+        //企业填写的开证行swift--(非必填)
+
+        $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
+        try{
+            $response = self::$client->doEdiBankCodeApply($data);
+//           var_dump($response);die;
+            if (is_object($response)) {
+                $results['code'] = 1;
+            } else {
+                $results['code'] = -101;
+            }
+            return $results;
+        } catch (Exception $e) {
+            self::exception($e,$e->getMessage());
+            $results = [
+                'code' => $e->getCode(),
+                'msg'  => $e->getMessage()
+            ];
+            return $results;
         }
     }
 
@@ -491,11 +739,11 @@ class EdiController extends PublicController{
 
     }
 
-    public function exception($e){
+    static public function exception($e){
         LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::ERR);
         LOG::write($e->getMessage, LOG::ERR);
-        $this->setCode($e->getCode);
-        $this->setMessage($e);
-        $this->jsonReturn();
+//        $this->setCode($e->getCode);
+//        $this->setMessage($e);
+//        $this->jsonReturn();
     }
 }

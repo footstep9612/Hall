@@ -30,6 +30,7 @@ class BuyerRegInfoModel extends PublicModel
         'buyer_no',//(40)  '客户编号',
         'country_bn',//(32)  '企业所在国家简称',
         'country_code',// char(3) '国家代码',
+        'area_no',// char(4) '区域代码',
         'name',//(32)  '采购商英文名称',
         'name_zh',//(32)  '采购商中文名称',
         'name_bn',//(32)  '采购商简称',
@@ -74,6 +75,7 @@ class BuyerRegInfoModel extends PublicModel
             return [];
         }
         foreach($data as $key =>$value){
+            $value = trim($value);
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
@@ -106,19 +108,22 @@ class BuyerRegInfoModel extends PublicModel
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'DRAFT';  //草稿,银行信息提交后->状态:待审核
+                $dataArr['in_status'] = 'ERUI_APPROVING';
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                $dataArr['sign'] = 1;
+                $dataArr['name'] = $dataInfo['name'];
+                $dataArr['address'] = $dataInfo['registered_in'];
+                $dataArr['sign'] = 1;  //企业
                 $credit_log_model->create_data($dataArr);
-                $dataArr['sign'] = 2;
-                $credit_log_model->create_data($dataArr);
+//                $dataArr['sign'] = 2; //银行
+//                $credit_log_model->create_data($dataArr);
                 return $result;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】create_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
     }
@@ -133,7 +138,19 @@ class BuyerRegInfoModel extends PublicModel
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
-            $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+            $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //添加日志
+            $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
+            if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
+                $credit_log_model = new BuyerCreditLogModel();
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['name'] = $dataInfo['name'];
+                $dataArr['address'] = $dataInfo['registered_in'];
+                $dataArr['sign'] = 1;  //企业
+                $credit_log_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            }
             if ($result !== false) {
                 return $result;
             }
@@ -141,6 +158,7 @@ class BuyerRegInfoModel extends PublicModel
         }catch (Exception $e){
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】update_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
     }
