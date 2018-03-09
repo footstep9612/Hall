@@ -210,6 +210,9 @@ class InquiryController extends PublicController {
         $employeeModel = new EmployeeModel();
         $buyerModel = new BuyerModel();
         $countryUserModel = new CountryUserModel();
+        $org = new OrgModel();
+        $marketAreaModel = new MarketAreaModel();
+        $transModeModel = new TransModeModel();
 
         // 市场经办人
         if (!empty($condition['agent_name'])) {
@@ -240,6 +243,13 @@ class InquiryController extends PublicController {
             $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
             $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
             $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
+            $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
+            $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
+            $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
+            $inquiry['trans_mode_bn'] = $transMode['bn'];
+            $inquiry['trans_mode_name'] = $transMode['trans_mode'];
         }
 
         if ($inquiryList) {
@@ -719,7 +729,7 @@ class InquiryController extends PublicController {
         }
         //事业部
         if (!empty($results['data']['org_id'])) {
-            $results['data']['org_name'] = $org->where(['id' => $results['data']['org_id']])->getField('name');
+            $results['data']['org_name'] = $org->where(['id' => $results['data']['org_id'], 'deleted_flag' => 'N'])->getField('name');
         }
         //事业部审核人
         if (!empty($results['data']['check_org_id'])) {

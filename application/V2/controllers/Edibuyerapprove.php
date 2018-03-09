@@ -5,7 +5,7 @@
  * Date: 2017/9/21
  * Time: 11:35
  */
-class EdiBuyerApproveController extends PublicController {
+class EditestController extends PublicController {
 
     public function init() {
         parent::init();
