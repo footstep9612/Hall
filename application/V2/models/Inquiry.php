@@ -146,6 +146,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
         }
+        
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
 
         if (!empty($condition['buyer_inquiry_no'])) {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
@@ -740,12 +744,15 @@ class InquiryModel extends PublicModel {
         $orgMemberModel = new OrgMemberModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
+        $employeeModel = new EmployeeModel();
         
         $orgId = $this->getDeptOrgId($groupId, $orgNode);
 	        
-        $roleId = $roleModel->where(['role_no' => $roleNo])->getField('id', true);
+        $roleId = $roleModel->where(['role_no' => $roleNo, 'deleted_flag' => 'N'])->getField('id', true);
         
         $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ? : ['-1']]])->getField('employee_id', true);
+        
+        $employeeId = $employeeModel->where(['id' => ['in', $employeeId ? : ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
         
         return $orgMemberModel->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->getField('employee_id', true);
     }
@@ -764,7 +771,7 @@ class InquiryModel extends PublicModel {
     
         $roleId = $roleUserModel->where(['employee_id' => $userId ? : '-1'])->getField('role_id', true);
     
-        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']]])->getField('role_no', true);
+        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']], 'deleted_flag' => 'N'])->getField('role_no', true);
     
         return $this->getUserRoleByNo($roleNoArr);
     }

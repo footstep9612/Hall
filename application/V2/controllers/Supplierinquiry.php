@@ -94,6 +94,8 @@ class SupplierinquiryController extends PublicController {
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
+        // 导出一个月以内的数据
+        $condition['created_at_start'] = $this->_getLastMonthDate();
         $data = $supplier_inquiry_model->Inquiryexport($condition);
 
         if ($data) {
@@ -120,6 +122,8 @@ class SupplierinquiryController extends PublicController {
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
+        // 导出一个月以内的数据
+        $condition['created_at_start'] = $this->_getLastMonthDate();
         $data = $supplier_inquiry_model->InquiryToatolexport($condition);
 
         if ($data) {
@@ -133,6 +137,17 @@ class SupplierinquiryController extends PublicController {
             $this->setMessage('系统错误!');
             $this->jsonReturn();
         }
+    }
+    
+    /**
+     * @desc 获取一个月之前的日期
+     * 
+     * @return string
+     * @author liujf
+     * @time 2018-03-07
+     */
+    private function _getLastMonthDate() {
+        return date('Y-m-d', strtotime(date('Y-m-d')) - 30 * 24 * 3600);
     }
 
 }

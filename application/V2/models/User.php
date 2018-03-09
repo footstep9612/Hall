@@ -263,12 +263,15 @@ class UserModel extends PublicModel {
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
+                $data['deleted_flag'] = 'Y';
                 break;
             case self::STATUS_DISABLED:
                 $data['status'] = $create['status'];
+                $data['deleted_flag'] = 'Y';
                 break;
             case self::STATUS_NORMAL:
                 $data['status'] = $create['status'];
+                $data['deleted_flag'] = 'N';
                 break;
         }
         if (!$where) {

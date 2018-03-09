@@ -267,6 +267,7 @@ class ReportController extends PublicController {
                 } else {
                     $inquiry['quote_time'] = $nowTime - $lastBizDispatchingTime - $clarifyTotalTime;
                 }
+                $inquiry['quote_time'] = $inquiry['quote_time'] > 0 ? $inquiry['quote_time'] : 0;
                 // 报价状态显示成中文
                 $inquiry['quote_status'] = $quoteStatus[$inquiry['quote_status']];
                 // 询单驳回次数
