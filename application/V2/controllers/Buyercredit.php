@@ -215,6 +215,7 @@ class BuyercreditController extends PublicController {
         $bank_model = new BuyerBankInfoModel();
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
+
             jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
