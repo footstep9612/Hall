@@ -183,10 +183,10 @@ class BuyerCreditModel extends PublicModel
         /*if (isset($condition['tel']) && $condition['tel']) {
             $where['tel'] = ['REGEXP','([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$'];
         }*/
-        if (!empty($condition['credit_apply_date']) && !empty($condition['credit_apply_date'])) {   //时间
+        if (!empty($condition['credit_date_start']) && !empty($condition['credit_date_end'])) {   //时间
             $where['credit_apply_date'] = array(
-                array('egt', date('Y-m-d 0:0:0',strtotime($condition['credit_apply_date']))),
-                array('elt', date('Y-m-d 23:59:59',strtotime($condition['credit_apply_date'])))
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['credit_date_start']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['credit_date_end'])))
             );
         }
         return $where;
