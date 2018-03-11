@@ -232,14 +232,18 @@ class BuyerCreditModel extends PublicModel
         } else{
             $data['source'] = 'BOSS';
         }
-        $agent_model = new BuyerAgentModel();
-        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
-        if($agent_id){
-            $dataInfo['agent_id'] = $agent_id['agent_id'];
-            $dataInfo['status'] = 'ERUI_APPROVING';
-        }else{
-            $dataInfo['status'] = 'DRAFT';
-        }
+//        $buyer_model = new BuyerModel();
+//        $agent_model = new BuyerAgentModel();
+//        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+//        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['buyer_id']])->find();
+//        if($agent_id){
+//            $dataInfo['agent_id'] = $agent_id['agent_id'];
+//            $dataInfo['status'] = 'ERUI_APPROVING';
+//        }else{
+//            $dataInfo['status'] = 'DRAFT';
+//        }
+        $dataInfo['agent_id'] = $data['agent_by'];
+        $dataInfo['status'] = 'ERUI_APPROVING';
         $dataInfo['credit_apply_date'] = date('Y-m-d',time());
         $result = $this->add($this->create($dataInfo));
         if($result){
