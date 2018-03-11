@@ -94,6 +94,9 @@ class BuyerRegInfoModel extends PublicModel
         try{
             $dataInfo['remarks'] = $data['remarks'];
             $dataInfo = $this->_getData($data);
+            $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
+            $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
+            $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
