@@ -91,8 +91,9 @@ class BuyerRegInfoModel extends PublicModel
     {
         $this->startTrans();
         try{
-            $dataInfo['remarks'] = $data['remarks'];
+
             $dataInfo = $this->_getData($data);
+            $dataInfo['remarks'] = $data['remarks'];
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['buyer_id'];

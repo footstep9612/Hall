@@ -92,11 +92,12 @@ class BuyerRegInfoModel extends PublicModel
     public function create_data($data)
     {
         try{
-            $dataInfo['remarks'] = $data['remarks'];
+
             $dataInfo = $this->_getData($data);
-            $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
-            $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
-            $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
+            $dataInfo['remarks'] = $data['remarks'];
+            $dataInfo['stock_exchange'] = $data['stock_exchange']?json_encode($data['stock_exchange']):null;
+            $dataInfo['biz_scope'] = $data['biz_scope']?json_encode($data['biz_scope']):null;
+            $dataInfo['biz_nature'] = $data['biz_nature']?json_encode($data['biz_nature']):null;
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
@@ -138,6 +139,9 @@ class BuyerRegInfoModel extends PublicModel
     {
         try{
             $dataInfo = $this->_getData($data);
+            $dataInfo['stock_exchange'] = $data['stock_exchange']?json_encode($data['stock_exchange']):null;
+            $dataInfo['biz_scope'] = $data['biz_scope']?json_encode($data['biz_scope']):null;
+            $dataInfo['biz_nature'] = $data['biz_nature']?json_encode($data['biz_nature']):null;
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());

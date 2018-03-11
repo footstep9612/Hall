@@ -84,8 +84,9 @@ class BuyerBankInfoModel extends PublicModel
      */
     public function create_data($data) {
 
-        $dataInfo['remarks'] = $data['bank_remarks'];
+
         $dataInfo = $this->_getData($data);
+        $dataInfo['remarks'] = $data['bank_remarks'];
         $dataInfo['deleted_flag'] = 'N';
         $dataInfo['status'] = 'VALID';
         $dataInfo['created_by'] = $data['buyer_id'];

@@ -194,9 +194,9 @@ class BuyercreditController extends PublicController {
         $company_model = new BuyerRegInfoModel();
         $comInfo = $company_model->getInfo($data['buyer_no']);
         if($comInfo) {
-            $comInfo['biz_nature'] = json_decode($comInfo['biz_nature'],true);
-            $comInfo['biz_scope'] = json_decode($comInfo['biz_scope'],true);
-            $comInfo['stock_exchange'] = json_decode($comInfo['stock_exchange'],true);
+            $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
+            $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
+            $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
             jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
