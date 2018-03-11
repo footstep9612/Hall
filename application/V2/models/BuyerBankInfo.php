@@ -58,6 +58,7 @@ class BuyerBankInfoModel extends PublicModel
         'intl_ranking',// (30)    '国际排名',
         'cn_ranking',//(30)    '国内排名',
         'stockholder',//(30)    '股东',
+        'remarks',//(30)    '股东',
     ];
 
     /**
@@ -88,7 +89,6 @@ class BuyerBankInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
-            $dataInfo['remarks'] = $data['remarks'];
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];

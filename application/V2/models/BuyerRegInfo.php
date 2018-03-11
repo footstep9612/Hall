@@ -62,6 +62,7 @@ class BuyerRegInfoModel extends PublicModel
         'stock_code',//(30)  '股票代码',
         'equitiy',//decimal(20,4)  '资产净值',
         'turnover',//decimal(20,4)  '年销售额',
+        'remarks',//
 
     ];
 
@@ -94,7 +95,6 @@ class BuyerRegInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
-            $dataInfo['remarks'] = $data['remarks'];
             if(isset($data['stock_exchange'])){
                 $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
             }
