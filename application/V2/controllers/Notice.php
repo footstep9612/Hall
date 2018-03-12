@@ -28,7 +28,7 @@ class NoticeController extends PublicController
 
     public function createAction()
     {
-        $data = $this->validateRequestParams('title,description,content');
+        $data = $this->validateRequestParams('title,content');
 
         $data['created_by'] = $this->user['id'];
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -51,7 +51,7 @@ class NoticeController extends PublicController
 
     public function updateAction()
     {
-        $data = $this->validateRequestParams('title,description,content');
+        $data = $this->validateRequestParams('title,content');
 
         $data['updated_by'] = $this->user['id'];
         $data['updated_at'] = date('Y-m-d H:i:s');
