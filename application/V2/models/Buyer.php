@@ -663,7 +663,7 @@ EOF;
             $data['close_info'] = $create['close_info'];
         }
         if (!empty($data['status'])) {     //关闭客户信息备注
-            $arr['status'] = $data['status'];
+            $data['status'] = $create['status'];
         }
 //        if (isset($create['status'])) {
 //            switch ($create['status']) {
