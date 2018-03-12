@@ -33,7 +33,7 @@ class BuyerBankInfoModel extends PublicModel
         'bank_name_zh',// '开户银行中文名称',
         'bank_account',// '企业银行账号',
         'bank_country_code',// '银行国家代码',
-        'bank_country_bn',// '银行国家简称',
+        'bank_country_code',// '银行国家简称',
         'bank_address',// '银行地址',
         'bank_contact',//   '银行联系人',
         'bank_zipcode',//  '邮编',
@@ -58,6 +58,7 @@ class BuyerBankInfoModel extends PublicModel
         'intl_ranking',// (30)    '国际排名',
         'cn_ranking',//(30)    '国内排名',
         'stockholder',//(30)    '股东',
+        'remarks',//(30)    '股东',
     ];
 
     /**
@@ -70,6 +71,7 @@ class BuyerBankInfoModel extends PublicModel
             return [];
         }
         foreach($data as $key =>$value){
+            $value = trim($value);
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
@@ -85,7 +87,7 @@ class BuyerBankInfoModel extends PublicModel
      */
     public function create_data($data) {
         try{
-            $dataInfo['remarks'] = $data['bank_remarks'];
+
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
@@ -93,22 +95,30 @@ class BuyerBankInfoModel extends PublicModel
             $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
             $result = $this->add($this->create($dataInfo));
             if($result){
-                //添加审核信息
+                //添加审核信息,状态修改
                 $credit_model = new BuyerCreditModel();
                 $credit_arr['status'] = 'ERUI_APPROVING';
                 $credit_arr['buyer_no'] = $data['buyer_no'];
                 $credit_model->update_data($credit_arr);
-                //添加申请日志,状态修改
+                //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
                 $dataArr['in_status'] = 'ERUI_APPROVING';
-                $credit_log_model->update_data($dataArr);
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['bank_name'] = $dataInfo['bank_name'];
+                $dataArr['bank_address'] = $dataInfo['bank_address'];
+                $dataArr['sign'] = 2; //银行
+                $credit_log_model->create_data($dataArr);
                 return true;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerBankModel】create_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
+            //jsonReturn($e->getMessage());
             return false;
         }
     }
@@ -122,7 +132,19 @@ class BuyerBankInfoModel extends PublicModel
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
-            $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+            $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //添加日志
+            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
+            if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])){
+                $credit_log_model = new BuyerCreditLogModel();
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['bank_name'] = $dataInfo['bank_name'];
+                $dataArr['bank_address'] = $dataInfo['bank_address'];
+                $dataArr['sign'] = 1;  //企业
+                $credit_log_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            }
             if ($result !== false) {
                 return $result;
             }
@@ -130,6 +152,7 @@ class BuyerBankInfoModel extends PublicModel
         }catch (Exception $e){
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerBankModel】update_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
     }

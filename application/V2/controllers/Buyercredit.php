@@ -16,23 +16,6 @@ class BuyercreditController extends PublicController {
      * 获取列表信息--授信管理
      */
     public function getCreditListAction() {
-        $data = [
-          "id"=> "2",
-          "name"=> "test1",
-          "buyer_no"=> "C20171208000019",
-          "bank_swift"=> null,
-          "sinosure_no"=> null,
-          "credit_apply_date"=> "2018-03-01 00:00:00",
-          "credit_valid_date"=> null,
-          "source"=> "PORTAL",
-          "status"=> "DRAFT",
-          "agent_id"=> "37959",
-          "country_code"=> "ALB",
-          "country"=> "Albania",
-          "crm_code"=> null
-        ];
-        jsonReturn($data);
-
         $data = $this->getPut();
         $limit = [];
         if(!empty($data['pageSize'])){
@@ -65,20 +48,9 @@ class BuyercreditController extends PublicController {
      * 获取列表信息--代码申请管理
      */
     public function getListAction() {
-        $data = [
-              "id"=> "2",
-              "agent_id"=> "37959",
-              "name"=> "test",
-              "buyer_no"=> "C20171208000019",
-              "sinosure_no"=> null,
-              "credit_apply_date"=> "2018-03-01 00:00:00",
-              "status"=> "DRAFT, 待提交-DRAFT,易瑞审核中-ERUI_APPROVING,易瑞审核通过-ERUI_APPROVED,信保审核中-EDI_APPROVING,信保审核通过-EDI_APPROVED,易瑞驳回-ERUI_REJECTED,信保驳回-EDI_REJECTED,审核过期-INVALID'"
-        ];
-        jsonReturn($data);
-
         $data = $this->getPut();
         $model = new BuyerCreditModel();
-        $data['agent_id'] = UID;
+        //$data['agent_id'] = UID;   //待确定查看权限
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
@@ -105,6 +77,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
+            $this->_setAgentName($res);
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -122,6 +95,11 @@ class BuyercreditController extends PublicController {
     public function editCompanyAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? $data['lang'] : 'en';
+        if($lang == 'zh') {
+            if (empty($data['area_no'])) {
+                jsonReturn(null, -110, '区域代码缺少!');
+            }
+        }
         if (empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -142,16 +120,23 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '不符合申请条件!');
             jsonReturn(null, -110, '企业所在国家简称代码');
         }
-        $buyerModel = new BuyerModel();
         $company_model = new BuyerRegInfoModel();
-
-        $data['agent_by'] = UID;
-        $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
-        if($check){
-            $res = $company_model->update_data($data);
-        } else {
+        if($data['sign'] == 'ADD') {
+            $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
+            if($check) {
+                jsonReturn(null, -110, '该用户已申请!');
+            }
             $res = $company_model->create_data($data);
+        } else {
+            $data['agent_by'] = UID;
+            $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
+            if($check){
+                $res = $company_model->update_data($data);
+            } else {
+                $res = $company_model->create_data($data);
+            }
         }
+
         if($res) {
             jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
@@ -165,7 +150,7 @@ class BuyercreditController extends PublicController {
     public function editBankAction(){
         $bank_data = json_decode(file_get_contents("php://input"), true);
         $lang = $bank_data['lang'] ? $bank_data['lang'] : 'en';
-        if (empty($data['buyer_no'])) {
+        if (empty($bank_data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         if (empty($bank_data['bank_country_code'])) {
@@ -203,11 +188,15 @@ class BuyercreditController extends PublicController {
     public function getCompanyInfoAction(){
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        $buyerModel = new BuyerModel();
-        $buyer_no = $buyerModel->field('buyer_no')->where(['id' => UID, 'deleted_flag' => 'N'])->find();
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
         $company_model = new BuyerRegInfoModel();
-        $comInfo = $company_model->getInfo($buyer_no);
+        $comInfo = $company_model->getInfo($data['buyer_no']);
         if($comInfo) {
+            $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
+            $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
+            $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
             jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
@@ -220,11 +209,13 @@ class BuyercreditController extends PublicController {
     public function getBankInfoAction(){
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
-        $buyerModel = new BuyerModel();
-        $buyer_no = $buyerModel->field('buyer_no')->where(['id' => UID, 'deleted_flag' => 'N'])->find();
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
         $bank_model = new BuyerBankInfoModel();
-        $bankInfo = $bank_model->getInfo($buyer_no);
+        $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
+
             jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
@@ -239,9 +230,7 @@ class BuyercreditController extends PublicController {
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
-            jsonReturn(null, -110, '客户编号缺失!');
-        }
+
 
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
@@ -276,7 +265,11 @@ class BuyercreditController extends PublicController {
             }
 
         }
-
+        if($res) {
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+        }
     }
 
     private function _checkStatus($status){
@@ -300,16 +293,45 @@ class BuyercreditController extends PublicController {
      */
     public function grantQuotaAction() {
         $data = $this->getPut();
+        $lang = empty($data['lang']) ? 'en' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $credit_model = new BuyerCreditModel();
         $result = $credit_model->grantInfo($data);
         if($result) {
+            //发送邮件
+            $config_obj = Yaf_Registry::get("config");
+            $config_email = $config_obj->email->toArray();
+            $email = $this->_getBuyerEmail($data['buyer_no']);
+            $this->orderEmail($email['official_email'], '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
         }
+    }
+
+    //分配额度发送邮件
+    function orderEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
+        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arrEmail);
+        $data = [
+            "title"        => $title,
+            "content"      => $body,
+            "groupSending" => 0,
+            "useType"      => "Credit"
+        ];
+        if(is_array($email)) {
+            $arr = implode(',',$email);
+            $data["to"] = "[$arr]";
+        }elseif(is_string($email)){
+            $data["to"] = "[$email]";
+        }
+        PostData($emailUrl, $data, true);
+    }
+
+    private function _getBuyerEmail($buyer_no){
+        $buyerModel = new BuyerModel();
+        return $buyerModel->field('official_email')->where(['buyer_no' => $buyer_no, 'deleted_flag' => 'N'])->find();
     }
 
     /**
@@ -339,37 +361,149 @@ class BuyercreditController extends PublicController {
      * 获取授信明细
      */
     public function getCreditInfoAction(){
-        $data = [
-            "id"=> "1",
-            "agent_id"=> "37959",
-            "name"=> "name",
-            "buyer_no"=> "C20171208000019",
-            "bank_swift"=> null,
-            "sinosure_no"=> null,
-            "nolc_granted"=> null,
-            "nolc_deadline"=> null,
-            "lc_granted"=> null,
-            "lc_deadline"=> null,
-            "deadline_cur_unit"=> "day",
-            "credit_cur_bn"=> null,
-            "credit_apply_date"=> "2018-03-01 00:00:00",
-            "credit_valid_date"=> null,
-            "source"=> "PORTAL",
-            "status"=> "DRAFT"
+        /*$data = [
+            0=>[
+                "id"=> "1",
+                "agent_id"=> "37959",
+                "name"=> "name",
+                "buyer_no"=> "C20171208000019",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "nolc_granted"=> null,
+                "nolc_deadline"=> null,
+                "lc_granted"=> null,
+                "lc_deadline"=> null,
+                "deadline_cur_unit"=> "day",
+                "credit_cur_bn"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT"
+            ],
+            1=>[
+                "id"=> "2",
+                "agent_id"=> "37959",
+                "name"=> "name",
+                "buyer_no"=> "C20171208000020",
+                "bank_swift"=> null,
+                "sinosure_no"=> null,
+                "nolc_granted"=> null,
+                "nolc_deadline"=> null,
+                "lc_granted"=> null,
+                "lc_deadline"=> null,
+                "deadline_cur_unit"=> "day",
+                "credit_cur_bn"=> null,
+                "credit_apply_date"=> "2018-03-01 00:00:00",
+                "credit_valid_date"=> null,
+                "source"=> "PORTAL",
+                "status"=> "DRAFT"
+            ]
         ];
-        jsonReturn($data);
+        jsonReturn($data);*/
 
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'en';
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-        $bank_model = new BuyerCreditModel();
-        $bankInfo = $bank_model->getInfo($data['buyer_no']);
-        if($bankInfo) {
-            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        $credit_model = new BuyerCreditModel();
+        $creditInfo = $credit_model->getInfo($data['buyer_no']);
+        if($creditInfo) {
+            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+        }
+    }
+
+    /**
+     * 请求信保审核
+     */
+    public function EdiApplyAction() {
+        $data = $this->getPut();
+        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        //$edi_apply_model = new EdiBuyerApplyModel();
+        $res_buyer = $this->BuyerApply($data['buyer_no']);
+        $res_bank = $this->BankApply($data['buyer_no']);
+        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+        }
+        $credit_model = new BuyerCreditModel();
+        $arr['status'] = 'EDI_APPROVING';
+        $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);;
+        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+    }
+
+    /**
+     *
+     *买家代码申请
+     * @author klp
+     */
+    public function BuyerApply($buyer_no){
+
+        $buyerModel = new BuyerModel();          //企业信息
+//        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
+        $company_model = new BuyerRegInfoModel();
+        $BuyerCodeApply = $company_model->getInfo($buyer_no);
+        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+        if(!$BuyerCodeApply || !$lang){
+            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+        }
+        $BuyerCodeApply['lang'] = $lang['lang'];
+        //$SinoSure = new Edi();
+        $resBuyer = Edi::EdiBuyerCodeApply($BuyerCodeApply);
+        if($resBuyer['code'] != 1) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        jsonReturn($resBuyer);
+        /* $this->setCode(MSG::MSG_SUCCESS);
+         $this->setMessage('申请成功!');
+         $this->jsonReturn($resBuyer);*/
+    }
+
+    /**
+     *
+     *银行代码申请
+     * @author klp
+     */
+    public function BankApply($buyer_no){
+//        $buyerModel = new BuyerModel();          //银行信息
+//        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+        $bank_model = new BuyerBankInfoModel();
+        $BuyerBankApply = $bank_model->getInfo($buyer_no);
+        if(!$BuyerBankApply){
+            jsonReturn(null, -101 ,'银行信息不存在或已删除!');
+        }
+        $SinoSure = new Edi();
+        $resBank = $SinoSure->EdiBankCodeApply($BuyerBankApply);
+
+        if($resBank['code'] != 1) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+        jsonReturn($resBank);
+        /*  $this->setCode(MSG::MSG_SUCCESS);
+          $this->setMessage('申请成功!');
+          $this->jsonReturn($resBank);*/
+    }
+
+    /* 代办人信息
+     * @desc   企业/银行
+     */
+    private function _setAgentName(&$list) {
+        foreach ($list as $log) {
+            $agentids[] = $log['agent_by'];
+        }
+
+        $agent_model = new EmployeeModel();
+        $agent_contact = $agent_model->getUserNamesByUserids($agentids);
+        foreach ($list as $key => $val) {
+            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
+                $val['agent_name'] = $agent_contact[$val['id']];
+            } else {
+                $val['agent_name'] = '';
+            }
+            $list[$key] = $val;
         }
     }
 }

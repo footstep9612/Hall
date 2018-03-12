@@ -45,6 +45,7 @@ class BuyerRegInfoModel extends PublicModel
         'CEO',//(30)  'CEO',
         'CFO',//(30)  'CFO',
         'reg_date',//(10)  '注册时间',
+        'establish_data',//(10)  '成立时间',
         'expiry_date',//(10)  '注册有效期',
         'reg_address',//  '注册地址',
         'registered_no',//(200)  '注册登记号',
@@ -57,6 +58,7 @@ class BuyerRegInfoModel extends PublicModel
         'gov_org',//(30)  '政府机构:1-是,2-否',
         'listed_company',//(30)  '上市企业:1-是,2-否',
         'stock_exchange',//(30)  '证券交易所',
+        'stock_code',//(30)  '股票代码',
         'equitiy',//decimal(20,4)  '资产净值',
         'turnover',//decimal(20,4)  '年销售额',
 
@@ -89,8 +91,9 @@ class BuyerRegInfoModel extends PublicModel
     {
         $this->startTrans();
         try{
-            $dataInfo['remarks'] = $data['remarks'];
+
             $dataInfo = $this->_getData($data);
+            $dataInfo['remarks'] = $data['remarks'];
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['buyer_id'];

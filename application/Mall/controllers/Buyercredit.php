@@ -83,6 +83,9 @@ class BuyercreditController extends PublicController {
         $company_model = new BuyerRegInfoModel();
         $comInfo = $company_model->getInfo($buyer_no['buyer_no']);
         if($comInfo) {
+            $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
+            $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
+            $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
             jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
@@ -121,6 +124,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
+            $this->_setAgentName($res);
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -184,4 +188,23 @@ class BuyercreditController extends PublicController {
         return $country_model->field('code')->where(['bn' => $country_bn, 'deleted_flag' => 'N'])->find();
     }
 
+    /* 代办人信息
+     * @desc   企业/银行
+     */
+    private function _setAgentName(&$list) {
+        foreach ($list as $log) {
+            $agentids[] = $log['agent_by'];
+        }
+
+        $agent_model = new EmployeeModel();
+        $agent_contact = $agent_model->getUserNamesByUserids($agentids);
+        foreach ($list as $key => $val) {
+            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
+                $val['agent_name'] = $agent_contact[$val['id']];
+            } else {
+                $val['agent_name'] = '';
+            }
+            $list[$key] = $val;
+        }
+    }
 }
