@@ -152,25 +152,29 @@ class BuyerModel extends PublicModel {
         //$sql_count .= ' Group By `erui_buyer`.`buyer`.`id`';
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
-        if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
+//        if ($condition['num']) {
+//            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
 //            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
-        }
+//        }
+        $sql .= ' LIMIT 10';
         //$count = $this->query($sql_count);
         $lang=isset($condition['lang'])?$condition['lang']:'zh';
         $info = $this->query($sql);
         foreach($info as $k => $v){
-            if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){
+            if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){ //客户等级
                 $level = new BuyerLevelModel();
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
-            if(!empty($v['percent'])){
+            if(!empty($v['percent'])){  //信息完整度
                 $info[$k]['percent']=$v['percent'].'%';
             }else{
                 $info[$k]['percent']='--';
             }
+            if(!empty($v['country_bn'])){ //国家
+                $country = new CountryModel();
+                $info[$k]['country_bn'] = $country->getCountryByBn($v['country_bn'],$lang);
+            }
         }
-
 //        $res['data'] = $this->query($sql);
         $res['data'] = $info;
         return $res;
