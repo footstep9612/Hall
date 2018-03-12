@@ -216,13 +216,13 @@ class InquiryController extends PublicController {
         $transModeModel = new TransModeModel();
 
         // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        if ($condition['agent_name'] != '') {
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
         }
         
         // 报价人
-        if (!empty($condition['quote_name'])) {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        if ($condition['quote_name'] != '') {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
         }
 
         // 当前用户的所有角色编号
@@ -233,7 +233,7 @@ class InquiryController extends PublicController {
 
         $condition['user_id'] = $this->user['id'];
         
-        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]);
+        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
 
         $inquiryList = $inquiryModel->getList_($condition);
 
@@ -284,13 +284,13 @@ class InquiryController extends PublicController {
         $countryUserModel = new CountryUserModel();
         
         // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        if ($condition['agent_name'] != '') {
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
         }
         
         // 报价人
-        if (!empty($condition['quote_name'])) {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        if ($condition['quote_name'] != '') {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
         }
 
         // 是否显示列表
@@ -311,7 +311,7 @@ class InquiryController extends PublicController {
             
             if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
                 $isShow = true;
-                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : ['-1'];
+                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
                 break;
             }
         }

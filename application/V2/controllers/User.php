@@ -556,7 +556,7 @@ class UserController extends PublicController {
                 $group_user_arr['group_ids'] = $data['group_ids'];
                 $model_group_user->addGroup($group_user_arr);
             }
-            if ($data['country_bns']) {
+            if (isset($data['country_bns'])) {
                 $model_country_user = new CountryUserModel();
                 $country_user_arr['user_id'] = $where['id'];
                 $country_user_arr['country_bns'] = $data['country_bns'];
@@ -653,17 +653,25 @@ class UserController extends PublicController {
     public function countryNameAction()
     {
 
-        $condition = $this->validateRequestParams('country_bns');
+        $condition = $this->validateRequestParams();
 
-        $countryNames = [];
-        foreach (explode(',',$condition['country_bns']) as $country_bn){
-            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        if (!empty($condition['country_bns'])) {
+            $countryNames = [];
+            foreach (explode(',',$condition['country_bns']) as $country_bn){
+                $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+            }
+
+            $this->jsonReturn([
+                'code'    => 1,
+                'message' => '成功',
+                'data'    => $countryNames
+            ]);
         }
 
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功',
-            'data'    => $countryNames
+            'data'    => ''
         ]);
 
     }

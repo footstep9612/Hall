@@ -26,11 +26,12 @@ class CountryUserModel extends PublicModel {
             $this->where(['employee_id' => $data['user_id']])->delete();
             if (!empty($data['country_bns'])) {
                 $country_arr = explode(",", $data['country_bns']);
-            }
-            for ($i = 0; $i < count($country_arr); $i++) {
-                $arr['country_bn'] = $country_arr[$i];
-                $arr['employee_id'] = $data['user_id'];
-                $this->create_data($arr);
+
+                for ($i = 0; $i < count($country_arr); $i++) {
+                    $arr['country_bn'] = $country_arr[$i];
+                    $arr['employee_id'] = $data['user_id'];
+                    $this->create_data($arr);
+                }
             }
         }
         return true ;

@@ -15,20 +15,20 @@ class NoticeController extends PublicController
     public function listAction()
     {
         $request = $this->validateRequestParams();
-
         $data = $this->notice->all($request);
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
-            'total' => count($data),
+            'total' => $this->notice->counter($request),
+            'currentPage' => !empty($request['currentPage']) ? $request['currentPage'] : 1,
             'data' => $this->setUserName($data)
         ]);
     }
 
     public function createAction()
     {
-        $data = $this->validateRequestParams('title,description,content');
+        $data = $this->validateRequestParams('title,content');
 
         $data['created_by'] = $this->user['id'];
         $data['created_at'] = date('Y-m-d H:i:s');
@@ -51,7 +51,7 @@ class NoticeController extends PublicController
 
     public function updateAction()
     {
-        $data = $this->validateRequestParams('title,description,content');
+        $data = $this->validateRequestParams('title,content');
 
         $data['updated_by'] = $this->user['id'];
         $data['updated_at'] = date('Y-m-d H:i:s');
