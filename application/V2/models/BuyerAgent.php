@@ -479,19 +479,20 @@ class BuyerAgentModel extends PublicModel {
             $res=$this->addAll($agentArr);
             return $res;
         }
-        $exsitArr=array();
-        foreach($agent as $k => $v){
-            $exsitArr[]=$v['agent_id'];
-        }
-        $delArr=array_diff($exsitArr,$agent_arr);
-        $addArr=array_merge(array_diff($agent_arr,$exsitArr));
-        if(!empty($delArr)){
-            $delStr=implode(',',$delArr);
-            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->save(array('deleted_flag'=>'Y'));
-        }
-        if(!empty($addArr)){    //添加
+//        $exsitArr=array();
+//        foreach($agent as $k => $v){
+//            $exsitArr[]=$v['agent_id'];
+//        }
+//        $delArr=array_diff($exsitArr,$agent_arr);
+//        $addArr=array_merge(array_diff($agent_arr,$exsitArr));
+//        if(!empty($delArr)){
+//            $delStr=implode(',',$delArr);
+//            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->save(array('deleted_flag'=>'Y'));
+//        }
+        $this->where("buyer_id=$buyer_id")->save(array('deleted_flag'=>'Y'));
+//        if(!empty($addArr)){    //添加
             $agentArr=array();
-            foreach($addArr as $k => $v){
+            foreach($agent_arr as $k => $v){
                 $agentArr[$k]['buyer_id']=$buyer_id;
                 $agentArr[$k]['agent_id']=$v;
                 $agentArr[$k]['created_by']=$data['created_by'];
@@ -499,8 +500,8 @@ class BuyerAgentModel extends PublicModel {
             }
             $res=$this->addAll($agentArr);
             return $res;
-        }
-        return true;
+//        }
+//        return true;
 //        $buyer_arr = explode(',', $data['id']);
 //        $agent_arr = explode(',', $data['user_ids']);
 //        $array=array();
