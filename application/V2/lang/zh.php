@@ -17,7 +17,7 @@ return array(
     'INQUIRY_LOGI_QUOTING' => '物流报价',
     'INQUIRY_LOGI_APPROVING' => '物流审核',
     'INQUIRY_BIZ_APPROVING' => '事业部核算',
-    'INQUIRY_MARKET_APPROVING' => '市场主管审核',
+    'INQUIRY_MARKET_APPROVING' => '事业部审核',
     'INQUIRY_MARKET_CONFIRMING' => '市场确认',
     'INQUIRY_QUOTE_SENT' => '报价单已发出',
     'INQUIRY_INQUIRY_CLOSED' => '报价关闭',
