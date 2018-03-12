@@ -608,6 +608,7 @@ class BuyerController extends PublicController {
 
     public function agentlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $array['lang']=isset($data['lang'])?$data['lang']:'zh';
         if (!empty($data['buyer_id'])) {
             $array['buyer_id'] = $data['buyer_id'];
         }

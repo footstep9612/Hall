@@ -36,7 +36,14 @@ class BuyerAgentModel extends PublicModel {
      */
     public function getlist($condition = [],$order=" id desc") {
         $counrty=$condition['country_bn'];
+        $lang=isset($condition['lang'])?$condition['lang']:'zh';
         $field='buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at';
+        if($lang=='en'){
+            $field='buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name_en`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at';
+        }
+        unset($condition['lang']);
+        $condition['org.deleted_flag']='N';
+        $condition['buyer_agent.deleted_flag']='N';
         if(!empty($counrty)){
             unset($condition['country_bn']);
             $field .= ',country_member.country_bn';
