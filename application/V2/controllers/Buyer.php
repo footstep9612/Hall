@@ -803,29 +803,29 @@ class BuyerController extends PublicController {
         if (!empty($account)) {
             $buyer_account_model->update_data($account, $where_account);
         }
-        if (!empty($data['status']) && $res !== false) {
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
-                $info = $buyer_account_model->info($where_account);
-                $info_buyer = $model->info($where);
-
-                if ($info['email']) {
-                    if ($data['status'] == 'APPROVED') {
-                        //审核通过邮件
-                        if ($info_buyer['lang']) {
-                            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
-                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                        }
-                    }
-                    if ($data['status'] == 'REJECTED') {
-                        //驳回邮件
-                        if ($info_buyer['lang']) {
-                            $body = $this->getView()->render('buyer/rejected_' . $info_buyer['lang'] . '.html');
-                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                        }
-                    }
-                }
-            }
-        }
+//        if (!empty($data['status']) && $res !== false) {
+//            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+//                $info = $buyer_account_model->info($where_account);
+//                $info_buyer = $model->info($where);
+//
+//                if ($info['email']) {
+//                    if ($data['status'] == 'APPROVED') {
+//                        //审核通过邮件
+//                        if ($info_buyer['lang']) {
+//                            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
+//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+//                        }
+//                    }
+//                    if ($data['status'] == 'REJECTED') {
+//                        //驳回邮件
+//                        if ($info_buyer['lang']) {
+//                            $body = $this->getView()->render('buyer/rejected_' . $info_buyer['lang'] . '.html');
+//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+//                        }
+//                    }
+//                }
+//            }
+//        }
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';

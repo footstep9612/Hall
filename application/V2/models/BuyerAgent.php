@@ -480,7 +480,7 @@ class BuyerAgentModel extends PublicModel {
         $addArr=array_merge(array_diff($agent_arr,$exsitArr));
         if(!empty($delArr)){
             $delStr=implode(',',$delArr);
-            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->delete();
+            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->save(array('deleted_flag'=>'Y'));
         }
         if(!empty($addArr)){    //添加
             $agentArr=array();
