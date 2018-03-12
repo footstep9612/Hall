@@ -33,7 +33,6 @@ class BuyerBankInfoModel extends PublicModel
         'bank_name_zh',// '开户银行中文名称',
         'bank_account',// '企业银行账号',
         'bank_country_code',// '银行国家代码',
-        'bank_country_bn',// '银行国家简称',
         'bank_address',// '银行地址',
         'bank_contact',//   '银行联系人',
         'bank_zipcode',//  '邮编',
@@ -85,8 +84,9 @@ class BuyerBankInfoModel extends PublicModel
      */
     public function create_data($data) {
 
-        $dataInfo['remarks'] = $data['bank_remarks'];
+
         $dataInfo = $this->_getData($data);
+        $dataInfo['remarks'] = $data['bank_remarks'];
         $dataInfo['deleted_flag'] = 'N';
         $dataInfo['status'] = 'VALID';
         $dataInfo['created_by'] = $data['buyer_id'];

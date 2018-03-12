@@ -31,31 +31,37 @@ class EdiBuyerApplyModel extends PublicModel{
      *买家代码申请
      * @author klp
      */
-    public function BuyerApplyAction($buyer_id){
+    public function BuyerApply($buyer_no){
 
-        $buyerModel = new BuyerModel();          //企业银行信息
-        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_id);
+        $buyerModel = new BuyerModel();          //企业信息
+//        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
+        $company_model = new BuyerRegInfoModel();
+        $BuyerCodeApply = $company_model->getInfo($buyer_no);
+        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+        if(!$BuyerCodeApply || !$lang){
+            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+        }
+        $BuyerCodeApply['lang'] = $lang['lang'];
         $this->checkParamBuyer($BuyerCodeApply);
         $SinoSure = new Edi();
         $resBuyer = $SinoSure->EdiBuyerCodeApply($BuyerCodeApply);
         if($resBuyer['code'] != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        return $resBuyer;
+        jsonReturn($resBuyer);
        /* $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('申请成功!');
         $this->jsonReturn($resBuyer);*/
     }
     public function checkParamBuyer(&$BuyerCodeApply){
         $results = array();
-        if(!isset($BuyerCodeApply['lang']) || empty($BuyerCodeApply['lang'])){
-            $results['code'] = -101;
-            $results['message'] = '[lang]不能为空!';
+        if($BuyerCodeApply['lang'] !== 'zh'){
+            $BuyerCodeApply['lang'] = 'en';
         }
         if($BuyerCodeApply['lang'] == 'zh') {
             if(!isset($BuyerCodeApply['area_no']) || !is_numeric($BuyerCodeApply['area_no'])){
                 $results['code'] = -101;
-                $results['message'] = '[area_no]不能为空或不为整型!';
+                $results['message'] = '暂不支持国内买家!';  //[area_no]不能为空或不为整型
             }
         }
         if(!isset($BuyerCodeApply['buyer_no']) || empty($BuyerCodeApply['buyer_no'])){
@@ -74,7 +80,7 @@ class EdiBuyerApplyModel extends PublicModel{
             $results['code'] = -101;
             $results['message'] = '[name]不能为空!';
         }
-        if(!isset($BuyerCodeApply['address']) || empty($BuyerCodeApply['address'])){
+        if(!isset($BuyerCodeApply['registered_in']) || empty($BuyerCodeApply['registered_in'])){
             $results['code'] = -101;
             $results['message'] = '[address]不能为空!';
         }
@@ -88,9 +94,14 @@ class EdiBuyerApplyModel extends PublicModel{
      *银行代码申请
      * @author klp
      */
-    public function BankApplyAction($buyer_id){
-        $buyerModel = new BuyerModel();          //企业银行信息
-        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+    public function BankApply($buyer_no){
+//        $buyerModel = new BuyerModel();          //银行信息
+//        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+        $bank_model = new BuyerBankInfoModel();
+        $BuyerBankApply = $bank_model->getInfo($buyer_no);
+        if(!$BuyerBankApply){
+            jsonReturn(null, -101 ,'银行信息不存在或已删除!');
+        }
         $this->checkParamBank($BuyerBankApply);
         $SinoSure = new Edi();
         $resBank = $SinoSure->EdiBankCodeApply($BuyerBankApply);
@@ -98,7 +109,7 @@ class EdiBuyerApplyModel extends PublicModel{
         if($resBank['code'] != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        return $resBank;
+        jsonReturn($resBank);
       /*  $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('申请成功!');
         $this->jsonReturn($resBank);*/

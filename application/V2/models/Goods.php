@@ -3465,7 +3465,15 @@ class GoodsModel extends PublicModel {
                             $r['supplier'] = $supplierInfo['name'];
                         }
                     }
+
+                    //价格有效期 MMT 2018/3/9
+                    $price_validity = (new GoodsCostPriceModel)->where(['sku' => $r['sku']])->getField('price_validity');
+                    if ($price_validity) {
+                        $r['price_validity'] = $price_validity;
+                    }
+
                     $goods_val[] = $r;
+
                 }
             } while (count($result) >= $length);
         }
