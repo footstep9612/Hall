@@ -50,7 +50,7 @@ class BuyercreditController extends PublicController {
     public function getListAction() {
         $data = $this->getPut();
         $model = new BuyerCreditModel();
-        $data['agent_id'] = UID;
+        //$data['agent_id'] = UID;   //待确定查看权限
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
@@ -194,6 +194,9 @@ class BuyercreditController extends PublicController {
         $company_model = new BuyerRegInfoModel();
         $comInfo = $company_model->getInfo($data['buyer_no']);
         if($comInfo) {
+            $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
+            $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
+            $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
             jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
@@ -212,6 +215,7 @@ class BuyercreditController extends PublicController {
         $bank_model = new BuyerBankInfoModel();
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
+
             jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');

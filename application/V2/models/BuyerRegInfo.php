@@ -53,15 +53,16 @@ class BuyerRegInfoModel extends PublicModel
         'reg_capital',//decimal(20,4)  '注册资本',
         'official_website',//(255)  '官网',
         'social_credit_code',//(32)  '社会信用代码',
-        'biz_nature',//(128)  '企业性质-私营-公营-中资-子公司-联号',
-        'biz_scope',//(500)  '经营性质-批发-零售-生产-代理',
+       // 'biz_nature',//(128)  '企业性质-私营-公营-中资-子公司-联号',
+       // 'biz_scope',//(500)  '经营性质-批发-零售-生产-代理',
         'biz_type',//(30)  '企业类型',
         'gov_org',//(30)  '政府机构:1-是,2-否',
         'listed_company',//(30)  '上市企业:1-是,2-否',
-        'stock_exchange',//(30)  '证券交易所',
+       // 'stock_exchange',//(30)  '证券交易所',
         'stock_code',//(30)  '股票代码',
         'equitiy',//decimal(20,4)  '资产净值',
         'turnover',//decimal(20,4)  '年销售额',
+        'remarks',//
 
     ];
 
@@ -92,8 +93,17 @@ class BuyerRegInfoModel extends PublicModel
     public function create_data($data)
     {
         try{
-            $dataInfo['remarks'] = $data['remarks'];
+
             $dataInfo = $this->_getData($data);
+            if(isset($data['stock_exchange'])){
+                $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
+            }
+            if(isset($data['biz_scope'])){
+                $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
+            }
+            if(isset($data['biz_nature'])){
+                $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
@@ -135,6 +145,15 @@ class BuyerRegInfoModel extends PublicModel
     {
         try{
             $dataInfo = $this->_getData($data);
+            if(isset($data['stock_exchange'])){
+                $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
+            }
+            if(isset($data['biz_scope'])){
+                $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
+            }
+            if(isset($data['biz_nature'])){
+                $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());

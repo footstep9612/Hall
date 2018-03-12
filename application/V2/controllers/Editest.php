@@ -6,7 +6,7 @@
 * 执行方式 D:\Software\phpStudy\php\php-7.0.12-nts\php.exe update_ex_hs_attr.php
 * 每种语言生成一个SQL文件
 **/
-class EditestController{
+class Editest{
 	
 	static private	$host = '172.18.18.193';
 	static private	$user = 'root';

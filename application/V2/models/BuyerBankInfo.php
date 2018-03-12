@@ -33,7 +33,7 @@ class BuyerBankInfoModel extends PublicModel
         'bank_name_zh',// '开户银行中文名称',
         'bank_account',// '企业银行账号',
         'bank_country_code',// '银行国家代码',
-        'bank_country_bn',// '银行国家简称',
+        'bank_country_code',// '银行国家简称',
         'bank_address',// '银行地址',
         'bank_contact',//   '银行联系人',
         'bank_zipcode',//  '邮编',
@@ -58,6 +58,7 @@ class BuyerBankInfoModel extends PublicModel
         'intl_ranking',// (30)    '国际排名',
         'cn_ranking',//(30)    '国内排名',
         'stockholder',//(30)    '股东',
+        'remarks',//(30)    '股东',
     ];
 
     /**
@@ -86,7 +87,7 @@ class BuyerBankInfoModel extends PublicModel
      */
     public function create_data($data) {
         try{
-            $dataInfo['remarks'] = $data['bank_remarks'];
+
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
@@ -117,6 +118,7 @@ class BuyerBankInfoModel extends PublicModel
             $this->rollback();
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerBankModel】create_data:' . $e , Log::ERR);
             LOG::write($e->getMessage(), LOG::ERR);
+            //jsonReturn($e->getMessage());
             return false;
         }
     }

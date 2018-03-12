@@ -183,10 +183,10 @@ class BuyerCreditModel extends PublicModel
         /*if (isset($condition['tel']) && $condition['tel']) {
             $where['tel'] = ['REGEXP','([\+]{0,1}\d*[-| ])*'.$condition['tel'].'$'];
         }*/
-        if (!empty($condition['credit_apply_date']) && !empty($condition['credit_apply_date'])) {   //时间
+        if (!empty($condition['credit_date_start']) && !empty($condition['credit_date_end'])) {   //时间
             $where['credit_apply_date'] = array(
-                array('egt', date('Y-m-d 0:0:0',strtotime($condition['credit_apply_date']))),
-                array('elt', date('Y-m-d 23:59:59',strtotime($condition['credit_apply_date'])))
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['credit_date_start']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['credit_date_end'])))
             );
         }
         return $where;
@@ -232,14 +232,18 @@ class BuyerCreditModel extends PublicModel
         } else{
             $data['source'] = 'BOSS';
         }
-        $agent_model = new BuyerAgentModel();
-        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
-        if($agent_id){
-            $dataInfo['agent_id'] = $agent_id['agent_id'];
-            $dataInfo['status'] = 'ERUI_APPROVING';
-        }else{
-            $dataInfo['status'] = 'DRAFT';
-        }
+//        $buyer_model = new BuyerModel();
+//        $agent_model = new BuyerAgentModel();
+//        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+//        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['buyer_id']])->find();
+//        if($agent_id){
+//            $dataInfo['agent_id'] = $agent_id['agent_id'];
+//            $dataInfo['status'] = 'ERUI_APPROVING';
+//        }else{
+//            $dataInfo['status'] = 'DRAFT';
+//        }
+        $dataInfo['agent_id'] = $data['agent_by'];
+        $dataInfo['status'] = 'ERUI_APPROVING';
         $dataInfo['credit_apply_date'] = date('Y-m-d',time());
         $result = $this->add($this->create($dataInfo));
         if($result){
