@@ -1327,5 +1327,15 @@ class InquiryController extends PublicController {
 
         return $result;
     }
+    /*
+        * 添加询单转订单
+        * Author:jhw
+        */
 
+    public function addInquiryOrderAction() {
+        $attach = new InquiryOrderModel();
+        $data = $this->put_data;
+        $results = $attach->addData($data);
+        $this->jsonReturn($results);
+    }
 }
