@@ -134,11 +134,13 @@ class InquiryModel extends PublicModel {
         }else if($condition['list_type'] == 'quote'){
             $where['status'] = array('neq','DRAFT');
         }
-        
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];    //国家
         }
-        
+
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
         }
