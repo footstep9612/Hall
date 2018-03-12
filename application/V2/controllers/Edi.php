@@ -92,11 +92,12 @@ class EdiController extends PublicController{
 //        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
         $company_model = new BuyerRegInfoModel();
         $BuyerCodeApply = $company_model->getInfo($buyer_no);
-        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+        $lang = $buyerModel->field('lang,official_email')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
         if(!$BuyerCodeApply || !$lang){
             jsonReturn(null, -101 ,'企业信息不存在或已删除!');
         }
         $BuyerCodeApply['lang'] = $lang['lang'];
+        $BuyerCodeApply['official_email'] = $lang['official_email'];
         $resBuyer = self::EdiBuyerCodeApply($BuyerCodeApply);
         if($resBuyer['code'] != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
@@ -183,8 +184,9 @@ class EdiController extends PublicController{
      * 买家代码申请
      *
      */
-    static public function EdiBuyerCodeApply($BuyerCodeApply){
-        self::checkParamBuyer($BuyerCodeApply);
+    static public function EdiBuyerCodeApply($BuyerApply){
+        self::checkParamBuyer($BuyerApply);
+        $BuyerCodeApply = self::_getBuyerValue($BuyerApply);
         $result = self::_EdiBuyerCodeApply($BuyerCodeApply);
         if($result && $result['code']  == 1){
             $res['code'] = 1;
@@ -206,6 +208,10 @@ class EdiController extends PublicController{
             if(!isset($BuyerCodeApply['area_no']) || !is_numeric($BuyerCodeApply['area_no'])){
                 $results['code'] = -101;
                 $results['message'] = '[area_no]不能为空或不为整型!';
+            }
+            if(!isset($BuyerCodeApply['social_credit_code'])){
+                $results['code'] = -101;
+                $results['message'] = '[social_credit_code]社会信用代码不能为空!';
             }
         }
         if(!isset($BuyerCodeApply['buyer_no'])){
@@ -232,34 +238,71 @@ class EdiController extends PublicController{
             jsonReturn($results);
         }
     }
-
-    static private function _EdiBuyerCodeApply($BuyerCodeApply){
-        $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerCodeApply['buyer_no'];
+    static private function _getBuyerValue($BuyerApply){
+        $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerApply['buyer_no'];
         //企业内部买方代码--(必填)
         $BuyerCodeApplyInfo['clientNo'] = self::$policyNo;
         //被保险人信保通编号(非必填)
         $BuyerCodeApplyInfo['policyNo'] = '';
         //保险单号  --动态配置项-SCH017067-161600
-        $BuyerCodeApplyInfo['countryCode'] = $BuyerCodeApply['country_code'];
+        $BuyerCodeApplyInfo['countryCode'] = $BuyerApply['country_code'];
         //买方国家代码--(必填)
         $BuyerCodeApplyInfo['applyTime'] =  strtotime('now');
         //申请时间--(必填)
-        if($BuyerCodeApply['lang'] == 'zh') {
+        if($BuyerApply['lang'] == 'zh') {
             //-----------国内买家必填项:
-            $BuyerCodeApplyInfo['chnName'] = $BuyerCodeApply['name'];
+            $BuyerCodeApplyInfo['chnName'] = $BuyerApply['name'];
             //买方中文名称(必填)  --国内买方中文名称必填
-            $BuyerCodeApplyInfo['areano'] = intval($BuyerCodeApply['area_no']);
+            $BuyerCodeApplyInfo['areano'] = intval($BuyerApply['area_no']);
             //区域代码--(必填)    --国内买家 必填
-            $BuyerCodeApplyInfo['chnAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['chnAddress'] = $BuyerApply['registered_in'];
             //买方中文地址--(必填)--国内买家 必填
+            $BuyerCodeApplyInfo['creditno'] = $BuyerApply['social_credit_code'];
+            //统一社会信用代码--(必填)--国内买家 必填
         } else {
             //-----------国外买家必填项:
-            $BuyerCodeApplyInfo['engName'] = $BuyerCodeApply['name'];
+            $BuyerCodeApplyInfo['engName'] = $BuyerApply['name'];
             //买方英文名称(必填) --国外买家英文名称必填
-            $BuyerCodeApplyInfo['engAddress'] = $BuyerCodeApply['registered_in'];
+            $BuyerCodeApplyInfo['engAddress'] = $BuyerApply['registered_in'];
             //买方英文地址(必填) --国外买家 英文地址必填
         }
+        if(isset($BuyerApply['reg_address'])) {
+            $BuyerCodeApplyInfo['regAddress'] = $BuyerApply['reg_address'];  //注册地址
+        }
+        if(isset($BuyerApply['registered_no'])) {
+            $BuyerCodeApplyInfo['regNo'] = $BuyerApply['registered_no'];  //买方注册号
+        }
+        if(isset($BuyerApply['tel'])) {
+            $BuyerCodeApplyInfo['tel'] = $BuyerApply['tel_code'].$BuyerApply['tel'];  //买方电话
+        }
+        if(isset($BuyerApply['fax'])) {
+            $BuyerCodeApplyInfo['fax'] = $BuyerApply['fax_code'].$BuyerApply['fax'];  //买方传真
+        }
+        if(isset($BuyerApply['official_website'])) {
+            $BuyerCodeApplyInfo['webAddress'] = $BuyerApply['official_website'];  //网站地址
+        }
+        if(isset($BuyerApply['official_email'])) {
+            $BuyerCodeApplyInfo['eMail'] = $BuyerApply['official_email'];  //电子邮件
+        }
+        if(isset($BuyerApply['establish_data'])) {
+            $BuyerCodeApplyInfo['setDate'] = $BuyerApply['establish_data'];  //成立日期
+        }
+        if(isset($BuyerApply['reg_date'])) {
+            $BuyerCodeApplyInfo['regyear'] = intval($BuyerApply['reg_date']);  //注册年份
+        }
+        if(isset($BuyerApply['legal_person_name'])) {
+            $BuyerCodeApplyInfo['corporation'] = $BuyerApply['legal_person_name'];  //法人代表
+        }
+        if(isset($BuyerApply['equitiy'])) {
+            $BuyerCodeApplyInfo['equity'] = number_format($BuyerApply['equitiy'],2,".","");  //资产净值
+        }
+        if(isset($BuyerApply['turnover'])) {
+            $BuyerCodeApplyInfo['yearSale'] = number_format($BuyerApply['turnover'],2,".","");  //年销售额
+        }
+        return $BuyerCodeApplyInfo;
+    }
 
+    static private function _EdiBuyerCodeApply($BuyerCodeApplyInfo){
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
         try{
             $response = self::$client->doEdiBuyerCodeApply($data);
@@ -334,8 +377,9 @@ class EdiController extends PublicController{
     /**
      * 银行代码申请
      */
-    static public function EdiBankCodeApply($BuyerBankApply){
-        self::checkParamBank($BuyerBankApply);
+    static public function EdiBankCodeApply($BankApply){
+        self::checkParamBank($BankApply);
+        $BuyerBankApply = self::_getBankValue($BankApply);
         $result = self::_EdiBankCodeApply($BuyerBankApply);
         if($result && $result['code']  == 1){
             $res['code'] = 1;
@@ -376,9 +420,7 @@ class EdiController extends PublicController{
             jsonReturn($results);
         }
     }
-
-    static private function _EdiBankCodeApply($BankCodeApply){
-
+    static private function _getBankValue($BankCodeApply){
         $BankCodeApplyInfo['corpSerialNo'] = $BankCodeApply['buyer_no'];
         //企业内部银行代码--(必填)
         $BankCodeApplyInfo['policyNo'] = self::$policyNo;
@@ -391,7 +433,68 @@ class EdiController extends PublicController{
         //银行地址(英文)--(必填)
         $BankCodeApplyInfo['bankswift'] = $BankCodeApply['bank_swift'];
         //企业填写的开证行swift--(非必填)
+        if(isset($BuyerApply['bank_name_zh'])) {
+            $BuyerCodeApplyInfo['chnName'] = $BuyerApply['bank_name_zh'];  //银行中文名称
+        }
+        if(isset($BuyerApply['bank_zipcode'])) {
+            $BuyerCodeApplyInfo['zip'] = $BuyerApply['bank_zipcode'];  //邮政编码
+        }
+        if(isset($BuyerApply['tel_bank'])) {
+            $BuyerCodeApplyInfo['tel'] = $BuyerApply['tel_code_bank'].$BuyerApply['tel_bank'];  //银行电话
+        }
+        if(isset($BuyerApply['fax_bank'])) {
+            $BuyerCodeApplyInfo['fax'] = $BuyerApply['fax_code_bank'].$BuyerApply['fax_bank'];  //银行传真
+        }
+        if(isset($BuyerApply['bank_website'])) {
+            $BuyerCodeApplyInfo['webAddress'] = $BuyerApply['bank_website'];  //网站地址
+        }
+        if(isset($BuyerApply['bank_reg_date'])) {
+            $BuyerCodeApplyInfo['setupDate'] = $BuyerApply['bank_reg_date'];  //成立日期
+        }
+        if(isset($BuyerApply['legal_person_bank'])) {
+            $BuyerCodeApplyInfo['corporation'] = $BuyerApply['legal_person_bank'];  //法人代表
+        }
+        if(isset($BuyerApply['bank_turnover'])) {
+            $BuyerCodeApplyInfo['turnover'] = number_format($BuyerApply['bank_turnover'],2,".","");  //营业额
+        }
+        if(isset($BuyerApply['profit'])) {
+            $BuyerCodeApplyInfo['profit'] = number_format($BuyerApply['profit'],2,".","");  //利润
+        }
+        if(isset($BuyerApply['total_assets'])) {
+            $BuyerCodeApplyInfo['totalAsset'] = number_format($BuyerApply['total_assets'],2,".","");;  //总资产
+        }
+        if(isset($BuyerApply['equity_capital'])) {
+            $BuyerCodeApplyInfo['selfCapital'] = number_format($BuyerApply['equity_capital'],2,".","");;  //自有资本
+        }
+        if(isset($BuyerApply['equity_ratio'])) {
+            $BuyerCodeApplyInfo['selfAssetRate'] = number_format($BuyerApply['equity_ratio'],3,".","");;  //自有资产比率
+        }
+        if(isset($BuyerApply['branch_count'])) {
+            $BuyerCodeApplyInfo['nodeSum'] = intval($BuyerApply['branch_count']);  //分支数目
+        }
+        if(isset($BuyerApply['employee_count'])) {
+            $BuyerCodeApplyInfo['employeeSum'] = intval($BuyerApply['employee_count']);  //员工人数
+        }
+        if(isset($BuyerApply['bank_group_name'])) {
+            $BuyerCodeApplyInfo['belongBankName'] = $BuyerApply['bank_group_name'];  //所属银行集团名称
+        }
+        if(isset($BuyerApply['bank_group_swift'])) {
+            $BuyerCodeApplyInfo['belongBankSwift'] = $BuyerApply['bank_group_swift'];  //所属银行集团swift
+        }
+        if(isset($BuyerApply['cn_ranking'])) {
+            $BuyerCodeApplyInfo['interOrder'] = intval($BuyerApply['cn_ranking']);  //国内排名
+        }
+        if(isset($BuyerApply['intl_ranking'])) {
+            $BuyerCodeApplyInfo['nationOrder'] = intval($BuyerApply['intl_ranking']);  //国际排名
+        }
+        if(isset($BuyerApply['stockholder'])) {
+            $BuyerCodeApplyInfo['stockHolder'] = $BuyerApply['stockholder'];  //股东
+        }
 
+        return $BankCodeApplyInfo;
+    }
+
+    static private function _EdiBankCodeApply($BankCodeApplyInfo){
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
         try{
             $response = self::$client->doEdiBankCodeApply($data);

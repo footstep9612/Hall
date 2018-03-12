@@ -31,7 +31,7 @@ class BuyerCreditLogModel extends PublicModel{
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_no,in_status,sign,in_remarks,agent_by,agent_at,checked_by,checked_at,out_status,out_remarks';
+        $field = 'id,buyer_no,name,address,bank_name,bank_address,in_status,sign,in_remarks,agent_by,agent_at,checked_by,checked_at,out_status,out_remarks';
         return $this->field($field)
             ->where($where)
             ->limit($start_no, $pagesize)

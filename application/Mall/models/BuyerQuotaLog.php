@@ -31,7 +31,7 @@ class BuyerQuotaLogModel extends PublicModel
         return $this->field($field)
             ->where($where)
             ->limit($start_no, $pagesize)
-            ->order('id desc')
+            ->order('id,credit_at desc')
             ->select();
     }
 
