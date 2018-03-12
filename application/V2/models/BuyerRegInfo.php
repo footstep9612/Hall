@@ -168,7 +168,7 @@ class BuyerRegInfoModel extends PublicModel
                 $dataArr['name'] = $dataInfo['name'];
                 $dataArr['address'] = $dataInfo['registered_in'];
                 $dataArr['sign'] = 1;  //企业
-                $credit_log_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+                $credit_log_model->create_data($dataArr);
             }
             if ($result !== false) {
                 return $result;

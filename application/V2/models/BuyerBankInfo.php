@@ -110,7 +110,7 @@ class BuyerBankInfoModel extends PublicModel
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
                 $dataArr['bank_address'] = $dataInfo['bank_address'];
                 $dataArr['sign'] = 2; //银行
-                $credit_log_model->create_data($dataArr);
+                $credit_log_model->create_data($this->create($dataArr));
                 return true;
             }
             return false;
@@ -142,8 +142,8 @@ class BuyerBankInfoModel extends PublicModel
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
                 $dataArr['bank_address'] = $dataInfo['bank_address'];
-                $dataArr['sign'] = 1;  //企业
-                $credit_log_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($this->create($dataArr));
             }
             if ($result !== false) {
                 return $result;

@@ -94,7 +94,7 @@ class BuyercreditController extends PublicController {
      */
     public function editCompanyAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = empty($data['lang']) ? 'en' : $data['lang'];
         if($lang == 'zh') {
             if (empty($data['area_no'])) {
                 jsonReturn(null, -110, '区域代码缺少!');
@@ -149,7 +149,7 @@ class BuyercreditController extends PublicController {
      */
     public function editBankAction(){
         $bank_data = json_decode(file_get_contents("php://input"), true);
-        $lang = $bank_data['lang'] ? $bank_data['lang'] : 'en';
+        $lang = $bank_data['lang'] ? $bank_data['lang'] : 'zh';
         if (empty($bank_data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -187,7 +187,7 @@ class BuyercreditController extends PublicController {
      */
     public function getCompanyInfoAction(){
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -208,7 +208,7 @@ class BuyercreditController extends PublicController {
      */
     public function getBankInfoAction(){
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -227,10 +227,10 @@ class BuyercreditController extends PublicController {
      */
     public function checkCreditAction(){
         $data = $this->getPut();
+        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-
 
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
@@ -238,6 +238,7 @@ class BuyercreditController extends PublicController {
         if($data['status']== 'ERUI_APPROVED'){
             $res = $credit_model->update_data($data);
             if($res) {
+                $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = UID;
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['sign'] = 1;
@@ -249,6 +250,7 @@ class BuyercreditController extends PublicController {
         } else {
             $res = $credit_model->update_data($data);
             if($res) {
+                $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = UID;
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['in_status'] = $data['status'];
@@ -293,7 +295,7 @@ class BuyercreditController extends PublicController {
      */
     public function grantQuotaAction() {
         $data = $this->getPut();
-        $lang = empty($data['lang']) ? 'en' : $data['lang'];
+        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -339,6 +341,7 @@ class BuyercreditController extends PublicController {
      */
     public function getQuotaListAction() {
         $data = $this->getPut();
+        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         $model = new BuyerQuotaLogModel();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
@@ -402,7 +405,7 @@ class BuyercreditController extends PublicController {
         jsonReturn($data);*/
 
         $data = $this->getPut();
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
