@@ -15,13 +15,13 @@ class NoticeController extends PublicController
     public function listAction()
     {
         $request = $this->validateRequestParams();
-
         $data = $this->notice->all($request);
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
             'total' => count($data),
+            'currentPage' => !empty($request['currentPage']) ? $request['currentPage'] : 1,
             'data' => $this->setUserName($data)
         ]);
     }
