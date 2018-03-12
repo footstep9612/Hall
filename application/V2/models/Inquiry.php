@@ -155,12 +155,12 @@ class InquiryModel extends PublicModel {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        if (isset($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
-        if (!empty($condition['quote_id'])) {
-            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        if (isset($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
@@ -269,8 +269,8 @@ class InquiryModel extends PublicModel {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!empty($condition['user_country'])) {
-            $where['country_bn'] = ['in', $condition['user_country']];    //查看事业部询单角色国家
+        if (isset($condition['user_country'])) {
+            $where['country_bn'] = ['in', $condition['user_country'] ? : ['-1']];    //查看事业部询单角色国家
         }
     
         if (!empty($condition['country_bn'])) {
@@ -289,16 +289,16 @@ class InquiryModel extends PublicModel {
             $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
     
-        if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        if (isset($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
-        if (!empty($condition['quote_id'])) {
-            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        if (isset($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
         
-        if (!empty($condition['org_id'])) {
-            $where['org_id'] = ['in', $condition['org_id']]; //事业部
+        if (isset($condition['org_id'])) {
+            $where['org_id'] = ['in', $condition['org_id'] ? : ['-1']]; //事业部
         }
     
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
