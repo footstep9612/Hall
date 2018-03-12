@@ -154,6 +154,18 @@ class BuyerRegInfoModel extends PublicModel
                     $this->rollback();
                     jsonReturn(null, MSG::MSG_FAILED, '更新银行信息失败');
                 }
+                //添加日志
+                $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
+                if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
+                    $credit_log_model = new BuyerCreditLogModel();
+                    $dataArr['buyer_no'] = $data['buyer_no'];
+                    $dataArr['agent_by'] = $data['agent_by'];
+                    $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                    $dataArr['name'] = $dataInfo['name'];
+                    $dataArr['address'] = $dataInfo['registered_in'];
+                    $dataArr['sign'] = 1;  //企业
+                    $credit_log_model->create_data($dataArr);
+                }
                 //更新审核信息
                 $credit_model = new BuyerCreditModel();
                 $credit_res = $credit_model->update_data($data);
