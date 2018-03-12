@@ -50,4 +50,13 @@ class NoticeModel extends PublicModel
 
         return $this->where(['deleted_flag' => 'N'])->order('id DESC')->page($page, $pagesize)->select();
     }
+
+    public function counter($request)
+    {
+        if (!empty($request['status'])) {
+            return $this->where(['deleted_flag' => 'N', 'status'=> $request['status']])->count();
+        }
+
+        return $this->where(['deleted_flag' => 'N'])->order('id DESC')->count();
+    }
 }

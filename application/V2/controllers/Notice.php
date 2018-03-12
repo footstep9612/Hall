@@ -20,7 +20,7 @@ class NoticeController extends PublicController
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
-            'total' => count($data),
+            'total' => $this->notice->counter($request),
             'currentPage' => !empty($request['currentPage']) ? $request['currentPage'] : 1,
             'data' => $this->setUserName($data)
         ]);
