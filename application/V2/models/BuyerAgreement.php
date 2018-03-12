@@ -424,17 +424,18 @@ class BuyerAgreementModel extends PublicModel
     //查看框架协议详情
     public function showAgreeDesc($data){
         $check=isset($data['check'])?$data['check']:false;
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['execute_no'])){
             return false;
         }
-        $info = $this -> showAgree($data['execute_no'],$check);
+        $info = $this -> showAgree($lang,$data['execute_no'],$check);
         if(empty($info)){
             return false;
         }
         return $info;
     }
     //按单号查看数据及附件信息详情-------
-    public function showAgree($execute_no,$check=false){
+    public function showAgree($lang,$execute_no,$check=false){
         $agree = $this->where(array('execute_no'=>$execute_no))->find();
         if(!empty($agree['number'])){
             $agree['number']=(float)$agree['number'];
@@ -451,11 +452,11 @@ class BuyerAgreementModel extends PublicModel
             if($check==true){
                 //组织
                 $org = new OrgModel();
-                $orgInfo = $org->getNameById($agree['org_id']);
+                $orgInfo = $org->getNameById($agree['org_id'],$lang);
                 $agree['org_name'] = $orgInfo;
                 //
                 $country = new CountryModel();
-                $countryInfo = $country->getCountryByBn($agree['country_bn'],'zh');
+                $countryInfo = $country->getCountryByBn($agree['country_bn'],$lang);
                 $agree['country_name'] = $countryInfo;
             }
         }
