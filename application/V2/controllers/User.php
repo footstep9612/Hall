@@ -25,6 +25,7 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where['deleted_flag'] = "N";
+        $where['lang'] = isset($data['lang'])?$data['lang']:'zh';
         if (!empty($data['username'])) {
             $username = trim($data['username']);
             $where['username'] = $username;
