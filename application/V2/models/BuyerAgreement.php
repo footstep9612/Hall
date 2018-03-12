@@ -67,6 +67,7 @@ class BuyerAgreementModel extends PublicModel
      * wangs
      */
     public function exportAgree($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getAgreeCond($data);
         if(!empty($data['page'])){
             $page = $data['page'];
@@ -81,7 +82,7 @@ class BuyerAgreementModel extends PublicModel
         }
         $pageSize = 10;
         $offset = ($page-1)*$pageSize;
-        $info = $this->getAgreeStatisData($cond,$offset,$pageSize,true,$excelPage);
+        $info = $this->getAgreeStatisData($lang,$cond,$offset,$pageSize,true,$excelPage);
         if(!is_array($info) || $info==false){
             return false;   //空数据
         }
@@ -163,7 +164,7 @@ class BuyerAgreementModel extends PublicModel
      * @return array框架协议excel导出数据
      * wangs
      */
-    public function packageAgreeStatisData($data){
+    public function packageAgreeStatisData($data,$lang){
         //整合数据
         $arr=array();
         foreach($data as $k => $v){
@@ -175,6 +176,9 @@ class BuyerAgreementModel extends PublicModel
 //            $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'油气':'非油气';    //是否油气
+            if($lang='en'){
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'oil gas':'Non oil gas';    //是否油气
+            }
             $arr[$k]['product_name'] = $v['product_name'];    //品名中文
             $arr[$k]['number'] = $v['number'];    //数量
             $arr[$k]['unit'] = $v['unit'];    //单位
@@ -199,7 +203,7 @@ class BuyerAgreementModel extends PublicModel
      * @param bool $excelPage true:导出当前页excel false:导出所有数据excel
      * @return array|bool
      */
-    public function getAgreeStatisData($cond,$offset=0,$pageSize=10,$excel=true,$excelPage=true){
+    public function getAgreeStatisData($lang,$cond,$offset=0,$pageSize=10,$excel=true,$excelPage=true){
         //条件
         $totalCount = $this ->alias('agree')
             ->join('erui_buyer.buyer buyer on buyer.id=agree.buyer_id','left')
@@ -226,6 +230,9 @@ class BuyerAgreementModel extends PublicModel
             'technician'        //商务技术经办人
         );  //获取字段start
         $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name as org_name,buyer.is_oilgas';
+        if($lang=='en'){
+            $field = 'buyer.buyer_code,buyer.name as buyer_name,org.name_en as org_name,buyer.is_oilgas';
+        }
         foreach($fields as $v){
             $field .= ',agree.'.$v;
         }   //获取字段end
@@ -249,7 +256,7 @@ class BuyerAgreementModel extends PublicModel
             $country = new CountryModel();
             $employee=new EmployeeModel();
             foreach($info as $k => $v){
-                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],'zh');
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                 if(!empty($v['agent'])){
                     if(is_numeric($v['agent'])){
                         $em_name=$employee->getNameByid($v['agent']);
@@ -263,7 +270,7 @@ class BuyerAgreementModel extends PublicModel
                     }
                 }
             }
-            $arr = $this->packageAgreeStatisData($info);    //整合框架协议excel导出的数据
+            $arr = $this->packageAgreeStatisData($info,$lang);    //整合框架协议excel导出的数据
             if($excel==false){
                 return array('info'=>$arr,'totalCount'=>$totalCount);
             }
@@ -282,6 +289,7 @@ class BuyerAgreementModel extends PublicModel
     }
     //框架协议管理入口
     public function manageAgree($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getAgreeCond($data);
         if(!empty($data['page'])){
             $page = $data['page'];
@@ -290,7 +298,7 @@ class BuyerAgreementModel extends PublicModel
         }
         $pageSize = 10;
         $offset = ($page-1)*$pageSize;
-        $info = $this -> getAgreeStatisData($cond,$offset,$pageSize,$excel=false,true);
+        $info = $this -> getAgreeStatisData($lang,$cond,$offset,$pageSize,$excel=false,true);
         $totalPage = ceil($info['totalCount']/$pageSize);
         $arr = array(
             'page'=>$page,
