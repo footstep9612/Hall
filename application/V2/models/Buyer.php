@@ -172,7 +172,7 @@ class BuyerModel extends PublicModel {
             }
             if(!empty($v['country_bn'])){ //国家
                 $country = new CountryModel();
-                $info[$k]['country_bn'] = $country->getCountryByBn($v['country_bn'],$lang);
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
             }
         }
 //        $res['data'] = $this->query($sql);
