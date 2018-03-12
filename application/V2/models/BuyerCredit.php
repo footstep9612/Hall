@@ -299,7 +299,7 @@ class BuyerCreditModel extends PublicModel
         }
         $dataInfo['agent_id'] = UID;  //市场经办人
 
-        $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+        $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));jsonReturn($result);
         if ($result !== false) {
             return true;
         }
@@ -312,6 +312,7 @@ class BuyerCreditModel extends PublicModel
     public function grantInfo($data) {
 
         $dataArr = $this->_checkParam($data);
+        $dataArr['buyer_no'] = $data['buyer_no'];
         $res = $this->update_data($dataArr);
         if($res) {
             $quota_log_model = new BuyerQuotaLogModel();

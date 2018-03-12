@@ -70,16 +70,17 @@ class EdiController extends PublicController{
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-        //$edi_apply_model = new EdiBuyerApplyModel();
         $res_buyer = $this->BuyerApply($data['buyer_no']);
         $res_bank = $this->BankApply($data['buyer_no']);
-        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+
+        if($res_buyer['code'] == 1 && $res_bank['code'] == 1) {
+            $credit_model = new BuyerCreditModel();
+            $arr['status'] = 'EDI_APPROVING';
+            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
+            jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
         }
-        $credit_model = new BuyerCreditModel();
-        $arr['status'] = 'EDI_APPROVING';
-        $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);;
-        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+        jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+
     }
     /**
      *
@@ -89,7 +90,6 @@ class EdiController extends PublicController{
     public function BuyerApply($buyer_no){
 
         $buyerModel = new BuyerModel();          //企业信息
-//        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
         $company_model = new BuyerRegInfoModel();
         $BuyerCodeApply = $company_model->getInfo($buyer_no);
         $lang = $buyerModel->field('lang,official_email')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
@@ -102,7 +102,7 @@ class EdiController extends PublicController{
         if($resBuyer['code'] != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        jsonReturn($resBuyer);
+        return $resBuyer;
         /* $this->setCode(MSG::MSG_SUCCESS);
          $this->setMessage('申请成功!');
          $this->jsonReturn($resBuyer);*/
@@ -114,8 +114,7 @@ class EdiController extends PublicController{
      * @author klp
      */
     public function BankApply($buyer_no){
-//        $buyerModel = new BuyerModel();          //银行信息
-//        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+
         $bank_model = new BuyerBankInfoModel();
         $BuyerBankApply = $bank_model->getInfo($buyer_no);
         if(!$BuyerBankApply){
@@ -126,7 +125,7 @@ class EdiController extends PublicController{
         if($resBank['code'] != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
-        jsonReturn($resBank);
+        return $resBank;
         /*  $this->setCode(MSG::MSG_SUCCESS);
           $this->setMessage('申请成功!');
           $this->jsonReturn($resBank);*/
@@ -241,9 +240,9 @@ class EdiController extends PublicController{
     static private function _getBuyerValue($BuyerApply){
         $BuyerCodeApplyInfo['corpSerialNo'] = $BuyerApply['buyer_no'];
         //企业内部买方代码--(必填)
-        $BuyerCodeApplyInfo['clientNo'] = self::$policyNo;
+        $BuyerCodeApplyInfo['clientNo'] = '';
         //被保险人信保通编号(非必填)
-        $BuyerCodeApplyInfo['policyNo'] = '';
+        $BuyerCodeApplyInfo['policyNo'] = self::$policyNo;
         //保险单号  --动态配置项-SCH017067-161600
         $BuyerCodeApplyInfo['countryCode'] = $BuyerApply['country_code'];
         //买方国家代码--(必填)
@@ -343,7 +342,7 @@ class EdiController extends PublicController{
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
          //$this->resultInfo("doEdiBuyerCodeApply", $xmlBuyerCodeApplyInfo);
         try{
-            $response = $this->client->doEdiBuyerCodeApply($data);
+            $response = self::$client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
                return true;
             } else {
@@ -355,24 +354,6 @@ class EdiController extends PublicController{
 
     }
 
-    /**
-     * 获取买家代码申请反馈
-     */
-    protected function doEdiBuyerCodeApproveAction(){
-        //return $this->resultInfo("doEdiBuyerCodeApprove", $xmlBuyerCodeApprove);
-        $time['startDate'] = self::getStartDate();
-        $time['endDate'] = self::getEndDate();//var_dump($time);die;
-        try{
-            $buyerCodeApproveInfo = $this->client->doEdiBuyerCodeApprove(array('doEdiBuyerCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
-            if ($buyerCodeApproveInfo) {
-                var_dump($buyerCodeApproveInfo);
-            } else {
-                echo 456;
-            }
-        }catch (Exception $e){
-            $this->exception($e);
-        }
-    }
 
     /**
      * 银行代码申请
@@ -547,15 +528,51 @@ class EdiController extends PublicController{
     }
 
     /**
+     * 获取买家代码申请反馈
+     */
+    protected function doEdiBuyerCodeApproveAction(){
+        //return $this->resultInfo("doEdiBuyerCodeApprove", $xmlBuyerCodeApprove);
+        $time['startDate'] = self::getStartDate();
+        $time['endDate'] = self::getEndDate();//var_dump($time);die;
+        try{
+            $time = array('startDate'=>date('Y-m-d\T14:00:00', time()),'endDate'=>date('Y-m-d\T23:00:00', time()));
+            //jsonReturn($time);
+            $buyerCodeApproveInfo = self::$client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+            if ($buyerCodeApproveInfo) {
+                var_dump($buyerCodeApproveInfo);
+            } else {
+                echo 456;
+            }
+        }catch (Exception $e){
+            $this->exception($e);
+        }
+    }
+
+    /**
      * 银行代码批复通知
      *
      */
     protected  function doEdiBankCodeApproveAction(){
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
-            $BankCodeApproveInfo = $this->client->doEdiBankCodeApprove(array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate())));
+            $time = array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             if ($BankCodeApproveInfo) {
-                var_dump($BankCodeApproveInfo->BankInfo);
+//                $BankCodeApproveInfo = self::object_array($BankCodeApproveInfo);
+//                //存储结果日志
+//                $path = MYPATH.'/logs/';
+//                $time = date('Y-m-d h:i:s',time());
+//                $file = $path."/".$time."_edi.txt";
+////                $fp = fopen($file,"a+");
+//                $start="time:".$time."\r\n"."edi/buyerBankCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
+//                $end ="\r\n"."---------- content end ----------"."\r\n\n";
+//                $content=$start."".$BankCodeApproveInfo."".$end;
+//                file_put_contents($file,$content);
+////                fwrite($fp,$content);
+////                fclose($fp);
+
+                var_dump($BankCodeApproveInfo);
+                //var_dump($BankCodeApproveInfo->BankInfo);
             } else {
                 echo 123231;
             }
@@ -840,6 +857,19 @@ class EdiController extends PublicController{
             //var_dump(get_object_vars($result));
             var_dump($result);
 
+    }
+
+
+    //json传过来的数组并不是标准的array是stdClass类型,转为数组方式一:
+    static function object_array($array) {
+        if(is_object($array)) {
+            $array = (array)$array;
+        } if(is_array($array)) {
+            foreach($array as $key=>$value) {
+                $array[$key] = @self::object_array($value);
+            }
+        }
+        return $array;
     }
 
     static public function exception($e){
