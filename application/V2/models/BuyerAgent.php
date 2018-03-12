@@ -459,7 +459,7 @@ class BuyerAgentModel extends PublicModel {
         }
         $buyer_id=$data['id'];
         $agent_arr = explode(',', $data['user_ids']);
-        $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id))->select();
+        $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->select();
         //
         if(empty($agent)){ //
             $agentArr=array();

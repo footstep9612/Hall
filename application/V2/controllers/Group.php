@@ -184,6 +184,9 @@ class GroupController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $where = [];
+        if (!empty($data['lang'])) {    //语言
+            $where['lang'] = $data['lang'];
+        }
         if (!empty($data['parent_id'])) {
             $where['org.parent_id'] = $data['parent_id'];
         }
