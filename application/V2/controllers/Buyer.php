@@ -640,7 +640,23 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    //crm 更新客户市场经办人-王帅
+    public function crmUpdateAgentAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $agent = new BuyerAgentModel();
+        $res=$agent->crmUpdateAgent($data);
+        $buyer=new BuyerModel();
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+        }else{
+            $datajson['code'] = 0;
+            $datajson['message'] = '失败或缺少参数';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['id'])) {
@@ -1135,5 +1151,17 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
-    
+    protected function testUpgradeAction(){
+        set_time_limit(0);
+        $model=new BuyerModel();
+        $buyer=$model->field('id as buyer_id')->where(array('deleted_flag'=>'N'))->select();
+        $order=new OrderModel();
+        $arr=[];
+        foreach($buyer as $k => $v){
+            $auto=$order->autoUpgradeByOrder($v);
+            $arr[]=$auto;
+        }
+        print_r(count($arr));
+        print_r($arr);
+    }
 }
