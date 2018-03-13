@@ -37,7 +37,7 @@ class BuyercreditController extends EdiController {
                 if($time <= time()) {
                     $item['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
-                    $model->where(['buyer_no' => $item['buyer_no']])->save($this->create($status));
+                    $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                 }
             }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
@@ -67,7 +67,7 @@ class BuyercreditController extends EdiController {
                 if($time <= time()) {
                     $item['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
-                    $model->where(['buyer_no' => $item['buyer_no']])->save($this->create($status));
+                    $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                 }
             }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
