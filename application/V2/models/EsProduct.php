@@ -2208,7 +2208,6 @@ class EsProductModel extends Model {
         $dirName = $tmpDir . $date;
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
-        p($dirName . '.zip');
         if (file_exists($dirName . '.zip')) {
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
