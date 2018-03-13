@@ -2141,22 +2141,22 @@ class EsProductModel extends Model {
      */
 
     private function _getKeys() {
-        return ['C' => 'spu',
-            'D' => 'material_cat_no',
-            'E' => 'name',
-            'F' => 'show_name',
-            'G' => 'bizline',
-            'H' => 'brand',
-            'I' => 'description',
-            'J' => 'tech_paras',
-            'K' => 'exe_standard',
-            'L' => 'warranty',
-            'M' => 'keywords',
-            'N' => 'material_cat',
-            'O' => 'show_cat',
-            'P' => 'created_at',
-            'Q' => 'checked_at',
-            'R' => 'onshelf_at',
+        return ['D' => 'spu',
+            'E' => 'material_cat_no',
+            'F' => 'name',
+            'G' => 'show_name',
+            'H' => 'bizline',
+            'I' => 'brand',
+            'J' => 'description',
+            'K' => 'tech_paras',
+            'L' => 'exe_standard',
+            'M' => 'warranty',
+            'N' => 'keywords',
+            'O' => 'material_cat',
+            'P' => 'show_cat',
+            'Q' => 'created_at',
+            'R' => 'checked_at',
+            'S' => 'onshelf_at',
         ];
     }
 
@@ -2282,7 +2282,6 @@ class EsProductModel extends Model {
         $objSheet->setCellValue("S1", '审核状态');
         $objSheet->getStyle("S1")->getFont()->setBold(true);    //粗体
         $keys = $this->_getKeys();
-
         $result = $this->getList($condition, ['spu', 'material_cat_no', 'name', 'show_name', 'brand',
             'keywords', 'exe_standard', 'tech_paras', 'description', 'warranty',
             'status', 'bizline', 'created_at', 'material_cat', 'show_cats', 'checked_at', 'onshelf_at'], $lang, $xlsNum * self::$xlsSize, self::$xlsSize);
