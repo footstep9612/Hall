@@ -195,65 +195,22 @@ class BuyerController extends PublicController {
     }
 
     /*
-     * 统计各状态数量 jhw
+     * 统计各状态会员数量 jhw-wangs
      * */
 
     public function buyercountAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['created_by'] = $created_by;
         $model = new BuyerModel();
-        if (!empty($data['name'])) {
-            $where['name'] = $data['name'];
-        }
-        if (!empty($data['country_bn'])) {  //国家
-            $pieces = explode(",", $data['country_bn']);
-            for ($i = 0; $i < count($pieces); $i++) {
-                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
-            }
-            $where['country_bn'] = rtrim($where['country_bn'], ",");
-        }
-        if (!empty($data['buyer_no'])) {    //客户编号
-            $where['buyer_no'] = $data['buyer_no'];
-        }
-        if (!empty($data['buyer_code'])) {  //CRM客户代码
-            $where['buyer_code'] = $data['buyer_code'];
-        }
-        if (!empty($data['status'])) {  //审核状态
-            $where['status'] = $data['status'];
-        }
-        if (!empty($data['employee_name'])) {   //经办人
-            $where['employee_name'] = $data['employee_name'];
-        }
-        if (!empty($data['source'])) {  //用户来源
-            $where['source'] = $data['source'];
-        }
-        if (!empty($data['buyer_level'])) {  //客户等级id
-            $where['buyer_level'] = $data['buyer_level'];
-        }
-        if (!empty($data['checked_at_start'])) {    //审核时间
-            $where['checked_at_start'] = $data['checked_at_start'];
-        }
-        if (!empty($data['checked_at_end'])) {
-            $where['checked_at_end'] = $data['checked_at_end'];
-        }
-        if (!empty($data['created_at_end'])) {
-            $where['created_at_end'] = $data['created_at_end'];
-        }
-        if (!empty($data['created_at_start'])) {    //注册时间
-            $where['created_at_start'] = $data['created_at_start'];
-        }
-        if (!empty($data['min_percent'])) {
-            $where['min_percent'] = $data['min_percent'];
-        }
-        if (!empty($data['max_percent'])) {
-            $where['max_percent'] = $data['max_percent'];
-        }
-        if (!empty($data['pageSize'])) {
-            $where['num'] = $data['pageSize'];
-        }
-        if (!empty($data['currentPage'])) {
-            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
-        }
-        $arr = $model->getBuyerCountByStatus($where);
+        $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
+        $arr=array(
+            "total_count"=>$totalCount,
+            "level_count"=>$levelCount
+        );
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;

@@ -243,33 +243,8 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
-    /**
-     * @param $data
-     * 客户管理-客户统计-所有客户的搜索列表
-     * wangs
-     */
-    public function buyerStatisList($data){
-        $lang=isset($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerStatisListCond($data);
-        $currentPage = 1;
-        $pageSize = 10;
-
-//        $sql="SELECT";
-//        $sql.=" buyer.`id`,`buyer_no`,buyer.`name`, `buyer`.buyer_code,";
-//        $sql.=" `buyer`.`country_bn`,";
-//        $sql.=" `buyer_level`,buyer.`source`,`percent`,";
-//        $sql.=" buyer.`status`,buyer.`created_by`,";
-//        $sql.=" buyer.`created_at`,";
-//
-//        $sql.=" agent.created_at as checked_at";
-//        $sql.=" FROM erui_buyer.buyer buyer";   //buyer
-//
-//        $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
-//        $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-//        $sql.=" left Join `erui_dict`.`country` country";   //country
-//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-//        $sql.= 'where '.$cond;
-//        $sql.= ' group by buyer.id';
+    //crm客户统计获取客户总数-wangs
+    public function crmGetBuyerTotal($cond){
         $sql="SELECT count(DISTINCT buyer.id) as total_count";
         $sql.=" FROM erui_buyer.buyer buyer";   //buyer
         $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
@@ -281,17 +256,11 @@ class BuyerModel extends PublicModel {
         $sql.= 'where '.$cond;
         $count=$this->query($sql);
         $totalCount=$count[0]['total_count'];   //总条数
-        //统计等级-客户等级下的数量
-//        $sqlLevel = "SELECT buyer.id,buyer_level,COUNT(*)  as level_count ";
-//        $sqlLevel .= ' FROM erui_buyer.buyer buyer';
-//        $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
-//        $sqlLevel.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-//        $sqlLevel.=" left Join `erui_dict`.`country` country";   //country
-//        $sqlLevel.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-//        $sqlLevel.=" left Join `erui_sys`.`employee` employee";   //经办人
-//        $sqlLevel.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
-//        $sqlLevel.= 'where '.$cond;
-        $sqlLevel = "select gbuyer.buyer_level,count(*) from (";
+        return $totalCount;
+    }
+    //crm客户统计获取会员等级数量-wang
+    public function crmGetBuyerLevelCount($cond){
+        $sqlLevel = "select gbuyer.buyer_level,count(*) as level_count from (";
         $sqlLevel .= ' SELECT buyer.id,agent.agent_id,buyer_level';
         $sqlLevel .= ' FROM erui_buyer.buyer buyer';
         $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
@@ -304,8 +273,33 @@ class BuyerModel extends PublicModel {
         $sqlLevel.= ' GROUP BY buyer.id,buyer.buyer_level) gbuyer';
         $sqlLevel.= ' group by gbuyer.buyer_level';
         $level=$this->query($sqlLevel);
-
-        print_r($level);die;
+        $levelCount=array(
+            'kong'=>0,
+            'ordinary'=>0,
+            'senior'=>0
+        );
+        foreach($level as $k => $v){
+            if($v['buyer_level']==52){
+                $levelCount['ordinary']=isset($v['level_count'])?$v['level_count']:0;
+            }elseif($v['buyer_level']==53){
+                $levelCount['senior']=isset($v['level_count'])?$v['level_count']:0;
+            }else{
+                $levelCount['kong']=isset($v['level_count'])?$v['level_count']:0;
+            }
+        }
+        return $levelCount;
+    }
+    /**
+     * @param $data
+     * 客户管理-客户统计-所有客户的搜索列表
+     * wangs
+     */
+    public function buyerStatisList($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $cond = $this->getBuyerStatisListCond($data);
+        $currentPage = 1;
+        $pageSize = 10;
+        $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
         $totalCount=count($totalCount);
         $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
@@ -338,7 +332,6 @@ class BuyerModel extends PublicModel {
             ->order('buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
-        print_r($info);die;
         foreach($info as $k => $v){
             if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){ //客户等级
                 $level = new BuyerLevelModel();
