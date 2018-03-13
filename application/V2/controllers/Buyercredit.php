@@ -33,11 +33,13 @@ class BuyercreditController extends EdiController {
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
             foreach($res as $item) {
-                $time = strtotime('+90 d',strtotime($item['approved_date']));
-                if($time <= time()) {
-                    $item['status'] = 'INVALID';
-                    $status['status'] = 'INVALID';
-                    $model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                if(!empty($item['approved_date'])){
+                    $time = strtotime('+90 d',strtotime($item['approved_date']));
+                    if($time <= time()) {
+                        $item['status'] = 'INVALID';
+                        $status['status'] = 'INVALID';
+                        $model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                    }
                 }
             }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
@@ -58,16 +60,18 @@ class BuyercreditController extends EdiController {
     public function getListAction() {
         $data = $this->getPut();
         $model = new BuyerCreditModel();
-        $data['agent_id'] = 38872;   //待确定查看权限
+        $data['agent_id'] = UID;   //待确定查看权限
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
             foreach($res as $item) {
-                $time = strtotime('+90 d',strtotime($item['approved_date']));
-                if($time <= time()) {
-                    $item['status'] = 'INVALID';
-                    $status['status'] = 'INVALID';
-                    $model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                if(!empty($item['approved_date'])){
+                    $time = strtotime('+90 d',strtotime($item['approved_date']));
+                    if($time <= time()) {
+                        $item['status'] = 'INVALID';
+                        $status['status'] = 'INVALID';
+                        $model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                    }
                 }
             }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
