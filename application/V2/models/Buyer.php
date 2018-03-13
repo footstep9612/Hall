@@ -249,16 +249,54 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function buyerStatisList($data){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
-        $cond .=" and country.lang='zh'";
         $currentPage = 1;
         $pageSize = 10;
-        $totalCount = $this->alias('buyer')
-            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
-            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
-            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
-            ->where($cond)
-            ->count();
+
+//        $sql="SELECT";
+//        $sql.=" buyer.`id`,`buyer_no`,buyer.`name`, `buyer`.buyer_code,";
+//        $sql.=" `buyer`.`country_bn`,";
+//        $sql.=" `buyer_level`,buyer.`source`,`percent`,";
+//        $sql.=" buyer.`status`,buyer.`created_by`,";
+//        $sql.=" buyer.`created_at`,";
+//
+//        $sql.=" agent.created_at as checked_at";
+//        $sql.=" FROM erui_buyer.buyer buyer";   //buyer
+//
+//        $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+//        $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+//        $sql.=" left Join `erui_dict`.`country` country";   //country
+//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sql.= 'where '.$cond;
+//        $sql.= ' group by buyer.id';
+        $sql="SELECT count(DISTINCT buyer.id) as total_count";
+        $sql.=" FROM erui_buyer.buyer buyer";   //buyer
+        $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+        $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+        $sql.=" left Join `erui_dict`.`country` country";   //country
+        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
+        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+        $sql.= 'where '.$cond;
+        $count=$this->query($sql);
+        $totalCount=$count[0]['total_count'];   //总条数
+        //统计等级-客户等级下的数量
+        $sqlLevel = "SELECT  buyer.id,buyer.buyer_level,COUNT(*)  as level_count ";
+        $sqlLevel .= ' FROM erui_buyer.buyer buyer';
+        if(!empty($data['employee_name']) || !empty($data['checked_at_start']) || !empty($data['checked_at_end'])){
+            $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+            $sqlLevel.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+            $sqlLevel.=" left Join `erui_dict`.`country` country";   //country
+            $sqlLevel.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+            $sqlLevel.=" left Join `erui_sys`.`employee` employee";   //经办人
+            $sqlLevel.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+            $sqlLevel.= 'where '.$cond;
+        }
+        $level=$this->query($sqlLevel." GROUP BY buyer.buyer_level");
+
+        print_r($level);die;
+        $totalCount=count($totalCount);
         $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
             $currentPage = ceil($data['currentPage']);
@@ -281,9 +319,9 @@ class BuyerModel extends PublicModel {
         }
         $field .= ' ,agent.agent_id,agent.created_at as checked_at';
         $info = $this->alias('buyer')
-            ->join('erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id','left')
-            ->join('erui_sys.employee employee on agent.agent_id=employee.id','left')
-            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
+            ->join("erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag='N'",'left')
+            ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N'",'left')
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
@@ -291,6 +329,21 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         print_r($info);die;
+        foreach($info as $k => $v){
+            if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){ //客户等级
+                $level = new BuyerLevelModel();
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }
+            if(!empty($v['percent'])){  //信息完整度
+                $info[$k]['percent']=$v['percent'].'%';
+            }else{
+                $info[$k]['percent']='--';
+            }
+            if(!empty($v['country_bn'])){ //国家
+                $country = new CountryModel();
+                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
+            }
+        }
         $arr['currentPage'] = $currentPage;
         $arr['totalPage'] = $totalPage;
         $arr['totalCount'] = $totalCount;
@@ -1171,16 +1224,17 @@ EOF;
      * @author jhw
      */
     public function getBuyerCountByStatus($condition) {
-        $sql = "SELECT  buyer.`status` ,COUNT(*)  as number ";
-        $sql .= ' FROM erui_buyer.buyer buyer';
-        if(!empty($condition['employee_name'])){
-            $sql .= " left Join `erui_buyer`.`buyer_agent` buyer_agent";
-            $sql .= " on buyer_agent.buyer_id = buyer.id ";
-            $sql .= " Join `erui_sys`.`employee` employee";
-            $sql .= " on buyer_agent.`agent_id` = employee.`id`";
-        }
+//        $sql = "SELECT  buyer.`status` ,COUNT(*)  as number ";
+//        $sql .= ' FROM erui_buyer.buyer buyer';
+//        if(!empty($condition['employee_name'])){
+//            $sql .= " left Join `erui_buyer`.`buyer_agent` buyer_agent";
+//            $sql .= " on buyer_agent.buyer_id = buyer.id ";
+//            $sql .= " Join `erui_sys`.`employee` employee";
+//            $sql .= " on buyer_agent.`agent_id` = employee.`id`";
+//        }
 //        $where = " WHERE buyer.deleted_flag = 'N'  AND employee.deleted_flag='N' ";
         $where = " WHERE buyer.deleted_flag = 'N'";
+        $where .= " and agent.deleted_flag = 'N'";
         if (!empty($condition['country_bn'])) {
             $where .= " And buyer.country_bn=$condition[country_bn] ";
         }
@@ -1194,10 +1248,10 @@ EOF;
             $where .= ' And buyer.status  ="' . $condition['status'] . '"';
         }
         if (!empty($condition['checked_at_start'])) {
-            $where .= ' And buyer.checked_at  >="' . $condition['checked_at_start'] . '"';
+            $where .= ' And agent.checked_at  >="' . $condition['checked_at_start'] . '"';
         }
         if (!empty($condition['checked_at_end'])) {
-            $where .= ' And buyer.checked_at  <="' . $condition['checked_at_end'] . '"';
+            $where .= ' And agent.checked_at  <="' . $condition['checked_at_end'] . '"';
         }
         if (!empty($condition['source'])) {
             $where .= " And buyer.source=$condition[source] ";
@@ -1220,28 +1274,28 @@ EOF;
         if (!empty($condition['max_percent'])) {
             $where .= ' And buyer.percent  <=' . $condition['max_percent'];
         }
-        if ($where) {
-            $sql .= $where;
-        }
-        $sql .= ' Group By buyer.status';
-
-        $statusCount = $this->query($sql);  //各状态下的客户数量
-        $field=array(
-            'APPROVED', //审核通过
-            'FIRST_APPROVED', //初审通过
-            'APPROVING', //待审核
-            'FIRST_REJECTED', //初审驳回
-            'REJECTED', //驳回
-        );
-        $statusArr = [];
-        foreach($statusCount as $key => $value){
-            $statusArr[$value['status']]=$value['number'];
-            foreach($field as $v){
-                if(empty($statusArr[$v])){
-                    $statusArr[$v]=0;
-                }
-            }
-        }
+//        if ($where) {
+//            $sql .= $where;
+//        }
+//        $sql .= ' Group By buyer.status';
+//
+//        $statusCount = $this->query($sql);  //各状态下的客户数量
+//        $field=array(
+//            'APPROVED', //审核通过
+//            'FIRST_APPROVED', //初审通过
+//            'APPROVING', //待审核
+//            'FIRST_REJECTED', //初审驳回
+//            'REJECTED', //驳回
+//        );
+//        $statusArr = [];
+//        foreach($statusCount as $key => $value){
+//            $statusArr[$value['status']]=$value['number'];
+//            foreach($field as $v){
+//                if(empty($statusArr[$v])){
+//                    $statusArr[$v]=0;
+//                }
+//            }
+//        }
         //统计客户数量
         $sqlTotal = "SELECT  COUNT(*)  as total_count ";
         $sqlTotal .= ' FROM erui_buyer.buyer buyer';

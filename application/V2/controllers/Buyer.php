@@ -779,6 +779,13 @@ class BuyerController extends PublicController {
 //                $arr['checked_at'] = Date("Y-m-d H:i:s");
 //            }
         }
+        if (!empty($data['agent'])) {
+            $arr['status'] = 'APPROVED';
+//            if ($data['status'] == 'REJECTED') {
+//                $arr['checked_by'] = $this->user['id'];
+//                $arr['checked_at'] = Date("Y-m-d H:i:s");
+//            }
+        }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
         }
