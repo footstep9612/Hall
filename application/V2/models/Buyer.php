@@ -282,18 +282,28 @@ class BuyerModel extends PublicModel {
         $count=$this->query($sql);
         $totalCount=$count[0]['total_count'];   //总条数
         //统计等级-客户等级下的数量
-        $sqlLevel = "SELECT  buyer.id,buyer.buyer_level,COUNT(*)  as level_count ";
+//        $sqlLevel = "SELECT buyer.id,buyer_level,COUNT(*)  as level_count ";
+//        $sqlLevel .= ' FROM erui_buyer.buyer buyer';
+//        $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+//        $sqlLevel.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+//        $sqlLevel.=" left Join `erui_dict`.`country` country";   //country
+//        $sqlLevel.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sqlLevel.=" left Join `erui_sys`.`employee` employee";   //经办人
+//        $sqlLevel.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+//        $sqlLevel.= 'where '.$cond;
+        $sqlLevel = "select gbuyer.buyer_level,count(*) from (";
+        $sqlLevel .= ' SELECT buyer.id,agent.agent_id,buyer_level';
         $sqlLevel .= ' FROM erui_buyer.buyer buyer';
-        if(!empty($data['employee_name']) || !empty($data['checked_at_start']) || !empty($data['checked_at_end'])){
-            $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
-            $sqlLevel.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-            $sqlLevel.=" left Join `erui_dict`.`country` country";   //country
-            $sqlLevel.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-            $sqlLevel.=" left Join `erui_sys`.`employee` employee";   //经办人
-            $sqlLevel.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
-            $sqlLevel.= 'where '.$cond;
-        }
-        $level=$this->query($sqlLevel." GROUP BY buyer.buyer_level");
+        $sqlLevel.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+        $sqlLevel.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+        $sqlLevel.=" left Join `erui_dict`.`country` country";   //country
+        $sqlLevel.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+        $sqlLevel.=" left Join `erui_sys`.`employee` employee";   //经办人
+        $sqlLevel.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+        $sqlLevel.= 'where '.$cond;
+        $sqlLevel.= ' GROUP BY buyer.id,buyer.buyer_level) gbuyer';
+        $sqlLevel.= ' group by gbuyer.buyer_level';
+        $level=$this->query($sqlLevel);
 
         print_r($level);die;
         $totalCount=count($totalCount);
