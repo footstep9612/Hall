@@ -15,7 +15,13 @@ class NoticeModel extends PublicModel
         try{
             $result = $this->add($this->create($attributes));
             if ($result) {
-                return ['code'=> 1, 'message' => '成功'];
+                return [
+                    'code'=> 1,
+                    'message' => '成功',
+                    'data'=> [
+                        'id' => $result
+                    ]
+                ];
             }
         }catch (Exception $exception){
             return ['code'=> $exception->getCode(), 'message' => $exception->getMessage()];
