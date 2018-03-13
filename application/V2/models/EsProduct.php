@@ -2156,7 +2156,7 @@ class EsProductModel extends Model {
             'P' => 'show_cat',
             'Q' => 'created_at',
             'R' => 'checked_at',
-            'S' => 'onshelf_at',
+            'S' => 'onshelf_at'
         ];
     }
 
@@ -2208,6 +2208,7 @@ class EsProductModel extends Model {
         $dirName = $tmpDir . $date;
         ZipHelper::zipDir($dirName, $dirName . '.zip');
         ZipHelper::removeDir($dirName);    //清除目录
+        p($dirName . '.zip');
         if (file_exists($dirName . '.zip')) {
             //把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
@@ -2345,7 +2346,7 @@ class EsProductModel extends Model {
                     $status = $item['status'];
                     break;
             }
-            $objSheet->setCellValue("S" . ($j + 2), ' ' . $status);
+            $objSheet->setCellValue("T" . ($j + 2), ' ' . $status);
         }
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
         $objSheet->getStyle('A1:S' . ($j + 2))->applyFromArray($styleArray);
