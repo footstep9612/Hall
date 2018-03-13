@@ -42,16 +42,16 @@ class EdiController extends PublicController{
 
     static private $client;
 
-    public function init(){
+    public function __construct(){
         error_reporting(E_ALL & ~E_NOTICE);
-        $this->params = json_decode(file_get_contents("php://input"), true);
+        /*$this->params = json_decode(file_get_contents("php://input"), true);
         if (count($this->params) > 0) {
             foreach ($this->params as $key => $val) {
                 if (isset($this->$key)) {
                     $this->$key = $val;
                 }
             }
-        }
+        }*/
         if ($this->serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
             $this->serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;

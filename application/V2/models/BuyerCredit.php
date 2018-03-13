@@ -162,19 +162,19 @@ class BuyerCreditModel extends PublicModel
                     break;
             }
         }*/
-        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
+        if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
             $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
         }
-        if (isset($condition['name']) && $condition['name']) {
+        if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //名称
         }
-        if (isset($condition['source']) && $condition['source']) {
+        if (isset($condition['source']) && !empty($condition['source'])) {
             $where['source'] = $condition['source'];                  //来源
         }
-        if (isset($condition['agent_id']) && $condition['agent_id']) {
+        if (isset($condition['agent_id']) && !empty($condition['agent_id'])) {
             $where['agent_id'] = $condition['agent_id'];                  //经办人
         }
-        if (isset($condition['status']) && $condition['status']) {
+        if (isset($condition['status']) && !empty($condition['status'])) {
             $where['status'] = strtoupper($condition['status']);
         } else{
             $where['status'] = array('neq', 'DRAFT');
