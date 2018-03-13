@@ -42,7 +42,7 @@ class EdiController extends PublicController{
 
     static private $client;
 
-    public function __construct(){
+    public function ini(){
         error_reporting(E_ALL & ~E_NOTICE);
         /*$this->params = json_decode(file_get_contents("php://input"), true);
         if (count($this->params) > 0) {
@@ -60,7 +60,7 @@ class EdiController extends PublicController{
             $this->serviceUri .= '?wsdl';
         }
         self::$client = new SoapClient($this->serviceUri);
-
+        parent::init();
     }
     /**
      * 请求信保审核
