@@ -158,6 +158,19 @@ class BuyerRegInfoModel extends PublicModel
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //更新授信状态--
+            $credit_model = new BuyerCreditModel();
+            $uparr= [
+                'status'=>'APPROVING',
+                'nolc_granted'=>'',
+                'nolc_deadline'=>'',
+                'lc_granted'=>'',
+                'lc_deadline'=>'',
+                'credit_valid_date'=>'',
+                'approved_date'=>'',
+                'credit_apply_date'=>date('Y-m-d H:i:s', time())
+            ];
+            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
             //添加日志
             $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
             if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
@@ -180,6 +193,18 @@ class BuyerRegInfoModel extends PublicModel
             LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
+    }
+
+    /**
+     * 企业信息驳回
+     */
+    public function update_reason($buyer_no, $reason){
+        $dataInfo['remarks'] = $reason;
+        $result = $this->where(['buyer_no' => $buyer_no])->save($this->create($dataInfo));
+        if ($result !== false) {
+            return $result;
+        }
+        return false;
     }
 
     /**

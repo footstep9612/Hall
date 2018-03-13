@@ -6,7 +6,7 @@
  * Time: 10:43
  */
 
-class BuyercreditController extends PublicController {
+class BuyercreditController extends EdiController {
 
     public function init(){
         parent::init();
@@ -28,10 +28,18 @@ class BuyercreditController extends PublicController {
         } else {
             $limit['page'] = 1;
         }
-        //$data['agent_id'] = UID;
+        $data['agent_id'] = UID;
         $model = new BuyerCreditModel();
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
+            foreach($res as $item) {
+                $time = strtotime('+90 d',strtotime($item['approved_date']));
+                if($time <= time()) {
+                    $item['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $model->where(['buyer_no' => $item['buyer_no']])->save($this->create($status));
+                }
+            }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
             $datajson['count'] = $res['count'];
             $datajson['data'] = $res['data'];
@@ -50,10 +58,18 @@ class BuyercreditController extends PublicController {
     public function getListAction() {
         $data = $this->getPut();
         $model = new BuyerCreditModel();
-        //$data['agent_id'] = UID;   //待确定查看权限
+        $data['agent_id'] = UID;   //待确定查看权限
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
+            foreach($res as $item) {
+                $time = strtotime('+90 d',strtotime($item['approved_date']));
+                if($time <= time()) {
+                    $item['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $model->where(['buyer_no' => $item['buyer_no']])->save($this->create($status));
+                }
+            }
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -235,33 +251,46 @@ class BuyercreditController extends PublicController {
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
         $credit_log_model = new BuyerCreditLogModel();
-        if($data['status']== 'ERUI_APPROVED'){
-            $res = $credit_model->update_data($data);
-            if($res) {
-                $dataArr['buyer_no'] = $data['buyer_no'];
-                $dataArr['agent_by'] = UID;
-                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                $dataArr['sign'] = 1;
-                $dataArr['in_status'] = 'ERUI_APPROVED';
-                $credit_log_model->create_data($dataArr);
-                $dataArr['sign'] = 2;
-                $credit_log_model->create_data($dataArr);
+        if($data['status']== 'EDI_APPROVING'){
+            //调用信保申请接口
+            $edi_res= $this->EdiApplyAction($data['buyer_no']);
+            if(1 == $edi_res){
+                $res = $credit_model->update_data($data);
+                if($res) {
+                    $dataArr['buyer_no'] = $data['buyer_no'];
+                    $dataArr['agent_by'] = UID;
+                    $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                    $dataArr['sign'] = 1;
+                    $dataArr['in_status'] = 'EDI_APPROVING';
+                    $credit_log_model->create_data($dataArr);
+                    $dataArr['sign'] = 2;
+                    $credit_log_model->create_data($dataArr);
+                }
+            } else {
+                jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
             }
         } else {
+            $credit_reg_model = new BuyerreginfoModel();
+            $credit_bank_model = new BuyerBankInfoModel();
             $res = $credit_model->update_data($data);
             if($res) {
+                if (empty($data['bank_remarks']) && empty($data['remarks'])) {
+                    jsonReturn(null, -110, '请至少填写一项原因!');               //原因
+                }
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = UID;
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['in_status'] = $data['status'];
                 if (isset($data['remarks']) && !empty($data['remarks'])) {
-                    $data['in_remarks'] = $data['remarks'];                    //企业原因
+                    $dataArr['in_remarks'] = $data['remarks'];                    //企业原因
                 }
+                $credit_reg_model->update_reason($data['buyer_no'], $data['remarks']);
                 $dataArr['sign'] = 1;
                 $credit_log_model->create_data($dataArr);
                 if (isset($data['bank_remarks']) && !empty($data['bank_remarks'])) {
-                    $data['in_remarks'] = $data['bank_remarks'];                   //银行原因
+                    $dataArr['in_remarks'] = $data['bank_remarks'];                   //银行原因
                 }
+                $credit_bank_model->update_reason($data['buyer_no'], $data['bank_remarks']);
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
             }
@@ -278,13 +307,13 @@ class BuyercreditController extends PublicController {
 
         switch ($status) {
             case 'APPROVED':    //审核通过
-                $status = 'ERUI_APPROVED';
+                $status = 'EDI_APPROVING';
                 break;
             case 'REJECTED':    //审核驳回
                 $status = 'ERUI_REJECTED';
                 break;
             default:
-                $status = 'ERUI_APPROVED';
+                $status = 'EDI_APPROVING';
                 break;
         }
         return $status;
@@ -421,22 +450,22 @@ class BuyercreditController extends PublicController {
     /**
      * 请求信保审核
      */
-    public function EdiApplyAction() {
-        $data = $this->getPut();
-        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
-            jsonReturn(null, -110, '客户编号缺失!');
-        }
-        //$edi_apply_model = new EdiBuyerApplyModel();
-        $res_buyer = $this->BuyerApply($data['buyer_no']);
-        $res_bank = $this->BankApply($data['buyer_no']);
-        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
-        }
-        $credit_model = new BuyerCreditModel();
-        $arr['status'] = 'EDI_APPROVING';
-        $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);;
-        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
-    }
+//    public function EdiApplyAction() {
+//        $data = $this->getPut();
+//        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+//            jsonReturn(null, -110, '客户编号缺失!');
+//        }
+//        //$edi_apply_model = new EdiBuyerApplyModel();
+//        $res_buyer = $this->BuyerApply($data['buyer_no']);
+//        $res_bank = $this->BankApply($data['buyer_no']);
+//        if($res_buyer['code'] != 1 || $res_bank['code'] != 1) {
+//            jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+//        }
+//        $credit_model = new BuyerCreditModel();
+//        $arr['status'] = 'EDI_APPROVING';
+//        $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);;
+//        jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+//    }
 
     /**
      *

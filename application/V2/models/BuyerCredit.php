@@ -232,19 +232,16 @@ class BuyerCreditModel extends PublicModel
         } else{
             $data['source'] = 'BOSS';
         }
-//        $buyer_model = new BuyerModel();
-//        $agent_model = new BuyerAgentModel();
-//        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
-//        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['buyer_id']])->find();
-//        if($agent_id){
-//            $dataInfo['agent_id'] = $agent_id['agent_id'];
-//            $dataInfo['status'] = 'ERUI_APPROVING';
-//        }else{
-//            $dataInfo['status'] = 'DRAFT';
-//        }
-        $dataInfo['agent_id'] = $data['agent_by'];
-        $dataInfo['status'] = 'ERUI_APPROVING';
-        $dataInfo['credit_apply_date'] = date('Y-m-d',time());
+        $buyer_model = new BuyerModel();
+        $agent_model = new BuyerAgentModel();
+        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
+        if($agent_id){
+            $dataInfo['agent_id'] = $agent_id['agent_id'];
+            $dataInfo['status'] = 'APPROVING';
+        }else{
+            $dataInfo['status'] = 'DRAFT';
+        }
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;
@@ -297,9 +294,7 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
         }
-        $dataInfo['agent_id'] = UID;  //市场经办人
-
-        $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));jsonReturn($result);
+        $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;
         }

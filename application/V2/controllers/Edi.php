@@ -65,8 +65,8 @@ class EdiController extends PublicController{
     /**
      * 请求信保审核
      */
-    public function EdiApplyAction() {
-        $data = $this->getPut();
+    public function EdiApplyAction($data) {
+        //$data = $this->getPut();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -77,9 +77,11 @@ class EdiController extends PublicController{
             $credit_model = new BuyerCreditModel();
             $arr['status'] = 'EDI_APPROVING';
             $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
-            jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+            return ShopMsg::CREDIT_SUCCESS;
+            //jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
         }
-        jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+        return ShopMsg::CREDIT_FAILED;
+        //jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
 
     }
     /**
@@ -103,9 +105,6 @@ class EdiController extends PublicController{
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         return $resBuyer;
-        /* $this->setCode(MSG::MSG_SUCCESS);
-         $this->setMessage('申请成功!');
-         $this->jsonReturn($resBuyer);*/
     }
 
     /**
@@ -155,7 +154,7 @@ class EdiController extends PublicController{
     protected function testEdiBuyerCodeAction(){
         $buyerCodeApplyInfo['corpSerialNo'] = '1';
         $buyerCodeApplyInfo['corpSerialNo'] = '1';
-        $buyerCodeApplyInfo['policyNo'] = 'SCH017067-161600';
+        $buyerCodeApplyInfo['policyNo'] = 'SCH043954-181800';
         $buyerCodeApplyInfo['engName'] = 'Toyota Motor Sales, U.S.A., Inc';
         $buyerCodeApplyInfo['countryCode'] = 'USA';
         $buyerCodeApplyInfo['engAddress'] = 'USA';
@@ -163,7 +162,7 @@ class EdiController extends PublicController{
 
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($buyerCodeApplyInfo)));
         try {
-            $response = $this->client->doEdiBuyerCodeApply($data);
+            $response = self::$client->doEdiBuyerCodeApply($data);
             var_dump($response);
             $buyerCodeApproveInfo = $response->BuyerCodeApproveInfo;
             if ($buyerCodeApproveInfo) {

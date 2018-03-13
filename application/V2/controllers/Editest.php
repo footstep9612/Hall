@@ -64,15 +64,18 @@ class Editest{
                     ];
                     if($item['approveFlag'] == 1){
                         //先查看是否已经审核通过
-                        $check = $conn->query("select status from buyer_credit.buyer_credit where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
-                        if($check['status'] !== 'EDI_APPROVED'){
+                        $check = $conn->query("select status,bank_swift from buyer_credit.buyer_credit where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
+                        if(!empty($check['bank_swift'])){
+                            $conn->query("update buyer_credit.buyer_credit set sinosure_no=".$item['buyerInfo']['buyerNo'].",approved_date=".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",status='EDI_APPROVED' where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
+                            $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status) values(".$item['buyerInfo']['corpSerialNo'].",".$item['buyerInfo']['engName'].",".$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",'EDI_APPROVED')");
+                        } else {
                             $conn->query("update buyer_credit.buyer_credit set sinosure_no=".$item['buyerInfo']['buyerNo'].",approved_date=".date('Y-m-d H:i:s', strtotime($item['notifyTime']))." where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
-                            $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status) values(".$item['buyerInfo']['corpSerialNo'].",".$item['buyerInfo']['engName'].",".$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', time()).",'EDI_APPROVED')");
+                            $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status) values(".$item['buyerInfo']['corpSerialNo'].",".$item['buyerInfo']['engName'].",".$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",'EDI_APPROVED')");
                         }
                      } else {
                         $conn->query("update buyer_credit.buyer_credit set status='ERUI_REJECTED' where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
                         //添加日志
-                        $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status,out_remarks) values(".$item['buyerInfo']['corpSerialNo'].".",$item['buyerInfo']['engName'].",."$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', time()).",'ERUI_REJECTED',".$item['unAcceptReason'].")");
+                        $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status,out_remarks) values(".$item['buyerInfo']['corpSerialNo'].".",$item['buyerInfo']['engName'].",."$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",'ERUI_REJECTED',".$item['unAcceptReason'].")");
                     }
 
                 //              date('Y-m-d H:i:s', strtotime('2011-04-01T00:00:00+08:00'));
@@ -129,13 +132,13 @@ class Editest{
                         //先查看是否已经审核通过
                         $check = $conn->query("select status from buyer_credit.buyer_credit where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
                         if($check['status'] !== 'EDI_APPROVED'){
-                            $conn->query("update buyer_credit.buyer_credit set sinosure_no=".$item['buyerInfo']['buyerNo'].",approved_date=".date('Y-m-d H:i:s', strtotime($item['notifyTime']))." where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
-                            $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status) values(".$item['buyerInfo']['corpSerialNo'].",".$item['buyerInfo']['engName'].",".$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', time()).",'EDI_APPROVED')");
+                            $conn->query("update buyer_credit.buyer_credit set bank_swift=".$item['bankInfo']['bankSwift'].",approved_date=".date('Y-m-d H:i:s', strtotime($item['notifyTime']))." where buyer_no = ".$item['bankInfo']['corpSerialNo']);
+                            $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`bank_name`,bank_address,sign,checked_by,checked_at,out_status) values(".$item['bankInfo']['corpSerialNo'].",".$item['bankInfo']['engName'].",".$item['bankInfo']['address'].",2,'edi',".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",'EDI_APPROVED')");
                         }
                     } else {
                         $conn->query("update buyer_credit.buyer_credit set status='ERUI_REJECTED' where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
                         //添加日志
-                        $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`name`,address,sign,checked_by,checked_at,out_status,out_remarks) values(".$item['buyerInfo']['corpSerialNo'].".",$item['buyerInfo']['engName'].",."$item['buyerInfo']['engAddress'].",1,'edi',".date('Y-m-d H:i:s', time()).",'ERUI_REJECTED',".$item['unAcceptReason'].")");
+                        $conn->query("insert into buyer_credit.buyer_credit_log(buyer_no,`bank_name`,bank_address,sign,checked_by,checked_at,out_status,out_remarks) values(".$item['bankInfo']['corpSerialNo'].".",$item['bankInfo']['engName'].",."$item['bankInfo']['address'].",2,'edi',".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",'ERUI_REJECTED',".$item['unAcceptReason'].")");
                     }
 
                     //              date('Y-m-d H:i:s', strtotime('2011-04-01T00:00:00+08:00'));
