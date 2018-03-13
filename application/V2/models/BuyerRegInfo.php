@@ -30,6 +30,7 @@ class BuyerRegInfoModel extends PublicModel
         'buyer_no',//(40)  '客户编号',
         'country_bn',//(32)  '企业所在国家简称',
         'country_code',// char(3) '国家代码',
+        'area_no',// char(4) '区域代码',
         'name',//(32)  '采购商英文名称',
         'name_zh',//(32)  '采购商中文名称',
         'name_bn',//(32)  '采购商简称',
@@ -52,15 +53,16 @@ class BuyerRegInfoModel extends PublicModel
         'reg_capital',//decimal(20,4)  '注册资本',
         'official_website',//(255)  '官网',
         'social_credit_code',//(32)  '社会信用代码',
-        'biz_nature',//(128)  '企业性质-私营-公营-中资-子公司-联号',
-        'biz_scope',//(500)  '经营性质-批发-零售-生产-代理',
+       // 'biz_nature',//(128)  '企业性质-私营-公营-中资-子公司-联号',
+       // 'biz_scope',//(500)  '经营性质-批发-零售-生产-代理',
         'biz_type',//(30)  '企业类型',
         'gov_org',//(30)  '政府机构:1-是,2-否',
         'listed_company',//(30)  '上市企业:1-是,2-否',
-        'stock_exchange',//(30)  '证券交易所',
+       // 'stock_exchange',//(30)  '证券交易所',
         'stock_code',//(30)  '股票代码',
         'equitiy',//decimal(20,4)  '资产净值',
         'turnover',//decimal(20,4)  '年销售额',
+        'remarks',//
 
     ];
 
@@ -74,6 +76,7 @@ class BuyerRegInfoModel extends PublicModel
             return [];
         }
         foreach($data as $key =>$value){
+            $value = trim($value);
             if(!in_array($key,$this->_field)){
                 unset($data[$key]);
             }
@@ -89,47 +92,48 @@ class BuyerRegInfoModel extends PublicModel
      */
     public function create_data($data)
     {
-        $this->startTrans();
         try{
 
             $dataInfo = $this->_getData($data);
-            $dataInfo['remarks'] = $data['remarks'];
+            if(isset($data['stock_exchange'])){
+                $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
+            }
+            if(isset($data['biz_scope'])){
+                $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
+            }
+            if(isset($data['biz_nature'])){
+                $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
-            $dataInfo['created_by'] = $data['buyer_id'];
+            $dataInfo['created_by'] = $data['agent_by'];
             $dataInfo['created_at'] = date('Y-m-d H:i:s', time());
             $result = $this->add($this->create($dataInfo));
             if($result){
-                //添加银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->create_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '添加银行信息失败');
-                }
                 //添加审核信息
                 $credit_model = new BuyerCreditModel();
-                $data['source'] = 'PORTAL';
+                $data['source'] = 'BOSS';
                 $credit_model->create_data($data);
-
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'DRAFT';
-                $dataArr['sign'] = 1;
+                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['name'] = $dataInfo['name'];
+                $dataArr['address'] = $dataInfo['registered_in'];
+                $dataArr['sign'] = 1;  //企业
                 $credit_log_model->create_data($dataArr);
-                $dataArr['sign'] = 2;
-                $credit_log_model->create_data($dataArr);
-
-                $this->commit();
+//                $dataArr['sign'] = 2; //银行
+//                $credit_log_model->create_data($dataArr);
                 return $result;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCreditModel】create_data:' . $e , Log::ERR);
-            //jsonReturn($e->getMessage());
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】create_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
     }
@@ -139,47 +143,41 @@ class BuyerRegInfoModel extends PublicModel
      */
     public function update_data($data)
     {
-        $this->startTrans();
         try{
             $dataInfo = $this->_getData($data);
+            if(isset($data['stock_exchange'])){
+                $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
+            }
+            if(isset($data['biz_scope'])){
+                $dataInfo['biz_scope'] = json_encode($data['biz_scope']);
+            }
+            if(isset($data['biz_nature'])){
+                $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
+            }
             $dataInfo['deleted_flag'] = 'N';
-            $dataInfo['updated_by'] = $data['buyer_id'];
+            $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
-            $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+            $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //添加日志
+            $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
+            if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
+                $credit_log_model = new BuyerCreditLogModel();
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['name'] = $dataInfo['name'];
+                $dataArr['address'] = $dataInfo['registered_in'];
+                $dataArr['sign'] = 1;  //企业
+                $credit_log_model->create_data($dataArr);
+            }
             if ($result !== false) {
-                //更新银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->update_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新银行信息失败');
-                }
-                //添加日志
-                $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
-                if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
-                    $credit_log_model = new BuyerCreditLogModel();
-                    $dataArr['buyer_no'] = $data['buyer_no'];
-                    $dataArr['agent_by'] = $data['agent_by'];
-                    $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                    $dataArr['name'] = $dataInfo['name'];
-                    $dataArr['address'] = $dataInfo['registered_in'];
-                    $dataArr['sign'] = 1;  //企业
-                    $credit_log_model->create_data($dataArr);
-                }
-                //更新审核信息
-                $credit_model = new BuyerCreditModel();
-                $credit_res = $credit_model->update_data($data);
-                /*if(!$credit_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新审核信息失败');
-                }*/
-                $this->commit();
                 return $result;
             }
             return false;
         }catch (Exception $e){
             $this->rollback();
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCreditModel】update_data:' . $e , Log::ERR);
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerCompanyModel】update_data:' . $e , Log::ERR);
+            LOG::write($e->getMessage(), LOG::ERR);
             return false;
         }
     }

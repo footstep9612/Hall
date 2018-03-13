@@ -33,10 +33,9 @@ class BuyerBankInfoModel extends PublicModel
         'bank_name_zh',// '开户银行中文名称',
         'bank_account',// '企业银行账号',
         'bank_country_code',// '银行国家代码',
-        'bank_country_bn',// '银行国家简称',
         'bank_address',// '银行地址',
         'bank_contact',//   '银行联系人',
-        'zipcode',//  '邮编',
+        'bank_zipcode',//  '邮编',
         'tel_code_bank',//   '银行电话区号',
         'tel_bank',//   '银行电话',
         'fax_code_bank',//    '传真区号',
@@ -85,8 +84,9 @@ class BuyerBankInfoModel extends PublicModel
      */
     public function create_data($data) {
 
-        $dataInfo['remarks'] = $data['bank_remarks'];
+
         $dataInfo = $this->_getData($data);
+        $dataInfo['remarks'] = $data['bank_remarks'];
         $dataInfo['deleted_flag'] = 'N';
         $dataInfo['status'] = 'VALID';
         $dataInfo['created_by'] = $data['buyer_id'];
@@ -108,6 +108,18 @@ class BuyerBankInfoModel extends PublicModel
         $dataInfo['updated_by'] = $data['buyer_id'];
         $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
         $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+        //添加日志
+        $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
+        if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])) {
+            $credit_log_model = new BuyerCreditLogModel();
+            $dataArr['buyer_no'] = $data['buyer_no'];
+            $dataArr['agent_by'] = $data['agent_by'];
+            $dataArr['agent_at'] = date('Y-m-d H:i:s', time());
+            $dataArr['bank_name'] = $dataInfo['bank_name'];
+            $dataArr['bank_address'] = $dataInfo['bank_address'];
+            $dataArr['sign'] = 2;
+            $credit_log_model->create_data($this->create($dataArr));
+        }
         if ($result !== false) {
             return true;
         }

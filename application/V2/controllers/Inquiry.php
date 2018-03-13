@@ -210,15 +210,19 @@ class InquiryController extends PublicController {
         $employeeModel = new EmployeeModel();
         $buyerModel = new BuyerModel();
         $countryUserModel = new CountryUserModel();
+        $org = new OrgModel();
+        $marketAreaCountryModel = new MarketAreaCountryModel();
+        $marketAreaModel = new MarketAreaModel();
+        $transModeModel = new TransModeModel();
 
         // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        if ($condition['agent_name'] != '') {
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
         }
         
         // 报价人
-        if (!empty($condition['quote_name'])) {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        if ($condition['quote_name'] != '') {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
         }
 
         // 当前用户的所有角色编号
@@ -229,7 +233,7 @@ class InquiryController extends PublicController {
 
         $condition['user_id'] = $this->user['id'];
         
-        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]);
+        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
 
         $inquiryList = $inquiryModel->getList_($condition);
 
@@ -240,6 +244,14 @@ class InquiryController extends PublicController {
             $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
             $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
             $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
+            $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
+            $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
+            $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
+            $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
+            $inquiry['trans_mode_bn'] = $transMode['bn'];
+            $inquiry['trans_mode_name'] = $transMode['trans_mode'];
         }
 
         if ($inquiryList) {
@@ -272,13 +284,13 @@ class InquiryController extends PublicController {
         $countryUserModel = new CountryUserModel();
         
         // 市场经办人
-        if (!empty($condition['agent_name'])) {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']);
+        if ($condition['agent_name'] != '') {
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
         }
         
         // 报价人
-        if (!empty($condition['quote_name'])) {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']);
+        if ($condition['quote_name'] != '') {
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
         }
 
         // 是否显示列表
@@ -299,7 +311,7 @@ class InquiryController extends PublicController {
             
             if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
                 $isShow = true;
-                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : ['-1'];
+                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
                 break;
             }
         }
@@ -719,7 +731,7 @@ class InquiryController extends PublicController {
         }
         //事业部
         if (!empty($results['data']['org_id'])) {
-            $results['data']['org_name'] = $org->where(['id' => $results['data']['org_id']])->getField('name');
+            $results['data']['org_name'] = $org->where(['id' => $results['data']['org_id'], 'deleted_flag' => 'N'])->getField('name');
         }
         //事业部审核人
         if (!empty($results['data']['check_org_id'])) {
@@ -1327,5 +1339,15 @@ class InquiryController extends PublicController {
 
         return $result;
     }
+    /*
+        * 添加询单转订单
+        * Author:jhw
+        */
 
+    public function addInquiryOrderAction() {
+        $attach = new InquiryOrderModel();
+        $data = $this->put_data;
+        $results = $attach->addData($data);
+        $this->jsonReturn($results);
+    }
 }

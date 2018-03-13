@@ -180,7 +180,6 @@ class QuoteController extends PublicController{
 
         $inquiryModel->updateData([
             'id'=>$request['inquiry_id'],
-            'quote_status' => 'QUOTED',
             'now_agent_id' => $check_org_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
             'check_org_id' => $check_org_id, //事业部审核人
@@ -328,6 +327,7 @@ class QuoteController extends PublicController{
             'now_agent_id' => $now_agent_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
             'status'       => 'MARKET_CONFIRMING',
+            'quote_status' => 'QUOTED',
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);

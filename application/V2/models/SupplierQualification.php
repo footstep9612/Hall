@@ -141,4 +141,66 @@ class SupplierQualificationModel extends PublicModel {
 
 		return $this->where($where)->delete();
 	}
+	
+	/**
+	 * @desc 获取资质过期的供应商ID集合
+	 *
+	 * @return array
+	 * @author liujf
+	 * @time 2018-03-02
+	 */
+	public function getOverdueSupplierIds() {
+	    $list = $this->field('supplier_id, (UNIX_TIMESTAMP(MIN(expiry_date)) + 86399 - UNIX_TIMESTAMP()) AS expiry_time')
+                            ->group('supplier_id')
+                            ->having('expiry_time <= 0')
+                            ->select();
+        $supplierIds = [];
+        foreach ($list as $item) {
+            $supplierIds[] = $item['supplier_id'];
+        }
+        return $supplierIds;
+	}
+	
+	/**
+	 * @desc 获取资质到期天数
+	 *
+	 * @param int $supplierId 供应商ID
+	 * @return mixed
+	 * @author liujf
+	 * @time 2018-03-02
+	 */
+	public function getExpiryDateCount($supplierId) {
+	    return $this->field('CEIL((UNIX_TIMESTAMP(MIN(expiry_date)) + 86399 - UNIX_TIMESTAMP()) / 86400) AS count')->where(['supplier_id' => $supplierId])->find()['count'];
+	}
+	
+	/**
+	 * @desc 获取资质到期时间
+	 *
+	 * @param int $supplierId 供应商ID
+	 * @return mixed
+	 * @author liujf
+	 * @time 2018-03-03
+	 */
+	public function getExpiryDate($supplierId) {
+	    return $this->field('MIN(expiry_date) AS date')->where(['supplier_id' => $supplierId])->find()['date'];
+	}
+	
+	/**
+	 * @desc 获取资质过期时间段内的供应商ID集合
+	 *
+	 * @return array
+	 * @author liujf
+	 * @time 2018-03-03
+	 */
+	public function getOverduePeriodSupplierIds($startDate, $endDate) {
+	    $list = $this->field('supplier_id, MIN(expiry_date) AS date')
+                    	    ->group('supplier_id')
+                    	    ->having('date >= \'' . $startDate . '\' AND date <= \'' . $endDate . '\'')
+                    	    ->select();
+	    $supplierIds = [];
+	    foreach ($list as $item) {
+	        $supplierIds[] = $item['supplier_id'];
+	    }
+	    return $supplierIds;
+	}
 }

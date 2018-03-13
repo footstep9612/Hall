@@ -25,6 +25,11 @@ class ShopMsg {
      */
     const CUSTOM_FAILED = -201;
     const CUSTOM_SUCCESS = 1;
+    /**
+     * 授信
+     */
+    const CREDIT_FAILED = -1;
+    const CREDIT_SUCCESS = 1;
 
     /**
      * 信息映射

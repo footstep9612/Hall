@@ -134,11 +134,13 @@ class InquiryModel extends PublicModel {
         }else if($condition['list_type'] == 'quote'){
             $where['status'] = array('neq','DRAFT');
         }
-        
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];    //国家
         }
-        
+
         if (!empty($condition['serial_no'])) {
             $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
         }
@@ -146,17 +148,21 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
         }
+        
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
 
         if (!empty($condition['buyer_inquiry_no'])) {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        if (isset($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
-        if (!empty($condition['quote_id'])) {
-            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        if (isset($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
@@ -265,8 +271,8 @@ class InquiryModel extends PublicModel {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!empty($condition['user_country'])) {
-            $where['country_bn'] = ['in', $condition['user_country']];    //查看事业部询单角色国家
+        if (isset($condition['user_country'])) {
+            $where['country_bn'] = ['in', $condition['user_country'] ? : ['-1']];    //查看事业部询单角色国家
         }
     
         if (!empty($condition['country_bn'])) {
@@ -285,16 +291,16 @@ class InquiryModel extends PublicModel {
             $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
     
-        if (!empty($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        if (isset($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
-        if (!empty($condition['quote_id'])) {
-            $where['quote_id'] = ['in', $condition['quote_id']]; //报价人
+        if (isset($condition['quote_id'])) {
+            $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
         
-        if (!empty($condition['org_id'])) {
-            $where['org_id'] = ['in', $condition['org_id']]; //事业部
+        if (isset($condition['org_id'])) {
+            $where['org_id'] = ['in', $condition['org_id'] ? : ['-1']]; //事业部
         }
     
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
@@ -740,12 +746,15 @@ class InquiryModel extends PublicModel {
         $orgMemberModel = new OrgMemberModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
+        $employeeModel = new EmployeeModel();
         
         $orgId = $this->getDeptOrgId($groupId, $orgNode);
 	        
-        $roleId = $roleModel->where(['role_no' => $roleNo])->getField('id', true);
+        $roleId = $roleModel->where(['role_no' => $roleNo, 'deleted_flag' => 'N'])->getField('id', true);
         
         $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ? : ['-1']]])->getField('employee_id', true);
+        
+        $employeeId = $employeeModel->where(['id' => ['in', $employeeId ? : ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
         
         return $orgMemberModel->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->getField('employee_id', true);
     }
@@ -764,7 +773,7 @@ class InquiryModel extends PublicModel {
     
         $roleId = $roleUserModel->where(['employee_id' => $userId ? : '-1'])->getField('role_id', true);
     
-        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']]])->getField('role_no', true);
+        $roleNoArr = $roleModel->where(['id' => ['in', $roleId ? : ['-1']], 'deleted_flag' => 'N'])->getField('role_no', true);
     
         return $this->getUserRoleByNo($roleNoArr);
     }
@@ -951,7 +960,7 @@ class InquiryModel extends PublicModel {
             $lang = empty($condition['lang']) ? 'zh' : $condition['lang'] ;
             
             return $this->alias('a')
-                                ->field('a.id, a.serial_no, a.buyer_code, a.country_bn, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
+                                ->field('a.id, a.serial_no, a.buyer_code, a.country_bn, IF(a.proxy_flag = \'Y\', \'是\', \'否\') AS proxy_flag, a.proxy_no, a.quote_status, a.created_at, b.name AS country_name, c.name AS area_name, d.name AS org_name, e.gross_profit_rate, f.total_quote_price')
                                 ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
                                 ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')

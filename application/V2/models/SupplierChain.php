@@ -314,6 +314,7 @@ class SupplierChainModel extends PublicModel {
     private function _setEruiCheckedName(&$data) {
         if ($data) {
             $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $erui_checked_bys = [];
             foreach ($data as $item) {
                 if ($item['erui_checked_by']) {
@@ -330,6 +331,8 @@ class SupplierChainModel extends PublicModel {
                     $val['erui_checked_name'] = '';
                 }
                 $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }
@@ -344,6 +347,7 @@ class SupplierChainModel extends PublicModel {
     private function _setCheckedName(&$data) {
         if ($data) {
             $employee_model = new EmployeeModel();
+            $supplierQualificationModel = new SupplierQualificationModel();
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
@@ -360,6 +364,8 @@ class SupplierChainModel extends PublicModel {
                     $val['checked_name'] = '';
                 }
                 $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
+                $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
+                $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
                 $data[$key] = $val;
             }
         }

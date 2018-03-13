@@ -36,7 +36,12 @@ class UserController extends PublicController {
             $where['role_id'] = trim($data['role_id']);
         }
         if (!empty($data['role_no'])) {
-            $where['role_no'] = trim($data['role_no']);
+           //$where['role_no'] = trim($data['role_no']);
+            $role_no = explode(",", $data['role_no']);
+            for ($i = 0; $i < count($role_no); $i++) {
+                $where['role_no'] = $where['role_no'] . "'" . $role_no[$i] . "',";
+            }
+            $where['role_no'] = rtrim($where['role_no'], ",");
         }
         if (!empty($data['status'])) {
             $where['status'] = trim($data['status']);
@@ -74,7 +79,6 @@ class UserController extends PublicController {
         }
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
-
         $count = $user_modle->getcount($where);
         if (!empty($data)) {
             $datajson['code'] = 1;
@@ -250,20 +254,21 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $data = $role_user_modle->userRoleList($user_id, 0);
+        $where['source'] = 'BOSS';
+        $data = $role_user_modle->userRoleList($user_id, 0, $where);
         $count = count($data);
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
             $data[$i]['lang'] = $this->lang;
-            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id']);
+            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id'], $where);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     $data[$i]['children'][$j]['lang'] = $this->lang;
                     if (isset($data[$i]['children'][$j]['id'])) {
                         $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id']);
+                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id'], $where);
                         if (!$data[$i]['children'][$j]['children']) {
                             unset($data[$i]['children'][$j]['children']);
                         }
@@ -539,7 +544,7 @@ class UserController extends PublicController {
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
         if ($res !== false) {
-            if ($data['role_ids']) {
+            if (isset($data['role_ids'])) {
                 $model_role_user = new RoleUserModel();
                 $role_user_arr['user_id'] = $where['id'];
                 $role_user_arr['role_ids'] = $data['role_ids'];
@@ -551,7 +556,7 @@ class UserController extends PublicController {
                 $group_user_arr['group_ids'] = $data['group_ids'];
                 $model_group_user->addGroup($group_user_arr);
             }
-            if ($data['country_bns']) {
+            if (isset($data['country_bns'])) {
                 $model_country_user = new CountryUserModel();
                 $country_user_arr['user_id'] = $where['id'];
                 $country_user_arr['country_bns'] = $data['country_bns'];
@@ -648,17 +653,25 @@ class UserController extends PublicController {
     public function countryNameAction()
     {
 
-        $condition = $this->validateRequestParams('country_bns');
+        $condition = $this->validateRequestParams();
 
-        $countryNames = [];
-        foreach (explode(',',$condition['country_bns']) as $country_bn){
-            $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+        if (!empty($condition['country_bns'])) {
+            $countryNames = [];
+            foreach (explode(',',$condition['country_bns']) as $country_bn){
+                $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+            }
+
+            $this->jsonReturn([
+                'code'    => 1,
+                'message' => '成功',
+                'data'    => $countryNames
+            ]);
         }
 
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功',
-            'data'    => $countryNames
+            'data'    => ''
         ]);
 
     }

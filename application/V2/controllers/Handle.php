@@ -292,13 +292,13 @@ class HandleController extends Yaf_Controller_Abstract
          */
         set_time_limit(0);
 
-        //$supplierName = '湖北江汉石油仪器仪表股份有限公司';
-        //$supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVING'])->getField('id');
+        $supplierName = '中国石油集团济柴动力总厂';
+        $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
 
-        //if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或为审核!']));
+        if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或未审核!']));
 
-        //$data = $this->getSpuBySupplier($supplierId);
-        $data = $this->getSpuByBrandAction('济柴');
+        $data = $this->getSpuBySupplier($supplierId);
+        //$data = $this->getSpuByBrandAction('济柴');
         //p($data);
 
         (new GoodsModel)->exportAll([
@@ -313,6 +313,24 @@ class HandleController extends Yaf_Controller_Abstract
         //p($localFile);
     }
 
+    public function spuWithSkuAction()
+    {
+        //57 56 55 54 53
+        $data = $this->getSpuByBizline('55');
+
+        //p($data);
+
+        (new GoodsModel)->exportAll([
+            'spus' => $data,
+            //'lang' => 'zh'
+        ]);
+
+    }
+
+    private function getSpuByBizline($bizline_id)
+    {
+        return (new ProductModel)->where(['bizline_id' => $bizline_id, 'deleted_flag'=> 'N'])->getField('spu',true);
+    }
 
     /**
      * 根据供应商获取SPU
