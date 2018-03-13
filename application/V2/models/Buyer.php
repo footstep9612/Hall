@@ -211,7 +211,7 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.status='".$data['status']."'";
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
-            $cond .= " buyer.is_build=0 and buyer.status='APPROVED' and deleted_flag='N'";
+            $cond .= " and buyer.is_build=0 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
         if (!empty($data['source'])) {
             $cond .= ' And `erui_buyer`.`buyer`.source='.$data['source'];
