@@ -715,7 +715,7 @@ EOF;
         if (isset($create['close_info'])) {
             $data['close_info'] = $create['close_info'];
         }
-        if (!empty($data['status'])) {     //关闭客户信息备注
+        if (!empty($create['status'])) {     //关闭客户信息备注
             $data['status'] = $create['status'];
         }
 //        if (isset($create['status'])) {

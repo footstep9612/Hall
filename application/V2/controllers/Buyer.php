@@ -643,6 +643,8 @@ class BuyerController extends PublicController {
         $data['created_by'] = $this->user['id'];
         $agent = new BuyerAgentModel();
         $res=$agent->crmUpdateAgent($data);
+        $buyer=new BuyerModel();
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
         if($res){
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
