@@ -201,7 +201,12 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->buyerStatisList($data,true);
-        $this->jsonReturn($info);
+        $arr=array(
+            'code'=>1,
+            'message'=>'success',
+            'data'=>$info
+        );
+        $this->jsonReturn($arr);
     }
 
     /*

@@ -296,7 +296,7 @@ class BuyerModel extends PublicModel {
      */
     public function buyerStatisList($data,$excel=false){
         set_time_limit(0);
-        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
         $currentPage = 1;
         $pageSize = 10;
@@ -326,7 +326,7 @@ class BuyerModel extends PublicModel {
         //excel导出标识
         if($excel==true){
             $offset=0;
-            $pageSize=10;
+            $pageSize=10000;
         }
         $info = $this->alias('buyer')
             ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
@@ -339,7 +339,7 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         foreach($info as $k => $v){
-            if(!empty($v['buyer_level']) && is_numeric($v['buyer_level'])){ //客户等级
+            if(!empty($v['buyer_level'])){ //客户等级
                 $level = new BuyerLevelModel();
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
@@ -378,7 +378,7 @@ class BuyerModel extends PublicModel {
 //            ZipHelper::removeDir(dirname($excelName));    //清除目录
         }
         if ($fileId) {
-            return array('code'=>1,'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
         }
     }
     //crm客户统计列表,Excel导出数据整合-王帅
