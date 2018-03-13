@@ -300,7 +300,6 @@ class BuyerModel extends PublicModel {
         $currentPage = 1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
-        $totalCount=count($totalCount);
         $totalPage = ceil($totalCount/$pageSize);
         if(!empty($data['currentPage']) && $data['currentPage'] >0){
             $currentPage = ceil($data['currentPage']);
