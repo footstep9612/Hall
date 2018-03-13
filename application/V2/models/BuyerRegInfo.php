@@ -155,6 +155,7 @@ class BuyerRegInfoModel extends PublicModel
                 $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
             }
             $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['reason'] = '';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
@@ -199,7 +200,7 @@ class BuyerRegInfoModel extends PublicModel
      * 企业信息驳回
      */
     public function update_reason($buyer_no, $reason){
-        $dataInfo['remarks'] = $reason;
+        $dataInfo['reason'] = $reason;
         $result = $this->where(['buyer_no' => $buyer_no])->save($this->create($dataInfo));
         if ($result !== false) {
             return $result;
