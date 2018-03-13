@@ -294,7 +294,8 @@ class BuyerModel extends PublicModel {
      * 客户管理-客户统计-所有客户的搜索列表
      * wangs
      */
-    public function buyerStatisList($data){
+    public function buyerStatisList($data,$excel=false){
+        set_time_limit(0);
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
         $currentPage = 1;
@@ -309,6 +310,7 @@ class BuyerModel extends PublicModel {
             'id',
             'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
+            'percent',   //信息完整度
             'name',   //客户名称buy
             'status',   //审核状态
             'source',   //客户来源
@@ -321,6 +323,11 @@ class BuyerModel extends PublicModel {
             $field .= ',buyer.'.$v;
         }
         $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        //excel导出标识
+        if($excel==true){
+            $offset=0;
+            $pageSize=10;
+        }
         $info = $this->alias('buyer')
             ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
             ->join("erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag='N'",'left')
@@ -346,13 +353,104 @@ class BuyerModel extends PublicModel {
                 $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
             }
         }
-        $arr['currentPage'] = $currentPage;
-        $arr['totalPage'] = $totalPage;
-        $arr['totalCount'] = $totalCount;
-        $arr['info'] = $info;
+        if($excel==false){
+            $arr['currentPage'] = $currentPage;
+            $arr['totalPage'] = $totalPage;
+            $arr['totalCount'] = $totalCount;
+            $arr['info'] = $info;
+            return $arr;
+        }
+        //整合excel导出数据
+        $package=$this->packageBuyerListExcelData($info);
+        $excelFile=$this->crmExportBuyerListExcel($package,$lang);
+        //
+        $arr['tmp_name'] = $excelFile;
+        $arr['type'] = 'application/excel';
+        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelFile)){
+            unlink($excelFile); //删除文件
+//            ZipHelper::removeDir(dirname($excelName));    //清除目录
+        }
+        if ($fileId) {
+            return array('code'=>1,'url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
+    }
+    //crm客户统计列表,Excel导出数据整合-王帅
+    public function packageBuyerListExcelData($package){
+        $arr=array();
+        foreach($package as $k => $v){
+            $arr[$k]['percent']=$v['percent'];  //信息完整度
+            $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
+            $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
+            $arr[$k]['country_name']=$v['country_name'];  //国家
+            $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
+            $arr[$k]['status']=$v['status'];  //客户状态
+            $arr[$k]['buyer_level']=$v['buyer_level'];  //客户等级
+            $arr[$k]['source']=$v['source'];  //客户来源
+        }
         return $arr;
     }
+    //crm客户统计Excel导出
+    public function crmExportBuyerListExcel($data,$lang='zh'){
+        set_time_limit(0);  # 设置执行时间最大值
+        //存放excel文件目录
+        $excelDir = MYPATH . DS . 'public' . DS . 'tmp' . DS . 'buyerlist';
+        if (!is_dir($excelDir)) {
+            mkdir($excelDir, 0777, true);
+        }
+        if($lang=='zh'){
+            $sheetName='客户列表';
+            $tableheader = array('完整度','会员编号','CRM客户代码', '国家', '注册时间', '审核状态', '客户等级', '用户来源');
+        }else{
+            $sheetName='Customer list';
+            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Registration time', 'Customer status', 'Customer level','Registration source of customer');
+        }
+        //创建对象
+        $excel = new PHPExcel();
+        $objActSheet = $excel->getActiveSheet();
+        $letter = range(A, Z);
+        //设置当前的sheet
+        $excel->setActiveSheetIndex(0);
+        //设置sheet的name
+        $objActSheet->setTitle($sheetName);
+        //填充表头信息
+        for ($i = 0; $i < count($tableheader); $i++) {
+            //单独设置D列宽度为15
+            $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
+            $objActSheet->setCellValue("$letter[$i]1", "$tableheader[$i]");
+            //设置表头字体样式
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
+            //设置表头字体大小
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setSize(10);
+            //设置表头字体是否加粗
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setBold(true);
+            //设置表头文字垂直居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            //设置文字上下居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            //设置表头外的文字垂直居中
+            $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
 
+        //填充表格信息
+        for ($i = 2; $i <= count($data) + 1; $i++) {
+            $j = 0;
+            foreach ($data[$i - 2] as $key => $value) {
+                $objActSheet->setCellValue("$letter[$j]$i", "$value");
+                $j++;
+            }
+        }
+        //创建Excel输入对象
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
+        return $excelDir . DS. $sheetName . '.xlsx';
+    }
     /**
      * 判断用户是否存在
      * @param  string $name 用户名

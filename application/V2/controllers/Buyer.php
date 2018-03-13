@@ -193,6 +193,16 @@ class BuyerController extends PublicController {
         );
         $this->jsonReturn($dataJson);
     }
+    //crm-客户列表Excel导出-wangs
+    public function exportExcelBuyerListAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $info = $model->buyerStatisList($data,true);
+        $this->jsonReturn($info);
+    }
 
     /*
      * 统计各状态会员数量 jhw-wangs
