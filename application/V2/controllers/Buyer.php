@@ -255,6 +255,7 @@ class BuyerController extends PublicController {
 
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $model = new BuyerModel();
         $res = $model->info($data);
         $agent=new BuyerAgentModel();
@@ -263,7 +264,7 @@ class BuyerController extends PublicController {
         $marketAreaModel = new MarketAreaModel();
         $res_arr = [$res];
         $this->_setArea($res_arr, 'area');
-        $this->_setCountry($res_arr, 'country');
+        $this->_setCountry($res_arr, 'country',$lang);
         if (!empty($res_arr[0])) {
             $res_arr[0]['agent']=$agentRes;
             $datajson['code'] = 1;
@@ -313,14 +314,14 @@ class BuyerController extends PublicController {
      * @desc
      */
 
-    private function _setCountry(&$arr, $filed) {
+    private function _setCountry(&$arr, $filed,$lang='zh') {
         if ($arr) {
             $country_model = new CountryModel();
             $country_bns = [];
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val[$filed . '_bn']);
             }
-            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            $countrynames = $country_model->getNamesBybns($country_bns, $lang);
             foreach ($arr as $key => $val) {
                 if (trim($val[$filed . '_bn']) && isset($countrynames[trim($val[$filed . '_bn'])])) {
                     $val[$filed . '_name'] = $countrynames[trim($val[$filed . '_bn'])];
