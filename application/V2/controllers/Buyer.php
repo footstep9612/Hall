@@ -30,7 +30,7 @@ class BuyerController extends PublicController {
      * 用户列表
      * */
 
-    public function listAction() {
+    public function list1Action() {
         $data = json_decode(file_get_contents("php://input"), true);
         $admin=$this->crmUserRole($this->user['id']);   //=1市场专员
         $limit = [];
@@ -175,9 +175,9 @@ class BuyerController extends PublicController {
     }
     /**
      * CRM系统优化客户统计列表
-     * wangs
+     * wangs-buyersStatisListAction
      */
-    public function buyersStatisListAction() {
+    public function listAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
