@@ -361,7 +361,7 @@ class BuyerModel extends PublicModel {
             return $arr;
         }
         //整合excel导出数据
-        $package=$this->packageBuyerListExcelData($info);
+        $package=$this->packageBuyerListExcelData($info,$lang);
         $excelFile=$this->crmExportBuyerListExcel($package,$lang);
         //
         $arr['tmp_name'] = $excelFile;
@@ -382,17 +382,68 @@ class BuyerModel extends PublicModel {
         }
     }
     //crm客户统计列表,Excel导出数据整合-王帅
-    public function packageBuyerListExcelData($package){
+    public function packageBuyerListExcelData($package,$lang){
         $arr=array();
-        foreach($package as $k => $v){
-            $arr[$k]['percent']=$v['percent'];  //信息完整度
-            $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
-            $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
-            $arr[$k]['country_name']=$v['country_name'];  //国家
-            $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
-            $arr[$k]['status']=$v['status'];  //客户状态
-            $arr[$k]['buyer_level']=$v['buyer_level'];  //客户等级
-            $arr[$k]['source']=$v['source'];  //客户来源
+        if($lang=='zh'){
+            foreach($package as $k => $v){
+                $arr[$k]['percent']=$v['percent'];  //信息完整度
+                $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
+                $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
+                $arr[$k]['country_name']=$v['country_name'];  //国家
+                $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
+//            $arr[$k]['status']=$v['status'];  //客户状态
+                if($v['status']=='APPROVING'){
+                    $arr[$k]['status']='待分配';
+                }elseif($v['status']=='APPROVED'){
+                    $arr[$k]['status']='已分配';
+                }elseif($v['status']=='PASS'){
+                    $arr[$k]['status']='已通过';
+                }elseif($v['status']=='REJECTED'){
+                    $arr[$k]['status']='已关闭';
+                }
+                $arr[$k]['buyer_level']=$v['buyer_level'];  //客户等级
+                if($v['buyer_level']==null){
+                    $arr[$k]['buyer_level']='注册会员';
+                }
+//            $arr[$k]['source']=$v['source'];  //客户来源
+                if($v['source']==1){
+                    $arr[$k]['source']='后台注册';
+                }elseif($v['source']==2){
+                    $arr[$k]['source']='门户注册';
+                }elseif($v['source']==3){
+                    $arr[$k]['source']='手机端注册';
+                }
+            }
+        }else{
+            foreach($package as $k => $v){
+                $arr[$k]['percent']=$v['percent'];  //信息完整度
+                $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
+                $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
+                $arr[$k]['country_name']=$v['country_name'];  //国家
+                $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
+//            $arr[$k]['status']=$v['status'];  //客户状态
+                if($v['status']=='APPROVING'){
+                    $arr[$k]['status']='To be allocated';
+                }elseif($v['status']=='APPROVED'){
+                    $arr[$k]['status']='Allocated';
+                }elseif($v['status']=='PASS'){
+                    $arr[$k]['status']='Passed';
+                }elseif($v['status']=='REJECTED'){
+                    $arr[$k]['status']='Closed';
+                }
+                $arr[$k]['buyer_level']=$v['buyer_level'];  //客户等级
+                if($v['buyer_level']==null){
+                    $arr[$k]['buyer_level']='Registered member';
+                }
+//            $arr[$k]['source']=$v['source'];  //客户来源
+                if($v['source']==1){
+                    $arr[$k]['source']='Registered on BOSS system';
+                }elseif($v['source']==2){
+                    $arr[$k]['source']='Registered on www.erui.com';
+                }elseif($v['source']==3){
+                    $arr[$k]['source']='Registered on APP';
+                }
+            }
         }
         return $arr;
     }
