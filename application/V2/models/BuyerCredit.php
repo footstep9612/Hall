@@ -230,10 +230,15 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
             $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
         }
+        if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
+            $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
+        } else{
+            $dataInfo['credit_apply_date'] = date('Y-m-d H:i:s', time());
+        }
         if(isset($data['source']) && !empty($data['source'])){
             $dataInfo['source'] = trim($data['source']);
         } else{
-            $data['source'] = 'BOSS';
+            $dataInfo['source'] = 'BOSS';
         }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
@@ -289,10 +294,11 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
             $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
         }
+        if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
+            $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
+        }
         if(isset($data['approved_date']) && !empty($data['approved_date'])){
             $dataInfo['approved_date'] = trim($data['approved_date']);
-        } else{
-            $dataInfo['approved_date'] = date('Y-m-d H:i:s',time());
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
@@ -306,6 +312,15 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['remarks'] = trim($data['remarks']);
         } else {
             $dataInfo['remarks'] = '';
+        }
+        $buyer_model = new BuyerModel();
+        $agent_model = new BuyerAgentModel();
+        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
+        if($agent_id){
+            $dataInfo['agent_id'] = $agent_id['agent_id'];
+        } else {
+            $dataInfo['agent_id'] = UID;
         }
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {

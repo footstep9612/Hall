@@ -391,46 +391,6 @@ class BuyercreditController extends EdiController {
      * 获取授信明细
      */
     public function getCreditInfoAction(){
-        /*$data = [
-            0=>[
-                "id"=> "1",
-                "agent_id"=> "37959",
-                "name"=> "name",
-                "buyer_no"=> "C20171208000019",
-                "bank_swift"=> null,
-                "sinosure_no"=> null,
-                "nolc_granted"=> null,
-                "nolc_deadline"=> null,
-                "lc_granted"=> null,
-                "lc_deadline"=> null,
-                "deadline_cur_unit"=> "day",
-                "credit_cur_bn"=> null,
-                "credit_apply_date"=> "2018-03-01 00:00:00",
-                "credit_valid_date"=> null,
-                "source"=> "PORTAL",
-                "status"=> "DRAFT"
-            ],
-            1=>[
-                "id"=> "2",
-                "agent_id"=> "37959",
-                "name"=> "name",
-                "buyer_no"=> "C20171208000020",
-                "bank_swift"=> null,
-                "sinosure_no"=> null,
-                "nolc_granted"=> null,
-                "nolc_deadline"=> null,
-                "lc_granted"=> null,
-                "lc_deadline"=> null,
-                "deadline_cur_unit"=> "day",
-                "credit_cur_bn"=> null,
-                "credit_apply_date"=> "2018-03-01 00:00:00",
-                "credit_valid_date"=> null,
-                "source"=> "PORTAL",
-                "status"=> "DRAFT"
-            ]
-        ];
-        jsonReturn($data);*/
-
         $data = $this->getPut();
         $lang = $data['lang'] ? $data['lang'] : 'zh';
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
@@ -439,6 +399,14 @@ class BuyercreditController extends EdiController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
+            if(!empty($creditInfo['approved_date'])){
+                $time = strtotime('+90 d',strtotime($creditInfo['approved_date']));
+                if($time <= time()) {
+                    $creditInfo['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
+                }
+            }
             jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
@@ -470,52 +438,52 @@ class BuyercreditController extends EdiController {
      *买家代码申请
      * @author klp
      */
-    public function BuyerApply($buyer_no){
-
-        $buyerModel = new BuyerModel();          //企业信息
-//        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
-        $company_model = new BuyerRegInfoModel();
-        $BuyerCodeApply = $company_model->getInfo($buyer_no);
-        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
-        if(!$BuyerCodeApply || !$lang){
-            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
-        }
-        $BuyerCodeApply['lang'] = $lang['lang'];
-        //$SinoSure = new Edi();
-        $resBuyer = Edi::EdiBuyerCodeApply($BuyerCodeApply);
-        if($resBuyer['code'] != 1) {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
-        }
-        jsonReturn($resBuyer);
-        /* $this->setCode(MSG::MSG_SUCCESS);
-         $this->setMessage('申请成功!');
-         $this->jsonReturn($resBuyer);*/
-    }
+//    public function BuyerApply($buyer_no){
+//
+//        $buyerModel = new BuyerModel();          //企业信息
+////        $BuyerCodeApply = $buyerModel->buyerCerdit($buyer_no);
+//        $company_model = new BuyerRegInfoModel();
+//        $BuyerCodeApply = $company_model->getInfo($buyer_no);
+//        $lang = $buyerModel->field('lang')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+//        if(!$BuyerCodeApply || !$lang){
+//            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+//        }
+//        $BuyerCodeApply['lang'] = $lang['lang'];
+//        //$SinoSure = new Edi();
+//        $resBuyer = Edi::EdiBuyerCodeApply($BuyerCodeApply);
+//        if($resBuyer['code'] != 1) {
+//            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+//        }
+//        jsonReturn($resBuyer);
+//        /* $this->setCode(MSG::MSG_SUCCESS);
+//         $this->setMessage('申请成功!');
+//         $this->jsonReturn($resBuyer);*/
+//    }
 
     /**
      *
      *银行代码申请
      * @author klp
      */
-    public function BankApply($buyer_no){
-//        $buyerModel = new BuyerModel();          //银行信息
-//        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
-        $bank_model = new BuyerBankInfoModel();
-        $BuyerBankApply = $bank_model->getInfo($buyer_no);
-        if(!$BuyerBankApply){
-            jsonReturn(null, -101 ,'银行信息不存在或已删除!');
-        }
-        $SinoSure = new Edi();
-        $resBank = $SinoSure->EdiBankCodeApply($BuyerBankApply);
-
-        if($resBank['code'] != 1) {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
-        }
-        jsonReturn($resBank);
-        /*  $this->setCode(MSG::MSG_SUCCESS);
-          $this->setMessage('申请成功!');
-          $this->jsonReturn($resBank);*/
-    }
+//    public function BankApply($buyer_no){
+////        $buyerModel = new BuyerModel();          //银行信息
+////        $BuyerBankApply = $buyerModel->buyerCerdit($buyer_id);
+//        $bank_model = new BuyerBankInfoModel();
+//        $BuyerBankApply = $bank_model->getInfo($buyer_no);
+//        if(!$BuyerBankApply){
+//            jsonReturn(null, -101 ,'银行信息不存在或已删除!');
+//        }
+//        $SinoSure = new Edi();
+//        $resBank = $SinoSure->EdiBankCodeApply($BuyerBankApply);
+//
+//        if($resBank['code'] != 1) {
+//            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+//        }
+//        jsonReturn($resBank);
+//        /*  $this->setCode(MSG::MSG_SUCCESS);
+//          $this->setMessage('申请成功!');
+//          $this->jsonReturn($resBank);*/
+//    }
 
     /* 代办人信息
      * @desc   企业/银行
