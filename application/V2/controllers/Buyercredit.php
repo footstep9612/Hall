@@ -273,31 +273,26 @@ class BuyercreditController extends EdiController {
                 }
             }
         } else {
-            $credit_reg_model = new BuyerreginfoModel();
-            $credit_bank_model = new BuyerBankInfoModel();
+            if (empty($data['bank_remarks']) && empty($data['remarks'])) {
+                jsonReturn(null, -110, '请至少填写一项原因!');               //原因
+            }
             $res = $credit_model->update_data($data);
-            if($res) {
-                if (empty($data['bank_reason']) && empty($data['reason'])) {
-                    jsonReturn(null, -110, '请至少填写一项原因!');               //原因
-                }
+            if($res){
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = UID;
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['in_status'] = $data['status'];
-                if (isset($data['reason']) && !empty($data['reason'])) {
-                    $dataArr['in_remarks'] = $data['reason'];                    //企业原因
+                if (isset($data['remarks']) && !empty($data['remarks'])) {
+                    $dataArr['in_remarks'] = $data['remarks'];                    //企业原因
                 }
-                $credit_reg_model->update_reason($data['buyer_no'], $data['reason']);
                 $dataArr['sign'] = 1;
                 $credit_log_model->create_data($dataArr);
-                if (isset($data['bank_reason']) && !empty($data['bank_reason'])) {
-                    $dataArr['in_remarks'] = $data['bank_reason'];                   //银行原因
+                if (isset($data['bank_remarks']) && !empty($data['bank_remarks'])) {
+                    $dataArr['in_remarks'] = $data['bank_remarks'];                   //银行原因
                 }
-                $credit_bank_model->update_reason($data['buyer_no'], $data['bank_reason']);
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
             }
-
         }
         if($res) {
             jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');

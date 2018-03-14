@@ -47,6 +47,9 @@ class BuyerCreditModel extends PublicModel
                  `buyer_credit`.`buyer_credit`.`credit_valid_date`,
                  `buyer_credit`.`buyer_credit`.`source`,
                  `buyer_credit`.`buyer_credit`.`status`,
+                 `buyer_credit`.`buyer_credit`.`approved_date`,
+                 `buyer_credit`.`buyer_credit`.`bank_remarks`,
+                 `buyer_credit`.`buyer_credit`.`remarks`,
                  `buyer_credit`.`buyer_credit`.`agent_id`,';
         $sql .= '`buyer_credit`.`buyer_reg_info`.`country_code`,';
         $sql .= '`erui_sys`.`employee`.`name` as `agent_name`,';
@@ -118,7 +121,7 @@ class BuyerCreditModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status';
+        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status,bank_remarks,remarks';
         return $this->field($field)
             //->alias('c')
             ->where($where)
@@ -293,6 +296,16 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
+        }
+        if(isset($data['bank_remarks']) && !empty($data['bank_remarks'])){
+            $dataInfo['bank_remarks'] = trim($data['bank_remarks']);
+        } else {
+            $dataInfo['bank_remarks'] = '';
+        }
+        if(isset($data['remarks']) && !empty($data['remarks'])){
+            $dataInfo['remarks'] = trim($data['remarks']);
+        } else {
+            $dataInfo['remarks'] = '';
         }
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
