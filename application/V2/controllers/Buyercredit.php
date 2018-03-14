@@ -322,7 +322,7 @@ class BuyercreditController extends EdiController {
      */
     public function grantQuotaAction() {
         $data = $this->getPut();
-        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
+        $lang = empty($data['lang']) ? 'en' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -333,7 +333,7 @@ class BuyercreditController extends EdiController {
             $config_obj = Yaf_Registry::get("config");
             $config_email = $config_obj->email->toArray();
             $email = $this->_getBuyerEmail($data['buyer_no']);
-            $this->orderEmail($email['official_email'], '', $lang, $config_email['url']);
+            $this->creditEmail($email['official_email']='531499132@qq.com', '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
@@ -341,7 +341,7 @@ class BuyercreditController extends EdiController {
     }
 
     //分配额度发送邮件
-    function orderEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
+    function creditEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
         $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arrEmail);
         $data = [
             "title"        => $title,

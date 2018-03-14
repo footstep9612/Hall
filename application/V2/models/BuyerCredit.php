@@ -360,7 +360,7 @@ class BuyerCreditModel extends PublicModel
         return false;
     }
     private function _checkParam($data){
-        if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 1000000) {
+        if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 300000) {
             jsonReturn(null, -110, '请填写信用证额度或额度值过大!');
         } else {
             $dataArr['nolc_granted'] = intval($data['nolc_granted']);
@@ -371,7 +371,7 @@ class BuyerCreditModel extends PublicModel
             $dataArr['nolc_deadline'] = intval($data['nolc_deadline']);
         }
 
-        if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 300000) {
+        if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 1000000) {
             jsonReturn(null, -110, '请填写非信用证额度或额度值过大!');
         } else {
             $dataArr['lc_granted'] = intval($data['lc_granted']);
