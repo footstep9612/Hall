@@ -30,7 +30,7 @@ class InquiryCheckLogModel extends PublicModel {
          }
          
          if (!empty($condition['action'])) {
-             $where['action'] = $condition['action'];
+             $where['action'] = ['in', explode(',', $condition['action']) ? : ['-1']];
          }
          
          if (!empty($condition['in_node'])) {
