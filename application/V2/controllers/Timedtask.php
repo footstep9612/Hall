@@ -15,6 +15,8 @@ class TimedtaskController extends PublicController {
 
         $this->suppliersModel = new SuppliersModel();
         $this->supplierQualificationModel = new SupplierQualificationModel();
+        $this->inquiryModel = new InquiryModel();
+        $this->inquiryCheckLogModel = new InquiryCheckLogModel();
         
         $this->time = date('Y-m-d H:i:s');
     }
@@ -29,6 +31,25 @@ class TimedtaskController extends PublicController {
         $supplierIds = $this->supplierQualificationModel->getOverdueSupplierIds();
         try {
             $supplierIds && $this->suppliersModel->updateInfo(['id' => ['in', $supplierIds]], ['updated_by' => null, 'updated_at' => $this->time, 'status' => 'OVERDUE']);
+            $this->jsonReturn(true);
+        } catch (Exception $e) {
+            $this->jsonReturn(false);
+        }
+    }
+    
+    /**
+     * @desc 询单报价单已发送超过60天改状态接口（定时任务：每天00:00:00执行）
+     *
+     * @author liujf
+     * @time 2018-03-14
+     */
+    public function updateInquiryQuoteSentStatusAction() {
+        $inquiryIds = $this->inquiryModel->where(['status' => 'QUOTE_SENT', 'deleted_flag' => 'N'])->getField('id', true);
+        try {
+            foreach ($inquiryIds as $id) {
+                $quoteSentTime = $this->inquiryCheckLogModel->where(['inquiry_id' => $id, 'out_node' => 'QUOTE_SENT'])->order('id DESC')->getField('out_at');
+                ($this->time - $quoteSentTime) / 86400 > 60 && $this->inquiryModel->updateData(['id' => $id, 'updated_by' => null, 'status' => 'INQUIRY_CONFIRM']);
+            }
             $this->jsonReturn(true);
         } catch (Exception $e) {
             $this->jsonReturn(false);
