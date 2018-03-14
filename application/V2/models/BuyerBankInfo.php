@@ -97,14 +97,14 @@ class BuyerBankInfoModel extends PublicModel
             if($result){
                 //添加审核信息,状态修改
                 $credit_model = new BuyerCreditModel();
-                $credit_arr['status'] = 'ERUI_APPROVING';
+                $credit_arr['status'] = 'APPROVING';
                 $credit_arr['buyer_no'] = $data['buyer_no'];
                 $credit_model->update_data($credit_arr);
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $dataArr['in_status'] = 'APPROVING';
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
@@ -134,6 +134,18 @@ class BuyerBankInfoModel extends PublicModel
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //添加日志
+            $credit_log_model = new BuyerCreditLogModel();
+            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
+            if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])){
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = $data['agent_by'];
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['bank_name'] = $dataInfo['bank_name'];
+                $dataArr['bank_address'] = $dataInfo['bank_address'];
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($this->create($dataArr));
+            }
             //更新授信状态
             $credit_model = new BuyerCreditModel();
             $uparr= [
@@ -149,20 +161,18 @@ class BuyerBankInfoModel extends PublicModel
             if(!empty($data['status']) && 'check' == trim($data['status'])) {
                 $uparr['status'] = "ERUI_APPROVING";      //提交易瑞审核
                 $this->checkParam($data['buyer_no']);
+                //添加日志
+                $datalog['buyer_no'] = $data['buyer_no'];
+                $datalog['agent_by'] = $data['agent_by'];
+                $datalog['agent_at'] = date('Y-m-d H:i:s',time());
+                $datalog['in_status'] = "ERUI_APPROVING";
+                $datalog['sign'] = 1;
+                $credit_log_model->create_data($this->create($datalog));
+                $datalog['sign'] = 2;
+                $credit_log_model->create_data($this->create($datalog));
             }
             $credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
-            //添加日志
-            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
-            if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])){
-                $credit_log_model = new BuyerCreditLogModel();
-                $dataArr['buyer_no'] = $data['buyer_no'];
-                $dataArr['agent_by'] = $data['agent_by'];
-                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                $dataArr['bank_name'] = $dataInfo['bank_name'];
-                $dataArr['bank_address'] = $dataInfo['bank_address'];
-                $dataArr['sign'] = 2;
-                $credit_log_model->create_data($this->create($dataArr));
-            }
+
             if ($result !== false) {
                 return $result;
             }

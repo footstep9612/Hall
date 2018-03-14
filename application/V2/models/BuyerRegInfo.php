@@ -118,7 +118,7 @@ class BuyerRegInfoModel extends PublicModel
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $dataArr['in_status'] = 'APPROVING';
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['name'] = $dataInfo['name'];

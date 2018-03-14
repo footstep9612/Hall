@@ -367,4 +367,20 @@ class BuyerCreditModel extends PublicModel
         $dataArr['status'] = 'APPROVED';   //分配额度为通过   银行和企业通过为信保通过
         return $dataArr;
     }
+
+    //设置市场经办人
+    public function setAgentId($data) {
+        if(empty($data['id']) || empty($data['user_ids'])){
+            return false;                       //id为采购商ID
+        }
+        $buyer_model = new BuyerModel();
+        $buyer = $buyer_model->field('buyer_no')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        $agent_model = new BuyerAgentModel();
+        $agent = $agent_model->field('agent_id')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        if($agent['agent_id']) {
+            $dataInfo['agent_id'] = $agent['agent_id'];
+            $dataInfo['status'] = 'APPROVING';
+            $this->where(['buyer_no' => $buyer['buyer_no']])->save($this->create($dataInfo));
+        }
+    }
 }

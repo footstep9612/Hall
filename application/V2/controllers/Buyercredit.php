@@ -256,22 +256,21 @@ class BuyercreditController extends EdiController {
         $credit_model = new BuyerCreditModel();
         $credit_log_model = new BuyerCreditLogModel();
         if($data['status']== 'EDI_APPROVING'){
-            //调用信保申请接口
-            $edi_res= $this->EdiApplyAction($data['buyer_no']);
-            if(1 == $edi_res){
-                $res = $credit_model->update_data($data);
-                if($res) {
-                    $dataArr['buyer_no'] = $data['buyer_no'];
-                    $dataArr['agent_by'] = UID;
-                    $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                    $dataArr['sign'] = 1;
-                    $dataArr['in_status'] = 'EDI_APPROVING';
-                    $credit_log_model->create_data($dataArr);
-                    $dataArr['sign'] = 2;
-                    $credit_log_model->create_data($dataArr);
+            $res = $credit_model->update_data($data);
+            if($res) {
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = UID;
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['sign'] = 1;
+                $dataArr['in_status'] = 'EDI_APPROVING';
+                $credit_log_model->create_data($dataArr);
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($dataArr);
+                //调用信保申请接口
+                $edi_res= $this->EdiApplyAction($data['buyer_no']);
+                if(1 !== $edi_res){
+                    jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
                 }
-            } else {
-                jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
             }
         } else {
             $credit_reg_model = new BuyerreginfoModel();
