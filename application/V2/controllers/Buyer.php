@@ -32,10 +32,8 @@ class BuyerController extends PublicController {
 
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $admin=$this->crmUserRole($this->user['id']);   //=1市场专员
         $limit = [];
         $where = [];
-        $where['admin'] =$admin;
         if (!empty($data['lang'])) {    //en/zh 王帅-客户等级
             $where['lang'] = $data['lang'];
         }
@@ -175,7 +173,7 @@ class BuyerController extends PublicController {
     }
     /**
      * CRM系统优化客户统计列表
-     * wangs-buyersStatisListAction
+     * wangs-buyerListAction-wangs
      */
     public function buyerListAction() {
         $created_by = $this->user['id'];

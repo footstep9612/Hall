@@ -51,15 +51,13 @@ class BuyerModel extends PublicModel {
         $str .= " left Join `erui_sys`.`employee` as em on `erui_buyer`.`buyer_credit_log`.`checked_by` = `em`.`id` AND em.deleted_flag='N' ";
         $sql .= $str;
         $where = " WHERE buyer.deleted_flag = 'N'  ";
-        if($condition['admin']!=1){
-            if (!empty($condition['country_bn']) && !empty($condition['country_bns'])) {
-                $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-                $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
-            } elseif (!empty($condition['country_bn'])) {
-                $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
-            } elseif (!empty($condition['country_bns'])) {
-                $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
-            }
+        if (!empty($condition['country_bn']) && !empty($condition['country_bns'])) {
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
+        } elseif (!empty($condition['country_bn'])) {
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bn'] . ")";
+        } elseif (!empty($condition['country_bns'])) {
+            $where .= " And `buyer`.country_bn in (" . $condition['country_bns'] . ")";
         }
 
 //        if (!empty($condition['area_bn'])) {
@@ -1547,7 +1545,7 @@ EOF;
         );
         foreach($baseArr as $k => $v){
             if(empty($base[$k])){
-                return $v;
+                return $v.'不能为空';
             }
         }
 //        if(!empty($base['official_phone'])){
@@ -1556,7 +1554,7 @@ EOF;
 //            }
 //        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
-            return $baseArr['official_email'];
+            return $baseArr['official_email'].'格式错误';
         }else{
             $email=$this->field('official_email')->where(array('id'=>$base['buyer_id']))->find();//默认邮箱
             if($base['official_email']!=$email['official_email']){  //修改邮箱
@@ -1599,10 +1597,11 @@ EOF;
             'social_place'=>'常去社交场所',
             'relatives_family'=>'家庭亲戚相关信息',
         );
+        $contactEmail=array();  //crm
         foreach($contact as $value){
             foreach($contactArr as $k => $v){
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
-                    return $v;
+                    return $v.'不能为空';
                 }
 //                if(!empty($value['phone'])){
 //                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
@@ -1611,9 +1610,33 @@ EOF;
 //                }
             }
             if(!empty($value['email'])){
+                $value['email']=trim($value['email'],' ');
                 if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
-                    return $contactExtra['email'];
+                    return $contactExtra['email'].'格式错误';
+                }else{
+                    $buyerContact=new BuyerContactModel();
+                    if(empty($value['id'])){
+                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                        if($email){
+                            return $contactExtra['email'].'已存在';
+                        }
+                    }else{
+                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
+                        if($value['email']!=$email['email']){  //修改邮箱
+                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                            if($exist){
+                                return $contactExtra['email'].'已存在';
+                            }
+                        }
+                    }
+
                 }
+                $contactEmail[]=$value['email'];
+            }
+            $emailTotal=count($contactEmail);   //联系人邮箱总数
+            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
+            if($emailTotal!=$validTotal){
+                return $contactExtra['email'].'重复';
             }
         }
         if(!empty($base['employee_count'])){
