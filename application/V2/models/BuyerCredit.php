@@ -47,6 +47,9 @@ class BuyerCreditModel extends PublicModel
                  `buyer_credit`.`buyer_credit`.`credit_valid_date`,
                  `buyer_credit`.`buyer_credit`.`source`,
                  `buyer_credit`.`buyer_credit`.`status`,
+                 `buyer_credit`.`buyer_credit`.`approved_date`,
+                 `buyer_credit`.`buyer_credit`.`bank_remarks`,
+                 `buyer_credit`.`buyer_credit`.`remarks`,
                  `buyer_credit`.`buyer_credit`.`agent_id`,';
         $sql .= '`buyer_credit`.`buyer_reg_info`.`country_code`,';
         $sql .= '`erui_sys`.`employee`.`name` as `agent_name`,';
@@ -118,7 +121,7 @@ class BuyerCreditModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status';
+        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status,bank_remarks,remarks';
         return $this->field($field)
             //->alias('c')
             ->where($where)
@@ -162,19 +165,19 @@ class BuyerCreditModel extends PublicModel
                     break;
             }
         }*/
-        if (isset($condition['buyer_no']) && $condition['buyer_no']) {
+        if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
             $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
         }
-        if (isset($condition['name']) && $condition['name']) {
+        if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //名称
         }
-        if (isset($condition['source']) && $condition['source']) {
+        if (isset($condition['source']) && !empty($condition['source'])) {
             $where['source'] = $condition['source'];                  //来源
         }
-        if (isset($condition['agent_id']) && $condition['agent_id']) {
+        if (isset($condition['agent_id']) && !empty($condition['agent_id'])) {
             $where['agent_id'] = $condition['agent_id'];                  //经办人
         }
-        if (isset($condition['status']) && $condition['status']) {
+        if (isset($condition['status']) && !empty($condition['status'])) {
             $where['status'] = strtoupper($condition['status']);
         } else{
             $where['status'] = array('neq', 'DRAFT');
@@ -232,19 +235,16 @@ class BuyerCreditModel extends PublicModel
         } else{
             $data['source'] = 'BOSS';
         }
-//        $buyer_model = new BuyerModel();
-//        $agent_model = new BuyerAgentModel();
-//        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
-//        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['buyer_id']])->find();
-//        if($agent_id){
-//            $dataInfo['agent_id'] = $agent_id['agent_id'];
-//            $dataInfo['status'] = 'ERUI_APPROVING';
-//        }else{
-//            $dataInfo['status'] = 'DRAFT';
-//        }
-        $dataInfo['agent_id'] = $data['agent_by'];
-        $dataInfo['status'] = 'ERUI_APPROVING';
-        $dataInfo['credit_apply_date'] = date('Y-m-d',time());
+        $buyer_model = new BuyerModel();
+        $agent_model = new BuyerAgentModel();
+        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
+        if($agent_id){
+            $dataInfo['agent_id'] = $agent_id['agent_id'];
+            $dataInfo['status'] = 'APPROVING';
+        }else{
+            $dataInfo['status'] = 'DRAFT';
+        }
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;
@@ -297,9 +297,17 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
         }
-        $dataInfo['agent_id'] = UID;  //市场经办人
-
-        $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
+        if(isset($data['bank_remarks']) && !empty($data['bank_remarks'])){
+            $dataInfo['bank_remarks'] = trim($data['bank_remarks']);
+        } else {
+            $dataInfo['bank_remarks'] = '';
+        }
+        if(isset($data['remarks']) && !empty($data['remarks'])){
+            $dataInfo['remarks'] = trim($data['remarks']);
+        } else {
+            $dataInfo['remarks'] = '';
+        }
+        $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;
         }
@@ -312,6 +320,7 @@ class BuyerCreditModel extends PublicModel
     public function grantInfo($data) {
 
         $dataArr = $this->_checkParam($data);
+        $dataArr['buyer_no'] = $data['buyer_no'];
         $res = $this->update_data($dataArr);
         if($res) {
             $quota_log_model = new BuyerQuotaLogModel();
@@ -370,5 +379,21 @@ class BuyerCreditModel extends PublicModel
         $data['credit_valid_date'] = date('Y-m-d H:i:s',time());
         $dataArr['status'] = 'APPROVED';   //分配额度为通过   银行和企业通过为信保通过
         return $dataArr;
+    }
+
+    //设置市场经办人
+    public function setAgentId($data) {
+        if(empty($data['id']) || empty($data['user_ids'])){
+            return false;                       //id为采购商ID
+        }
+        $buyer_model = new BuyerModel();
+        $buyer = $buyer_model->field('buyer_no')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        $agent_model = new BuyerAgentModel();
+        $agent = $agent_model->field('agent_id')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        if($agent['agent_id']) {
+            $dataInfo['agent_id'] = $agent['agent_id'];
+            $dataInfo['status'] = 'APPROVING';
+            $this->where(['buyer_no' => $buyer['buyer_no']])->save($this->create($dataInfo));
+        }
     }
 }

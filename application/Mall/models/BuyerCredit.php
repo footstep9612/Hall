@@ -49,7 +49,7 @@ class BuyerCreditModel extends PublicModel
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
         if($agent_id){
             $dataInfo['agent_id'] = $agent_id['agent_id'];
-            $dataInfo['status'] = 'ERUI_APPROVING';
+            $dataInfo['status'] = 'APPROVING';
         }else{
             $dataInfo['status'] = 'DRAFT';
         }
@@ -62,7 +62,7 @@ class BuyerCreditModel extends PublicModel
     }
 
     /**
-     * 更新银行信息
+     * 更新信息
      */
     public function update_data($data) {
 

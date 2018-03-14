@@ -154,6 +154,27 @@ class BuyerRegInfoModel extends PublicModel
                     $this->rollback();
                     jsonReturn(null, MSG::MSG_FAILED, '更新银行信息失败');
                 }
+                //更新授信状态
+                $credit_model = new BuyerCreditModel();
+                $uparr= [
+                    'status'=>'APPROVING',
+                    'nolc_granted'=>'',
+                    'nolc_deadline'=>'',
+                    'lc_granted'=>'',
+                    'lc_deadline'=>'',
+                    'credit_valid_date'=>'',
+                    'approved_date'=>'',
+                    'credit_apply_date'=>date('Y-m-d H:i:s', time())
+                ];
+                $agent_model = new BuyerAgentModel();
+                $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
+                if($agent_id){
+                    $dataInfo['agent_id'] = $agent_id['agent_id'];
+                    $dataInfo['status'] = 'APPROVING';
+                }else{
+                    $dataInfo['status'] = 'DRAFT';
+                }
+                $credit_model->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($uparr));
                 //添加日志
                 $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
                 if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
