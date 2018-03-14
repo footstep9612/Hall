@@ -411,7 +411,7 @@ class BuyerController extends PublicController {
         if (!empty($data['show_name'])) {
             $buyer_account_data['show_name'] = $data['show_name'];
         }
-        $buyer_account_data['created_at'] = $this->user['id'];
+        $buyer_account_data['created_by'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
             $buyer_attach_data['attach_url'] = $data['attach_url'];
@@ -450,12 +450,9 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '国家名不可为空!');
         }
-        if (!empty($data['buyer_no'])) {
-            $arr['buyer_no'] = $data['buyer_no'];
-        }
         if (!empty($data['buyer_code'])) {
-            $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
-        } //去掉了CRM编码必填项验证 买买提 2017-12-19
+            $arr['buyer_code'] = $data['buyer_code'];
+        }
 
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();

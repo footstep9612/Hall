@@ -236,8 +236,8 @@ class BuyerModel extends PublicModel {
         if(!empty($data['created_at_start'])){  //注册时间===buy
             $cond .= " and buyer.created_at >= '".$data['created_at_start']."'";
         }
-        if(!empty($data['checked_at_end'])){  //审核时间===buy
-            $cond .= " and buyer.created_at <= '".$data['checked_at_end']."'";
+        if(!empty($data['created_at_end'])){  //审核时间===buy
+            $cond .= " and buyer.created_at <= '".$data['created_at_end']."'";
         }
         return $cond;
     }
@@ -296,6 +296,7 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
+        echo $cond;die;
         $currentPage = 1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
