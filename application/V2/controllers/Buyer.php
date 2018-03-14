@@ -684,6 +684,11 @@ class BuyerController extends PublicController {
             $arr['province'] = $data['province'];
         }
         if (!empty($data['buyer_code'])) {
+            $buyerModel=new BuyerModel();
+            $buyer=$buyerModel->field('id')->where(array('buyer_code'=>$data['buyer_code']))->find();
+            if(!empty($buyer) && $buyer['id']!=$data['id']){
+                $this->jsonReturn(array("code" => "-101", "message" => "客户代码已存在"));
+            }
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['show_name'])) {
