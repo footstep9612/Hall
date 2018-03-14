@@ -746,6 +746,7 @@ class InquiryController extends PublicController {
         $marketAreaModel = new MarketAreaModel();
         $buyerModel = new BuyerModel();
         $org = new OrgModel();
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
 
         $where = $this->put_data;
         
@@ -816,6 +817,11 @@ class InquiryController extends PublicController {
             $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : L('NOTHING');
             $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : L('NOTHING');
             //$results['data']['project_name'] = $results['data']['project_name'] ? : L('NOTHING');
+            
+            if ($results['data']['status'] == 'MARKET_APPROVING') {
+                $approvingTime = $inquiryCheckLogModel->where(['inquiry_id' => $results['data']['id'], 'out_node' => 'MARKET_APPROVING'])->order('id DESC')->getField('out_at');
+            }
+            $results['data']['delay_48'] = isset($approvingTime) && (time() - strtotime($approvingTime)) / 3600 > 48 ? 'Y' : 'N';
         }
 
         $this->jsonReturn($results);
