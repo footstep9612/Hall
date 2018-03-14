@@ -149,6 +149,9 @@ class BuyerCreditLogModel extends PublicModel{
         if(isset($data['approved_at']) && !empty($data['approved_at'])){
             $dataInfo['approved_at'] = trim($data['approved_at']);
         }
+        if(isset($data['sign']) && !empty($data['sign'])){
+            $dataInfo['sign'] = intval($data['sign']);
+        }
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;
@@ -236,6 +239,9 @@ class BuyerCreditLogModel extends PublicModel{
         }
         if(isset($data['approved_at']) && !empty($data['approved_at'])){
             $dataInfo['approved_at'] = trim($data['approved_at']);
+        }
+        if(isset($data['sign']) && !empty($data['sign'])){
+            $dataInfo['sign'] = intval($data['sign']);
         }
         $res = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
         if ($res !== false) {

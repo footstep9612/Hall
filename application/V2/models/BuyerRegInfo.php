@@ -95,6 +95,15 @@ class BuyerRegInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
+            if(isset($data['tel']) && is_numeric($data['tel'])){
+                jsonReturn(null, -110, '电话应为数字!');
+            }
+            if(isset($data['fax']) && is_numeric($data['fax'])){
+                jsonReturn(null, -110, '传真应为数字!');
+            }
+            if(isset($data['reg_date'])){
+                $dataInfo['reg_date'] = date('Y',strtotime($data['reg_date']));
+            }
             if(isset($data['stock_exchange'])){
                 $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
             }

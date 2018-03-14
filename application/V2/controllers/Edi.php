@@ -42,6 +42,8 @@ class EdiController extends PublicController{
 
     static private $client;
 
+    static private $url_wsdl = 'localhost:8121/edi/ws_services/SolEdiShorttermWebService?wsdl';
+
     public function ini(){
         error_reporting(E_ALL & ~E_NOTICE);
         /*$this->params = json_decode(file_get_contents("php://input"), true);
@@ -66,7 +68,7 @@ class EdiController extends PublicController{
      * 请求信保审核
      */
     public function EdiApplyAction($data) {
-        //$data = $this->getPut();
+        $data = $this->getPut();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -303,6 +305,8 @@ class EdiController extends PublicController{
     static private function _EdiBuyerCodeApply($BuyerCodeApplyInfo){
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
         try{
+            self::$client = new SoapClient(self::$url_wsdl);
+
             $response = self::$client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
                 $results['code'] = 1;

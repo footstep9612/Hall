@@ -89,6 +89,15 @@ class BuyerBankInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
+            if(isset($data['tel_bank']) && is_numeric($data['tel_bank'])){
+                jsonReturn(null, -110, '电话应为数字!');
+            }
+            if(isset($data['fax_bank']) && is_numeric($data['fax_bank'])){
+                jsonReturn(null, -110, '传真应为数字!');
+            }
+            if(isset($data['early_trade_date'])){
+                $dataInfo['early_trade_date'] = date('Y',strtotime($data['early_trade_date']));
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
