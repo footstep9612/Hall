@@ -649,7 +649,7 @@ class BuyerController extends PublicController {
         $buyer=new BuyerModel();
         $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
         if($res){
-            //授信添加市场经办人--更新状态
+            //授信添加市场经办人--更新状态--klp
             $credit_model = new BuyerCreditModel();
             $credit_model->setAgentId($data);
             $datajson['code'] = 1;

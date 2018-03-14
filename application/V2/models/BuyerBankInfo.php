@@ -130,6 +130,7 @@ class BuyerBankInfoModel extends PublicModel
         try{
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['status'] = 'VALID';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
