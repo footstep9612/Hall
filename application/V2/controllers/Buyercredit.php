@@ -267,7 +267,7 @@ class BuyercreditController extends EdiController {
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
                 //调用信保申请接口
-                $edi_res= $this->EdiApplyAction($data['buyer_no']);
+                $edi_res= $this->EdiApplyAction($data);
                 if(1 !== $edi_res){
                     jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
                 }
