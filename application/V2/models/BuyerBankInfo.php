@@ -89,6 +89,15 @@ class BuyerBankInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
+            if(isset($data['tel_bank']) && is_numeric($data['tel_bank'])){
+                jsonReturn(null, -110, '电话应为数字!');
+            }
+            if(isset($data['fax_bank']) && is_numeric($data['fax_bank'])){
+                jsonReturn(null, -110, '传真应为数字!');
+            }
+            if(isset($data['early_trade_date'])){
+                $dataInfo['early_trade_date'] = date('Y',strtotime($data['early_trade_date']));
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
@@ -99,6 +108,7 @@ class BuyerBankInfoModel extends PublicModel
                 $credit_model = new BuyerCreditModel();
                 $credit_arr['status'] = 'APPROVING';
                 $credit_arr['buyer_no'] = $data['buyer_no'];
+                $credit_arr['credit_apply_date'] = date('Y-m-d H:i:s', time());
                 $credit_model->update_data($credit_arr);
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
@@ -110,7 +120,7 @@ class BuyerBankInfoModel extends PublicModel
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
                 $dataArr['bank_address'] = $dataInfo['bank_address'];
                 $dataArr['sign'] = 2; //银行
-                $credit_log_model->create_data($this->create($dataArr));
+                $credit_log_model->create_data($dataArr);
                 return true;
             }
             return false;
@@ -133,10 +143,10 @@ class BuyerBankInfoModel extends PublicModel
             $dataInfo['status'] = 'VALID';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
+            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
             //添加日志
             $credit_log_model = new BuyerCreditLogModel();
-            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
             if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])){
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = $data['agent_by'];
@@ -160,6 +170,9 @@ class BuyerBankInfoModel extends PublicModel
             ];
             if(!empty($data['status']) && 'check' == trim($data['status'])) {
                 $uparr['status'] = "ERUI_APPROVING";      //提交易瑞审核
+                $uparr['buyer_no'] = $data['buyer_no'];
+                $credit_model->update_data($uparr);
+
                 $this->checkParam($data['buyer_no']);
                 //添加日志
                 $datalog['buyer_no'] = $data['buyer_no'];
@@ -171,7 +184,8 @@ class BuyerBankInfoModel extends PublicModel
                 $datalog['sign'] = 2;
                 $credit_log_model->create_data($this->create($datalog));
             }
-            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
+
+            //$credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
 
             if ($result !== false) {
                 return $result;
@@ -206,7 +220,7 @@ class BuyerBankInfoModel extends PublicModel
         $BuyerCodeApply['lang'] = $lang['lang'];
         $BuyerCodeApply['official_email'] = $lang['official_email'];
         $resBuyer = self::checkParamBuyer($BuyerCodeApply);
-        if($resBuyer['code'] != 1) {
+        if($resBuyer != 1) {
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
     }
@@ -250,5 +264,6 @@ class BuyerBankInfoModel extends PublicModel
         if($results){
             jsonReturn($results);
         }
+        return ShopMsg::CREDIT_SUCCESS;;
     }
 }

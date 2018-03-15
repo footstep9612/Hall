@@ -201,6 +201,21 @@ class InquiryModel extends PublicModel
                     }
                 }
 
+                //处理询单联系人
+                if (isset($data['contact'])) {
+                    $inquiryContact = new InquiryContactModel();
+                    $inquiryContact->add($inquiryContact->create([
+                        'inquiry_id' => $data['id'],
+                        'name' => $data['contact']['name'],
+                        'company' => $data['contact']['company'],
+                        'country_bn' => $data['contact']['country_bn'],
+                        'phone' => $data['contact']['phone'],
+                        'email' => $data['contact']['email'],
+                        'created_by' => $data['updated_by'],
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]));
+                }
+
                 $results['code'] = 1;
                 $results['message'] = '成功！';
 

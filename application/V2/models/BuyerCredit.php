@@ -230,10 +230,15 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
             $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
         }
+        if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
+            $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
+        } else{
+            $dataInfo['credit_apply_date'] = date('Y-m-d H:i:s', time());
+        }
         if(isset($data['source']) && !empty($data['source'])){
             $dataInfo['source'] = trim($data['source']);
         } else{
-            $data['source'] = 'BOSS';
+            $dataInfo['source'] = 'BOSS';
         }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
@@ -289,10 +294,11 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
             $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
         }
+        if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
+            $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
+        }
         if(isset($data['approved_date']) && !empty($data['approved_date'])){
             $dataInfo['approved_date'] = trim($data['approved_date']);
-        } else{
-            $dataInfo['approved_date'] = date('Y-m-d H:i:s',time());
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
@@ -306,6 +312,15 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['remarks'] = trim($data['remarks']);
         } else {
             $dataInfo['remarks'] = '';
+        }
+        $buyer_model = new BuyerModel();
+        $agent_model = new BuyerAgentModel();
+        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
+        if($agent_id){
+            $dataInfo['agent_id'] = $agent_id['agent_id'];
+        } else {
+            $dataInfo['agent_id'] = UID;
         }
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
@@ -328,9 +343,10 @@ class BuyerCreditModel extends PublicModel
             $dataLog['credit_cur_bn'] = $dataArr['credit_cur_bn'];
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
 
-            /*$valid_date = $this->field('credit_valid_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['credit_valid_date'])));*/
+            $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
+            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['approved_date'])));
             $dataLog['credit_at'] = $dataArr['credit_valid_date'];
+            $dataLog['credit_apply_date'] = $dataArr['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];
@@ -345,7 +361,7 @@ class BuyerCreditModel extends PublicModel
         return false;
     }
     private function _checkParam($data){
-        if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 1000000) {
+        if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 300000) {
             jsonReturn(null, -110, '请填写信用证额度或额度值过大!');
         } else {
             $dataArr['nolc_granted'] = intval($data['nolc_granted']);
@@ -356,7 +372,7 @@ class BuyerCreditModel extends PublicModel
             $dataArr['nolc_deadline'] = intval($data['nolc_deadline']);
         }
 
-        if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 300000) {
+        if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 1000000) {
             jsonReturn(null, -110, '请填写非信用证额度或额度值过大!');
         } else {
             $dataArr['lc_granted'] = intval($data['lc_granted']);
