@@ -343,9 +343,10 @@ class BuyerCreditModel extends PublicModel
             $dataLog['credit_cur_bn'] = $dataArr['credit_cur_bn'];
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
 
-            /*$valid_date = $this->field('credit_valid_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['credit_valid_date'])));*/
+            $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
+            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['approved_date'])));
             $dataLog['credit_at'] = $dataArr['credit_valid_date'];
+            $dataLog['credit_apply_date'] = $dataArr['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];
