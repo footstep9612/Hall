@@ -169,10 +169,18 @@ class BuyercreditController extends PublicController {
         $lang = $data['lang'] ? $data['lang'] : 'en';
         $buyerModel = new BuyerModel();
         $buyer_no = $buyerModel->field('buyer_no')->where(['id' => $this->user['buyer_id'], 'deleted_flag' => 'N'])->find();
-        $bank_model = new BuyerCreditModel();
-        $bankInfo = $bank_model->getInfo($buyer_no['buyer_no']);
-        if($bankInfo) {
-            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+        $credit_model = new BuyerCreditModel();
+        $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
+        if($creditInfo) {
+            if(!empty($creditInfo['approved_date'])){
+                $time = strtotime('+90 d',strtotime($creditInfo['approved_date']));
+                if($time <= time()) {
+                    $creditInfo['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
+                }
+            }
+            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
         }

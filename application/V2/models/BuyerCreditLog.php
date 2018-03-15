@@ -77,6 +77,18 @@ class BuyerCreditLogModel extends PublicModel{
         if(isset($data['buyer_no']) && !empty($data['buyer_no'])){
             $dataInfo['buyer_no'] = trim($data['buyer_no']);
         }
+        if(isset($data['name']) && !empty($data['name'])){
+            $dataInfo['name'] = trim($data['name']);
+        }
+        if(isset($data['bank_name']) && !empty($data['bank_name'])){
+            $dataInfo['bank_name'] = trim($data['bank_name']);
+        }
+        if(isset($data['address']) && !empty($data['address'])){
+            $dataInfo['address'] = trim($data['address']);
+        }
+        if(isset($data['bank_address']) && !empty($data['bank_address'])){
+            $dataInfo['bank_address'] = trim($data['bank_address']);
+        }
         if(isset($data['in_status']) && !empty($data['in_status'])){
             $dataInfo['in_status'] = strtoupper($data['in_status']);
         }
@@ -136,6 +148,9 @@ class BuyerCreditLogModel extends PublicModel{
         }
         if(isset($data['approved_at']) && !empty($data['approved_at'])){
             $dataInfo['approved_at'] = trim($data['approved_at']);
+        }
+        if(isset($data['sign']) && !empty($data['sign'])){
+            $dataInfo['sign'] = intval($data['sign']);
         }
         $result = $this->add($this->create($dataInfo));
         if($result){
@@ -153,6 +168,18 @@ class BuyerCreditLogModel extends PublicModel{
         if(isset($data['buyer_no']) && !empty($data['buyer_no'])){
             $dataInfo['buyer_no'] = trim($data['buyer_no']);
         }
+        if(isset($data['name']) && !empty($data['name'])){
+            $dataInfo['name'] = trim($data['name']);
+        }
+        if(isset($data['bank_name']) && !empty($data['bank_name'])){
+            $dataInfo['bank_name'] = trim($data['bank_name']);
+        }
+        if(isset($data['address']) && !empty($data['address'])){
+            $dataInfo['address'] = trim($data['address']);
+        }
+        if(isset($data['bank_address']) && !empty($data['bank_address'])){
+            $dataInfo['bank_address'] = trim($data['bank_address']);
+        }
         if(isset($data['in_status']) && !empty($data['in_status'])){
             $dataInfo['in_status'] = strtoupper($data['in_status']);
         }
@@ -212,6 +239,9 @@ class BuyerCreditLogModel extends PublicModel{
         }
         if(isset($data['approved_at']) && !empty($data['approved_at'])){
             $dataInfo['approved_at'] = trim($data['approved_at']);
+        }
+        if(isset($data['sign']) && !empty($data['sign'])){
+            $dataInfo['sign'] = intval($data['sign']);
         }
         $res = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
         if ($res !== false) {

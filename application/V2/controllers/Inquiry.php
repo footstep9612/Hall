@@ -282,6 +282,10 @@ class InquiryController extends PublicController {
         $employeeModel = new EmployeeModel();
         $buyerModel = new BuyerModel();
         $countryUserModel = new CountryUserModel();
+        $org = new OrgModel();
+        $marketAreaCountryModel = new MarketAreaCountryModel();
+        $marketAreaModel = new MarketAreaModel();
+        $transModeModel = new TransModeModel();
         
         // 市场经办人
         if ($condition['agent_name'] != '') {
@@ -328,6 +332,14 @@ class InquiryController extends PublicController {
                 $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
                 $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
                 $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
+                $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
+                $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
+                $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+                $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
+                $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+                $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
+                $inquiry['trans_mode_bn'] = $transMode['bn'];
+                $inquiry['trans_mode_name'] = $transMode['trans_mode'];
             }
         }
 
@@ -442,6 +454,38 @@ class InquiryController extends PublicController {
 
             $res = $inquiryModel->updateData($data);
 
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-103');
+            $this->setMessage(L('MISSING_PARAMETER'));
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 退回市场关闭
+     *
+     * @author liujf
+     * @time 2018-03-14
+     */
+    public function rejectCloseAction() {
+        $condition = $this->put_data;
+    
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryModel = new InquiryModel();
+    
+            $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
+    
+            $data = [
+                'id' => $condition['inquiry_id'],
+                'now_agent_id' => $agentId,
+                'status' => 'REJECT_CLOSE',
+                'quote_status' => 'COMPLETED',
+                'updated_by' => $this->user['id']
+            ];
+    
+            $res = $inquiryModel->updateData($data);
+    
             $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
@@ -702,6 +746,7 @@ class InquiryController extends PublicController {
         $marketAreaModel = new MarketAreaModel();
         $buyerModel = new BuyerModel();
         $org = new OrgModel();
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
 
         $where = $this->put_data;
         
@@ -772,6 +817,11 @@ class InquiryController extends PublicController {
             $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : L('NOTHING');
             $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : L('NOTHING');
             //$results['data']['project_name'] = $results['data']['project_name'] ? : L('NOTHING');
+            
+            if ($results['data']['status'] == 'MARKET_APPROVING') {
+                $approvingTime = $inquiryCheckLogModel->where(['inquiry_id' => $results['data']['id'], 'out_node' => 'MARKET_APPROVING'])->order('id DESC')->getField('out_at');
+            }
+            $results['data']['delay_48'] = isset($approvingTime) && (time() - strtotime($approvingTime)) / 3600 > 48 ? 'Y' : 'N';
         }
 
         $this->jsonReturn($results);

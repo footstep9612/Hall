@@ -95,6 +95,15 @@ class BuyerRegInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
+            if(isset($data['tel']) && is_numeric($data['tel'])){
+                jsonReturn(null, -110, '电话应为数字!');
+            }
+            if(isset($data['fax']) && is_numeric($data['fax'])){
+                jsonReturn(null, -110, '传真应为数字!');
+            }
+            if(isset($data['reg_date'])){
+                $dataInfo['reg_date'] = date('Y',strtotime($data['reg_date']));
+            }
             if(isset($data['stock_exchange'])){
                 $dataInfo['stock_exchange'] = json_encode($data['stock_exchange']);
             }
@@ -113,12 +122,13 @@ class BuyerRegInfoModel extends PublicModel
                 //添加审核信息
                 $credit_model = new BuyerCreditModel();
                 $data['source'] = 'BOSS';
+                $data['credit_apply_date'] = date('Y-m-d H:i:s', time());
                 $credit_model->create_data($data);
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $dataArr['in_status'] = 'APPROVING';
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['name'] = $dataInfo['name'];
@@ -155,12 +165,30 @@ class BuyerRegInfoModel extends PublicModel
                 $dataInfo['biz_nature'] = json_encode($data['biz_nature']);
             }
             $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['status'] = 'VALID';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
-            $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
-            //添加日志
             $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
-            if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
+            $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
+            //更新授信状态--
+            $credit_model = new BuyerCreditModel();
+            $uparr= [
+                'status'=>'APPROVING',
+                'nolc_granted'=>'',
+                'nolc_deadline'=>'',
+                'lc_granted'=>'',
+                'lc_deadline'=>'',
+                'credit_valid_date'=>'',
+                'approved_date'=>'',
+                'credit_apply_date'=>date('Y-m-d H:i:s', time())
+            ];
+            //$credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
+            //添加日志
+            if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in']) && $dataInfo['registered_in'] !== $check['registered_in']){
+                $uparr['buyer_no'] = $data['buyer_no'];
+                $uparr['name'] = $dataInfo['name'];
+                $credit_model->update_data($uparr);   //更新企业名称
+
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = $data['agent_by'];
@@ -181,6 +209,7 @@ class BuyerRegInfoModel extends PublicModel
             return false;
         }
     }
+
 
     /**
      * 获取企业信息

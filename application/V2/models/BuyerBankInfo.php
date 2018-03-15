@@ -89,6 +89,15 @@ class BuyerBankInfoModel extends PublicModel
         try{
 
             $dataInfo = $this->_getData($data);
+            if(isset($data['tel_bank']) && is_numeric($data['tel_bank'])){
+                jsonReturn(null, -110, '电话应为数字!');
+            }
+            if(isset($data['fax_bank']) && is_numeric($data['fax_bank'])){
+                jsonReturn(null, -110, '传真应为数字!');
+            }
+            if(isset($data['early_trade_date'])){
+                $dataInfo['early_trade_date'] = date('Y',strtotime($data['early_trade_date']));
+            }
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['status'] = 'VALID';
             $dataInfo['created_by'] = $data['agent_by'];
@@ -97,20 +106,21 @@ class BuyerBankInfoModel extends PublicModel
             if($result){
                 //添加审核信息,状态修改
                 $credit_model = new BuyerCreditModel();
-                $credit_arr['status'] = 'ERUI_APPROVING';
+                $credit_arr['status'] = 'APPROVING';
                 $credit_arr['buyer_no'] = $data['buyer_no'];
+                $credit_arr['credit_apply_date'] = date('Y-m-d H:i:s', time());
                 $credit_model->update_data($credit_arr);
                 //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'ERUI_APPROVING';
+                $dataArr['in_status'] = 'APPROVING';
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
                 $dataArr['bank_address'] = $dataInfo['bank_address'];
                 $dataArr['sign'] = 2; //银行
-                $credit_log_model->create_data($this->create($dataArr));
+                $credit_log_model->create_data($dataArr);
                 return true;
             }
             return false;
@@ -130,13 +140,14 @@ class BuyerBankInfoModel extends PublicModel
         try{
             $dataInfo = $this->_getData($data);
             $dataInfo['deleted_flag'] = 'N';
+            $dataInfo['status'] = 'VALID';
             $dataInfo['updated_by'] = $data['agent_by'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());
+            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
             //添加日志
-            $check = $this->field('bank_name,bank_address')->where(['buyer_no' => $data['buyer_no']])->find();
+            $credit_log_model = new BuyerCreditLogModel();
             if(!empty($dataInfo['bank_name']) && $dataInfo['bank_name'] !== $check['bank_name'] || !empty($dataInfo['bank_address'] && $dataInfo['bank_address'] !== $check['bank_address'])){
-                $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
@@ -145,6 +156,37 @@ class BuyerBankInfoModel extends PublicModel
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($this->create($dataArr));
             }
+            //更新授信状态
+            $credit_model = new BuyerCreditModel();
+            $uparr= [
+                'status'=>'APPROVING',
+                'nolc_granted'=>'',
+                'nolc_deadline'=>'',
+                'lc_granted'=>'',
+                'lc_deadline'=>'',
+                'credit_valid_date'=>'',
+                'approved_date'=>'',
+                'credit_apply_date'=>date('Y-m-d H:i:s', time())
+            ];
+            if(!empty($data['status']) && 'check' == trim($data['status'])) {
+                $uparr['status'] = "ERUI_APPROVING";      //提交易瑞审核
+                $uparr['buyer_no'] = $data['buyer_no'];
+                $credit_model->update_data($uparr);
+
+                $this->checkParam($data['buyer_no']);
+                //添加日志
+                $datalog['buyer_no'] = $data['buyer_no'];
+                $datalog['agent_by'] = $data['agent_by'];
+                $datalog['agent_at'] = date('Y-m-d H:i:s',time());
+                $datalog['in_status'] = "ERUI_APPROVING";
+                $datalog['sign'] = 1;
+                $credit_log_model->create_data($this->create($datalog));
+                $datalog['sign'] = 2;
+                $credit_log_model->create_data($this->create($datalog));
+            }
+
+            //$credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
+
             if ($result !== false) {
                 return $result;
             }
@@ -157,10 +199,71 @@ class BuyerBankInfoModel extends PublicModel
         }
     }
 
+
     /**
      * 获取银行信息
      */
     public function getInfo($buyer_no){
         return $this->where(['buyer_no' => $buyer_no, 'deleted_flag' => 'N'])->find();
+    }
+
+    //验证信息
+    public function checkParam($buyer_no){
+
+        $buyerModel = new BuyerModel();          //企业信息
+        $company_model = new BuyerRegInfoModel();
+        $BuyerCodeApply = $company_model->getInfo($buyer_no);
+        $lang = $buyerModel->field('lang,official_email')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
+        if(!$BuyerCodeApply || !$lang){
+            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+        }
+        $BuyerCodeApply['lang'] = $lang['lang'];
+        $BuyerCodeApply['official_email'] = $lang['official_email'];
+        $resBuyer = self::checkParamBuyer($BuyerCodeApply);
+        if($resBuyer != 1) {
+            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+        }
+    }
+
+    static public function checkParamBuyer(&$BuyerCodeApply){
+        $results = array();
+        if(!isset($BuyerCodeApply['lang'])){
+            $results['code'] = -101;
+            $results['message'] = '[lang]不能为空!';
+        }
+        if($BuyerCodeApply['lang'] == 'zh') {
+            if(!isset($BuyerCodeApply['area_no']) || !is_numeric($BuyerCodeApply['area_no'])){
+                $results['code'] = -101;
+                $results['message'] = '[area_no]不能为空或不为整型!';
+            }
+            if(!isset($BuyerCodeApply['social_credit_code'])){
+                $results['code'] = -101;
+                $results['message'] = '[social_credit_code]社会信用代码不能为空!';
+            }
+        }
+        if(!isset($BuyerCodeApply['buyer_no'])){
+            $results['code'] = -101;
+            $results['message'] = '[buyer_no]不能为空!';
+        }
+        if(!isset($BuyerCodeApply['country_code'])){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能为空!';
+        }
+        if(strlen($BuyerCodeApply['country_code']) > 3){
+            $results['code'] = -101;
+            $results['message'] = '[country_code]不能超过三位!';
+        }
+        if(!isset($BuyerCodeApply['name'])){
+            $results['code'] = -101;
+            $results['message'] = '[name]不能为空!';
+        }
+        if(!isset($BuyerCodeApply['registered_in'])){
+            $results['code'] = -101;
+            $results['message'] = '[address]不能为空!';
+        }
+        if($results){
+            jsonReturn($results);
+        }
+        return ShopMsg::CREDIT_SUCCESS;;
     }
 }
