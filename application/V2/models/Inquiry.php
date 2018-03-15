@@ -53,7 +53,9 @@ class InquiryModel extends PublicModel {
             'MARKET_APPROVING' => L('INQUIRY_MARKET_APPROVING'),
             'MARKET_CONFIRMING' => L('INQUIRY_MARKET_CONFIRMING'),
             'QUOTE_SENT' => L('INQUIRY_QUOTE_SENT'),
-            'INQUIRY_CLOSED' => L('INQUIRY_INQUIRY_CLOSED')
+            'INQUIRY_CLOSED' => L('INQUIRY_INQUIRY_CLOSED'),
+            'REJECT_CLOSE' => L('INQUIRY_REJECT_CLOSE'),
+            'INQUIRY_CONFIRM' => L('INQUIRY_INQUIRY_CONFIRM')
         ];
     }
     

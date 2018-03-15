@@ -377,7 +377,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
 
 
         $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
@@ -524,7 +524,7 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
         $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
         $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'CLARIFY\' group by inquiry_id) as max_inflow_time,'; //澄清日期

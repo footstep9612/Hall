@@ -20,7 +20,9 @@ return array(
     'INQUIRY_MARKET_APPROVING' => '事业部审核',
     'INQUIRY_MARKET_CONFIRMING' => '市场确认',
     'INQUIRY_QUOTE_SENT' => '报价单已发出',
-    'INQUIRY_INQUIRY_CLOSED' => '报价关闭',
+    'INQUIRY_INQUIRY_CLOSED' => '报价单发送后关闭',
+    'INQUIRY_REJECT_CLOSE' => '退回市场关闭',
+    'INQUIRY_INQUIRY_CONFIRM' => '询单确认',
     // 报价状态
     'QUOTE_DRAFT' => '草稿',
     'QUOTE_NOT_QUOTED' => '未报价',
