@@ -348,6 +348,8 @@ class SupplierChainModel extends PublicModel {
         if ($data) {
             $employee_model = new EmployeeModel();
             $supplierQualificationModel = new SupplierQualificationModel();
+            $supplierAgentModel = new SupplierAgentModel();
+            $supplierMaterialCatModel = new SupplierMaterialCatModel();
             $checked_bys = [];
             foreach ($data as $item) {
                 if ($item['checked_by']) {
@@ -366,6 +368,10 @@ class SupplierChainModel extends PublicModel {
                 $val['created_name'] = $employee_model->getUserNameById($val['created_by']);
                 $count = $supplierQualificationModel->getExpiryDateCount($val['id']);
                 $val['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+                // 开发人
+                $val['dev_name'] = $employee_model->getUserNameById($supplierAgentModel->getUserIdBySupplierId($val['id']));
+                // 供货范围
+                $val['material_cat'] = $supplierMaterialCatModel->getCatBySupplierId($val['id']);
                 $data[$key] = $val;
             }
         }

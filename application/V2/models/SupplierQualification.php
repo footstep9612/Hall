@@ -150,13 +150,17 @@ class SupplierQualificationModel extends PublicModel {
 	 * @time 2018-03-02
 	 */
 	public function getOverdueSupplierIds() {
-	    $list = $this->field('supplier_id, (UNIX_TIMESTAMP(MIN(expiry_date)) + 86399 - UNIX_TIMESTAMP()) AS expiry_time')
+	    $list = $this->field('supplier_id, MIN(expiry_date) AS date')
                             ->group('supplier_id')
-                            ->having('expiry_time <= 0')
                             ->select();
+        $nowTime = time();
         $supplierIds = [];
         foreach ($list as $item) {
-            $supplierIds[] = $item['supplier_id'];
+            if (empty($item['date'])) {
+                $supplierIds[] = $item['supplier_id'];
+            } else {
+                dateToTimeStamp($item['date']) + 86399 - $nowTime <= 0 && $supplierIds[] = $item['supplier_id'];
+            }
         }
         return $supplierIds;
 	}
@@ -170,7 +174,9 @@ class SupplierQualificationModel extends PublicModel {
 	 * @time 2018-03-02
 	 */
 	public function getExpiryDateCount($supplierId) {
-	    return $this->field('CEIL((UNIX_TIMESTAMP(MIN(expiry_date)) + 86399 - UNIX_TIMESTAMP()) / 86400) AS count')->where(['supplier_id' => $supplierId])->find()['count'];
+	    $nowTime = time();
+	    $expiryTime = $this->field('MIN(expiry_date) AS date')->where(['supplier_id' => $supplierId])->find()['date'];
+	    return ceil(empty($expiryTime) ? 0 : (dateToTimeStamp($expiryTime) + 86399 - $nowTime) / 86400);
 	}
 	
 	/**
