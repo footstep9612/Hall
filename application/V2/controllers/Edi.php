@@ -32,7 +32,7 @@ class EdiController extends PublicController{
 
     private $serverDirSec = 'ws_services';
 
-    private $serviceUri = '';
+    static private $serviceUri = '';
 
     private $serviceInterface = 'SolEdiProxyWebService';
 
@@ -55,15 +55,15 @@ class EdiController extends PublicController{
                 }
             }
         }*/
-        if ($this->serviceUri == '') {
+        if (self::$serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
-            $this->serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
+            self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
         }
         if ($this->mode == 'wsdl') {
-            $this->serviceUri .= '?wsdl';
+            self::$serviceUri .= '?wsdl';
         }
-        libxml_disable_entity_loader(false);
-        self::$client = new SoapClient($this->serviceUri);
+
+        //self::$client = new SoapClient($this->serviceUri);
 
     }
     /**
@@ -302,6 +302,7 @@ class EdiController extends PublicController{
     static private function _EdiBuyerCodeApply($BuyerCodeApplyInfo){
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
         try{
+            self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
                 $results['code'] = 1;
@@ -474,6 +475,7 @@ class EdiController extends PublicController{
     static private function _EdiBankCodeApply($BankCodeApplyInfo){
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
         try{
+            self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBankCodeApply($data);
             if (is_object($response)) {
                 $results['code'] = 1;

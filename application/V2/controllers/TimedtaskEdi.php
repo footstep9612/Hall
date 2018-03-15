@@ -5,10 +5,14 @@
  * Date: 2017/9/21
  * Time: 11:40
  */
-class EdiCodeApproveController extends PublicController{
+class TimedtaskEdiController extends PublicController{
 
     public function init(){
         parent::init();
+        $this->buyerCreditModel = new BuyerCreditModel();
+        $this->buyerCreditLogModel = new BuyerCreditLogModel();
+        $this->buyerBankInfoModel = new BuyerBankInfoModel();
+        $this->buyerRegInfoModel = new BuyerRegInfoModel();
     }
 
     private $serverIP = '172.18.20.125';
@@ -51,6 +55,16 @@ class EdiCodeApproveController extends PublicController{
                 foreach($updata as $item){
                     if($item['approveFlag'] == 1){
                         //先查看是否已经审核通过
+                        $check = $this->buyerBankInfoModel->where()->
+
+
+
+
+
+
+
+
+
                         $check = $conn->query("select status from buyer_credit.buyer_bank_info where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
                         if($check['status'] =='EDI_APPROVED'){
                             $conn->query("update buyer_credit.buyer_credit set sinosure_no=".$item['buyerInfo']['buyerNo'].",approved_date=".date('Y-m-d H:i:s', strtotime($item['notifyTime'])).",status='EDI_APPROVED' where buyer_no = ".$item['buyerInfo']['corpSerialNo']);
