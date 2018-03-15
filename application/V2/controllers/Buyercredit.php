@@ -251,11 +251,11 @@ class BuyercreditController extends EdiController {
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
-
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
         $credit_log_model = new BuyerCreditLogModel();
         if($data['status']== 'EDI_APPROVING'){
+            $data['buyer_no'] = 'ERUI_APPROVING';
             $res = $credit_model->update_data($data);
             if($res) {
                 $dataArr['buyer_no'] = $data['buyer_no'];
@@ -267,10 +267,10 @@ class BuyercreditController extends EdiController {
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
                 //调用信保申请接口
-//                $edi_res= $this->EdiApplyAction($data);
-//                if(1 !== $edi_res){
-//                    jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
-//                }
+                $edi_res= $this->EdiApplyAction($data);
+                if(1 !== $edi_res){
+                    jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+                }
             }
         } else {
             if (empty($data['bank_remarks']) && empty($data['remarks'])) {

@@ -42,9 +42,10 @@ class EdiController extends PublicController{
 
     static private $client;
 
-    static private $url_wsdl = 'localhost:8121/edi/ws_services/SolEdiShorttermWebService?wsdl';
+    static private $url_wsdl = "http://localhost:8121/ediserver/ws_services/SolEdiProxyWebService?wsdl";
 
-    public function ini(){
+    public function init(){
+        parent::init();
         error_reporting(E_ALL & ~E_NOTICE);
         /*$this->params = json_decode(file_get_contents("php://input"), true);
         if (count($this->params) > 0) {
@@ -61,8 +62,9 @@ class EdiController extends PublicController{
         if ($this->mode == 'wsdl') {
             $this->serviceUri .= '?wsdl';
         }
+        libxml_disable_entity_loader(false);
         self::$client = new SoapClient($this->serviceUri);
-        parent::init();
+
     }
     /**
      * 请求信保审核
@@ -74,7 +76,6 @@ class EdiController extends PublicController{
         }
         $res_buyer = $this->BuyerApply($data['buyer_no']);
         $res_bank = $this->BankApply($data['buyer_no']);
-
         if($res_buyer['code'] == 1 && $res_bank['code'] == 1) {
             $credit_model = new BuyerCreditModel();
             $arr['status'] = 'EDI_APPROVING';
@@ -127,9 +128,6 @@ class EdiController extends PublicController{
             jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         return $resBank;
-        /*  $this->setCode(MSG::MSG_SUCCESS);
-          $this->setMessage('申请成功!');
-          $this->jsonReturn($resBank);*/
     }
 
     static public function getStartDate(){
@@ -146,6 +144,7 @@ class EdiController extends PublicController{
         try {
             $client = new SoapClient("http://localhost:8121/ediserver/ws_services/SolEdiProxyWebService?wsdl");
             echo '<pre>';
+            print_r($client);
             print_r($client->__getFunctions());
             print_r($client->__getTypes());
         } catch (SOAPFault $e) {
@@ -190,10 +189,8 @@ class EdiController extends PublicController{
         $result = self::_EdiBuyerCodeApply($BuyerCodeApply);
         if($result && $result['code']  == 1){
             $res['code'] = 1;
-            $res['message'] = '申请成功!';
         } else{
             $res['code'] = -101;
-            $res['message'] = '申请失败!';
         }
         return $res;
     }
@@ -285,7 +282,7 @@ class EdiController extends PublicController{
             $BuyerCodeApplyInfo['eMail'] = $BuyerApply['official_email'];  //电子邮件
         }
         if(isset($BuyerApply['establish_data'])) {
-            $BuyerCodeApplyInfo['setDate'] = $BuyerApply['establish_data'];  //成立日期
+            $BuyerCodeApplyInfo['setDate'] = intval(date('Y',strtotime($BuyerApply['establish_data'])));  //成立日期
         }
         if(isset($BuyerApply['reg_date'])) {
             $BuyerCodeApplyInfo['regyear'] = intval($BuyerApply['reg_date']);  //注册年份
@@ -305,8 +302,6 @@ class EdiController extends PublicController{
     static private function _EdiBuyerCodeApply($BuyerCodeApplyInfo){
         $data = array('buyerCodeApplyInfoList' => array('BuyerCodeApplyInfo' => array($BuyerCodeApplyInfo)));
         try{
-            self::$client = new SoapClient(self::$url_wsdl);
-
             $response = self::$client->doEdiBuyerCodeApply($data);
             if (is_object($response)) {
                 $results['code'] = 1;
@@ -331,7 +326,7 @@ class EdiController extends PublicController{
 
         $BuyerCodeApplyInfo['corpSerialNo'] = '1';       //企业内部买方代码--
         $BuyerCodeApplyInfo['clientNo'] = '1';       //被保险人信保通编号
-        $BuyerCodeApplyInfo['policyNo'] = 'SCH017067-161600';  //保险单号  --动态配置项
+        $BuyerCodeApplyInfo['policyNo'] = 'SCH043954-181800';  //保险单号  --动态配置项
         $BuyerCodeApplyInfo['countryCode'] = 'USA';    //买方国家代码--
         $BuyerCodeApplyInfo['applyTime'] = strtotime('now'); //申请时间--
 
@@ -365,12 +360,10 @@ class EdiController extends PublicController{
         self::checkParamBank($BankApply);
         $BuyerBankApply = self::_getBankValue($BankApply);
         $result = self::_EdiBankCodeApply($BuyerBankApply);
-        if($result && $result['code']  == 1){
+        if($result['code']  == 1){
             $res['code'] = 1;
-            $res['message'] = '申请成功!';
         } else{
             $res['code'] = -101;
-            $res['message'] = '申请失败!';
         }
         return $res;
     }
@@ -417,62 +410,62 @@ class EdiController extends PublicController{
         //银行地址(英文)--(必填)
         $BankCodeApplyInfo['bankswift'] = $BankCodeApply['bank_swift'];
         //企业填写的开证行swift--(非必填)
-        if(isset($BuyerApply['bank_name_zh'])) {
-            $BuyerCodeApplyInfo['chnName'] = $BuyerApply['bank_name_zh'];  //银行中文名称
+        if(isset($BankCodeApply['bank_name_zh'])) {
+            $BankCodeApplyInfo['chnName'] = $BankCodeApply['bank_name_zh'];  //银行中文名称
         }
-        if(isset($BuyerApply['bank_zipcode'])) {
-            $BuyerCodeApplyInfo['zip'] = $BuyerApply['bank_zipcode'];  //邮政编码
+        if(isset($BankCodeApply['bank_zipcode'])) {
+            $BankCodeApplyInfo['zip'] = $BankCodeApply['bank_zipcode'];  //邮政编码
         }
-        if(isset($BuyerApply['tel_bank'])) {
-            $BuyerCodeApplyInfo['tel'] = $BuyerApply['tel_code_bank'].$BuyerApply['tel_bank'];  //银行电话
+        if(isset($BankCodeApply['tel_bank'])) {
+            $BankCodeApplyInfo['tel'] = $BankCodeApply['tel_code_bank'].$BankCodeApply['tel_bank'];  //银行电话
         }
-        if(isset($BuyerApply['fax_bank'])) {
-            $BuyerCodeApplyInfo['fax'] = $BuyerApply['fax_code_bank'].$BuyerApply['fax_bank'];  //银行传真
+        if(isset($BankCodeApply['fax_bank'])) {
+            $BankCodeApplyInfo['fax'] = $BankCodeApply['fax_code_bank'].$BankCodeApply['fax_bank'];  //银行传真
         }
-        if(isset($BuyerApply['bank_website'])) {
-            $BuyerCodeApplyInfo['webAddress'] = $BuyerApply['bank_website'];  //网站地址
+        if(isset($BankCodeApply['bank_website'])) {
+            $BankCodeApplyInfo['webAddress'] = $BankCodeApply['bank_website'];  //网站地址
         }
-        if(isset($BuyerApply['bank_reg_date'])) {
-            $BuyerCodeApplyInfo['setupDate'] = $BuyerApply['bank_reg_date'];  //成立日期
+        if(isset($BankCodeApply['bank_reg_date'])) {
+            $BankCodeApplyInfo['setupDate'] = intval(date('Y',strtotime($BankCodeApply['bank_reg_date'])));  //成立日期
         }
-        if(isset($BuyerApply['legal_person_bank'])) {
-            $BuyerCodeApplyInfo['corporation'] = $BuyerApply['legal_person_bank'];  //法人代表
+        if(isset($BankCodeApply['legal_person_bank'])) {
+            $BankCodeApplyInfo['corporation'] = $BankCodeApply['legal_person_bank'];  //法人代表
         }
-        if(isset($BuyerApply['bank_turnover'])) {
-            $BuyerCodeApplyInfo['turnover'] = number_format($BuyerApply['bank_turnover'],2,".","");  //营业额
+        if(isset($BankCodeApply['bank_turnover'])) {
+            $BankCodeApplyInfo['turnover'] = number_format($BankCodeApply['bank_turnover'],2,".","");  //营业额
         }
-        if(isset($BuyerApply['profit'])) {
-            $BuyerCodeApplyInfo['profit'] = number_format($BuyerApply['profit'],2,".","");  //利润
+        if(isset($BankCodeApply['profit'])) {
+            $BankCodeApplyInfo['profit'] = number_format($BankCodeApply['profit'],2,".","");  //利润
         }
-        if(isset($BuyerApply['total_assets'])) {
-            $BuyerCodeApplyInfo['totalAsset'] = number_format($BuyerApply['total_assets'],2,".","");;  //总资产
+        if(isset($BankCodeApply['total_assets'])) {
+            $BankCodeApplyInfo['totalAsset'] = number_format($BankCodeApply['total_assets'],2,".","");;  //总资产
         }
-        if(isset($BuyerApply['equity_capital'])) {
-            $BuyerCodeApplyInfo['selfCapital'] = number_format($BuyerApply['equity_capital'],2,".","");;  //自有资本
+        if(isset($BankCodeApply['equity_capital'])) {
+            $BankCodeApplyInfo['selfCapital'] = number_format($BankCodeApply['equity_capital'],2,".","");;  //自有资本
         }
-        if(isset($BuyerApply['equity_ratio'])) {
-            $BuyerCodeApplyInfo['selfAssetRate'] = number_format($BuyerApply['equity_ratio'],3,".","");;  //自有资产比率
+        if(isset($BankCodeApply['equity_ratio'])) {
+            $BankCodeApplyInfo['selfAssetRate'] = number_format($BankCodeApply['equity_ratio'],3,".","");;  //自有资产比率
         }
-        if(isset($BuyerApply['branch_count'])) {
-            $BuyerCodeApplyInfo['nodeSum'] = intval($BuyerApply['branch_count']);  //分支数目
+        if(isset($BankCodeApply['branch_count'])) {
+            $BankCodeApplyInfo['nodeSum'] = intval($BankCodeApply['branch_count']);  //分支数目
         }
-        if(isset($BuyerApply['employee_count'])) {
-            $BuyerCodeApplyInfo['employeeSum'] = intval($BuyerApply['employee_count']);  //员工人数
+        if(isset($BankCodeApply['employee_count'])) {
+            $BankCodeApplyInfo['employeeSum'] = intval($BankCodeApply['employee_count']);  //员工人数
         }
-        if(isset($BuyerApply['bank_group_name'])) {
-            $BuyerCodeApplyInfo['belongBankName'] = $BuyerApply['bank_group_name'];  //所属银行集团名称
+        if(isset($BankCodeApply['bank_group_name'])) {
+            $BankCodeApplyInfo['belongBankName'] = $BankCodeApply['bank_group_name'];  //所属银行集团名称
         }
-        if(isset($BuyerApply['bank_group_swift'])) {
-            $BuyerCodeApplyInfo['belongBankSwift'] = $BuyerApply['bank_group_swift'];  //所属银行集团swift
+        if(isset($BankCodeApply['bank_group_swift'])) {
+            $BankCodeApplyInfo['belongBankSwift'] = $BankCodeApply['bank_group_swift'];  //所属银行集团swift
         }
-        if(isset($BuyerApply['cn_ranking'])) {
-            $BuyerCodeApplyInfo['interOrder'] = intval($BuyerApply['cn_ranking']);  //国内排名
+        if(isset($BankCodeApply['cn_ranking'])) {
+            $BankCodeApplyInfo['interOrder'] = intval($BankCodeApply['cn_ranking']);  //国内排名
         }
-        if(isset($BuyerApply['intl_ranking'])) {
-            $BuyerCodeApplyInfo['nationOrder'] = intval($BuyerApply['intl_ranking']);  //国际排名
+        if(isset($BankCodeApply['intl_ranking'])) {
+            $BankCodeApplyInfo['nationOrder'] = intval($BankCodeApply['intl_ranking']);  //国际排名
         }
-        if(isset($BuyerApply['stockholder'])) {
-            $BuyerCodeApplyInfo['stockHolder'] = $BuyerApply['stockholder'];  //股东
+        if(isset($BankCodeApply['stockholder'])) {
+            $BankCodeApplyInfo['stockHolder'] = $BankCodeApply['stockholder'];  //股东
         }
 
         return $BankCodeApplyInfo;
@@ -482,7 +475,6 @@ class EdiController extends PublicController{
         $data = array('bankCodeApplyInfoList' => array('BankCodeApplyInfo' => array($BankCodeApplyInfo)));
         try{
             $response = self::$client->doEdiBankCodeApply($data);
-//           var_dump($response);die;
             if (is_object($response)) {
                 $results['code'] = 1;
             } else {
