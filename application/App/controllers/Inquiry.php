@@ -260,13 +260,17 @@ class InquiryController extends PublicController
         $inquiryDetail['totalCount']= $quoteItemModel->where($condition)->count('id');
         $inquiryDetail['quotedCount'] = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
 
+        //询单联系人
+        $inquiryContact = (new InquiryContactModel)->where($condition)->field('name,company,country_bn,phone,email')->find();
+
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功!',
             'data' => [
                 'inquiry'    => $inquiryDetail,
                 'quote'      => $quoteDetail,
-                'logistics'  => $logiDetail
+                'logistics'  => $logiDetail,
+                'contact'    => $inquiryContact
             ]
         ]);
 
