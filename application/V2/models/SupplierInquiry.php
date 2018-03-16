@@ -632,42 +632,44 @@ class SupplierInquiryModel extends PublicModel {
             'AB' => ['la_time', '物流报出日期'],
             'AC' => ['qs_time', '报出日期'],
             'AD' => ['quoted_time', '报价用时(小时)'],
-            'AE' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AF' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AG' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AH' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AI' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AJ' => [null, '获单主体单位)'],
-            'AK' => ['obtain_name', '获取人)'],
-            'AL' => ['created_by_name', '询单创建人'],
-            'AM' => ['agent_name', '市场负责人'],
-            'AN' => ['biz_despatching', '事业部分单人'],
-            'AO' => ['quote_name', '商务技术部报价人'],
-            'AP' => ['check_org_name', '事业部负责人'],
-            'AQ' => ['brand', '产品品牌'],
-            'AR' => ['supplier_name', '报价单位'],
-            'AS' => [null, '报价人联系方式'],
-            'AT' => ['purchase_unit_price', '厂家单价（元）'],
-            'AU' => ['purchase_price_cur_bn', '币种'],
-            'AV' => ['total', '厂家总价（元）'],
+            'AE' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AF' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AG' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AH' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AI' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AJ' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AK' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AL' => [null, '获单主体单位)'],
+            'AM' => ['obtain_name', '获取人)'],
+            'AN' => ['created_by_name', '询单创建人'],
+            'AO' => ['agent_name', '市场负责人'],
+            'AP' => ['biz_despatching', '事业部分单人'],
+            'AQ' => ['quote_name', '商务技术部报价人'],
+            'AR' => ['check_org_name', '事业部负责人'],
+            'AS' => ['brand', '产品品牌'],
+            'AT' => ['supplier_name', '报价单位'],
+            'AU' => [null, '报价人联系方式'],
+            'AV' => ['purchase_unit_price', '厂家单价（元）'],
             'AW' => ['purchase_price_cur_bn', '币种'],
-            'AX' => ['gross_profit_rate', '利润率'],
-            'AY' => ['quote_unit_price', '报价单价（元）'],
-            'AZ' => ['purchase_price_cur_bn', '币种'],
-            'BA' => ['total_quote_price', '报价总价（元）'],
+            'AX' => ['total', '厂家总价（元）'],
+            'AY' => ['purchase_price_cur_bn', '币种'],
+            'AZ' => ['gross_profit_rate', '利润率'],
+            'BA' => ['quote_unit_price', '报价单价（元）'],
             'BB' => ['purchase_price_cur_bn', '币种'],
-            'BC' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'BD' => ['gross_weight_kg', '单重(kg)'],
-            'BE' => ['total_kg', '总重(kg)'],
-            'BF' => ['package_size', '包装体积(mm)'],
-            'BG' => ['package_mode', '包装方式'],
-            'BH' => ['delivery_days', '交货期（天）'],
-            'BI' => ['period_of_validity', '有效期（天）'],
-            'BJ' => ['trade_terms_bn', '贸易术语'],
-            'BK' => ['istatus', '最新进度及解决方案'],
-            'BL' => ['iquote_status', '报价后状态'],
-            'BM' => ['quote_notes', '备注'],
-            'BN' => ['reason_for_no_quote', '未报价分析'],
+            'BC' => ['total_quote_price', '报价总价（元）'],
+            'BD' => ['purchase_price_cur_bn', '币种'],
+            'BE' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'BF' => ['gross_weight_kg', '单重(kg)'],
+            'BG' => ['total_kg', '总重(kg)'],
+            'BH' => ['package_size', '包装体积(mm)'],
+            'BI' => ['package_mode', '包装方式'],
+            'BJ' => ['delivery_days', '交货期（天）'],
+            'BK' => ['period_of_validity', '有效期（天）'],
+            'BL' => ['trade_terms_bn', '贸易术语'],
+            'BM' => ['istatus', '最新进度及解决方案'],
+            'BN' => ['iquote_status', '报价后状态'],
+            'BO' => ['quote_notes', '备注'],
+            'BP' => ['reason_for_no_quote', '未报价分析'],
 //            'BA' => [null, '报价超48小时原因类型'],
 //            'BB' => [null, '报价超48小时分析'],
 //            'BC' => [null, '成单或失单'],
@@ -708,32 +710,34 @@ class SupplierInquiryModel extends PublicModel {
             'X' => ['la_time', '物流报出日期'],
             'Y' => ['qs_time', '报出日期'],
             'Z' => ['quoted_time', '报价用时(小时)'],
-            'AA' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AB' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AC' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AD' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AE' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AF' => ['clarification_time', '项目澄清时间(小时)'],
-            'AG' => ['obtain_org_name', '获单主体单位)'],
-            'AH' => ['obtain_name', '获取人'],
-            'AI' => ['created_by_name', '询单创建人'],
-            'AJ' => ['agent_name', '市场负责人'],
-            'AK' => ['biz_despatching', '事业部分单人'],
-            'AL' => ['quote_name', '商务技术部报价人'],
-            'AM' => ['check_org_name', '事业部负责人'],
-            'AN' => ['total_quote_price', '报价总价（元）'],
-            'AO' => ['purchase_price_cur_bn', '币种'],
-            'AP' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AQ' => ['total_kg', '总重(kg)'],
-            'AR' => ['package_size', '包装体积(mm)'],
-            'AS' => ['package_mode', '包装方式'],
-            'AT' => ['delivery_days', '交货期（天）'],
-            'AU' => ['period_of_validity', '有效期（天）'],
-            'AV' => ['trade_terms_bn', '贸易术语'],
-            'AW' => ['istatus', '最新进度及解决方案'],
-            'AX' => ['iquote_status', '报价后状态'],
-            'AY' => ['quote_notes', '备注'],
-            'AZ' => ['reason_for_no_quote', '未报价分析'],
+            'AA' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AB' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AC' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AD' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AE' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AF' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AG' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AH' => ['clarification_time', '项目澄清时间(小时)'],
+            'AI' => ['obtain_org_name', '获单主体单位)'],
+            'AJ' => ['obtain_name', '获取人'],
+            'AK' => ['created_by_name', '询单创建人'],
+            'AL' => ['agent_name', '市场负责人'],
+            'AM' => ['biz_despatching', '事业部分单人'],
+            'AN' => ['quote_name', '商务技术部报价人'],
+            'AO' => ['check_org_name', '事业部负责人'],
+            'AP' => ['total_quote_price', '报价总价（元）'],
+            'AQ' => ['purchase_price_cur_bn', '币种'],
+            'AR' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AS' => ['total_kg', '总重(kg)'],
+            'AT' => ['package_size', '包装体积(mm)'],
+            'AU' => ['package_mode', '包装方式'],
+            'AV' => ['delivery_days', '交货期（天）'],
+            'AW' => ['period_of_validity', '有效期（天）'],
+            'AX' => ['trade_terms_bn', '贸易术语'],
+            'AY' => ['istatus', '最新进度及解决方案'],
+            'AZ' => ['iquote_status', '报价后状态'],
+            'BA' => ['quote_notes', '备注'],
+            'BB' => ['reason_for_no_quote', '未报价分析'],
         ];
     }
 
@@ -1006,9 +1010,11 @@ class SupplierInquiryModel extends PublicModel {
         $inquiryCheckLogModel = new InquiryCheckLogModel();
         $nowTime = time();
         $clarifyMapping = [
+            'BIZ_DISPATCHING' => 'biz_dispatching_clarification_time',
             'BIZ_QUOTING' => 'biz_quoting_clarification_time',
             'LOGI_DISPATCHING' => 'logi_dispatching_clarification_time',
             'LOGI_QUOTING' => 'logi_quoting_clarification_time',
+            'LOGI_APPROVING' => 'logi_approving_clarification_time',
             'BIZ_APPROVING' => 'biz_approving_clarification_time',
             'MARKET_APPROVING' => 'market_approving_clarification_time'
         ];
@@ -1030,15 +1036,22 @@ class SupplierInquiryModel extends PublicModel {
             $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
             if ($referenceID) {
                 // 各环节的项目澄清时间列表
-                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['id' => ['gt', $referenceID], 'in_node' => 'CLARIFY', 'out_node' => ['in', $clarifyNode]]))->order('id ASC')->select();
+                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['id' => ['gt', $referenceID], 'in_node' => 'CLARIFY', 'out_node' => ['in', array_diff($clarifyNode, ['BIZ_DISPATCHING'])]]))->order('id ASC')->select();
                 foreach ($clarifyList as $clarify) {
-                    // 计算各环节的项目澄清时间
+                    // 计算各环节的项目澄清时间（事业部分单员除外）
                     $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
                 }
+                // 最后一次事业部分单员的项目澄清时间
+                $item[$clarifyMapping['BIZ_DISPATCHING']] = $inquiryCheckLogModel->field('(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find()['clarify_time'];
                 // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
                 $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
+                $lastClarifyTime = '';
                 if ($lastLog['out_node'] == 'CLARIFY' && in_array($lastLog['in_node'], $clarifyNode)) {
-                    $item[$clarifyMapping[$lastLog['in_node']]] += $nowTime - $lastLog['out_time'];
+                    $lastClarifyTime = $nowTime - $lastLog['out_time'];
+                    $item[$clarifyMapping[$lastLog['in_node']]] += $lastClarifyTime;
+                    if ($lastLog['in_node'] == 'BIZ_DISPATCHING') {
+                        $item[$clarifyMapping['BIZ_DISPATCHING']] = $lastClarifyTime;
+                    }
                 }
                 foreach ($clarifyMapping as $v) {
                     if ($item[$v] > 0) {
@@ -1047,7 +1060,7 @@ class SupplierInquiryModel extends PublicModel {
                     }
                 }
                 // 总的项目澄清时间
-                $item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'];
+                $item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
                 if ($item['clarification_time'] > 0) {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }
