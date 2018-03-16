@@ -844,7 +844,7 @@ class GoodsModel extends PublicModel {
         if ($exist) {
             $attr_model = new GoodsAttrModel();
             foreach ($exist as $item) {
-                $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang']];
+                $condition_attr = ['spu' => $item['spu'], 'sku' => $item['sku'], 'lang' => $item['lang'], 'deleted_flag' => 'N'];
                 $spesc = $attr_model->field('spec_attrs')->where($condition_attr)->find();
                 $fspesc = json_decode($spesc['spec_attrs'], true);
                 $fspesc = empty($fspesc) ? array() : $fspesc;
@@ -3473,7 +3473,6 @@ class GoodsModel extends PublicModel {
                     }
 
                     $goods_val[] = $r;
-
                 }
             } while (count($result) >= $length);
         }
