@@ -1919,3 +1919,31 @@ function strlenUtf8($str) {
     // 返回单元个数
     return count($match[0]);
 }
+
+/**
+ * @desc 时间戳转日期
+ *
+ * @param int $num
+ * @param string $format
+ * @return string
+ * @author liujf
+ * @time 2018-03-15
+ */
+function timeStampToDate($num, $format = 'Y-m-d H:i:s') {
+    $d = new DateTime('@' . $num);
+    $d->setTimezone(new DateTimeZone('PRC'));
+    return $d->format($format);
+}
+
+/**
+ * @desc 日期转时间戳
+ *
+ * @param string $str
+ * @return int
+ * @author liujf
+ * @time 2018-03-15
+ */
+function dateToTimeStamp($str) {
+    $d = new DateTime($str);
+    return  $d->format('U');
+}

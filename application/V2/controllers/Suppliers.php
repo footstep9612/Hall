@@ -241,6 +241,7 @@ class SuppliersController extends PublicController {
         // 供应商基本信息
         $supplierData = [
             'status' => $condition['status'],
+            'erui_status' => 'CHECKING',
             'supplier_type' => $condition['supplier_type'],
             'name' => $condition['name'],
             'name_en' => $condition['name_en'],
@@ -370,6 +371,10 @@ class SuppliersController extends PublicController {
         foreach ($supplierList as &$supplier) {
             $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
             $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+            // 开发人
+            $supplier['dev_name'] = $this->employeeModel->getUserNameById($supplier['agent_id']);
+            // 供货范围
+            $supplier['material_cat'] = $this->supplierMaterialCatModel->getCatBySupplierId($supplier['id']);
         }
 
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
