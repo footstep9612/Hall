@@ -175,7 +175,7 @@ class SupplierQualificationModel extends PublicModel {
 	 */
 	public function getExpiryDateCount($supplierId) {
 	    $nowTime = time();
-	    $expiryTime = $this->field('MIN(expiry_date) AS date')->where(['supplier_id' => $supplierId])->find()['date'];
+	    $expiryTime = $this->getExpiryDate($supplierId);
 	    return ceil(empty($expiryTime) ? 0 : (dateToTimeStamp($expiryTime) + 86399 - $nowTime) / 86400);
 	}
 	
