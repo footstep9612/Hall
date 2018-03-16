@@ -70,7 +70,7 @@ class EdiController extends PublicController{
      * 请求信保审核
      */
     public function EdiApplyAction($data) {
-        $data = $this->getPut();
+        //$data = $this->getPut();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -105,7 +105,7 @@ class EdiController extends PublicController{
         $BuyerCodeApply['official_email'] = $lang['official_email'];
         $resBuyer = self::EdiBuyerCodeApply($BuyerCodeApply);
         if($resBuyer['code'] != 1) {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+            jsonReturn(null,MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         return $resBuyer;
     }
@@ -187,7 +187,7 @@ class EdiController extends PublicController{
         self::checkParamBuyer($BuyerApply);
         $BuyerCodeApply = self::_getBuyerValue($BuyerApply);
         $result = self::_EdiBuyerCodeApply($BuyerCodeApply);
-        if($result && $result['code']  == 1){
+        if($result['code']  == 1){
             $res['code'] = 1;
         } else{
             $res['code'] = -101;
@@ -304,19 +304,20 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
-            if (is_object($response)) {
-                $results['code'] = 1;
-            } else {
-                $results['code'] = -101;
-            }
+//            if (is_object($response)) {
+//                $results['code'] = 1;
+//            } else {
+//                $results['code'] = -101;
+//            }
+            $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
-            self::exception($e,$e->getMessage());
+            self::exception($e,$e->getMessage());jsonReturn($e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            return $results;
+            return false;
         }
 
     }
@@ -477,11 +478,12 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBankCodeApply($data);
-            if (is_object($response)) {
-                $results['code'] = 1;
-            } else {
-                $results['code'] = -101;
-            }
+//            if (is_object($response)) {
+//                $results['code'] = 1;
+//            } else {
+//                $results['code'] = -101;
+//            }
+            $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
             self::exception($e,$e->getMessage());
@@ -489,7 +491,7 @@ class EdiController extends PublicController{
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            return $results;
+            return false;
         }
     }
 
@@ -533,7 +535,7 @@ class EdiController extends PublicController{
         $time['endDate'] = self::getEndDate();//var_dump($time);die;
         try{
             $time = array('startDate'=>date('Y-m-d\T14:00:00', time()),'endDate'=>date('Y-m-d\T23:00:00', time()));
-            //jsonReturn($time);
+            self::$client = new SoapClient(self::$serviceUri);
             $buyerCodeApproveInfo = self::$client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             if ($buyerCodeApproveInfo) {
                 var_dump($buyerCodeApproveInfo);
@@ -553,7 +555,8 @@ class EdiController extends PublicController{
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
             $time = array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
-            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+            self::$client = new SoapClient(self::$serviceUri);
+            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>"2018-03-10T00:00:00",'endDate'=>self::getEndDate()));
             if ($BankCodeApproveInfo) {
 //                $BankCodeApproveInfo = self::object_array($BankCodeApproveInfo);
 //                //存储结果日志

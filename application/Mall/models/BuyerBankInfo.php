@@ -104,6 +104,7 @@ class BuyerBankInfoModel extends PublicModel
     public function update_data($data) {
 
         $dataInfo = $this->_getData($data);
+        $dataInfo['remarks'] = $data['bank_remarks'];
         $dataInfo['deleted_flag'] = 'N';
         $dataInfo['updated_by'] = $data['buyer_id'];
         $dataInfo['updated_at'] = date('Y-m-d H:i:s',time());

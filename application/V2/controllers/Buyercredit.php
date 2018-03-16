@@ -34,7 +34,7 @@ class BuyercreditController extends EdiController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 d',strtotime($item['approved_date']));
+                    $time = strtotime('+90 days',strtotime($item['approved_date']));
                     if($time <= time()) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
@@ -66,7 +66,7 @@ class BuyercreditController extends EdiController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 d',strtotime($item['approved_date']));
+                    $time = strtotime('+90 days',strtotime($item['approved_date']));
                     if($time <= time()) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
@@ -247,6 +247,7 @@ class BuyercreditController extends EdiController {
      */
     public function checkCreditAction(){
         $data = $this->getPut();
+        //$edi_res= $this->EdiApplyAction($data);jsonReturn($edi_res);
         $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
@@ -267,10 +268,10 @@ class BuyercreditController extends EdiController {
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
                 //调用信保申请接口
-                $edi_res= $this->EdiApplyAction($data);
+               /* $edi_res= $this->EdiApplyAction($data);
                 if(1 !== $edi_res){
                     jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
-                }
+                }*/
             }
         } else {
             if (empty($data['bank_remarks']) && empty($data['remarks'])) {

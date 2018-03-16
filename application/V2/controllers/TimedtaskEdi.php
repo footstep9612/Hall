@@ -7,15 +7,15 @@
  */
 class TimedtaskEdiController extends PublicController{
 
-    private $serverIP = '172.18.20.125';
-    private $serverPort = '8081';
+    private $serverIP = 'localhost';
+    private $serverPort = '8121';
     private $serverDir = 'ediserver';
     private $serverDirSec = 'ws_services';
     private $serviceInterface = 'SolEdiProxyWebService';
     private $mode = 'wsdl';
     static private $policyNo = 'SCH043954-181800';
     static private $serviceUri = '';
-    static private $url_wsdl = '172.18.20.125:8081/edi/ws_services/SolEdiShorttermWebService?wsdl';
+    static private $url_wsdl = 'localhost:8121/edi/ws_services/SolEdiShorttermWebService?wsdl';
 
     public function init(){
         parent::init();
@@ -35,12 +35,12 @@ class TimedtaskEdiController extends PublicController{
         }
     }
 
-
     /**
-     * 企业代码批复通知
-     *
+     * @desc 企业代码批复通知接口（定时任务：每天01:00:00执行）
+     * @author klp
+     * @time 2018-03-16
      */
-     public function getByuerApproved()
+     public function getByuerApprovedAction()
      {
          try {
              $client = new SoapClient(self::$serviceUri);
@@ -48,16 +48,12 @@ class TimedtaskEdiController extends PublicController{
              $buyerCodeApproveInfo = $response->out->BuyerCodeApproveInfo;
              if ($buyerCodeApproveInfo) {
 
-                 //存储结果日志
-//                $path = "";
-//                $time = date('Y-m-d h:i:s',time());
-//                $file = $path."/".$time."_edi.txt";
-//                $fp = fopen($file,"a+");
-//                $start="time:".$time."\r\n"."edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
-//                $end ="\r\n"."---------- content end ----------"."\r\n\n";
-//                $content=$start."".$buyerCodeApproveInfo."".$end;
-//                fwrite($fp,$content);
-//                fclose($fp);
+             //存储结果日志
+            $time = date('Y-m-d h:i:s',time());
+            $start="time:".$time."\r\n"."edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
+            $end ="\r\n"."---------- content end ----------"."\r\n\n";
+            $content=$start."".$buyerCodeApproveInfo."".$end;
+            LOG::write($content, LOG::INFO);
 
                  $updata = self::object_array($buyerCodeApproveInfo);
                  foreach ($updata as $item) {
@@ -119,37 +115,31 @@ class TimedtaskEdiController extends PublicController{
                  }
              }
          } catch (Exception $e) {
-             LOG::write('CLASS:' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+             LOG::write('CLASS:' . __CLASS__ . PHP_EOL . '【ByuerApproved】 LINE:' . __LINE__, LOG::EMERG);
              LOG::write($e->getMessage(), LOG::ERR);
          }
      }
 
     /**
-     * 银行代码批复通知
-     *
+     * @desc 银行代码批复通知接口（定时任务：每天01:00:00执行）
+     * @author klp
+     * @time 2018-03-16
      */
-     public function getBankApproved() {
+     public function getBankApprovedAction() {
         try{
             $client = new SoapClient(self::$serviceUri);
-            $response = $client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
-            $buyerCodeApproveInfo = $response->out->BuyerCodeApproveInfo;
-            if ($buyerCodeApproveInfo) {
+            $response = $client->doEdiBankCodeApprove(array('startDate'=>"2018-03-09T23:59:59", 'endDate'=>self::getEndDate()));
+            $buyerBankApproveInfo = $response->out->BankCodeApproveInfo;jsonReturn($response);
+            if ($buyerBankApproveInfo) {
 
                 //存储结果日志
-//                $path = "";
-//                $time = date('Y-m-d h:i:s',time());
-//                $file = $path."/".$time."_edi.txt";
-//                $fp = fopen($file,"a+");
-//                $start="time:".$time."\r\n"."edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
-//                $end ="\r\n"."---------- content end ----------"."\r\n\n";
-//                $content=$start."".$buyerCodeApproveInfo."".$end;
-//                fwrite($fp,$content);
-//                fclose($fp);
+                $time = date('Y-m-d h:i:s',time());
+                $start="time:".$time."\r\n"."edi/buyerBankApproveInfo:"."\r\n"."---------- content start ----------"."\r\n";
+                $end ="\r\n"."---------- content end ----------"."\r\n\n";
+                $content=$start."".$buyerBankApproveInfo."".$end;
+                LOG::write($content, LOG::INFO);
 
-                $conn = mysqli_connect(self::$host,self::$user,self::$pass,self::$dbname) or die('connect fail');
-                $conn->query("set names 'utf8';");
-
-                $updata =  self::object_array($buyerCodeApproveInfo);
+                $updata =  self::object_array($buyerBankApproveInfo);
                 foreach($updata as $item){
                     if($item['approveFlag'] == 1){
                         //先查看是否已经审核通过
@@ -210,10 +200,9 @@ class TimedtaskEdiController extends PublicController{
                         }
                     }
                 }
-                $conn->close();
             }
         } catch (Exception $e) {
-            LOG::write('CLASS:' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write('CLASS:' . __CLASS__ . PHP_EOL . '【BankApproved】LINE:' . __LINE__, LOG::EMERG);
             LOG::write($e->getMessage(), LOG::ERR);
         }
     }

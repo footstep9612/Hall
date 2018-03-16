@@ -322,6 +322,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataInfo['agent_id'] = UID;
         }
+        $dataInfo['status'] = 'APPROVING';
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;

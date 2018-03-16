@@ -105,7 +105,7 @@ class BuyerRegInfoModel extends PublicModel
                 $bank_res = $bank_model->create_data($data);
                 if(!$bank_res){
                     $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '添加银行信息失败');
+                    jsonReturn(null, MSG::MSG_FAILED, 'failed!');//添加银行信息失败
                 }
                 //添加审核信息
                 $credit_model = new BuyerCreditModel();
@@ -142,6 +142,7 @@ class BuyerRegInfoModel extends PublicModel
         $this->startTrans();
         try{
             $dataInfo = $this->_getData($data);
+            $dataInfo['remarks'] = $data['remarks'];
             $dataInfo['deleted_flag'] = 'N';
             $dataInfo['updated_by'] = $data['buyer_id'];
             $dataInfo['updated_at'] = date('Y-m-d H:i:s', time());
@@ -152,7 +153,7 @@ class BuyerRegInfoModel extends PublicModel
                 $bank_res = $bank_model->update_data($data);
                 if(!$bank_res){
                     $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新银行信息失败');
+                    jsonReturn(null, MSG::MSG_FAILED, 'failed!');//更新银行信息失败
                 }
                 //更新授信状态
                 $credit_model = new BuyerCreditModel();
