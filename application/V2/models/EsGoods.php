@@ -310,12 +310,12 @@ class EsGoodsModel extends Model {
             if ($condition['onshelf_flag'] === 'A') {
 
             } elseif ($onshelf_flag === 'N') {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'N']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'N']];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
             }
         } else {
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['show_cats.onshelf_flag' => 'Y']];
+            $body['query']['bool']['must'][] = [ESClient::TERM => ['onshelf_flag' => 'Y']];
         }
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
