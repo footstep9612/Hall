@@ -584,7 +584,6 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
 
         $this->_setquoted_time($list);
-        $this->_setTotalOilFlag($list);
         $this->_setBizDespatching($list);
         $this->_setTotalPrice($list);
         $this->_setObtainInfo($list);
@@ -1043,12 +1042,12 @@ class SupplierInquiryModel extends PublicModel {
                 }
                 foreach ($clarifyMapping as $v) {
                     if ($item[$v] > 0) {
-                        // 计算总的项目澄清时间
-                        $item['clarification_time'] += $item[$v];
                         // 项目澄清时间换算成小时
                         $item[$v] = number_format($item[$v] / 3600, 2);
                     }
                 }
+                // 总的项目澄清时间
+                $item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'];
                 if ($item['clarification_time'] > 0) {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }
