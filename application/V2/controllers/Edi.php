@@ -304,15 +304,11 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
-//            if (is_object($response)) {
-//                $results['code'] = 1;
-//            } else {
-//                $results['code'] = -101;
 //            }
             $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
-            self::exception($e,$e->getMessage());jsonReturn($e->getMessage());
+            self::exception($e,$e->getMessage());
             $results = [
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()

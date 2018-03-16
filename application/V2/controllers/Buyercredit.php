@@ -247,7 +247,7 @@ class BuyercreditController extends EdiController {
      */
     public function checkCreditAction(){
         $data = $this->getPut();
-        //$edi_res= $this->EdiApplyAction($data);jsonReturn($edi_res);
+        //$edi_res= $this->EdiApplyAction($data);jsonReturn($edi_res); //先调用信保
         $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');

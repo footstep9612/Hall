@@ -70,7 +70,7 @@ class BuyerCreditModel extends PublicModel
             $where .= ' And `buyer_credit`.`buyer_credit`.`buyer_no` ="' . $condition['buyer_no'] . '"';
         }
         if (isset($condition['country_code']) && !empty($condition['country_code'])) {
-            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . $condition['country_code'] . '"';
+            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . strtoupper($condition['country_code']) . '"';
         }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where .= " And `buyer_credit`.`buyer_credit`.`name` like '%" . $condition['name'] . "%'";
