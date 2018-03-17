@@ -69,9 +69,6 @@ class BuyerCreditModel extends PublicModel
         if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`buyer_no` ="' . $condition['buyer_no'] . '"';
         }
-        if (isset($condition['country_code']) && !empty($condition['country_code'])) {
-            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . strtoupper($condition['country_code']) . '"';
-        }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where .= " And `buyer_credit`.`buyer_credit`.`name` like '%" . $condition['name'] . "%'";
         }
@@ -81,12 +78,6 @@ class BuyerCreditModel extends PublicModel
         if (isset($condition['agent_id']) && !empty($condition['agent_id'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`agent_id` = "'. $condition['agent_id'] .'"';
         }
-        if (isset($condition['agent_name']) && !empty($condition['agent_name'])) {
-            $where .= " And `erui_sys`.`employee`.`agent_name` like '%" . $condition['agent_name'] . "%'";
-        }
-        if (isset($condition['buyer_code']) && !empty($condition['buyer_code'])) {
-            $where .= ' And `erui_buyer`.`buyer`.`buyer_code` = "' . $condition['buyer_code'] .'"';
-        }
         if (isset($condition['bank_swift']) && !empty($condition['bank_swift'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`bank_swift`  = " ' . $condition['bank_swift'] . '"';
         }
@@ -95,16 +86,24 @@ class BuyerCreditModel extends PublicModel
         }else{
             $where .= ' And  `buyer_credit`.`buyer_credit`.`status` <> "DRAFT"';
         }
+        if (isset($condition['country_code']) && !empty($condition['country_code'])) {
+            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . strtoupper($condition['country_code']) . '"';
+        }
+        if (isset($condition['agent_name']) && !empty($condition['agent_name'])) {
+            $where .= " And `erui_sys`.`employee`.`agent_name` like '%" . $condition['agent_name'] . "%'";
+        }
+        if (isset($condition['buyer_code']) && !empty($condition['buyer_code'])) {
+            $where .= ' And `erui_buyer`.`buyer`.`buyer_code` = "' . $condition['buyer_code'] .'"';
+        }
         if ($where) {
             $sql .= $where;
-            $sql_count .= $where;
+           // $sql_count .= $where;
         }
         $sql .= ' Order By ' . $order;
         if (!empty($limit['num'])) {
             $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
         }
-        $count = $this->query($sql_count);
-        $res['count'] = $count[0]['num'];
+        $res['count'] = count($this->query($sql));
         $res['data'] = $this->query($sql);
         return $res;
     }
