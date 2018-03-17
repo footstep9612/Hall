@@ -6,7 +6,7 @@
  * Time: 10:43
  */
 
-class BuyercreditController extends EdiController {
+class BuyercreditController extends PublicController {
 
     public function init(){
         parent::init();

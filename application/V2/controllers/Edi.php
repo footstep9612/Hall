@@ -66,10 +66,87 @@ class EdiController extends PublicController{
         //self::$client = new SoapClient($this->serviceUri);
 
     }
+
+    /**
+     * erui易瑞审核
+     */
+    public function checkCreditAction(){
+        $data = $this->getPut();
+        //$edi_res= $this->EdiApply($data);jsonReturn($edi_res); //先调用信保
+        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        $data['status'] = $this->_checkStatus($data['status']);
+        $credit_model = new BuyerCreditModel();
+        $credit_log_model = new BuyerCreditLogModel();
+        if($data['status']== 'EDI_APPROVING'){
+            $data['buyer_no'] = 'ERUI_APPROVING';
+            $res = $credit_model->update_data($data);
+            if($res) {
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = UID;
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['sign'] = 1;
+                $dataArr['in_status'] = 'EDI_APPROVING';
+                $credit_log_model->create_data($dataArr);
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($dataArr);
+                //调用信保申请接口
+                /* $edi_res= $this->EdiApplyAction($data);
+                 if(1 !== $edi_res){
+                     jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+                 }*/
+            }
+        } else {
+            if (empty($data['bank_remarks']) && empty($data['remarks'])) {
+                jsonReturn(null, -110, '请至少填写一项原因!');               //原因
+            }
+            $res = $credit_model->update_data($data);
+            if($res){
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = UID;
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['in_status'] = $data['status'];
+                if (isset($data['remarks']) && !empty($data['remarks'])) {
+                    $dataArr['in_remarks'] = $data['remarks'];                    //企业原因
+                }
+                $dataArr['sign'] = 1;
+                $credit_log_model->create_data($dataArr);
+                if (isset($data['bank_remarks']) && !empty($data['bank_remarks'])) {
+                    $dataArr['in_remarks'] = $data['bank_remarks'];                   //银行原因
+                }
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($dataArr);
+            }
+        }
+        if($res) {
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+        }
+    }
+
+    private function _checkStatus($status){
+
+        switch ($status) {
+            case 'APPROVED':    //审核通过
+                $status = 'EDI_APPROVING';
+                break;
+            case 'REJECTED':    //审核驳回
+                $status = 'ERUI_REJECTED';
+                break;
+            default:
+                $status = 'EDI_APPROVING';
+                break;
+        }
+        return $status;
+    }
+
     /**
      * 请求信保审核
      */
-    public function EdiApplyAction($data) {
+    public function EdiApply($data) {
         //$data = $this->getPut();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
