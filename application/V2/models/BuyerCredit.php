@@ -302,6 +302,8 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
+        } else {
+            $dataInfo['status'] = 'APPROVING';
         }
         if(isset($data['bank_remarks']) && !empty($data['bank_remarks'])){
             $dataInfo['bank_remarks'] = trim($data['bank_remarks']);
@@ -322,7 +324,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataInfo['agent_id'] = UID;
         }
-        $dataInfo['status'] = 'APPROVING';
+
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;
