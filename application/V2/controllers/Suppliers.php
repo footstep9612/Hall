@@ -956,4 +956,121 @@ class SuppliersController extends PublicController {
         }
     }
 
+    public function exportAction()
+    {
+
+        $data = $this->getExportData($this->put_data);
+
+        $localFile = SupplierHelper::createSupplierExcelWithData($data);
+
+        $response = SupplierHelper::upload2FastDFS($localFile);
+
+        if ($response['code']) {
+            $this->jsonReturn([
+                'code' => 1,
+                'message' => '成功!',
+                'data' => [
+                    'url' => $response['url'],
+                    'name' => $response['name']
+                ]
+            ]);
+        }
+
+        $this->jsonReturn(['code' => -1, 'message' => '失败!']);
+
+    }
+
+    private function getExportData($condition)
+    {
+        // 开发人
+        if ($condition['developer'] != '') {
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
+        }
+
+        // 创建人
+        if ($condition['created_name'] != '') {
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
+        }
+
+        // 供货范围
+        if ($condition['cat_name'] != '') {
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+        }
+
+        $supplierList = $this->suppliersModel->getJoinListForExport($condition);
+
+        foreach ($supplierList as &$supplier) {
+            $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
+            $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
+            $supplier['material_cat'] = $this->supplierMaterialCatModel->getMaterialCatNameBy($supplier['id']);
+            $supplier['developer'] = $this->supplierAgentModel->getDeveloperNameBy($supplier['id']);
+            $supplier['status'] = $this->setStatusName($supplier['status']);
+            $supplier['en_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id']);
+            $supplier['zh_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id'], 'zh');
+            $supplier['en_sku_count'] = $this->getCountBy('GOODS', $supplier['id']);
+            $supplier['zh_sku_count'] = $this->getCountBy('GOODS', $supplier['id'], 'zh');
+            $supplier['created_by'] = $this->setUserName($supplier['created_by']);
+            $supplier['checked_by'] = $this->setUserName($supplier['checked_by']);
+        }
+
+        return $supplierList;
+    }
+
+    /**
+     * 获取供应商的SKU/SPU总数
+     * @param $model SPU/SKU
+     * @param $supplier_id
+     * @param string $lang
+     * @return mixed
+     * @author 买买提
+     */
+    private function getCountBy($model, $supplier_id, $lang='en')
+    {
+        if ($model == 'GOODS') {
+            $GoodsSupplierModel = new GoodsSupplierModel();
+            return $GoodsSupplierModel->alias('a')
+                ->join('erui_goods.goods b ON a.sku=b.sku', 'LEFT')
+                ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
+                ->count();
+        }else{
+            $ProductSuppierModel = new ProductSupplierModel();
+            return $ProductSuppierModel->alias('a')
+                ->join('erui_goods.product b ON a.spu=b.spu', 'LEFT')
+                ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
+                ->count();
+        }
+    }
+
+    private function setUserName($user_id)
+    {
+        return (new EmployeeModel)->where(['id' => $user_id])->getField('name');
+    }
+
+    /**
+     * 设置状态名称
+     * @param $status
+     * @return string
+     * @author 买买提
+     */
+    private function setStatusName($status)
+    {
+        switch ($status)
+        {
+            case 'DRAFT' :
+                return '草稿';
+                break;
+            case 'APPROVING' :
+                return '审核中';
+                break;
+            case 'APPROVED' :
+                return '通过';
+                break;
+            case 'INVALID' :
+                return '驳回';
+                break;
+            case 'OVERDUE' :
+                return '资质过期';
+                break;
+        }
+    }
 }

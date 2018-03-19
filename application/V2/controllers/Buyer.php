@@ -626,7 +626,7 @@ class BuyerController extends PublicController {
         $user_arr = explode(',', $array['user_ids']);
         if ($user_arr[0]) {
             $condition['buyer_id'] = $array['id'];
-            $condition['agent_id'] = $user_arr[0];
+            //$condition['agent_id'] = $user_arr[0];
             $inquiry_model->setBuyerAgentInfo($condition);
         }
         $res = $model->create_data($array);
