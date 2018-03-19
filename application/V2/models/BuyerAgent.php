@@ -527,24 +527,39 @@ class BuyerAgentModel extends PublicModel {
     }
     //buyer_id 获取 客户的经办人list
     public function getBuyerAgentList($buyer_id){
-        $info=$this->alias('agent')
-                    ->join('erui_sys.employee employee on agent.created_by=employee.id', 'left')
-                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
-                    ->where(array('buyer_id'=>$buyer_id))
-                    ->select();
+//        $info=$this->alias('agent')
+//                    ->join('erui_sys.employee employee on agent.created_by=employee.id', 'left')
+//                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
+//                    ->where(array('buyer_id'=>$buyer_id))
+//                    ->select();
+        $sql="SELECT agent.agent_id,";
+        $sql.=" (select `name` from erui_sys.employee where id =agent.agent_id) as agent_name,";
+        $sql.=" (select `name` from erui_sys.employee where id =agent.created_by) as created_name,";
+        $sql.=" created_by,created_at,deleted_flag";
+        $sql.=" FROM erui_buyer.buyer_agent agent";
+        $sql.=" WHERE buyer_id=$buyer_id";
+        $info=$this->query($sql);
+        $agent_name='';
+        foreach($info as $k => $v){
+            if($v['deleted_flag']=='N'){
+                $agent_name.=','.$v['agent_name'];
+            }
+        }
         if(!empty($info)){
             $agent=array(
-                'created_by'=>reset($info)['created_by'],
-                'created_name'=>reset($info)['created_name'],
+                'created_by'=>end($info)['created_by'],
+                'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
-                'update_at'=>end($info)['created_at']
+                'update_at'=>end($info)['created_at'],
+                'agent_name'=>substr($agent_name,1)
             );
         }else{
             $agent=array(
                 'created_by'=>null,
                 'created_name'=>null,
                 'created_at'=>null,
-                'update_at'=>null
+                'update_at'=>null,
+                'agent_name'=>null
             );
         }
         return $agent;
