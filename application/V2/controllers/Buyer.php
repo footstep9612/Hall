@@ -173,7 +173,7 @@ class BuyerController extends PublicController {
     }
     /**
      * CRM系统优化客户统计列表
-     * wangs-buyerListAction-wangs
+     * wangs-buyerListAction- wangs
      */
     public function buyerListAction() {
         $created_by = $this->user['id'];
