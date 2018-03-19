@@ -36,9 +36,9 @@ class BuyerfilesController extends PublicController
         $info=json_decode($json,true);
         $roles=$info['role_no'];
         if(in_array('档案信息统计',$roles)){  //查看档案信息统计角色
-            $admin=true;
+            $admin=1;
         }else{
-            $admin=false;
+            $admin=0;
         }
         return $admin;
     }

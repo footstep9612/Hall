@@ -2047,18 +2047,18 @@ EOF;
     public function getBuyerManageCond($data){
         //条件
         $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
-        if(!empty($data['admin']) && $data['admin'] == false){   //统计
-            $cond = " and buyer.created_by=$data[created_by] ";
+        if($data['admin'] == 0){   //查看部分统计
+            $cond .= " and buyer.created_by=$data[created_by] ";
+            if(!empty($data['area_bn'])){
+                $cond .= " and buyer.area_bn='$data[area_bn]'";
+            }
+            if(!empty($data['country_bn'])){
+                $cond .= " and buyer.country_bn='$data[country_bn]'";
+            }
         }
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
-        }
-        if(!empty($data['area_bn'])){
-            $cond .= " and buyer.area_bn='$data[area_bn]'";
-        }
-        if(!empty($data['country_bn'])){
-            $cond .= " and buyer.country_bn='$data[country_bn]'";
         }
         if(!empty($data['buyer_level'])){
             $cond .= " and buyer.buyer_level='$data[buyer_level]'";
