@@ -33,6 +33,7 @@ class BuyerBankInfoModel extends PublicModel
         'bank_name_zh',// '开户银行中文名称',
         'bank_account',// '企业银行账号',
         'bank_country_code',// '银行国家代码',
+        'bank_country_code',// '银行国家简称',
         'bank_address',// '银行地址',
         'bank_contact',//   '银行联系人',
         'bank_zipcode',//  '邮编',

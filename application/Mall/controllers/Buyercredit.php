@@ -48,7 +48,7 @@ class BuyercreditController extends PublicController {
 
         $company_model = new BuyerRegInfoModel();
         $credit_model = new BuyerCreditModel();
-        $buyer_info = $this->_getBuyerNo($data['buyer_id']);
+        $buyer_info = $this->_getBuyerNo($this->user['buyer_id']);
         if(!empty($buyer_info['country_bn'])) {
             $country_code = $this->_getCountryrCode($buyer_info['country_bn']);
             if($country_code['code']) {

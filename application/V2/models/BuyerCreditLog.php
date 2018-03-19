@@ -65,6 +65,8 @@ class BuyerCreditLogModel extends PublicModel{
         if (isset($condition['sign']) && $condition['sign']) {
             $where['sign'] = intval($condition['sign']);         //银行或企业信息--银行:1;企业:2
         }
+        $where['name'] = array('neq', '');
+        $where['bank_name'] = array('neq', '');
         return $where;
     }
 
