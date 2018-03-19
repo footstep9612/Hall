@@ -418,7 +418,7 @@ class OrderModel extends PublicModel {
         }
         if(!empty($data['order_id'])){
             $order_id=$data['order_id'];
-            $sql="select buyer_id from erui_order.order where id=$order_id and deleted_flag='N' and (show_status='GOING' or show_status='COMPLETED') limit 1";
+            $sql="select buyer_id from erui_order.order where id=$order_id";
             $orderOld=$this->query($sql);
             $buyer_id=$orderOld[0]['buyer_id'];
             $data['buyer_id']=$buyer_id;
