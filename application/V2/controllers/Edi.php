@@ -24,9 +24,9 @@ class EdiController extends PublicController{
 
     private $params = array();
 
-    private $serverIP = 'localhost';
+    private $serverIP = '';
 
-    private $serverPort = '8121';
+    private $serverPort = '80';
 
     private $serverDir = 'ediserver';
 
@@ -55,6 +55,9 @@ class EdiController extends PublicController{
                 }
             }
         }*/
+
+        $config_obj = Yaf_Registry::get("config");
+        $this->serverIP = $config_obj->database->config->toArray();
         if (self::$serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
             self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
@@ -93,10 +96,10 @@ class EdiController extends PublicController{
                 $dataArr['sign'] = 2;
                 $credit_log_model->create_data($dataArr);
                 //调用信保申请接口
-                /* $edi_res= $this->EdiApplyAction($data);
+                 $edi_res= $this->EdiApply($data);
                  if(1 !== $edi_res){
                      jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
-                 }*/
+                 }
             }
         } else {
             if (empty($data['bank_remarks']) && empty($data['remarks'])) {
