@@ -455,9 +455,16 @@ class BuyerAgentModel extends PublicModel {
         $info = $this->alias('agent')
             ->join('erui_sys.employee employee on agent.agent_id=employee.id')
             ->field('employee.name')
-            ->where(array('agent.buyer_id'=>$buyer_id))
-            ->find();
-        return $info['name'];
+            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N'))
+            ->select();
+        $str='';
+        if(!empty($info)){
+            foreach($info as $k=> $v){
+                $str.=','.$v['name'];
+            }
+            $str=substr($str,1);
+        }
+        return $str;
     }
     //crm 更新市场经办人-wangs
     public function crmUpdateAgent($data=[]){
