@@ -216,6 +216,13 @@ class BuyerVisitModel extends PublicModel {
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请输入拜访时间');
         }
 
+        if(!isset($_input['name']) || empty($_input['name'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人');
+        }
+        if(!isset($_input['phone']) || empty($_input['phone'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人方式');
+        }
+
         if(!isset($_input['visit_type']) || empty($_input['visit_type']) || !is_array($_input['visit_type'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择目的拜访类型');
         }
@@ -244,8 +251,8 @@ class BuyerVisitModel extends PublicModel {
         $data = $where = [];
         $data['visit_at'] = $_input['visit_at'];
         $data['buyer_id'] = $_input['buyer_id'];
-        $data['name'] = trim($_input['name']);
-        $data['phone'] = trim($_input['phone']);
+        $data['name'] = trim($_input['name']);  //客户联系人
+        $data['phone'] = trim($_input['phone']);    //联系方式
         $data['visit_type'] = json_encode( $_input['visit_type']);    //目的拜访类型
         $data['visit_level'] = json_encode( $_input['visit_level']);    //拜访级别
         $data['visit_position'] = json_encode( $_input['visit_position']);    //拜访职位
