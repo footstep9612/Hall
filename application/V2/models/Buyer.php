@@ -239,6 +239,13 @@ class BuyerModel extends PublicModel {
         if(!empty($data['created_at_end'])){  //审核时间===buy
             $cond .= " and buyer.created_at <= '".$data['created_at_end']."'";
         }
+
+        if(!empty($data['level_at_start'])){  //注册时间===buy
+            $cond .= " and buyer.level_at >= '".$data['level_at_start']."'";
+        }
+        if(!empty($data['level_at_end'])){  //审核时间===buy
+            $cond .= " and buyer.level_at <= '".$data['level_at_end']."'";
+        }
         return $cond;
     }
     //crm客户统计获取客户总数-wangs
@@ -313,6 +320,7 @@ class BuyerModel extends PublicModel {
             'status',   //审核状态
             'source',   //客户来源
             'buyer_level',  //客户等级
+            'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
         );
