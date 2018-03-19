@@ -276,4 +276,17 @@ class SupplierAgentModel extends PublicModel {
         return array_unique($ids);
     }
 
+    /**
+     * 获取供应商开发负责人
+     * @param $supplier
+     * @return mixed
+     * @author 买买提
+     */
+    public function getDeveloperNameBy($supplier)
+    {
+        $user = $this->where(['supplier_id' => $supplier])->getField('agent_id');
+
+        return (new EmployeeModel)->where(['id' => $user])->getField('name');
+    }
+
 }

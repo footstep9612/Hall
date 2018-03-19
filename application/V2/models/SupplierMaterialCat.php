@@ -304,4 +304,14 @@ class SupplierMaterialCatModel extends PublicModel {
         return array_unique($ids);
     }
 
+    /**
+     * 获取供应商供货范围
+     * @param $supplier
+     * @return mixed
+     * @author 买买提
+     */
+    public function getMaterialCatNameBy($supplier)
+    {
+        return $this->where(['supplier_id' => $supplier])->getField('material_cat_name3');
+    }
 }

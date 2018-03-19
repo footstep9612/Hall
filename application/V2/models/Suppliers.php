@@ -19,6 +19,8 @@ class SuppliersModel extends PublicModel {
     protected $joinField = 'a.*, b.name AS org_name';
     protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
 
+    protected $exportFields = 'a.id,a.name,a.social_credit_code,a.created_at,a.created_by,a.checked_at,a.checked_by,a.org_id,a.status, b.name AS org_name';
+
     public function __construct() {
         parent::__construct();
     }
@@ -156,6 +158,30 @@ class SuppliersModel extends PublicModel {
                         ->page($currentPage, $pageSize)
                         ->order('a.id DESC')
                         ->select();
+    }
+
+    /**
+     * 获取导出数据
+     * @param array $condition
+     * @return mixed
+     * @author 买买提
+     * @time 2018-03-19
+     */
+    public function getJoinListForExport($condition = []) {
+
+        $where = $this->getJoinWhere($condition);
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        return $this->alias('a')
+            ->join($this->joinTable1, 'LEFT')
+            ->join($this->joinTable5, 'LEFT')
+            ->field($this->exportFields)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
     }
 
     /**
