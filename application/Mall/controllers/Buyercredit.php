@@ -59,7 +59,7 @@ class BuyercreditController extends PublicController {
         }
         $data['buyer_no'] = $buyer_info['buyer_no'];
         $check = $company_model->field('id')->where(['buyer_no' => $buyer_info['buyer_no'], 'deleted_flag' => 'N'])->find();
-        $status = $credit_model->field('status')->where(['buyer_no' => $buyer_info['buyer_no'], 'deleted_flag' => 'N'])->find();
+        $status = $credit_model->field('status')->where(['buyer_no' => $buyer_info['buyer_no']])->find();
         if($check){
             if($status['status']=='ERUI_REJECTED' || $status['status']=='EDI_REJECTED' || $status['status']=='INVALID') {
                 $res = $company_model->update_data($data);
