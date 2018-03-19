@@ -51,7 +51,7 @@ class EmployeeModel extends PublicModel {
             foreach ($users as $user) {
                 $user_names[$user['id']] = $user['name'];
             }
-            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($user_names), 86400);
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($user_names), 360);
             return $user_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -88,7 +88,7 @@ class EmployeeModel extends PublicModel {
             foreach ($users as $user) {
                 $userids[] = $user['id'];
             }
-            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($userids), 86400);
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($userids), 180);
             return $userids;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -210,7 +210,7 @@ class EmployeeModel extends PublicModel {
             'totalCount' => $totalCont,
             'totalPage' => $totalPage
         );
-        redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($arr), 86400);
+        redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($arr), 180);
         return $arr;
     }
 
@@ -252,7 +252,7 @@ class EmployeeModel extends PublicModel {
                     $ret[$user['id']] = $user['name'];
                 }
             }
-            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($arr), 86400);
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($ret), 360);
         }
         return $ret;
     }
