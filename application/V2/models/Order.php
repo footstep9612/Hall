@@ -347,6 +347,8 @@ class OrderModel extends PublicModel {
         $newOrderArr=$this->query($sqlNewOrder);   //订单所有回款
         $orderArr=$this->removeNullOrder($orderArr);
         $newOrderArr=$this->removeNullOrder($newOrderArr);
+        $orderArr=array_values($orderArr);
+        $newOrderArr=array_values($newOrderArr);
         //验证升级
         if(empty($newOrderArr) && empty($orderArr)){   //订单为空,无交易
             $this->autoUpgrade($buyer_id,null,null);
