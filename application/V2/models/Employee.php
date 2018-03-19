@@ -34,6 +34,7 @@ class EmployeeModel extends PublicModel {
         try {
             $where = [];
 
+
             if (is_string($user_ids)) {
                 $where['id'] = $user_ids;
             } elseif (is_array($user_ids) && !empty($user_ids)) {
@@ -41,11 +42,16 @@ class EmployeeModel extends PublicModel {
             } else {
                 return false;
             }
+            $redis_keys = md5(json_encode($where));
+            if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
+                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+            }
             $users = $this->where($where)->field('id,name')->select();
             $user_names = [];
             foreach ($users as $user) {
                 $user_names[$user['id']] = $user['name'];
             }
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($user_names), 360);
             return $user_names;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -73,11 +79,16 @@ class EmployeeModel extends PublicModel {
             } else {
                 return false;
             }
+            $redis_keys = md5(json_encode($where));
+            if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
+                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+            }
             $users = $this->where($where)->field('id')->select();
             $userids = [];
             foreach ($users as $user) {
                 $userids[] = $user['id'];
             }
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($userids), 180);
             return $userids;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -178,6 +189,10 @@ class EmployeeModel extends PublicModel {
         }
         $page = 1;
         $pageSize = 10;
+        $redis_keys = md5($cond . intval($data['page']) . $pageSize);
+        if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
+            return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+        }
         $totalCont = $this->where($cond)->count();
         $totalPage = ceil($totalCont / $pageSize);
         if (!empty($data['page']) && is_numeric($data['page']) && $data['page'] > 0) {
@@ -187,6 +202,7 @@ class EmployeeModel extends PublicModel {
             $page = $totalPage;
         }
         $offset = ($page - 1) * $pageSize;
+
         $info = $this->field('id,user_no,name')->where($cond)->limit($offset, $pageSize)->select();
         $arr = array(
             'info' => $info,
@@ -194,6 +210,7 @@ class EmployeeModel extends PublicModel {
             'totalCount' => $totalCont,
             'totalPage' => $totalPage
         );
+        redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($arr), 180);
         return $arr;
     }
 
@@ -222,7 +239,10 @@ class EmployeeModel extends PublicModel {
     public function getNamesByids($obtain_ids) {
         $ret = [];
         if ($obtain_ids && is_array($obtain_ids)) {
-
+            $redis_keys = md5(json_encode($obtain_ids));
+            if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
+                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+            }
 
             $users = $this->field('id,name')
                     ->where(['id' => ['in', $obtain_ids], 'deleted_flag' => 'N'])
@@ -232,6 +252,7 @@ class EmployeeModel extends PublicModel {
                     $ret[$user['id']] = $user['name'];
                 }
             }
+            redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys, json_encode($ret), 360);
         }
         return $ret;
     }
