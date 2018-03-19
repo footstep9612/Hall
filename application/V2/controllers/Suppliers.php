@@ -963,22 +963,21 @@ class SuppliersController extends PublicController {
 
         $localFile = SupplierHelper::createSupplierExcelWithData($data);
 
-        $url = ExcelHelperTrait::uploadToFileServer($localFile);
+        $response = SupplierHelper::upload2FastDFS($localFile);
 
-        if ($url['fileId']) {
+        if ($response['code']) {
             $this->jsonReturn([
                 'code' => 1,
                 'message' => '成功!',
                 'data' => [
-                    'url' => $url['fileId']['url'],
-                    'name' => $url['fileId']['name']
+                    'url' => $response['url'],
+                    'name' => $response['name']
                 ]
             ]);
         }
 
         $this->jsonReturn(['code' => -1, 'message' => '失败!']);
 
-        p($url);
     }
 
     private function getExportData($condition)

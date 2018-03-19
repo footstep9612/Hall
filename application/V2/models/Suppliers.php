@@ -172,7 +172,7 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
         return $this->alias('a')
             ->join($this->joinTable1, 'LEFT')

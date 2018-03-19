@@ -4,6 +4,8 @@ trait SupplierHelper
 
     public static function createSupplierExcelWithData($data)
     {
+        set_time_limit(0);
+
         $objPHPExcel = new PHPExcel();
         $objSheet = $objPHPExcel->getActiveSheet();
         $objSheet->setTitle('供应商数据');
@@ -95,7 +97,15 @@ trait SupplierHelper
 
     public static function upload2FastDFS($file)
     {
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $data['tmp_name'] = $file;
+        $data['type'] = filetype($file);
+        $data['name'] = $file;
+        $fileId = postfile($data, $url);
 
+        return $fileId;
     }
 
 }
