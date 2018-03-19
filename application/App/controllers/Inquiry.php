@@ -187,6 +187,9 @@ class InquiryController extends PublicController
         //附件
         $inquiry['attach_list'] = (new InquiryAttachModel)->where(['inquiry_id' => $condition['id']])->field('attach_name,attach_url')->select();
 
+        //询单负责人
+        $inquiry['contact'] = (new InquiryContactModel)->where(['inquiry_id' => $condition['id']])->field('name,company,country_bn,phone,email')->find();
+
         $this->jsonReturn([
             'code'    => 1,
             'message' => '成功',
