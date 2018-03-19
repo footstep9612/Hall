@@ -140,20 +140,21 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::TERM, $names = '', $field = '') {
+    private function _getQureyByArr(&$condition, &$body, $qurey_type = ESClient::TERMS, $names = '', $field = '') {
         if (!$field) {
             $field = [$names];
         }
         if (isset($condition[$names]) && $condition[$names]) {
             $name_arr = $condition[$names];
             $bool = [];
+            $arr = [];
             foreach ($name_arr as $name) {
                 if (!empty($name)) {
-                    $bool[] = [$qurey_type => [$field => trim($name)]];
+                    $arr = trim($name);
                 }
             }
             if (!empty($bool)) {
-                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => $bool]];
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $arr]];
             }
         }
     }
@@ -202,7 +203,7 @@ class EsProductModel extends Model {
         }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
-        $this->_getQureyByArr($condition, $body, ESClient::MATCH_PHRASE, 'spus', 'spu');
+        $this->_getQureyByArr($condition, $body, ESClient::TERMS, 'spus', 'spu');
 //   $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
             $show_cat_no = trim($condition['show_cat_no']);

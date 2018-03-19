@@ -48,7 +48,7 @@ class BuyercreditController extends PublicController {
 
         $company_model = new BuyerRegInfoModel();
         $credit_model = new BuyerCreditModel();
-        $buyer_info = $this->_getBuyerNo($data['buyer_id']);
+        $buyer_info = $this->_getBuyerNo($this->user['buyer_id']);
         if(!empty($buyer_info['country_bn'])) {
             $country_code = $this->_getCountryrCode($buyer_info['country_bn']);
             if($country_code['code']) {
@@ -59,7 +59,7 @@ class BuyercreditController extends PublicController {
         }
         $data['buyer_no'] = $buyer_info['buyer_no'];
         $check = $company_model->field('id')->where(['buyer_no' => $buyer_info['buyer_no'], 'deleted_flag' => 'N'])->find();
-        $status = $credit_model->field('status')->where(['buyer_no' => $buyer_info['buyer_no'], 'deleted_flag' => 'N'])->find();
+        $status = $credit_model->field('status')->where(['buyer_no' => $buyer_info['buyer_no']])->find();
         if($check){
             if($status['status']=='ERUI_REJECTED' || $status['status']=='EDI_REJECTED' || $status['status']=='INVALID') {
                 $res = $company_model->update_data($data);

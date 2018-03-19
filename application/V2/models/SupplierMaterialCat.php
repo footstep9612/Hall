@@ -316,4 +316,14 @@ class SupplierMaterialCatModel extends PublicModel {
         return $this->field('GROUP_CONCAT(material_cat_name3) AS cat_list')->where(['supplier_id' => $supplierId])->find()['cat_list'];
     }
 
+    /**
+     * 获取供应商供货范围
+     * @param $supplier
+     * @return mixed
+     * @author 买买提
+     */
+    public function getMaterialCatNameBy($supplier)
+    {
+        return $this->where(['supplier_id' => $supplier])->getField('material_cat_name3');
+    }
 }

@@ -31,10 +31,6 @@ class TransboxtypeController extends PublicController {
 
         $arr = $trans_box_type_model->getlist($data);
         $this->_setUserName($arr);
-        if ($arr) {
-            redisSet('TransBoxType_' . md5(json_encode($data)), json_encode($arr));
-        }
-
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
