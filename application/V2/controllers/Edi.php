@@ -24,7 +24,7 @@ class EdiController extends PublicController{
 
     private $params = array();
 
-    private $serverIP = '';
+    private $serverIP = 'credit.eruidev.com';
 
     private $serverPort = '80';
 
@@ -56,8 +56,8 @@ class EdiController extends PublicController{
             }
         }*/
 
-        $config_obj = Yaf_Registry::get("config");
-        $this->serverIP = $config_obj->database->config->toArray();
+        //$config_obj = Yaf_Registry::get("config");
+        //$this->serverIP = $config_obj->database->config->toArray();
         if (self::$serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
             self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
@@ -393,6 +393,7 @@ class EdiController extends PublicController{
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
+            jsonReturn($e->getMessage());
             return false;
         }
 
