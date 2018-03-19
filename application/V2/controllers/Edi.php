@@ -84,7 +84,7 @@ class EdiController extends PublicController{
         $credit_model = new BuyerCreditModel();
         $credit_log_model = new BuyerCreditLogModel();
         if($data['status']== 'EDI_APPROVING'){
-            $data['buyer_no'] = 'ERUI_APPROVING';
+            $data['status'] = 'ERUI_APPROVING';
             $res = $credit_model->update_data($data);
             if($res) {
                 $dataArr['buyer_no'] = $data['buyer_no'];
