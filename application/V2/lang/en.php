@@ -21,6 +21,8 @@ return array(
     'INQUIRY_MARKET_CONFIRMING' => 'Market confirm',
     'INQUIRY_QUOTE_SENT' => 'Quotation sent',
     'INQUIRY_INQUIRY_CLOSED' => 'Close quotation',
+    'INQUIRY_REJECT_CLOSE' => 'Close reject',
+    'INQUIRY_INQUIRY_CONFIRM' => 'Inquiry confirm',
     // 报价状态
     'QUOTE_DRAFT' => 'Draft',
     'QUOTE_NOT_QUOTED' => 'Not quoted',

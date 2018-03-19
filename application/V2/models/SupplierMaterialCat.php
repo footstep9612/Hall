@@ -303,6 +303,18 @@ class SupplierMaterialCatModel extends PublicModel {
         $ids = $this->where(['material_cat_name3' => ['like', '%' . trim($name) . '%']])->getField('supplier_id', true);
         return array_unique($ids);
     }
+    
+    /**
+     * @desc 根据供应商ID获取供货范围三级分类集合
+     *
+     * @param int $supplierId 供应商ID
+     * @return mixed
+     * @author liujf
+     * @time 2018-03-15
+     */
+    public function getCatBySupplierId($supplierId) {
+        return $this->field('GROUP_CONCAT(material_cat_name3) AS cat_list')->where(['supplier_id' => $supplierId])->find()['cat_list'];
+    }
 
     /**
      * 获取供应商供货范围

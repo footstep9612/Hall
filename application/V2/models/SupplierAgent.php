@@ -275,6 +275,19 @@ class SupplierAgentModel extends PublicModel {
         $ids = $this->where(['agent_id' => ['in', $ids ? : ['-1']], 'agent_type' => $type])->getField('supplier_id', true);
         return array_unique($ids);
     }
+    
+    /**
+     * @desc 根据供应商ID获取负责人ID
+     *
+     * @param int $supplierId 供应商ID
+     * @param string $type 类别
+     * @return mixed
+     * @author liujf
+     * @time 2018-03-15
+     */
+    public function getUserIdBySupplierId($supplierId, $type = 'DEVELOPER') {
+        return $this->where(['supplier_id' => $supplierId, 'agent_type' => $type])->getField('agent_id');
+    }
 
     /**
      * 获取供应商开发负责人

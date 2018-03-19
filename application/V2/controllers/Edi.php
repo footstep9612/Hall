@@ -24,9 +24,9 @@ class EdiController extends PublicController{
 
     private $params = array();
 
-    private $serverIP = 'localhost';
+    private $serverIP = 'credit.eruidev.com';
 
-    private $serverPort = '8121';
+    private $serverPort = '80';
 
     private $serverDir = 'ediserver';
 
@@ -55,6 +55,9 @@ class EdiController extends PublicController{
                 }
             }
         }*/
+
+        //$config_obj = Yaf_Registry::get("config");
+        //$this->serverIP = $config_obj->database->config->toArray();
         if (self::$serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
             self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
@@ -66,11 +69,88 @@ class EdiController extends PublicController{
         //self::$client = new SoapClient($this->serviceUri);
 
     }
+
+    /**
+     * erui易瑞审核
+     */
+    public function checkCreditAction(){
+        $data = $this->getPut();
+        //$edi_res= $this->EdiApply($data);jsonReturn($edi_res); //先调用信保
+        $lang = empty($data['lang']) ? 'zh' : $data['lang'];
+        if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        $data['status'] = $this->_checkStatus($data['status']);
+        $credit_model = new BuyerCreditModel();
+        $credit_log_model = new BuyerCreditLogModel();
+        if($data['status']== 'EDI_APPROVING'){
+            $data['status'] = 'ERUI_APPROVING';
+            $res = $credit_model->update_data($data);
+            if($res) {
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = UID;
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['sign'] = 1;
+                $dataArr['in_status'] = 'EDI_APPROVING';
+                $credit_log_model->create_data($dataArr);
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($dataArr);
+                //调用信保申请接口
+                 $edi_res= $this->EdiApply($data);
+                 if(1 !== $edi_res){
+                     jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');
+                 }
+            }
+        } else {
+            if (empty($data['bank_remarks']) && empty($data['remarks'])) {
+                jsonReturn(null, -110, '请至少填写一项原因!');               //原因
+            }
+            $res = $credit_model->update_data($data);
+            if($res){
+                $dataArr['buyer_no'] = $data['buyer_no'];
+                $dataArr['agent_by'] = UID;
+                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                $dataArr['in_status'] = $data['status'];
+                if (isset($data['remarks']) && !empty($data['remarks'])) {
+                    $dataArr['in_remarks'] = $data['remarks'];                    //企业原因
+                }
+                $dataArr['sign'] = 1;
+                $credit_log_model->create_data($dataArr);
+                if (isset($data['bank_remarks']) && !empty($data['bank_remarks'])) {
+                    $dataArr['in_remarks'] = $data['bank_remarks'];                   //银行原因
+                }
+                $dataArr['sign'] = 2;
+                $credit_log_model->create_data($dataArr);
+            }
+        }
+        if($res) {
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+        } else {
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+        }
+    }
+
+    private function _checkStatus($status){
+
+        switch ($status) {
+            case 'APPROVED':    //审核通过
+                $status = 'EDI_APPROVING';
+                break;
+            case 'REJECTED':    //审核驳回
+                $status = 'ERUI_REJECTED';
+                break;
+            default:
+                $status = 'EDI_APPROVING';
+                break;
+        }
+        return $status;
+    }
+
     /**
      * 请求信保审核
      */
-    public function EdiApplyAction($data) {
-        $data = $this->getPut();
+    public function EdiApply($data) {
+        //$data = $this->getPut();
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
@@ -105,7 +185,7 @@ class EdiController extends PublicController{
         $BuyerCodeApply['official_email'] = $lang['official_email'];
         $resBuyer = self::EdiBuyerCodeApply($BuyerCodeApply);
         if($resBuyer['code'] != 1) {
-            jsonReturn('',MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+            jsonReturn(null,MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
         }
         return $resBuyer;
     }
@@ -187,7 +267,7 @@ class EdiController extends PublicController{
         self::checkParamBuyer($BuyerApply);
         $BuyerCodeApply = self::_getBuyerValue($BuyerApply);
         $result = self::_EdiBuyerCodeApply($BuyerCodeApply);
-        if($result && $result['code']  == 1){
+        if($result['code']  == 1){
             $res['code'] = 1;
         } else{
             $res['code'] = -101;
@@ -304,11 +384,8 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
-            if (is_object($response)) {
-                $results['code'] = 1;
-            } else {
-                $results['code'] = -101;
-            }
+//            }
+            $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
             self::exception($e,$e->getMessage());
@@ -316,7 +393,8 @@ class EdiController extends PublicController{
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            return $results;
+            jsonReturn($e->getMessage());
+            return false;
         }
 
     }
@@ -477,11 +555,12 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBankCodeApply($data);
-            if (is_object($response)) {
-                $results['code'] = 1;
-            } else {
-                $results['code'] = -101;
-            }
+//            if (is_object($response)) {
+//                $results['code'] = 1;
+//            } else {
+//                $results['code'] = -101;
+//            }
+            $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
             self::exception($e,$e->getMessage());
@@ -489,7 +568,7 @@ class EdiController extends PublicController{
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            return $results;
+            return false;
         }
     }
 
@@ -533,7 +612,7 @@ class EdiController extends PublicController{
         $time['endDate'] = self::getEndDate();//var_dump($time);die;
         try{
             $time = array('startDate'=>date('Y-m-d\T14:00:00', time()),'endDate'=>date('Y-m-d\T23:00:00', time()));
-            //jsonReturn($time);
+            self::$client = new SoapClient(self::$serviceUri);
             $buyerCodeApproveInfo = self::$client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             if ($buyerCodeApproveInfo) {
                 var_dump($buyerCodeApproveInfo);
@@ -553,7 +632,8 @@ class EdiController extends PublicController{
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
             $time = array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
-            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+            self::$client = new SoapClient(self::$serviceUri);
+            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>"2018-03-10T00:00:00",'endDate'=>self::getEndDate()));
             if ($BankCodeApproveInfo) {
 //                $BankCodeApproveInfo = self::object_array($BankCodeApproveInfo);
 //                //存储结果日志

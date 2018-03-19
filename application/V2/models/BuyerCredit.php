@@ -69,9 +69,6 @@ class BuyerCreditModel extends PublicModel
         if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`buyer_no` ="' . $condition['buyer_no'] . '"';
         }
-        if (isset($condition['country_code']) && !empty($condition['country_code'])) {
-            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . $condition['country_code'] . '"';
-        }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where .= " And `buyer_credit`.`buyer_credit`.`name` like '%" . $condition['name'] . "%'";
         }
@@ -81,12 +78,6 @@ class BuyerCreditModel extends PublicModel
         if (isset($condition['agent_id']) && !empty($condition['agent_id'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`agent_id` = "'. $condition['agent_id'] .'"';
         }
-        if (isset($condition['agent_name']) && !empty($condition['agent_name'])) {
-            $where .= " And `erui_sys`.`employee`.`agent_name` like '%" . $condition['agent_name'] . "%'";
-        }
-        if (isset($condition['buyer_code']) && !empty($condition['buyer_code'])) {
-            $where .= ' And `erui_buyer`.`buyer`.`buyer_code` = "' . $condition['buyer_code'] .'"';
-        }
         if (isset($condition['bank_swift']) && !empty($condition['bank_swift'])) {
             $where .= ' And `buyer_credit`.`buyer_credit`.`bank_swift`  = " ' . $condition['bank_swift'] . '"';
         }
@@ -95,16 +86,24 @@ class BuyerCreditModel extends PublicModel
         }else{
             $where .= ' And  `buyer_credit`.`buyer_credit`.`status` <> "DRAFT"';
         }
+        if (isset($condition['country_code']) && !empty($condition['country_code'])) {
+            $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . strtoupper($condition['country_code']) . '"';
+        }
+        if (isset($condition['agent_name']) && !empty($condition['agent_name'])) {
+            $where .= " And `erui_sys`.`employee`.`agent_name` like '%" . $condition['agent_name'] . "%'";
+        }
+        if (isset($condition['buyer_code']) && !empty($condition['buyer_code'])) {
+            $where .= ' And `erui_buyer`.`buyer`.`buyer_code` = "' . $condition['buyer_code'] .'"';
+        }
         if ($where) {
             $sql .= $where;
-            $sql_count .= $where;
+           // $sql_count .= $where;
         }
         $sql .= ' Order By ' . $order;
         if (!empty($limit['num'])) {
             $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
         }
-        $count = $this->query($sql_count);
-        $res['count'] = $count[0]['num'];
+        $res['count'] = count($this->query($sql));
         $res['data'] = $this->query($sql);
         return $res;
     }
@@ -248,6 +247,7 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['agent_id'] = $agent_id['agent_id'];
             $dataInfo['status'] = 'APPROVING';
         }else{
+            $dataInfo['agent_id'] = UID;
             $dataInfo['status'] = 'DRAFT';
         }
         $result = $this->add($this->create($dataInfo));
@@ -302,6 +302,8 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
+        } else {
+            $dataInfo['status'] = 'APPROVING';
         }
         if(isset($data['bank_remarks']) && !empty($data['bank_remarks'])){
             $dataInfo['bank_remarks'] = trim($data['bank_remarks']);
@@ -322,6 +324,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataInfo['agent_id'] = UID;
         }
+
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {
             return true;
@@ -343,9 +346,10 @@ class BuyerCreditModel extends PublicModel
             $dataLog['credit_cur_bn'] = $dataArr['credit_cur_bn'];
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
 
-            /*$valid_date = $this->field('credit_valid_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['credit_valid_date'])));*/
+            $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
+            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['approved_date'])));
             $dataLog['credit_at'] = $dataArr['credit_valid_date'];
+            $dataLog['credit_apply_date'] = $dataArr['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];

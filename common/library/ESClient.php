@@ -1091,4 +1091,161 @@ class ESClient {
         return $results;
     }
 
+    /*
+     * 判断搜索条件是否存在
+     * 存在 则组合查询
+     * @author  zhongyg
+     * @param mix $condition // 搜索条件
+     * @param mix $body // 返回的数据
+     * @param string $qurey_type // 匹配类型
+     * @param string $name // 查询的名称
+     * @param string $field // 匹配的名称
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public static function getQurey(&$condition, &$body, $qurey_type = self::MATCH, $name = '', $field = null) {
+        if ($qurey_type == self::MATCH || $qurey_type == self::MATCH_PHRASE || $qurey_type == self::TERM) {
+            if (isset($condition[$name]) && $condition[$name]) {
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = $name;
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $value]];
+            }
+        } elseif ($qurey_type == self::WILDCARD) {
+
+            if (isset($condition[$name]) && $condition[$name]) {
+
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = $name;
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => '*' . $value . '*']];
+            }
+        } elseif ($qurey_type == self::MULTI_MATCH) {
+            if (isset($condition[$name]) && $condition[$name]) {
+                $value = $condition[$name];
+                if (!$field) {
+                    $field = [$name];
+                }
+                $body['query']['bool']['must'][] = [$qurey_type => [
+                        'query' => $value,
+                        'type' => 'most_fields',
+                        'operator' => 'and',
+                        'fields' => $field
+                ]];
+            }
+        } elseif ($qurey_type == self::RANGE) {
+            if (!$field) {
+                $field = $name;
+            }
+            if (isset($condition[$name . '_start']) && isset($condition[$name . '_end']) && $condition[$name . '_end'] && $condition[$name . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+                $created_at_end = $condition[$name . '_end'];
+                $body['query']['bool']['must'][] = [self::RANGE => [$name => ['gte' => $created_at_start, 'lte' => $created_at_end,]]];
+            } elseif (isset($condition[$name . '_start']) && $condition[$name . '_start']) {
+                $created_at_start = $condition[$name . '_start'];
+
+                $body['query']['bool']['must'][] = [self::RANGE => [$field => ['gte' => $created_at_start,]]];
+            } elseif (isset($condition[$name . '_end']) && $condition[$name . '_end']) {
+                $created_at_end = $condition[$name . '_end'];
+                $body['query']['bool']['must'][] = [self::RANGE => [$field => ['lte' => $created_at_end,]]];
+            }
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     * @param mix $condition // 搜索条件
+     * @param mix $body // 返回的数据
+     * @param string $qurey_type // 匹配类型
+     * @param string $name // 查询的名称
+     * @param string $field // 匹配的名称
+     * @param string $default // 默认值
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public static function getStatus(&$condition, &$body, $qurey_type = self::MATCH, $name = '', $field = '', $array = [], $default = 'VALID') {
+        if (!$field) {
+            $field = [$name];
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $status = $condition[$name];
+            if ($status == 'ALL') {
+
+            } elseif (in_array($status, $array)) {
+
+                $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $status]];
+            } else {
+                $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $default]];
+            }
+        } else {
+            $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $default]];
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     * @param mix $condition // 搜索条件
+     * @param mix $body // 返回的数据
+     * @param string $qurey_type // 匹配类型
+     * @param string $name // 查询的名称
+     * @param string $field // 匹配的名称
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public static function getQureyByArr(&$condition, &$body, $qurey_type = self::TERMS, $names = '', $field = '') {
+        if (!$field) {
+            $field = [$names];
+        }
+        if (isset($condition[$names]) && $condition[$names]) {
+            $name_arr = $condition[$names];
+            $bool = [];
+            $arr = [];
+            foreach ($name_arr as $name) {
+                if (!empty($name)) {
+                    $arr = trim($name);
+                }
+            }
+            if (!empty($bool)) {
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $arr]];
+            }
+        }
+    }
+
+    /*
+     * 判断搜索状态是否存在
+     * 存在 则组合查询
+     * @param mix $condition // 搜索条件
+     * @param mix $body // 返回的数据
+     * @param string $qurey_type // 匹配类型
+     * @param string $name // 查询的名称
+     * @param string $field // 匹配的名称
+     * @param string $default // 默认值
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public static function getQureyByBool(&$condition, &$body, $qurey_type = self::MATCH_PHRASE, $name = '', $field = '', $default = 'N') {
+        if (!$field) {
+            $field = $name;
+        }
+        if (isset($condition[$name]) && $condition[$name]) {
+            $recommend_flag = $condition[$name] == 'Y' ? 'Y' : $default;
+            $body['query']['bool']['must'][] = [$qurey_type => [$field => $recommend_flag]];
+        }
+    }
+
 }

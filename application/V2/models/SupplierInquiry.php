@@ -377,14 +377,14 @@ class SupplierInquiryModel extends PublicModel {
 
         $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
 
 
         $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
         $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
 
-        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time,'; //澄清日期
-        $field .= $inquiry_check_log_sql . ' and out_node in(\'BIZ_DISPATCHING\',\'CC_DISPATCHING\' ) group by inquiry_id) as max_inflow_time_out,'; //澄清日期
+        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'CLARIFY\' group by inquiry_id) as max_inflow_time,'; //澄清日期
+        $field .= $inquiry_check_log_sql . ' and out_node in(\'BIZ_DISPATCHING\',\'CC_DISPATCHING\' ) group by inquiry_id) as max_inflow_time_out,'; //最后一次流入事业部分单员时间
 
         $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
@@ -524,11 +524,11 @@ class SupplierInquiryModel extends PublicModel {
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_max_in_log_sql = '(select max(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
+        $inquiry_check_max_in_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
         $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
         $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
-        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as max_inflow_time,'; //澄清日期
-        $field .= $inquiry_check_log_sql . ' and out_node in(\'BIZ_DISPATCHING\',\'CC_DISPATCHING\' ) group by inquiry_id) as max_inflow_time_out,'; //澄清日期
+        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'CLARIFY\' group by inquiry_id) as max_inflow_time,'; //澄清日期
+        $field .= $inquiry_check_log_sql . ' and out_node in(\'BIZ_DISPATCHING\',\'CC_DISPATCHING\' ) group by inquiry_id) as max_inflow_time_out,'; //最后一次流入事业部分单员时间
         $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
         $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
@@ -590,6 +590,8 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalOilFlag($list);
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
+
+
         // $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
     }
@@ -609,66 +611,65 @@ class SupplierInquiryModel extends PublicModel {
             'G' => ['buyer_code', '客户名称或代码'],
             'H' => ['project_basic_info', '客户及项目背景描述'],
             'I' => ['name_zh', '品名中文'],
-            'J' => ['qty', '数量'],
-            'K' => ['unit', '单位'],
-            'L' => ['oil_flag', '油气or非油气'],
-            'M' => ['material_cat_name', '平台产品分类'],
-            'N' => ['category', '产品分类'],
-            'O' => ['keruiflag', '是否科瑞设备用配件'],
-            'P' => ['bidflag', '是否投标'],
-            'Q' => ['inflow_time', '转入日期'],
-            'R' => ['quote_deadline', '需用日期'],
-            'S' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
-            'T' => ['max_inflow_time', '澄清完成日期'],
-            'U' => ['bq_time', '事业部报出日期'],
-            'V' => ['ld_time', '物流接收日期'],
-            'W' => ['la_time', '物流报出日期'],
-            'X' => ['qs_time', '报出日期'],
-            'Y' => ['quoted_time', '报价用时(小时)'],
-            'Z' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AA' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AB' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AC' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AD' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AE' => [null, '获单主体单位)'],
-            'AF' => ['obtain_name', '获取人)'],
-            'AG' => ['created_by_name', '询单创建人'],
-            'AH' => ['agent_name', '市场负责人'],
-            'AI' => ['biz_despatching', '事业部分单人'],
-            'AJ' => ['quote_name', '商务技术部报价人'],
-            'AK' => ['check_org_name', '事业部负责人'],
-            'AL' => ['total_quote_price', '报价总价（元）'],
-            'AM' => ['purchase_price_cur_bn', '币种'],
-            'AN' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AO' => ['total_kg', '总重(kg)'],
-            'AP' => ['package_size', '包装体积(mm)'],
-            'AQ' => ['package_mode', '包装方式'],
-            'AR' => ['delivery_days', '交货期（天）'],
-            'AS' => ['period_of_validity', '有效期（天）'],
-            'AT' => ['trade_terms_bn', '贸易术语'],
-            'AU' => ['istatus', '最新进度及解决方案'],
-            'AV' => ['iquote_status', '报价后状态'],
-            'AW' => ['quote_notes', '备注'],
-            'AX' => ['reason_for_no_quote', '未报价分析'],
-            'AY' => ['name', '品名外文'],
-            'AZ' => ['product_name', '产品名称'],
-            'BA' => ['supplier_name', '供应商'],
-            'BB' => ['model', '规格'],
-            'BC' => [null, '图号'],
-            'BD' => ['clarification_time', '项目澄清时间（小时）'],
-            'BE' => ['brand', '产品品牌'],
-            'BF' => ['supplier_name', '报价单位'],
-            'BG' => [null, '报价人联系方式'],
-            'BH' => ['purchase_unit_price', '厂家单价（元）'],
-            'BI' => ['purchase_price_cur_bn', '币种'],
-            'BJ' => ['total', '厂家总价（元）'],
-            'BK' => ['purchase_price_cur_bn', '币种'],
-            'BL' => ['gross_profit_rate', '利润率'],
-            'BM' => ['quote_unit_price', '报价单价（元）'],
-            'BN' => ['purchase_price_cur_bn', '币种'],
-            'BO' => ['gross_weight_kg', '单重(kg)'],
-            'BP' => ['buyer_oil', '是否油气客户'],
-            
+            'J' => ['name', '品名外文'],
+            'K' => ['product_name', '产品名称'],
+            'L' => ['supplier_name', '供应商'],
+            'M' => ['model', '规格'],
+            'N' => [null, '图号'],
+            'O' => ['qty', '数量'],
+            'P' => ['unit', '单位'],
+            'Q' => ['oil_flag', '油气or非油气'],
+            'R' => ['material_cat_name', '平台产品分类'],
+            'S' => ['category', '产品分类'],
+            'T' => ['keruiflag', '是否科瑞设备用配件'],
+            'U' => ['bidflag', '是否投标'],
+            'V' => ['inflow_time', '转入日期'],
+            'W' => ['quote_deadline', '需用日期'],
+            'X' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
+            'Y' => ['max_inflow_time', '澄清完成日期'],
+            'Z' => ['bq_time', '事业部报出日期'],
+            'AA' => ['ld_time', '物流接收日期'],
+            'AB' => ['la_time', '物流报出日期'],
+            'AC' => ['qs_time', '报出日期'],
+            'AD' => ['quoted_time', '报价用时(小时)'],
+            'AE' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AF' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AG' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AH' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AI' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AJ' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AK' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AL' => [null, '获单主体单位)'],
+            'AM' => ['obtain_name', '获取人)'],
+            'AN' => ['created_by_name', '询单创建人'],
+            'AO' => ['agent_name', '市场负责人'],
+            'AP' => ['biz_despatching', '事业部分单人'],
+            'AQ' => ['quote_name', '商务技术部报价人'],
+            'AR' => ['check_org_name', '事业部负责人'],
+            'AS' => ['brand', '产品品牌'],
+            'AT' => ['supplier_name', '报价单位'],
+            'AU' => [null, '报价人联系方式'],
+            'AV' => ['purchase_unit_price', '厂家单价（元）'],
+            'AW' => ['purchase_price_cur_bn', '币种'],
+            'AX' => ['total', '厂家总价（元）'],
+            'AY' => ['purchase_price_cur_bn', '币种'],
+            'AZ' => ['gross_profit_rate', '利润率'],
+            'BA' => ['quote_unit_price', '报价单价（元）'],
+            'BB' => ['purchase_price_cur_bn', '币种'],
+            'BC' => ['total_quote_price', '报价总价（元）'],
+            'BD' => ['purchase_price_cur_bn', '币种'],
+            'BE' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'BF' => ['gross_weight_kg', '单重(kg)'],
+            'BG' => ['total_kg', '总重(kg)'],
+            'BH' => ['package_size', '包装体积(mm)'],
+            'BI' => ['package_mode', '包装方式'],
+            'BJ' => ['delivery_days', '交货期（天）'],
+            'BK' => ['period_of_validity', '有效期（天）'],
+            'BL' => ['trade_terms_bn', '贸易术语'],
+            'BM' => ['istatus', '最新进度及解决方案'],
+            'BN' => ['iquote_status', '报价后状态'],
+            'BO' => ['quote_notes', '备注'],
+            'BP' => ['reason_for_no_quote', '未报价分析'],
 //            'BA' => [null, '报价超48小时原因类型'],
 //            'BB' => [null, '报价超48小时分析'],
 //            'BC' => [null, '成单或失单'],
@@ -694,63 +695,49 @@ class SupplierInquiryModel extends PublicModel {
             'I' => ['name_zh', '品名中文'],
             'J' => ['qty', '数量'],
             'K' => ['unit', '单位'],
-            'L' => ['oil_flag', '油气or非油气'],
-            'M' => [null, '平台产品分类'],
-            'N' => ['category', '产品分类'],
-            'O' => ['keruiflag', '是否科瑞设备用配件'],
-            'P' => ['bidflag', '是否投标'],
-            'Q' => ['inflow_time', '转入日期'],
-            'R' => ['quote_deadline', '需用日期'],
-            'S' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
-            'T' => ['max_inflow_time', '澄清完成日期'],
-            'U' => ['bq_time', '事业部报出日期'],
-            'V' => ['ld_time', '物流接收日期'],
-            'W' => ['la_time', '物流报出日期'],
-            'X' => ['qs_time', '报出日期'],
-            'Y' => ['quoted_time', '报价用时（小时）'],
-            'Z' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AA' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AB' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AC' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AD' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AE' => ['obtain_org_name', '获单主体单位)'],
-            'AF' => ['obtain_name', '获取人'],
-            'AG' => ['created_by_name', '询单创建人'],
-            'AH' => ['agent_name', '市场负责人'],
-            'AI' => ['biz_despatching', '事业部分单人'],
-            'AJ' => ['quote_name', '商务技术部报价人'],
-            'AK' => ['check_org_name', '事业部负责人'],
-            'AL' => ['total_quote_price', '报价总价（元）'],
-            'AM' => ['purchase_price_cur_bn', '币种'],
-            'AN' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'AO' => ['total_kg', '总重(kg)'],
-            'AP' => ['package_size', '包装体积(mm)'],
-            'AQ' => ['package_mode', '包装方式'],
-            'AR' => ['delivery_days', '交货期（天）'],
-            'AS' => ['period_of_validity', '有效期（天）'],
-            'AT' => ['trade_terms_bn', '贸易术语'],
-            'AU' => ['istatus', '最新进度及解决方案'],
-            'AV' => ['iquote_status', '报价后状态'],
-            'AW' => ['quote_notes', '备注'],
-            'AX' => ['reason_for_no_quote', '未报价分析'],
-            'AY' => ['name', '品名外文'],
-            'AZ' => ['product_name', '产品名称'],
-            'BA' => ['supplier_name', '供应商'],
-            'BB' => ['supplier_name', '规格'],
-            'BC' => ['supplier_name', '图号'],
-            'BD' => ['clarification_time', '项目澄清时间（小时）'],
-            'BE' => ['brand', '产品品牌'],
-            'BF' => ['brand', '报价单位'],
-            'BG' => ['brand', '报价人联系方式'],
-            'BH' => ['brand', '厂家单价（元）'],
-            'BI' => ['brand', '币种'],
-            'BJ' => ['brand', '厂家总价（元）'],
-            'BK' => ['brand', '币种'],
-            'BL' => ['brand', '利润率'],
-            'BM' => ['brand', '报价单价（元）'],
-            'BN' => ['brand', '币种'],
-            'BO' => ['brand', '单重(kg)'],
-            'BP' => ['buyer_oil', '是否油气客户'],
+            'L' => ['buyer_oil', '是否油气客户'],
+            'M' => ['oil_flag', '油气/非油气'],
+            'N' => [null, '平台产品分类'],
+            'O' => ['category', '产品分类'],
+            'P' => ['keruiflag', '是否科瑞设备用配件'],
+            'Q' => ['bidflag', '是否投标'],
+            'R' => ['inflow_time', '转入日期'],
+            'S' => ['quote_deadline', '需用日期'],
+            'T' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
+            'U' => ['max_inflow_time', '澄清完成日期'],
+            'V' => ['bq_time', '事业部报出日期'],
+            'W' => ['ld_time', '物流接收日期'],
+            'X' => ['la_time', '物流报出日期'],
+            'Y' => ['qs_time', '报出日期'],
+            'Z' => ['quoted_time', '报价用时(小时)'],
+            'AA' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AB' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
+            'AC' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
+            'AD' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
+            'AE' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AF' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AG' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AH' => ['clarification_time', '项目澄清时间(小时)'],
+            'AI' => ['obtain_org_name', '获单主体单位)'],
+            'AJ' => ['obtain_name', '获取人'],
+            'AK' => ['created_by_name', '询单创建人'],
+            'AL' => ['agent_name', '市场负责人'],
+            'AM' => ['biz_despatching', '事业部分单人'],
+            'AN' => ['quote_name', '商务技术部报价人'],
+            'AO' => ['check_org_name', '事业部负责人'],
+            'AP' => ['total_quote_price', '报价总价（元）'],
+            'AQ' => ['purchase_price_cur_bn', '币种'],
+            'AR' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'AS' => ['total_kg', '总重(kg)'],
+            'AT' => ['package_size', '包装体积(mm)'],
+            'AU' => ['package_mode', '包装方式'],
+            'AV' => ['delivery_days', '交货期（天）'],
+            'AW' => ['period_of_validity', '有效期（天）'],
+            'AX' => ['trade_terms_bn', '贸易术语'],
+            'AY' => ['istatus', '最新进度及解决方案'],
+            'AZ' => ['iquote_status', '报价后状态'],
+            'BA' => ['quote_notes', '备注'],
+            'BB' => ['reason_for_no_quote', '未报价分析'],
         ];
     }
 
@@ -1023,9 +1010,11 @@ class SupplierInquiryModel extends PublicModel {
         $inquiryCheckLogModel = new InquiryCheckLogModel();
         $nowTime = time();
         $clarifyMapping = [
+            'BIZ_DISPATCHING' => 'biz_dispatching_clarification_time',
             'BIZ_QUOTING' => 'biz_quoting_clarification_time',
             'LOGI_DISPATCHING' => 'logi_dispatching_clarification_time',
             'LOGI_QUOTING' => 'logi_quoting_clarification_time',
+            'LOGI_APPROVING' => 'logi_approving_clarification_time',
             'BIZ_APPROVING' => 'biz_approving_clarification_time',
             'MARKET_APPROVING' => 'market_approving_clarification_time'
         ];
@@ -1047,24 +1036,31 @@ class SupplierInquiryModel extends PublicModel {
             $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
             if ($referenceID) {
                 // 各环节的项目澄清时间列表
-                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['id' => ['gt', $referenceID], 'in_node' => 'CLARIFY', 'out_node' => ['in', $clarifyNode]]))->order('id ASC')->select();
+                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['id' => ['gt', $referenceID], 'in_node' => 'CLARIFY', 'out_node' => ['in', array_diff($clarifyNode, ['BIZ_DISPATCHING'])]]))->order('id ASC')->select();
                 foreach ($clarifyList as $clarify) {
-                    // 计算各环节的项目澄清时间
+                    // 计算各环节的项目澄清时间（事业部分单员除外）
                     $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
                 }
+                // 最后一次事业部分单员的项目澄清时间
+                $item[$clarifyMapping['BIZ_DISPATCHING']] = $inquiryCheckLogModel->field('(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find()['clarify_time'];
                 // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
                 $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
+                $lastClarifyTime = '';
                 if ($lastLog['out_node'] == 'CLARIFY' && in_array($lastLog['in_node'], $clarifyNode)) {
-                    $item[$clarifyMapping[$lastLog['in_node']]] += $nowTime - $lastLog['out_time'];
+                    $lastClarifyTime = $nowTime - $lastLog['out_time'];
+                    $item[$clarifyMapping[$lastLog['in_node']]] += $lastClarifyTime;
+                    if ($lastLog['in_node'] == 'BIZ_DISPATCHING') {
+                        $item[$clarifyMapping['BIZ_DISPATCHING']] = $lastClarifyTime;
+                    }
                 }
                 foreach ($clarifyMapping as $v) {
                     if ($item[$v] > 0) {
-                        // 计算总的项目澄清时间
-                        $item['clarification_time'] += $item[$v];
                         // 项目澄清时间换算成小时
                         $item[$v] = number_format($item[$v] / 3600, 2);
                     }
                 }
+                // 总的项目澄清时间
+                $item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
                 if ($item['clarification_time'] > 0) {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }

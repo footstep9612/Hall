@@ -21,53 +21,57 @@ class BuyercreditController extends PublicController {
 
         if (empty($data['name'])) {
             //jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
-            jsonReturn(null, -110, '采购商企业英文名称');
+            jsonReturn(null, -110, 'Company name cannot be empty!');
         }
         if (empty($data['registered_in'])) {
-            jsonReturn(null, -110, '采购商英文地址');
+            jsonReturn(null, -110, 'Company address cannot be empty!');
         }
         if (empty($data['tel'])) {
-            jsonReturn(null, -110, '企业电话');
+            jsonReturn(null, -110, 'Phone number cannot be empty!');  //企业
         }
         /*if (empty($data['country_code'])) {
             jsonReturn(null, -110, '企业所在国家简称代码');
         }*/
         if (empty($data['bank_country_code'])) {
-            jsonReturn(null, -110, '银行所在国家简称代码');
+            jsonReturn(null, -110, 'Country cannot be empty!');
         }
         if (empty($data['bank_name'])) {
-            jsonReturn(null, -110, '开户银行英文名称');
+            jsonReturn(null, -110, 'Bank name cannot be empty!');
         }
         if (empty($data['bank_address'])) {
-            jsonReturn(null, -110, '银行地址');
+            jsonReturn(null, -110, 'Bank address cannot be empty!');
         }
         if (empty($data['tel_bank'])) {
-            jsonReturn(null, -110, '银行电话');
+            jsonReturn(null, -110, 'Phone number cannot be empty!'); //银行
         }
         $data['buyer_id'] = $this->user['buyer_id'];
 
         $company_model = new BuyerRegInfoModel();
-
-        $buyer_info = $this->_getBuyerNo($data['buyer_id']);
+        $credit_model = new BuyerCreditModel();
+        $buyer_info = $this->_getBuyerNo($this->user['buyer_id']);
         if(!empty($buyer_info['country_bn'])) {
             $country_code = $this->_getCountryrCode($buyer_info['country_bn']);
             if($country_code['code']) {
                 $data['country_code'] = $country_code['code'];
             } else {
-                jsonReturn(null, -110, '不符合申请条件!');
+                jsonReturn(null, -110, 'This country is out of credit service!');
             }
         }
         $data['buyer_no'] = $buyer_info['buyer_no'];
         $check = $company_model->field('id')->where(['buyer_no' => $buyer_info['buyer_no'], 'deleted_flag' => 'N'])->find();
+        $status = $credit_model->field('status')->where(['buyer_no' => $buyer_info['buyer_no']])->find();
         if($check){
-            $res = $company_model->update_data($data);
+            if($status['status']=='ERUI_REJECTED' || $status['status']=='EDI_REJECTED' || $status['status']=='INVALID') {
+                $res = $company_model->update_data($data);
+            }
+            jsonReturn(null, ShopMsg::CUSTOM_FAILED, ' Please wait for the administrator to review!');
         } else {
             $res = $company_model->create_data($data);
         }
         if($res !== false) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'Submit successfully!');
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED, 'failed!');
+            jsonReturn(null, ShopMsg::CUSTOM_FAILED, 'Submit unsuccessfully!');
         }
     }
 
@@ -173,7 +177,7 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date'])){
-                $time = strtotime('+90 d',strtotime($creditInfo['approved_date']));
+                $time = strtotime('+90 days',strtotime($creditInfo['approved_date']));
                 if($time <= time()) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
