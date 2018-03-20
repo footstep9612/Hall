@@ -28,15 +28,23 @@ class SinosurepolicyController extends PublicController {
      */
     public function saveSinosurePolicyDataAction() {
         $condition = $this->put_data;
+        print_r($condition);exit;
         if ($condition['country_bn'] == '' || $condition['items'] == '') {
             jsonReturn('', -101, L('MISSING_PARAMETER'));
         }
         $saveData = [];
         foreach ($condition['items'] as $item) {
-            $item['country_bn'] = $condition['country_bn'];
-            $item['created_by'] = $this->user['id'];
-            $item['created_at'] = $this->time;
-            $saveData[] = $this->sinosurePolicyModel->create($item);
+            $data['country_bn'] = $condition['country_bn'];
+            $data['type'] = $item['type'];
+            $data['company'] = $item['company'];
+            $data['sign_flag'] = $item['sign_flag'];
+            $data['start_settle_period'] = $item['start_settle_period'];
+            $data['end_settle_period'] = $item['end_settle_period'];
+            $data['remarks'] = $item['remarks'];
+            $data['tax_rate'] = $item['tax_rate'];
+            $data['created_by'] = $this->user['id'];
+            $data['created_at'] = $this->time;
+            $saveData[] = $data;
         }
         if ($saveData) {
             $this->sinosurePolicyModel->delRecord(['country_bn' => $condition['country_bn']]);
