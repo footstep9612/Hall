@@ -158,9 +158,9 @@ class BuyercreditController extends PublicController {
         }
 
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, '申请成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED, 'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
     }
 
@@ -497,8 +497,8 @@ class BuyercreditController extends PublicController {
         $agent_model = new EmployeeModel();
         $agent_contact = $agent_model->getUserNamesByUserids($agentids);
         foreach ($list as $key => $val) {
-            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
-                $val['agent_name'] = $agent_contact[$val['id']];
+            if (isset($agent_contact[$val['agent_by']]) && $agent_contact[$val['agent_by']]) {
+                $val['agent_name'] = $agent_contact[$val['agent_by']];
             } else {
                 $val['agent_name'] = '';
             }
