@@ -171,15 +171,18 @@ class SuppliersModel extends PublicModel {
 
         $where = $this->getJoinWhere($condition);
 
-        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
+        unset($where['a.status']);
+
+        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        //$pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
         return $this->alias('a')
             ->join($this->joinTable1, 'LEFT')
             ->join($this->joinTable5, 'LEFT')
             ->field($this->exportFields)
             ->where($where)
-            ->page($currentPage, $pageSize)
+            ->where('a.erui_status IN("CHECKING","VALID")')
+           // ->page($currentPage, $pageSize)
             ->order('a.id DESC')
             ->select();
     }
