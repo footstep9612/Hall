@@ -254,7 +254,7 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $where['source'] = 'BOSS';
+        $where['source'] = !empty($data['source']) ? $data['source'] : 'BOSS' ;
         $data = $role_user_modle->userRoleList($user_id, 0, $where);
         $count = count($data);
         $childrencount = 0;
