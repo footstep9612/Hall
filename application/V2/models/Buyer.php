@@ -470,7 +470,7 @@ class BuyerModel extends PublicModel {
             $tableheader = array('完整度','客户编号','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
         }else{
             $sheetName='Customer list';
-            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Registration time', 'Customer status', 'Customer level','Registration source of customer','level_at');
+            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Registration source of customer','Verification date');
         }
         //创建对象
         $excel = new PHPExcel();
