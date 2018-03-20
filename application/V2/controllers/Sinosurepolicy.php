@@ -28,7 +28,6 @@ class SinosurepolicyController extends PublicController {
      */
     public function saveSinosurePolicyDataAction() {
         $condition = $this->put_data;
-        print_r($condition);exit;
         if ($condition['country_bn'] == '' || $condition['items'] == '') {
             jsonReturn('', -101, L('MISSING_PARAMETER'));
         }
