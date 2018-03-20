@@ -956,6 +956,11 @@ class SuppliersController extends PublicController {
         }
     }
 
+    /**
+     * @desc 导出供应商数据
+     * @author 买买提
+     * @time 2018-03-20
+     */
     public function exportAction()
     {
 
@@ -980,6 +985,10 @@ class SuppliersController extends PublicController {
 
     }
 
+    /**@desc 获取导出的数据
+     * @param $condition
+     * @return mixed
+     */
     private function getExportData($condition)
     {
         // 开发人
@@ -1005,10 +1014,12 @@ class SuppliersController extends PublicController {
             $supplier['material_cat'] = $this->supplierMaterialCatModel->getMaterialCatNameBy($supplier['id']);
             $supplier['developer'] = $this->supplierAgentModel->getDeveloperNameBy($supplier['id']);
             $supplier['status'] = $this->setStatusName($supplier['status']);
+
             $supplier['en_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id']);
             $supplier['zh_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id'], 'zh');
             $supplier['en_sku_count'] = $this->getCountBy('GOODS', $supplier['id']);
             $supplier['zh_sku_count'] = $this->getCountBy('GOODS', $supplier['id'], 'zh');
+
             $supplier['created_by'] = $this->setUserName($supplier['created_by']);
             $supplier['checked_by'] = $this->setUserName($supplier['checked_by']);
         }
@@ -1033,14 +1044,19 @@ class SuppliersController extends PublicController {
                 ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
                 ->count();
         }else{
-            $ProductSuppierModel = new ProductSupplierModel();
-            return $ProductSuppierModel->alias('a')
+            $ProductSupplierModel = new ProductSupplierModel();
+            return $ProductSupplierModel->alias('a')
                 ->join('erui_goods.product b ON a.spu=b.spu', 'LEFT')
                 ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
                 ->count();
         }
     }
 
+    /**
+     * @desc 设置用户名
+     * @param $user_id
+     * @return mixed
+     */
     private function setUserName($user_id)
     {
         return (new EmployeeModel)->where(['id' => $user_id])->getField('name');

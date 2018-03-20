@@ -95,6 +95,11 @@ trait SupplierHelper
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "Supplier_" . date('Ymd-His') . '.xls');
     }
 
+    /**
+     * 上传到文件服务器
+     * @param $file
+     * @return array|mixed
+     */
     public static function upload2FastDFS($file)
     {
         $server = Yaf_Application::app()->getConfig()->myhost;
@@ -104,6 +109,10 @@ trait SupplierHelper
         $data['type'] = filetype($file);
         $data['name'] = $file;
         $fileId = postfile($data, $url);
+
+        if (is_file($file) && file_exists($file)) {
+            unlink($file);
+        }
 
         return $fileId;
     }
