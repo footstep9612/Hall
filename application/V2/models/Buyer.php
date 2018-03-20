@@ -185,7 +185,7 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1';
-        if($data['admin']!=1){  //市场专员权限
+//        if($data['admin']!=1){  //市场专员权限
             if(!empty($data['country_bn'])){    //国家
                 $countryArr=array();
                 $countrys=explode(',',$data['country_bn']);
@@ -195,7 +195,7 @@ class BuyerModel extends PublicModel {
                 $countryStr=implode(',',$countryArr);
                 $cond .= " And `buyer`.country_bn in ($countryStr)";
             }
-        }
+//        }
         if(!empty($data['buyer_no'])){  //客户编号
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
