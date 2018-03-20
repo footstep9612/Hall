@@ -44,7 +44,7 @@ class EmployeeModel extends PublicModel {
             }
             $redis_keys = md5(json_encode($where));
             if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
-                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+                return json_decode(redisGet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
             }
             $users = $this->where($where)->field('id,name')->select();
             $user_names = [];
@@ -81,7 +81,7 @@ class EmployeeModel extends PublicModel {
             }
             $redis_keys = md5(json_encode($where));
             if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
-                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+                return json_decode(redisGet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
             }
             $users = $this->where($where)->field('id')->select();
             $userids = [];
@@ -191,7 +191,7 @@ class EmployeeModel extends PublicModel {
         $pageSize = 10;
         $redis_keys = md5($cond . intval($data['page']) . $pageSize);
         if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
-            return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+            return json_decode(redisGet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
         }
         $totalCont = $this->where($cond)->count();
         $totalPage = ceil($totalCont / $pageSize);
@@ -241,7 +241,7 @@ class EmployeeModel extends PublicModel {
         if ($obtain_ids && is_array($obtain_ids)) {
             $redis_keys = md5(json_encode($obtain_ids));
             if (redisExist('Employee_' . __FUNCTION__ . '_' . $redis_keys)) {
-                return json_decode(redisSet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
+                return json_decode(redisGet('Employee_' . __FUNCTION__ . '_' . $redis_keys), true);
             }
 
             $users = $this->field('id,name')
