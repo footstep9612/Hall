@@ -217,10 +217,10 @@ class BuyerVisitModel extends PublicModel {
         }
 
         if(!isset($_input['name']) || empty($_input['name'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人');
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人不能为空');
         }
         if(!isset($_input['phone']) || empty($_input['phone'])){
-            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人方式');
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '客户联系人方式不能为空');
         }
 
         if(!isset($_input['visit_type']) || empty($_input['visit_type']) || !is_array($_input['visit_type'])){
