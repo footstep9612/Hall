@@ -1562,6 +1562,7 @@ EOF;
         }
         if(!empty($base['company_reg_date'])){
             $date=explode('-',$base['company_reg_date']);
+            $y=$date[0];
             $m=sprintf("%02s",intval($date[1]));
             $d=sprintf("%02s",intval($date[2]));
             if($m<0 || $m>12){
@@ -1588,6 +1589,8 @@ EOF;
                     }
                 }
             }
+            $dateArr=[$y,$m,$d];
+            $base['company_reg_date']=implode('-',$dateArr);
         }
 //        if(!empty($base['official_phone'])){
 //            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
