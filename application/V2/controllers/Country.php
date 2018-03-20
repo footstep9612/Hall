@@ -121,6 +121,8 @@ class CountryController extends PublicController {
         }
         if (!empty($data['code'])) {
             $where['code'] = $data['code'];
+        } else {
+            $where['code'] = array('neq','');
         }
         if (!empty($data['status'])) {
             $where['status'] = $data['status'];
@@ -139,7 +141,6 @@ class CountryController extends PublicController {
         if (!empty($data['countPerPage'])) {
             $limit['num'] = $data['countPerPage'];
         }
-        $where['code'] = array('neq','');
         $lang = '';
         if (!empty($data['lang'])) {
             $lang = $data['lang'];
