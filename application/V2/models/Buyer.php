@@ -341,7 +341,7 @@ class BuyerModel extends PublicModel {
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
-            ->order('buyer.id desc')
+            ->order('agent.created_at desc')
             ->limit($offset,$pageSize)
             ->select();
         foreach($info as $k => $v){
