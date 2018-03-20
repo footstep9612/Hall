@@ -173,6 +173,11 @@ class SuppliersModel extends PublicModel {
 
         unset($where['a.status']);
 
+        if (!empty($condition['erui_status'])) {
+            $where['a.erui_status'] =  $condition['erui_status'];
+        }else{
+            $where['a.erui_status'] = ['in', ['CHECKING', 'VALID'] ];
+        }
         //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         //$pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
@@ -181,7 +186,6 @@ class SuppliersModel extends PublicModel {
             ->join($this->joinTable5, 'LEFT')
             ->field($this->exportFields)
             ->where($where)
-            ->where('a.erui_status IN("CHECKING","VALID")')
            // ->page($currentPage, $pageSize)
             ->order('a.id DESC')
             ->select();
