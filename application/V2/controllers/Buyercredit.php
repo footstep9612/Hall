@@ -158,7 +158,7 @@ class BuyercreditController extends PublicController {
         }
 
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, '申请成功!');
+            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
@@ -334,7 +334,7 @@ class BuyercreditController extends PublicController {
             $config_obj = Yaf_Registry::get("config");
             $config_email = $config_obj->email->toArray();
             $email = $this->_getBuyerEmail($data['buyer_no']);
-            $this->creditEmail($email['official_email']='531499132@qq.com', '', $lang, $config_email['url']);
+            $this->creditEmail($email['official_email'], '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
