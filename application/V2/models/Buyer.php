@@ -176,6 +176,12 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
+            if(!empty($v['country_bn'])){ //国家
+                $country = new CountryModel();
+                $countryInfo = $country->getCountryAndCodeByBn($v['country_bn'],$lang);
+                $info[$k]['country_name'] = $countryInfo['name'];
+                $info[$k]['country_code'] = $countryInfo['code'];
+            }
         }
 
 //        $res['data'] = $this->query($sql);
