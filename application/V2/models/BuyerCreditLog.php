@@ -63,10 +63,14 @@ class BuyerCreditLogModel extends PublicModel{
             $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
         }
         if (isset($condition['sign']) && $condition['sign']) {
-            $where['sign'] = intval($condition['sign']);         //银行或企业信息--银行:1;企业:2
+            $where['sign'] = intval($condition['sign']);         //银行或企业信息--银行:2;企业:1
+            if($where['sign']==1){
+                $where['name'] = array('neq', '');
+            }
+            if($where['sign']==2) {
+                $where['bank_name'] = array('neq', '');
+            }
         }
-        $where['name'] = array('neq', '');
-        $where['bank_name'] = array('neq', '');
         return $where;
     }
 

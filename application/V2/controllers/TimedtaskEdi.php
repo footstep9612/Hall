@@ -7,8 +7,8 @@
  */
 class TimedtaskEdiController extends PublicController{
 
-    private $serverIP = 'localhost';
-    private $serverPort = '8121';
+    private $serverIP = 'credit.eruidev.com';
+    private $serverPort = '80';
     private $serverDir = 'ediserver';
     private $serverDirSec = 'ws_services';
     private $serviceInterface = 'SolEdiProxyWebService';
@@ -36,7 +36,7 @@ class TimedtaskEdiController extends PublicController{
     }
 
     /**
-     * @desc 企业代码批复通知接口（定时任务：每天01:00:00执行）
+     * @desc 企业代码批复通知接口（定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行）
      * @author klp
      * @time 2018-03-16
      */
@@ -50,12 +50,13 @@ class TimedtaskEdiController extends PublicController{
 
              //存储结果日志
             $time = date('Y-m-d h:i:s',time());
-            $start="time:".$time."\r\n"."edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
+            $start="time:".$time."\r\n"."Edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
             $end ="\r\n"."---------- content end ----------"."\r\n\n";
-            $content=$start."".$buyerCodeApproveInfo."".$end;
+            $content=$start."".print_r(self::object_array($buyerCodeApproveInfo),true)."".$end;
             LOG::write($content, LOG::INFO);
 
                  $updata = self::object_array($buyerCodeApproveInfo);
+
                  foreach ($updata as $item) {
                      if ($item['approveFlag'] == 1) {
                          //先查看是否已经审核通过
@@ -68,14 +69,14 @@ class TimedtaskEdiController extends PublicController{
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'status' => 'EDI_APPROVED'
                              ];
-                             $this->buyerCreditModel->update_data($updata);
+                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
                          } else {
                              $updata = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
                                  'sinosure_no' => $item['buyerInfo']['buyerNo'],
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime']))
                              ];
-                             $this->buyerCreditModel->update_data($updata);
+                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
                          }
                          //企业表
                          $reg['status'] = 'EDI_APPROVED';
@@ -86,7 +87,7 @@ class TimedtaskEdiController extends PublicController{
                              'name' => $item['buyerInfo']['engName'],
                              'address' => $item['buyerInfo']['engAddress'],
                              'sign' => 1,
-                             'checked_by' => 'edi',
+                             'checked_by' => '1001',
                              'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                              'out_status' => 'EDI_APPROVED'
                          ];
@@ -99,12 +100,12 @@ class TimedtaskEdiController extends PublicController{
                                  'remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                  'status' => 'EDI_REJECTED'
                              ];
-                             $this->buyerCreditModel->update_data($updata);
+                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
                              //日志
                              $log_arr = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
                                  'sign' => 1,
-                                 'checked_by' => 'edi',
+                                 'checked_by' => '1001',
                                  'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'out_remarks' => $item['unAcceptReason'],
                                  'out_status' => 'EDI_REJECTED'
@@ -121,7 +122,7 @@ class TimedtaskEdiController extends PublicController{
      }
 
     /**
-     * @desc 银行代码批复通知接口（定时任务：每天01:00:00执行）
+     * @desc 银行代码批复通知接口（定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行）
      * @author klp
      * @time 2018-03-16
      */
@@ -129,21 +130,21 @@ class TimedtaskEdiController extends PublicController{
         try{
             $client = new SoapClient(self::$serviceUri);
             $response = $client->doEdiBankCodeApprove(array('startDate'=>"2018-03-09T23:59:59", 'endDate'=>self::getEndDate()));
-            $buyerBankApproveInfo = $response->out->BankCodeApproveInfo;jsonReturn($response);
+            $buyerBankApproveInfo = $response->out->BankCodeApproveInfo;
             if ($buyerBankApproveInfo) {
 
                 //存储结果日志
                 $time = date('Y-m-d h:i:s',time());
-                $start="time:".$time."\r\n"."edi/buyerBankApproveInfo:"."\r\n"."---------- content start ----------"."\r\n";
+                $start="time:".$time."\r\n"."Edi/buyerBankApproveInfo:"."\r\n"."---------- content start ----------"."\r\n";
                 $end ="\r\n"."---------- content end ----------"."\r\n\n";
-                $content=$start."".$buyerBankApproveInfo."".$end;
+                $content=$start."".print_r(self::object_array($buyerBankApproveInfo),true)."".$end;
                 LOG::write($content, LOG::INFO);
 
                 $updata =  self::object_array($buyerBankApproveInfo);
                 foreach($updata as $item){
                     if($item['approveFlag'] == 1){
                         //先查看是否已经审核通过
-                        $check = $this->buyerRegInfoModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                        $check = $this->buyerRegInfoModel->field('status')->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->find();
                         if($check['status'] == 'EDI_APPROVED'){
                             //授信表
                             $updata = [
@@ -152,7 +153,7 @@ class TimedtaskEdiController extends PublicController{
                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                 'status' => 'EDI_APPROVED'
                             ];
-                            $this->buyerCreditModel->update_data($updata);
+                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
                         } else {
                             //授信表
                             $updata = [
@@ -160,22 +161,22 @@ class TimedtaskEdiController extends PublicController{
                                 'bank_swift' => $item['bankInfo']['bankSwift'],
                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime']))
                             ];
-                            $this->buyerCreditModel->update_data($updata);
+                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
                         }
                         //银行表
                         $reg['status'] = 'EDI_APPROVED';
-                        $this->buyerBankInfoModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($reg);
+                        $a = $this->buyerBankInfoModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($reg);
                         //日志
                         $log_arr = [
                             'buyer_no' => $item['bankInfo']['corpSerialNo'],
                             'bank_name' => $item['bankInfo']['engName'],
                             'bank_address' => $item['bankInfo']['address'],
                             'sign' => 2,
-                            'checked_by' => 'edi',
+                            'checked_by' => '1001',
                             'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                             'out_status' => 'EDI_APPROVED'
                         ];
-                        $this->buyerCreditLogModel->create_data($log_arr);
+                        $a =$this->buyerCreditLogModel->create_data($log_arr);
                     } else {
                         $pre_mc = preg_match('/(存在)*(已存在)*(已经存在)*(重复提交)*(重复申请)*/', $item['unAcceptReason']);
                         if($pre_mc == 0){
@@ -184,14 +185,14 @@ class TimedtaskEdiController extends PublicController{
                                 'bank_remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                 'status' => 'EDI_REJECTED'
                             ];
-                            $this->buyerCreditModel->update_data($updata);
+                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
                             //日志
                             $log_arr = [
                                 'buyer_no' => $item['bankInfo']['corpSerialNo'],
                                 'bank_name' => $item['bankInfo']['engName'],
                                 'bank_address' => $item['bankInfo']['address'],
                                 'sign' => 2,
-                                'checked_by' => 'edi',
+                                'checked_by' => '1001',
                                 'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                 'out_remarks' => $item['unAcceptReason'],
                                 'out_status' => 'EDI_REJECTED'
@@ -232,6 +233,14 @@ class TimedtaskEdiController extends PublicController{
         }
         return $array;
     }
-
+    static function struct_to_array($item) {
+        if(!is_string($item)) {
+            $item = (array)$item;
+            foreach ($item as $key=>$val){
+                $item[$key]  =  @self::struct_to_array($val);
+            }
+        }
+        return $item;
+    }
 
 }
