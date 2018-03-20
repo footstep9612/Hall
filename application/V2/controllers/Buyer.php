@@ -19,7 +19,7 @@ class BuyerController extends PublicController {
     private function crmUserRole($user_id){
         $role=new RoleUserModel();
         $arr=$role->crmGetUserRole($user_id);
-        if(in_array('crm市场专员',$arr)){
+        if(in_array('crm客户管理',$arr)){
             $admin=1;   //市场专员
         }else{
             $admin=0;
@@ -178,7 +178,7 @@ class BuyerController extends PublicController {
     public function buyerListAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);

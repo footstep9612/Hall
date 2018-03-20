@@ -187,17 +187,25 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1';
-//        if($data['admin']!=1){  //市场专员权限
-            if(!empty($data['country_bn'])){    //国家
-                $countryArr=array();
-                $countrys=explode(',',$data['country_bn']);
-                foreach($countrys as $k => $v){
-                    $countryArr[]="'".$v."'";
-                }
-                $countryStr=implode(',',$countryArr);
-                $cond .= " And `buyer`.country_bn in ($countryStr)";
+        if($data['admin']==0){  //客户管理权限
+            $agent=new BuyerAgentModel();
+            $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+            $str='';
+            foreach($list as $k => $v){
+                $str.=','.$v['buyer_id'];
             }
-//        }
+            $str=substr($str,1);
+            $cond.= " and buyer.id in ($str)";
+        }
+        if(!empty($data['country_bn'])){    //国家
+            $countryArr=array();
+            $countrys=explode(',',$data['country_bn']);
+            foreach($countrys as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
+            $cond .= " And `buyer`.country_bn in ($countryStr)";
+        }
         if(!empty($data['buyer_no'])){  //客户编号
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
