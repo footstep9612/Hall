@@ -37,10 +37,10 @@ class SinosurepolicyController extends PublicController {
             $data['type'] = $item['type'];
             $data['company'] = $item['company'];
             $data['sign_flag'] = $item['sign_flag'];
-            $data['start_settle_period'] = $item['start_settle_period'] ? : null;
-            $data['end_settle_period'] = $item['end_settle_period'] ? : null;
+            $data['start_settle_period'] = $item['start_settle_period'] != '' ? $item['start_settle_period'] : null;
+            $data['end_settle_period'] = $item['end_settle_period'] != '' ? $item['end_settle_period'] : null;
             $data['remarks'] = $item['remarks'];
-            $data['tax_rate'] = $item['tax_rate'] ? : null;
+            $data['tax_rate'] = $item['tax_rate'] != '' ? $item['tax_rate'] : null;
             $data['created_by'] = $this->user['id'];
             $data['created_at'] = $this->time;
             $saveData[] = $data;
