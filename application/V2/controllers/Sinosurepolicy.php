@@ -95,6 +95,21 @@ class SinosurepolicyController extends PublicController {
         $sinosurePolicyList = $this->sinosurePolicyModel->getList($condition);
         $this->_handleList($this->sinosurePolicyModel, $sinosurePolicyList, $condition);
     }
+    
+    /**
+     * @desc 删除信保政策数据接口
+     *
+     * @author liujf
+     * @time 2018-03-20
+     */
+    public function delSinosurePolicyDataAction() {
+        $condition = $this->put_data;
+        if ($condition['country_bn'] == '') {
+            jsonReturn('', -101, L('MISSING_PARAMETER'));
+        }
+        $res = $this->sinosurePolicyModel->delRecord($condition);
+        $this->jsonReturn($res);
+    }
 
     /**
      * @desc 对获取列表数据的处理
