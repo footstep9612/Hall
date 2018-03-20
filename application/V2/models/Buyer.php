@@ -1658,7 +1658,7 @@ EOF;
                 if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
                     return $contactExtra['email'].'格式错误';
                 }else{
-                    $buyerContact=new BuyerContactModel();
+                    $buyerContact=new BuyercontactModel();
                     if(empty($value['id'])){
                         $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
                         if($email){
