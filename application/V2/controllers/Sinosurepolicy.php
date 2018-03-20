@@ -39,16 +39,9 @@ class SinosurepolicyController extends PublicController {
             }
         }
         if ($country) {
-            $this->sinosurePolicyModel->startTrans();
-            $res1 = $this->sinosurePolicyModel->delRecord(['country_bn' => $country]);
-            $res2 = $this->sinosurePolicyModel->addAll($saveData);
-            if ($res1 && $res2) {
-                $this->sinosurePolicyModel->commit();
-                $this->jsonReturn(true);
-            } else {
-                $this->sinosurePolicyModel->rollback();
-                $this->jsonReturn(false);
-            }
+            $this->sinosurePolicyModel->delRecord(['country_bn' => $country]);
+            $res = $this->sinosurePolicyModel->addAll($saveData);
+            $this->jsonReturn($res);
         } else {
             $this->jsonReturn(false);
         }
