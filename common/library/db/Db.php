@@ -694,7 +694,7 @@ class db_Db {
     public function insert($data,$options=array(),$replace=false) {
         $values  =  $fields    = array();
         $this->model  =   $options['model'];
-        foreach ($data as $key=>$val){
+        foreach (array($data) as $key=>$val){
             if(is_array($val) && 'exp' == $val[0]){
                 $fields[]   =  $this->parseKey($key);
                 $values[]   =  $val[1];
