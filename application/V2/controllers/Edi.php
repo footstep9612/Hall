@@ -22,7 +22,6 @@
 
 class EdiController extends PublicController{
 
-    private $params = array();
 
     private $serverIP = 'credit.eruidev.com';
 
@@ -46,15 +45,7 @@ class EdiController extends PublicController{
 
     public function init(){
         parent::init();
-        error_reporting(E_ALL & ~E_NOTICE);
-        /*$this->params = json_decode(file_get_contents("php://input"), true);
-        if (count($this->params) > 0) {
-            foreach ($this->params as $key => $val) {
-                if (isset($this->$key)) {
-                    $this->$key = $val;
-                }
-            }
-        }*/
+        //error_reporting(E_ALL & ~E_NOTICE);
 
         //$config_obj = Yaf_Registry::get("config");
         //$this->serverIP = $config_obj->database->config->toArray();
