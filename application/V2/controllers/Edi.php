@@ -22,7 +22,6 @@
 
 class EdiController extends PublicController{
 
-    private $params = array();
 
     private $serverIP = 'credit.eruidev.com';
 
@@ -46,15 +45,7 @@ class EdiController extends PublicController{
 
     public function init(){
         parent::init();
-        error_reporting(E_ALL & ~E_NOTICE);
-        /*$this->params = json_decode(file_get_contents("php://input"), true);
-        if (count($this->params) > 0) {
-            foreach ($this->params as $key => $val) {
-                if (isset($this->$key)) {
-                    $this->$key = $val;
-                }
-            }
-        }*/
+        //error_reporting(E_ALL & ~E_NOTICE);
 
         //$config_obj = Yaf_Registry::get("config");
         //$this->serverIP = $config_obj->database->config->toArray();
@@ -75,7 +66,6 @@ class EdiController extends PublicController{
      */
     public function checkCreditAction(){
         $data = $this->getPut();
-        //$edi_res= $this->EdiApply($data);jsonReturn($edi_res); //先调用信保
         $lang = empty($data['lang']) ? 'zh' : $data['lang'];
         if (!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
@@ -385,6 +375,7 @@ class EdiController extends PublicController{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
 //            }
+            self::saveinfo($BuyerCodeApplyInfo,'BuyerCodeApply');
             $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
@@ -393,7 +384,7 @@ class EdiController extends PublicController{
                 'code' => $e->getCode(),
                 'msg'  => $e->getMessage()
             ];
-            jsonReturn($e->getMessage());
+            //jsonReturn($e->getMessage());
             return false;
         }
 
@@ -560,6 +551,7 @@ class EdiController extends PublicController{
 //            } else {
 //                $results['code'] = -101;
 //            }
+            self::saveinfo($BankCodeApplyInfo,'BankCodeApply');
             $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
@@ -947,6 +939,16 @@ class EdiController extends PublicController{
             }
         }
         return $array;
+    }
+
+    public static function saveinfo($data,$name)
+    {
+        //存储结果日志
+        $time = date('Y-m-d h:i:s',time());
+        $start="time:".$time."\r\n"."Edi/buyerCodeApprove:"."\r\n"."---------- content start ----------"."\r\n";
+        $end ="\r\n"."---------- content end ----------"."\r\n\n";
+        $content=$start."【".$name."】:".$data['corpSerialNo']."".$end;
+        LOG::write($content, LOG::INFO);
     }
 
     static public function exception($e){
