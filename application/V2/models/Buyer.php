@@ -170,7 +170,9 @@ class BuyerModel extends PublicModel {
             }
             if(!empty($v['country_bn'])){ //国家
                 $country = new CountryModel();
-                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
+                $countryInfo = $country->getCountryAndCodeByBn($v['country_bn'],$lang);
+                $info[$k]['country_name'] = $countryInfo['name'];
+                $info[$k]['country_code'] = $countryInfo['code'];
             }
         }
 //        $res['data'] = $this->query($sql);
@@ -419,6 +421,7 @@ class BuyerModel extends PublicModel {
                 }elseif($v['source']==3){
                     $arr[$k]['source']='手机端注册';
                 }
+                $arr[$k]['level_at']=$v['level_at'];  //定级日期
             }
         }else{
             foreach($package as $k => $v){
@@ -449,6 +452,7 @@ class BuyerModel extends PublicModel {
                 }elseif($v['source']==3){
                     $arr[$k]['source']='Registered on APP';
                 }
+                $arr[$k]['level_at']=$v['level_at'];  //定级日期
             }
         }
         return $arr;
@@ -463,10 +467,10 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='客户列表';
-            $tableheader = array('完整度','会员编号','CRM客户代码', '国家', '注册时间', '审核状态', '客户等级', '用户来源');
+            $tableheader = array('完整度','客户编号','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
         }else{
             $sheetName='Customer list';
-            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Registration time', 'Customer status', 'Customer level','Registration source of customer');
+            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Registration time', 'Customer status', 'Customer level','Registration source of customer','level_at');
         }
         //创建对象
         $excel = new PHPExcel();
