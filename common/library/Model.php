@@ -249,7 +249,7 @@ class Model {
             } else {
                 $fields = $this->fields;
             }
-            foreach (array($data) as $key => $val) {
+            foreach ($data as $key => $val) {
                 if (!in_array($key, $fields, true)) {
                     if (APP_DEBUG) {
                         //E(L('_DATA_TYPE_INVALID_') . ':[' . $key . '=>' . $val . ']');
