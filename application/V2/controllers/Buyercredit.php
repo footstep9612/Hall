@@ -97,7 +97,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            $this->_setAgentName($res);
+            $this->_setAgentName($res,'agent_by');
             $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -160,7 +160,7 @@ class BuyercreditController extends PublicController {
         if($res) {
             jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED, 'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
     }
 
@@ -334,7 +334,7 @@ class BuyercreditController extends PublicController {
             $config_obj = Yaf_Registry::get("config");
             $config_email = $config_obj->email->toArray();
             $email = $this->_getBuyerEmail($data['buyer_no']);
-            $this->creditEmail($email['official_email']='531499132@qq.com', '', $lang, $config_email['url']);
+            $this->creditEmail($email['official_email'], '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
@@ -489,16 +489,16 @@ class BuyercreditController extends PublicController {
     /* 代办人信息
      * @desc   企业/银行
      */
-    private function _setAgentName(&$list) {
+    private function _setAgentName(&$list,$name) {
         foreach ($list as $log) {
-            $agentids[] = $log['agent_by'];
+            $agentids[] = $log[$name];
         }
 
         $agent_model = new EmployeeModel();
         $agent_contact = $agent_model->getUserNamesByUserids($agentids);
         foreach ($list as $key => $val) {
-            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
-                $val['agent_name'] = $agent_contact[$val['id']];
+            if (isset($agent_contact[$val[$name]]) && $agent_contact[$val[$name]]) {
+                $val['agent_name'] = $agent_contact[$val[$name]];
             } else {
                 $val['agent_name'] = '';
             }

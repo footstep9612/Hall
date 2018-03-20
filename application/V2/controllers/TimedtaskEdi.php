@@ -34,6 +34,13 @@ class TimedtaskEdiController extends PublicController{
             self::$serviceUri .= '?wsdl';
         }
     }
+    /**
+     * 定时任务
+     *  企业代码批复:v2/Edi/doEdiBuyerCodeApprove   定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行
+     *  银行代码批复:v2/Edi/doEdiBankCodeApprove    定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行
+     * @time 2018-03-16
+     */
+
 
     /**
      * @desc 企业代码批复通知接口（定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行）
