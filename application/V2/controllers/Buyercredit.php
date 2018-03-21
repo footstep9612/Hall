@@ -34,8 +34,9 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 days',strtotime($item['approved_date']));
-                    if($time <= time()) {
+                    $time = strtotime($item['approved_date']);
+                    $current_time = strtotime("+90 day");
+                    if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
@@ -66,8 +67,9 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 days',strtotime($item['approved_date']));
-                    if($time <= time()) {
+                    $time = strtotime($item['approved_date']);
+                    $current_time = strtotime("+90 day");
+                    if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
