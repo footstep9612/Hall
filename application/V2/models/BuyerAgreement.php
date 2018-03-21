@@ -492,7 +492,7 @@ class BuyerAgreementModel extends PublicModel
     public function validData($data){
         //验证必要数据
         $arr = array(
-            'buyer_id'=>L('buyer_id'), //客户id
+//            'buyer_id'=>L('buyer_id'), //客户id
             'buyer_code'=>L('buyer_id'),   //客户代码
             'execute_no'=>L('buyer_id'), //框架执行单号
             'org_id'=>L('buyer_id'),  //所属事业部
