@@ -100,17 +100,22 @@ class TimedtaskEdiController extends PublicController{
                          ];
                          $this->buyerCreditLogModel->create_data($log_arr);
                      } elseif ($item['approveFlag'] == 0) {
-                         $pre_mc = preg_match('/(存在)*(已存在)*(已经存在)*(重复提交)*(重复申请)*/', $item['unAcceptReason']);
-                         if($pre_mc == 0) {
+                         $pre_mc1 = preg_match('/存在/', $item['unAcceptReason']);
+                         $pre_mc2 = preg_match('/已存在/', $item['unAcceptReason']);
+                         $pre_mc3 = preg_match('/已经存在/', $item['unAcceptReason']);
+                         $pre_mc4 = preg_match('/重复提交/', $item['unAcceptReason']);
+                         $pre_mc5 = preg_match('/重复申请/', $item['unAcceptReason']);
+                         if($pre_mc1==1 || $pre_mc2==1 || $pre_mc3==1 || $pre_mc4==1 || $pre_mc5==1) {
+                         }else{
                              $updata = [
-                                 'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                 'buyer_no' => $item['corpSerialNo'],
                                  'remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                  'status' => 'EDI_REJECTED'
                              ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             $this->buyerCreditModel->where(['buyer_no' => $item['corpSerialNo']])->save($updata);
                              //日志
                              $log_arr = [
-                                 'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                 'buyer_no' => $item['corpSerialNo'],
                                  'sign' => 1,
                                  'checked_by' => '1001',
                                  'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
@@ -184,20 +189,23 @@ class TimedtaskEdiController extends PublicController{
                             'out_status' => 'EDI_APPROVED'
                         ];
                         $a =$this->buyerCreditLogModel->create_data($log_arr);
-                    } else {
-                        $pre_mc = preg_match('/(存在)*(已存在)*(已经存在)*(重复提交)*(重复申请)*/', $item['unAcceptReason']);
-                        if($pre_mc == 0){
+                    } elseif ($item['approveFlag'] == 0)  {
+                        $pre_mc1 = preg_match('/存在/', $item['unAcceptReason']);
+                        $pre_mc2 = preg_match('/已存在/', $item['unAcceptReason']);
+                        $pre_mc3 = preg_match('/已经存在/', $item['unAcceptReason']);
+                        $pre_mc4 = preg_match('/重复提交/', $item['unAcceptReason']);
+                        $pre_mc5 = preg_match('/重复申请/', $item['unAcceptReason']);
+                        if($pre_mc1==1 || $pre_mc2==1 || $pre_mc3==1 || $pre_mc4==1 || $pre_mc5==1) {
+                        }else{
                             $updata = [
-                                'buyer_no' => $item['bankInfo']['corpSerialNo'],
+                                'buyer_no' => $item['corpSerialNo'],
                                 'bank_remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                 'status' => 'EDI_REJECTED'
                             ];
-                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            $this->buyerCreditModel->where(['buyer_no' => $item['corpSerialNo']])->save($updata);
                             //日志
                             $log_arr = [
-                                'buyer_no' => $item['bankInfo']['corpSerialNo'],
-                                'bank_name' => $item['bankInfo']['engName'],
-                                'bank_address' => $item['bankInfo']['address'],
+                                'buyer_no' => $item['corpSerialNo'],
                                 'sign' => 2,
                                 'checked_by' => '1001',
                                 'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
