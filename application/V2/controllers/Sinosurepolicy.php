@@ -65,7 +65,7 @@ class SinosurepolicyController extends PublicController {
         $sinosurePolicyList = $this->sinosurePolicyModel->getListGroupByCountry($condition, 'country_bn, created_by, created_at');
         foreach ($sinosurePolicyList as &$sinosurePolicy) {
             $sinosurePolicy['created_name'] = $this->employeeModel->getUserNameById($sinosurePolicy['created_by']);
-            $sinosurePolicy['country_name'] = $this->countryModel->where(['bn' => $sinosurePolicy['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $sinosurePolicy['country_name'] = $this->countryModel->getCountryNameByBn($sinosurePolicy['country_bn'], $this->lang);
             $groupList = $this->sinosurePolicyModel->getGroupList(['country_bn' => $sinosurePolicy['country_bn']], 'type, company', 'type, company, start_settle_period, end_settle_period');
             foreach ($groupList as $item) {
                 $type = $item['type'];

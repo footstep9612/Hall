@@ -689,5 +689,18 @@ class CountryModel extends PublicModel {
     public function getCountryBnCodeByName($country_name) {
         return $this->field('bn,int_tel_code')->where(array('name' => $country_name))->find();
     }
+    
+    /**
+     * @desc 通过国家简称获取名称
+     *
+     * @param string $bn 国家简称
+     * @param string $lang 语言
+     * @return mixed
+     * @author liujf
+     * @time 2018-03-21
+     */
+    public function getCountryNameByBn($bn, $lang = 'zh') {
+        return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('name');
+    }
 
 }
