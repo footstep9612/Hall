@@ -21,7 +21,7 @@ return array(
     'empty_email'=>'邮箱不可以都为空',
     'email_existed'=>'邮箱已经存在',
     'email_ok'=>'邮箱正常',
-    'empty_name'=>'名称不能为空',
+    'empty_name'=>'公司名称不能为空',
     'name_existed'=>'公司名称已经存在',
     'name_ok'=>'公司名称正常',
     'username_existed'=>'用户名已经存在',
