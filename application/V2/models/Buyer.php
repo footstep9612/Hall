@@ -1551,16 +1551,16 @@ EOF;
 //            'market_agent_mobile'=>'服务经理联系方式',
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
-            'is_oilgas'=>L('is_oilgas'),
-            'company_model'=>L('company_model'),
-            'official_phone'=>L('official_phone'),
-            'official_email'=>L('official_email'),
-            'official_website'=>L('official_website'),
-            'company_reg_date'=>L('company_reg_date'),
-            'company_address'=>L('company_address'),//  +
-            'reg_capital'=>L('reg_capital'),
-            'reg_capital_cur'=>L('reg_capital_cur'),
-            'profile'=>L('profile'),
+            'is_oilgas'=>L('is_oilgas'),    //是否油气
+            'company_model'=>L('company_model'),    //公司性质
+            'official_phone'=>L('official_phone'),  //公司电话
+            'official_email'=>L('official_email'),     //公司邮箱
+            'official_website'=>L('official_website'),  //公司网址
+            'company_reg_date'=>L('company_reg_date'),  //公司成立日期
+            'company_address'=>L('company_address'),//  +公司地址
+            'reg_capital'=>L('reg_capital'),    //注册资金
+            'reg_capital_cur'=>L('reg_capital_cur'),    //注册资金货币
+            'profile'=>L('profile'),    //公司其他信息
 //            'is_oilgas'=>'是否油气',
 //            'company_model'=>'公司性质',
 //            'official_phone'=>'公司电话',
@@ -1628,7 +1628,7 @@ EOF;
         }
         if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
         }else{
-            return $baseArr['reg_capital'];
+            return $baseArr['reg_capital'].L('format_error');
         }
 
         //基本信息可选数据
@@ -1636,19 +1636,17 @@ EOF;
             'type_id'=>'客户类型',   //buyer_type
             'type_remarks'=>'类型备注',
             'is_oilgas'=>'是否油气',
-            'employee_count'=>'雇员数量',
-//            'attach_name'=>'附件名称',
-//            'attach_url'=>'附件url地址',
+            'employee_count'=>L('employee_count')
         );
         //联系人【contact】
         $contactArr = array(    //创建客户信息联系人必须数据
-            'name'=>'联系人姓名',
-            'title'=>'联系人职位',
-            'phone'=>'联系人电话',
+            'name'=>L('contact_name'),  //联系人姓名
+            'title'=>L('contact_title'),    //联系人职位
+            'phone'=>L('contact_phone'),    //联系人电话
         );
         $contactExtra = array(  //创建客户信息联系人可选数据
             'role'=>'购买角色',
-            'email'=>'联系人邮箱',
+            'email'=>L('contact_email'),    //联系人邮箱
             'hobby'=>'喜好',
             'address'=>'详细地址',
             'experience'=>'工作经历',
@@ -1674,20 +1672,20 @@ EOF;
             if(!empty($value['email'])){
                 $value['email']=trim($value['email'],' ');
                 if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
-                    return $contactExtra['email'].'格式错误';
+                    return $contactExtra['email'].L('format_error');
                 }else{
                     $buyerContact=new BuyercontactModel();
                     if(empty($value['id'])){
                         $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
                         if($email){
-                            return $contactExtra['email'].'已存在';
+                            return $contactExtra['email'].L('already existed');
                         }
                     }else{
                         $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
                         if($value['email']!=$email['email']){  //修改邮箱
                             $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
                             if($exist){
-                                return $contactExtra['email'].'已存在';
+                                return $contactExtra['email'].L('already existed');
                             }
                         }
                     }
@@ -1698,7 +1696,7 @@ EOF;
             $emailTotal=count($contactEmail);   //联系人邮箱总数
             $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
             if($emailTotal!=$validTotal){
-                return $contactExtra['email'].'重复';
+                return $contactExtra['email'].L('repeat');
             }
         }
         if(!empty($base['employee_count'])){

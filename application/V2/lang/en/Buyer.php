@@ -12,12 +12,21 @@ return array(
     'reg_capital_cur' => 'reg_capital_cur',
     'profile' => 'profile',
 
+    'employee_count'=>'employee_count',
+
+    'contact_name'=>'contact_name',
+    'contact_title'=>'contact_title',
+    'contact_phone'=>'contact_phone',
+    'contact_email'=>'contact_email',
 
 
-    'not empty' => 'not empty',
-    'success' => 'success',
-    'format_error' => 'format_error',
-    'already existed' => 'already existed',
+    'error' => ' error',
+    'repeat' => ' repeat',
+
+    'not empty' => ' not empty',
+    'success' => ' success',
+    'format_error' => ' format_error',
+    'already existed' => ' already existed',
 );
 
 

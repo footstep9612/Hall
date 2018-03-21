@@ -13,11 +13,20 @@ return array(
     'profile' => '公司其他信息',
 
 
+    'employee_count'=>'雇员数量',
+
+    'contact_name'=>'联系人姓名',
+    'contact_title'=>'联系人职位',
+    'contact_phone'=>'联系人电话',
+    'contact_email'=>'联系人邮箱',
+
 
     'not empty' => '不能为空',
     'success' => '成功',
+    'error' => '错误',
     'format_error' => '格式错误',
     'already existed' => '已存在',
+    'repeat' => '重复',
 );
 
 
