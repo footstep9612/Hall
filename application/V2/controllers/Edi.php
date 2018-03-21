@@ -41,7 +41,7 @@ class EdiController extends PublicController{
 
     static private $client;
 
-    static private $url_wsdl = "http://localhost:8121/ediserver/ws_services/SolEdiProxyWebService?wsdl";
+    static private $url_wsdl = "http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl";
 
     public function init(){
         parent::init();
