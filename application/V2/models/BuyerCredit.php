@@ -291,8 +291,8 @@ class BuyerCreditModel extends PublicModel
         } else{
             $dataInfo['deadline_cur_unit'] = 'day';
         }
-        if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
-            $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
+        if(isset($data['credit_valid_date']) && !empty($data['credit_valid_date'])){
+            $dataInfo['credit_valid_date'] = trim($data['credit_valid_date']);
         }
         if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
             $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
@@ -348,7 +348,7 @@ class BuyerCreditModel extends PublicModel
 
             $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
             $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +90 day"));
-            $dataLog['credit_at'] = $valid_date['credit_valid_date'];
+            $dataLog['credit_at'] = date('Y-m-d H:i:s',time());
             $dataLog['credit_apply_date'] = $valid_date['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
