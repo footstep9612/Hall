@@ -150,11 +150,6 @@ class OrderlogController extends PublicController{
             }
         }
         $results = $OrderLog->addData($data);
-        //会员升级-start-wnags-订单order_id
-        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
-        $auto=new OrderModel();
-        $auto->autoUpgradeByOrder($param);
-        //会员升级-end
         if($data['log_group']=="COLLECTION"&&isset($data["order_id"])&&$data["order_id"]) {
             $order_model->where($where)->setField(['pay_status'=>'PARTPAY']);
         }
@@ -193,11 +188,6 @@ class OrderlogController extends PublicController{
 
         $OrderLog->startTrans();
         $results = $OrderLog->updateData($data);
-        //会员升级-start-wnags-订单order_id
-        $param['order_id']=isset($data['order_id'])?$data['order_id']:'';
-        $auto=new OrderModel();
-        $auto->autoUpgradeByOrder($param);
-        //会员升级-end
         if($results['code'] == 1){
             //如果有附件，添加附件
             if(!empty($data['attach_array'])){
@@ -368,15 +358,6 @@ class OrderlogController extends PublicController{
         $OrderLog = new OrderLogModel();
         $where = $this->put_data;
         $results = $OrderLog->deleteData($where);
-        //会员升级-start-wnags-订单order_id
-        $log=new OrderLogModel();
-        $crm=explode(',',$where['id'])[0];
-        $order=$log->field('order_id')->where(array('id'=>$crm))->find();
-        $param['order_id']=isset($order['order_id'])?$order['order_id']:'';
-        $auto=new OrderModel();
-        $auto->autoUpgradeByOrder($param);
-        //会员升级-end
-
         $this->jsonReturn($results);
     }
 

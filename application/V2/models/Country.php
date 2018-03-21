@@ -478,13 +478,12 @@ class CountryModel extends PublicModel {
             'bn' => $bn,
             'lang' => $lang,
             'deleted_flag' => 'N'
-// 'status'=>self::STATUS_VALID
+
         );
         $field = 'name,code';
         $result = $this->field($field)->where($condition)->find();
         return $result;
     }
-
 
     /**
      * 根据简称与语言获取国家名称
