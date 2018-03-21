@@ -222,7 +222,7 @@ class TimedtaskEdiController extends PublicController{
     }
 
     static public function getStartDate(){
-        return $startDate = date('Y-m-d\T00:00:00', mktime('-2'));
+        return $startDate = date('Y-m-d\T00:00:00', mktime('-1'));
     }
 
     static public function getEndDate(){
