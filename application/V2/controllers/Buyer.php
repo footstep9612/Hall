@@ -655,7 +655,7 @@ class BuyerController extends PublicController {
         $this->jsonReturn($datajson);
     }
     //crm 更新客户市场经办人-王帅
-    public function crmUpdateAgentAction(){
+    public function crmUpdateAgentsAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
         $agent = new BuyerAgentModel();
