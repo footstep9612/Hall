@@ -16,14 +16,14 @@ class BuyeragreementController extends PublicController
         if($res==false){
             $dataJson = array(
                 'code'=>0,
-                'message'=>'excel导出异常或数据为空'
+                'message'=>L('data_empty')     //excel导出异常或数据为空
             );
         }else{
             $excel = new BuyerExcelModel();
             $excel->saveExcel($res['name'],$res['url'],$created_by);
             $dataJson = array(
                 'code'=>1,
-                'message'=>'导出成功',
+                'message'=>L('success'),
                 'data'=>$res
             );
         }
@@ -49,18 +49,18 @@ class BuyeragreementController extends PublicController
         $data['created_by'] = $created_by;
         if(empty($data['agree_attach'][0]['attach_url'])){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请选择协议附件';
+            $dataJson['message'] = L('select_protocol');    //请选择协议附件
             $this -> jsonReturn($dataJson);
         }
         if(empty($data['amount']) || !is_numeric($data['amount']) || $data['amount'] <0){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '数字金额';
+            $dataJson['message'] = L('digital_amount'); //数字金额
             $this -> jsonReturn($dataJson);
         }
         if(!empty($data['number'])){
             if(!is_numeric($data['number']) || $data['amount'] <0){
                 $dataJson['code'] = 0;
-                $dataJson['message'] = '请输入正确数量格式';
+                $dataJson['message'] = L('number_format');  //请输入正确数量格式
                 $this -> jsonReturn($dataJson);
             }
         }
@@ -72,16 +72,16 @@ class BuyeragreementController extends PublicController
             $attachRes = $attach->createAgreeAttach($data['agree_attach'],$agreement_id,$created_by);
             if($attachRes){
                 $dataJson['code'] = 1;
-                $dataJson['message'] = '协议，附件，创建成功';
+                $dataJson['message'] = L('success');    //协议，附件，创建成功
             }
             $this -> jsonReturn($dataJson);
         }elseif ($agreement_id !== false && $agreement_id !== true && $agreement_id !== 'exsit'){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入规范'.$agreement_id.'数据';
+            $dataJson['message'] = $agreement_id.L('format_error'); //格式错误
             $this -> jsonReturn($dataJson);
         }elseif ($agreement_id === 'exsit'){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '该框架协议单号已存在,请重新输入';
+            $dataJson['message'] = L('framework_protocol_existed');  //该框架协议单号已存在,请重新输入
             $this -> jsonReturn($dataJson);
         }
     }
@@ -94,7 +94,7 @@ class BuyeragreementController extends PublicController
         $res = $agree->showAgreeDesc($data);
         if($res == false){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入正确执行单号';
+            $dataJson['message'] = L('number_error'); //请输入正确执行单号
         }else{
             $dataJson['code'] = 1;
             $dataJson['message'] = '返回数据';
@@ -109,26 +109,26 @@ class BuyeragreementController extends PublicController
         $data['created_by'] = $created_by;
         if(empty($data['agree_attach'][0]['attach_url'])){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请上传附件';
+            $dataJson['message'] = L('select_protocol');
             $this -> jsonReturn($dataJson);
         }
         $agree = new BuyerAgreementModel();
         $res = $agree->updateAgree($data);
         if($res !==true && $res !== 'no_error' && !is_numeric($res)){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '请输入规范'.$res.'数据';
+            $dataJson['message'] = $res.L('format_error');  //'请输入规范'
             $this -> jsonReturn($dataJson);
         }
         if($res === 'no_error'){
             $dataJson['code'] = 0;
-            $dataJson['message'] = '框架协议单号错误';
+            $dataJson['message'] = L('number_error');  //框架协议单号错误
             $this -> jsonReturn($dataJson);
         }
         $attach = new AgreementAttachModel();
         $attachRes = $attach->updateAgreeAttach($data['agree_attach'],$res,$created_by);
         if($attachRes){
             $dataJson['code'] = 1;
-            $dataJson['message'] = '保存协议成功';
+            $dataJson['message'] = L('success');
         }
         $this -> jsonReturn($dataJson);
     }
