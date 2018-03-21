@@ -381,11 +381,11 @@ class BuyerController extends PublicController {
             $data['email']=trim($data['email'],' ');
             $buyer_account_data['email'] = $data['email'];
             if (!isEmail($buyer_account_data['email'])) {
-                jsonReturn('', -101, '邮箱格式不正确!');
+                jsonReturn('', -101, L('create_email'));   //邮箱格式不正确
             }
             $arr['official_email'] = $data['email'];
         } else {
-            jsonReturn('', -101, '邮箱不可以都为空!');
+            jsonReturn('', -101, L('empty_email'));  //邮箱不可以都为空
         }
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
@@ -427,7 +427,7 @@ class BuyerController extends PublicController {
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
-            jsonReturn('', -101, '名称不能为空!');
+            jsonReturn('', -101, L('empty_name'));    //名称不能为空
         }
 
         if (!empty($data['first_name'])) {
@@ -448,7 +448,7 @@ class BuyerController extends PublicController {
         if (!empty($data['country_bn'])) {
             $arr['country_bn'] = $data['country_bn'];
         } else {
-            jsonReturn('', -101, '国家名不可为空!');
+            jsonReturn('', -101, L('empty_country'));   //国家名不可为空
         }
         if (!empty($data['buyer_code'])) {
             $arr['buyer_code'] = $data['buyer_code'];
@@ -458,7 +458,7 @@ class BuyerController extends PublicController {
         $buyer_account_model = new BuyerAccountModel();
         $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "' AND deleted_flag='N'")->find();
         if ($checkcrm) {
-            jsonReturn('', -103, 'crm编码已经存在');
+            jsonReturn('', -103, L('crm_existed'));  //crm编码已经存在
         }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
@@ -478,18 +478,18 @@ class BuyerController extends PublicController {
         $check_email = $buyer_account_model->Exist($login_email, 'or');
 
         if ($check_email) {
-            jsonReturn('', -101, '邮箱已经存在!');
+            jsonReturn('', -101, L('email_existed'));    //邮箱已经存在
         }
         $login_uname['email'] = $data['user_name'];
         $login_uname['user_name'] = $data['user_name'];
         $check_uname = $buyer_account_model->Exist($login_uname, 'or');
         if ($check_uname) {
-            jsonReturn('', -102, '用户名已经存在!');
+            jsonReturn('', -102, L('username_existed'));   //用户名已经存在
         }
         //验证公司名称是否存在
         $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
         if ($checkcompany) {
-            jsonReturn('', -103, '公司名称已经存在');
+            jsonReturn('', -103, L('name_existed'));   //公司名称已经存在
         }
         // 生成用户编码
         $condition['page'] = 0;
@@ -565,11 +565,11 @@ class BuyerController extends PublicController {
             $datajson['agent_id'] = $data['agent_id'];
             $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
             $datajson['country'] = $arr['country_bn']; //$countryInfo;    //-- link 2017-10-31
-            $datajson['message'] = '成功';
+            $datajson['message'] = L('success');
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
+            $datajson['message'] = L('error');
         }
         $this->jsonReturn($datajson);
     }
@@ -650,7 +650,7 @@ class BuyerController extends PublicController {
             $credit_model = new BuyerCreditModel();
             $credit_model->setAgentId($data);
             $datajson['code'] = 1;
-            $datajson['message'] = '成功';
+            $datajson['message'] = L('success');
         }else{
             $datajson['code'] = 0;
             $datajson['message'] = '失败或缺少参数';
@@ -664,14 +664,14 @@ class BuyerController extends PublicController {
             $where_account['buyer_id'] = $data['id'];
             $where_attach['buyer_id'] = $data['id'];
         } else {
-            $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
+            $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));    //用户id不能为空
         }
         if (!empty($data['name'])) {    //公司名称
             $data['name']=trim($data['name']);
             $buyer=new BuyerModel();
             $existId=$buyer->field('id')->where(array('name'=>$data['name']))->find();
             if(!empty($existId['id']) && $existId['id']!=$data['id']){
-                $this->jsonReturn(array("code" => "-101", "message" => "该公司名称已存在"));
+                $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
         }
@@ -689,7 +689,7 @@ class BuyerController extends PublicController {
             $buyerModel=new BuyerModel();
             $buyer=$buyerModel->field('id')->where(array('buyer_code'=>$data['buyer_code']))->find();
             if(!empty($buyer) && $buyer['id']!=$data['id']){
-                $this->jsonReturn(array("code" => "-101", "message" => "客户代码已存在"));
+                $this->jsonReturn(array("code" => "-101", "message" => L('crm_existed'))); //"客户代码已存在"
             }
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
@@ -718,7 +718,7 @@ class BuyerController extends PublicController {
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
-                $this->jsonReturn(array("code" => "-101", "message" => "该邮箱已经被其他账号使用"));
+                $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
             }
         }
         if (!empty($data['mobile'])) {
@@ -809,7 +809,7 @@ class BuyerController extends PublicController {
 //        }
         if ($res !== false) {
             $datajson['code'] = 1;
-            $datajson['message'] = '成功';
+            $datajson['message'] = L('success');
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
@@ -821,23 +821,23 @@ class BuyerController extends PublicController {
     public function clickEditCheckAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data['buyer_id'])){
-            $this->jsonReturn(array("code" => 0, "message" => "请输入正确参数"));
+            $this->jsonReturn(array("code" => 0, "message" => L('param_error')));  //请输入正确参数
         }
         $buyerModel=new BuyerModel();
         $res=$buyerModel->clickEditCheck($data['buyer_id']);
         if($res['company']==1){
             $companyJson['code']=2;
-            $companyJson['message']='公司名称已存在';
+            $companyJson['message']=L('name_existed');  //公司名称已存在
         }else{
             $companyJson['code']=1;
-            $companyJson['message']='公司名称正常';
+            $companyJson['message']=L('name_ok');   //公司名称正常
         }
         if($res['email']==1){
             $emailJson['code']=2;
-            $emailJson['message']='邮箱已存在';
+            $emailJson['message']=L('email_existed');  //邮箱已存在
         }else{
             $emailJson['code']=1;
-            $emailJson['message']='邮箱正常';
+            $emailJson['message']=L('email_ok');   //邮箱正常
         }
         $arr['company']=$companyJson;
         $arr['email']=$emailJson;
@@ -1056,14 +1056,14 @@ class BuyerController extends PublicController {
         if (!empty($info)) {
             $dataJson = array(
                 'code' => 0,
-                'message' => 'CRM已存在'
+                'message' => L('crm_existed')
             );
             $this->jsonReturn($dataJson);
         }
         else{
             $dataJson = array(
                 'code'=>2,
-                'message'=>'正常录入客户信息流程'
+                'message'=>L('Normal_customer') //正常录入客户信息流程
             );
             $this->jsonReturn($dataJson);
         }
