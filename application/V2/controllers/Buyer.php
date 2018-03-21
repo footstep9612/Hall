@@ -263,7 +263,7 @@ class BuyerController extends PublicController {
     }
 
     /*
-     * 用户详情
+     * 用户详情 
      * */
 
     public function infoAction() {
