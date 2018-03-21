@@ -1541,7 +1541,7 @@ EOF;
         $contact = $arr['contact']; //联系人
         $baseArr = array(   //创建客户基本信息必须数据
 //            'buyer_id'=>'客户id',
-            'buyer_name'=>'客户名称',
+            'buyer_name'=>L('buyer_name'),
 //            'buyer_account'=>'客户账号',
 //            'buyer_code'=>'客户CRM编码',
 //            'buyer_level'=>'客户级别',
@@ -1551,21 +1551,31 @@ EOF;
 //            'market_agent_mobile'=>'服务经理联系方式',
 //            'level_at'=>'定级日期',
 //            'expiry_at'=>'有效期',
-            'is_oilgas'=>'是否油气',
-            'company_model'=>'公司性质',
-            'official_phone'=>'公司电话',
-            'official_email'=>'公司邮箱',
-            'official_website'=>'公司网址',
-            'company_reg_date'=>'公司成立日期',
-            'company_address'=>'公司地址',  //  +
-            'reg_capital'=>'注册资金',
-            'reg_capital_cur'=>'注册资金货币',
-            'profile'=>'公司其他信息',
+            'is_oilgas'=>L('is_oilgas'),
+            'company_model'=>L('company_model'),
+            'official_phone'=>L('official_phone'),
+            'official_email'=>L('official_email'),
+            'official_website'=>L('official_website'),
+            'company_reg_date'=>L('company_reg_date'),
+            'company_address'=>L('company_address'),//  +
+            'reg_capital'=>L('reg_capital'),
+            'reg_capital_cur'=>L('reg_capital_cur'),
+            'profile'=>L('profile'),
+//            'is_oilgas'=>'是否油气',
+//            'company_model'=>'公司性质',
+//            'official_phone'=>'公司电话',
+//            'official_email'=>'公司邮箱',
+//            'official_website'=>'公司网址',
+//            'company_reg_date'=>'公司成立日期',
+//            'company_address'=>'公司地址',  //  +
+//            'reg_capital'=>'注册资金',
+//            'reg_capital_cur'=>'注册资金货币',
+//            'profile'=>'公司其他信息',
 
         );
         foreach($baseArr as $k => $v){
             if(empty($base[$k])){
-                return $v.'不能为空';
+                return $v.L('not empty');
             }
         }
         if(!empty($base['company_reg_date'])){
@@ -1606,13 +1616,13 @@ EOF;
 //            }
 //        }
         if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
-            return $baseArr['official_email'].'格式错误';
+            return $baseArr['official_email'].L('format_error');
         }else{
             $email=$this->field('official_email')->where(array('id'=>$base['buyer_id']))->find();//默认邮箱
             if($base['official_email']!=$email['official_email']){  //修改邮箱
                 $exist=$this->field('official_email')->where(array('official_email'=>trim($base['official_email'],' ')))->find();
                 if($exist){
-                    return $baseArr['official_email'].'已存在';
+                    return $baseArr['official_email'].L('already existed');
                 }
             }
         }
@@ -1653,7 +1663,7 @@ EOF;
         foreach($contact as $value){
             foreach($contactArr as $k => $v){
                 if(empty($value[$k]) || strlen($value[$k]) > 50){
-                    return $v.'不能为空';
+                    return $v.L('not empty');
                 }
 //                if(!empty($value['phone'])){
 //                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){

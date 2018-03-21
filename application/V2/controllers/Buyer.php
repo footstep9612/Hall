@@ -879,7 +879,7 @@ class BuyerController extends PublicController {
         } elseif ($res === false) {
             $valid = array(
                 'code' => 0,
-                'message' => '客户基本信息失败',
+                'message' => 'error',
             );
             $this->jsonReturn($valid);
         }
