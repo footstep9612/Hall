@@ -273,7 +273,6 @@ class BuyerController extends PublicController {
         $res = $model->info($data);
         $agent=new BuyerAgentModel();
         $agentRes=$agent->getBuyerAgentList($data['id']);
-        print_r($agentRes);die;
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
         $res_arr = [$res];
