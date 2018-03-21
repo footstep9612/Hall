@@ -492,17 +492,17 @@ class BuyerAgreementModel extends PublicModel
     public function validData($data){
         //验证必要数据
         $arr = array(
-            'buyer_id'=>'客户id',
-            'buyer_code'=>'客户代码',
-            'execute_no'=>'框架执行单号',
-            'org_id'=>'所属事业部',
-            'execute_company'=>'执行分公司',
-            'country_bn'=>'所属国家',
+            'buyer_id'=>L('buyer_id'), //客户id
+            'buyer_code'=>L('buyer_id'),   //客户代码
+            'execute_no'=>L('buyer_id'), //框架执行单号
+            'org_id'=>L('buyer_id'),  //所属事业部
+            'execute_company'=>L('buyer_id'), //执行分公司
+            'country_bn'=>L('buyer_id'),   //所属国家
 //            'agent',    //市场经办人
-            'technician'=>'商务技术经办人',
-            'execute_start_at'=>'框架开始时间',
-            'execute_end_at'=>'框架结束时间',
-            'amount'=>'项目金额'
+            'technician'=>L('buyer_id'),    //商务技术经办人
+            'execute_start_at'=>L('execute_start_at'),   //框架开始时间
+            'execute_end_at'=>L('execute_end_at'), //框架结束时间
+            'amount'=>L('amount')    //项目金额
         );
         foreach($arr as $k => $v){
             if(empty($data[$k])){
@@ -510,7 +510,7 @@ class BuyerAgreementModel extends PublicModel
             }
         }
         if($data['execute_start_at'] > $data['execute_end_at']){
-            return '结束时间大于等于开始时间';
+            return L('end_start_time');
         }
         return true;
     }
