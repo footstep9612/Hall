@@ -11,14 +11,25 @@ return array(
     'reg_capital' => '注册资金',
     'reg_capital_cur' => '注册资金货币',
     'profile' => '公司其他信息',
-
-
     'employee_count'=>'雇员数量',
-
     'contact_name'=>'联系人姓名',
     'contact_title'=>'联系人职位',
     'contact_phone'=>'联系人电话',
     'contact_email'=>'联系人邮箱',
+    //buyer create
+    'create_email'=>'邮箱格式不正确',
+    'empty_email'=>'邮箱不可以都为空',
+    'email_existed'=>'邮箱已经存在',
+    'email_ok'=>'邮箱正常',
+    'empty_name'=>'公司名称不能为空',
+    'name_existed'=>'公司名称已经存在',
+    'name_ok'=>'公司名称正常',
+    'username_existed'=>'用户名已经存在',
+    'empty_country'=>'国家名不可为空',
+    'crm_existed'=>'crm编码已经存在',
+    'param_error'=>'请输入正确参数',
+    'Normal_customer'=>'正常录入客户信息流程',
+
 
 
     'not empty' => '不能为空',
