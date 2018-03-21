@@ -571,34 +571,4 @@ class BuyerAgentModel extends PublicModel {
         }
         return $agent;
     }
-    //crm 更新市场经办人-wangs
-    public function crmUpdateAgent($data=[]){
-        if(empty($data['id']) || empty($data['user_ids'])){
-            return false;
-        }
-        $buyer_id=$data['id'];
-        $agent_arr = explode(',', $data['user_ids']);
-        $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->select();
-        if(empty($agent)){ //
-            $agentArr=array();
-            foreach($agent_arr as $k => $v){
-                $agentArr[$k]['buyer_id']=$buyer_id;
-                $agentArr[$k]['agent_id']=$v;
-                $agentArr[$k]['created_by']=$data['created_by'];
-                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
-            }
-            $res=$this->addAll($agentArr);
-            return $res;
-        }
-        $this->where("buyer_id=$buyer_id")->save(array('deleted_flag'=>'Y'));
-        $agentArr=array();
-        foreach($agent_arr as $k => $v){
-            $agentArr[$k]['buyer_id']=$buyer_id;
-            $agentArr[$k]['agent_id']=$v;
-            $agentArr[$k]['created_by']=$data['created_by'];
-            $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
-        }
-        $res=$this->addAll($agentArr);
-        return $res;
-    }
 }
