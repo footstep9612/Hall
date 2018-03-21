@@ -348,8 +348,8 @@ class BuyerCreditModel extends PublicModel
 
             $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
             $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +90 day"));
-            $dataLog['credit_at'] = $dataArr['credit_valid_date'];
-            $dataLog['credit_apply_date'] = $dataArr['credit_apply_date'];
+            $dataLog['credit_at'] = $valid_date['credit_valid_date'];
+            $dataLog['credit_apply_date'] = $valid_date['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];
