@@ -2,9 +2,9 @@
 return array(
     'buyer_id'=>'buyer_id',
     'buyer_code'=>'buyer_code',
-    'execute_no'=>'execute_no',
-    'org_id'=>'Business department',
-    'execute_company'=>'execute_company',
+    'execute_no'=>'Framework agreement execution number',
+    'org_id'=>'Business division',
+    'execute_company'=>'Executive branch',
     'country_bn'=>'country',
 
     'technician'=>'technician',
@@ -13,7 +13,7 @@ return array(
     'amount'=>'amount',
     'end_start_time'=>'The end time is more than equal to the start time',
 
-    'select_protocol'=>'Please select the protocol appendix',
+    'select_protocol'=>'Please Choose Attachment',
     'digital_amount'=>'digital amount',
     'number_format'=>'Please enter the correct number format',
     'framework_protocol_existed'=>'The single number of the framework protocol has already existed, please reenter it',
