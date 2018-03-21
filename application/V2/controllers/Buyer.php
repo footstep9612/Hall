@@ -1212,6 +1212,7 @@ EOF;
             $arr[]=$auto;
         }
         print_r(count($arr));
+        
         print_r($arr);
     }
 }
