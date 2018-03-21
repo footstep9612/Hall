@@ -79,23 +79,18 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     public function getlist($condition = [], $order = " employee.id desc") {
-        $lang=$condition['lang'];
+        $lang = $condition['lang'] ? : 'zh';
         unset($condition['lang']);
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name`) as group_name,group_concat(DISTINCT `role`.`name`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
-        if($lang=='en'){
-            $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name_en`) as group_name,group_concat(DISTINCT `role`.`name_en`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
-        }
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as group_name,group_concat(DISTINCT `role`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
         $sql .= ' FROM ' . $this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
-        $sql .= ' left join  org on org_member.org_id = org.id ';
+        $sql .= ' left join  org on org_member.org_id = org.id AND org.deleted_flag = \'N\'';
         $sql .= ' left join  role_member on employee.id = role_member.employee_id ';
-        $sql .= ' left join  role on role_member.role_id = role.id and role.deleted_flag ="N" ';
+        $sql .= ' left join  role on role_member.role_id = role.id AND role.deleted_flag = \'N\'';
         $sql .= ' left join  country_member on employee.id = country_member.employee_id ';
         $sql .= " left join  `erui_dict`.`country` on country_member.country_bn = country.bn and country.lang='$lang'";
         $sql .= $where;
-        $sql .= " and org.deleted_flag='N'";
-        $sql .= " and role.deleted_flag='N'";
         $sql .= ' group by `employee`.`id`';
         if ($condition['num']) {
             $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
@@ -105,8 +100,6 @@ class UserModel extends PublicModel {
     }
 
     public function getcount($condition = [], $order = " employee.id desc") {
-        $lang=$condition['lang'];
-        unset($condition['lang']);
         $where = $this->getCondition($condition);
         $sql = 'SELECT count(DISTINCT `employee`.`id`) as num';
         $sql .= ' FROM ' . $this->g_table;

@@ -104,23 +104,51 @@ class BuyerBankInfoModel extends PublicModel
             $dataInfo['created_at'] = date('Y-m-d H:i:s',time());
             $result = $this->add($this->create($dataInfo));
             if($result){
-                //添加审核信息,状态修改
                 $credit_model = new BuyerCreditModel();
-                $credit_arr['status'] = 'APPROVING';
-                $credit_arr['buyer_no'] = $data['buyer_no'];
-                $credit_arr['credit_apply_date'] = date('Y-m-d H:i:s', time());
-                $credit_model->update_data($credit_arr);
-                //添加申请日志
                 $credit_log_model = new BuyerCreditLogModel();
-                $dataArr['buyer_no'] = $data['buyer_no'];
-                $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
-                $dataArr['in_status'] = 'APPROVING';
-                $dataArr['agent_by'] = $data['agent_by'];
-                $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
-                $dataArr['bank_name'] = $dataInfo['bank_name'];
-                $dataArr['bank_address'] = $dataInfo['bank_address'];
-                $dataArr['sign'] = 2; //银行
-                $credit_log_model->create_data($dataArr);
+                if(!empty($data['status']) && 'check' == trim($data['status'])) {
+                    $uparr= [
+                        'status'=>'APPROVING',
+                        'nolc_granted'=>'',
+                        'nolc_deadline'=>'',
+                        'lc_granted'=>'',
+                        'lc_deadline'=>'',
+                        'credit_valid_date'=>'',
+                        'approved_date'=>'',
+                        'credit_apply_date'=>date('Y-m-d H:i:s', time())
+                    ];
+                    $uparr['status'] = "ERUI_APPROVING";      //提交易瑞审核
+                    $uparr['buyer_no'] = $data['buyer_no'];
+                    $credit_model->update_data($uparr);
+
+                    $this->checkParam($data['buyer_no']);
+                    //添加日志
+                    $datalog['buyer_no'] = $data['buyer_no'];
+                    $datalog['agent_by'] = $data['agent_by'];
+                    $datalog['agent_at'] = date('Y-m-d H:i:s',time());
+                    $datalog['in_status'] = "ERUI_APPROVING";
+                    $datalog['sign'] = 1;
+                    $credit_log_model->create_data($this->create($datalog));
+                    $datalog['sign'] = 2;
+                    $credit_log_model->create_data($this->create($datalog));
+                } else{
+                    //添加审核信息,状态修改
+                    $credit_arr['status'] = 'APPROVING';
+                    $credit_arr['buyer_no'] = $data['buyer_no'];
+                    $credit_arr['credit_apply_date'] = date('Y-m-d H:i:s', time());
+                    $credit_model->update_data($credit_arr);
+                    //添加申请日志
+
+                    $dataArr['buyer_no'] = $data['buyer_no'];
+                    $dataArr['credit_apply_date'] = date('Y-m-d H:i:s',time());
+                    $dataArr['in_status'] = 'APPROVING';
+                    $dataArr['agent_by'] = $data['agent_by'];
+                    $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
+                    $dataArr['bank_name'] = $dataInfo['bank_name'];
+                    $dataArr['bank_address'] = $dataInfo['bank_address'];
+                    $dataArr['sign'] = 2; //银行
+                    $credit_log_model->create_data($dataArr);
+                }
                 return true;
             }
             return false;

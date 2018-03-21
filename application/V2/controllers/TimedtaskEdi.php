@@ -15,7 +15,7 @@ class TimedtaskEdiController extends PublicController{
     private $mode = 'wsdl';
     static private $policyNo = 'SCH043954-181800';
     static private $serviceUri = '';
-    static private $url_wsdl = 'localhost:8121/edi/ws_services/SolEdiShorttermWebService?wsdl';
+    static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
         parent::init();
@@ -222,7 +222,7 @@ class TimedtaskEdiController extends PublicController{
     }
 
     static public function getStartDate(){
-        return $startDate = date('Y-m-d\T00:00:00', mktime('-1'));
+        return $startDate = date('Y-m-d\T00:00:00', mktime('-2'));
     }
 
     static public function getEndDate(){
