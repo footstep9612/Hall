@@ -16,7 +16,16 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-
+    private function crmUserRole($user_id){
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array('crm客户管理',$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     /*
      * 用户列表
      * */
@@ -28,11 +37,11 @@ class BuyerController extends PublicController {
         if (!empty($data['lang'])) {    //en/zh 王帅-客户等级
             $where['lang'] = $data['lang'];
         }
-        if (!empty($data['name'])) {
+        if (!empty($data['name'])) {    //客户名称=公司名称
             $where['name'] = $data['name'];
         }
         $country_model = new CountryModel();
-        if (!empty($data['country_bn'])) {
+        if (!empty($data['country_bn'])) {  //国家
             $pieces = explode(",", $data['country_bn']);
             for ($i = 0; $i < count($pieces); $i++) {
                 $where['country_bn'] = $where['country_bn'] . "'" . $country_model->escapeString($pieces[$i]) . "',";
@@ -60,27 +69,22 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $where['area_bn'] = $country_model->escapeString($data['area_bn']);
         }
-        if (!empty($data['created_by'])) {
+        if (!empty($data['created_by'])) {  //创建人X
             $where['created_by'] = $country_model->escapeString($data['created_by']);
         }
-        if (!empty($data['agent_id'])) {
+        if (!empty($data['agent_id'])) {    //经办人
             $where['agent_id'] = $country_model->escapeString($data['agent_id']);
         }
-        if ($data['is_agent'] == "Y") {
-            $where['is_agent'] = $country_model->escapeString($data['is_agent']);
-            $where['agent']['user_id'] = $country_model->escapeString($this->user['id']);
-            $where['agent']['agent_id'] = $country_model->escapeString($this->user['id']);
-        }
-        if (!empty($data['buyer_no'])) {
+        if (!empty($data['buyer_no'])) {       //客户编码
             $where['buyer_no'] = $country_model->escapeString($data['buyer_no']);
         }
-        if (!empty($data['buyer_code'])) {
+        if (!empty($data['buyer_code'])) {  //客户代码
             $where['buyer_code'] = $country_model->escapeString($data['buyer_code']);
         }
         if (!empty($data['official_phone'])) {
             $where['official_phone'] = $country_model->escapeString($data['official_phone']);
         }
-        if (!empty($data['status'])) {
+        if (!empty($data['status'])) {  //客户状态
             $where['status'] = $country_model->escapeString($data['status']);
         }
         if (!empty($data['employee_name'])) {
@@ -89,16 +93,16 @@ class BuyerController extends PublicController {
         if (!empty($data['user_name'])) {
             $where['user_name'] = $country_model->escapeString($data['user_name']);
         }
-        if (!empty($data['source'])) {
+        if (!empty($data['source'])) {  //客户来源
             $where['source'] = $country_model->escapeString($data['source']);
         }
-        if (!empty($data['checked_at_start'])) {
+        if (!empty($data['checked_at_start'])) {    //审核分配市场经办人时间
             $where['checked_at_start'] = $data['checked_at_start'];
         }
         if (!empty($data['checked_at_end'])) {
             $where['checked_at_end'] = $data['checked_at_end'];
         }
-        if (!empty($data['created_at_end'])) {
+        if (!empty($data['created_at_end'])) {  //客户创建时间end
             $where['created_at_end'] = $data['created_at_end'];
         }
         if (!empty($data['created_at_start'])) {
@@ -149,9 +153,6 @@ class BuyerController extends PublicController {
         if (!empty($data['credit_status'])) {
             $where['credit_status'] = $country_model->escapeString($data['credit_status']);
         }
-        if (!empty($data['filter'])) {  //过滤状态
-            $where['filter'] = $country_model->escapeString($data['filter']);
-        }
         if (!empty($data['create_information_buyer_name'])) {   //客户档案新建,选择客户名称
             $where['create_information_buyer_name'] = $data['create_information_buyer_name'];
         }
@@ -170,14 +171,14 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
     /**
      * CRM系统优化客户统计列表
-     * wangs
+     * wangs-buyerListAction- wangs
      */
-    public function buyersStatisListAction() {
+    public function buyerListAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
@@ -190,67 +191,39 @@ class BuyerController extends PublicController {
         );
         $this->jsonReturn($dataJson);
     }
+    //crm-客户列表Excel导出-wangs
+    public function exportExcelBuyerListAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['created_by'] = $created_by;
+        $model = new BuyerModel();
+        $info = $model->buyerStatisList($data,true);
+        $arr=array(
+            'code'=>1,
+            'message'=>'success',
+            'data'=>$info
+        );
+        $this->jsonReturn($arr);
+    }
 
     /*
-     * 统计各状态数量 jhw
+     * 统计各状态会员数量 jhw-wangs
      * */
 
     public function buyercountAction() {
+        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['created_by'] = $created_by;
         $model = new BuyerModel();
-        if (!empty($data['name'])) {
-            $where['name'] = $data['name'];
-        }
-        if (!empty($data['country_bn'])) {  //国家
-            $pieces = explode(",", $data['country_bn']);
-            for ($i = 0; $i < count($pieces); $i++) {
-                $where['country_bn'] = $where['country_bn'] . "'" . $pieces[$i] . "',";
-            }
-            $where['country_bn'] = rtrim($where['country_bn'], ",");
-        }
-        if (!empty($data['buyer_no'])) {    //客户编号
-            $where['buyer_no'] = $data['buyer_no'];
-        }
-        if (!empty($data['buyer_code'])) {  //CRM客户代码
-            $where['buyer_code'] = $data['buyer_code'];
-        }
-        if (!empty($data['status'])) {  //审核状态
-            $where['status'] = $data['status'];
-        }
-        if (!empty($data['employee_name'])) {   //经办人
-            $where['employee_name'] = $data['employee_name'];
-        }
-        if (!empty($data['source'])) {  //用户来源
-            $where['source'] = $data['source'];
-        }
-        if (!empty($data['buyer_level'])) {  //客户等级id
-            $where['buyer_level'] = $data['buyer_level'];
-        }
-        if (!empty($data['checked_at_start'])) {    //审核时间
-            $where['checked_at_start'] = $data['checked_at_start'];
-        }
-        if (!empty($data['checked_at_end'])) {
-            $where['checked_at_end'] = $data['checked_at_end'];
-        }
-        if (!empty($data['created_at_end'])) {
-            $where['created_at_end'] = $data['created_at_end'];
-        }
-        if (!empty($data['created_at_start'])) {    //注册时间
-            $where['created_at_start'] = $data['created_at_start'];
-        }
-        if (!empty($data['min_percent'])) {
-            $where['min_percent'] = $data['min_percent'];
-        }
-        if (!empty($data['max_percent'])) {
-            $where['max_percent'] = $data['max_percent'];
-        }
-        if (!empty($data['pageSize'])) {
-            $where['num'] = $data['pageSize'];
-        }
-        if (!empty($data['currentPage'])) {
-            $where['page'] = ($data['currentPage'] - 1) * $where['num'];
-        }
-        $arr = $model->getBuyerCountByStatus($where);
+        $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
+        $arr=array(
+            "total_count"=>$totalCount,
+            "level_count"=>$levelCount
+        );
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
@@ -295,14 +268,18 @@ class BuyerController extends PublicController {
 
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $model = new BuyerModel();
         $res = $model->info($data);
+        $agent=new BuyerAgentModel();
+        $agentRes=$agent->getBuyerAgentList($data['id']);
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
         $res_arr = [$res];
         $this->_setArea($res_arr, 'area');
-        $this->_setCountry($res_arr, 'country');
+        $this->_setCountry($res_arr, 'country',$lang);
         if (!empty($res_arr[0])) {
+            $res_arr[0]['agent']=$agentRes;
             $datajson['code'] = 1;
             $datajson['data'] = $res_arr[0];
         } else {
@@ -350,14 +327,14 @@ class BuyerController extends PublicController {
      * @desc
      */
 
-    private function _setCountry(&$arr, $filed) {
+    private function _setCountry(&$arr, $filed,$lang='zh') {
         if ($arr) {
             $country_model = new CountryModel();
             $country_bns = [];
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val[$filed . '_bn']);
             }
-            $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
+            $countrynames = $country_model->getNamesBybns($country_bns, $lang);
             foreach ($arr as $key => $val) {
                 if (trim($val[$filed . '_bn']) && isset($countrynames[trim($val[$filed . '_bn'])])) {
                     $val[$filed . '_name'] = $countrynames[trim($val[$filed . '_bn'])];
@@ -401,6 +378,7 @@ class BuyerController extends PublicController {
 //            jsonReturn('', -101, '密码不可以都为空!');
 //        }
         if (!empty($data['email'])) {
+            $data['email']=trim($data['email'],' ');
             $buyer_account_data['email'] = $data['email'];
             if (!isEmail($buyer_account_data['email'])) {
                 jsonReturn('', -101, '邮箱格式不正确!');
@@ -433,7 +411,7 @@ class BuyerController extends PublicController {
         if (!empty($data['show_name'])) {
             $buyer_account_data['show_name'] = $data['show_name'];
         }
-        $buyer_account_data['created_at'] = $this->user['id'];
+        $buyer_account_data['created_by'] = $this->user['id'];
         //附件
         if (!empty($data['attach_url'])) {
             $buyer_attach_data['attach_url'] = $data['attach_url'];
@@ -472,12 +450,9 @@ class BuyerController extends PublicController {
         } else {
             jsonReturn('', -101, '国家名不可为空!');
         }
-        if (!empty($data['buyer_no'])) {
-            $arr['buyer_no'] = $data['buyer_no'];
-        }
         if (!empty($data['buyer_code'])) {
-            $arr['buyer_code'] = $data['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
-        } //去掉了CRM编码必填项验证 买买提 2017-12-19
+            $arr['buyer_code'] = $data['buyer_code'];
+        }
 
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
@@ -548,6 +523,19 @@ class BuyerController extends PublicController {
             $buyer_attach_model->create_data($buyer_attach_data);
             //采购商帐号表
             $buyer_account_model->create_data($buyer_account_data);
+            //新建客户,添加市场经办人,默认创建人-wnags  -start
+            if(!empty($data['agent'])){
+                $createBuyerAgent = $data['agent'];    //创建客户时,添加市场经办人
+                $createBuyerAgentArr=explode(',',$createBuyerAgent);
+                foreach($createBuyerAgentArr as $k => $v){
+                    $createBuyerAgentArrAdd[$k]['buyer_id']=$id;
+                    $createBuyerAgentArrAdd[$k]['agent_id']=$v;
+                    $createBuyerAgentArrAdd[$k]['created_by']=$this->user['id'];
+                    $createBuyerAgentArrAdd[$k]['created_at']=date('Y-m-d H:i:s');
+                }
+                $buyerAgent=new BuyerAgentModel();
+                $buyerAgent->addAll($createBuyerAgentArrAdd);   //添加市场经办人end
+            }
             //获取营销区域信息 -- link 2017-10-31
             //$mareaModel = new MarketAreaModel();
             //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
@@ -588,11 +576,21 @@ class BuyerController extends PublicController {
 
     public function agentlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $array['lang']=isset($data['lang'])?$data['lang']:'zh';
         if (!empty($data['buyer_id'])) {
             $array['buyer_id'] = $data['buyer_id'];
         }
         if (!empty($data['agent_id'])) {
             $array['agent_id'] = $data['agent_id'];
+        }
+        //国家
+        $country_model = new CountryModel();
+        if (!empty($data['country_bn'])) {
+            $pieces = explode(",", $data['country_bn']);
+            for ($i = 0; $i < count($pieces); $i++) {
+                $array['country_bn'] = $array['country_bn'] . "'" . $country_model->escapeString($pieces[$i]) . "',";
+            }
+            $array['country_bn'] = rtrim($array['country_bn'], ",");
         }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
@@ -607,7 +605,23 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    //crm 更新客户市场经办人-王帅
+    public function crmUpdateAgentAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $agent = new BuyerAgentModel();
+        $res=$agent->crmUpdateAgent($data);
+        $buyer=new BuyerModel();
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
+        if($res){
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+        }else{
+            $datajson['code'] = 0;
+            $datajson['message'] = '失败或缺少参数';
+        }
+        $this->jsonReturn($datajson);
+    }
     public function updateagentAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['id'])) {
@@ -669,7 +683,13 @@ class BuyerController extends PublicController {
         } else {
             $this->jsonReturn(array("code" => "-101", "message" => "用户id不能为空"));
         }
-        if (!empty($data['name'])) {
+        if (!empty($data['name'])) {    //公司名称
+            $data['name']=trim($data['name']);
+            $buyer=new BuyerModel();
+            $existId=$buyer->field('id')->where(array('name'=>$data['name']))->find();
+            if(!empty($existId['id']) && $existId['id']!=$data['id']){
+                $this->jsonReturn(array("code" => "-101", "message" => "该公司名称已存在"));
+            }
             $arr['name'] = $data['name'];
         }
         if (!empty($data['first_name'])) {
@@ -683,26 +703,35 @@ class BuyerController extends PublicController {
             $arr['province'] = $data['province'];
         }
         if (!empty($data['buyer_code'])) {
+            $buyerModel=new BuyerModel();
+            $buyer=$buyerModel->field('id')->where(array('buyer_code'=>$data['buyer_code']))->find();
+            if(!empty($buyer) && $buyer['id']!=$data['id']){
+                $this->jsonReturn(array("code" => "-101", "message" => "客户代码已存在"));
+            }
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
         }
-        if (!empty($data['country_bn'])) {
+        if (!empty($data['country_bn'])) {  //国家
             $account['country_bn'] = $data['country_bn'];
         }
-        if (!empty($data['biz_scope'])) {
+        if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
         }
-        if (!empty($data['intent_product'])) {
+        if (!empty($data['intent_product'])) {  //意向产品
             $arr['intent_product'] = $data['intent_product'];
         }
-        if (!empty($data['purchase_amount'])) {
+        if (!empty($data['purchase_amount'])) {     //年采购额
             $arr['purchase_amount'] = $data['purchase_amount'];
+        }
+        if (!empty($data['close_info'])) {     //关闭客户信息备注
+            $arr['close_info'] = $data['close_info'];
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {
-            $arr['official_email'] = $data['email'];
+            $data['email']=trim($data['email'],' ');
+//            $arr['official_email'] = $data['email'];
             $account['email'] = $data['email'];
             $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
@@ -737,11 +766,14 @@ class BuyerController extends PublicController {
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
+        if (!empty($data['agent'])) {
+            $arr['status'] = 'APPROVED';
+        }
         if (!empty($data['status'])) {
-            $arr['status'] = $data['status'];
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED' || $data['status'] == 'FIRST_REJECTED' || $data['status'] == 'FIRST_APPROVED') {
-                $arr['checked_by'] = $this->user['id'];
-                $arr['checked_at'] = Date("Y-m-d H:i:s");
+            if ($data['status'] == 'REJECTED') {
+                $arr['status'] = 'REJECTED';
+            }else{
+                $arr['status'] = 'APPROVED';
             }
         }
         if (!empty($data['address'])) {
@@ -749,6 +781,13 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
+        if(!empty($data['agent'])){ //crm更新市场经办人-start
+            $agentArr['user_ids']=$data['agent'];
+            $agentArr['id']=$data['id'];
+            $agentArr['created_by']=$this->user['id'];
+            $agent=new BuyerAgentModel($agentArr);
+            $agent->crmUpdateAgent($agentArr);
+        }//crm 更新市场经办人end
 //        if (!empty($data['password'])) {
 //            $account['password_hash'] = $data['password'];
 //            // $buyer_account_model->update_data($arr_account, $where_account);
@@ -762,29 +801,29 @@ class BuyerController extends PublicController {
         if (!empty($account)) {
             $buyer_account_model->update_data($account, $where_account);
         }
-        if (!empty($data['status']) && $res !== false) {
-            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
-                $info = $buyer_account_model->info($where_account);
-                $info_buyer = $model->info($where);
-
-                if ($info['email']) {
-                    if ($data['status'] == 'APPROVED') {
-                        //审核通过邮件
-                        if ($info_buyer['lang']) {
-                            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
-                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                        }
-                    }
-                    if ($data['status'] == 'REJECTED') {
-                        //驳回邮件
-                        if ($info_buyer['lang']) {
-                            $body = $this->getView()->render('buyer/rejected_' . $info_buyer['lang'] . '.html');
-                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-                        }
-                    }
-                }
-            }
-        }
+//        if (!empty($data['status']) && $res !== false) {
+//            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
+//                $info = $buyer_account_model->info($where_account);
+//                $info_buyer = $model->info($where);
+//
+//                if ($info['email']) {
+//                    if ($data['status'] == 'APPROVED') {
+//                        //审核通过邮件
+//                        if ($info_buyer['lang']) {
+//                            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
+//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+//                        }
+//                    }
+//                    if ($data['status'] == 'REJECTED') {
+//                        //驳回邮件
+//                        if ($info_buyer['lang']) {
+//                            $body = $this->getView()->render('buyer/rejected_' . $info_buyer['lang'] . '.html');
+//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
+//                        }
+//                    }
+//                }
+//            }
+//        }
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
@@ -795,7 +834,32 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    //点击编辑验证准备客户信息的验证-wangs0-参数buyer_id
+    public function clickEditCheckAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            $this->jsonReturn(array("code" => 0, "message" => "请输入正确参数"));
+        }
+        $buyerModel=new BuyerModel();
+        $res=$buyerModel->clickEditCheck($data['buyer_id']);
+        if($res['company']==1){
+            $companyJson['code']=2;
+            $companyJson['message']='公司名称已存在';
+        }else{
+            $companyJson['code']=1;
+            $companyJson['message']='公司名称正常';
+        }
+        if($res['email']==1){
+            $emailJson['code']=2;
+            $emailJson['message']='邮箱已存在';
+        }else{
+            $emailJson['code']=1;
+            $emailJson['message']='邮箱正常';
+        }
+        $arr['company']=$companyJson;
+        $arr['email']=$emailJson;
+        $this->jsonReturn($arr);
+    }
     public function getRoleAction() {
         if ($this->user['id']) {
             $role_user = new RoleUserModel();
@@ -828,19 +892,19 @@ class BuyerController extends PublicController {
         if ($res !== true && $res !== false) {
             $valid = array(
                 'code' => 0,
-                'message' => '请输入规范' . $res,
+                'message' => $res,
             );
             $this->jsonReturn($valid);
         } elseif ($res === false) {
             $valid = array(
                 'code' => 0,
-                'message' => '客户基本信息失败',
+                'message' =>L('error') ,
             );
             $this->jsonReturn($valid);
         }
         $valid = array(
             'code' => 1,
-            'message' => '基本信息成功',
+            'message' => L('success')
         );
         $this->jsonReturn($valid);
     }
@@ -1013,28 +1077,28 @@ class BuyerController extends PublicController {
             );
             $this->jsonReturn($dataJson);
         }
-//        else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>'正常录入客户信息流程'
-//            );
-//            $this->jsonReturn($dataJson);
-//        }
-        //验证集团CRM存在,则展示数据
-        $group = $this->groupCrmCode($data['buyer_code']);
-        if (!empty($group)) {
+        else{
             $dataJson = array(
-                'code' => 1,
-                'message' => '集团CRM客户信息',
-                'data' => $group
+                'code'=>2,
+                'message'=>'正常录入客户信息流程'
             );
-        } else {
-            $dataJson = array(
-                'code' => 2,
-                'message' => '正常录入客户信息流程'
-            );
+            $this->jsonReturn($dataJson);
         }
-        $this->jsonReturn($dataJson);
+        //验证集团CRM存在,则展示数据
+//        $group = $this->groupCrmCode($data['buyer_code']);
+//        if (!empty($group)) {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => '集团CRM客户信息',
+//                'data' => $group
+//            );
+//        } else {
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => '正常录入客户信息流程'
+//            );
+//        }
+//        $this->jsonReturn($dataJson);
     }
 
     /**

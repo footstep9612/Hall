@@ -154,5 +154,18 @@ class RoleUserModel extends PublicModel {
         $data = $this->create($arr);
         return $this->add($data);
     }
+    //crm 获取登录用户的角色-wangs
+    public function crmGetUserRole($user_id){
+        $role=$this->alias('role_member')
+            ->join('erui_sys.role as role on role_member.role_id=role.id','left')
+            ->field('role.role_no')
+            ->where(array('employee_id'=>$user_id))
+            ->select();
+        $arr=array();
+        foreach($role as $k => $v){
+            $arr[]=$v['role_no'];
+        }
+        return $arr;
+    }
 
 }

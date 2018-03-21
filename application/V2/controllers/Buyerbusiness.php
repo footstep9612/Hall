@@ -53,8 +53,25 @@ class BuyerbusinessController extends PublicController
         $business = new BuyerBusinessModel();
         $businessRes = $business->businessList($data);
         //信用
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $buyer_credit = new BuyerModel();
         $credit = $buyer_credit->showBuyerCredit($data['buyer_id']);
+        if($data['is_check']==true){    //查看
+            if(!empty($credit['payment_behind'])){  //拖欠货款
+                if($lang=='zh'){
+                    $credit['payment_behind']=$credit['payment_behind']=='Y'?'是':'否';
+                }else{
+                    $credit['payment_behind']=$credit['payment_behind']=='Y'?'YES':'NO';
+                }
+            }
+            if(!empty($credit['violate_treaty'])){  //拖欠货款
+                if($lang=='zh'){
+                    $credit['violate_treaty']=$credit['violate_treaty']=='Y'?'是':'否';
+                }else{
+                    $credit['violate_treaty']=$credit['violate_treaty']=='Y'?'YES':'NO';
+                }
+            }
+        }
         $businessRes ['credit'] = $credit;
         //分析报告
         $attach = new BuyerattachModel();
