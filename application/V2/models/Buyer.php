@@ -195,7 +195,9 @@ class BuyerModel extends PublicModel {
                 $str.=','.$v['buyer_id'];
             }
             $str=substr($str,1);
-            $cond.= " and buyer.id in ($str)";
+            if(!empty($str)){
+                $cond.= " and buyer.id in ($str)";
+            }
         }
         if(!empty($data['country_bn'])){    //国家
             $countryArr=array();
