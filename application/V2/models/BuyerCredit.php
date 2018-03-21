@@ -395,7 +395,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataArr['credit_cur_bn'] = '$';
         }
-        $data['credit_valid_date'] = date('Y-m-d H:i:s',time());
+        $dataArr['credit_valid_date'] = date('Y-m-d H:i:s',time());
         $dataArr['status'] = 'APPROVED';   //分配额度为通过   银行和企业通过为信保通过
         return $dataArr;
     }
