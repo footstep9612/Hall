@@ -271,6 +271,9 @@ class BuyerController extends PublicController {
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $model = new BuyerModel();
         $res = $model->info($data);
+        if($res['status'] != 'REJECTED'){
+            $res['close_info']='';
+        }
         $agent=new BuyerAgentModel();
         $agentRes=$agent->getBuyerAgentList($data['id']);
         $countryModel = new CountryModel();
