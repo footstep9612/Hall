@@ -740,4 +740,52 @@ class UserController extends PublicController {
         }
     }
 
+    public function quickStartMenuAction()
+    {
+        $request = $this->validateRequestParams();
+
+        $user_id = isset($request['user_id']) ? $request['user_id'] : $this->user['id'];
+        $data = (new RoleUserModel)->userRoleList($user_id, 0, $where);
+        //p($data);
+        $response = $this->restoreUserRoleSource($data);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'data' => [
+                'flag' => $response
+            ]
+        ]);
+    }
+
+    /**
+     * 获取用户菜单种类数
+     * @param array $data
+     * @return int
+     * @author 买买提
+     */
+    private function restoreUserRoleSource(array $data)
+    {
+
+        $restoredData = [];
+        foreach ($data as $item) {
+            $restoredData[] = $item['source'];
+        }
+
+        sort($restoredData);
+
+        //BOSS DATA_REPORT ORDER
+        $string = implode(',', array_unique($restoredData));
+
+        switch ($string) {
+            case 'BOSS' : return [1]; break;
+            case 'DATA_REPORT' : return [2]; break;
+            case 'ORDER' : return [3]; break;
+            case 'BOSS,DATA_REPORT' : return [1,2]; break;
+            case 'BOSS,ORDER' : return [1,3]; break;
+            case 'DATA_REPORT,ORDER' : return [2,3]; break;
+            case 'BOSS,DATA_REPORT,ORDER' : return [1,2,3]; break;
+            default : return []; break;
+        }
+    }
+
 }
