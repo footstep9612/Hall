@@ -900,6 +900,7 @@ class BuyerController extends PublicController {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
         if (empty($buerInfo)) {
@@ -1058,6 +1059,7 @@ class BuyerController extends PublicController {
                 'code' => 0,
                 'message' => L('crm_existed')
             );
+            
             $this->jsonReturn($dataJson);
         }
         //test-start
@@ -1066,6 +1068,7 @@ class BuyerController extends PublicController {
                 'code'=>2,
                 'message'=>L('Normal_customer') //正常录入客户信息流程
             );
+
             $this->jsonReturn($dataJson);
         }
         //test-end
