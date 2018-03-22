@@ -189,10 +189,15 @@ class BuyercreditController extends PublicController {
                     unset($current_time);
                 }
             }
-            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['data'] = $creditInfo;
+            $datajson['message'] = 'success!';
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
         }
+        $this->jsonReturn($datajson);
     }
 
     private function _getBuyerNo($buyer_id){
