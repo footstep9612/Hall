@@ -109,7 +109,7 @@ class ESOpLogModel {
         $body['lang'] = $lang;
         $body['created_by'] = isset($user['id']) ? $user['id'] : '';
         $body['created_name'] = isset($user['name']) ? $user['name'] : '';
-        $body['created_at'] = date('Y-m-d H:i:s', strtotime(' -1 Month'));
+        $body['created_at'] = date('Y-m-d H:i:s');
         $id = null;
         $es->add_document($this->index, 'logs', $body, $id);
     }
