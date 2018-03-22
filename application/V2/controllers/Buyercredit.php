@@ -34,7 +34,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime($item['approved_date']." +90 day");
+                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
@@ -67,7 +67,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time = strtotime($item['approved_date']." +90 day");
+                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
