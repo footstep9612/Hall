@@ -98,7 +98,7 @@ class ESOpLogModel {
 
     public function Created($requst, $data, $lang, $user) {
         $es = new ESClient();
-
+        $this->Deleted();
         $body['module'] = $requst->getModuleName();
         $body['controller'] = $requst->getControllerName();
         $body['action'] = $requst->getActionName();
@@ -114,15 +114,26 @@ class ESOpLogModel {
         $es->add_document($this->index, 'logs', $body, $id);
     }
 
+    public function Deleted() {
+        $es = new ESClient();
+        $body = [];
+        $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['lte' => date('Y-m-d H:i:s', strtotime(' -1 Month')),]]];
+        $flag = $es->deleteByQuery($this->index, 'logs', $body);
+    }
+
     public function getList($condition) {
         $es = new ESClient();
-        $body = '';
+        $body = [];
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
+        ESClient::getQurey($condition, $body, ESClient::TERM, 'controller', 'controller');
+        ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'data', 'data.ik');
         ESClient::getQurey($condition, $body, ESClient::RANGE, 'created_at');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'lang', 'lang');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'created_name', 'created_name.ik');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'created_by', 'created_by');
+        $es->body = $body;
+
         $pagesize = 10;
         $current_no = 1;
         if (isset($condition['current_no'])) {
