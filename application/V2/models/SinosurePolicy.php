@@ -74,6 +74,7 @@ class SinosurePolicyModel extends PublicModel {
      * @desc 获取分组列表
      *
      * @param array $condition
+     * @param string $group
      * @param string $field
      * @return array
      * @author liujf
@@ -101,8 +102,8 @@ class SinosurePolicyModel extends PublicModel {
      */
     public function getCountGroupByCountry($condition = []) {
         $where = $this->getWhere($condition);
-        $count = $this->field('country_bn')->where($where)->group('country_bn')->select();
-        return count($count);
+        $list= $this->field('country_bn')->where($where)->group('country_bn')->select();
+        return count($list);
     }
     
     /**
