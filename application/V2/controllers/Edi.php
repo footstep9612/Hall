@@ -23,10 +23,11 @@
 class EdiController extends PublicController{
 
 
+
    // private $serverIP = 'credit.eruidev.com';
 
    // private $serverPort = '80';
-
+    
     private $serverDir = 'ediserver';
 
     private $serverDirSec = 'ws_services';
@@ -114,7 +115,7 @@ class EdiController extends PublicController{
             }
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
         }
@@ -150,7 +151,7 @@ class EdiController extends PublicController{
             $credit_model = new BuyerCreditModel();
             $arr['status'] = 'EDI_APPROVING';
             $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
-            return ShopMsg::CREDIT_SUCCESS;
+            return ShopMsg::CUSTOM_SUCCESS;
             //jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
         }
         return ShopMsg::CREDIT_FAILED;
