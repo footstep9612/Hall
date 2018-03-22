@@ -682,7 +682,7 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             if ($res) {
                 $checked_log_arr['id'] = $res;
-                $checked_log_arr['status'] = 'APPROVING';
+                $checked_log_arr['status'] = 'APPROVED';
                 $checked_log_arr['checked_by'] = $create['created_by'];
                 $checked_log = new BuyerCheckedLogModel();
                 $checked_log->create_data($checked_log_arr);
@@ -1588,26 +1588,26 @@ EOF;
             $m=sprintf("%02s",intval($date[1]));
             $d=sprintf("%02s",intval($date[2]));
             if($m<0 || $m>12){
-                return $baseArr['company_reg_date'].'的月份错误';
+                return $baseArr['company_reg_date'].L('format_error');    //的月份错误
             }
             if($m=='00'){
                 if($d != '00'){
-                    return $baseArr['company_reg_date'].'的月份日期错误';
+                    return $baseArr['company_reg_date'].L('format_error');  //的月份日期错误
                 }
             }else{
                 if(in_array($m,['04','06','09','11'])){
                     if($d <0 || $d >30){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
                 if(in_array($m,['01','03','05','07','08','10','12'])){
                     if($d <0 || $d >31){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
                 if($m == '02'){
                     if($d <0 || $d >28){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
             }
