@@ -13,16 +13,15 @@ use Elasticsearch\Common\Exceptions;
  * @license  http://www.apache.org/licenses/LICENSE-2.0 Apache2
  * @link     http://elastic.co
  */
-class DeleteByQuery extends AbstractEndpoint
-{
+class DeleteByQuery extends AbstractEndpoint {
+
     /**
      * @param array $body
      *
      * @throws \Elasticsearch\Common\Exceptions\InvalidArgumentException
      * @return $this
      */
-    public function setBody($body)
-    {
+    public function setBody($body) {
         if (isset($body) !== true) {
             return $this;
         }
@@ -36,17 +35,16 @@ class DeleteByQuery extends AbstractEndpoint
      * @throws \Elasticsearch\Common\Exceptions\RuntimeException
      * @return string
      */
-    public function getURI()
-    {
+    public function getURI() {
         if (!$this->index) {
             throw new Exceptions\RuntimeException(
-                'index is required for Deletebyquery'
+            'index is required for Deletebyquery'
             );
         }
 
-        $uri = "/{$this->index}/_delete_by_query";
+        $uri = "/{$this->index}/_query";
         if ($this->type) {
-            $uri = "/{$this->index}/{$this->type}/_delete_by_query";
+            $uri = "/{$this->index}/{$this->type}/_query";
         }
 
         return $uri;
@@ -55,8 +53,7 @@ class DeleteByQuery extends AbstractEndpoint
     /**
      * @return string[]
      */
-    public function getParamWhitelist()
-    {
+    public function getParamWhitelist() {
         return array(
             '_source',
             '_source_exclude',
@@ -96,8 +93,8 @@ class DeleteByQuery extends AbstractEndpoint
     /**
      * @return string
      */
-    public function getMethod()
-    {
-        return 'POST';
+    public function getMethod() {
+        return 'DELETE';
     }
+
 }
