@@ -367,6 +367,22 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    //crm - wangs 过滤手机号
+    private function validPhone($phone,$sign='-'){
+        $phone=trim($phone,' ');
+        $phoneCount=strpos($phone,$sign);
+        $phone_arr=str_split($phone);
+        $numArr=[];
+        foreach($phone_arr as $k => $v){
+            if(!is_numeric($v) && $k > $phoneCount){
+                unset($v);
+            }else{
+                $numArr[]=$v;
+            }
+        }
+        $phoneStr=implode('',$numArr);
+        return $phoneStr;
+    }
 
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -394,6 +410,7 @@ class BuyerController extends PublicController {
             $arr['area_bn'] = $data['area_bn'];
         }
         if (!empty($data['mobile'])) {  //CRM添加客户信息
+            $data['mobile']=$this->validPhone($data['mobile']);
             $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['type_remarks'])) {
@@ -725,6 +742,7 @@ class BuyerController extends PublicController {
             }
         }
         if (!empty($data['mobile'])) {
+            $data['mobile']=$this->validPhone($data['mobile']);
             $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['buyer_level'])) {
