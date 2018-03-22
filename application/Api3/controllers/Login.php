@@ -294,7 +294,7 @@ class LoginController extends PublicController {
         if (!empty($data['phone']) && is_numeric($data['phone'])) {
             $arr['official_phone'] = $data['phone'];
             if (!empty($data['tel_code'])) {
-                $arr['official_phone'] = $data['tel_code'].' '.$data['phone'];
+                $arr['official_phone'] = $data['tel_code'].'-'.$data['phone'];
             }
         } else {
             jsonReturn(null, -113, ShopMsg::getMessage('-113',$lang));
