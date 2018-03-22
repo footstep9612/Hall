@@ -36,6 +36,8 @@ class BuyercreditController extends PublicController {
                 if(!empty($item['approved_date'])){
                     $time = strtotime($item['approved_date']." +90 day");
                     $current_time = time();
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
@@ -69,6 +71,8 @@ class BuyercreditController extends PublicController {
                 if(!empty($item['approved_date'])){
                     $time = strtotime($item['approved_date']." +90 day");
                     $current_time = time();
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
