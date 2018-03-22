@@ -125,6 +125,8 @@ class ESOpLogModel {
         $es = new ESClient();
         $body = '';
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
+        ESClient::getQurey($condition, $body, ESClient::TERM, 'controller', 'controller');
+        ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'data', 'data.ik');
         ESClient::getQurey($condition, $body, ESClient::RANGE, 'created_at');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'lang', 'lang');
