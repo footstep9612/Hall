@@ -637,13 +637,13 @@ class SupplierInquiryModel extends PublicModel {
             'AD' => ['ld_time', '物流接收日期'],
             'AE' => ['la_time', '物流报出日期'],
             'AF' => ['qs_time', '报出日期'],
-            'AG' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AG' => ['biz_dispatching_clarification_time', '事业部分单员发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
             'AH' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
             'AI' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
             'AJ' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AK' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AK' => ['logi_approving_clarification_time', '物流审核发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
             'AL' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
             'AN' => ['clarification_time', '项目澄清时间(小时)'],
             'AO' => ['quoted_time', '最终报价用时(小时)'],
             'AP' => [obtain_org_name, '获单主体单位)'],
@@ -724,13 +724,13 @@ class SupplierInquiryModel extends PublicModel {
             'AD' => ['ld_time', '物流接收日期'],
             'AE' => ['la_time', '物流报出日期'],
             'AF' => ['qs_time', '报出日期'],
-            'AG' => ['biz_dispatching_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
+            'AG' => ['biz_dispatching_clarification_time', '事业部分单员发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
             'AH' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
             'AI' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
             'AJ' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AK' => ['logi_approving_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
+            'AK' => ['logi_approving_clarification_time', '物流审核发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
             'AL' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
+            'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
             'AN' => ['clarification_time', '项目澄清时间(小时)'],
             'AO' => ['quoted_time', '最终报价用时(小时)'],
             'AP' => ['obtain_org_name', '获单主体单位)'],
@@ -1149,7 +1149,7 @@ class SupplierInquiryModel extends PublicModel {
     private function _setquoted_time(&$list) {
         foreach ($list as $key => $item) {
             $list[$key]['inflow_time'] = !empty($item['inflow_time']) ? $item['inflow_time'] : $item['inflow_time_out'];
-            $list[$key]['max_inflow_time'] = !empty($item['max_inflow_time']) ? $item['max_inflow_time'] : $item['max_inflow_time_out'];
+            //$list[$key]['max_inflow_time'] = !empty($item['max_inflow_time']) ? $item['max_inflow_time'] : $item['max_inflow_time_out'];
             if ($item['qs_time']) {
                 $list[$key]['quoted_time'] = $this->date_diff($item['qs_time'], $item['created_at']);
             } else {
