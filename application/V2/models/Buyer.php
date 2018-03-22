@@ -174,6 +174,19 @@ class BuyerModel extends PublicModel {
                 $info[$k]['country_name'] = $countryInfo['name'];
                 $info[$k]['country_code'] = $countryInfo['code'];
             }
+            if(strpos($v['official_phone'],'-') !=false){
+                $phoneArr=explode('-',$v['official_phone']);
+            }
+            if(strpos($v['official_phone'],' ') != false){
+                $phoneArr=explode(' ',$v['official_phone']);
+            }
+            if(!empty($phoneArr)){
+                $info[$k]['phone_start']=$phoneArr[0];
+                $info[$k]['phone_end']=$phoneArr[1];
+            }else{
+                $info[$k]['phone_start']='';
+                $info[$k]['phone_end']='';
+            }
         }
 //        $res['data'] = $this->query($sql);
         $res['data'] = $info;
