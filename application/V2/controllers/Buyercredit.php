@@ -34,7 +34,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
@@ -69,7 +69,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
