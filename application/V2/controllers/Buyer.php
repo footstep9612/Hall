@@ -1067,6 +1067,7 @@ class BuyerController extends PublicController {
                 'code'=>2,
                 'message'=>L('Normal_customer') //正常录入客户信息流程
             );
+            
             $this->jsonReturn($dataJson);
         }
         //test-end
