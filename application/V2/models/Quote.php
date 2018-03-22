@@ -27,11 +27,6 @@ class QuoteModel extends PublicModel {
     const QUOTE_QUOTED     = 'QUOTED';     //已报价
     const QUOTE_COMPLETED  = 'COMPLETED';  //已完成
 
-    protected $finalSkuFields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
-                               a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
-                               a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
-
-
     public function __construct() {
         parent::__construct();
     }
@@ -316,17 +311,4 @@ class QuoteModel extends PublicModel {
 
     }
 
-    /**
-     * 获取SKU关联信息
-     * author:张玉良
-     */
-    public function getQouteFinalSku($request){
-        $where = ['a.inquiry_id'=>$request['inquiry_id'],'a.deleted_flag'=>'N'];
-        return $this->alias('a')
-            ->join('erui_rfq.inquiry_item b ON b.id=a.quote_item_id','LEFT')
-            ->join('erui_rfq.final_quote_item c ON c.quote_item_id=a.id','LEFT')
-            ->field($this->finalSkuFields)
-            ->where($where)
-            ->select();
-    }
 }
