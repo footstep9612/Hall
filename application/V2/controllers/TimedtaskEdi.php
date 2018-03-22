@@ -7,8 +7,8 @@
  */
 class TimedtaskEdiController extends PublicController{
 
-    private $serverIP = 'credit.eruidev.com';
-    private $serverPort = '80';
+//    private $serverIP = 'credit.eruidev.com';
+//    private $serverPort = '80';
     private $serverDir = 'ediserver';
     private $serverDirSec = 'ws_services';
     private $serviceInterface = 'SolEdiProxyWebService';
@@ -18,7 +18,6 @@ class TimedtaskEdiController extends PublicController{
     static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
-        parent::init();
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
@@ -26,9 +25,11 @@ class TimedtaskEdiController extends PublicController{
         $this->buyerCreditLogModel = new BuyerCreditLogModel();
         $this->buyerBankInfoModel = new BuyerBankInfoModel();
         $this->buyerRegInfoModel = new BuyerRegInfoModel();
+        $config_obj = Yaf_Registry::get("config");
+        $serverIP = $config_obj->ediserver->toArray();
 
         if (self::$serviceUri == '') {
-            self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
+            self::$serviceUri = 'http://'.$serverIP['host'].':'.$serverIP['port'].'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
         }
         if ($this->mode == 'wsdl') {
             self::$serviceUri .= '?wsdl';

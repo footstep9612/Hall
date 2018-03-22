@@ -26,8 +26,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->put_data = $this->getPut();
 
         if ($this->getRequest()->getModuleName() == 'V1' &&
-            $this->getRequest()->getControllerName() == 'User' &&
-            in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
             $this->setLang($this->getPut('lang', 'en'));
         } else {
             $this->user = $GLOBALS['SSO_USER'];
@@ -44,6 +44,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
             }
         }
+        $esoplog = new ESOpLogModel();
+        $esoplog->Created($this->getRequest(), $this->put_data, $this->getLang(), $this->user);
     }
 
     /*
@@ -485,6 +487,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @author liujf
      * @time 2018-01-25
      */
+
     public function loadCommonConfig() {
         $files = $commonConfig = [];
         searchDir(COMMON_CONF_PATH, $files);
