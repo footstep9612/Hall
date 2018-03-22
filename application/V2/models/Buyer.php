@@ -174,6 +174,19 @@ class BuyerModel extends PublicModel {
                 $info[$k]['country_name'] = $countryInfo['name'];
                 $info[$k]['country_code'] = $countryInfo['code'];
             }
+            if(strpos($v['official_phone'],'-') !=false){
+                $phoneArr=explode('-',$v['official_phone']);
+            }
+            if(strpos($v['official_phone'],' ') != false){
+                $phoneArr=explode(' ',$v['official_phone']);
+            }
+            if(!empty($phoneArr)){
+                $info[$k]['phone_start']=$phoneArr[0];
+                $info[$k]['phone_end']=$phoneArr[1];
+            }else{
+                $info[$k]['phone_start']='';
+                $info[$k]['phone_end']='';
+            }
         }
 //        $res['data'] = $this->query($sql);
         $res['data'] = $info;
@@ -355,7 +368,7 @@ class BuyerModel extends PublicModel {
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
-            ->order('agent.created_at desc,buyer.id')
+            ->order('agent.created_at desc,buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
         foreach($info as $k => $v){
@@ -682,7 +695,7 @@ class BuyerModel extends PublicModel {
             $res = $this->add($datajson);
             if ($res) {
                 $checked_log_arr['id'] = $res;
-                $checked_log_arr['status'] = 'APPROVING';
+                $checked_log_arr['status'] = 'APPROVED';
                 $checked_log_arr['checked_by'] = $create['created_by'];
                 $checked_log = new BuyerCheckedLogModel();
                 $checked_log->create_data($checked_log_arr);
@@ -1588,26 +1601,26 @@ EOF;
             $m=sprintf("%02s",intval($date[1]));
             $d=sprintf("%02s",intval($date[2]));
             if($m<0 || $m>12){
-                return $baseArr['company_reg_date'].'的月份错误';
+                return $baseArr['company_reg_date'].L('format_error');    //的月份错误
             }
             if($m=='00'){
                 if($d != '00'){
-                    return $baseArr['company_reg_date'].'的月份日期错误';
+                    return $baseArr['company_reg_date'].L('format_error');  //的月份日期错误
                 }
             }else{
                 if(in_array($m,['04','06','09','11'])){
                     if($d <0 || $d >30){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
                 if(in_array($m,['01','03','05','07','08','10','12'])){
                     if($d <0 || $d >31){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
                 if($m == '02'){
                     if($d <0 || $d >28){
-                        return $baseArr['company_reg_date'].'的日期错误';
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
                     }
                 }
             }

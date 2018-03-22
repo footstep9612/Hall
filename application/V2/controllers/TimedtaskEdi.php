@@ -76,7 +76,10 @@ class TimedtaskEdiController extends PublicController{
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'status' => 'EDI_APPROVED'
                              ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                             if($check_credit['status'] != 'APPROVED'){
+                                 $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             }
                          } else {
                              $updata = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
@@ -165,7 +168,10 @@ class TimedtaskEdiController extends PublicController{
                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                 'status' => 'EDI_APPROVED'
                             ];
-                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->find();
+                            if($check_credit['status'] != 'APPROVED'){
+                                $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            }
                         } else {
                             //授信表
                             $updata = [

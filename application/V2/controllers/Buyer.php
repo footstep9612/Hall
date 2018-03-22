@@ -271,6 +271,9 @@ class BuyerController extends PublicController {
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $model = new BuyerModel();
         $res = $model->info($data);
+        if($res['status'] != 'REJECTED'){
+            $res['close_info']='';
+        }
         $agent=new BuyerAgentModel();
         $agentRes=$agent->getBuyerAgentList($data['id']);
         $countryModel = new CountryModel();
@@ -900,6 +903,7 @@ class BuyerController extends PublicController {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
         if (empty($buerInfo)) {
@@ -1058,30 +1062,34 @@ class BuyerController extends PublicController {
                 'code' => 0,
                 'message' => L('crm_existed')
             );
+            
             $this->jsonReturn($dataJson);
         }
+        //test-start
         else{
             $dataJson = array(
                 'code'=>2,
                 'message'=>L('Normal_customer') //正常录入客户信息流程
             );
+
             $this->jsonReturn($dataJson);
         }
-        //验证集团CRM存在,则展示数据
+        //test-end
+        //验证集团CRM存在,则展示数据 生产-start
 //        $group = $this->groupCrmCode($data['buyer_code']);
 //        if (!empty($group)) {
 //            $dataJson = array(
 //                'code' => 1,
-//                'message' => '集团CRM客户信息',
+//                'message' => L('Group_crm'), //集团CRM客户信息
 //                'data' => $group
 //            );
 //        } else {
 //            $dataJson = array(
 //                'code' => 2,
-//                'message' => '正常录入客户信息流程'
+//                'message' => L('Normal_customer') //正常录入客户信息流程
 //            );
 //        }
-//        $this->jsonReturn($dataJson);
+//        $this->jsonReturn($dataJson); //生产-end
     }
 
     /**
@@ -1212,6 +1220,7 @@ EOF;
             $arr[]=$auto;
         }
         print_r(count($arr));
+
         print_r($arr);
     }
 }

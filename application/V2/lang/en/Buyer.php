@@ -28,6 +28,7 @@ return array(
     'empty_country'=>'National name can not be empty',
     'crm_existed'=>'The CRM encoding has already existed',
     'param_error'=>'Please enter the correct parameters',
+    'Group_crm'=>'Group CRM customer information',
     'Normal_customer'=>'Normal entry of customer information process',
 
     'error' => ' error',
