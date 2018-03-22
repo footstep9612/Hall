@@ -402,8 +402,11 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequests('inquiry_id');
 
-        $finalQuoteItemModel = new FinalQuoteItemModel();
-        $list = $finalQuoteItemModel->getFinalSku($request);
+        //$finalQuoteItemModel = new FinalQuoteItemModel();
+        //$list = $finalQuoteItemModel->getFinalSku($request);
+        $quote = new QuoteModel();
+        $list = $quote->getQouteFinalSku($request);
+
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
         foreach ($list as $key=>$value){
