@@ -2133,6 +2133,9 @@ EOF;
                 $cond .= " and buyer.country_bn='$data[country_bn]'";
             }
         }
+        if(!empty($data['country_bn'])){
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
+        }
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);
             $cond .= " and buyer.id in ($str)";
