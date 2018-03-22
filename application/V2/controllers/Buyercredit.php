@@ -160,7 +160,7 @@ class BuyercreditController extends PublicController {
         }
 
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
@@ -198,7 +198,7 @@ class BuyercreditController extends PublicController {
             $res = $bank_model->create_data($bank_data);
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED, 'failed!');
         }
@@ -219,7 +219,7 @@ class BuyercreditController extends PublicController {
             $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
             $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
             $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
-            jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
         }
@@ -238,7 +238,7 @@ class BuyercreditController extends PublicController {
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
 
-            jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
         }
@@ -298,7 +298,7 @@ class BuyercreditController extends PublicController {
             }
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
         }
@@ -337,7 +337,7 @@ class BuyercreditController extends PublicController {
             $config_email = $config_obj->email->toArray();
             $email = $this->_getBuyerEmail($data['buyer_no']);
             $this->creditEmail($email['official_email'], '', $lang, $config_email['url']);
-            jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
         }
