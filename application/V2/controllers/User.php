@@ -24,7 +24,8 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        $where['deleted_flag'] = "N";
+        $where['deleted_flag'] = 'N';
+        $where['lang'] = $this->lang;
         if (!empty($data['username'])) {
             $username = trim($data['username']);
             $where['username'] = $username;

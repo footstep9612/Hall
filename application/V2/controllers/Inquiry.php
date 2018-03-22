@@ -238,7 +238,7 @@ class InquiryController extends PublicController {
         $inquiryList = $inquiryModel->getList_($condition);
 
         foreach ($inquiryList as &$inquiry) {
-            $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
             $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
             $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
             $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
@@ -248,7 +248,7 @@ class InquiryController extends PublicController {
             $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
             $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
             $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-            $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
             $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
             $inquiry['trans_mode_bn'] = $transMode['bn'];
             $inquiry['trans_mode_name'] = $transMode['trans_mode'];
@@ -326,7 +326,7 @@ class InquiryController extends PublicController {
             $inquiryList = $inquiryModel->getViewList($condition);
 
             foreach ($inquiryList as &$inquiry) {
-                $inquiry['country_name'] = $countryModel->where(['bn' => $inquiry['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+                $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
                 $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
                 $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
                 $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
@@ -336,7 +336,7 @@ class InquiryController extends PublicController {
                 $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
                 $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
                 $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-                $inquiry['area_name'] = $marketAreaModel->where(['bn' => $inquiry['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+                $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
                 $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
                 $inquiry['trans_mode_bn'] = $transMode['bn'];
                 $inquiry['trans_mode_name'] = $transMode['trans_mode'];
@@ -796,11 +796,11 @@ class InquiryController extends PublicController {
         }
         //询单所在国家
         if (!empty($results['data']['country_bn'])) {
-            $results['data']['country_name'] = $countryModel->where(['bn' => $results['data']['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $results['data']['country_name'] = $countryModel->getCountryNameByBn($results['data']['country_bn'], $this->lang);
         }
         //询单所在区域
         if (!empty($results['data']['area_bn'])) {
-            $results['data']['area_name'] = $marketAreaModel->where(['bn' => $results['data']['area_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $results['data']['area_name'] = $marketAreaModel->getAreaNameByBn($results['data']['area_bn'], $this->lang);
         }
         //项目获取人
         if (!empty($results['data']['obtain_id'])) {

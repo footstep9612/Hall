@@ -11,6 +11,7 @@ class SuppliersController extends PublicController {
 
     public function init() {
         parent::init();
+        $this->put_data = dataTrim($this->put_data);
 
         $this->suppliersModel = new SuppliersModel();
         $this->supplierBankInfoModel = new SupplierBankInfoModel();
@@ -72,7 +73,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function updateSupplierInfoAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -341,7 +342,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function getSupplierListAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
         
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
@@ -442,7 +443,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-16
      */
     public function batchUpdateSupplierContactInfoAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
         
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -543,7 +544,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function addSupplierSupplyRecordAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -746,7 +747,7 @@ class SuppliersController extends PublicController {
      * @time 2017-11-11
      */
     public function batchUpdateSupplierQualificationInfoAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
         
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
@@ -869,7 +870,7 @@ class SuppliersController extends PublicController {
      * @time 2018-03-05
      */
     public function getSupplierQualificationOverdueListAction() {
-        $condition = dataTrim($this->put_data);
+        $condition = $this->put_data;
     
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
     

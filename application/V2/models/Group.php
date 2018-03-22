@@ -30,6 +30,8 @@ class GroupModel extends PublicModel {
      */
     public function getlist($data, $limit, $order = 'sort desc') {
         $data["org.deleted_flag"] = 'N';
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        unset($data['lang']);
         if (!empty($limit)) {
             $res = $this->field('org.id,org.sort,org.membership,rg.show_name,org_node,'
                             . 'org.parent_id,org.org,org.name,org.name_en,org.name_es,org.name_ru,org.remarks,org.created_by,'
@@ -52,6 +54,11 @@ class GroupModel extends PublicModel {
                     ->group('org.id')
                     ->order($order)
                     ->select();
+            if($lang=='en'){
+                foreach($res as $k => $v){
+                    $res[$k]['name']=$v['name_en'];
+                }
+            }
             return $res;
         }
     }

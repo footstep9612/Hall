@@ -76,12 +76,22 @@ class BuyerBusinessModel extends PublicModel
             }
             if(!empty($info['net_subject'])){
                 $info['net_subject']=implode(',',$info['net_subject']);
-                if($info['net_subject']=='equipment,erui'){
-                    $info['net_subject']='装备,易瑞';
-                }elseif($info['net_subject']=='equipment'){
-                    $info['net_subject']='装备';
-                }elseif($info['net_subject']=='erui'){
-                    $info['net_subject']='易瑞';
+                if($lang=='zh'){
+                    if($info['net_subject']=='equipment,erui'){
+                        $info['net_subject']='装备,易瑞';
+                    }elseif($info['net_subject']=='equipment'){
+                        $info['net_subject']='装备';
+                    }elseif($info['net_subject']=='erui'){
+                        $info['net_subject']='易瑞';
+                    }
+                }else{
+                    if($info['net_subject']=='equipment,erui'){
+                        $info['net_subject']='equipment,erui';
+                    }elseif($info['net_subject']=='equipment'){
+                        $info['net_subject']='equipment';
+                    }elseif($info['net_subject']=='erui'){
+                        $info['net_subject']='erui';
+                    }
                 }
             }
         }

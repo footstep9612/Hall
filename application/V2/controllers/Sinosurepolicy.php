@@ -37,10 +37,10 @@ class SinosurepolicyController extends PublicController {
             $data['type'] = $item['type'];
             $data['company'] = $item['company'];
             $data['sign_flag'] = $item['sign_flag'];
-            $data['start_settle_period'] = $item['start_settle_period'] != '' ? $item['start_settle_period'] : null;
-            $data['end_settle_period'] = $item['end_settle_period'] != '' ? $item['end_settle_period'] : null;
+            $data['start_settle_period'] = strval($item['start_settle_period']) != '' ? $item['start_settle_period'] : null;
+            $data['end_settle_period'] = strval($item['end_settle_period']) != '' ? $item['end_settle_period'] : null;
             $data['remarks'] = $item['remarks'];
-            $data['tax_rate'] = $item['tax_rate'] != '' ? $item['tax_rate'] : null;
+            $data['tax_rate'] = strval($item['tax_rate']) != '' ? $item['tax_rate'] : null;
             $data['created_by'] = $this->user['id'];
             $data['created_at'] = $this->time;
             $saveData[] = $data;
@@ -65,7 +65,7 @@ class SinosurepolicyController extends PublicController {
         $sinosurePolicyList = $this->sinosurePolicyModel->getListGroupByCountry($condition, 'country_bn, created_by, created_at');
         foreach ($sinosurePolicyList as &$sinosurePolicy) {
             $sinosurePolicy['created_name'] = $this->employeeModel->getUserNameById($sinosurePolicy['created_by']);
-            $sinosurePolicy['country_name'] = $this->countryModel->where(['bn' => $sinosurePolicy['country_bn'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
+            $sinosurePolicy['country_name'] = $this->countryModel->getCountryNameByBn($sinosurePolicy['country_bn'], $this->lang);
             $groupList = $this->sinosurePolicyModel->getGroupList(['country_bn' => $sinosurePolicy['country_bn']], 'type, company', 'type, company, start_settle_period, end_settle_period');
             foreach ($groupList as $item) {
                 $type = $item['type'];

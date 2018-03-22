@@ -15,7 +15,7 @@ class TimedtaskEdiController extends PublicController{
     private $mode = 'wsdl';
     static private $policyNo = 'SCH043954-181800';
     static private $serviceUri = '';
-    static private $url_wsdl = 'localhost:8121/edi/ws_services/SolEdiShorttermWebService?wsdl';
+    static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
         parent::init();
@@ -35,10 +35,10 @@ class TimedtaskEdiController extends PublicController{
         }
     }
     /**
-     * 定时任务
+     * 定时任务:
      *  企业代码批复:v2/Edi/doEdiBuyerCodeApprove   定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行
      *  银行代码批复:v2/Edi/doEdiBankCodeApprove    定时任务：每天23:00:00执行,每天01:00:00执行,每天03:00:00执行
-     * @time 2018-03-16
+     *
      */
 
 
@@ -76,7 +76,10 @@ class TimedtaskEdiController extends PublicController{
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'status' => 'EDI_APPROVED'
                              ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                             if($check_credit['status'] != 'APPROVED'){
+                                 $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             }
                          } else {
                              $updata = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
@@ -100,17 +103,22 @@ class TimedtaskEdiController extends PublicController{
                          ];
                          $this->buyerCreditLogModel->create_data($log_arr);
                      } elseif ($item['approveFlag'] == 0) {
-                         $pre_mc = preg_match('/(存在)*(已存在)*(已经存在)*(重复提交)*(重复申请)*/', $item['unAcceptReason']);
-                         if($pre_mc == 0) {
+                         $pre_mc1 = preg_match('/存在/', $item['unAcceptReason']);
+                         $pre_mc2 = preg_match('/已存在/', $item['unAcceptReason']);
+                         $pre_mc3 = preg_match('/已经存在/', $item['unAcceptReason']);
+                         $pre_mc4 = preg_match('/重复提交/', $item['unAcceptReason']);
+                         $pre_mc5 = preg_match('/重复申请/', $item['unAcceptReason']);
+                         if($pre_mc1==1 || $pre_mc2==1 || $pre_mc3==1 || $pre_mc4==1 || $pre_mc5==1) {
+                         }else{
                              $updata = [
-                                 'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                 'buyer_no' => $item['corpSerialNo'],
                                  'remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                  'status' => 'EDI_REJECTED'
                              ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             $this->buyerCreditModel->where(['buyer_no' => $item['corpSerialNo']])->save($updata);
                              //日志
                              $log_arr = [
-                                 'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                 'buyer_no' => $item['corpSerialNo'],
                                  'sign' => 1,
                                  'checked_by' => '1001',
                                  'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
@@ -160,7 +168,10 @@ class TimedtaskEdiController extends PublicController{
                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                 'status' => 'EDI_APPROVED'
                             ];
-                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->find();
+                            if($check_credit['status'] != 'APPROVED'){
+                                $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            }
                         } else {
                             //授信表
                             $updata = [
@@ -184,20 +195,23 @@ class TimedtaskEdiController extends PublicController{
                             'out_status' => 'EDI_APPROVED'
                         ];
                         $a =$this->buyerCreditLogModel->create_data($log_arr);
-                    } else {
-                        $pre_mc = preg_match('/(存在)*(已存在)*(已经存在)*(重复提交)*(重复申请)*/', $item['unAcceptReason']);
-                        if($pre_mc == 0){
+                    } elseif ($item['approveFlag'] == 0)  {
+                        $pre_mc1 = preg_match('/存在/', $item['unAcceptReason']);
+                        $pre_mc2 = preg_match('/已存在/', $item['unAcceptReason']);
+                        $pre_mc3 = preg_match('/已经存在/', $item['unAcceptReason']);
+                        $pre_mc4 = preg_match('/重复提交/', $item['unAcceptReason']);
+                        $pre_mc5 = preg_match('/重复申请/', $item['unAcceptReason']);
+                        if($pre_mc1==1 || $pre_mc2==1 || $pre_mc3==1 || $pre_mc4==1 || $pre_mc5==1) {
+                        }else{
                             $updata = [
-                                'buyer_no' => $item['bankInfo']['corpSerialNo'],
+                                'buyer_no' => $item['corpSerialNo'],
                                 'bank_remarks' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])).'\r'.$item['unAcceptReason'],
                                 'status' => 'EDI_REJECTED'
                             ];
-                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            $this->buyerCreditModel->where(['buyer_no' => $item['corpSerialNo']])->save($updata);
                             //日志
                             $log_arr = [
-                                'buyer_no' => $item['bankInfo']['corpSerialNo'],
-                                'bank_name' => $item['bankInfo']['engName'],
-                                'bank_address' => $item['bankInfo']['address'],
+                                'buyer_no' => $item['corpSerialNo'],
                                 'sign' => 2,
                                 'checked_by' => '1001',
                                 'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),

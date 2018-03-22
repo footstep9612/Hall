@@ -35,14 +35,38 @@ class BuyerAgentModel extends PublicModel {
      * @author zyg
      */
     public function getlist($condition = [],$order=" id desc") {
-        return $this->where($condition)
-            ->field('buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at')
-            ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
-            ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
-            ->join('erui_sys.org on org.id=org_member.org_id', 'left')
-            ->group('em.id')
-            ->order('buyer_agent.id desc')
-            ->select();
+        $counrty=$condition['country_bn'];
+        $lang=isset($condition['lang'])?$condition['lang']:'zh';
+        $field='buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at';
+        if($lang=='en'){
+            $field='buyer_agent.id,em.show_name,buyer_agent.buyer_id,buyer_agent.agent_id,em.name as agent_name,em.mobile,em.email,em.user_no as user_no,group_concat(`org`.`name_en`) as group_name,buyer_agent.role,buyer_agent.created_by,buyer_agent.created_at';
+        }
+        unset($condition['lang']);
+        $condition['org.deleted_flag']='N';
+        $condition['buyer_agent.deleted_flag']='N';
+        if(!empty($counrty)){
+            unset($condition['country_bn']);
+            $field .= ',country_member.country_bn';
+            return $this->where($condition)
+                ->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->join('erui_sys.country_member on buyer_agent.agent_id=country_member.employee_id', 'left')
+                ->where("country_member.country_bn in ($counrty)")
+                ->group('em.id')
+                ->order('buyer_agent.id desc')
+                ->select();
+        }else{
+            return $this->where($condition)
+                ->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->group('em.id')
+                ->order('buyer_agent.id desc')
+                ->select();
+        }
     }
 
     public function create_data($create = [])
@@ -431,9 +455,16 @@ class BuyerAgentModel extends PublicModel {
         $info = $this->alias('agent')
             ->join('erui_sys.employee employee on agent.agent_id=employee.id')
             ->field('employee.name')
-            ->where(array('agent.buyer_id'=>$buyer_id))
-            ->find();
-        return $info['name'];
+            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N'))
+            ->select();
+        $str='';
+        if(!empty($info)){
+            foreach($info as $k=> $v){
+                $str.=','.$v['name'];
+            }
+            $str=substr($str,1);
+        }
+        return $str;
     }
     //crm 更新市场经办人-wangs
     public function crmUpdateAgent($data=[]){
@@ -443,6 +474,7 @@ class BuyerAgentModel extends PublicModel {
         $buyer_id=$data['id'];
         $agent_arr = explode(',', $data['user_ids']);
         $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->select();
+        //
         if(empty($agent)){ //
             $agentArr=array();
             foreach($agent_arr as $k => $v){
@@ -454,15 +486,89 @@ class BuyerAgentModel extends PublicModel {
             $res=$this->addAll($agentArr);
             return $res;
         }
+//        $exsitArr=array();
+//        foreach($agent as $k => $v){
+//            $exsitArr[]=$v['agent_id'];
+//        }
+//        $delArr=array_diff($exsitArr,$agent_arr);
+//        $addArr=array_merge(array_diff($agent_arr,$exsitArr));
+//        if(!empty($delArr)){
+//            $delStr=implode(',',$delArr);
+//            $this->where("buyer_id=$buyer_id and agent_id in ($delStr)")->save(array('deleted_flag'=>'Y'));
+//        }
         $this->where("buyer_id=$buyer_id")->save(array('deleted_flag'=>'Y'));
-        $agentArr=array();
-        foreach($agent_arr as $k => $v){
-            $agentArr[$k]['buyer_id']=$buyer_id;
-            $agentArr[$k]['agent_id']=$v;
-            $agentArr[$k]['created_by']=$data['created_by'];
-            $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
+//        if(!empty($addArr)){    //添加
+            $agentArr=array();
+            foreach($agent_arr as $k => $v){
+                $agentArr[$k]['buyer_id']=$buyer_id;
+                $agentArr[$k]['agent_id']=$v;
+                $agentArr[$k]['created_by']=$data['created_by'];
+                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
+            }
+            $res=$this->addAll($agentArr);
+            return $res;
+//        }
+//        return true;
+//        $buyer_arr = explode(',', $data['id']);
+//        $agent_arr = explode(',', $data['user_ids']);
+//        $array=array();
+//        $arr=array();
+//        foreach ($buyer_arr as $key => $value) {
+//            foreach ($agent_arr as $k => $v) {
+//                $array[$key][$k]['buyer_id'] = $value;
+//                $array[$key][$k]['agent_id'] = $v;
+//            }
+//        }
+//        foreach ($array as $key => $value) {
+//            foreach ($value as $K => $v) {
+//                $v['created_by'] = $data['created_by'];
+//                $v['created_at'] = date('Y-m-d H:i:s');
+//                $arr[] = $v;
+//            }
+//        }
+//        $exist=$this->where("buyer_id in ($data[id])")->find();
+//        if($exist){
+//            $this->where("buyer_id in ($data[id])")->delete();
+//        }
+//        return $this->addAll($arr);   //添加
+    }
+    //buyer_id 获取 客户的经办人list
+    public function getBuyerAgentList($buyer_id){
+//        $info=$this->alias('agent')
+//                    ->join('erui_sys.employee employee on agent.created_by=employee.id', 'left')
+//                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
+//                    ->where(array('buyer_id'=>$buyer_id))
+//                    ->select();
+        $sql="SELECT agent.agent_id,";
+        $sql.=" (select `name` from erui_sys.employee where id =agent.agent_id) as agent_name,";
+        $sql.=" (select `name` from erui_sys.employee where id =agent.created_by) as created_name,";
+        $sql.=" created_by,created_at,deleted_flag";
+        $sql.=" FROM erui_buyer.buyer_agent agent";
+        $sql.=" WHERE buyer_id=$buyer_id";
+        $info=$this->query($sql);
+        $agent_name='';
+        foreach($info as $k => $v){
+            if($v['deleted_flag']=='N'){
+                $agent_name.=','.$v['agent_name'];
+            }
         }
-        $res=$this->addAll($agentArr);
-        return $res;
+        if(!empty($info)){
+            $agent=array(
+                'created_by'=>end($info)['created_by'],
+                'created_name'=>end($info)['created_name'],
+                'created_at'=>reset($info)['created_at'],
+                'update_at'=>end($info)['created_at'],
+                'agent_name'=>substr($agent_name,1)
+            );
+        }else{
+            $agent=array(
+                'created_by'=>null,
+                'created_name'=>null,
+                'created_at'=>null,
+                'update_at'=>null,
+                'agent_name'=>null
+            );
+        }
+        return $agent;
     }
 }

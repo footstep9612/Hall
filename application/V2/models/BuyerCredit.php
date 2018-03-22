@@ -291,8 +291,8 @@ class BuyerCreditModel extends PublicModel
         } else{
             $dataInfo['deadline_cur_unit'] = 'day';
         }
-        if(isset($data['credit_invalid_date']) && !empty($data['credit_invalid_date'])){
-            $dataInfo['credit_invalid_date'] = trim($data['credit_invalid_date']);
+        if(isset($data['credit_valid_date']) && !empty($data['credit_valid_date'])){
+            $dataInfo['credit_valid_date'] = trim($data['credit_valid_date']);
         }
         if(isset($data['credit_apply_date']) && !empty($data['credit_apply_date'])){
             $dataInfo['credit_apply_date'] = trim($data['credit_apply_date']);
@@ -347,9 +347,9 @@ class BuyerCreditModel extends PublicModel
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
 
             $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime('+90 d',strtotime($valid_date['approved_date'])));
-            $dataLog['credit_at'] = $dataArr['credit_valid_date'];
-            $dataLog['credit_apply_date'] = $dataArr['credit_apply_date'];
+            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +90 day"));
+            $dataLog['credit_at'] = date('Y-m-d H:i:s',time());
+            $dataLog['credit_apply_date'] = $valid_date['credit_apply_date'];
 
             $dataLog['granted'] = $dataArr['nolc_granted'];
             $dataLog['validity'] = $dataArr['nolc_deadline'];
@@ -395,7 +395,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $dataArr['credit_cur_bn'] = '$';
         }
-        $data['credit_valid_date'] = date('Y-m-d H:i:s',time());
+        $dataArr['credit_valid_date'] = date('Y-m-d H:i:s',time());
         $dataArr['status'] = 'APPROVED';   //分配额度为通过   银行和企业通过为信保通过
         return $dataArr;
     }

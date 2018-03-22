@@ -30,12 +30,15 @@ class OrgModel extends PublicModel {
      * @version V2.0
      * @desc   组织
      */
-    public function getNameById($id) {
+    public function getNameById($id,$lang) {
         if (!$id) {
             return '';
         }
         $where['id'] = $id;
         $org = $this->field('name')->where($where)->find();
+        if($lang=='en'){
+            $org = $this->field('name_en as name')->where($where)->find();
+        }
         if ($org) {
             return $org['name'];
         } else {

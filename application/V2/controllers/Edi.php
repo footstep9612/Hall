@@ -41,7 +41,7 @@ class EdiController extends PublicController{
 
     static private $client;
 
-    static private $url_wsdl = "http://localhost:8121/ediserver/ws_services/SolEdiProxyWebService?wsdl";
+    static private $url_wsdl = "http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl";
 
     public function init(){
         parent::init();
@@ -604,15 +604,17 @@ class EdiController extends PublicController{
         $time['endDate'] = self::getEndDate();//var_dump($time);die;
         try{
             $time = array('startDate'=>date('Y-m-d\T14:00:00', time()),'endDate'=>date('Y-m-d\T23:00:00', time()));
-            self::$client = new SoapClient(self::$serviceUri);
-            $buyerCodeApproveInfo = self::$client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+            $client = new SoapClient(self::$serviceUri);
+            $buyerCodeApproveInfo = $client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
+
             if ($buyerCodeApproveInfo) {
-                var_dump($buyerCodeApproveInfo);
+                var_dump($buyerCodeApproveInfo);die;
             } else {
                 echo 456;
             }
         }catch (Exception $e){
             $this->exception($e);
+            jsonReturn($e->getMessage());
         }
     }
 
@@ -625,7 +627,7 @@ class EdiController extends PublicController{
         try{
             $time = array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             self::$client = new SoapClient(self::$serviceUri);
-            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>"2018-03-10T00:00:00",'endDate'=>self::getEndDate()));
+            $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             if ($BankCodeApproveInfo) {
 //                $BankCodeApproveInfo = self::object_array($BankCodeApproveInfo);
 //                //存储结果日志
@@ -640,13 +642,14 @@ class EdiController extends PublicController{
 ////                fwrite($fp,$content);
 ////                fclose($fp);
 
-                var_dump($BankCodeApproveInfo);
+                var_dump($BankCodeApproveInfo);die;
                 //var_dump($BankCodeApproveInfo->BankInfo);
             } else {
                 echo 123231;
             }
         } catch (Exception $e) {
             $this->exception($e);
+            jsonReturn($e->getMessage());
         }
     }
 
