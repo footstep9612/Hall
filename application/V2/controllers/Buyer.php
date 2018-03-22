@@ -1059,6 +1059,7 @@ class BuyerController extends PublicController {
                 'code' => 0,
                 'message' => L('crm_existed')
             );
+            
             $this->jsonReturn($dataJson);
         }
         //test-start
@@ -1067,7 +1068,7 @@ class BuyerController extends PublicController {
                 'code'=>2,
                 'message'=>L('Normal_customer') //正常录入客户信息流程
             );
-            
+
             $this->jsonReturn($dataJson);
         }
         //test-end
