@@ -404,8 +404,8 @@ class QuoteController extends PublicController{
 
         //$finalQuoteItemModel = new FinalQuoteItemModel();
         //$list = $finalQuoteItemModel->getFinalSku($request);
-        $quote = new QuoteModel();
-        $list = $quote->getQouteFinalSku($request);
+        $quoteItem = new QuoteItemModel();
+        $list = $quoteItem->getQouteFinalSku($request);
 
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
