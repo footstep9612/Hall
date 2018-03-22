@@ -338,8 +338,8 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $credit_model = new BuyerCreditModel();
-        //$result = $credit_model->grantInfo($data);
-        if($result=true) {
+        $result = $credit_model->grantInfo($data);
+        if($result) {
             //发送邮件
             $config_obj = Yaf_Registry::get("config");
             $config_email = $config_obj->email;
