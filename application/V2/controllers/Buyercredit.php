@@ -342,7 +342,7 @@ class BuyercreditController extends PublicController {
         if($result) {
             //发送邮件
             $config_obj = Yaf_Registry::get("config");
-            $config_email = $config_obj->email->toArray();
+            $config_email = (array)$config_obj->email;
             $email = $this->_getBuyerEmail($data['buyer_no']);
             $this->creditEmail($email['official_email'], '', $lang, $config_email['url']);
             jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, 'success!');
