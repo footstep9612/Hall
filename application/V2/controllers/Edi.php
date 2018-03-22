@@ -23,9 +23,9 @@
 class EdiController extends PublicController{
 
 
-    private $serverIP = 'credit.eruidev.com';
+   // private $serverIP = 'credit.eruidev.com';
 
-    private $serverPort = '80';
+   // private $serverPort = '80';
 
     private $serverDir = 'ediserver';
 
@@ -47,11 +47,11 @@ class EdiController extends PublicController{
         parent::init();
         //error_reporting(E_ALL & ~E_NOTICE);
 
-        //$config_obj = Yaf_Registry::get("config");
-        //$this->serverIP = $config_obj->database->config->toArray();
+        $config_obj = Yaf_Registry::get("config");
+        $serverIP = $config_obj->ediserver->toArray();
         if (self::$serviceUri == '') {
 //            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
-            self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
+            self::$serviceUri = 'http://'.$serverIP['host'].':'.$serverIP['port'].'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
         }
         if ($this->mode == 'wsdl') {
             self::$serviceUri .= '?wsdl';
@@ -604,7 +604,7 @@ class EdiController extends PublicController{
         $time['endDate'] = self::getEndDate();//var_dump($time);die;
         try{
             $time = array('startDate'=>date('Y-m-d\T14:00:00', time()),'endDate'=>date('Y-m-d\T23:00:00', time()));
-            $client = new SoapClient(self::$serviceUri);
+            $client = new SoapClient(self::$url_wsdl);
             $buyerCodeApproveInfo = $client->doEdiBuyerCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
 
             if ($buyerCodeApproveInfo) {
@@ -626,7 +626,7 @@ class EdiController extends PublicController{
 //        return $this->resultInfo("doEdiBankCodeApprove", $xmlEdiBankCodeApprove);
         try{
             $time = array('doEdiBankCodeApprove'=>array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
-            self::$client = new SoapClient(self::$serviceUri);
+            self::$client = new SoapClient(self::$url_wsdl);
             $BankCodeApproveInfo = self::$client->doEdiBankCodeApprove(array('startDate'=>self::getStartDate(),'endDate'=>self::getEndDate()));
             if ($BankCodeApproveInfo) {
 //                $BankCodeApproveInfo = self::object_array($BankCodeApproveInfo);
