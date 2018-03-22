@@ -18,7 +18,6 @@ class TimedtaskEdiController extends PublicController{
     static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
-        parent::init();
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
