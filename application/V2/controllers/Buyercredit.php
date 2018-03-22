@@ -34,13 +34,17 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                     }
+                    unset($time);
+                    unset($current_time);
                 }
             }
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
@@ -67,13 +71,17 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
-                    $time =  $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = time();
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                     }
+                    unset($time);
+                    unset($current_time);
                 }
             }
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
