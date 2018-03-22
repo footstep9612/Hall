@@ -28,6 +28,7 @@ return array(
     'empty_country'=>'国家名不可为空',
     'crm_existed'=>'crm编码已经存在',
     'param_error'=>'请输入正确参数',
+    'Group_crm'=>'集团CRM客户信息',
     'Normal_customer'=>'正常录入客户信息流程',
 
 
