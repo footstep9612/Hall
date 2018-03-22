@@ -777,13 +777,13 @@ class UserController extends PublicController {
         $string = implode(',', array_unique($restoredData));
 
         switch ($string) {
-            case 'BOSS' : return 1; break;
-            case 'DATA_REPORT' : return 2; break;
-            case 'ORDER' : return 3; break;
-            case 'BOSS,DATA_REPORT' : return 4; break;
-            case 'BOSS,ORDER' : return 5; break;
-            case 'DATA_REPORT,ORDER' : return 6; break;
-            case 'BOSS,DATA_REPORT,ORDER' : return 7; break;
+            case 'BOSS' : return '1'; break;
+            case 'DATA_REPORT' : return '2'; break;
+            case 'ORDER' : return '3'; break;
+            case 'BOSS,DATA_REPORT' : return '1,2'; break;
+            case 'BOSS,ORDER' : return '1,3'; break;
+            case 'DATA_REPORT,ORDER' : return '2,3'; break;
+            case 'BOSS,DATA_REPORT,ORDER' : return '1,2,3'; break;
             default : return 0; break;
         }
     }
