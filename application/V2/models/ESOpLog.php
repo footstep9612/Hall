@@ -98,7 +98,7 @@ class ESOpLogModel {
 
     public function Created($requst, $data, $lang, $user) {
         $es = new ESClient();
-
+        $this->Deleted();
         $body['module'] = $requst->getModuleName();
         $body['controller'] = $requst->getControllerName();
         $body['action'] = $requst->getActionName();
@@ -112,6 +112,13 @@ class ESOpLogModel {
         $body['created_at'] = date('Y-m-d H:i:s');
         $id = null;
         $es->add_document($this->index, 'logs', $body, $id);
+    }
+
+    public function Deleted() {
+        $es = new ESClient();
+        $body = [];
+        $body['query']['bool']['must'][] = [ESClient::RANGE => ['created_at' => ['lte' => date('Y-m-d H:i:s', strtotime(' -1 Month')),]]];
+        $flag = $es->deleteByQuery($this->index, 'logs', $body);
     }
 
     public function getList($condition) {
