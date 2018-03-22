@@ -43,7 +43,7 @@ class BuyercreditController extends PublicController {
                     }
                 }
             }
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $res['count'];
             $datajson['data'] = $res['data'];
         } else {
@@ -76,7 +76,7 @@ class BuyercreditController extends PublicController {
                     }
                 }
             }
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
         } else {
@@ -100,7 +100,7 @@ class BuyercreditController extends PublicController {
         $count = $model->getCount($data);
         if (!empty($res)) {
             $this->_setAgentName($res,'agent_by');
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
         } else {
