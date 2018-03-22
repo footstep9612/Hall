@@ -123,7 +123,7 @@ class ESOpLogModel {
 
     public function getList($condition) {
         $es = new ESClient();
-        $body = '';
+        $body = [];
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'controller', 'controller');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
@@ -132,6 +132,8 @@ class ESOpLogModel {
         ESClient::getQurey($condition, $body, ESClient::TERM, 'lang', 'lang');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'created_name', 'created_name.ik');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'created_by', 'created_by');
+        $es->body = $body;
+
         $pagesize = 10;
         $current_no = 1;
         if (isset($condition['current_no'])) {
