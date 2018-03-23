@@ -108,10 +108,10 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            $result = $this->_setAgentName($res,'agent_by');
+            $this->_setAgentName($res,'agent_by');
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
-            $datajson['data'] = $result;
+            $datajson['data'] = $res;
         } else {
             $datajson['code'] = ShopMsg::CREDIT_FAILED;
             $datajson['data'] = "";
@@ -505,7 +505,7 @@ class BuyercreditController extends PublicController {
     /* 代办人信息
      * @desc   企业/银行
      */
-    private function _setAgentName($list,$name) {
+    private function _setAgentName(&$list,$name) {
         foreach ($list as $log) {
             $agentids[] = $log[$name];
         }
@@ -520,7 +520,6 @@ class BuyercreditController extends PublicController {
             }
             $list[$key] = $val;
         }
-        return $list;
     }
 
 }

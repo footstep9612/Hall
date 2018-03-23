@@ -128,7 +128,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            $this->_setAgentName($res);
+            $this->_setAgentName($res,'agent_by');
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -213,16 +213,16 @@ class BuyercreditController extends PublicController {
     /* 代办人信息
      * @desc   企业/银行
      */
-    private function _setAgentName(&$list) {
+    private function _setAgentName(&$list,$name) {
         foreach ($list as $log) {
-            $agentids[] = $log['agent_by'];
+            $agentids[] = $log[$name];
         }
 
         $agent_model = new EmployeeModel();
         $agent_contact = $agent_model->getUserNamesByUserids($agentids);
         foreach ($list as $key => $val) {
-            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
-                $val['agent_name'] = $agent_contact[$val['id']];
+            if (isset($agent_contact[$val[$name]]) && $agent_contact[$val[$name]]) {
+                $val['agent_name'] = $agent_contact[$val[$name]];
             } else {
                 $val['agent_name'] = '';
             }
