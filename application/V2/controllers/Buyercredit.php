@@ -34,7 +34,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
             foreach($res as $item) {
-                if(!empty($item['approved_date'])){
+                if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
@@ -71,7 +71,7 @@ class BuyercreditController extends PublicController {
         $count = $model->getCount($data);
         if (!empty($res)) {
             foreach($res as $item) {
-                if(!empty($item['approved_date'])){
+                if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
