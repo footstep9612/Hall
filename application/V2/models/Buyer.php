@@ -154,8 +154,8 @@ class BuyerModel extends PublicModel {
 //            $sql .= ' LIMIT ' . $condition['page'] . ', 10';
 //            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
 //        }
-        $sql .= ' LIMIT 10';
         //$count = $this->query($sql_count);
+        $sql .= ' LIMIT ' . $condition['page'] . ', 10';
         $lang=isset($condition['lang'])?$condition['lang']:'zh';
         $info = $this->query($sql);
         foreach($info as $k => $v){
