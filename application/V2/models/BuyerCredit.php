@@ -248,7 +248,7 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['status'] = 'APPROVING';
         }else{
             $dataInfo['agent_id'] = UID;
-            $dataInfo['status'] = 'DRAFT';
+            $dataInfo['status'] = 'APPROVING';
         }
         $result = $this->add($this->create($dataInfo));
         if($result){
