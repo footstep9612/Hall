@@ -10,6 +10,7 @@ class BuyercreditController extends PublicController {
 
     public function init(){
         parent::init();
+        date_default_timezone_set('PRC');
     }
 
     /**
@@ -35,7 +36,7 @@ class BuyercreditController extends PublicController {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
-                    $current_time = time();
+                    $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
@@ -72,7 +73,7 @@ class BuyercreditController extends PublicController {
             foreach($res as $item) {
                 if(!empty($item['approved_date'])){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
-                    $current_time = time();
+                    $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
