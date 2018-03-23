@@ -169,7 +169,7 @@ class BuyercreditController extends PublicController {
         }
 
         if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
@@ -207,9 +207,9 @@ class BuyercreditController extends PublicController {
             $res = $bank_model->create_data($bank_data);
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED, 'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
     }
 
@@ -230,7 +230,7 @@ class BuyercreditController extends PublicController {
             $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
             jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
         }
     }
 
@@ -247,9 +247,9 @@ class BuyercreditController extends PublicController {
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
 
-            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
         }
     }
 
@@ -307,9 +307,9 @@ class BuyercreditController extends PublicController {
             }
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'审核未通过,请稍后再试!');
         }
     }
 
@@ -394,7 +394,7 @@ class BuyercreditController extends PublicController {
         } else {
             $datajson['code'] = ShopMsg::CUSTOM_FAILED;
             $datajson['data'] = "";
-            $datajson['message'] = 'Data is empty!';
+            $datajson['message'] = '暂无数据!';
         }
         $this->jsonReturn($datajson);
     }
@@ -419,9 +419,9 @@ class BuyercreditController extends PublicController {
                     $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
                 }
             }
-            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'暂无数据!');
         }
     }
 

@@ -179,7 +179,7 @@ class BuyercreditController extends PublicController {
             if(!empty($creditInfo['approved_date'])){
                 if(!empty($item['approved_date'])){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
-                    $current_time = time();
+                    $current_time = strtotime('now');
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
