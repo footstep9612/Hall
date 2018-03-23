@@ -177,17 +177,22 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
-                if(!empty($creditInfo['approved_date'])){
-                    $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +90 day")));
-                    $current_time = strtotime('now');
-                    if($time <= $current_time) {
-                        $item['status'] = 'INVALID';
-                        $status['status'] = 'INVALID';
-                        $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
-                    }
-                    unset($time);
-                    unset($current_time);
+                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                    $deadline = $creditInfo['nolc_deadline'];
+                }else {
+                    $deadline = $creditInfo['lc_deadline'];
                 }
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $current_time = strtotime('now');
+                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                LOG::write($content, LOG::INFO);
+                if($time <= $current_time) {
+                    $item['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                }
+                unset($time);
+                unset($current_time);
             }
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['data'] = $creditInfo;

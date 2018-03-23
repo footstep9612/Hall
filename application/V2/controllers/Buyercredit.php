@@ -35,7 +35,12 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
-                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                        $deadline = $item['nolc_deadline'];
+                    }else {
+                        $deadline = $item['lc_deadline'];
+                    }
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
                     $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
@@ -72,7 +77,12 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
-                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                        $deadline = $item['nolc_deadline'];
+                    }else {
+                        $deadline = $item['lc_deadline'];
+                    }
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
                     $current_time = strtotime('now');
                     $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                     LOG::write($content, LOG::INFO);
@@ -346,9 +356,9 @@ class BuyercreditController extends PublicController {
             $config_email = $config_obj->email;
             $email = $this->_getBuyerEmail($data['buyer_no']);
             $this->creditEmail($email['official_email'], '', $lang, (array)$config_email['url']);
-            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'操作失败,请稍后再试!');
         }
     }
 
@@ -412,7 +422,12 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
-                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +90 day")));
+                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                    $deadline = $creditInfo['nolc_deadline'];
+                }else {
+                    $deadline = $creditInfo['lc_deadline'];
+                }
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
                 $current_time = strtotime('now');
                 $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                 LOG::write($content, LOG::INFO);
