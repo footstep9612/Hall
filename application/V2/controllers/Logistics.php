@@ -9,6 +9,7 @@ class LogisticsController extends PublicController {
 
 	public function init() {
 		parent::init();
+		$this->$this->put_data = dataTrim($this->$this->put_data);
 		
 		$this->inquiryModel = new InquiryModel();
 		$this->quoteModel = new QuoteModel();
@@ -78,12 +79,14 @@ class LogisticsController extends PublicController {
 	        
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
-	            unset($item['id']);
+	            $itemData['tax_no'] = $item['tax_no'];
+	            $itemData['rebate_rate'] = strval($item['rebate_rate']) != '' ? $item['rebate_rate'] : null;
+	            $itemData['export_tariff_rate'] = strval($item['export_tariff_rate']) != '' ? $item['export_tariff_rate'] : null;
+	            $itemData['supervised_criteria'] = $item['supervised_criteria'];
+	            $itemData['updated_by'] = $this->user['id'];
+	            $itemData['updated_at'] = $this->time;
 	            
-	            $item['updated_by'] = $this->user['id'];
-	            $item['updated_at'] = $this->time;
-	            
-	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
+	            $res = $this->quoteItemLogiModel->updateInfo($where, $itemData);
 	            
 	            /*if (!$res) {
 	                $this->quoteItemLogiModel->rollback();
