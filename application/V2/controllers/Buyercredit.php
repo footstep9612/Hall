@@ -158,7 +158,7 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '企业所在国家简称');
         }*/
         if (empty($data['country_code'])) {
-            jsonReturn(null, -110, '不符合申请条件!');
+            jsonReturn(null, -110, '此国家不符合申请条件!');
             jsonReturn(null, -110, '企业所在国家简称代码');
         }
         $company_model = new BuyerRegInfoModel();
@@ -363,8 +363,8 @@ class BuyercreditController extends PublicController {
     }
 
     //分配额度发送邮件
-    function creditEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
-        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arrEmail);
+    function creditEmail($email,$arr, $lang, $emailUrl, $title= 'Erui.com') {
+        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arr);
         $data = [
             "title"        => $title,
             "content"      => $body,
@@ -372,10 +372,10 @@ class BuyercreditController extends PublicController {
             "useType"      => "Credit"
         ];
         if(is_array($email)) {
-            $arr = implode(',',$email);
-            $data["to"] = "[$arr]";
+            $arr_email = implode(',',$email);
+            $data["to"] = "[$arr_email]";
         }elseif(is_string($email)){
-            $data["to"] = "[$email]";
+            $data["to"] = "[\"$email\"]";
         }
         PostData($emailUrl, $data, true);
     }
