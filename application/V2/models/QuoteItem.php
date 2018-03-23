@@ -237,7 +237,7 @@ class QuoteItemModel extends PublicModel {
     public function getQouteFinalSku($request){
         $where = ['a.inquiry_id'=>$request['inquiry_id'],'a.deleted_flag'=>'N'];
         return $this->alias('a')
-            ->join('erui_rfq.inquiry_item b ON b.id=a.quote_item_id','LEFT')
+            ->join('erui_rfq.inquiry_item b ON b.id=a.inquiry_item_id','LEFT')
             ->join('erui_rfq.final_quote_item c ON c.quote_item_id=a.id','LEFT')
             ->field($this->finalSkuFields)
             ->where($where)
