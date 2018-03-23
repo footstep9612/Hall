@@ -21,8 +21,12 @@ class NotificationController extends PublicController
 
         $inquiry = new InquiryModel();
 
-        $list = $inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])
-                        ->where("status !='INQUIRY_CLOSED' and status !='QUOTE_SENT'")
+        $where = [
+            'now_agent_id'=>$this->user['id'], 
+            'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']], 
+            'deleted_flag'=>'N'
+        ];
+        $list = $inquiry->where($where)
                         ->order('id DESC')
                         ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
                         ->page($page, $pagesize)
@@ -37,7 +41,7 @@ class NotificationController extends PublicController
         $this->jsonReturn([
             'code'    => 1,
             'message' => L('NOTIFICATION_SUCCESS'),
-            'count'   => count($inquiry->where(['now_agent_id'=>$this->user['id'],'deleted_flag'=>'N'])->where("status !='INQUIRY_CLOSED' and status !='QUOTE_SENT'")->field('id')->select()),
+            'count'   => count($inquiry->where($where)->field('id')->select()),
             'data'    => $list
         ]);
 
