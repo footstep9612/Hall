@@ -411,13 +411,18 @@ class BuyercreditController extends PublicController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
-            if(!empty($creditInfo['approved_date'])){
-                $time = strtotime('+90 d',strtotime($creditInfo['approved_date']));
-                if($time <= time()) {
-                    $creditInfo['status'] = 'INVALID';
+            if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +90 day")));
+                $current_time = strtotime('now');
+                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                LOG::write($content, LOG::INFO);
+                if($time <= $current_time) {
+                    $item['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
-                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
+                    $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
                 }
+                unset($time);
+                unset($current_time);
             }
             jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
@@ -516,4 +521,5 @@ class BuyercreditController extends PublicController {
             $list[$key] = $val;
         }
     }
+
 }
