@@ -176,7 +176,7 @@ class BuyercreditController extends PublicController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
-            if(!empty($creditInfo['approved_date'])){
+            if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                 if(!empty($item['approved_date'])){
                     $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
                     $current_time = strtotime('now');
