@@ -9,7 +9,7 @@ class LogisticsController extends PublicController {
 
 	public function init() {
 		parent::init();
-		$this->$this->put_data = dataTrim($this->$this->put_data);
+		$this->put_data = dataTrim($this->put_data);
 		
 		$this->inquiryModel = new InquiryModel();
 		$this->quoteModel = new QuoteModel();
