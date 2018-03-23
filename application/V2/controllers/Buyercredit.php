@@ -411,8 +411,8 @@ class BuyercreditController extends PublicController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
-            if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
-                $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+            if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +90 day")));
                 $current_time = strtotime('now');
                 $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                 LOG::write($content, LOG::INFO);
