@@ -375,7 +375,7 @@ class BuyercreditController extends PublicController {
             $arr_email = implode(',',$email);
             $data["to"] = "[$arr_email]";
         }elseif(is_string($email)){
-            $data["to"] = "[\"$email\"]";
+            $data["to"] = "[$email]";
         }
         PostData($emailUrl, $data, true);
     }
