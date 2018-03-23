@@ -176,7 +176,7 @@ class EdiController extends PublicController{
         $BuyerCodeApply['official_email'] = $lang['official_email'];
         $resBuyer = self::EdiBuyerCodeApply($BuyerCodeApply);
         if($resBuyer['code'] != 1) {
-            jsonReturn(null,MSG::MSG_FAILED,MSG::getMessage(MSG::MSG_FAILED));
+            jsonReturn(null,MSG::MSG_FAILED,'信息填写有误!');
         }
         return $resBuyer;
     }
