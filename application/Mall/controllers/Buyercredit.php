@@ -177,17 +177,27 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date'])){
-                $time = strtotime('+90 days',strtotime($creditInfo['approved_date']));
-                if($time <= time()) {
-                    $creditInfo['status'] = 'INVALID';
-                    $status['status'] = 'INVALID';
-                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
+                if(!empty($item['approved_date'])){
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +90 day")));
+                    $current_time = strtotime('now');
+                    if($time <= $current_time) {
+                        $item['status'] = 'INVALID';
+                        $status['status'] = 'INVALID';
+                        $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                    }
+                    unset($time);
+                    unset($current_time);
                 }
             }
-            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['data'] = $creditInfo;
+            $datajson['message'] = 'success!';
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
         }
+        $this->jsonReturn($datajson);
     }
 
     private function _getBuyerNo($buyer_id){
