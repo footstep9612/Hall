@@ -57,7 +57,7 @@ class InquiryOrderModel extends PublicModel {
     }
 
     /**
-     * @desc 根据订单销售合同号获取询单ID
+     * @desc 根据销售合同号获取询单ID
      *
      * @param string $no
      * @return mixed
