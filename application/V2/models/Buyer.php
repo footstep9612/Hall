@@ -1788,7 +1788,10 @@ EOF;
             'is_build' =>'1',//建立档案标识
             'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
-            'company_model' =>$data['company_model']    //公司性质
+            'company_model' =>$data['company_model'],    //公司性质
+
+            'dollar_rate' =>$data['dollar_rate'],    //相对美元汇率
+            'dollar_amount' =>$data['dollar_amount']    //美元金额
         );
         //判断创建数据与编辑数据
         $build = $this->field('is_build,build_time')->where(array('id'=>$data['buyer_id']))->find();

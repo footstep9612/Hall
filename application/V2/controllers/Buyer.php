@@ -888,6 +888,8 @@ class BuyerController extends PublicController {
      * wangs
      */
     public function createBuyerInfoAction() {
+
+
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
