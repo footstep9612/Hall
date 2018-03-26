@@ -6,11 +6,22 @@ class BuyeragreementController extends PublicController
     {
         parent::init();
     }
+    private function crmUserRole($user_id){ //获取角色
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array('CRM框架协议',$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     //统计-excel导出-框架协议数据-wangs
     public function exportStatisAgreeAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->crmUserRole($this->user['id']);
         $agree = new BuyerAgreementModel();
         $res = $agree->exportAgree($data);
         if($res==false){
@@ -34,6 +45,7 @@ class BuyeragreementController extends PublicController
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->crmUserRole($this->user['id']);
         $agree = new BuyerAgreementModel();
         $res = $agree->manageAgree($data);
         $dataJson['code'] = 1;

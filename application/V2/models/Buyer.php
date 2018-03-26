@@ -236,7 +236,9 @@ class BuyerModel extends PublicModel {
                 $cond.= " and buyer.id in ('wangs')";
             }
         }
-
+        if(!empty($data['admin']) && $data['admin']==1){  //客户编号
+            $cond = " 1=1 ";
+        }
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
@@ -2154,9 +2156,6 @@ EOF;
         $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
         if($data['admin'] == 0){   //查看部分统计
             $cond .= " and buyer.created_by=$data[created_by] ";
-            if(!empty($data['area_bn'])){
-                $cond .= " and buyer.area_bn='$data[area_bn]'";
-            }
             if(!empty($data['country_bn'])){    //国家权限
                 $countryArr=array();
                 $countrys=explode(',',$data['country_bn']);
@@ -2166,6 +2165,8 @@ EOF;
                 $countryStr=implode(',',$countryArr);
                 $cond .= " And `buyer`.country_bn in ($countryStr)";
             }
+        }else{
+            $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
         }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";

@@ -35,7 +35,7 @@ class BuyerfilesController extends PublicController
         $json = file_get_contents($ssoServer,false,$context);
         $info=json_decode($json,true);
         $roles=$info['role_no'];
-        if(in_array('档案信息统计',$roles)){  //查看档案信息统计角色
+        if(in_array('CRM档案信息',$roles)){  //查看档案信息统计角色
             $admin=1;
         }else{
             $admin=0;

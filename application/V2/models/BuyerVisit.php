@@ -739,7 +739,9 @@ class BuyerVisitModel extends PublicModel {
                         $countryStr.=",'".$v."'";
                     }
                     $countryStr=substr($countryStr,1);
-                    $cond .= " and buyer.country_bn in ($countryStr)";
+                    if($data['admin']==0){  //没有查看所有的权限
+                        $cond .= " and buyer.country_bn in ($countryStr)";
+                    }
                 }
                 if(!empty($data['country_search'])){    //国家搜索
                     $cond .= " and buyer.country_bn='".$data['country_search']."'";

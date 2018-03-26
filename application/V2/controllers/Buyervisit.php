@@ -11,7 +11,16 @@ class BuyervisitController extends PublicController {
     public function init() {
         parent::init();
     }
-
+    private function crmUserRole($user_id){ //获取角色
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array('CRM拜访记录',$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     /**
      * Description of 列表
      * @author  link
@@ -20,6 +29,7 @@ class BuyervisitController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
+        $data['admin']=$this->crmUserRole($this->user['id']);
         $arr = $visit_model->getList($data);
         if ($arr !== false) {
             jsonReturn($arr);
@@ -167,6 +177,7 @@ class BuyervisitController extends PublicController {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->crmUserRole($this->user['id']);
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
         if($arr === false){
