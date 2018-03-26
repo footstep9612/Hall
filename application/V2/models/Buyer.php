@@ -200,7 +200,29 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1';
-        if($data['admin']==0){  //客户管理权限
+//        if($data['admin']==0){  //客户管理权限
+//            $agent=new BuyerAgentModel();
+//            $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+//            $str='';
+//            foreach($list as $k => $v){
+//                $str.=','.$v['buyer_id'];
+//            }
+//            $str=substr($str,1);
+//            if(!empty($str)){
+//                $cond.= " and buyer.id in ($str)";
+//            }else{
+//                $cond.= " and buyer.id in ('wangs')";
+//            }
+//        }
+        if(!empty($data['country_bn'])){    //国家权限
+            $countryArr=array();
+            $countrys=explode(',',$data['country_bn']);
+            foreach($countrys as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
+            $cond .= " And `buyer`.country_bn in ($countryStr)";
+        }else{
             $agent=new BuyerAgentModel();
             $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
             $str='';
@@ -214,20 +236,15 @@ class BuyerModel extends PublicModel {
                 $cond.= " and buyer.id in ('wangs')";
             }
         }
+
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
         if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
             $cond .= " and (buyer.source=2 or buyer.source=3) ";
         }
-        if(!empty($data['country_bn'])){    //国家
-            $countryArr=array();
-            $countrys=explode(',',$data['country_bn']);
-            foreach($countrys as $k => $v){
-                $countryArr[]="'".$v."'";
-            }
-            $countryStr=implode(',',$countryArr);
-            $cond .= " And `buyer`.country_bn in ($countryStr)";
+        if(!empty($data['country_search'])){    //国家搜索
+            $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
         if(!empty($data['buyer_no'])){  //客户编号
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
@@ -2140,12 +2157,18 @@ EOF;
             if(!empty($data['area_bn'])){
                 $cond .= " and buyer.area_bn='$data[area_bn]'";
             }
-            if(!empty($data['country_bn'])){
-                $cond .= " and buyer.country_bn='$data[country_bn]'";
+            if(!empty($data['country_bn'])){    //国家权限
+                $countryArr=array();
+                $countrys=explode(',',$data['country_bn']);
+                foreach($countrys as $k => $v){
+                    $countryArr[]="'".$v."'";
+                }
+                $countryStr=implode(',',$countryArr);
+                $cond .= " And `buyer`.country_bn in ($countryStr)";
             }
         }
-        if(!empty($data['country_bn'])){
-            $cond .= " and buyer.country_bn='$data[country_bn]'";
+        if(!empty($data['country_search'])){    //国家搜索
+            $cond .= " and buyer.country_bn='$data[country_search]'";
         }
         if(!empty($data['all_id'])){
             $str = implode(',',$data['all_id']);

@@ -136,18 +136,20 @@ class BuyerAgreementModel extends PublicModel
             }
             $countryStr=implode(',',$countryArr);
             $cond .= " And `agree`.country_bn in ($countryStr)";
-        }
-        if($data['is_agree'] == true){ //展示列表
-            $cond .= " and buyer_id=".$data['buyer_id']." and agree.created_by=".$data['created_by'];
+        }else{
+            if(!empty($data['buyer_id'])){
+                $cond .= " and buyer_id=".$data['buyer_id'];
+            }
+            $cond .= " and agree.created_by=".$data['created_by'];
         }
         //统计展示数据
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
-//        if(!empty($data['country_bn'])){  //所属地区----------国家
-//            $cond .= " and agree.country_bn='$data[country_bn]'";
-//        }
+        if(!empty($data['country_search '])){  //国家搜索
+            $cond .= " and agree.country_bn='$data[country_search]'";
+        }
         if(!empty($data['execute_start_at'])){    //执行时间
             $cond .= " and execute_start_at='$data[execute_start_at]'";
         }
