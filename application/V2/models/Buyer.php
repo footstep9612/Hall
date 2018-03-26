@@ -1841,6 +1841,8 @@ EOF;
             'company_reg_date', //公司注册日期
             'reg_capital', //注册资金
             'reg_capital_cur', //注册资金货币
+            'dollar_rate', //注册资本相对美元汇率
+            'dollar_amount', //注册资本美元金额
             'area_bn', //地区
             'country_bn', //国家
             'company_address', //公司地址
