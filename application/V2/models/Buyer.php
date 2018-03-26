@@ -214,6 +214,12 @@ class BuyerModel extends PublicModel {
                 $cond.= " and buyer.id in ('wangs')";
             }
         }
+        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
+            $cond .= " and buyer.source=1 ";
+        }
+        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
+            $cond .= " and (buyer.source=2 or buyer.source=3) ";
+        }
         if(!empty($data['country_bn'])){    //国家
             $countryArr=array();
             $countrys=explode(',',$data['country_bn']);
