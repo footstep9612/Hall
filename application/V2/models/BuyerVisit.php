@@ -719,12 +719,11 @@ class BuyerVisitModel extends PublicModel {
         //按拜访记录id为条件
         if (!empty($data['all_id'])) {
             $condition['buyer_visit.id'] = ['in', $data['all_id']];
-        }else{
-
-            //客户名称或客户CRM编码为条件
-            if (!empty($data['buyer_id'])) {
-                $condition['buyer_id'] = ['in', $data['buyer_id']];
-            }
+        }
+        //客户名称或客户CRM编码为条件
+        if (!empty($data['buyer_id'])) {
+            $condition['buyer_id'] = ['in', $data['buyer_id']];
+        }
             $cond = ' 1=1';
             if (!empty($data['buyer_name'])) {  //客户名称
                 $cond .= " and name like '%$data[buyer_name]%'";
@@ -732,14 +731,19 @@ class BuyerVisitModel extends PublicModel {
             if (!empty($data['buyer_code'])) {  //客户code
                 $cond .= " and buyer_code like '%$data[buyer_code]%'";
             }
-            if (!empty($data['country_bn'])) {  //国家权限
-                $countryArr=explode(',',$data['country_bn']);
-                $countryStr='';
-                foreach($countryArr as $v){
-                    $countryStr.=",'".$v."'";
+            if (!empty($data['country_bn']) || !empty($data['country_search'])) {  //国家权限 || 国家搜索
+                if(!empty($data['country_bn'])){    //国家权限
+                    $countryArr=explode(',',$data['country_bn']);
+                    $countryStr='';
+                    foreach($countryArr as $v){
+                        $countryStr.=",'".$v."'";
+                    }
+                    $countryStr=substr($countryStr,1);
+                    $cond .= " and buyer.country_bn in ($countryStr)";
                 }
-                $countryStr=substr($countryStr,1);
-                $cond .= " and buyer.country_bn in ($countryStr)";
+                if(!empty($data['country_search'])){    //国家搜索
+                    $cond .= " and buyer.country_bn='".$data['country_search']."'";
+                }
                 $buyerModel= new BuyerModel();
                 $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
                 if (empty($buyer_ids)) {
@@ -751,27 +755,26 @@ class BuyerVisitModel extends PublicModel {
                 }
                 $condition['buyer_id'] = ['in', $buyer_id];
             }
-    //        if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
-    //            $buyerModel= new BuyerModel();
-    //            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
-    //            if (empty($buyer_ids)) {
-    //                return false;   //数据为空
-    //            }
-    //            $buyer_id = [];
-    //            foreach ($buyer_ids as $v) {
-    //                $buyer_id[] = $v['id'];
-    //            }
-    //            $condition['buyer_id'] = ['in', $buyer_id];
-    //        }
-            if (isset($data['visit_level']) && !empty($data['visit_level'])) {    //拜访级别
-                $condition['visit_level'] = ['exp', 'regexp \'"' . $data['visit_level'] . '"\''];
-            }
-            if (isset($data['visit_position']) && !empty($data['visit_position'])) {  //拜访职位类型
-                $condition['visit_position'] = ['exp', 'regexp \'"' . $data['visit_position'] . '"\''];
-            }
-            //	拜访时间visit_at_start开始时间   visit_at_end结束时间条件
-            $this->_getValue($condition, $data, 'visit_at', 'between'); //搜索条件end
+//        if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
+//            $buyerModel= new BuyerModel();
+//            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
+//            if (empty($buyer_ids)) {
+//                return false;   //数据为空
+//            }
+//            $buyer_id = [];
+//            foreach ($buyer_ids as $v) {
+//                $buyer_id[] = $v['id'];
+//            }
+//            $condition['buyer_id'] = ['in', $buyer_id];
+//        }
+        if (isset($data['visit_level']) && !empty($data['visit_level'])) {    //拜访级别
+            $condition['visit_level'] = ['exp', 'regexp \'"' . $data['visit_level'] . '"\''];
         }
+        if (isset($data['visit_position']) && !empty($data['visit_position'])) {  //拜访职位类型
+            $condition['visit_position'] = ['exp', 'regexp \'"' . $data['visit_position'] . '"\''];
+        }
+        //	拜访时间visit_at_start开始时间   visit_at_end结束时间条件
+        $this->_getValue($condition, $data, 'visit_at', 'between'); //搜索条件end
         return $condition;  //
     }
 }
