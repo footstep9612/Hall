@@ -27,6 +27,7 @@ class ExcelimportandexportController extends PublicController {
         $this->supplierModel = new SupplierModel();
         $this->productModel = new ProductModel();
         $this->goodsModel = new GoodsModel();
+        $this->sinosurePolicyModel = new SinosurePolicyModel();
         
         $this->time = date('Y-m-d H:i:s');
         
@@ -382,6 +383,79 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc 导入信保政策信息
+     *
+     * @author liujf
+     * @time 2018-03-26
+     */
+    public function importSinosurePolicyInfoAction() {
+        $condition = $this->_trim($this->getPut());
+        
+        if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
+        
+        $classify = $this->_getTempletAndAttach($condition['floder']);
+        
+        // 获取信保政策模板数据
+        $templet = $classify['templet'][0];
+        $templetSinosurePolicyKeruiData = $this->_trim(ExcelHelperTrait::ready2import($templet));
+        $templetSinosurePolicyEruiData = $this->_trim(ExcelHelperTrait::ready2import($templet, 1));
+        // 数据拼装
+        $sinosurePolicyKeruiDataIndex = $sinosurePolicyEruiDataIndex = 0;
+        $importSinosurePolicyList = [];
+        foreach ($templetSinosurePolicyKeruiData as $sinosurePolicyKeruiInfo) {
+            if ($sinosurePolicyKeruiDataIndex > 2) {
+                foreach ($sinosurePolicyKeruiInfo as $k => $v) {
+                    if ($k == 1) {
+                        $countryList = explode(',', $v);
+                    } else if ($k > 1) {
+                        foreach ($countryList as $country) {
+                            $sinosurePolicyKeruiData = [
+                                'country_bn' => $country,
+                                'company' => '科瑞',
+                                'sign_flag' => 'Y',
+                                'tax_rate' => $v / 100,
+                                'created_at' => $this->time
+                            ];
+                            $this->_setSinosurePolicyType($k, $sinosurePolicyKeruiData);
+                            $this->_setSinosurePolicySettlePeriod($k, $sinosurePolicyKeruiData);
+                            $importSinosurePolicyList[] = $sinosurePolicyKeruiData;
+                        }
+                    }
+                }
+            }
+            $sinosurePolicyKeruiDataIndex++;
+        }
+        foreach ($templetSinosurePolicyEruiData as $sinosurePolicyEruiInfo) {
+            if ($sinosurePolicyEruiDataIndex > 2) {
+                foreach ($sinosurePolicyEruiInfo as $k => $v) {
+                    if ($k == 1) {
+                        $countryList = explode(',', $v);
+                    } else if ($k > 1) {
+                        foreach ($countryList as $country) {
+                            $sinosurePolicyEruiData = [
+                                'country_bn' => $country,
+                                'company' => '易瑞',
+                                'sign_flag' => 'Y',
+                                'tax_rate' => $v / 100,
+                                'created_at' => $this->time
+                            ];
+                            $this->_setSinosurePolicyType($k, $sinosurePolicyEruiData);
+                            $this->_setSinosurePolicySettlePeriod($k, $sinosurePolicyEruiData);
+                            $importSinosurePolicyList[] = $sinosurePolicyEruiData;
+                        }
+                    }
+                }
+            }
+            $sinosurePolicyEruiDataIndex++;
+        }
+        if ($importSinosurePolicyList) {
+            // 数据导入
+            $importSinosurePolicyResult = $this->sinosurePolicyModel->addAll($importSinosurePolicyList);
+            $this->jsonReturn($importSinosurePolicyResult);
+        } else jsonReturn('', -101, '没有可导入的数据!');
+    }
+    
+    /**
      * @desc 获取模板和附件
      *
      * @param string $floder 获取的目录
@@ -651,6 +725,56 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getOrderIdByExecuteNo($executeNo) {
         return $this->orderModel->where(['execute_no' => $executeNo, 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
+    }
+    
+    /**
+     * @desc 设置信保政策类型
+     *
+     * @param int $index 当前数据索引
+     * @param array $data 需设置的数据
+     * @author liujf
+     * @time 2018-03-26
+     */
+    private function _setSinosurePolicyType($index, &$data) {
+        if ($index > 1 && $index <7) {
+            $data['type'] = 'L/C';
+        } else if ($index > 6 && $index <12) {
+            $data['type'] = 'D/P';
+        } else if ($index > 11 && $index <17) {
+            $data['type'] = 'D/A&OA';
+        }
+    }
+    
+    /**
+     * @desc 设置信保政策账期
+     *
+     * @param int $index 当前数据索引
+     * @param array $data 需设置的数据
+     * @author liujf
+     * @time 2018-03-26
+     */
+    private function _setSinosurePolicySettlePeriod($index, &$data) {
+        switch (($index - 2) % 5) {
+            case 0 : 
+                $data['start_settle_period'] = 0;
+                $data['end_settle_period'] = 30;
+                break;
+            case 1 :
+                $data['start_settle_period'] = 31;
+                $data['end_settle_period'] = 90;
+                break;
+            case 2 :
+                $data['start_settle_period'] = 91;
+                $data['end_settle_period'] = 180;
+                break;
+            case 3 :
+                $data['start_settle_period'] = 181;
+                $data['end_settle_period'] = 270;
+                break;
+            case 4 :
+                $data['start_settle_period'] = 271;
+                $data['end_settle_period'] = 360;
+        }
     }
 
     /*----------------------------------------------------------------------导入和导出及文件生成代码界线----------------------------------------------------------------------*/
