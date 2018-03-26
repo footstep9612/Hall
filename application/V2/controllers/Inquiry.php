@@ -214,6 +214,7 @@ class InquiryController extends PublicController {
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
         $transModeModel = new TransModeModel();
+        $inquiryOrderModel = new InquiryOrderModel();
 
         // 市场经办人
         if ($condition['agent_name'] != '') {
@@ -223,6 +224,11 @@ class InquiryController extends PublicController {
         // 报价人
         if ($condition['quote_name'] != '') {
             $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
+        }
+        
+        // 销售合同号
+        if ($condition['contract_no'] != '') {
+            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdByContractNo($condition['contract_no']) ? : [];
         }
 
         // 当前用户的所有角色编号
@@ -252,6 +258,7 @@ class InquiryController extends PublicController {
             $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
             $inquiry['trans_mode_bn'] = $transMode['bn'];
             $inquiry['trans_mode_name'] = $transMode['trans_mode'];
+            $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
         }
 
         if ($inquiryList) {
@@ -286,6 +293,7 @@ class InquiryController extends PublicController {
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
         $transModeModel = new TransModeModel();
+        $inquiryOrderModel = new InquiryOrderModel();
         
         // 市场经办人
         if ($condition['agent_name'] != '') {
@@ -295,6 +303,11 @@ class InquiryController extends PublicController {
         // 报价人
         if ($condition['quote_name'] != '') {
             $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
+        }
+        
+        // 销售合同号
+        if ($condition['contract_no'] != '') {
+            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdByContractNo($condition['contract_no']) ? : [];
         }
 
         // 是否显示列表
@@ -340,6 +353,7 @@ class InquiryController extends PublicController {
                 $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
                 $inquiry['trans_mode_bn'] = $transMode['bn'];
                 $inquiry['trans_mode_name'] = $transMode['trans_mode'];
+                $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
             }
         }
 
