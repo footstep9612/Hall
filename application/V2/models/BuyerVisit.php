@@ -212,44 +212,44 @@ class BuyerVisitModel extends PublicModel {
      * @return bool
      */
     public function edit($_input = []){
-//        if(!isset($_input['buyer_id']) || empty($_input['buyer_id'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('buyer_id'));    //客户不能为空
+        if(!isset($_input['buyer_id']) || empty($_input['buyer_id'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('buyer_id'));    //客户不能为空
+        }
+
+        if(!isset($_input['visit_at']) || empty($_input['visit_at'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_at'));   //请输入拜访时间
+        }
+
+        if(!isset($_input['name']) || empty($_input['name'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('contact_name')); //客户联系人不能为空
+        }
+        if(!isset($_input['phone']) || empty($_input['phone'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('contact_phone'));   //客户联系人方式不能为空
+        }
+
+        if(!isset($_input['visit_type']) || empty($_input['visit_type']) || !is_array($_input['visit_type'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_type')); //请选择目的拜访类型
+        }
+
+        if(!isset($_input['visit_level']) || empty($_input['visit_level']) || !is_array($_input['visit_level'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_level'));   //请选择拜访级别
+        }
+
+        if(!isset($_input['visit_position']) || empty($_input['visit_position']) || !is_array($_input['visit_position'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_position')); //请选择职位拜访类型
+        }
+
+//        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
+//            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
 //        }
-//
-//        if(!isset($_input['visit_at']) || empty($_input['visit_at'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_at'));   //请输入拜访时间
-//        }
-//
-//        if(!isset($_input['name']) || empty($_input['name'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('contact_name')); //客户联系人不能为空
-//        }
-//        if(!isset($_input['phone']) || empty($_input['phone'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('contact_phone'));   //客户联系人方式不能为空
-//        }
-//
-//        if(!isset($_input['visit_type']) || empty($_input['visit_type']) || !is_array($_input['visit_type'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_type')); //请选择目的拜访类型
-//        }
-//
-//        if(!isset($_input['visit_level']) || empty($_input['visit_level']) || !is_array($_input['visit_level'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_level'));   //请选择拜访级别
-//        }
-//
-//        if(!isset($_input['visit_position']) || empty($_input['visit_position']) || !is_array($_input['visit_position'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_position')); //请选择职位拜访类型
-//        }
-//
-////        if(!isset($_input['demand_type']) || empty($_input['demand_type']) || !is_array($_input['demand_type'])){
-////            jsonReturn('', ErrorMsg::ERROR_PARAM, '请选择需求反馈种类');
-////        }
-//
-//        if(!isset($_input['visit_objective']) || empty($_input['visit_objective'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_objective'));   //请输入拜访目的
-//        }
-//
-//        if(!isset($_input['visit_result']) || empty($_input['visit_result'])){
-//            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_result'));   //请输入拜访结果
-//        }
+
+        if(!isset($_input['visit_objective']) || empty($_input['visit_objective'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_objective'));   //请输入拜访目的
+        }
+
+        if(!isset($_input['visit_result']) || empty($_input['visit_result'])){
+            jsonReturn('', ErrorMsg::ERROR_PARAM, L('visit_result'));   //请输入拜访结果
+        }
 
         $userInfo = getLoinInfo();
         $data = $where = [];
