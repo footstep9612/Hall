@@ -23,6 +23,9 @@ class VisitProductModel extends PublicModel {
         foreach($product as $key => $value){
             $v=array_filter($value);
             if(!empty($v)){
+                if(!empty($v['product_cate'])){
+                    $v['product_cate']=implode(',',$v['product_cate']);
+                }
                 $productArr[$key]=$v;
                 $productArr[$key]['visit_id']=$visit_id;
                 $productArr[$key]['created_by']=$created_by;
@@ -51,6 +54,9 @@ class VisitProductModel extends PublicModel {
                 $updateId[]=$value['id'];
                 unset($value['deleted_flag']);
                 unset($value['visit_id']);
+                if(!empty($value['product_cate'])){
+                    $value['product_cate']=implode(',',$value['product_cate']);
+                }
                 $value['created_by']=$created_by;
                 $value['created_at']=date('Y-m-d H:i:s');
                 $this->where(array('id'=>$value['id']))->save($value);  //保存编辑
@@ -73,6 +79,10 @@ class VisitProductModel extends PublicModel {
             'visit_id'=>$visit_id,
             'deleted_flag'=>'N',
         );
-        return $this->where($cond)->select();
+        $info=$this->where($cond)->select();
+        foreach($info as $k => $v){
+            $info[$k]['product_cate']=explode(',',$v['product_cate']);
+        }
+        return $info;
     }
 }
