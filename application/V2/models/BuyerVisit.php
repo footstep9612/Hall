@@ -162,6 +162,9 @@ class BuyerVisitModel extends PublicModel {
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_result,is_demand,created_by,created_at')->where($condition)->find();
 
             if($result){
+                //产品信息
+                $visit_product=new VisitProductModel();
+                $product=$visit_product->getProductInfo($result['id']);
                 //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
@@ -181,6 +184,7 @@ class BuyerVisitModel extends PublicModel {
                 $result['visit_position'] = json_decode( $result['visit_position']);
                 $result['demand_type'] = json_decode( $result['demand_type']);
                 $result['visit_reply'] = $replyInfo['visit_reply'];
+                $result['product_info'] = $product;     //产品信息
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
                     $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
@@ -266,18 +270,22 @@ class BuyerVisitModel extends PublicModel {
         }
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
-
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;
                 $where[ 'id' ] = intval( $_input[ 'id' ] );
                 $this->where( $where )->save( $data );
                 $result = $_input[ 'id' ];
+                $visit_product=new VisitProductModel();
+                $visit_product->updateProductInfo($_input['product_info'],$result,$userInfo['id']);
             }else{
                 $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 //$data['deleted_flag'] =  self::DELETED_N;
                 $result = $this->add($data);
+                //产品分类信息
+                $visit_product=new VisitProductModel();
+                $visit_product->addProductInfo($_input['product_info'],$result,$userInfo['id']);
             }
             return $result ? $result : false;
         }catch (Exception $e){
