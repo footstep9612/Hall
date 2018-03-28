@@ -5,7 +5,7 @@
  * Date: 2017/9/21
  * Time: 11:40
  */
-class TimedtaskEdiController extends PublicController{
+class TimedtaskediController extends PublicController{
 
 //    private $serverIP = 'credit.eruidev.com';
 //    private $serverPort = '80';
@@ -15,7 +15,7 @@ class TimedtaskEdiController extends PublicController{
     private $mode = 'wsdl';
     static private $policyNo = 'SCH043954-181800';
     static private $serviceUri = '';
-    static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
+    static private $url_wsdl = 'http://39.107.75.138:8086/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
         ini_set("display_errors", "On");

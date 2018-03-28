@@ -182,7 +182,7 @@ class BuyerBankInfoModel extends PublicModel
                 $dataArr['bank_name'] = $dataInfo['bank_name'];
                 $dataArr['bank_address'] = $dataInfo['bank_address'];
                 $dataArr['sign'] = 2;
-                $credit_log_model->create_data($this->create($dataArr));
+                $credit_log_model->create_data($dataArr);
             }
             //更新授信状态
             $credit_model = new BuyerCreditModel();

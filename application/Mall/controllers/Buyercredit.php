@@ -128,7 +128,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            $this->_setAgentName($res);
+            $this->_setAgentName($res,'agent_by');
             $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
@@ -176,18 +176,33 @@ class BuyercreditController extends PublicController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
-            if(!empty($creditInfo['approved_date'])){
-                $time = strtotime('+90 days',strtotime($creditInfo['approved_date']));
-                if($time <= time()) {
-                    $creditInfo['status'] = 'INVALID';
-                    $status['status'] = 'INVALID';
-                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
+            if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
+                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                    $deadline = $creditInfo['nolc_deadline'];
+                }else {
+                    $deadline = $creditInfo['lc_deadline'];
                 }
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $current_time = strtotime('now');
+                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                LOG::write($content, LOG::INFO);
+                if($time <= $current_time) {
+                    $item['status'] = 'INVALID';
+                    $status['status'] = 'INVALID';
+                    $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                }
+                unset($time);
+                unset($current_time);
             }
-            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['data'] = $creditInfo;
+            $datajson['message'] = 'success!';
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
         }
+        $this->jsonReturn($datajson);
     }
 
     private function _getBuyerNo($buyer_id){
@@ -203,16 +218,16 @@ class BuyercreditController extends PublicController {
     /* 代办人信息
      * @desc   企业/银行
      */
-    private function _setAgentName(&$list) {
+    private function _setAgentName(&$list,$name) {
         foreach ($list as $log) {
-            $agentids[] = $log['agent_by'];
+            $agentids[] = $log[$name];
         }
 
         $agent_model = new EmployeeModel();
         $agent_contact = $agent_model->getUserNamesByUserids($agentids);
         foreach ($list as $key => $val) {
-            if (isset($agent_contact[$val['id']]) && $agent_contact[$val['id']]) {
-                $val['agent_name'] = $agent_contact[$val['id']];
+            if (isset($agent_contact[$val[$name]]) && $agent_contact[$val[$name]]) {
+                $val['agent_name'] = $agent_contact[$val[$name]];
             } else {
                 $val['agent_name'] = '';
             }
