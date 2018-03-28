@@ -84,7 +84,7 @@ class TransBoxTypeModel extends PublicModel {
             $data = $this->_getCondition($condition);
             $redis_keys = md5(json_encode($data));
             if (redisExist('TransBoxType_' . $redis_keys)) {
-                return json_decode(redisSet('TransBoxType_' . $redis_keys), true);
+                return json_decode(redisGet('TransBoxType_' . $redis_keys), true);
             }
             $result = $this->alias('tbt')
                     ->join('erui_dict.box_type bt on bt.bn=tbt.box_type_bn and bt.lang=\'zh\' and bt.deleted_flag=\'N\'', 'left')
