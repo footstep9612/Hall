@@ -124,7 +124,7 @@ class BuyervisitController extends PublicController {
     public function demadListAction(){
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
-        $arr = $visit_model->getDemadList($data);
+        $arr = $visit_model->getDemadList($data,$this->getLang());
         if ($arr !== false) {
             jsonReturn($arr);
         }else{

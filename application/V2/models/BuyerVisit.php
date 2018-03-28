@@ -60,18 +60,21 @@ class BuyerVisitModel extends PublicModel {
      * @param array $_input
      * @return array|bool|mixed
      */
-    public function getDemadList($_input = []){
+    public function getDemadList($_input = [],$lang='zh'){
         $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $offset=($current_no-1)*$length;
-//        $info=$this->alias('visit')
-//            ->join('erui_buyer.buyer buyer on visit.buyer_id=buyer.id','left')
-//            ->join('erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id','left')
-//            ->field('buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,buyer.country_bn,visit.id,visit.demand_type,reply.created_at as reply_at,reply.created_by as replyer')
-//            ->where(array('is_demand'=>'Y'))
-//            ->order()
-//            ->select();
-        $lang='zh';
+
+        $total_sql='select count(*) as total';
+        $total_sql.=' from erui_buyer.buyer_visit visit ';
+        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+        $total_sql.=' where visit.is_demand=\'Y\'';
+        $total=$this->query($total_sql);
+        $total=$total[0]['total'];
+
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';
         $sql.=' employee.name as created_name,';
@@ -105,7 +108,10 @@ class BuyerVisitModel extends PublicModel {
                 $info[$key]['reply']=!empty($value['reply_at'])?'YES':'NO';
             }
         }
-        return $info;
+        $arr['total']=$total;
+        $arr['current_no']=$current_no;
+        $arr['result']=$info;
+        return $arr;
 //            ->join()
 //        $condition = [
 //            'is_demand' => self::DEMAND_Y
