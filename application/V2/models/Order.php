@@ -145,6 +145,12 @@ class OrderModel extends PublicModel {
             $where['buyer.name'] = $condition['name'];
         }
 
+		if (isset($condition['is_history']) && $condition['is_history'] == 1) {
+            $where['is_history'] = 1;
+        }else{
+			$where['is_history'] = 0;
+		}
+
         return $where;
     }
 
