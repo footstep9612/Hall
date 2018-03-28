@@ -51,8 +51,10 @@ class BuyerVisitModel extends PublicModel {
              ];
         return $arr;
     }
+    //获取客户需求反馈的条件
+    public function getDemadCond($data){
 
-
+    }
     /**
      * 需求列表
      * @param array $_input
@@ -61,20 +63,42 @@ class BuyerVisitModel extends PublicModel {
     public function getDemadList($_input = []){
         $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
-        $condition = [
-            'is_demand' => self::DEMAND_Y
-        ];
+//        $info=$this->alias('visit')
+//            ->join('erui_buyer.buyer buyer on visit.buyer_id=buyer.id','left')
+//            ->join('erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id','left')
+//            ->field('buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,buyer.country_bn,visit.id,visit.demand_type,reply.created_at as reply_at,reply.created_by as replyer')
+//            ->where(array('is_demand'=>'Y'))
+//            ->order()
+//            ->select();
+//        $sql='select ';
+//        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,buyer.country_bn,visit.id as visit_id,visit.demand_type,reply.created_at as reply_at,reply.created_by as replyer, ';
+//        $sql.=' employee.name as created_name';
+//        $sql.=' from erui_buyer.buyer_visit visit ';
+//        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+//        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+//        $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+//        $sql.=' where visit.is_demand=\'Y\'';
+//        $sql.=' order by reply.created_at desc ';
+//        $info=$this->query($sql);
+//        foreach($info as $key => $value){
+//
+//            print_r($value);die;
+//        }
+//            ->join()
+//        $condition = [
+//            'is_demand' => self::DEMAND_Y
+//        ];
         //根据条件查询用户信息
-        $condition_user = [];
-        if(isset($_input['name']) && !empty($_input['name'])){
-            $condition_user['name'] = trim($_input['name']);
-        }
-        if(isset($_input['user_no']) && !empty($_input['user_no'])){
-            $condition_user['user_no'] = trim($_input['user_no']);
-        }
-        if(isset($_input['mobile']) && !empty($_input['mobile'])){
-            $condition_user['mobile'] = trim($_input['mobile']);
-        }
+//        $condition_user = [];
+//        if(isset($_input['name']) && !empty($_input['name'])){
+//            $condition_user['name'] = trim($_input['name']);
+//        }
+//        if(isset($_input['user_no']) && !empty($_input['user_no'])){
+//            $condition_user['user_no'] = trim($_input['user_no']);
+//        }
+//        if(isset($_input['mobile']) && !empty($_input['mobile'])){
+//            $condition_user['mobile'] = trim($_input['mobile']);
+//        }
         try{
             if(!empty($condition_user)){
                 $userModel = new UserModel();
