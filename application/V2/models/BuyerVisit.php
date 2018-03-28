@@ -63,6 +63,7 @@ class BuyerVisitModel extends PublicModel {
     public function getDemadList($_input = []){
         $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
+        $offset=($current_no-1)*$length;
 //        $info=$this->alias('visit')
 //            ->join('erui_buyer.buyer buyer on visit.buyer_id=buyer.id','left')
 //            ->join('erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id','left')
@@ -70,20 +71,41 @@ class BuyerVisitModel extends PublicModel {
 //            ->where(array('is_demand'=>'Y'))
 //            ->order()
 //            ->select();
-//        $sql='select ';
-//        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,buyer.country_bn,visit.id as visit_id,visit.demand_type,reply.created_at as reply_at,reply.created_by as replyer, ';
-//        $sql.=' employee.name as created_name';
-//        $sql.=' from erui_buyer.buyer_visit visit ';
-//        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-//        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
-//        $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-//        $sql.=' where visit.is_demand=\'Y\'';
-//        $sql.=' order by reply.created_at desc ';
-//        $info=$this->query($sql);
-//        foreach($info as $key => $value){
-//
-//            print_r($value);die;
-//        }
+        $lang='zh';
+        $sql='select ';
+        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';
+        $sql.=' employee.name as created_name,';
+        $sql.=' visit.demand_type';
+        $sql.=' from erui_buyer.buyer_visit visit ';
+        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+        $sql.=' where visit.is_demand=\'Y\'';
+        $sql.=' order by reply.created_at desc ';
+        $sql.=' limit '.$offset.','.$length;
+        $info=$this->query($sql);
+        $visit_product=new VisitProductModel();
+        $visit_demand_type=new VisitDemadTypeModel();
+        foreach($info as $key => $value){
+            $product=$visit_product->getProductName($value['visit_id'],$lang);  //品类信息
+            $info[$key]['product_cate']=$product;
+
+            $demand_type_str=implode(',',json_decode($value['demand_type'],true));  //需求类型
+            if(!empty($demand_type_str)){
+                $demand_type=$visit_demand_type->getInfoByIds($demand_type_str,$lang);
+            }else{
+                $demand_type=null;
+            }
+            $info[$key]['demand_type']=$demand_type;
+
+            if($lang=='zh'){  //是否反馈
+                $info[$key]['reply']=!empty($value['reply_at'])?'是':'否';
+            }else{
+                $info[$key]['reply']=!empty($value['reply_at'])?'YES':'NO';
+            }
+        }
+        return $info;
 //            ->join()
 //        $condition = [
 //            'is_demand' => self::DEMAND_Y

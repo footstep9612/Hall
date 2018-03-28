@@ -26,6 +26,9 @@ class VisitProductModel extends PublicModel {
                 if(!empty($v['product_cate'])){
                     $v['product_cate']=implode(',',$v['product_cate']);
                 }
+                if(!is_numeric($value['purchase_amount'])){
+                    $v['purchase_amount']=0;
+                }
                 $productArr[$key]=$v;
                 $productArr[$key]['visit_id']=$visit_id;
                 $productArr[$key]['created_by']=$created_by;
@@ -39,6 +42,7 @@ class VisitProductModel extends PublicModel {
             ];
         }
         return $this->addAll($productArr);
+
     }
     //编辑
     public function updateProductInfo($product,$visit_id,$created_by){
@@ -74,15 +78,44 @@ class VisitProductModel extends PublicModel {
         }
         return true;
     }
-    public function getProductInfo($visit_id){
+    public function getProductInfo($visit_id,$field='*'){
         $cond=array(
             'visit_id'=>$visit_id,
             'deleted_flag'=>'N',
         );
-        $info=$this->where($cond)->select();
+        $info=$this->field($field)->where($cond)->select();
         foreach($info as $k => $v){
             $info[$k]['product_cate']=explode(',',$v['product_cate']);
         }
         return $info;
+    }
+    public function getProductName($visit_id,$lang='zh'){
+        $info=$this->getProductInfo($visit_id,'product_cate');
+        if(empty($info[0]['product_cate'][0])){
+            return null;
+        }
+        $arr=[];
+        foreach($info as $k => $v){
+            if(in_array(0,$v['product_cate'])){
+                $cond=array('cat_no'=>$v['product_cate'][0],'lang'=>$lang);
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
+                if($lang=='zh'){
+                    $arr[]=$material['name'].'/其他\n';
+                }else{
+                    $arr[]=$material['name'].'/Others\n';
+                }
+            }else{
+                $a=$v['product_cate'][0];
+                $b=$v['product_cate'][1];
+                $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
+                $arr[]=$material[0]['name'].'/'.$material[1]['name'].'\n';
+            }
+        }
+        $product_cate='';
+        foreach($arr as $k => $v){
+            $product_cate.=($k+1).'.'.$v;
+        }
+        return $product_cate;
     }
 }

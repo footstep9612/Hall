@@ -44,7 +44,20 @@ class VisitDemadTypeModel extends PublicModel {
             return false;
         }
     }
-
+    //crm-ids查询需求反馈名称-wangs
+    public function getInfoByIds($str,$lang='zh'){
+        if($lang=='zh'){
+            $info=$this->field('name')->where("id in ($str)")->select();
+        }else{
+            $info=$this->field('en as name')->where("id in ($str)")->select();
+        }
+        $str='';
+        foreach($info as $k => $v){
+            $str.=',\n'.$v['name'];
+        }
+        $str=substr($str,3);
+        return $str;
+    }
     /**
      * 更加id获取详情
      * @param $id
