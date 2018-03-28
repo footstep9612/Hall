@@ -842,6 +842,17 @@ class BuyerVisitModel extends PublicModel {
      */
     public function getVisitOfCond($data){
         $condition=' 1=1 ';
+        if(!empty($data['country_bn'])){    //国家权限============================================
+            $countryArr=explode(',',$data['country_bn']);
+            $countryStr='';
+            foreach($countryArr as $v){
+                $countryStr.=",'".$v."'";
+            }
+            $countryStr=substr($countryStr,1);
+            if($data['admin']==0){  //没有查看所有的权限
+                $condition .= " and buyer.country_bn in ($countryStr)";
+            }
+        }
         if(!empty($data['buyer_name'])){  //客户名称
             $condition.=" and buyer.name like '%$data[buyer_name]%'";
         }
