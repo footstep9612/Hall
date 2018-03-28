@@ -102,7 +102,6 @@ class BuyerVisitModel extends PublicModel {
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
-//        print_r($demadCond);die;
         //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
@@ -111,6 +110,7 @@ class BuyerVisitModel extends PublicModel {
         $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
         $total_sql.=' where visit.is_demand=\'Y\'';
+        $total_sql.=$demadCond;
         $total=$this->query($total_sql);
         $total=$total[0]['total'];
         //数据信息
