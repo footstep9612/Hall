@@ -59,7 +59,7 @@ class BuyerVisitModel extends PublicModel {
      * @return array|bool|mixed
      */
     public function getDemadList($_input = []){
-        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 20;
+        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $condition = [
             'is_demand' => self::DEMAND_Y
@@ -264,6 +264,7 @@ class BuyerVisitModel extends PublicModel {
 
         $data['visit_objective'] = trim($_input['visit_objective']);    //拜访目的
         $data['visit_personnel'] = trim($_input['visit_personnel']);    //拜访陪同人员
+        $data['visit_customer'] = trim($_input['visit_customer']);    //参与拜访人员(客户)
         $data['visit_result'] = trim($_input['visit_result']);    //拜访结果
         if(isset($_input['is_demand']) && !empty($_input['is_demand'])){
             $data['is_demand'] = self::DEMAND_Y;    //是否有需求
@@ -282,8 +283,7 @@ class BuyerVisitModel extends PublicModel {
                 $data['created_by'] = $userInfo['id'] ? $userInfo['id'] : null;
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 //$data['deleted_flag'] =  self::DELETED_N;
-                $result = 219;
-//                $result = $this->add($data);
+                $result = $this->add($data);
                 //产品分类信息
                 $visit_product=new VisitProductModel();
                 $visit_product->addProductInfo($_input['product_info'],$result,$userInfo['id']);
