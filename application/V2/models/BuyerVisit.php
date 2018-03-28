@@ -53,7 +53,44 @@ class BuyerVisitModel extends PublicModel {
     }
     //获取客户需求反馈的条件
     public function getDemadCond($data){
+        $condition='';
+        if(!empty($data['reply_name'])){  //需求反馈提交人姓名
+            $condition.=" and employee.name like '%$data[reply_name]%'";
+        }
+        if(!empty($data['user_no'])){  //需求反馈提交人工号
+            $condition.=" and employee.user_no like '%$data[user_no]%'";
+        }
+        if(!empty($data['phone'])){  //需求反馈提交人联系方式
+            $condition.=" and employee.mobile like '%$data[phone]%'";
+        }
 
+
+        if(!empty($data['reply'])){  //是否需求反馈提状态
+            if($data['reply']=='Y'){
+                $condition.=" and reply.created_at>='1970-01-01 00:00:00'";
+            }
+            if($data['reply']=='N'){
+                $condition.=" and reply.created_at is null";
+            }
+        }
+        if(!empty($data['reply_strart_at'])){  //需求反馈时间strart
+            $condition.=" and reply.created_at>='$data[reply_strart_at]'";
+        }
+        if(!empty($data['reply_end_at'])){  //需求反馈时间end
+            $condition.=" and reply.created_at<='$data[reply_end_at]'";
+        }
+
+
+        if(!empty($data['buyer_name'])){  //客户名称
+            $condition.=" and buyer.name like '%$data[buyer_name]%'";
+        }
+        if(!empty($data['buyer_code'])){  //CRM客户代码
+            $condition.=" and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['country_search'])){  //国家搜索
+            $condition.=" and buyer.country_bn='$data[country_search]'";
+        }
+        return $condition;
     }
     /**
      * 需求列表
@@ -64,7 +101,9 @@ class BuyerVisitModel extends PublicModel {
         $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $offset=($current_no-1)*$length;
-
+        $demadCond=$this->getDemadCond($_input);
+//        print_r($demadCond);die;
+        //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
         $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
@@ -74,10 +113,10 @@ class BuyerVisitModel extends PublicModel {
         $total_sql.=' where visit.is_demand=\'Y\'';
         $total=$this->query($total_sql);
         $total=$total[0]['total'];
-
+        //数据信息
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';
-        $sql.=' employee.name as created_name,';
+        $sql.=' employee.name as reply_name,';
         $sql.=' visit.demand_type';
         $sql.=' from erui_buyer.buyer_visit visit ';
         $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
@@ -85,9 +124,11 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
         $sql.=' where visit.is_demand=\'Y\'';
+        $sql.=$demadCond;
         $sql.=' order by reply.created_at desc ';
         $sql.=' limit '.$offset.','.$length;
         $info=$this->query($sql);
+//        echo $this->getLastSql();die;
         $visit_product=new VisitProductModel();
         $visit_demand_type=new VisitDemadTypeModel();
         foreach($info as $key => $value){
