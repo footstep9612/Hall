@@ -40,7 +40,17 @@ class BuyerVisitModel extends PublicModel {
         }
         $length = 10;
         $offset = ($current_no-1)*$length;
-        $total = $this->field('id')->where($condition)->count();
+//        $total = $this->field('id')->where($condition)->count();
+        $total_sql='select count(*) as total';
+        $total_sql.=' from erui_buyer.buyer_visit visit ';
+        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+        $total_sql.=' where ';
+        $total_sql.=$condition;
+        $total=$this->query($total_sql);
+        $total=$total[0]['total'];
         //按条件获取拜访记录数据
         $result = $this->condGetVisitData($lang,$condition,$offset,$length);
         $arr = [
@@ -719,37 +729,52 @@ class BuyerVisitModel extends PublicModel {
         $buyerModel = new BuyerModel(); //客户
         $dpModel = new VisitDemadTypeModel();   //需求类型
         $bvrModel = new BuyerVisitReplyModel(); //拜访回复记录
-        $field='buyer_visit.id';
-        $fieldArr=array(
-            'buyer_id','name','phone','visit_at','visit_type','visit_level','visit_position','demand_type','demand_content','visit_objective','visit_personnel','visit_result','is_demand','created_by','created_at'
-        );
-        foreach($fieldArr as $v){
-            $field.=',buyer_visit.'.$v;
-        }
-        $field.=',employee.name as created_name';
-        $result = $this->alias('buyer_visit')
-            ->join('erui_sys.employee employee on buyer_visit.created_by=employee.id','left')
-            ->field($field)
-            ->where($condition)
-            ->limit($offset,$pageSize)
-            ->select();
-        foreach($result as $index => $r){
-            //客户信息
-            $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
-            $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
-            $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
-            $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-        }
-        foreach($result as $index => $r){
-            //业务部门反馈时间
-            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-            $result[$index]['reply_time'] =$replyInfo['created_at'];
-        }
-        foreach($result as $index => $r){
-            //业务部门反馈时间
-            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-            $result[$index]['reply_time'] =$replyInfo['created_at'];
-        }
+//        $field='buyer_visit.id';
+//        $fieldArr=array(
+//            'buyer_id','name','visit_at','visit_type','visit_level','visit_position','demand_type','visit_objective','visit_personnel','visit_result','created_by');
+//        foreach($fieldArr as $v){
+//            $field.=',buyer_visit.'.$v;
+//        }
+//        $field.=',employee.name as created_name';
+//        $result = $this->alias('buyer_visit')
+//            ->join('erui_sys.employee employee on buyer_visit.created_by=employee.id','left')
+//            ->field($field)
+//            ->where($condition)
+//            ->limit($offset,$pageSize)
+//            ->select();
+        //数据信息
+        $sql='select ';
+        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
+        $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
+        $sql.=' visit.visit_type,visit.visit_level,visit.visit_position,visit.demand_type,visit.visit_objective,visit.visit_personnel,visit.visit_result,';
+        $sql.=' employee.name as created_name';
+        $sql.=' from erui_buyer.buyer_visit visit ';
+        $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+        $sql.=' where ';
+        $sql.=$condition;
+        $sql.=' order by visit.created_at desc ';
+        $sql.=' limit '.$offset.','.$pageSize;
+        $result=$this->query($sql);
+//        foreach($result as $index => $r){
+//            //客户信息
+//            $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
+//            $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
+//            $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
+//            $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
+//        }
+//        foreach($result as $index => $r){
+//            //业务部门反馈时间
+//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+//            $result[$index]['reply_time'] =$replyInfo['created_at'];
+//        }
+//        foreach($result as $index => $r){
+//            //业务部门反馈时间
+//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
+//            $result[$index]['reply_time'] =$replyInfo['created_at'];
+//        }
         foreach($result as $index => $r){
             //目的拜访类型
             $vtype = json_decode($r['visit_type']);
@@ -760,7 +785,7 @@ class BuyerVisitModel extends PublicModel {
             }
             $visit_type = '';
             foreach($visitTypeInfo as $info){
-                $visit_type.= '、'.$info['name'];
+                $visit_type.= ','.$info['name'];
             }
             $result[$index]['visit_type'] = $visit_type ? mb_substr($visit_type,1) : '';
         }
@@ -774,7 +799,7 @@ class BuyerVisitModel extends PublicModel {
             }
             $visit_position = '';
             foreach($vpInfo as $info){
-                $visit_position.= '、'.$info['name'];
+                $visit_position.= ','.$info['name'];
             }
             $result[$index]['visit_position'] = $visit_position ? mb_substr($visit_position,1) : '';
 
@@ -789,7 +814,7 @@ class BuyerVisitModel extends PublicModel {
             }
             $visit_level = '';
             foreach($vlInfo as $info){
-                $visit_level.= '、'.$info['name'];
+                $visit_level.= ','.$info['name'];
             }
             $result[$index]['visit_level'] = $visit_level ? mb_substr($visit_level,1) : '';
         }
@@ -804,7 +829,7 @@ class BuyerVisitModel extends PublicModel {
                 }
                 $demand_type = '';
                 foreach($dpInfo as $info){
-                    $demand_type.= '、'.$info['name'];
+                    $demand_type.= ','.$info['name'];
                 }
             }
             $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
@@ -815,7 +840,45 @@ class BuyerVisitModel extends PublicModel {
      * 获取拜访记录搜索条件
      * wangs
      */
-    public function getVisitOfCond($data = [])
+    public function getVisitOfCond($data){
+        $condition=' 1=1 ';
+        if(!empty($data['buyer_name'])){  //客户名称
+            $condition.=" and buyer.name like '%$data[buyer_name]%'";
+        }
+        if(!empty($data['buyer_code'])){  //CRM客户代码
+            $condition.=" and buyer.buyer_code like '%$data[buyer_code]%'";
+        }
+        if(!empty($data['country_search'])){  //国家搜索
+            $condition.=" and buyer.country_bn='$data[country_search]'";
+        }
+
+        if(!empty($data['created_name'])){  //拜访记录创建人姓名
+            $condition.=" and employee.name like '%$data[created_name]%'";
+        }
+
+        if(!empty($data['reply'])){  //是否需求反馈提状态
+            if($data['reply']=='Y'){
+                $condition.=" and reply.created_at>='1970-01-01 00:00:00'";
+            }
+            if($data['reply']=='N'){
+                $condition.=" and reply.created_at is null";
+            }
+        }
+        if(!empty($data['visit_strart_at'])){  //拜访时间strart
+            $condition.=" and visit.visit_at>='$data[visit_strart_at]'";
+        }
+        if(!empty($data['visit_end_at'])){  //拜访时间end
+            $condition.=" and visit.visit_at<='$data[visit_end_at]'";
+        }
+        if(!empty($data['created_strart_at'])){  //拜访记录创建时间strart
+            $condition.=" and visit.created_at>='$data[created_strart_at]'";
+        }
+        if(!empty($data['created_end_at'])){  //拜访记录创建时间end
+            $condition.=" and visit.created_at<='$data[created_end_at]'";
+        }
+        return $condition;
+    }
+    public function getVisitOfCond1($data = [])
     {
         $condition = [];
         //按拜访记录id为条件
@@ -826,42 +889,42 @@ class BuyerVisitModel extends PublicModel {
         if (!empty($data['buyer_id'])) {
             $condition['buyer_id'] = ['in', $data['buyer_id']];
         }
-            $cond = ' 1=1';
-            if (!empty($data['buyer_name'])) {  //客户名称
-                $cond .= " and name like '%$data[buyer_name]%'";
-            }
-            if (!empty($data['buyer_no'])) {  //客户编号
-                $cond .= " and buyer_no like '%$data[buyer_no]%'";
-            }
-            if (!empty($data['buyer_code'])) {  //客户code
-                $cond .= " and buyer_code like '%$data[buyer_code]%'";
-            }
-            if (!empty($data['country_bn']) || !empty($data['country_search'])) {  //国家权限 || 国家搜索
-                if(!empty($data['country_bn'])){    //国家权限
-                    $countryArr=explode(',',$data['country_bn']);
-                    $countryStr='';
-                    foreach($countryArr as $v){
-                        $countryStr.=",'".$v."'";
-                    }
-                    $countryStr=substr($countryStr,1);
-                    if($data['admin']==0){  //没有查看所有的权限
-                        $cond .= " and buyer.country_bn in ($countryStr)";
-                    }
+        $cond = ' 1=1';
+        if (!empty($data['buyer_name'])) {  //客户名称
+            $cond .= " and name like '%$data[buyer_name]%'";
+        }
+        if (!empty($data['buyer_no'])) {  //客户编号
+            $cond .= " and buyer_no like '%$data[buyer_no]%'";
+        }
+        if (!empty($data['buyer_code'])) {  //客户code
+            $cond .= " and buyer_code like '%$data[buyer_code]%'";
+        }
+        if (!empty($data['country_bn']) || !empty($data['country_search'])) {  //国家权限 || 国家搜索
+            if(!empty($data['country_bn'])){    //国家权限
+                $countryArr=explode(',',$data['country_bn']);
+                $countryStr='';
+                foreach($countryArr as $v){
+                    $countryStr.=",'".$v."'";
                 }
-                if(!empty($data['country_search'])){    //国家搜索
-                    $cond .= " and buyer.country_bn='".$data['country_search']."'";
+                $countryStr=substr($countryStr,1);
+                if($data['admin']==0){  //没有查看所有的权限
+                    $cond .= " and buyer.country_bn in ($countryStr)";
                 }
-                $buyerModel= new BuyerModel();
-                $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
-                if (empty($buyer_ids)) {
-                    return false;   //数据为空
-                }
-                $buyer_id = [];
-                foreach ($buyer_ids as $v) {
-                    $buyer_id[] = $v['id'];
-                }
-                $condition['buyer_id'] = ['in', $buyer_id];
             }
+            if(!empty($data['country_search'])){    //国家搜索
+                $cond .= " and buyer.country_bn='".$data['country_search']."'";
+            }
+            $buyerModel= new BuyerModel();
+            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
+            if (empty($buyer_ids)) {
+                return false;   //数据为空
+            }
+            $buyer_id = [];
+            foreach ($buyer_ids as $v) {
+                $buyer_id[] = $v['id'];
+            }
+            $condition['buyer_id'] = ['in', $buyer_id];
+        }
 //        if (!empty($data['buyer_name']) || !empty($data['buyer_code'])) { //
 //            $buyerModel= new BuyerModel();
 //            $buyer_ids = $buyerModel->field('id')->where($cond)->order('id desc')->select();
