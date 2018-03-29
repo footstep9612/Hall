@@ -1947,3 +1947,15 @@ function dateToTimeStamp($str) {
     $d = new DateTime($str);
     return  $d->format('U');
 }
+
+/**
+ * @desc 判断参数是否为数字或小数
+ *
+ * @param mixed $param
+ * @return bool
+ * @author liujf
+ * @time 2018-03-28
+ */
+function isDecimal($param) {
+    return !!preg_match('/^((\d+\.\d*)|(\d*\.\d+)|(\d+))$/', $param);
+}
