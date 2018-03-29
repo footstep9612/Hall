@@ -432,9 +432,9 @@ class BuyercreditController extends PublicController {
                 $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
                 LOG::write($content, LOG::INFO);
                 if($time <= $current_time) {
-                    $item['status'] = 'INVALID';
+                    $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
-                    $credit_model->where(['buyer_no' => $item['buyer_no']])->save($status);
+                    $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
                 }
                 unset($time);
                 unset($current_time);
