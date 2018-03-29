@@ -284,15 +284,29 @@ class HandleController extends Yaf_Controller_Abstract
     public function exportSupplierSkuAction()
     {
         /*
-         * 1、湖北江汉石油仪器仪表股份有限公司
-         * 2、中国石油集团济柴动力总厂
-         * 3、青岛天时油气装备服务集团有限公司
-         * 4、江苏如通石油机械股份有限公司
-         * 5、烟台石油机械有限公司
+         *  德州博儒石油机械制造有限公司  N
+            济南万齐石油装备有限公司 N
+            青岛海科石油装备有限公司 Y
+            济南隆超石油机械锻造有限公司 Y
+            青岛双圣海新能源科技有限公司 Y
+            淄博华创精细陶瓷有限公司 Y
+            安平县星火金属网厂 Y
+            青岛天时油气装备服务集团股份有限公司 Y
+            成都西部石油装备股份有限公司 Y
+            河北宇通特种胶管有限公司 y
+            山东龙口特种胶管有限公司 y
+            河北景渤石油机械有限公司 y
+            东营欧菲德石油技术有限公司 y
+            北京普世科石油机械新技术有限公司 y
+            宝鸡市工程液压件厂 y
+            江苏如通石油机械股份有限公司 y
+            江苏如石机械股份有限公司 y
+            南京安佰科照明科技有限公司 y
+            湖北江汉石油仪器仪表股份有限公司 y
          */
         set_time_limit(0);
 
-        $supplierName = '中国石油集团济柴动力总厂';
+        $supplierName = '青岛海科石油装备有限公司';
         $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
 
         if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或未审核!']));
@@ -308,9 +322,9 @@ class HandleController extends Yaf_Controller_Abstract
 
         //$data = $this->getSkuDataBySupplierID($supplierId);
         //p($condition);
-        //$localFile = $this->createSupplierExcel($data, $supplierName);
+        $localFile = $this->createSupplierExcel($data, $supplierName);
 
-        //p($localFile);
+        p($localFile);
     }
 
     public function spuWithSkuAction()
