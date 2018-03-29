@@ -63,7 +63,18 @@ class BuyerVisitModel extends PublicModel {
     }
     //获取客户需求反馈的条件
     public function getDemadCond($data){
-        $condition='';
+        $condition=' visit.is_demand=\'Y\' ';
+        if(!empty($data['country_bn'])){    //国家权限============================================
+            $countryArr=explode(',',$data['country_bn']);
+            $countryStr='';
+            foreach($countryArr as $v){
+                $countryStr.=",'".$v."'";
+            }
+            $countryStr=substr($countryStr,1);
+            if($data['admin']==0){  //没有查看所有的权限
+                $condition .= " and buyer.country_bn in ($countryStr)";
+            }
+        }
         if(!empty($data['reply_name'])){  //需求反馈提交人姓名
             $condition.=" and employee.name like '%$data[reply_name]%'";
         }
@@ -119,7 +130,7 @@ class BuyerVisitModel extends PublicModel {
         $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
         $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-        $total_sql.=' where visit.is_demand=\'Y\'';
+        $total_sql.=' where ';
         $total_sql.=$demadCond;
         $total=$this->query($total_sql);
         $total=$total[0]['total'];
@@ -133,7 +144,7 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
         $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-        $sql.=' where visit.is_demand=\'Y\'';
+        $sql.=' where ';
         $sql.=$demadCond;
         $sql.=' order by reply.created_at desc ';
         $sql.=' limit '.$offset.','.$length;
@@ -700,7 +711,7 @@ class BuyerVisitModel extends PublicModel {
         //整合数据
         $arr=array();
         foreach($data as $k => $v){
-            $arr[$k]['id'] = $v['id'];    //序号
+            $arr[$k]['visit_id'] = $v['visit_id'];    //序号
             $arr[$k]['buyer_name'] = $v['buyer_name'];    //客户名称
             $arr[$k]['buyer_code'] = $v['buyer_code'];    //客户代码（CRM）
             $arr[$k]['visit_at'] = $v['visit_at'];    //拜访时间

@@ -792,10 +792,12 @@ EOF;
         if ($data['id']) {
 //            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
             $field='buyer.*';
-            $field.=',em.name as checked_name';
+            $field.=',em.name as checked_name,';
+            $field.='account.show_name as first_name,account.email';
 
-            $buyerInfo = $this->where(array("buyer.id" => $data['id']))->field($field)
-                    ->join('erui_sys.employee em on em.id=buyer.checked_by', 'left')
+            $buyerInfo = $this->where(array("buyer.id" => $data['id'],'buyer.deleted_flag'=>'N'))->field($field)
+                    ->join('erui_buyer.buyer_account account on buyer.id=account.buyer_id and account.deleted_flag=\'N\'', 'left')
+                    ->join('erui_sys.employee em on em.id=buyer.checked_by and em.deleted_flag=\'N\'', 'left')
                     ->find();
             if(!empty($buyerInfo['official_phone'])){
                 if(preg_match('/ /',$buyerInfo['official_phone'])){ //匹配空格
@@ -809,9 +811,9 @@ EOF;
 //            if ($row) {
 //                $buyerInfo['attach'] = $row[0];
 //            }
-            $account=new BuyerAccountModel();
-            $show_name=$account->field('show_name')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
-            $buyerInfo['first_name'] = $show_name['show_name'];
+//            $account=new BuyerAccountModel();
+//            $show_name=$account->field('show_name')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
+//            $buyerInfo['first_name'] = $show_name['show_name'];
             return $buyerInfo;
         } else {
             return false;

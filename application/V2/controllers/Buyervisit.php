@@ -11,10 +11,10 @@ class BuyervisitController extends PublicController {
     public function init() {
         parent::init();
     }
-    private function crmUserRole($user_id){ //获取角色
+    private function crmUserRole($user_id,$access){ //获取角色
         $role=new RoleUserModel();
         $arr=$role->crmGetUserRole($user_id);
-        if(in_array('CRM拜访记录',$arr)){
+        if(in_array($access,$arr)){
             $admin=1;   //市场专员
         }else{
             $admin=0;
@@ -29,7 +29,7 @@ class BuyervisitController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
-        $data['admin']=$this->crmUserRole($this->user['id']);
+        $data['admin']=$this->crmUserRole($this->user['id'],'CRM拜访记录');
         $arr = $visit_model->getList($data);
         if ($arr !== false) {
             jsonReturn($arr);
@@ -123,6 +123,7 @@ class BuyervisitController extends PublicController {
      */
     public function demadListAction(){
         $data = $this->getPut();
+        $data['admin']=$this->crmUserRole($this->user['id'],'CRM需求反馈记录');
         $visit_model = new BuyerVisitModel();
         $arr = $visit_model->getDemadList($data,$this->getLang());
         if ($arr !== false) {
@@ -177,7 +178,7 @@ class BuyervisitController extends PublicController {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
-        $data['admin']=$this->crmUserRole($this->user['id']);
+        $data['admin']=$this->crmUserRole($this->user['id'],'CRM拜访记录');
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
         if($arr === false){
@@ -190,7 +191,7 @@ class BuyervisitController extends PublicController {
         if(!empty($arr)){
             $dataJson=array(
                 'code'=>1,
-                'message'=>'下载成功',
+                'message'=>'Success',
                 'name'=>$arr['name'],
                 'url'=>$arr['url']
             );

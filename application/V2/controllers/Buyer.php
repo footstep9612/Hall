@@ -682,7 +682,7 @@ class BuyerController extends PublicController {
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
-            $where_attach['buyer_id'] = $data['id'];
+//            $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));    //用户id不能为空
         }
@@ -695,9 +695,19 @@ class BuyerController extends PublicController {
             }
             $arr['name'] = $data['name'];
         }
-        if (!empty($data['first_name'])) {
+        $buyer_account_model = new BuyerAccountModel();
+        if (!empty($data['email'])) {   //邮箱
+            $data['email']=trim($data['email'],' ');
+            $account['email'] = $data['email']; //---------------------账号
+            $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
+            if ($buyer_id > 0 && $buyer_id != $data['id']) {
+                $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
+            }
+        }
+        if (!empty($data['first_name'])) {  //姓名
             $arr['first_name'] = $data['first_name'];
             $account['first_name'] = $data['first_name'];
+            $account['show_name'] = $data['first_name'];
         }
         if (!empty($data['bn'])) {
             $arr['bn'] = $data['bn'];
@@ -717,7 +727,7 @@ class BuyerController extends PublicController {
             $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
         }
         if (!empty($data['country_bn'])) {  //国家
-            $account['country_bn'] = $data['country_bn'];
+            $arr['country_bn'] = $data['country_bn'];
         }
         if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
@@ -730,16 +740,6 @@ class BuyerController extends PublicController {
         }
         if (!empty($data['close_info'])) {     //关闭客户信息备注
             $arr['close_info'] = $data['close_info'];
-        }
-        $buyer_account_model = new BuyerAccountModel();
-        if (!empty($data['email'])) {
-            $data['email']=trim($data['email'],' ');
-//            $arr['official_email'] = $data['email'];
-            $account['email'] = $data['email'];
-            $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
-            if ($buyer_id > 0 && $buyer_id != $data['id']) {
-                $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
-            }
         }
         if (!empty($data['mobile'])) {
             $data['mobile']=$this->validPhone($data['mobile']);
@@ -785,25 +785,25 @@ class BuyerController extends PublicController {
         }
         $model = new BuyerModel();
         $res = $model->update_data($arr, $where);
-        if(!empty($data['agent'])){ //crm更新市场经办人-start
+        if(!empty($data['agent'])){ //crm更新市场经办人-start--------------
             $agentArr['user_ids']=$data['agent'];
             $agentArr['id']=$data['id'];
             $agentArr['created_by']=$this->user['id'];
             $agent=new BuyerAgentModel($agentArr);
             $agent->crmUpdateAgent($agentArr);
-        }//crm 更新市场经办人end
+        }   //crm 更新市场经办人end----------------------------------------
 //        if (!empty($data['password'])) {
 //            $account['password_hash'] = $data['password'];
 //            // $buyer_account_model->update_data($arr_account, $where_account);
 //        }
-        $buyer_attach_model = new BuyerattachModel();
-        if (!empty($data['attach_url'])) {
-            $where_attach['attach_url'] = $data['attach_url'];
-            $buyer_attach_model->update_data($where_attach);
-        }
+//        $buyer_attach_model = new BuyerattachModel();
+//        if (!empty($data['attach_url'])) {
+//            $where_attach['attach_url'] = $data['attach_url'];
+//            $buyer_attach_model->update_data($where_attach);
+//        }
         //$model = new UserModel();
         if (!empty($account)) {
-            $buyer_account_model->update_data($account, $where_account);
+            $buyer_account_model->where($where_account)->save($account);
         }
 //        if (!empty($data['status']) && $res !== false) {
 //            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
