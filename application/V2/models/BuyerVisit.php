@@ -746,6 +746,7 @@ class BuyerVisitModel extends PublicModel {
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
         $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
+        $sql.=' reply.created_at as reply_time,';
         $sql.=' visit.visit_type,visit.visit_level,visit.visit_position,visit.demand_type,visit.visit_objective,visit.visit_personnel,visit.visit_result,';
         $sql.=' employee.name as created_name';
         $sql.=' from erui_buyer.buyer_visit visit ';
