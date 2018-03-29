@@ -117,8 +117,8 @@ class OrderModel extends PublicModel {
 
         $where = [];
         $where['order.deleted_flag'] = 'N';
-        $this->_getValue($where, $condition, 'order_no'); //平台订单号
-        $this->_getValue($where, $condition, 'po_no'); //po编号
+        $this->_getValue($where, $condition, 'order_no', 'like'); //平台订单号
+        $this->_getValue($where, $condition, 'po_no', 'like'); //po编号
         $this->_getValue($where, $condition, 'execute_no', 'like'); //执行编号
         if (isset($condition['show_status']) && $condition['show_status']) {
             if (in_array($condition['show_status'], ['UNCONFIRM', 'GOING', 'COMPLETED', 'OUTGOING', 'DISPATCHED'])) {
@@ -138,11 +138,18 @@ class OrderModel extends PublicModel {
         $this->_getValue($where, $condition, 'contract_date', 'between'); //支付状态
 
         if (isset($condition['buyer_no']) && $condition['buyer_no']) {
-            $where['buyer.buyer_no'] = $condition['buyer_no'];
+            $this->_getValue($where, $condition, 'buyer_no', 'like'); //平台订单号
         }
+
         if (isset($condition['name']) && $condition['name']) {
             $where['buyer.name'] = $condition['name'];
         }
+
+		if (isset($condition['is_history']) && $condition['is_history'] == 1) {
+            $where['is_history'] = 1;
+        }else{
+			$where['is_history'] = 0;
+		}
 
         return $where;
     }
