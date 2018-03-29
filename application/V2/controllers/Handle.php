@@ -1,6 +1,6 @@
 <?php
 
-class HandleController extends Yaf_Controller_Abstract
+class HandleController extends PublicController
 {
 
     /**
@@ -13,6 +13,8 @@ class HandleController extends Yaf_Controller_Abstract
 
     public function init()
     {
+        parent::init();
+
         header('Content-type:text/html;charset=utf8');
     }
 
@@ -281,7 +283,7 @@ class HandleController extends Yaf_Controller_Abstract
     /**
      * 导出指定供应商的SKU信息
      */
-    public function exportSupplierSkuAction()
+    public function exportAction()
     {
         /*
          *  德州博儒石油机械制造有限公司  N
@@ -306,14 +308,23 @@ class HandleController extends Yaf_Controller_Abstract
          */
         set_time_limit(0);
 
+        $condition = $this->validateRequestParams();
+
         $supplierName = '青岛海科石油装备有限公司';
         $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
 
         if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或未审核!']));
 
-        $data = $this->getSpuBySupplier($supplierId);
+        //$data = $this->getSpuBySupplier($supplierId);
         //$data = $this->getSpuByBrandAction('济柴');
-        //p($data);
+        //$data = (new EsproductController)->exportListAction($condition);
+
+        $sku = $this->getOnShelfSkuBy($supplierId);
+        //p(count($sku));
+
+        //导出供应商的已上架的SKU
+        $file = SupplierHelper::SupplierOnShelfSku($sku, $supplierName);
+        p($file);
 
         (new GoodsModel)->exportAll([
             'spus' => $data,
@@ -325,6 +336,36 @@ class HandleController extends Yaf_Controller_Abstract
         $localFile = $this->createSupplierExcel($data, $supplierName);
 
         p($localFile);
+    }
+
+    /**
+     * 获取供应商的已上架的SKU
+     * @param $supplier 供应商id
+     * @return array
+     */
+    public function getOnShelfSkuBy($supplier)
+    {
+        //供应商的sku
+        $goodsSupplier = new GoodsSupplierModel();
+        $data = $goodsSupplier->where(['supplier_id' =>$supplier, 'deleted_flag' => 'N'])->field('sku,pn')->select();
+
+        //是否已上架
+        foreach ($data as $key=>$value) {
+            $isOnShelf = (new ShowCatGoodsModel)->where(['sku' => $value['sku'], 'onshelf_flag' => 'Y'])->count();
+            if (!$isOnShelf) {
+                unset($data[$key]);
+            }
+
+            $price = (new GoodsCostPriceModel)->where(['sku' => $value['sku'], 'deleted_flag' => 'N'])->field('price,price_validity')->find();
+            $sku_data[] = [
+                'sku' => $value['sku'],
+                'pn' => $value['pn'],
+                'price' => $price['price'],
+                'price_validity' => $price['price_validity'],
+            ];
+        }
+
+        return $sku_data;
     }
 
     public function spuWithSkuAction()
