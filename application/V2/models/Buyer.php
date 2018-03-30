@@ -216,16 +216,18 @@ class BuyerModel extends PublicModel {
             }else{
                 $cond.= " and buyer.id in ('wangs')";
             }
-        }
-        if(!empty($data['country_bn'])){    //国家
-            $countryArr=array();
-            $countrys=explode(',',$data['country_bn']);
-            foreach($countrys as $k => $v){
-                $countryArr[]="'".$v."'";
+        }else{
+            if(!empty($data['country_bn'])){    //国家
+                $countryArr=array();
+                $countrys=explode(',',$data['country_bn']);
+                foreach($countrys as $k => $v){
+                    $countryArr[]="'".$v."'";
+                }
+                $countryStr=implode(',',$countryArr);
+                $cond .= " And `buyer`.country_bn in ($countryStr)";
             }
-            $countryStr=implode(',',$countryArr);
-            $cond .= " And `buyer`.country_bn in ($countryStr)";
         }
+
         if(!empty($data['buyer_no'])){  //客户编号
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
