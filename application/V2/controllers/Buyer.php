@@ -383,9 +383,7 @@ class BuyerController extends PublicController {
         $phoneStr=implode('',$numArr);
         return $phoneStr;
     }
-    public function noticeEmailAction($data){
-        $buyerEmail=$data['email']; //客户邮箱账号
-        $show_name=$data['name']; //客户名称
+    private function getBustomerHtml($data,$account,$show_name){
         $html=<<<EOF
     <!doctype html>  
     <html>  
@@ -397,13 +395,13 @@ class BuyerController extends PublicController {
     <img src="http://www.erui.com/static/en/image/logo.png" alt="Efficient Supply Chain" height="49" width="159" />
       <!-- logo/工具 -->  
       <div style="border: 1px solid black;">  
-        <h1>Hello wangs</h1>  
+        <h1>Hello {$show_name}</h1>  
       </div>  
       <!-- 内容 -->  
       <div style="border: 1px solid black;" align="center">  
         <p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  
-        <p>您的账号为:123</p>  
-        <p>您的密码为:123</p>  
+        <p>您的账号为:{$account}</p>  
+        <p>您的密码为:123456</p>  
         <p>请点击以下按钮激活账号：</p>  
         <p>
         <a href="http://www.erui.com/login/Enlogin/login.html">
@@ -415,15 +413,67 @@ class BuyerController extends PublicController {
       <div style="border: 1px solid black;" align="center">  
         <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
         <p>您遇到任何问题请联系</p>  
-        <p>联系人:456</p>  
-        <p>电话:135</p>  
+        <p>联系人:{$data['email']}</p>  
+        <p>电话:{$data['mobile']}</p>  
       </div>  
     </body>  
     </html> 
     
 EOF;
+        return $html;
+    }
+    public function noticeEmailAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            jsonReturn('', 0, L('param_error'));
+        }
+        $model=new BuyerModel();
+
+        $agentStr=$created_by.','.$data['agent'];
+        $agentArr=explode(',',$agentStr);
+        $agent_arr=array_values(array_flip(array_flip($agentArr)));
+        $agent_str=implode(',',$agent_arr);
+        $model=new BuyerModel();
+        $agentInfo=$model->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
+        foreach($agentInfo as $k => $v){
+            if($v['id']==$created_by){
+                $self=$v;
+                unset($agentInfo[$k]);
+            }
+        }
+        array_unshift($agentInfo,$self);
+        $customer=$this->getBustomerHtml($agentInfo[0],$buyerEmail,$show_name);
+        print_r($customer);die;
+        foreach($agentInfo as $k => $v){
+            $body=$this->getBustomerHtml($v,$buyerEmail,$show_name);
+            print_r($body);die;
+        }
+        print_r($agentInfo);die;
+        $url='http://msg.erui.com/api/email/plain/';
+        $arr=array(
+            "to"=>"['593291641@qq.com','741007259@qq.com']",
+            "title"=>'标题',
+            "content"=>'内容',
+            "groupSending"=>1,
+            "useType"=>'noticeEmail'
+        );
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+                    "Cookie: ".$_COOKIE."\r\n",
+                    'content' =>json_encode($arr)
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($url,false,$context);
+        $info=json_decode($json,true);
+        print_r($info);die;
+
+
+
+
         send_Mail('593291641@qq.com', '尊敬的wangs 您好!', $html);
-        die;
         //新建客户,添加市场经办人,默认创建人-wnags  -start
         if(!empty($data['agent'])){
             $agentStr = $data['agent'];
@@ -603,9 +653,6 @@ EOF;
             $datajson['buyer_no'] = $arr['buyer_no'];
             $datajson['buyer_code'] = $data['buyer_code'];
             $datajson['name'] = $data['name'];
-            $datajson['show_name'] = $data['first_name'];
-            $datajson['email'] = $data['email'];
-            $datajson['agent'] = $data['agent'];
             $datajson['country'] = $country_name['name'];
             $datajson['message'] = L('success');
         } else {
