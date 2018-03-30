@@ -710,7 +710,8 @@ class BuyerModel extends PublicModel {
             $data['checked_at'] = date('Y-m-d H:i:s');
 
         }
-        $datajson = $this->create($data);
+//        $datajson = $this->create($data);
+        $datajson = $data;
         if($create['is_group_crm'] == true){
             $group_status = $this->addGroupCrm($datajson);
             $datajson['group_status'] = $group_status;
@@ -718,13 +719,13 @@ class BuyerModel extends PublicModel {
         $datajson['source']=1;
         try {
             $res = $this->add($datajson);
-            if ($res) {
-                $checked_log_arr['id'] = $res;
-                $checked_log_arr['status'] = 'APPROVED';
-                $checked_log_arr['checked_by'] = $create['created_by'];
-                $checked_log = new BuyerCheckedLogModel();
-                $checked_log->create_data($checked_log_arr);
-            }
+//            if ($res) {
+//                $checked_log_arr['id'] = $res;
+//                $checked_log_arr['status'] = 'APPROVED';
+//                $checked_log_arr['checked_by'] = $create['created_by'];
+//                $checked_log = new BuyerCheckedLogModel();
+//                $checked_log->create_data($checked_log_arr);
+//            }
             return $res;
         } catch (Exception $ex) {
             print_r($ex);

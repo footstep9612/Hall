@@ -383,166 +383,204 @@ class BuyerController extends PublicController {
         $phoneStr=implode('',$numArr);
         return $phoneStr;
     }
+    public function noticeEmailAction($data){
+        $buyerEmail=$data['email']; //客户邮箱账号
+        $show_name=$data['name']; //客户名称
+        $html=<<<EOF
+    <!doctype html>  
+    <html>  
+    <head>  
+    <title>感谢您注册ERUI成功</title>  
+    <meta charset="utf-8" />  
+    </head>  
+    <body>  
+    <img src="http://www.erui.com/static/en/image/logo.png" alt="Efficient Supply Chain" height="49" width="159" />
+      <!-- logo/工具 -->  
+      <div style="border: 1px solid black;">  
+        <h1>Hello wangs</h1>  
+      </div>  
+      <!-- 内容 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  
+        <p>您的账号为:123</p>  
+        <p>您的密码为:123</p>  
+        <p>请点击以下按钮激活账号：</p>  
+        <p>
+        <a href="http://www.erui.com/login/Enlogin/login.html">
+<input type=button value="激活并登陆" style="background:red;color: white;"> 
+</a>
+</p>    
+      </div>  
+      <!-- 版权标识 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
+        <p>您遇到任何问题请联系</p>  
+        <p>联系人:456</p>  
+        <p>电话:135</p>  
+      </div>  
+    </body>  
+    </html> 
+    
+EOF;
+        send_Mail('593291641@qq.com', '尊敬的wangs 您好!', $html);
+        die;
+        //新建客户,添加市场经办人,默认创建人-wnags  -start
+        if(!empty($data['agent'])){
+            $agentStr = $data['agent'];
+            $agentArr=$model->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agentStr)");
+            foreach($agentArr as $k => $v){
+//                $v['user_no']
+//
+//                $v['name']
+                $html=<<<EOF
+    <!doctype html>  
+    <html>  
+    <head>  
+    <title>感谢您注册ERUI成功</title>  
+    <meta charset="utf-8" />  
+    </head>  
+    <body>  
+    <img src="http://www.erui.com/static/en/image/logo.png" height="49" width="159" />
+      <!-- logo/工具 -->  
+      <div style="border: 1px solid black;">  
+        <h1>Hello wangs</h1>  
+      </div>  
+      <!-- 内容 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>感谢注册 <a>www.erui.com</a></p>  
+        <p>您的账号为:{$data['email']}</p>  
+        <p>您的密码为:{$password}</p>  
+        <p>请点击以下按钮激活账号：</p>  
+        <p>
+        <a href="http://www.erui.com/login/Enlogin/login.html">
+<input type=button value="激活并登陆"> 
+</a>
+</p>    
+      </div>  
+      <!-- 版权标识 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a>www.erui.com</a></p>  
+        <p>您遇到任何问题请联系</p>  
+        <p>联系人:{$v['email']}</p>  
+        <p>电话:{$v['mobile']}</p>  
+      </div>  
+    </body>  
+    </html> 
+    
+EOF;
+                send_Mail($v['email'], 'www.eruidev.com', 'hehe', $arr['name']);
+            }
+            print_r($agentArr);die;
+        }   //添加市场经办人end
 
+        echo 'ok';die;
+        //审核通过邮件
+//            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
+
+
+    }
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        if (!empty($data['user_name'])  && strlen($data['user_name'])) {
-//            $buyer_account_data['user_name'] = $data['user_name'];
-//        } else {
-//            jsonReturn('', -101, '用户名不可以为空!');
-//        }
-//        if (!empty($data['password'])) {
-//            $buyer_account_data['password_hash'] = md5(trim($data['password']));
-//        } else {
-//            jsonReturn('', -101, '密码不可以都为空!');
-//        }
-        if (!empty($data['email'])) {
-            $data['email']=trim($data['email'],' ');
-            $buyer_account_data['email'] = $data['email'];
-            if (!isEmail($buyer_account_data['email'])) {
-                jsonReturn('', -101, L('create_email'));   //邮箱格式不正确
-            }
-            $arr['official_email'] = $data['email'];
-        } else {
-            jsonReturn('', -101, L('empty_email'));  //邮箱不可以都为空
-        }
-        if (!empty($data['area_bn'])) {
-            $arr['area_bn'] = $data['area_bn'];
-        }
-        if (!empty($data['mobile'])) {  //CRM添加客户信息
-            $data['mobile']=$this->validPhone($data['mobile']);
-            $arr['official_phone'] = $data['mobile'];
-        }
-        if (!empty($data['type_remarks'])) {
-            $arr['type_remarks'] = $data['type_remarks'];
-        }
-        if (!empty($data['employee_count'])) {
-            $arr['employee_count'] = $data['employee_count'];
-        }
-        if (!empty($data['reg_capital'])) {
-            $arr['reg_capital'] = $data['reg_capital'];
-        }
-        if (!empty($data['reg_capital_cur'])) {
-            $arr['reg_capital_cur'] = $data['reg_capital_cur'];
-        }
-        if (!empty($data['expiry_at'])) {
-            $arr['expiry_at'] = $data['expiry_at'];
-        }
-        if (!empty($data['show_name'])) {
-            $buyer_account_data['show_name'] = $data['show_name'];
-        }
-        $buyer_account_data['created_by'] = $this->user['id'];
-        //附件
-        if (!empty($data['attach_url'])) {
-            $buyer_attach_data['attach_url'] = $data['attach_url'];
-        }
-        if (isset($buyer_attach_data)) {
-            $buyer_attach_data['created_by'] = $this->user['id'];
-            $buyer_attach_data['created_at'] = date("Y-m-d H:i:s");
-            $buyer_attach_data['attach_name'] = $data['name'] . '营业执照';
-        }
-        $buyer_contact_data['mobile'] = $data['mobile'];    //CRM添加客户
-        $buyer_contact_data['email'] = $data['email'];
-        $buyer_contact_data['created_by'] = $this->user['id'];
-        if (!empty($data['name'])) {
-            $arr['name'] = $data['name'];
-        } else {
-            jsonReturn('', -101, L('empty_name'));    //名称不能为空
-        }
-
-        if (!empty($data['first_name'])) {
-            $arr['first_name'] = $data['first_name'];   //  CRM添加客户---------姓名字段
-            $buyer_account_data['show_name'] = $data['first_name'];  //account-姓名
-            $buyer_contact_data['name'] = $data['first_name'];  //account-姓名
-        }
-
-        if (!empty($data['is_group_crm'])) {
-            $arr['is_group_crm'] = $data['is_group_crm'];   //  向集团crm添加数据标识
-        }
-        if (!empty($data['bn'])) {
-            $arr['bn'] = $data['bn'];
-        }
-        if (!empty($data['province'])) {
-            $arr['province'] = $data['province'];
-        }
-        if (!empty($data['country_bn'])) {
-            $arr['country_bn'] = $data['country_bn'];
-        } else {
-            jsonReturn('', -101, L('empty_country'));   //国家名不可为空
-        }
-        if (!empty($data['buyer_code'])) {
-            $arr['buyer_code'] = $data['buyer_code'];
-        }
+        $lang=$this->getLang();
 
         $model = new BuyerModel();
         $buyer_account_model = new BuyerAccountModel();
-        $checkcrm = $model->where("buyer_code='" . $arr['buyer_code'] . "' AND deleted_flag='N'")->find();
-        if ($checkcrm) {
-            jsonReturn('', -103, L('crm_existed'));  //crm编码已经存在
+        if (!empty($data['email'])) {   //邮箱
+            $data['email']=trim($data['email'],' ');
+            if (!isEmail($data['email'])) {
+                jsonReturn('', -101, L('create_email'));
+            }
+            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
+            if($checkEmail){
+                jsonReturn('', -101, L('email_existed'));
+            }
+            $buyer_account_data['email'] = $data['email'];
+            $arr['official_email'] = $data['email'];
+            $buyer_contact_data['email'] = $data['email'];
+        } else {
+            jsonReturn('', -101, L('empty_email'));
         }
-        if (!empty($data['address'])) {
-            $arr['address'] = $data['address'];
-        }
-        if (!empty($data['biz_scope'])) {
-            $arr['biz_scope'] = $data['biz_scope'];
-        }
-        if (!empty($data['intent_product'])) {
-            $arr['intent_product'] = $data['intent_product'];
-        }
-        if (!empty($data['purchase_amount'])) {
-            $arr['purchase_amount'] = $data['purchase_amount'];
-        }
-        $arr['created_by'] = $this->user['id'];
-        $login_email['email'] = $data['email'];
-        $login_email['user_name'] = $data['email'];
-        $check_email = $buyer_account_model->Exist($login_email, 'or');
 
-        if ($check_email) {
-            jsonReturn('', -101, L('email_existed'));    //邮箱已经存在
+        if (!empty($data['name'])) {    //公司名称
+            $data['name']=trim($data['name'],' ');
+            $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
+            if($checkcompany){
+                jsonReturn('', -103, L('name_existed'));
+            }
+            $arr['name'] = $data['name'];
+        } else {
+            jsonReturn('', -101, L('empty_name'));
         }
-        $login_uname['email'] = $data['user_name'];
-        $login_uname['user_name'] = $data['user_name'];
-        $check_uname = $buyer_account_model->Exist($login_uname, 'or');
-        if ($check_uname) {
-            jsonReturn('', -102, L('username_existed'));   //用户名已经存在
+
+        if (!empty($data['buyer_code'])) {  //CRM代码
+            $data['buyer_code']=trim($data['buyer_code'],' ');
+            $checkcrm = $model->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N'")->find();
+            if ($checkcrm) {
+                jsonReturn('', -103, L('crm_existed'));
+            }
+            $arr['buyer_code'] = $data['buyer_code'];
         }
-        //验证公司名称是否存在
-        $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
-        if ($checkcompany) {
-            jsonReturn('', -103, L('name_existed'));   //公司名称已经存在
+
+        if (!empty($data['first_name'])) {  //注册人信息姓名-show_name
+            $data['first_name']=trim($data['first_name'],' ');
+            $arr['first_name'] = $data['first_name'];
+            $buyer_account_data['show_name'] = $data['first_name'];
+            $buyer_contact_data['name'] = $data['first_name'];
         }
+
+        if (!empty($data['country_bn'])) {     //国家
+            $arr['country_bn'] = $data['country_bn'];
+        } else {
+            jsonReturn('', -101, L('empty_country'));
+        }
+
+        if (!empty($data['mobile'])) {  //电话
+            $data['mobile']=$this->validPhone($data['mobile']);
+            $arr['official_phone'] = $data['mobile'];
+            $buyer_contact_data['phone'] = $data['mobile'];
+        }
+        if (!empty($data['biz_scope'])) {   //经营范围
+            $arr['biz_scope'] = trim($data['biz_scope'],' ');
+        }
+        if (!empty($data['intent_product'])) {  //意向产品
+            $arr['intent_product'] = trim($data['intent_product'],' ');
+        }
+        if (!empty($data['purchase_amount'])) { //预计年采购额
+            $arr['purchase_amount'] = trim($data['purchase_amount'],' ');
+        }
+        if (!empty($data['is_group_crm'])) {
+            $arr['is_group_crm'] = $data['is_group_crm'];   //  向集团crm添加数据标识
+        }
+
         // 生成用户编码
-        $condition['page'] = 0;
-        $condition['countPerPage'] = 1;
-
-        $data_t_buyer = $model->getlist($condition); //($this->put_data);
-        //var_dump($data_t_buyer);die;
-        if ($data_t_buyer && substr($data_t_buyer['data'][0]['buyer_no'], 1, 8) == date("Ymd")) {
-            $no = substr($data_t_buyer['data'][0]['buyer_no'], 9, 6);
+        $buyerData = $model->field('buyer_no')->order('id desc')->find();
+        if ($buyerData && substr($buyerData['buyer_no'], 1, 8) == date("Ymd")) {
+            $no = substr($buyerData['buyer_no'], 9, 6);
             $no++;
         } else {
             $no = 1;
         }
-        $temp_num = 1000000;
-        $new_num = $no + $temp_num;
-        $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //即截取掉最前面的“1”
-        $arr['buyer_no'] = $real_num;
-        $arr['created_by'] = $this->user['id'];
-        $id = $model->create_data($arr);
+        $new_num = $no + 1000000;
+        $real_num = "C" . date("Ymd") . substr($new_num, 1, 6); //生成用户编码end
+
+        $created_by=$this->user['id'];
+        $arr['created_by'] = $created_by; //客户信息
+        $arr['buyer_no'] = $real_num;   //客户编码
+
+        $id = $model->create_data($arr);    //添加客户信息ok
         if ($id) {
+            $time=date('Y-m-d H:i:s');
+            //账号
             $buyer_account_data['buyer_id'] = $id;
-            if (!empty($buyer_attach_data)) {
-                $buyer_attach_data['buyer_id'] = $id;
-            }
+            $buyer_account_data['created_by'] = $created_by;
+            $buyer_account_data['created_at'] = $time;
+            $buyer_account_model->add($buyer_account_data);
+            //联系人
             $buyer_contact_data['buyer_id'] = $id;
-            //添加联系人
+            $buyer_contact_data['created_by'] = $created_by;
+            $buyer_contact_data['created_at'] = $time;
             $buyer_contact_model = new BuyercontactModel();
-            $buyer_contact_model->create_data($buyer_contact_data);
-            //添加附件
-            $buyer_attach_model = new BuyerattachModel();
-            $buyer_attach_model->create_data($buyer_attach_data);
-            //采购商帐号表
-            $buyer_account_model->create_data($buyer_account_data);
+            $buyer_contact_model->add($buyer_contact_data);
             //新建客户,添加市场经办人,默认创建人-wnags  -start
             if(!empty($data['agent'])){
                 $createBuyerAgent = $data['agent'];    //创建客户时,添加市场经办人
@@ -550,41 +588,25 @@ class BuyerController extends PublicController {
                 foreach($createBuyerAgentArr as $k => $v){
                     $createBuyerAgentArrAdd[$k]['buyer_id']=$id;
                     $createBuyerAgentArrAdd[$k]['agent_id']=$v;
-                    $createBuyerAgentArrAdd[$k]['created_by']=$this->user['id'];
-                    $createBuyerAgentArrAdd[$k]['created_at']=date('Y-m-d H:i:s');
+                    $createBuyerAgentArrAdd[$k]['created_by']=$created_by;
+                    $createBuyerAgentArrAdd[$k]['created_at']=$time;
                 }
                 $buyerAgent=new BuyerAgentModel();
-                $buyerAgent->addAll($createBuyerAgentArrAdd);   //添加市场经办人end
-            }
-            //获取营销区域信息 -- link 2017-10-31
-            //$mareaModel = new MarketAreaModel();
-            //$areaInfo = $mareaModel->getInfoByBn($arr['area_bn']);
-            //获取营销国家信息 -- link 2017-10-31
-            //$countryModel = new CountryModel();
-            //$countryInfo = $countryModel->getInforByBn($arr['country_bn']);
-            //获取市场经办人信息 -- link 2017-10-31
-            $userInfo = new UserModel();
+                $buyerAgent->addAll($createBuyerAgentArrAdd);
+            }   //添加市场经办人end
+
             $countryModel = new CountryModel();
-            $marketAreaModel = new MarketAreaModel();
-            $agentInfo = $userInfo->info($data['agent_id'], ['deleted_flag' => 'N', 'status' => 'NORMAL'], 'name');
-
-            //询单所在国家
-            $rs1 = $countryModel->field('name')->where(['bn' => $arr['country_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $datajson['country_name'] = $rs1['name'];
-
-            //询单所在区域
-            $rs2 = $marketAreaModel->field('name')->where(['bn' => $arr['area_bn'], 'lang' => 'zh', 'deleted_flag' => 'N'])->find();
-            $datajson['area_name'] = $rs2['name'];
+            $country_name=$countryModel->field('name')->where(['bn' => $data['country_bn'], 'lang' => $lang, 'deleted_flag' => 'N'])->find();
 
             $datajson['code'] = 1;
             $datajson['id'] = $id;
-            $datajson['buyer_code'] = $data['buyer_code'];
             $datajson['buyer_no'] = $arr['buyer_no'];
-            $datajson['name'] = $arr['name'];    //-- link 2017-10-31
-            $datajson['area'] = $arr['area_bn']; //$areaInfo;    //-- link 2017-10-31
-            $datajson['agent_id'] = $data['agent_id'];
-            $datajson['agent'] = $agentInfo ? $agentInfo['name'] : '';    //-- link 2017-10-31
-            $datajson['country'] = $arr['country_bn']; //$countryInfo;    //-- link 2017-10-31
+            $datajson['buyer_code'] = $data['buyer_code'];
+            $datajson['name'] = $data['name'];
+            $datajson['show_name'] = $data['first_name'];
+            $datajson['email'] = $data['email'];
+            $datajson['agent'] = $data['agent'];
+            $datajson['country'] = $country_name['name'];
             $datajson['message'] = L('success');
         } else {
             $datajson['code'] = -104;
