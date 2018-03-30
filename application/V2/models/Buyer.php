@@ -207,6 +207,7 @@ class BuyerModel extends PublicModel {
             foreach($list as $k => $v){
                 $str.=','.$v['buyer_id'];
             }
+            $str.=','.$data['created_by'];
             $str=substr($str,1);
             if(!empty($str)){
                 $cond.= " and buyer.id in ($str)";
@@ -351,7 +352,8 @@ class BuyerModel extends PublicModel {
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
         );
-        $field = 'employee.name as employee_name,country.name as country_name';
+        $field = 'employee.name as employee_name,country.name as country_name,';
+        $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
