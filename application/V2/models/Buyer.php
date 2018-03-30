@@ -203,11 +203,13 @@ class BuyerModel extends PublicModel {
         if($data['admin']==0){  //客户管理权限
             $agent=new BuyerAgentModel();
             $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+            $created=new BuyerModel();
+            $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+            $totalList=array_merge($createdArr,$list);
             $str='';
-            foreach($list as $k => $v){
+            foreach($totalList as $k => $v){
                 $str.=','.$v['buyer_id'];
             }
-            $str.=','.$data['created_by'];
             $str=substr($str,1);
             if(!empty($str)){
                 $cond.= " and buyer.id in ($str)";
