@@ -394,7 +394,7 @@ class BuyerController extends PublicController {
     <!doctype html>  
     <html>  
     <head>  
-    <title>Thank you for registering for ERUI</title>  
+    <title>Welcome to use ERUI!</title>  
     <meta charset="utf-8" />  
     </head>  
     <body>  
@@ -443,7 +443,7 @@ EOF;
     <!doctype html>  
     <html>  
     <head>  
-    <title>感谢您注册ERUI成功</title>  
+    <title>欢迎使用 Erui!</title>  
     <meta charset="utf-8" />  
     </head>  
     <body>  
@@ -494,7 +494,7 @@ EOF;
     <!doctype html>  
     <html>  
     <head>  
-    <title>感谢您注册ERUI成功</title>  
+    <title>客户邮箱账号安全</title>  
     <meta charset="utf-8" />  
     </head>  
     <body>  
@@ -528,7 +528,7 @@ EOF;
     <!doctype html>  
     <html>  
     <head>  
-    <title>感谢您注册ERUI成功</title>  
+    <title>Account security of customer mailbox</title>  
     <meta charset="utf-8" />  
     </head>  
     <body>  
@@ -583,19 +583,19 @@ EOF;
         $info=$BuyerAccount->setPwdEmail($data['buyer_id']);    //客户和经办人信息
         if($lang=='zh'){
             $customer=$this->getCustomerHtml($info['customer'],$info['agent_info']);    //发给客户模板
-            $code=$this->postSentEmail($info['customer']['account_email'],'感谢您注册ERUI',$customer); //发送给客户
+            $code=$this->postSentEmail($info['customer']['account_email'],'欢迎使用 Erui!',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
                 $agent=$this->getAgentHtml($info['customer'],$v);    //发给经办人模板
-                $sent[]=$this->postSentEmail($v['email'],'请关注客户',$agent); //发送给经办人
+                $sent[]=$this->postSentEmail($v['email'],'客户邮箱账号安全',$agent); //发送给经办人
             }
         }else{
             $customer=$this->getCustomerEnHtml($info['customer'],$info['agent_info']);    //发给客户模板
-            $code=$this->postSentEmail($info['customer']['account_email'],'Thank you for registering for ERUI',$customer); //发送给客户
+            $code=$this->postSentEmail($info['customer']['account_email'],'Welcome to use ERUI !',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
                 $agent=$this->getAgentEnHtml($info['customer'],$v);    //发给经办人模板
-                $sent[]=$this->postSentEmail($v['email'],'Please attention to the customer',$agent); //发送给经办人
+                $sent[]=$this->postSentEmail($v['email'],'Account security of customer mailbox',$agent); //发送给经办人
             }
         }
         if(count($sent)>0 && in_array(200,$sent)){
