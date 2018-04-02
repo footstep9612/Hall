@@ -170,7 +170,7 @@ class EdiController extends PublicController{
         $BuyerCodeApply = $company_model->getInfo($buyer_no);
         $lang = $buyerModel->field('lang,official_email')->where(['buyer_no'=> $buyer_no, 'deleted_flag'=>'N'])->find();
         if(!$BuyerCodeApply || !$lang){
-            jsonReturn(null, -101 ,'企业信息不存在或已删除!');
+            jsonReturn(null, -101 ,'企业信息不存在或账号已被删除!');
         }
         $BuyerCodeApply['lang'] = $lang['lang'];
         $BuyerCodeApply['official_email'] = $lang['official_email'];
