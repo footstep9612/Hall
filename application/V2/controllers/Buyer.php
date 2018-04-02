@@ -409,7 +409,7 @@ class BuyerController extends PublicController {
         <p>Thank you for registering for <a href="http://www.eruidev.com">www.erui.com</a></p>  
         <p>Your account and password are:</p>  
         <p>Account:{$account_email}</p>  
-        <p>Password:{$account_pwd}</p>  
+        <p>Password:<font color="red">{$account_pwd}</font></p>  
         <p>Click this button to activate your account</p>  
         <p>
         <!--<a href="http://www.erui.com/login/Enlogin/login.html">-->
@@ -458,7 +458,7 @@ EOF;
         <p>感谢注册 <a href="http://www.eruidev.com">www.erui.com</a></p>  
         <p>您的账号密码为:</p>  
         <p>账号:{$account_email}</p>  
-        <p>密码:{$account_pwd}</p>  
+        <p>密码:<font color="red">{$account_pwd}</font></p>  
         <p>请点击以下按钮激活账号：</p>  
         <p>
         <!--<a href="http://www.erui.com/login/Enlogin/login.html">-->
@@ -507,7 +507,7 @@ EOF;
       <div style="border: 1px solid black;" align="center">  
         <p>客户:{$company_name} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  负责人: {$show_name}</p>
         <p>账号:{$account_email}</p>  
-        <p>密码:{$account_pwd}</p>  
+        <p>密码:<font color="red">{$account_pwd}</font></p>  
         <p>请通知客户激活账号！</div>   
     </body>  
     </html> 
@@ -542,7 +542,7 @@ EOF;
         <p>Account and password for your new customer are as follows</p>
         <p>Customer:{$company_name} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Contact : {$show_name}</p>
         <p>Account :{$account_email}</p>  
-        <p>Password :{$account_pwd}</p>  
+        <p>Password :<font color="red">{$account_pwd}</font></p>  
         <p>Please inform the customer of activating his account ！</div>   
     </body>  
     </html> 
