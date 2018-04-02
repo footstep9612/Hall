@@ -655,4 +655,22 @@ class HandleController extends PublicController
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SUPPLIER_" . date('Ymd-His') . '.xls');
     }
 
+    /**
+     * 供应商的产品、品牌，商品统计数据
+     */
+    public function supplierBrandSpuWithSkuStaticsAction()
+    {
+        $condition = [];
+        $data = $this->getSupplierBrandSpuWithSkuStatics($condition);
+        p($data);
+    }
+
+    private function getSupplierBrandSpuWithSkuStatics(array $condition = [])
+    {
+        $supplierModel = new SupplierModel();
+
+        $supplierCondition = [];
+        $data = $supplierModel->where()->select();
+        return $data;
+    }
 }
