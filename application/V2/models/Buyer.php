@@ -381,12 +381,14 @@ class BuyerModel extends PublicModel {
             $field .= ',buyer.'.$v;
         }
         $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        $field .= ' ,account.sent_email';
         //excel导出标识
         if($excel==true){
             $offset=0;
             $pageSize=10000;
         }
         $info = $this->alias('buyer')
+            ->join("erui_buyer.buyer_account account on buyer.id=account.buyer_id and account.deleted_flag='N'",'left')
             ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
             ->join("erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag='N'",'left')
             ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N'",'left')

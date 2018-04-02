@@ -292,8 +292,10 @@ class BuyerAccountModel extends PublicModel {
     //CRM-wangs
     public function setPwdEmail($buyer_id){
         $pwd=$this->randStr(6);
-        $this->where(array('buyer_id'=>$buyer_id))->save(array('password_hash'=>md5($pwd)));
-
+        $password=md5($pwd);
+//        $this->where(array('buyer_id'=>$buyer_id))->save(array('password_hash'=>md5($pwd)));
+        $save="update erui_buyer.buyer_account set password_hash='$password',sent_email=sent_email+1 WHERE buyer_id=$buyer_id";
+        $this->query($save);
         $cond="account.buyer_id=$buyer_id and account.deleted_flag='N'";
         $account=$this->alias('account')
             ->join('erui_buyer.buyer buyer on account.buyer_id=buyer.id and buyer.deleted_flag=\'N\'','left')
