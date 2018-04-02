@@ -383,7 +383,13 @@ class BuyerController extends PublicController {
         $phoneStr=implode('',$numArr);
         return $phoneStr;
     }
-    private function getBustomerHtml($data,$account,$show_name){
+    private function getCustomerHtml($info,$agent){
+        $show_name=$info['show_name'];
+        $account_email=$info['account_email'];
+        $account_pwd=$info['account_pwd'];
+        $agent_email=$agent[0]['email'];
+        $agent_tel=$agent[0]['mobile'];
+
         $html=<<<EOF
     <!doctype html>  
     <html>  
@@ -399,22 +405,25 @@ class BuyerController extends PublicController {
       </div>  
       <!-- 内容 -->  
       <div style="border: 1px solid black;" align="center">  
-        <p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  
-        <p>您的账号为:{$account}</p>  
-        <p>您的密码为:123456</p>  
+        <!--<p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  -->
+        <p>感谢注册 <a href="http://www.eruidev.com">www.erui.com</a></p>  
+        <p>您的账号为:{$account_email}</p>  
+        <p>您的密码为:{$account_pwd}</p>  
         <p>请点击以下按钮激活账号：</p>  
         <p>
-        <a href="http://www.erui.com/login/Enlogin/login.html">
+        <!--<a href="http://www.erui.com/login/Enlogin/login.html">-->
+        <a href="http://www.eruidev.com/login/Enlogin/login.html">
 <input type=button value="激活并登陆" style="background:red;color: white;"> 
 </a>
 </p>    
       </div>  
       <!-- 版权标识 -->  
       <div style="border: 1px solid black;" align="center">  
-        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
+        <!--<p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  -->
+        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.eruidev.com">www.erui.com</a></p>  
         <p>您遇到任何问题请联系</p>  
-        <p>联系人:{$data['email']}</p>  
-        <p>电话:{$data['mobile']}</p>  
+        <p>联系人:{$agent_email}</p>  
+        <p>电话:{$agent_tel}</p>  
       </div>  
     </body>  
     </html> 
@@ -422,38 +431,47 @@ class BuyerController extends PublicController {
 EOF;
         return $html;
     }
-    public function noticeEmailAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data['buyer_id'])){
-            jsonReturn('', 0, L('param_error'));
-        }
-        $model=new BuyerModel();
+    private function getAgentHtml($info,$agent){
+        $company_name=$info['company_name'];
+        $show_name=$info['show_name'];
+        $account_email=$info['account_email'];
+        $account_pwd=$info['account_pwd'];
+        $agent_email=$agent['email'];
+        $agent_tel=$agent['mobile'];
+        $agent_name=$agent['name'];
 
-        $agentStr=$created_by.','.$data['agent'];
-        $agentArr=explode(',',$agentStr);
-        $agent_arr=array_values(array_flip(array_flip($agentArr)));
-        $agent_str=implode(',',$agent_arr);
-        $model=new BuyerModel();
-        $agentInfo=$model->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
-        foreach($agentInfo as $k => $v){
-            if($v['id']==$created_by){
-                $self=$v;
-                unset($agentInfo[$k]);
-            }
-        }
-        array_unshift($agentInfo,$self);
-        $customer=$this->getBustomerHtml($agentInfo[0],$buyerEmail,$show_name);
-        print_r($customer);die;
-        foreach($agentInfo as $k => $v){
-            $body=$this->getBustomerHtml($v,$buyerEmail,$show_name);
-            print_r($body);die;
-        }
-        print_r($agentInfo);die;
+        $html=<<<EOF
+    <!doctype html>  
+    <html>  
+    <head>  
+    <title>感谢您注册ERUI成功</title>  
+    <meta charset="utf-8" />  
+    </head>  
+    <body>  
+    <img src="http://www.erui.com/static/en/image/logo.png" alt="Efficient Supply Chain" height="49" width="159" />
+      <!-- logo/工具 -->  
+      <div style="border: 1px solid black;">  
+        <h1>Hello {$agent_name}</h1>  
+      </div>  
+      <!-- 内容 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>客户:{$company_name} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  负责人: {$show_name}</p>
+        <p>账号:{$account_email}</p>  
+        <p>密码:{$account_pwd}</p>  
+        <p>请通知客户激活账号！</div>   
+    </body>  
+    </html> 
+    
+EOF;
+        return $html;
+    }
+    //crm -发送通知邮件-wangs
+    private function postSentEmail($email,$title,$body){
         $url='http://msg.erui.com/api/email/plain/';
         $arr=array(
-            "to"=>"['593291641@qq.com','741007259@qq.com']",
-            "title"=>'标题',
-            "content"=>'内容',
+            "to"=>"['$email']",
+            "title"=>$title,
+            "content"=>$body,
             "groupSending"=>1,
             "useType"=>'noticeEmail'
         );
@@ -462,72 +480,48 @@ EOF;
                 'method'=>"POST",
                 'header'=>"Content-Type: application/json\r\n" .
                     "Cookie: ".$_COOKIE."\r\n",
-                    'content' =>json_encode($arr)
+                'content' =>json_encode($arr)
             )
         );
         $context = stream_context_create($opt);
         $json = file_get_contents($url,false,$context);
         $info=json_decode($json,true);
-        print_r($info);die;
+        return $info['code'];
+    }
+    public function noticeEmailAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            jsonReturn('', 0, L('param_error'));
+        }
 
-
-
-
-        send_Mail('593291641@qq.com', '尊敬的wangs 您好!', $html);
-        //新建客户,添加市场经办人,默认创建人-wnags  -start
-        if(!empty($data['agent'])){
-            $agentStr = $data['agent'];
-            $agentArr=$model->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agentStr)");
-            foreach($agentArr as $k => $v){
-//                $v['user_no']
-//
-//                $v['name']
-                $html=<<<EOF
-    <!doctype html>  
-    <html>  
-    <head>  
-    <title>感谢您注册ERUI成功</title>  
-    <meta charset="utf-8" />  
-    </head>  
-    <body>  
-    <img src="http://www.erui.com/static/en/image/logo.png" height="49" width="159" />
-      <!-- logo/工具 -->  
-      <div style="border: 1px solid black;">  
-        <h1>Hello wangs</h1>  
-      </div>  
-      <!-- 内容 -->  
-      <div style="border: 1px solid black;" align="center">  
-        <p>感谢注册 <a>www.erui.com</a></p>  
-        <p>您的账号为:{$data['email']}</p>  
-        <p>您的密码为:{$password}</p>  
-        <p>请点击以下按钮激活账号：</p>  
-        <p>
-        <a href="http://www.erui.com/login/Enlogin/login.html">
-<input type=button value="激活并登陆"> 
-</a>
-</p>    
-      </div>  
-      <!-- 版权标识 -->  
-      <div style="border: 1px solid black;" align="center">  
-        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a>www.erui.com</a></p>  
-        <p>您遇到任何问题请联系</p>  
-        <p>联系人:{$v['email']}</p>  
-        <p>电话:{$v['mobile']}</p>  
-      </div>  
-    </body>  
-    </html> 
-    
-EOF;
-                send_Mail($v['email'], 'www.eruidev.com', 'hehe', $arr['name']);
+        $BuyerAccount=new BuyerAccountModel();
+        $info=$BuyerAccount->setPwdEmail($data['buyer_id']);    //客户和经办人信息
+        $customer=$this->getCustomerHtml($info['customer'],$info['agent_info']);    //发给客户模板
+        $code=$this->postSentEmail($info['customer']['account_email'],'感谢您注册ERUI',$customer); //发送给客户
+        $sent=[$code];
+        foreach($info['agent_info'] as $k => $v){
+            $agent=$this->getAgentHtml($info['customer'],$v);    //发给经办人模板
+            $sent[]=$this->postSentEmail($v['email'],'请关注客户',$agent); //发送给经办人
+        }
+        if(count($sent)>0 && in_array(200,$sent)){
+            $valid=[];
+            foreach($sent as $k => $v){
+                if($v==200){
+                    $valid[]=$v;
+                }
             }
-            print_r($agentArr);die;
-        }   //添加市场经办人end
-
-        echo 'ok';die;
-        //审核通过邮件
-//            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
-
-
+            if(count($valid)==count($sent)){
+                $dataJson['code']=1;
+                $dataJson['message']='Success';
+            }else{
+                $dataJson['code']=1;
+                $dataJson['message']='Success:'.count($valid).'/'.count($sent);
+            }
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='Error';
+        }
+        $this->jsonReturn($dataJson);
     }
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
