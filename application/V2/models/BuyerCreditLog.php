@@ -129,7 +129,7 @@ class BuyerCreditLogModel extends PublicModel{
             $dataInfo['in_remarks'] = trim($data['in_remarks']);
         }
         if(isset($data['agent_by']) && !empty($data['agent_by'])){
-            $dataInfo['agent_by'] = trim($data['agent_by']);
+            $dataInfo['agent_by'] = intval($data['agent_by']);
         }
         if(isset($data['agent_at']) && !empty($data['agent_at'])){
             $dataInfo['agent_at'] = trim($data['agent_at']);

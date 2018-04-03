@@ -16,15 +16,34 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-    private function crmUserRole($user_id){
-        $role=new RoleUserModel();
-        $arr=$role->crmGetUserRole($user_id);
-        if(in_array('CRM客户管理',$arr)){
-            $admin=1;   //市场专员
-        }else{
-            $admin=0;
+    //获取用户的角色
+    public function getUserRole(){
+        $config = \Yaf_Application::app()->getConfig();
+        $ssoServer=$config['ssoServer'];
+        $token=$_COOKIE['eruitoken'];
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+                    "Cookie: ".$_COOKIE."\r\n",
+                'content' =>json_encode(array('token'=>$token))
+
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($ssoServer,false,$context);
+        $info=json_decode($json,true);
+
+        $arr['role']=$info['role_no'];
+        if(!empty($info['country_bn'])){
+            $countryArr=[];
+            foreach($info['country_bn'] as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
         }
-        return $admin;
+        $arr['country']=$countryStr;
+        return $arr;
     }
     /*
      * 用户列表
@@ -178,7 +197,7 @@ class BuyerController extends PublicController {
     public function buyerListAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['admin']=$this->getUserRole($this->user['id']);   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
@@ -1240,6 +1259,7 @@ EOF;
                 'code' => 0,
                 'message' => L('crm_existed')
             );
+            
             $this->jsonReturn($dataJson);
         }
         //test-start
@@ -1251,6 +1271,7 @@ EOF;
 //            $this->jsonReturn($dataJson);
 //        }
         //test-end
+
         //验证集团CRM存在,则展示数据 生产-start
         $group = $this->groupCrmCode($data['buyer_code']);
         if (!empty($group)) {

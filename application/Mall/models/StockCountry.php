@@ -41,7 +41,7 @@ class StockCountryModel extends PublicModel {
         return $this
                         ->alias('sc')
                         ->where($where)
-                        ->field('id,country_bn,(select `name` from ' . $country_table . ' where bn=sc.country_bn and lang=sc.lang and deleted_flag=\'N\' group by `name` ) as country_name')
+                        ->field('id,country_bn,settings,(select `name` from ' . $country_table . ' where bn=sc.country_bn and lang=sc.lang and deleted_flag=\'N\' group by `name` ) as country_name')
                         ->find();
     }
 

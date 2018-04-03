@@ -669,6 +669,11 @@ class BuyerVisitModel extends PublicModel {
         }else{
             $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category','Purpose of visiting','Follow-up personnel','Visit the result','Founder');
         }
+//        if($lang=='zh'){
+//            $tableheader = array('序号','地区','国家','客户代码（CRM）','拜访时间','中方参会人员','客户参会人员','拜访目的','拜访职位','客户联系人','客户联系方式','客户需求','需求品类(大类)','需求品类小类','客户痛点','拜访结果');
+//        }else{
+//            $tableheader = array('Serial','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','客户联系方式','customer demand','Demand category(一)','Demand category(二)','Customer pain point','Visit the result');
+//        }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
             $objActSheet->getColumnDimension($letter[$i])->setWidth(20);

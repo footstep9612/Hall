@@ -200,45 +200,34 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1';
-//        if($data['admin']==0){  //客户管理权限
-//            $agent=new BuyerAgentModel();
-//            $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//            $str='';
-//            foreach($list as $k => $v){
-//                $str.=','.$v['buyer_id'];
-//            }
-//            $str=substr($str,1);
-//            if(!empty($str)){
-//                $cond.= " and buyer.id in ($str)";
-//            }else{
-//                $cond.= " and buyer.id in ('wangs')";
-//            }
-//        }
-        if(!empty($data['country_bn'])){    //国家权限
-            $countryArr=array();
-            $countrys=explode(',',$data['country_bn']);
-            foreach($countrys as $k => $v){
-                $countryArr[]="'".$v."'";
+        if(empty($data['admin']['role'])){
+            return false;
+        }
+        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+            if(in_array('201711242',$data['admin']['role'])){   //国家负责人
+                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
             }
-            $countryStr=implode(',',$countryArr);
-            $cond .= " And `buyer`.country_bn in ($countryStr)";
+            if(in_array('A001',$data['admin']['role'])){   //经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " or buyer.id in ($str) )";
+                }else{
+                    $cond.= " or buyer.id in ('wangs') )";
+                }
+            }
         }else{
-            $agent=new BuyerAgentModel();
-            $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-            $str='';
-            foreach($list as $k => $v){
-                $str.=','.$v['buyer_id'];
-            }
-            $str=substr($str,1);
-            if(!empty($str)){
-                $cond.= " and buyer.id in ($str)";
-            }else{
-                $cond.= " and buyer.id in ('wangs')";
-            }
+            $cond = ' 1=1';
         }
-        if(!empty($data['admin']) && $data['admin']==1){  //客户编号
-            $cond = " 1=1 ";
-        }
+
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
@@ -248,6 +237,7 @@ class BuyerModel extends PublicModel {
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
+
         if(!empty($data['buyer_no'])){  //客户编号
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
@@ -355,6 +345,9 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
+        if($cond==false){   //无角色,无数据
+            return false;
+        }
         $currentPage = 1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
@@ -376,7 +369,8 @@ class BuyerModel extends PublicModel {
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
         );
-        $field = 'employee.name as employee_name,country.name as country_name';
+        $field = 'employee.name as employee_name,country.name as country_name,';
+        $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
@@ -2038,6 +2032,7 @@ EOF;
             $arr[$k]['buyer_code'] = $v['buyer_code'];  //客户编码
             $arr[$k]['buyer_name'] = $v['buyer_name'];  //客户名称
             $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
+            $arr[$k]['created_name'] = $v['created_name'];  //客户档案创建时间
             if($lang=='zh'){
                 $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
             }else{
@@ -2258,6 +2253,7 @@ EOF;
             foreach($fieldBusiness as $v){
                 $field .= ',business.'.$v;
             }
+            $field .= ',(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
                 ->field($field)
@@ -2326,9 +2322,9 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期','创建人', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
-            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
+            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
         //创建对象
         $excel = new PHPExcel();

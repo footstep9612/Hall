@@ -10,6 +10,7 @@ class BuyercreditController extends PublicController {
 
     public function init(){
         parent::init();
+        date_default_timezone_set('PRC');
     }
 
     /**
@@ -33,16 +34,26 @@ class BuyercreditController extends PublicController {
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
             foreach($res as $item) {
-                if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 days',strtotime($item['approved_date']));
-                    if($time <= time()) {
+                if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
+                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                        $deadline = $item['nolc_deadline'];
+                    }else {
+                        $deadline = $item['lc_deadline'];
+                    }
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
+                    $current_time = strtotime('now');
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
+                    if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                     }
+                    unset($time);
+                    unset($current_time);
                 }
             }
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $res['count'];
             $datajson['data'] = $res['data'];
         } else {
@@ -65,16 +76,26 @@ class BuyercreditController extends PublicController {
         $count = $model->getCount($data);
         if (!empty($res)) {
             foreach($res as $item) {
-                if(!empty($item['approved_date'])){
-                    $time = strtotime('+90 days',strtotime($item['approved_date']));
-                    if($time <= time()) {
+                if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
+                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                        $deadline = $item['nolc_deadline'];
+                    }else {
+                        $deadline = $item['lc_deadline'];
+                    }
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
+                    $current_time = strtotime('now');
+                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                    LOG::write($content, LOG::INFO);
+                    if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
                         $model->where(['buyer_no' => $item['buyer_no']])->save($status);
                     }
+                    unset($time);
+                    unset($current_time);
                 }
             }
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
         } else {
@@ -98,7 +119,7 @@ class BuyercreditController extends PublicController {
         $count = $model->getCount($data);
         if (!empty($res)) {
             $this->_setAgentName($res,'agent_by');
-            $datajson['code'] = ShopMsg::CREDIT_SUCCESS;
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
         } else {
@@ -137,7 +158,7 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '企业所在国家简称');
         }*/
         if (empty($data['country_code'])) {
-            jsonReturn(null, -110, '不符合申请条件!');
+            jsonReturn(null, -110, '此国家不符合申请条件!');
             jsonReturn(null, -110, '企业所在国家简称代码');
         }
         $company_model = new BuyerRegInfoModel();
@@ -158,7 +179,7 @@ class BuyercreditController extends PublicController {
         }
 
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
@@ -196,9 +217,9 @@ class BuyercreditController extends PublicController {
             $res = $bank_model->create_data($bank_data);
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED, 'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED, '申请失败,请稍后再试!');
         }
     }
 
@@ -217,9 +238,9 @@ class BuyercreditController extends PublicController {
             $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
             $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
             $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
-            jsonReturn($comInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
         }
     }
 
@@ -236,9 +257,9 @@ class BuyercreditController extends PublicController {
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
 
-            jsonReturn($bankInfo, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
         }
     }
 
@@ -296,9 +317,9 @@ class BuyercreditController extends PublicController {
             }
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CREDIT_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'审核未通过,请稍后再试!');
         }
     }
 
@@ -332,18 +353,18 @@ class BuyercreditController extends PublicController {
         if($result) {
             //发送邮件
             $config_obj = Yaf_Registry::get("config");
-            $config_email = $config_obj->email->toArray();
+            $config_email = $config_obj->email;
             $email = $this->_getBuyerEmail($data['buyer_no']);
-            $this->creditEmail($email['official_email'], '', $lang, $config_email['url']);
-            jsonReturn($result, ShopMsg::CREDIT_SUCCESS, 'success!');
+            $this->creditEmail($email['official_email'], '', $lang, (array)$config_email['url']);
+            jsonReturn($result, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'操作失败,请稍后再试!');
         }
     }
 
     //分配额度发送邮件
-    function creditEmail($email,$arrEmail, $lang, $emailUrl, $title= 'Erui.com') {
-        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arrEmail);
+    function creditEmail($email,$arr, $lang, $emailUrl, $title= 'Erui.com') {
+        $body = $this->getView()->render('credit/credit_approved_'.$lang.'.html', $arr);
         $data = [
             "title"        => $title,
             "content"      => $body,
@@ -351,8 +372,8 @@ class BuyercreditController extends PublicController {
             "useType"      => "Credit"
         ];
         if(is_array($email)) {
-            $arr = implode(',',$email);
-            $data["to"] = "[$arr]";
+            $arr_email = implode(',',$email);
+            $data["to"] = "[$arr_email]";
         }elseif(is_string($email)){
             $data["to"] = "[$email]";
         }
@@ -383,7 +404,7 @@ class BuyercreditController extends PublicController {
         } else {
             $datajson['code'] = ShopMsg::CUSTOM_FAILED;
             $datajson['data'] = "";
-            $datajson['message'] = 'Data is empty!';
+            $datajson['message'] = '暂无数据!';
         }
         $this->jsonReturn($datajson);
     }
@@ -400,17 +421,27 @@ class BuyercreditController extends PublicController {
         $credit_model = new BuyerCreditModel();
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
-            if(!empty($creditInfo['approved_date'])){
-                $time = strtotime('+90 d',strtotime($creditInfo['approved_date']));
-                if($time <= time()) {
+            if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
+                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                    $deadline = $creditInfo['nolc_deadline'];
+                }else {
+                    $deadline = $creditInfo['lc_deadline'];
+                }
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $current_time = strtotime('now');
+                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+                LOG::write($content, LOG::INFO);
+                if($time <= $current_time) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
                     $credit_model->where(['buyer_no' => $creditInfo['buyer_no']])->save($status);
                 }
+                unset($time);
+                unset($current_time);
             }
-            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($creditInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
+            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'暂无数据!');
         }
     }
 
@@ -505,4 +536,5 @@ class BuyercreditController extends PublicController {
             $list[$key] = $val;
         }
     }
+
 }

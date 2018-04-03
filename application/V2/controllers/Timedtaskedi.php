@@ -5,20 +5,19 @@
  * Date: 2017/9/21
  * Time: 11:40
  */
-class TimedtaskEdiController extends PublicController{
+class TimedtaskediController extends PublicController{
 
-    private $serverIP = 'credit.eruidev.com';
-    private $serverPort = '80';
+//    private $serverIP = 'credit.eruidev.com';
+//    private $serverPort = '80';
     private $serverDir = 'ediserver';
     private $serverDirSec = 'ws_services';
     private $serviceInterface = 'SolEdiProxyWebService';
     private $mode = 'wsdl';
     static private $policyNo = 'SCH043954-181800';
     static private $serviceUri = '';
-    static private $url_wsdl = 'http://credit.eruidev.com:80/ediserver/ws_services/SolEdiProxyWebService?wsdl';
+    static private $url_wsdl = 'http://39.107.75.138:8086/ediserver/ws_services/SolEdiProxyWebService?wsdl';
 
     public function init(){
-        parent::init();
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
 
@@ -26,9 +25,11 @@ class TimedtaskEdiController extends PublicController{
         $this->buyerCreditLogModel = new BuyerCreditLogModel();
         $this->buyerBankInfoModel = new BuyerBankInfoModel();
         $this->buyerRegInfoModel = new BuyerRegInfoModel();
+        $config_obj = Yaf_Registry::get("config");
+        $serverIP = $config_obj->ediserver->toArray();
 
         if (self::$serviceUri == '') {
-            self::$serviceUri = 'http://'.$this->serverIP.':'.$this->serverPort.'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
+            self::$serviceUri = 'http://'.$serverIP['host'].':'.$serverIP['port'].'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
         }
         if ($this->mode == 'wsdl') {
             self::$serviceUri .= '?wsdl';
@@ -76,7 +77,10 @@ class TimedtaskEdiController extends PublicController{
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'status' => 'EDI_APPROVED'
                              ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                             if($check_credit['status'] != 'APPROVED'){
+                                 $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             }
                          } else {
                              $updata = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
@@ -165,7 +169,10 @@ class TimedtaskEdiController extends PublicController{
                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                 'status' => 'EDI_APPROVED'
                             ];
-                            $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->find();
+                            if($check_credit['status'] != 'APPROVED'){
+                                $this->buyerCreditModel->where(['buyer_no' => $item['bankInfo']['corpSerialNo']])->save($updata);
+                            }
                         } else {
                             //授信表
                             $updata = [

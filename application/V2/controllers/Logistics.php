@@ -9,6 +9,7 @@ class LogisticsController extends PublicController {
 
 	public function init() {
 		parent::init();
+		$this->put_data = dataTrim($this->put_data);
 		
 		$this->inquiryModel = new InquiryModel();
 		$this->quoteModel = new QuoteModel();
@@ -78,12 +79,14 @@ class LogisticsController extends PublicController {
 	        
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
-	            unset($item['id']);
+	            $itemData['tax_no'] = $item['tax_no'];
+	            $itemData['rebate_rate'] = strval($item['rebate_rate']) != '' ? $item['rebate_rate'] : null;
+	            $itemData['export_tariff_rate'] = strval($item['export_tariff_rate']) != '' ? $item['export_tariff_rate'] : null;
+	            $itemData['supervised_criteria'] = $item['supervised_criteria'];
+	            $itemData['updated_by'] = $this->user['id'];
+	            $itemData['updated_at'] = $this->time;
 	            
-	            $item['updated_by'] = $this->user['id'];
-	            $item['updated_at'] = $this->time;
-	            
-	            $res = $this->quoteItemLogiModel->updateInfo($where, $item);
+	            $res = $this->quoteItemLogiModel->updateInfo($where, $itemData);
 	            
 	            /*if (!$res) {
 	                $this->quoteItemLogiModel->rollback();
@@ -371,13 +374,24 @@ class LogisticsController extends PublicController {
 	    
 	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
-	    $volumn = $condition['length'] * $condition['width'] * $condition['height'];
-	    $condition['volumn'] = $volumn > 0 ? $volumn : 0;
+	    $length = isDecimal($condition['length']) ? $condition['length'] : null;
+	    $width = isDecimal($condition['width']) ? $condition['width'] : null;
+	    $height = isDecimal($condition['height']) ? $condition['height'] : null;
+	    $volumn = $length * $width * $height;
 	    
-	    $condition['created_by'] = $this->user['id'];
-	    $condition['created_at'] = $this->time;
-	    $condition['updated_by'] = $this->user['id'];
-	    $condition['updated_at'] = $this->time;
+	    $qwvData = [
+	        'inquiry_id' => $condition['inquiry_id'],
+	        'length' => $length,
+	        'width' => $width,
+	        'height' => $height,
+	        'volumn' => $volumn > 0 ? $volumn : 0,
+	        'gross_weight' => isDecimal($condition['gross_weight']) ? $condition['gross_weight'] : null,
+	        'quantity' => isDecimal($condition['quantity']) ? $condition['quantity'] : null,
+	        'created_by' => $this->user['id'],
+	        'created_at' => $this->time,
+	        'updated_by' => $this->user['id'],
+	        'updated_at' => $this->time
+	    ];
 	    
 	    $this->quoteLogiQwvModel->startTrans();
 	    
@@ -388,7 +402,7 @@ class LogisticsController extends PublicController {
 	    $data['ids'] = [];
 	   
 	    for ($i = 0; $i < $row; $i++) {
-	        $res = $this->quoteLogiQwvModel->addRecord($condition);
+	        $res = $this->quoteLogiQwvModel->addRecord($qwvData);
 	        
 	        if ($res) {
 	            $data['ids'][] = $res;
@@ -420,13 +434,23 @@ class LogisticsController extends PublicController {
 	        $where['id'] = $condition['r_id'];
 	        unset($condition['r_id']);
 	        
-	        $volumn = $condition['length'] * $condition['width'] * $condition['height'];
-	        $condition['volumn'] = $volumn > 0 ? $volumn : 0;
+	        $length = isDecimal($condition['length']) ? $condition['length'] : null;
+	        $width = isDecimal($condition['width']) ? $condition['width'] : null;
+	        $height = isDecimal($condition['height']) ? $condition['height'] : null;
+	        $volumn = $length * $width * $height;
+	         
+	        $qwvData = [
+	            'length' => $length,
+	            'width' => $width,
+	            'height' => $height,
+	            'volumn' => $volumn > 0 ? $volumn : 0,
+	            'gross_weight' => isDecimal($condition['gross_weight']) ? $condition['gross_weight'] : null,
+	            'quantity' => isDecimal($condition['quantity']) ? $condition['quantity'] : null,
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
 	        
-	        $condition['updated_by'] = $this->user['id'];
-	        $condition['updated_at'] = $this->time;
-	        
-	        $res = $this->quoteLogiQwvModel->updateInfo($where, $condition);
+	        $res = $this->quoteLogiQwvModel->updateInfo($where, $qwvData);
 	
 	        $this->jsonReturn($res);
 	    } else {
@@ -452,13 +476,23 @@ class LogisticsController extends PublicController {
 	            $where['id'] = $item['id'];
 	            unset($item['id']);
 	            
-	            $volumn = $item['length'] * $item['width'] * $item['height'];
-	            $item['volumn'] = $volumn > 0 ? $volumn : 0;
+	            $length = isDecimal($item['length']) ? $item['length'] : null;
+	            $width = isDecimal($item['width']) ? $item['width'] : null;
+	            $height = isDecimal($item['height']) ? $item['height'] : null;
+	            $volumn = $length * $width * $height;
 	            
-	            $item['updated_by'] = $this->user['id'];
-	            $item['updated_at'] = $this->time;
+	            $qwvData = [
+	                'length' => $length,
+	                'width' => $width,
+	                'height' => $height,
+	                'volumn' => $volumn > 0 ? $volumn : 0,
+	                'gross_weight' => isDecimal($item['gross_weight']) ? $item['gross_weight'] : null,
+	                'quantity' => isDecimal($item['quantity']) ? $item['quantity'] : null,
+	                'updated_by' => $this->user['id'],
+	                'updated_at' => $this->time
+	            ];
 	             
-	            $res = $this->quoteLogiQwvModel->updateInfo($where, $item);	             
+	            $res = $this->quoteLogiQwvModel->updateInfo($where, $qwvData);	             
 	             
 	            if (!$res) {
 	                $data[] = $where['id'];

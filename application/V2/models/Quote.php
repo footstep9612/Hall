@@ -27,7 +27,6 @@ class QuoteModel extends PublicModel {
     const QUOTE_QUOTED     = 'QUOTED';     //已报价
     const QUOTE_COMPLETED  = 'COMPLETED';  //已完成
 
-
     public function __construct() {
         parent::__construct();
     }

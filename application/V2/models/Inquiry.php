@@ -166,6 +166,10 @@ class InquiryModel extends PublicModel {
         if (isset($condition['quote_id'])) {
             $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
+        
+        if (isset($condition['contract_inquiry_id'])) {
+            $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号
+        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
@@ -278,7 +282,7 @@ class InquiryModel extends PublicModel {
         }
     
         if (!empty($condition['country_bn'])) {
-            $where['country_bn'] = $condition['country_bn'];    //国家
+            $where['country_bn'] = isset($condition['user_country']) ? [['eq', $condition['country_bn']], $where['country_bn']] : $condition['country_bn'];    //国家
         }
     
         if (!empty($condition['serial_no'])) {
@@ -299,6 +303,10 @@ class InquiryModel extends PublicModel {
         
         if (isset($condition['quote_id'])) {
             $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
+        }
+        
+        if (isset($condition['contract_inquiry_id'])) {
+            $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号
         }
         
         if (isset($condition['org_id'])) {
