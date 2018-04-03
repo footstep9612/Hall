@@ -176,4 +176,92 @@ trait SupplierHelper
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SupplierOnShelfSku_" . date('Ymd-His') . '.xls');
     }
+
+    public static function productStatics($data)
+    {
+        set_time_limit(0);
+
+        $objPHPExcel = new PHPExcel();
+        $objSheet = $objPHPExcel->getActiveSheet();
+        $objSheet->setTitle('产品数据');
+
+        $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('20');
+            $objSheet->getCell($normal_col . "1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+        $objSheet->setCellValue("A1", '产品编码');
+        $objSheet->setCellValue("B1", '品类部');
+        $objSheet->setCellValue("C1", '英文产品名称');
+        $objSheet->setCellValue("D1", '中文产品名称');
+        $objSheet->setCellValue("E1", '英文SKU数量');
+        $objSheet->setCellValue("F1", '中文SKU数量');
+        $objSheet->setCellValue("G1", '产品创建人');
+        $objSheet->setCellValue("H1", '产品状态');
+        $objSheet->setCellValue("I1", '供应商ID');
+        $objSheet->setCellValue("J1", '供应商名称');
+        $objSheet->setCellValue("K1", '品牌(中文)');
+        $objSheet->setCellValue("L1", '品牌(英文)');
+        $objSheet->setCellValue("M1", '供应商创建人');
+        $objSheet->setCellValue("N1", '开发人');
+
+
+        //设置全局文字居中
+        $objSheet->getDefaultStyle()->getFont()->setName("微软雅黑")->setSize(10);
+
+        $objSheet->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        $normal_cols = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"];
+        foreach ($normal_cols as $normal_col):
+            $objSheet->getColumnDimension($normal_col)->setWidth('20');
+            $objSheet->getCell($normal_col . "1")->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        endforeach;
+
+        $startRow = 2;
+        if (!empty($data)) {
+            foreach ($data as $k => $v) {
+
+                $objSheet->getRowDimension($startRow)->setRowHeight(30);
+
+                $objSheet->setCellValue("A" . $startRow, $v['spu']);
+                $objSheet->setCellValue("B" . $startRow, $v['bizline']);
+                $objSheet->setCellValue("C" . $startRow, $v['name']);
+                $objSheet->setCellValue("D" . $startRow, $v['show_name']);
+                $objSheet->setCellValue("E" . $startRow, $v['en_sku_count']);
+                $objSheet->setCellValue("F" . $startRow, $v['zh_sku_count']);
+                $objSheet->setCellValue("G" . $startRow, $v['created_by']);
+                $objSheet->setCellValue("H" . $startRow, $v['status']);
+                $objSheet->setCellValue("I" . $startRow, $v['supplier']['supplier_id']);
+                $objSheet->setCellValue("J" . $startRow, $v['supplier']['name']);
+                $objSheet->setCellValue("K" . $startRow, $v['lang']=='en' ? $v['brand'] : '');
+                $objSheet->setCellValue("L" . $startRow, $v['lang']=='zh' ? $v['brand'] : '');
+                $objSheet->setCellValue("M" . $startRow, $v['supplier']['creator']);
+                $objSheet->setCellValue("N" . $startRow, $v['supplier']['agent']);
+
+                $objSheet->getCell("A" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("B" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("C" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("D" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("E" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("F" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("G" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("H" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("I" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("J" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("K" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("L" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("M" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                $objSheet->getCell("N" . $startRow)->getStyle()->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+                $startRow++;
+            }
+
+        }
+
+        //4.保存文件
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
+        return ExcelHelperTrait::createExcelToLocalDir($objWriter, "Product_Statics_" . date('Ymd-His') . '.xls');
+    }
+
 }

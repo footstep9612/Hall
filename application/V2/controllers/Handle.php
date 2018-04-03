@@ -1,6 +1,6 @@
 <?php
 
-class HandleController extends PublicController
+class HandleController extends Yaf_Controller_Abstract
 {
 
     /**
@@ -13,7 +13,7 @@ class HandleController extends PublicController
 
     public function init()
     {
-        parent::init();
+        //parent::init();
 
         header('Content-type:text/html;charset=utf8');
     }
@@ -658,19 +658,92 @@ class HandleController extends PublicController
     /**
      * 供应商的产品、品牌，商品统计数据
      */
-    public function supplierBrandSpuWithSkuStaticsAction()
+    public function productsWithSkuStaticsAction()
     {
-        $condition = [];
-        $data = $this->getSupplierBrandSpuWithSkuStatics($condition);
-        p($data);
+        $data = $this->getProductsWithSkuStatics();
+        //$excelFile = SupplierHelper::productStatics($data);
+        p(count($data));
     }
 
-    private function getSupplierBrandSpuWithSkuStatics(array $condition = [])
+    private function getProductsWithSkuStatics()
     {
-        $supplierModel = new SupplierModel();
 
-        $supplierCondition = [];
-        $data = $supplierModel->where()->select();
-        return $data;
+        if (redisExist('product_statics_data_1')){
+            return json_decode(redisGet('product_statics_data'),true);
+        }
+
+        $productModel = new ProductModel();
+        $productFields = 'spu,lang,bizline_id,name,show_name,created_by,status,brand';
+        $productWhere = ['deleted_flag' => 'N'];
+
+        $products = $productModel->where($productWhere)->field($productFields)->limit(1,10000)->select();
+
+        foreach ($products as &$product){
+            //创建人
+            $product['created_by'] = $this-$this->setUserNameBy($product['created_by']);
+            //sku数量
+            $product['en_sku_count'] = $this->getSkuBy($product['spu'], 'en');
+            $product['zh_sku_count'] = $this->getSkuBy($product['spu'], 'zh');
+            //品牌
+            $brand= json_decode($product['brand'],true);
+            $product['brand'] = $brand['name'];
+            //品类组
+            $product['bizline'] = $this->getBizlineBy($product['bizline_id']);
+            //供应商
+            $product['supplier'] = $this->getSupplierBy($product['spu']);
+            //产品状态
+            $product['status'] = $this->setStatus($product['status']);
+        }
+        //存入redis
+        redisSet('product_statics_data_1', json_encode($products));
+        //redisDel('product_statics_data');
+
+        return $products;
     }
+
+    private function getSkuBy($spu, $lang)
+    {
+        return (new GoodsModel)->where(['spu'=> $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count();
+    }
+
+    private function setStatus($status)
+    {
+        switch ($status){
+            case 'DRAFT' : return '草稿'; break;
+            case 'CHECKING' : return '审核中'; break;
+            case 'VALID' : return '审核通过'; break;
+            case 'INVALID' : return '驳回'; break;
+        }
+    }
+
+    private function getBizlineBy($bizline_id)
+    {
+        return (new BizlineModel)->where(['id' => $bizline_id, 'deleted_flag' => 'N'])->getField('name');
+    }
+
+    private function getSupplierBy($spu)
+    {
+        $where = ['ps.spu' => $spu, 'ps.deleted_flag' => 'N'];
+        $fields = 'ps.supplier_id,s.name,s.created_by,sa.agent_id';
+
+        $productSupplierModel = new ProductSupplierModel();
+        $supplier =  $productSupplierModel->alias('ps')
+                                            ->join('erui_supplier.supplier s ON ps.supplier_id=s.id')
+                                            ->join('erui_supplier.supplier_agent sa ON ps.supplier_id=sa.supplier_id')
+                                            ->where($where)
+                                            ->field($fields)
+                                            ->find();
+        if ($supplier){
+            $supplier['creator'] = $this->setUserNameBy($supplier['created_by']);
+            $supplier['agent'] = $this->setUserNameBy($supplier['agent_id']);
+        }
+
+        return $supplier;
+    }
+
+    private function setUserNameBy($user)
+    {
+        return (new EmployeeModel)->where(['id' => $user, 'deleted_flag' => 'N' ])->getField('name');
+    }
+
 }
