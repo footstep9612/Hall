@@ -202,6 +202,32 @@ class BuyervisitController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
+    //导出客户调研报告-wangs
+    public function exportStatisReportAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerVisitModel();
+        $arr = $model->exportStatisVisit($data,true);
+        if($arr === false){
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'暂无数据'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        if(!empty($arr)){
+            $dataJson=array(
+                'code'=>1,
+                'message'=>'Success',
+                'name'=>$arr['name'],
+                'url'=>$arr['url']
+            );
+            $model = new BuyerExcelModel();
+            $model->saveExcel($arr['name'],$arr['url'],$created_by);
+        }
+        $this->jsonReturn($dataJson);
+    }
     //获取用户的角色
     public function getUserRole(){
         $config = \Yaf_Application::app()->getConfig();

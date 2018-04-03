@@ -592,7 +592,7 @@ EOF;
         $info=json_decode($json,true);
         return $info['code'];
     }
-    public function noticeEmailAction(){
+    public function NnoticeEmailAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
         if(empty($data['buyer_id'])){

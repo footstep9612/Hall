@@ -621,9 +621,13 @@ class BuyerVisitModel extends PublicModel {
     }
 
     //excel导出
-    public function exportStatisVisit($data){
+    public function exportStatisVisit($data,$report=false){
         //整理数据,获取文件路径
-        $excelDir = $this->getVisitStatiaList($data,$length = 1000);
+        if($report==false){ //拜访记录
+            $excelDir = $this->getVisitStatiaList($data,$length = 1000);
+        }else{  //调研报告
+            $excelDir = $this->getReportStatiaList($data);
+        }
         if(!is_array($excelDir)){
             return false;
         }
@@ -664,6 +668,43 @@ class BuyerVisitModel extends PublicModel {
      * 返回数组,已上传到服务器临时路径
      */
     public function getVisitStatiaList($data = [],$length = 1000){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $condition = $this->getVisitOfCond($data);
+        if($condition === false){
+            return false;   //该条件下客户信息为空数据返回空
+        }
+//        $total = $this->field('id')->where($condition)->count();
+        $total_sql='select count(*) as total';
+        $total_sql.=' from erui_buyer.buyer_visit visit ';
+        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
+        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
+        $total_sql.=' where ';
+        $total_sql.=$condition;
+        $total=$this->query($total_sql);
+        $total=$total[0]['total'];
+        if($total==0){
+            return false;   ///该条件下拜访记录为空数据
+        }
+        $i = 0;
+        do {
+            //按条件获取拜访记录数据
+            $result = $this->condGetVisitData($lang,$condition,$i,$length);
+            $info = $this->getVisitStatisData($result); //整理excel导出的数据
+            if($i==0){
+                $excelName = 'visit';
+            }else{
+                $excelName = 'visit_'.($i/$length);
+            }
+            $excelDir[] = $this->exportModel($lang,$excelName,$info); //导入excel,获取excel临时文件路径信息
+            $i = $i+$length;
+            $total =$total-$length;
+        } while ($total > 0);
+        return $excelDir;   //返回数组,已上传到服务器临时路径
+    }
+    //导出调研报告-wangs
+    public function getReportStatiaList($data){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
         if($condition === false){
