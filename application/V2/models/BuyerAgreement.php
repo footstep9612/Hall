@@ -127,24 +127,71 @@ class BuyerAgreementModel extends PublicModel
      * 框架协议首页列表的条件
      */
     public function getAgreeCond($data = []){
-        $cond = ' 1=1';
-        if(!empty($data['country_bn'])){    //国家权限
-            $countryArr=array();
-            $countrys=explode(',',$data['country_bn']);
-            foreach($countrys as $k => $v){
-                $countryArr[]="'".$v."'";
+        $cond = ' 1=1 ';
+
+        if(empty($data['admin']['role'])){
+            return false;
+        }
+        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
+                return false;
+            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
+                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
+            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " and buyer.id in ($str) ";
+                }else{
+                    $cond.= " and buyer.id in ('wangs') ";
+                }
+            }else{  //即使国家负责人,也是市场经办人
+                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " or buyer.id in ($str) )";
+                }else{
+                    $cond.= " or buyer.id in ('wangs') )";
+                }
             }
-            $countryStr=implode(',',$countryArr);
-            $cond .= " And `agree`.country_bn in ($countryStr)";
         }else{
-            if(!empty($data['buyer_id'])){
-                $cond .= " and buyer_id=".$data['buyer_id'];
-            }
-            $cond .= " and agree.created_by=".$data['created_by'];
+            $cond=" 1=1 ";
         }
-        if(!empty($data['admin']) && $data['admin']==1){  //国家搜索
-            $cond = ' 1=1 ';
-        }
+//        print_r($cond);die;
+//        if(!empty($data['country_bn'])){    //国家权限
+//            $countryArr=array();
+//            $countrys=explode(',',$data['country_bn']);
+//            foreach($countrys as $k => $v){
+//                $countryArr[]="'".$v."'";
+//            }
+//            $countryStr=implode(',',$countryArr);
+//            $cond .= " And `agree`.country_bn in ($countryStr)";
+//        }else{
+//            if(!empty($data['buyer_id'])){
+//                $cond .= " and buyer_id=".$data['buyer_id'];
+//            }
+//            $cond .= " and agree.created_by=".$data['created_by'];
+//        }
+//        if(!empty($data['admin']) && $data['admin']==1){  //国家搜索
+//            $cond = ' 1=1 ';
+//        }
         //统计展示数据
         if(!empty($data['all_id'])){  //根据id导出excel
             $all_idStr = implode(',',$data['all_id']);

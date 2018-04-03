@@ -199,15 +199,33 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function getBuyerStatisListCond($data){
-        $cond = ' 1=1';
+        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
         }
         if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
-            if(in_array('201711242',$data['admin']['role'])){   //国家负责人
+            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
+                return false;
+            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
+                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
+            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " and buyer.id in ($str) ";
+                }else{
+                    $cond.= " and buyer.id in ('wangs') ";
+                }
+            }else{  //即使国家负责人,也是市场经办人
                 $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
-            }
-            if(in_array('A001',$data['admin']['role'])){   //经办人
                 $agent=new BuyerAgentModel();
                 $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
                 $created=new BuyerModel();
@@ -225,8 +243,9 @@ class BuyerModel extends PublicModel {
                 }
             }
         }else{
-            $cond = ' 1=1';
+            $cond = ' 1=1 ';
         }
+
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
