@@ -281,8 +281,10 @@ class InquiryModel extends PublicModel {
             $where['country_bn'] = ['in', $condition['user_country'] ? : ['-1']];    //查看事业部询单角色国家
         }
     
-        if (!empty($condition['country_bn'])) {
+        if (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
             $where['country_bn'] = isset($condition['user_country']) ? [['eq', $condition['country_bn']], $where['country_bn']] : $condition['country_bn'];    //国家
+        }else if (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
+            $where['country_bn'] = ['in', $condition['country_bn'] ? : ['-1']];    //国家
         }
     
         if (!empty($condition['serial_no'])) {
@@ -306,7 +308,11 @@ class InquiryModel extends PublicModel {
         }
         
         if (isset($condition['contract_inquiry_id'])) {
-            $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号
+            if($condition['contract_no']=='Y'){
+                $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
+            }else{
+                $where['id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
+            }
         }
         
         if (isset($condition['org_id'])) {

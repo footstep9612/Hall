@@ -1957,5 +1957,5 @@ function dateToTimeStamp($str) {
  * @time 2018-03-28
  */
 function isDecimal($param) {
-    return !!preg_match('/^((\d+\.\d*)|(\d*\.\d+)|(\d+))$/', $param);
+    return !!preg_match('/^\s*((\d+\.\d*)|(\d*\.\d+)|(\d+))\s*$/', $param);
 }

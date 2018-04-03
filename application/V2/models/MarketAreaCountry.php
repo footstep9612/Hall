@@ -174,4 +174,38 @@ class MarketAreaCountryModel extends PublicModel {
         }
     }
 
+    /*
+     * 根据营销区域获取国家简称
+     * @param array $Areabn // 区域简称
+     * @return array
+     * @author  zhanguliang
+     *  @date    2018-3-3 13:39:16
+     */
+    public function getCountryBn($Areabn, $lang = 'zh'){
+
+        try {
+            $where = [];
+
+            if (is_string($Areabn)) {
+                $where['market_area_bn'] = $Areabn;
+            } elseif (is_array($Areabn)) {
+                $where['market_area_bn'] = ['in', $Areabn];
+            } else {
+                return false;
+            }
+
+
+            $country_bn = $this->field('country_bn')->where($where)->select();
+
+            foreach($country_bn as $val){
+                $countrybns[] = $val['country_bn'];
+            }
+
+            return $countrybns;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
 }
