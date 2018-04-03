@@ -308,7 +308,11 @@ class InquiryModel extends PublicModel {
         }
         
         if (isset($condition['contract_inquiry_id'])) {
-            $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号
+            if($condition['contract_no']=='Y'){
+                $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
+            }else{
+                $where['id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
+            }
         }
         
         if (isset($condition['org_id'])) {

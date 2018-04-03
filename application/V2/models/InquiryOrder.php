@@ -73,15 +73,16 @@ class InquiryOrderModel extends PublicModel {
      *
      * @param string $no
      * @return mixed
-     * @author liujf
+     * @author zhangyuliang
      * @time 2018-03-26
      */
     public function getInquiryIdForContractNo($no) {
+        $where = [];
         if($no == 'Y'){
             $where['contract_no'] = ['exp','is null'];
-        }else{
-            $where['contract_no'] = ['exp','is not null'];
         }
         return $this->where($where)->getField('inquiry_id', true);
     }
+
+
 }
