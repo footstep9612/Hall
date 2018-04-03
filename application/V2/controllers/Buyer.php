@@ -197,7 +197,7 @@ class BuyerController extends PublicController {
     public function buyerListAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->getUserRole($this->user['id']);   //=1市场专员
+        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
@@ -214,7 +214,7 @@ class BuyerController extends PublicController {
     public function exportExcelBuyerListAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->getUserRole($this->user['id']);   //=1市场专员
+        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->buyerStatisList($data,true);
@@ -233,7 +233,7 @@ class BuyerController extends PublicController {
     public function buyercountAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->crmUserRole($this->user['id']);   //=1市场专员
+        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $cond = $model->getBuyerStatisListCond($data);  //获取条件
