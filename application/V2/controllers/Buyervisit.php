@@ -29,7 +29,8 @@ class BuyervisitController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
-        $data['admin']=$this->crmUserRole($this->user['id'],'CRM拜访记录');
+        $data['admin']=$this->getUserRole();
+        $data['created_by']=$this->user['id'];
         $arr = $visit_model->getList($data);
         if ($arr !== false) {
             jsonReturn($arr);
@@ -123,7 +124,8 @@ class BuyervisitController extends PublicController {
      */
     public function demadListAction(){
         $data = $this->getPut();
-        $data['admin']=$this->crmUserRole($this->user['id'],'CRM需求反馈记录');
+        $data['admin']=$this->getUserRole();
+        $data['created_by']=$this->user['id'];
         $visit_model = new BuyerVisitModel();
         $arr = $visit_model->getDemadList($data,$this->getLang());
         if ($arr !== false) {
@@ -178,7 +180,7 @@ class BuyervisitController extends PublicController {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
-        $data['admin']=$this->crmUserRole($this->user['id'],'CRM拜访记录');
+        $data['admin']=$this->getUserRole();
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
         if($arr === false){
@@ -199,5 +201,34 @@ class BuyervisitController extends PublicController {
             $model->saveExcel($arr['name'],$arr['url'],$created_by);
         }
         $this->jsonReturn($dataJson);
+    }
+    //获取用户的角色
+    public function getUserRole(){
+        $config = \Yaf_Application::app()->getConfig();
+        $ssoServer=$config['ssoServer'];
+        $token=$_COOKIE['eruitoken'];
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+                    "Cookie: ".$_COOKIE."\r\n",
+                'content' =>json_encode(array('token'=>$token))
+
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($ssoServer,false,$context);
+        $info=json_decode($json,true);
+
+        $arr['role']=$info['role_no'];
+        if(!empty($info['country_bn'])){
+            $countryArr=[];
+            foreach($info['country_bn'] as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
+        }
+        $arr['country']=$countryStr;
+        return $arr;
     }
 }

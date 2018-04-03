@@ -197,6 +197,9 @@ class BuyerAgreementModel extends PublicModel
             $all_idStr = implode(',',$data['all_id']);
             $cond .= " and agree.id in ($all_idStr)";
         }
+        if(!empty($data['buyer_id'])){
+            $cond .= " and buyer_id=".$data['buyer_id'];
+        }
         if(!empty($data['country_search '])){  //国家搜索
             $cond .= " and agree.country_bn='$data[country_search]'";
         }
