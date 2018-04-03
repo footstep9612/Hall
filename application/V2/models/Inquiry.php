@@ -168,7 +168,11 @@ class InquiryModel extends PublicModel {
         }
         
         if (isset($condition['contract_inquiry_id'])) {
-            $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号
+            if($condition['contract_no'] == 'Y'){
+                $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
+            } else {
+                $where['id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
+            }
         }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
@@ -308,9 +312,9 @@ class InquiryModel extends PublicModel {
         }
         
         if (isset($condition['contract_inquiry_id'])) {
-            if($condition['contract_no']=='Y'){
+            if($condition['contract_no'] == 'Y'){
                 $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
-            }else{
+            } else {
                 $where['id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
             }
         }
