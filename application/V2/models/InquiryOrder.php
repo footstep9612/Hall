@@ -69,20 +69,21 @@ class InquiryOrderModel extends PublicModel {
     }
 
     /**
-     * @desc 根据是否存在销售合同号询单ID
+     * @desc 获取所有含销售合同号的询单ID
      *
-     * @param string $no
-     * @return mixed
-     * @author zhangyuliang
-     * @time 2018-03-26
+     * @return array
+     * @author zhangyuliang, liujf
+     * @time 2018-04-03
      */
-    public function getInquiryIdForContractNo($no) {
-        $where = [];
-        if($no == 'Y'){
-            $where['contract_no'] = ['exp','is null'];
+    public function getInquiryIdForContractNo() {
+        $list = $this->field('inquiry_id, contract_no')->where(['contract_no' => ['exp', 'is not null']])->select();
+        $inquiryIds = [];
+        foreach ($list as $item) {
+            if (trim(strval($item['contract_no'])) != '') {
+                $inquiryIds[] = $item['inquiry_id'];
+            }
         }
-        return $this->where($where)->getField('inquiry_id', true);
+        return $inquiryIds;
     }
-
 
 }
