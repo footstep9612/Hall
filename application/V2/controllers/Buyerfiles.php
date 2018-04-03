@@ -26,7 +26,7 @@ class BuyerfilesController extends PublicController
             'http'=>array(
                 'method'=>"POST",
                 'header'=>"Content-Type: application/json\r\n" .
-        "Cookie: ".$_COOKIE."\r\n",
+                    "Cookie: ".$_COOKIE."\r\n",
                 'content' =>json_encode(array('token'=>$token))
 
             )
@@ -34,13 +34,17 @@ class BuyerfilesController extends PublicController
         $context = stream_context_create($opt);
         $json = file_get_contents($ssoServer,false,$context);
         $info=json_decode($json,true);
-        $roles=$info['role_no'];
-        if(in_array('CRM档案信息',$roles)){  //查看档案信息统计角色
-            $admin=1;
-        }else{
-            $admin=0;
+
+        $arr['role']=$info['role_no'];
+        if(!empty($info['country_bn'])){
+            $countryArr=[];
+            foreach($info['country_bn'] as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
         }
-        return $admin;
+        $arr['country']=$countryStr;
+        return $arr;
     }
     /*
      * 客户管理列表搜索展示

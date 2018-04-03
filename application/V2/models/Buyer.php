@@ -2153,27 +2153,74 @@ EOF;
     public function getBuyerManageCond($data){
         //条件
         $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
-        if($data['admin'] == 0){   //查看部分统计
-            $cond .= " and buyer.created_by=$data[created_by] ";
-            if(!empty($data['country_bn'])){    //国家权限
-                $countryArr=array();
-                $countrys=explode(',',$data['country_bn']);
-                foreach($countrys as $k => $v){
-                    $countryArr[]="'".$v."'";
+
+        if(empty($data['admin']['role'])){
+            return false;
+        }
+        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
+                return false;
+            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
+                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
+            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
                 }
-                $countryStr=implode(',',$countryArr);
-                $cond .= " And `buyer`.country_bn in ($countryStr)";
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " and buyer.id in ($str) ";
+                }else{
+                    $cond.= " and buyer.id in ('wangs') ";
+                }
+            }else{  //即使国家负责人,也是市场经办人
+                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " or buyer.id in ($str) )";
+                }else{
+                    $cond.= " or buyer.id in ('wangs') )";
+                }
             }
         }else{
             $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
         }
+
+//        if($data['admin'] == 0){   //查看部分统计
+//            $cond .= " and buyer.created_by=$data[created_by] ";
+//            if(!empty($data['country_bn'])){    //国家权限
+//                $countryArr=array();
+//                $countrys=explode(',',$data['country_bn']);
+//                foreach($countrys as $k => $v){
+//                    $countryArr[]="'".$v."'";
+//                }
+//                $countryStr=implode(',',$countryArr);
+//                $cond .= " And `buyer`.country_bn in ($countryStr)";
+//            }
+//        }else{
+//            $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
+//        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
         }
-        if(!empty($data['all_id'])){
-            $str = implode(',',$data['all_id']);
-            $cond .= " and buyer.id in ($str)";
-        }
+//        if(!empty($data['all_id'])){
+//            $str = implode(',',$data['all_id']);
+//            $cond .= " and buyer.id in ($str)";
+//        }
         if(!empty($data['buyer_level'])){
             $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
@@ -2207,6 +2254,9 @@ EOF;
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerManageCond($data);
+        if($cond==false){
+            return false;
+        }
         $totalCount = $this->alias('buyer')
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
             ->where($cond)
