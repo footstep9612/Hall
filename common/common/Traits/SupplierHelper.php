@@ -234,8 +234,8 @@ trait SupplierHelper
                 $objSheet->setCellValue("H" . $startRow, $v['status']);
                 $objSheet->setCellValue("I" . $startRow, $v['supplier']['supplier_id']);
                 $objSheet->setCellValue("J" . $startRow, $v['supplier']['name']);
-                $objSheet->setCellValue("K" . $startRow, $v['lang']=='en' ? $v['brand'] : '');
-                $objSheet->setCellValue("L" . $startRow, $v['lang']=='zh' ? $v['brand'] : '');
+                $objSheet->setCellValue("K" . $startRow, $v['brand_zh']);
+                $objSheet->setCellValue("L" . $startRow, $v['brand_en']);
                 $objSheet->setCellValue("M" . $startRow, $v['supplier']['creator']);
                 $objSheet->setCellValue("N" . $startRow, $v['supplier']['agent']);
 

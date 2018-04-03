@@ -662,43 +662,86 @@ class HandleController extends Yaf_Controller_Abstract
     {
         $data = $this->getProductsWithSkuStatics();
         //$excelFile = SupplierHelper::productStatics($data);
+        p($data);
         p(count($data));
     }
 
     private function getProductsWithSkuStatics()
     {
+        //php最大执行时间
+        ini_set('max_execution_time', '0');
 
-        if (redisExist('product_statics_data_1')){
-            return json_decode(redisGet('product_statics_data'),true);
-        }
+//        if (redisExist('product_statics_data_1')){
+//            return json_decode(redisGet('product_statics_data_1'),true);
+//        }
 
         $productModel = new ProductModel();
         $productFields = 'spu,lang,bizline_id,name,show_name,created_by,status,brand';
         $productWhere = ['deleted_flag' => 'N'];
 
-        $products = $productModel->where($productWhere)->field($productFields)->limit(1,10000)->select();
+        $products = $productModel->where($productWhere)->field($productFields)->limit(2,300)->select();
 
         foreach ($products as &$product){
+
             //创建人
-            $product['created_by'] = $this-$this->setUserNameBy($product['created_by']);
+            if ($product['created_by']){
+                $product['created_by'] = $this-$this->setUserNameBy($product['created_by']);
+            }
+
             //sku数量
             $product['en_sku_count'] = $this->getSkuBy($product['spu'], 'en');
             $product['zh_sku_count'] = $this->getSkuBy($product['spu'], 'zh');
+
             //品牌
             $brand= json_decode($product['brand'],true);
-            $product['brand'] = $brand['name'];
+            if ($product['lang']=='en'){
+                $product['brand_en'] = $brand['name'];
+                $product['brand_zh'] = $this->getBrandBy($brand['name']);
+            }else{
+                $product['brand_en'] = $this->getBrandBy($brand['name'], 'zh');
+                $product['brand_zh'] = $brand['name'];
+            }
+            unset($product['brand']);
+
             //品类组
             $product['bizline'] = $this->getBizlineBy($product['bizline_id']);
+            unset($product['bizline_id']);
+
             //供应商
             $product['supplier'] = $this->getSupplierBy($product['spu']);
+
             //产品状态
             $product['status'] = $this->setStatus($product['status']);
         }
         //存入redis
-        redisSet('product_statics_data_1', json_encode($products));
+        //redisSet('product_statics_data_1', json_encode($products));
         //redisDel('product_statics_data');
 
         return $products;
+    }
+
+    private function getBrandBy($brand, $lang='en')
+    {
+        //$where = ['name' => $brand, 'lang' => $lang, 'deleted_flag' => 'N'];
+        $brandModel = new BrandModel();
+
+        $name = trim($brand);
+        $map2['brand.brand'] = ['like', '%"name":"' . $name . '"%'];
+        $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+        $map2['deleted_flag'] = 'N';
+        $map2['_logic'] = 'or';
+        $where[]['_complex'] = $map2;
+
+
+        $data = $brandModel->where($where)->find();
+        $data = json_decode($data['brand'],true);
+
+        if ($lang=='en'){
+            return $data[1]['name'];
+        }
+
+        return $data[0]['name'];
+
     }
 
     private function getSkuBy($spu, $lang)
