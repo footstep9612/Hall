@@ -227,7 +227,6 @@ class BuyerModel extends PublicModel {
         }else{
             $cond = ' 1=1';
         }
-
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
