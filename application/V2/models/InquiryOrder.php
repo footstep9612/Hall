@@ -68,4 +68,20 @@ class InquiryOrderModel extends PublicModel {
         return $this->where(['contract_no' => ['like', '%' . trim($no) . '%']])->getField('inquiry_id', true);
     }
 
+    /**
+     * @desc 根据是否存在销售合同号询单ID
+     *
+     * @param string $no
+     * @return mixed
+     * @author liujf
+     * @time 2018-03-26
+     */
+    public function getInquiryIdForContractNo($no) {
+        if($no == 'Y'){
+            $where['contract_no'] = ['exp','is null'];
+        }else{
+            $where['contract_no'] = ['exp','is not null'];
+        }
+        return $this->where($where)->getField('inquiry_id', true);
+    }
 }
