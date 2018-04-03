@@ -195,7 +195,11 @@ class MarketAreaCountryModel extends PublicModel {
             }
 
 
-            $countrybns = $this->field('country_bn')->where($where)->select();
+            $country_bn = $this->field('country_bn')->where($where)->select();
+
+            foreach($country_bn as $val){
+                $countrybns[] = $val['country_bn'];
+            }
 
             return $countrybns;
         } catch (Exception $ex) {

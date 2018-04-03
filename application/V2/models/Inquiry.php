@@ -281,8 +281,10 @@ class InquiryModel extends PublicModel {
             $where['country_bn'] = ['in', $condition['user_country'] ? : ['-1']];    //查看事业部询单角色国家
         }
     
-        if (!empty($condition['country_bn'])) {
+        if (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
             $where['country_bn'] = isset($condition['user_country']) ? [['eq', $condition['country_bn']], $where['country_bn']] : $condition['country_bn'];    //国家
+        }else if (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
+            $where['country_bn'] = ['in', $condition['country_bn'] ? : ['-1']];    //国家
         }
     
         if (!empty($condition['serial_no'])) {
