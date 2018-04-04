@@ -844,6 +844,7 @@ class BuyerVisitModel extends PublicModel {
                 $tableheader = array('Serial','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','mobile','customer demand','Commodity Description','Customer pain point','Visit the result');
             }
         }
+        $excel->getActiveSheet()->getStyle('H')->getAlignment()->setWrapText(true);
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
             $objActSheet->getColumnDimension($letter[$i])->setWidth(20);

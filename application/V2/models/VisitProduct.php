@@ -100,16 +100,16 @@ class VisitProductModel extends PublicModel {
             if(in_array(0,$v['product_cate'])){
                 $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
                 if($lang=='zh'){
-                    $arr[]=$material['name'].'/其他\n';
+                    $arr[]=$material['name']."/其他\n";
                 }else{
-                    $arr[]=$material['name'].'/Others\n';
+                    $arr[]=$material['name']."/Others\n";
                 }
             }else{
                 $a=$v['product_cate'][0];
                 $b=$v['product_cate'][1];
                 $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
                 $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
-                $arr[]=$material[0]['name'].'/'.$material[1]['name'].'\n';
+                $arr[]=$material[0]['name'].'/'.$material[1]['name']."\n";
             }
         }
         $product_cate='';
@@ -140,8 +140,8 @@ class VisitProductModel extends PublicModel {
                 $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
                 $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
             }
-            $info[$k]='\n'.($k+1).':'.implode('  |  ',$info[$k]);
+            $info[$k]="\n".($k+1).':'.implode('  |  ',$info[$k]);
         }
-        return substr(implode('',$info),2);
+        return implode('',$info);
     }
 }
