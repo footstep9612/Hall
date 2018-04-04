@@ -867,7 +867,7 @@ EOF;
         if (!empty($data['name'])) {    //公司名称
             $data['name']=trim($data['name']);
             $buyer=new BuyerModel();
-            $existId=$buyer->field('id')->where(array('name'=>$data['name']))->find();
+            $existId=$buyer->field('id')->where(array('name'=>$data['name'],'deleted_flag'=>'N'))->find();
             if(!empty($existId['id']) && $existId['id']!=$data['id']){
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
@@ -879,7 +879,7 @@ EOF;
         if (!empty($data['email'])) {   //邮箱
             $data['email']=trim($data['email'],' ');
             $account['email'] = $data['email']; //---------------------账号
-            $buyer_id = $buyer_account_model->where(['email' => $data['email']])->getField('buyer_id');
+            $buyer_id = $buyer_account_model->where(['email' => $data['email'],'deleted_flag'=>'N'])->getField('buyer_id');
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
                 $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
             }
@@ -899,7 +899,7 @@ EOF;
         }
         if (!empty($data['buyer_code'])) {
             $buyerModel=new BuyerModel();
-            $buyer=$buyerModel->field('id')->where(array('buyer_code'=>$data['buyer_code']))->find();
+            $buyer=$buyerModel->field('id')->where(array('buyer_code'=>$data['buyer_code'],'deleted_flag'=>'N'))->find();
             if(!empty($buyer) && $buyer['id']!=$data['id']){
                 $this->jsonReturn(array("code" => "-101", "message" => L('crm_existed'))); //"客户代码已存在"
             }
