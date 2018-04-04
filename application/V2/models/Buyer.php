@@ -408,6 +408,7 @@ class BuyerModel extends PublicModel {
         }
         $field .= ' ,agent.agent_id,agent.created_at as checked_at';
         $field .= ' ,account.sent_email';
+        $field .= ' ,account.email as account_email';
         //excel导出标识
         if($excel==true){
             $offset=0;
@@ -474,6 +475,8 @@ class BuyerModel extends PublicModel {
             foreach($package as $k => $v){
                 $arr[$k]['percent']=$v['percent'];  //信息完整度
                 $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
+                $arr[$k]['name']=$v['name'];  //客户名称
+                $arr[$k]['account_email']=$v['account_email'];  //客户邮箱
                 $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
                 $arr[$k]['country_name']=$v['country_name'];  //国家
                 $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
@@ -505,6 +508,8 @@ class BuyerModel extends PublicModel {
             foreach($package as $k => $v){
                 $arr[$k]['percent']=$v['percent'];  //信息完整度
                 $arr[$k]['buyer_no']=$v['buyer_no'];  //客户编号
+                $arr[$k]['name']=$v['name'];  //客户名称
+                $arr[$k]['account_email']=$v['account_email'];  //客户邮箱
                 $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
                 $arr[$k]['country_name']=$v['country_name'];  //国家
                 $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
@@ -545,10 +550,10 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='客户列表';
-            $tableheader = array('完整度','客户编号','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
+            $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
         }else{
             $sheetName='Customer list';
-            $tableheader = array('Integrity','Customer NO', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Registration source of customer','Verification date');
+            $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Registration source of customer','Verification date');
         }
         //创建对象
         $excel = new PHPExcel();
