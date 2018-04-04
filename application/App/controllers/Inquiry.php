@@ -148,7 +148,7 @@ class InquiryController extends PublicController
         foreach ($inquiryList as &$inquiry) {
 
             $inquiry['name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
-            $inquiry['quantity'] = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry['id'],'deleted_flag'=>'N'])->count();
+            $inquiry['quantity'] = $this->getInquirySkuCountBy($inquiry['id']);
             unset($inquiry['now_agent_id']);
 
         }
@@ -165,6 +165,12 @@ class InquiryController extends PublicController
                 'message' => '暂无数据!'
             ]);
         }
+    }
+
+    private function getInquirySkuCountBy($inquiry)
+    {
+        $qtys = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry, 'deleted_flag'=>'N'])->getField('qty', true);
+        return array_sum($qtys);
     }
 
     /**
