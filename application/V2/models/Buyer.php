@@ -549,7 +549,7 @@ class BuyerModel extends PublicModel {
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $sheetName='客户列表';
+            $sheetName='customer';
             $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
         }else{
             $sheetName='Customer list';
