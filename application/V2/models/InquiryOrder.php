@@ -76,14 +76,8 @@ class InquiryOrderModel extends PublicModel {
      * @time 2018-04-03
      */
     public function getInquiryIdForContractNo() {
-        $list = $this->field('inquiry_id, contract_no')->where(['contract_no' => ['exp', 'is not null']])->select();
-        $inquiryIds = [];
-        foreach ($list as $item) {
-            if (trim(strval($item['contract_no'])) != '') {
-                $inquiryIds[] = $item['inquiry_id'];
-            }
-        }
-        return $inquiryIds;
+        $inquiryIds = $this->where(['contract_no' => [['exp', 'is not null'], ['neq', '']]])->getField('inquiry_id', true) ? : [];
+        return array_unique($inquiryIds);
     }
 
 }
