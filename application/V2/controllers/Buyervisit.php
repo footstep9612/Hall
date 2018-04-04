@@ -207,6 +207,7 @@ class BuyervisitController extends PublicController {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->getUserRole();
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data,true);
         if($arr === false){

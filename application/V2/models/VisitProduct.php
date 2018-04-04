@@ -96,8 +96,8 @@ class VisitProductModel extends PublicModel {
         }
         $arr=[];
         foreach($info as $k => $v){
+            $cond=array('cat_no'=>$v['product_cate'][0],'lang'=>$lang);
             if(in_array(0,$v['product_cate'])){
-                $cond=array('cat_no'=>$v['product_cate'][0],'lang'=>$lang);
                 $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
                 if($lang=='zh'){
                     $arr[]=$material['name'].'/其他\n';
@@ -117,5 +117,31 @@ class VisitProductModel extends PublicModel {
             $product_cate.=($k+1).'.'.$v;
         }
         return $product_cate;
+    }
+    //拜访客户获取品类信息多记录
+    public function getProductArr($visit_id,$lang='zh'){
+        $info=$this->getProductInfo($visit_id,'product_cate,product_desc,purchase_amount,supplier,remark');
+        if(empty($info[0]['product_cate'][0])){
+            return null;
+        }
+        foreach($info as $k => $v){
+            $cond=array('cat_no'=>$v['product_cate'][0],'lang'=>$lang);
+            if(in_array(0,$v['product_cate'])){
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
+                if($lang=='zh'){
+                    $info[$k]['product_cate']=$material['name'].'/其他';
+                }else{
+                    $info[$k]['product_cate']=$material['name'].'/Others';
+                }
+            }else{
+                $a=$v['product_cate'][0];
+                $b=$v['product_cate'][1];
+                $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
+                $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
+            }
+            $info[$k]='\n'.($k+1).':'.implode('  |  ',$info[$k]);
+        }
+        return substr(implode('',$info),2);
     }
 }

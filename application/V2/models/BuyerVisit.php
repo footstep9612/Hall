@@ -710,35 +710,98 @@ class BuyerVisitModel extends PublicModel {
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
         }
-//        $total = $this->field('id')->where($condition)->count();
-        $total_sql='select count(*) as total';
-        $total_sql.=' from erui_buyer.buyer_visit visit ';
-        $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
-        $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
-        $total_sql.=' where ';
-        $total_sql.=$condition;
-        $total=$this->query($total_sql);
-        $total=$total[0]['total'];
-        if($total==0){
-            return false;   ///该条件下拜访记录为空数据
-        }
-        $i = 0;
-        do {
-            //按条件获取拜访记录数据
-            $result = $this->condGetVisitData($lang,$condition,$i,$length);
-            $info = $this->getVisitStatisData($result); //整理excel导出的数据
-            if($i==0){
-                $excelName = 'visit';
+        $vtModel = new VisitTypeModel();    //拜访类型
+        $vpModel = new VisitPositionModel();    //拜访位置类型
+        $vlModel = new VisitLevelModel();   //拜访级别
+        $buyerModel = new BuyerModel(); //客户
+        $dpModel = new VisitDemadTypeModel();   //需求类型
+        $bvrModel = new BuyerVisitReplyModel(); //拜访回复记录
+        //数据信息
+        $sql='select ';
+        $sql.=' visit.id as visit_id,';   //拜访id
+        $sql.=' region.name as region_name,';   //地区
+        $sql.=' country.name as country_name, ';    //国家
+        $sql.=' employee.name as created_name,'; //提报人
+        $sql.=' buyer.name as buyer_name,';    //客户名称
+        $sql.=' business.is_purchasing_relationship as relationship,';    //是否与erui有采购关系
+        $sql.=' buyer.is_oilgas,';    //类别:油气
+        $sql.=' business.settlement,';    //结算方式
+        $sql.=' business.is_local_settlement,';    //是否支持本地结算
+
+        $sql.=' visit.customer_note,';   //痛点
+        $sql.=' visit.demand_type,';   //需求类型
+        $sql.=' visit.created_at';   //需求类型
+
+        $sql.=' from erui_buyer.buyer_visit visit ';
+        $sql.=' left join erui_buyer.buyer  on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
+        $sql.=' left join erui_buyer.buyer_business business on buyer.id=business.buyer_id';  //buyer
+        $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $sql.=' left join erui_dict.region region on country.region_bn=region.bn and region.deleted_flag=\'N\' and region.lang=\''.$lang."'";  //buyer
+        $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
+        $sql.=' where ';
+        $sql.=$condition;
+        $sql.=' order by visit.created_at desc ';
+        $result=$this->query($sql);
+        $visit_product=new VisitProductModel();
+        $pay=new PaymentModeModel();
+        foreach($result as $index => $r) {
+            $product = $visit_product->getProductArr($r['visit_id'], $lang);  //品类信息
+            $result[$index]['product_info'] = $product;
+            if($lang=='zh'){    //客户类型
+                $result[$index]['is_oilgas'] = $r['is_oilgas']=='Y'?'油气':'非油气';
             }else{
-                $excelName = 'visit_'.($i/$length);
+                $result[$index]['is_oilgas'] = $r['is_oilgas']=='Y'?'oil gas':'Non oil gas';
             }
-            $excelDir[] = $this->exportModel($lang,$excelName,$info); //导入excel,获取excel临时文件路径信息
-            $i = $i+$length;
-            $total =$total-$length;
-        } while ($total > 0);
+            if($lang=='zh'){    //是否有采购关系
+                $result[$index]['relationship'] = $r['relationship']=='Y'?'是':'否';
+            }else{
+                $result[$index]['relationship'] = $r['relationship']=='Y'?'YES':'NO';
+            }
+            if($lang=='zh'){    //是否支持当地结算
+                $result[$index]['is_local_settlement'] = $r['is_local_settlement']=='Y'?'是':'否';
+            }else{
+                $result[$index]['is_local_settlement'] = $r['is_local_settlement']=='Y'?'YES':'NO';
+            }
+            $pay_mode=$pay->getSettlementNameById($r['settlement'],$lang);  //结算方式
+            $result[$index]['settlement']=$pay_mode['name'];
+
+            //客户需求类型
+            $dtype = json_decode($r['demand_type']);
+            if(!empty($dtype)){
+                if($lang=='zh'){
+                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+                }else{
+                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+                }
+                $demand_type = '';
+                foreach($dpInfo as $info){
+                    $demand_type.= ','.$info['name'];
+                }
+            }
+            $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
+        }
+        $arr=$this->packageReportData($result);
+        print_r($arr);die;
+        $excelDir[] = $this->exportModel($lang,'report',$info); //导入excel,获取excel临时文件路径信息
         return $excelDir;   //返回数组,已上传到服务器临时路径
+    }
+    private function packageReportData($data){
+        $arr=[];
+        foreach($data as $k => $v){
+            $arr[$k]['region_name']=$v['region_name'];  //地区
+            $arr[$k]['country_name']=$v['country_name'];  //国家
+            $arr[$k]['created_name']=$v['created_name'];  //提报人
+            $arr[$k]['buyer_name']=$v['buyer_name'];  //客户名称
+            $arr[$k]['relationship']=$v['relationship'];  //是否为已有客户
+            $arr[$k]['is_oilgas']=$v['is_oilgas'];  //客户类别
+            $arr[$k]['settlement']=$v['settlement'].'/'.$v['is_local_settlement'];  //结算模式及付款条件
+            $arr[$k]['product_info']=$v['product_info'];  //品类信息
+            $arr[$k]['demand_type']=$v['demand_type'];  //客户需求
+            $arr[$k]['customer_note']=$v['customer_note'];  //客户痛点
+            $arr[$k]['remark']='';  //备注
+            $arr[$k]['created_at']=$v['created_at'];  //更新时间
+        }
+        return $arr;
     }
     /**
      * sheet名称 $sheetName
