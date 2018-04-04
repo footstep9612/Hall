@@ -781,8 +781,7 @@ class BuyerVisitModel extends PublicModel {
             $result[$index]['demand_type'] = $demand_type ? mb_substr($demand_type,1) : '';
         }
         $arr=$this->packageReportData($result);
-        print_r($arr);die;
-        $excelDir[] = $this->exportModel($lang,'report',$info); //导入excel,获取excel临时文件路径信息
+        $excelDir[] = $this->exportModel($lang,'report',$arr); //导入excel,获取excel临时文件路径信息
         return $excelDir;   //返回数组,已上传到服务器临时路径
     }
     private function packageReportData($data){
@@ -831,10 +830,19 @@ class BuyerVisitModel extends PublicModel {
 //        }else{
 //            $tableheader = array('Serial','Customer name','Customer code','Visit time','Visit type','Position','Visit level','Customer demand category','Purpose of visiting','Follow-up personnel','Visit the result','Founder');
 //        }
-        if($lang=='zh'){
-            $tableheader = array('序号','地区','国家','客户代码（CRM）','拜访时间','中方参会人员','客户参会人员','拜访目的','拜访职位','客户联系人','联系方式','客户需求','商品描述','客户痛点','拜访结果');
+
+        if($excelName=='report'){
+            if($lang=='zh'){
+                $tableheader = array('地区','国家','提报人','客户名称','是否为已有客户','客户类别','结算模式及付款条件','产品品类(一)|产品品类(二)|年采购金额（万美元)|主要供应商','客户所需服务','客户痛点','备注','更新时间');
+            }else{
+                $tableheader = array('Area','Country','Reporter','Customer name','existing customer','Customer category','Settlement model and payment condition','Product category(一)|Product category(二)|Annual purchase amount（万美元)|Major suppliers','Customer service','Customer pain point','Remarks','Update time');
+            }
         }else{
-            $tableheader = array('Serial','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','mobile','customer demand','Commodity Description','Customer pain point','Visit the result');
+            if($lang=='zh'){
+                $tableheader = array('序号','地区','国家','客户代码（CRM）','拜访时间','中方参会人员','客户参会人员','拜访目的','拜访职位','客户联系人','联系方式','客户需求','商品描述','客户痛点','拜访结果');
+            }else{
+                $tableheader = array('Serial','Area','Country','Customer code','Visit time','Chinese participants','Customer participants','The purpose of visiting','Visit a position','customer contact','mobile','customer demand','Commodity Description','Customer pain point','Visit the result');
+            }
         }
         for($i = 0;$i < count($tableheader);$i++) {
             //单独设置D列宽度为20
