@@ -120,7 +120,20 @@ class BuyerAgreementModel extends PublicModel
 
 
     }
-
+    //合并创建,和经办人-wang
+    public function validAgent($createdArr,$list){
+        $flag=[];
+        if(empty($createdArr) && empty($list)){
+            $flag=null;
+        }elseif(!empty($createdArr) && empty($list)){
+            $flag=$createdArr;
+        }elseif(empty($createdArr) && !empty($list)){
+            $flag=$list;
+        }elseif(!empty($createdArr) && !empty($list)){
+            $flag=array_merge($createdArr,$list);
+        }
+        return $flag;
+    }
     /**
      * @param $data
      * $excel bool true: excel 导出数据用; false:管理列表用
@@ -142,7 +155,7 @@ class BuyerAgreementModel extends PublicModel
                 $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
                 $created=new BuyerModel();
                 $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $totalList=array_merge($createdArr,$list);
+                $totalList=$this->validAgent($createdArr,$list);
                 $str='';
                 foreach($totalList as $k => $v){
                     $str.=','.$v['buyer_id'];
@@ -159,7 +172,7 @@ class BuyerAgreementModel extends PublicModel
                 $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
                 $created=new BuyerModel();
                 $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $totalList=array_merge($createdArr,$list);
+                $totalList=$this->validAgent($createdArr,$list);
                 $str='';
                 foreach($totalList as $k => $v){
                     $str.=','.$v['buyer_id'];
