@@ -199,7 +199,7 @@ class BuyerModel extends PublicModel {
      * wangs
      */
     public function getBuyerStatisListCond($data){
-        $cond = ' 1=1';
+        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if($data['admin']==0){  //客户管理权限
             $agent=new BuyerAgentModel();
             $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
