@@ -769,9 +769,9 @@ class BuyerVisitModel extends PublicModel {
             $dtype = json_decode($r['demand_type']);
             if(!empty($dtype)){
                 if($lang=='zh'){
-                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype],'deleted_flag'=>'N'])->select();
                 }else{
-                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype],'deleted_flag'=>'N'])->select();
                 }
                 $demand_type = '';
                 foreach($dpInfo as $info){
@@ -1036,9 +1036,9 @@ class BuyerVisitModel extends PublicModel {
             $dtype = json_decode($r['demand_type']);
             if(!empty($dtype)){
                 if($lang=='zh'){
-                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype]])->select();
+                    $dpInfo = $dpModel->field('name as name')->where(['id'=>['in',$dtype],'deleted_flag'=>'N'])->select();
                 }else{
-                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype]])->select();
+                    $dpInfo = $dpModel->field('en as name')->where(['id'=>['in',$dtype],'deleted_flag'=>'N'])->select();
                 }
                 $demand_type = '';
                 foreach($dpInfo as $info){
