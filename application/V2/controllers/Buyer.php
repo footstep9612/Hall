@@ -424,23 +424,20 @@ class BuyerController extends PublicController {
       </div>  
       <!-- 内容 -->  
       <div style="border: 1px solid black;" align="center">  
-        <!--<p>Thank you for registering for <a href="http://www.erui.com">www.erui.com</a></p>  -->
-        <p>Thank you for registering for <a href="http://www.eruidev.com">www.erui.com</a></p>  
+        <p>Thank you for registering for <a href="http://www.erui.com">www.erui.com</a></p>  
         <p>Your account and password are:</p>  
         <p>Account:{$account_email}</p>  
         <p>Password:<font color="red">{$account_pwd}</font></p>  
         <p>Click this button to activate your account</p>  
         <p>
-        <!--<a href="http://www.erui.com/login/Enlogin/login.html">-->
-        <a href="http://www.eruidev.com/login/Enlogin/login.html">
+        <a href="http://www.erui.com/login/Enlogin/login.html">
 <input type=button value="Activate and sign in" style="background:red;color: white;"> 
 </a>
 </p>    
       </div>  
       <!-- 版权标识 -->  
       <div style="border: 1px solid black;" align="center">  
-        <!--<p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  -->
-        <p>If this button doesn’t work, please open this website：<a href="http://www.eruidev.com">www.erui.com</a></p>  
+        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
         <p>Contact us if you have any questions</p>  
         <p>E-mail:{$agent_email}</p>  
         <p>Tel:{$agent_tel}</p>  
@@ -473,23 +470,20 @@ EOF;
       </div>  
       <!-- 内容 -->  
       <div style="border: 1px solid black;" align="center">  
-        <!--<p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  -->
-        <p>感谢注册 <a href="http://www.eruidev.com">www.erui.com</a></p>  
+        <p>感谢注册 <a href="http://www.erui.com">www.erui.com</a></p>  
         <p>您的账号密码为:</p>  
         <p>账号:{$account_email}</p>  
         <p>密码:<font color="red">{$account_pwd}</font></p>  
         <p>请点击以下按钮激活账号：</p>  
         <p>
-        <!--<a href="http://www.erui.com/login/Enlogin/login.html">-->
-        <a href="http://www.eruidev.com/login/Enlogin/login.html">
+        <a href="http://www.erui.com/login/Enlogin/login.html">
 <input type=button value="激活并登陆" style="background:red;color: white;"> 
 </a>
 </p>    
       </div>  
       <!-- 版权标识 -->  
       <div style="border: 1px solid black;" align="center">  
-        <!--<p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  -->
-        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.eruidev.com">www.erui.com</a></p>  
+        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
         <p>您遇到任何问题请联系</p>  
         <p>联系人:{$agent_email}</p>  
         <p>电话:{$agent_tel}</p>  
