@@ -183,7 +183,7 @@ class BuyerVisitModel extends PublicModel {
         $total=$total[0]['total'];
         //数据信息
         $sql='select ';
-        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';
         $sql.=' employee.name as reply_name,';
         $sql.=' visit.demand_type';
         $sql.=' from erui_buyer.buyer_visit visit ';
@@ -948,7 +948,7 @@ class BuyerVisitModel extends PublicModel {
 //            ->select();
         //数据信息
         $sql='select ';
-        $sql.=' buyer.id as buyer_id,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
         $sql.=' region.name as region_name,';
         $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
         $sql.=' reply.created_at as reply_time,';
@@ -987,6 +987,12 @@ class BuyerVisitModel extends PublicModel {
         foreach($result as $index => $r) {
             $product = $visit_product->getProductName($r['visit_id'], $lang);  //品类信息
             $result[$index]['product_cate'] = $product;
+            if($lang=='zh'){
+                $result[$index]['reply'] = !empty($r['reply_time'])?'是':'否';
+            }else{
+                $result[$index]['reply'] = !empty($r['reply_time'])?'YES':'NO';
+            }
+
         }
         foreach($result as $index => $r){
             //目的拜访类型
