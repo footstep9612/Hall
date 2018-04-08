@@ -17,11 +17,18 @@ class EsProductModel extends Model {
 //put your code here
     protected $tableName = 'product';
     protected $dbName = 'erui_goods'; //数据库名称
+    protected $update_dbName = 'erui_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
     public function __construct() {
         parent::__construct();
+        $model = new EsVersionModel();
+        $version = $model->getVersion();
+
+        if ($version) {
+            $this->update_dbName = $this->dbName . '_' . $version['update_version'];
+        }
     }
 
     /*
@@ -1015,9 +1022,9 @@ class EsProductModel extends Model {
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
         if ($es_product) {
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
@@ -1108,7 +1115,7 @@ class EsProductModel extends Model {
             $goods_model = new GoodsModel();
             $goods = $goods_model->where(['spu' => $spu, 'lang' => $lang])->field('sku')->select();
             $updateParams = [];
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'goods_' . $lang;
             if ($goods) {
                 foreach ($goods as $good) {
@@ -1239,7 +1246,7 @@ class EsProductModel extends Model {
                             $body['specs'] = json_encode([], JSON_UNESCAPED_UNICODE);
                         }
 
-                        $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+                        $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
 
 
                         if ($flag['_shards']['successful'] !== 1) {
@@ -1472,7 +1479,7 @@ class EsProductModel extends Model {
                     $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $k, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
                 }
             }
-            $es->refresh($this->dbName);
+            $es->refresh($this->update_dbName);
             $this->_delcache();
             return true;
         } catch (Exception $ex) {
@@ -1502,7 +1509,7 @@ class EsProductModel extends Model {
                 return false;
             }
             $id = $spu;
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
             if ($flag['_shards']['successful'] !== 1) {
                 LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
                 $this->_delcache();
@@ -1536,8 +1543,8 @@ class EsProductModel extends Model {
             }
             $data['status'] = $status;
             $id = $spu;
-            $es->update_document($this->dbName, $this->tableName . '_' . $lang, $data, $id);
-            $es->refresh($this->dbName);
+            $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $data, $id);
+            $es->refresh($this->update_dbName);
             return true;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -1583,7 +1590,7 @@ class EsProductModel extends Model {
         if (empty($old_cat_no)) {
             return false;
         }
-        $index = $this->dbName;
+        $index = $this->update_dbName;
         $type = 'product_' . $lang;
         $count = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                 [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
@@ -1599,7 +1606,7 @@ class EsProductModel extends Model {
                                     [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                         ]]]])->search($index, $type, $i, 100);
             $updateParams = array();
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'product_' . $lang;
 
 
@@ -1617,7 +1624,7 @@ class EsProductModel extends Model {
         }
         $esgoods = new EsGoodsModel();
         $esgoods->update_showcats($old_cat_no, $lang);
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         return true;
     }
 
@@ -1647,7 +1654,7 @@ class EsProductModel extends Model {
         $data['material_cat_no'] = $new_cat_no;
         if ($spu) {
             $id = $spu;
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
         } else {
             $es_product_data = [
                 "doc" => [
@@ -1659,7 +1666,7 @@ class EsProductModel extends Model {
                             [ESClient::TERM => ["material_cat_zh.cat_no2" => $material_cat_no]],
                             [ESClient::TERM => ["material_cat_zh.cat_no1" => $material_cat_no]]
             ]]]];
-            $es->UpdateByQuery($this->dbName, 'product_' . $lang, $es_product_data);
+            $es->UpdateByQuery($this->update_dbName, 'product_' . $lang, $es_product_data);
         }
         if ($spu) {
             $esgoodsdata = [
@@ -1687,8 +1694,8 @@ class EsProductModel extends Model {
                             [ESClient::TERM => ["material_cat_zh.cat_no1" => $material_cat_no]]
             ]]]];
         }
-        $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-        $es->refresh($this->dbName);
+        $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
+        $es->refresh($this->update_dbName);
         return true;
     }
 
@@ -1726,12 +1733,12 @@ class EsProductModel extends Model {
                 $data['attrs'] = new stdClass();
             }
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
 
             return true;
         } elseif (is_array($spus)) {
             $updateParams = [];
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'product_' . $lang;
             $product_attr_model = new ProductAttrModel();
             $product_attrs = $product_attr_model->getproduct_attrbyspus($spus, $lang);
@@ -1782,7 +1789,7 @@ class EsProductModel extends Model {
         $data['attachs'] = $this->_getValue($attachs, $spu, [], 'json');
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
+        $es->update_document($this->update_dbName, $type, $data, $id);
 
 
         return true;
@@ -1811,7 +1818,7 @@ class EsProductModel extends Model {
         }
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
+        $es->update_document($this->update_dbName, $type, $data, $id);
         $esgoodsdata = [
             "doc" => [
                 "brand" => $brand,
@@ -1822,8 +1829,8 @@ class EsProductModel extends Model {
                 ]
             ]
         ];
-        $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
-        $es->refresh($this->dbName);
+        $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
+        $es->refresh($this->update_dbName);
 
         return true;
     }
@@ -1850,7 +1857,7 @@ class EsProductModel extends Model {
         }
         $id = $spu;
         $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
+        $es->update_document($this->update_dbName, $type, $data, $id);
         $this->_delcache();
         return true;
     }
@@ -1883,18 +1890,18 @@ class EsProductModel extends Model {
             $data['status'] = self::STATUS_DELETED;
 
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $spu);
+            $es->update_document($this->update_dbName, $type, $data, $spu);
             unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
-            $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
         } elseif (is_array($spus)) {
 
             $updateParams = [];
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
@@ -1913,12 +1920,12 @@ class EsProductModel extends Model {
                                 [ESClient::TERM => ["spu" => $spu]],
                 ]]]];
 
-                $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+                $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
             }
 
             $es->bulk($updateParams);
         }
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         $this->_delcache();
         return true;
     }
@@ -1943,7 +1950,7 @@ class EsProductModel extends Model {
 
         $type_goods = 'product_' . $lang;
         $updateParams = array();
-        $updateParams['index'] = $this->dbName;
+        $updateParams['index'] = $this->update_dbName;
         $updateParams['type'] = $type_goods;
         foreach ($skus as $sku) {
 
@@ -1970,7 +1977,7 @@ class EsProductModel extends Model {
 
 
         $updateParams = array();
-        $updateParams['index'] = $this->dbName;
+        $updateParams['index'] = $this->update_dbName;
         if ($lang) {
             $langs = [$lang];
         } else {
@@ -2014,7 +2021,7 @@ class EsProductModel extends Model {
         $type = 'product_' . $lang;
         if (is_string($spus)) {
             $spu = $spus;
-            $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
+            $es_product = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
             $data = [];
             $data['onshelf_flag'] = $onshelf_flag;
             $data['onshelf_by'] = $onshelf_by;
@@ -2022,14 +2029,14 @@ class EsProductModel extends Model {
             $data['show_cats_nested'] = $data['show_cats'];
             $data['onshelf_at'] = date('Y-m-d H:i:s');
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $spu);
+            $es->update_document($this->update_dbName, $type, $data, $spu);
             unset($data['show_cats_nested']);
             $esgoodsdata = [
                 "doc" => $data,
                 "query" => ['bool' => [ESClient::MUST => [
                             [ESClient::TERM => ["spu" => $spu]],
             ]]]];
-            $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+            $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
             if ($data['show_cats']) {
                 $show_cat = new ShowCatModel();
                 foreach ($data['show_cats'] as $showcat) {
@@ -2045,7 +2052,7 @@ class EsProductModel extends Model {
             $show_cat_product_model = new ShowCatProductModel();
             $scats = $show_cat_product_model->getshow_catsbyspus($spus, $lang);
             $updateParams = [];
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
@@ -2056,7 +2063,7 @@ class EsProductModel extends Model {
                 } else {
                     $data['show_cats'] = [];
                 }
-                $es_product = $es->get($this->dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
+                $es_product = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $spu, 'show_cats');
 
                 rsort($data['show_cats']);
                 $data['show_cats_nested'] = $data['show_cats'];
@@ -2069,7 +2076,7 @@ class EsProductModel extends Model {
                     "query" => ['bool' => [ESClient::MUST => [
                                 [ESClient::TERM => ["spu" => $spu]],
                 ]]]];
-                $es->UpdateByQuery($this->dbName, 'goods_' . $lang, $esgoodsdata);
+                $es->UpdateByQuery($this->update_dbName, 'goods_' . $lang, $esgoodsdata);
                 if ($data['show_cats']) {
                     $show_cat = new ShowCatModel();
                     foreach ($data['show_cats'] as $showcat) {
@@ -2085,7 +2092,7 @@ class EsProductModel extends Model {
             $ret = $es->bulk($updateParams);
         }
 
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         $this->_delcache();
         return true;
     }
@@ -2116,11 +2123,11 @@ class EsProductModel extends Model {
             $sku_count = intval($skucount) ? intval($skucount) : '0';
             $data['sku_count'] = strval($sku_count);
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $spu);
+            $es->update_document($this->update_dbName, $type, $data, $spu);
         } elseif (is_array($spus)) {
 
             $updateParams = [];
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'product_' . $lang;
             foreach ($spus as $spu) {
                 $data = [];
@@ -2132,7 +2139,7 @@ class EsProductModel extends Model {
             $ret = $es->bulk($updateParams);
         }
         $this->_delcache();
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         return true;
     }
 

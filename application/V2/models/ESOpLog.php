@@ -99,7 +99,7 @@ class ESOpLogModel {
     public function Created($requst, $data, $lang, $user) {
         $es = new ESClient();
         $this->Deleted();
-        $body['module'] = $requst->getModuleName();
+        $body['module'] = 'v2';
         $body['controller'] = $requst->getControllerName();
         $body['action'] = $requst->getActionName();
 
