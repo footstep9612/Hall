@@ -818,7 +818,7 @@ class BuyerVisitModel extends PublicModel {
             $arr[$k]['contact_phone'] = $v['contact_phone'];    //联系人方式phone
             $arr[$k]['demand_type'] = $v['demand_type'];    //客户需求
             $arr[$k]['product_cate'] = $v['product_cate'];    //商品描述
-            $arr[$k]['customer_note'] = $v['customer_note'];    //客户痛点
+            $arr[$k]['demand_content'] = $v['demand_content'];    //客户痛点
             $arr[$k]['visit_result'] = $v['visit_result'];    //拜访结果
         }
 //        foreach($data as $k => $v){
@@ -870,6 +870,7 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' region.name as region_name,';
         $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
         $sql.=' reply.created_at as reply_time,';
+        $sql.=' visit.demand_content,';
         $sql.=' visit.visit_type,visit.visit_level,visit.visit_position,visit.demand_type,visit.visit_objective,visit.visit_personnel,visit.visit_customer,visit.visit_result,visit.customer_note,';
         $sql.=' visit.name as contact_name,visit.phone as contact_phone,';
         $sql.=' employee.name as created_name';
