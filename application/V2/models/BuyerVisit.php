@@ -196,6 +196,7 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' order by reply.created_at desc ';
         $sql.=' limit '.$offset.','.$length;
         $info=$this->query($sql);
+
 //        echo $this->getLastSql();die;
         $visit_product=new VisitProductModel();
         $visit_demand_type=new VisitDemadTypeModel();
