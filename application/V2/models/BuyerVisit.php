@@ -44,7 +44,7 @@ class BuyerVisitModel extends PublicModel {
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
         $total_sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
-        $total_sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
+        $total_sql.=' inner join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
         $total_sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $total_sql.=' left join erui_sys.employee employee on reply.created_by=employee.id '; //employee
         $total_sql.=' where ';
@@ -883,6 +883,7 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
         $sql.=' where ';
         $sql.=$condition;
+        $sql.=' group by visit.id ';
         $sql.=' order by visit.created_at desc ';
         $sql.=' limit '.$offset.','.$pageSize;
         $result=$this->query($sql);
