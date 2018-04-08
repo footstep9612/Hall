@@ -1075,7 +1075,7 @@ class ExcelmanagerController extends PublicController {
 
             $item['agent'] = $employee->where(['id'=>$item['agent_id']])->getField('name');
             $item['now_agent'] = $employee->where(['id'=>$item['now_agent_id']])->getField('name');
-            $item['org_name'] = $org->getNameById($item['org_id']);
+            $item['org_name'] = $org->getNameById($item['org_id'],'zh');    //增加默认语言 ‘zh’
             $item['region_name'] = $region->where(['bn'=>trim($item['area_bn']),'lang'=>'zh'])->getField('name');
             $item['country_name'] = $country->where(['bn'=>trim($item['country_bn']),'lang'=>'zh'])->getField('name');
 
