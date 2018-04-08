@@ -81,15 +81,16 @@ class ExcelmanagerController extends PublicController {
      */
     public function importSkuAction() {
 
-        $request = $this->validateRequests('inquiry_id,file_url');
+        $request = $this->validateRequests('inquiry_id,file_url,file_name');
 
         $remoteFile = $request['file_url'];
         $inquiry_id = $request['inquiry_id'];
+        $fileName = $request['file_name'];
         //下载到本地临时文件
         $localFile = ExcelHelperTrait::download2local($remoteFile);
         $data = ExcelHelperTrait::ready2import($localFile);
 
-        $response = $this->importSkuHandler($localFile, $data, $inquiry_id);
+        $response = $this->importSkuHandler($localFile, $data, $inquiry_id, $fileName);
         $this->jsonReturn($response);
 
     }
@@ -115,7 +116,7 @@ class ExcelmanagerController extends PublicController {
      * @param $data
      * @return array
      */
-    private function importSkuHandler($localFile, $data, $inquiry_id) {
+    private function importSkuHandler($localFile, $data, $inquiry_id, $fileName) {
 
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
@@ -140,21 +141,60 @@ class ExcelmanagerController extends PublicController {
 
         //写入数据库
         $inquiryItem = new InquiryItemModel();
-        try {
-            foreach ($sku as $item => $value) {
-                $inquiryItem->add($inquiryItem->create($value));
-            }
-            //删除本地临时文件
-            if (is_file($localFile) && file_exists($localFile)) {
-                unlink($localFile);
-            }
-            return ['code' => '1', 'message' => L('EXCEL_SUCCESS')];
-        } catch (Exception $exception) {
-            return [
-                'code' => $exception->getCode(),
-                'message' => $exception->getMessage()
+        
+        $sku = dataTrim($sku);
+        // 总数
+        $totalCount = count($sku);
+        // 成功数
+        $successCount = 0;
+        // 失败的数据列
+        $failList = [];
+        
+        foreach ($sku as $item => $value) {
+            $failData = [
+                'file_name' => $fileName,
+                'sequence_num' => $item + 1,
+                'sku_name' => $this->lang == 'zh' ? $value['name_zh'] : $value['name'],
+                'status' => L('EXCEL_FAILD')
             ];
+            if ($value['name'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
+            } elseif ($value['name_zh'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_NAME_ZH_REQUIRED');
+            } elseif (!is_numeric($value['qty'])) {
+                $failData['reason'] = L('EXCEL_SKU_QTY_REQUIRED');
+            } elseif ($value['unit'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_UNIT_REQUIRED');
+            } else {
+                try {
+                    $result = $inquiryItem->add($inquiryItem->create($value));
+                    if ($result) {
+                        $successCount++;
+                        unset($failData);
+                    } else {
+                        $failData['reason'] = L('EXCEL_UNKNOWN');
+                    }
+                } catch (Exception $e) {
+                    $failData['reason'] = $e->getMessage();
+                }
+            }
+            if (isset($failData)) {
+                $failList[] = $failData;
+            }
         }
+        //删除本地临时文件
+        if (is_file($localFile) && file_exists($localFile)) {
+            unlink($localFile);
+        }
+        
+        return [
+            'code' => '1', 
+            'message' => L('EXCEL_SUCCESS'), 
+            'total_count' => $totalCount, 
+            'success_count' => $successCount, 
+            'fail_count' => $totalCount - $successCount,
+            'fail_list' => $failList
+        ];
     }
     
     /**
