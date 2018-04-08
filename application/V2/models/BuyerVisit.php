@@ -221,93 +221,6 @@ class BuyerVisitModel extends PublicModel {
         $arr['current_no']=$current_no;
         $arr['result']=$info;
         return $arr;
-//            ->join()
-//        $condition = [
-//            'is_demand' => self::DEMAND_Y
-//        ];
-        //根据条件查询用户信息
-//        $condition_user = [];
-//        if(isset($_input['name']) && !empty($_input['name'])){
-//            $condition_user['name'] = trim($_input['name']);
-//        }
-//        if(isset($_input['user_no']) && !empty($_input['user_no'])){
-//            $condition_user['user_no'] = trim($_input['user_no']);
-//        }
-//        if(isset($_input['mobile']) && !empty($_input['mobile'])){
-//            $condition_user['mobile'] = trim($_input['mobile']);
-//        }
-        try{
-            if(!empty($condition_user)){
-                $userModel = new UserModel();
-                $userInfo = $userModel->field('id')->where($condition_user)->find();
-                if($userInfo){
-                    $condition['created_by'] = $userInfo['id'];
-                }else{
-                    return [];
-                }
-            }
-            //	visit_at_start开始时间   visit_at_end结束时间
-//            if(!empty($_input['created_at_start']) && !empty($_input['created_at_start'])){
-                $this->_getValue($condition, $_input,'created_at','between');
-//                $ex = $condition['created_at'][1];
-//                $exArr = explode(',',$ex);
-//                $a = date('Y-m-d H:i:s', strtotime($exArr[0]));
-//                $b = date('Y-m-d H:i:s', strtotime($exArr[1])+86400);
-//                $condition['created_at']=array(
-//                    'between',
-//                    "$a,$b"
-//                );
-//            }
-//            if(isset($_input['created_at_start']) && !empty($_input['created_at_start'])){
-//                $condition['created_at']=['EGT', $_input['created_at_start']];
-//            }
-//            if(isset($_input['created_at_end']) && !empty($_input['created_at_end'])){
-//                $condition['created_at']=['EGT', $_input['created_at_end']];
-//            }
-            //总记录数
-            $total = $this->field('id')->where($condition)->count();
-            $data = [
-                'current_no' => $current_no,
-                'pagesize' => $length,
-                'total' => $total,
-                'result' =>[]
-            ];
-            if($total<=0){
-                return $data;
-            }
-            $id_ary = $this->field('id')->where($condition)->order('id desc')->limit(($current_no-1)*$length,$length)->select();
-            $ids = '';
-            foreach($id_ary as $r){
-                $ids.= ','.$r['id'];
-            }
-            $ids = substr($ids,1);
-            $condition['id'] = ['in', $ids];
-            $result = $this->field('id,created_by,created_at')->order('id desc')->where($condition)->select();
-            if($result){
-                $userModel = new UserModel();
-                $bvrModel = new BuyerVisitReplyModel();
-                foreach($result as $index => $r){
-                    $userInfo = $userModel->field('user_no,name,mobile')->where(['id'=>$r['created_by']])->find();
-                    if($userInfo){
-                        $result[$index]['user_no'] = $userInfo['user_no'];
-                        $result[$index]['name'] = $userInfo['name'];
-                        $result[$index]['mobile'] = $userInfo['mobile'];
-                    }
-                    $result[$index]['reply'] = 'N';
-                    $result[$index]['reply_time'] = null;
-                    $bvrInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at desc')->find();
-                    if($bvrInfo){
-                        $result[$index]['reply'] = 'Y';
-                        $result[$index]['reply_time'] = $bvrInfo['created_at'];
-                    }
-                }
-            }
-            $data['result'] = $result ? $result : [];
-            return $data;
-        }catch (Exception $e){
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【BuyerVisit】getDemadList:' . $e , Log::ERR);
-            return false;
-        }
     }
 
     /**
@@ -315,9 +228,10 @@ class BuyerVisitModel extends PublicModel {
      * @param $id
      * @return array|bool|mixed
      */
-    public function getInfoById($id,$is_show_name=false){
+    public function getInfoById($data,$is_show_name=false){
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = [
-            'id' => $id,
+            'id' => $data['id'],
         ];
         try{
             $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_customer,visit_result,is_demand,created_by,created_at')->where($condition)->find();
@@ -335,10 +249,14 @@ class BuyerVisitModel extends PublicModel {
                 $replyInfo = $reply->field('visit_reply')->where(['visit_id'=>$result['id']])->find();
                 //客户
                 $buyer_model = new BuyerModel();
-                $buyerInfo = $buyer_model->field('buyer_no,buyer_code,name')->where(['id'=>$result['buyer_id']])->find();
+                $buyerInfo = $buyer_model->alias('buyer')
+                ->join("erui_dict.country country on buyer.country_bn=country.bn",'left')
+                ->field('buyer.buyer_no,buyer.buyer_code,buyer.name,country.name as country_name')
+                ->where(['buyer.id'=>$result['buyer_id'],"country.lang"=>$lang])->find();
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
                 $result['buyer_code'] = $buyerInfo['buyer_code'];
+                $result['country_name'] = $buyerInfo['country_name'];
                 $result['demand_content'] = $result['demand_content'];
                 $result['visit_type'] = json_decode( $result['visit_type']);
                 $result['visit_level'] = json_decode( $result['visit_level']);

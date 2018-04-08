@@ -46,12 +46,13 @@ class BuyervisitController extends PublicController {
      */
     public function infoAction() {
         $data = $this->getPut();
+        $data['lang']=$this->getLang();
         if(!isset($data['id']) || empty($data['id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
         $visit_model = new BuyerVisitModel();
-        $arr = $visit_model->getInfoById($data['id'], (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
+        $arr = $visit_model->getInfoById($data, (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
