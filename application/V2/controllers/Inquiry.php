@@ -228,7 +228,7 @@ class InquiryController extends PublicController {
         
         // 销售合同号
         if ($condition['contract_no'] != '') {
-            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdByContractNo($condition['contract_no']) ? : [];
+            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
         }
 
         // 当前用户的所有角色编号
@@ -307,7 +307,12 @@ class InquiryController extends PublicController {
         
         // 销售合同号
         if ($condition['contract_no'] != '') {
-            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdByContractNo($condition['contract_no']) ? : [];
+            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
+        }
+
+        //区域和国家
+        if ($condition['market_area_bn'] != '' && $condition['country_bn'] == '') {
+            $condition['country_bn'] = $marketAreaCountryModel->getCountryBn($condition['market_area_bn']) ? : [];
         }
 
         // 是否显示列表

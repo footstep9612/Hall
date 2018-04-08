@@ -472,6 +472,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setObtainInfo($list);
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
+        $this->_setQuoteSpendTime($list);
         return $this->_createXls($list);
     }
 
@@ -593,7 +594,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalOilFlag($list);
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
-
+        $this->_setQuoteSpendTime($list);
 
         // $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
@@ -646,38 +647,41 @@ class SupplierInquiryModel extends PublicModel {
             'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
             'AN' => ['clarification_time', '项目澄清时间(小时)'],
             'AO' => ['quoted_time', '最终报价用时(小时)'],
-            'AP' => [obtain_org_name, '获单主体单位)'],
-            'AQ' => ['obtain_name', '获取人)'],
-            'AR' => ['created_by_name', '询单创建人'],
-            'AS' => ['agent_name', '市场负责人'],
-            'AT' => ['biz_despatching', '事业部分单人'],
-            'AU' => ['quote_name', '商务技术部报价人'],
-            'AV' => ['check_org_name', '事业部负责人'],
-            'AW' => ['brand', '产品品牌'],
-            'AX' => ['supplier_name', '报价单位'],
-            'AY' => [null, '供应商报价人'],
-            'AZ' => [null, '报价人联系方式'],
-            'BA' => ['purchase_unit_price', '厂家单价（元）'],
-            'BB' => ['purchase_price_cur_bn', '币种'],
-            'BC' => ['total', '厂家总价（元）'],
-            'BD' => ['purchase_price_cur_bn', '币种'],
-            'BE' => ['gross_profit_rate', '利润率'],
-            'BF' => ['quote_unit_price', '报价单价（元）'],
+            'AP' => ['whole_quoted_time', '整体报价时间(小时)'],
+            'AQ' => ['biz_quoted_time', '商务技术报价用时(小时)'],
+            'AR' => ['logi_quoted_time', '物流报价时间(小时)'],
+            'AS' => ['obtain_org_name', '获单主体单位)'],
+            'AT' => ['obtain_name', '获取人)'],
+            'AU' => ['created_by_name', '询单创建人'],
+            'AV' => ['agent_name', '市场负责人'],
+            'AW' => ['biz_despatching', '事业部分单人'],
+            'AX' => ['quote_name', '商务技术部报价人'],
+            'AY' => ['check_org_name', '事业部负责人'],
+            'AZ' => ['brand', '产品品牌'],
+            'BA' => ['supplier_name', '报价单位'],
+            'BB' => [null, '供应商报价人'],
+            'BC' => [null, '报价人联系方式'],
+            'BD' => ['purchase_unit_price', '厂家单价（元）'],
+            'BE' => ['purchase_price_cur_bn', '币种'],
+            'BF' => ['total', '厂家总价（元）'],
             'BG' => ['purchase_price_cur_bn', '币种'],
-            'BH' => ['total_quote_price', '报价总价（元）'],
-            'BI' => ['purchase_price_cur_bn', '币种'],
-            'BJ' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'BK' => ['gross_weight_kg', '单重(kg)'],
-            'BL' => ['total_kg', '总重(kg)'],
-            'BM' => ['package_size', '包装体积(mm)'],
-            'BN' => ['package_mode', '包装方式'],
-            'BO' => ['delivery_days', '交货期（天）'],
-            'BP' => ['period_of_validity', '有效期（天）'],
-            'BQ' => ['trade_terms_bn', '贸易术语'],
-            'BR' => ['istatus', '最新进度及解决方案'],
-            'BS' => ['iquote_status', '报价后状态'],
-            'BT' => ['quote_notes', '备注'],
-            'BU' => ['reason_for_no_quote', '未报价分析'],
+            'BH' => ['gross_profit_rate', '利润率'],
+            'BI' => ['quote_unit_price', '报价单价（元）'],
+            'BJ' => ['purchase_price_cur_bn', '币种'],
+            'BK' => ['total_quote_price', '报价总价（元）'],
+            'BL' => ['purchase_price_cur_bn', '币种'],
+            'BM' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'BN' => ['gross_weight_kg', '单重(kg)'],
+            'BO' => ['total_kg', '总重(kg)'],
+            'BP' => ['package_size', '包装体积(mm)'],
+            'BQ' => ['package_mode', '包装方式'],
+            'BR' => ['delivery_days', '交货期（天）'],
+            'BS' => ['period_of_validity', '有效期（天）'],
+            'BT' => ['trade_terms_bn', '贸易术语'],
+            'BU' => ['istatus', '最新进度及解决方案'],
+            'BV' => ['iquote_status', '报价后状态'],
+            'BW' => ['quote_notes', '备注'],
+            'BX' => ['reason_for_no_quote', '未报价分析'],
 //            'BA' => [null, '报价超48小时原因类型'],
 //            'BB' => [null, '报价超48小时分析'],
 //            'BC' => [null, '成单或失单'],
@@ -733,38 +737,41 @@ class SupplierInquiryModel extends PublicModel {
             'AM' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
             'AN' => ['clarification_time', '项目澄清时间(小时)'],
             'AO' => ['quoted_time', '最终报价用时(小时)'],
-            'AP' => ['obtain_org_name', '获单主体单位)'],
-            'AQ' => ['obtain_name', '获取人'],
-            'AR' => ['created_by_name', '询单创建人'],
-            'AS' => ['agent_name', '市场负责人'],
-            'AT' => ['biz_despatching', '事业部分单人'],
-            'AU' => ['quote_name', '商务技术部报价人'],
-            'AV' => ['check_org_name', '事业部负责人'],
-            'AW' => ['brand', '产品品牌'],
-            'AX' => ['supplier_name', '报价单位'],
-            'AY' => [null, '供应商报价人'],
-            'AZ' => [null, '报价人联系方式'],
-            'BA' => ['purchase_unit_price', '厂家单价（元）'],
-            'BB' => ['purchase_price_cur_bn', '币种'],
-            'BC' => ['total', '厂家总价（元）'],
-            'BD' => ['purchase_price_cur_bn', '币种'],
-            'BE' => ['gross_profit_rate', '利润率'],
-            'BF' => ['quote_unit_price', '报价单价（元）'],
+            'AP' => ['whole_quoted_time', '整体报价时间(小时)'],
+            'AQ' => ['biz_quoted_time', '商务技术报价用时(小时)'],
+            'AR' => ['logi_quoted_time', '物流报价时间(小时)'],
+            'AS' => ['obtain_org_name', '获单主体单位)'],
+            'AT' => ['obtain_name', '获取人)'],
+            'AU' => ['created_by_name', '询单创建人'],
+            'AV' => ['agent_name', '市场负责人'],
+            'AW' => ['biz_despatching', '事业部分单人'],
+            'AX' => ['quote_name', '商务技术部报价人'],
+            'AY' => ['check_org_name', '事业部负责人'],
+            'AZ' => ['brand', '产品品牌'],
+            'BA' => ['supplier_name', '报价单位'],
+            'BB' => [null, '供应商报价人'],
+            'BC' => [null, '报价人联系方式'],
+            'BD' => ['purchase_unit_price', '厂家单价（元）'],
+            'BE' => ['purchase_price_cur_bn', '币种'],
+            'BF' => ['total', '厂家总价（元）'],
             'BG' => ['purchase_price_cur_bn', '币种'],
-            'BH' => ['total_quote_price', '报价总价（元）'],
-            'BI' => ['purchase_price_cur_bn', '币种'],
-            'BJ' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'BK' => ['gross_weight_kg', '单重(kg)'],
-            'BL' => ['total_kg', '总重(kg)'],
-            'BM' => ['package_size', '包装体积(mm)'],
-            'BN' => ['package_mode', '包装方式'],
-            'BO' => ['delivery_days', '交货期（天）'],
-            'BP' => ['period_of_validity', '有效期（天）'],
-            'BQ' => ['trade_terms_bn', '贸易术语'],
-            'BR' => ['istatus', '最新进度及解决方案'],
-            'BS' => ['iquote_status', '报价后状态'],
-            'BT' => ['quote_notes', '备注'],
-            'BU' => ['reason_for_no_quote', '未报价分析'],
+            'BH' => ['gross_profit_rate', '利润率'],
+            'BI' => ['quote_unit_price', '报价单价（元）'],
+            'BJ' => ['purchase_price_cur_bn', '币种'],
+            'BK' => ['total_quote_price', '报价总价（元）'],
+            'BL' => ['purchase_price_cur_bn', '币种'],
+            'BM' => ['total_quoted_price_usd', '报价总金额（美金）'],
+            'BN' => ['gross_weight_kg', '单重(kg)'],
+            'BO' => ['total_kg', '总重(kg)'],
+            'BP' => ['package_size', '包装体积(mm)'],
+            'BQ' => ['package_mode', '包装方式'],
+            'BR' => ['delivery_days', '交货期（天）'],
+            'BS' => ['period_of_validity', '有效期（天）'],
+            'BT' => ['trade_terms_bn', '贸易术语'],
+            'BU' => ['istatus', '最新进度及解决方案'],
+            'BV' => ['iquote_status', '报价后状态'],
+            'BW' => ['quote_notes', '备注'],
+            'BX' => ['reason_for_no_quote', '未报价分析'],
         ];
     }
 
@@ -1092,6 +1099,37 @@ class SupplierInquiryModel extends PublicModel {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }
             }
+        }
+    }
+    
+    /**
+     * @desc 设置报价相关用时
+     *
+     * @param array $list  询单列表信息
+     * @author liujf
+     * @time 2018-04-03
+     */
+    private function _setQuoteSpendTime(&$list) {
+        $inquiryCheckLogModel = new InquiryCheckLogModel();
+        $nowTime = time();
+        foreach ($list as &$item) {
+            $where['inquiry_id'] = $item['inquiry_id'];
+            // 第一次流入事业部分单员的时间
+            $firstBizDispatchingTime = $inquiryCheckLogModel->field('MIN(into_at) AS first_time')->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->find()['first_time'];
+            // 最后一次流出事业部审核的时间
+            $lastMarketApprovingTime = $inquiryCheckLogModel->field('MAX(out_at) AS last_time')->where(array_merge($where, ['in_node' => 'MARKET_APPROVING']))->find()['last_time'];
+            // 第一次流入物流分单员的时间
+            $firstLogiDispatchingTime = $inquiryCheckLogModel->field('MIN(into_at) AS first_time')->where(array_merge($where, ['in_node' => 'LOGI_DISPATCHING']))->find()['first_time'];
+            // 最后一次流出物流报价的时间
+            $lastlogiQuotingTime = $inquiryCheckLogModel->field('MAX(out_at) AS last_time')->where(array_merge($where, ['in_node' => 'LOGI_QUOTING']))->find()['last_time'];
+            // 物流审核耗时
+            $logiApprovingSpend = $inquiryCheckLogModel->field('ROUND(SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) / 3600, 2) AS spend')->where(array_merge($where, ['in_node' => 'LOGI_APPROVING']))->find()['spend'];
+            // 整体报价耗时
+            $item['whole_quoted_time'] = number_format((($lastMarketApprovingTime ? strtotime($lastMarketApprovingTime) : $nowTime) - ($firstBizDispatchingTime ? strtotime($firstBizDispatchingTime) : strtotime($item['created_at'])))  / 3600, 2);
+            // 商务技术报价耗时
+            $item['biz_quoted_time'] = number_format(str_replace(',', '', $item['whole_quoted_time']) - str_replace(',', '', $item['clarification_time']) - $logiApprovingSpend, 2);
+            // 物流报价耗时
+            $item['logi_quoted_time'] = $lastlogiQuotingTime ? number_format((strtotime($lastlogiQuotingTime) - strtotime($firstLogiDispatchingTime)) / 3600, 2) : 0;
         }
     }
 
