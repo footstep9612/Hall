@@ -188,6 +188,18 @@ class ESClient {
         return $this->server->indices()->putAlias($indexParams);
     }
 
+    public function index_deleteAlias($index, $name) {
+        $indexParams['index'] = $index;
+        $indexParams['name'] = $name;
+        return $this->server->indices()->deleteAlias($indexParams);
+    }
+
+    public function index_existsAlias($index, $name) {
+        $indexParams['index'] = $index;
+        $indexParams['name'] = $name;
+        return $this->server->indices()->existsAlias($indexParams);
+    }
+
     /*
      * 获取版本号
      */
