@@ -753,7 +753,7 @@ class BuyerVisitModel extends PublicModel {
             if($lang=='zh'){
                 $tableheader = array('地区','国家','提报人','客户名称','是否为已有客户','客户类别','结算模式及付款条件','产品品类(一)|产品品类(二)|年采购金额（万美元)|主要供应商','客户所需服务','客户痛点','备注','更新时间');
             }else{
-                $tableheader = array('Area','Country','Reporter','Customer name','existing customer','Customer category','Settlement model and payment condition','Product category(一)|Product category(二)|Annual purchase amount（万美元)|Major suppliers','Customer service','Customer pain point','Remarks','Update time');
+                $tableheader = array('Area','Country','Reporter','Customer name','existing customer','Customer category','Settlement model and payment condition','Product category(一)|Product category(二)|Annual purchase amount（Million / US dollar)|Major suppliers','Customer service','Customer pain point','Remarks','Update time');
             }
         }else{
             if($lang=='zh'){
