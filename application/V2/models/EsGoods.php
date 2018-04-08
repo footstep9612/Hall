@@ -16,11 +16,18 @@ class EsGoodsModel extends Model {
     //put your code here
     protected $tableName = 'goods';
     protected $dbName = 'erui_goods'; //数据库名称
+    protected $update_dbName = 'erui_goods'; //数据库名称
 
     const STATUS_DELETED = 'DELETED';
 
     public function __construct($str = '') {
         parent::__construct($str = '');
+        $model = new EsVersionModel();
+        $version = $model->getVersion();
+
+        if ($version) {
+            $this->update_dbName = $this->dbName . '_' . $version['update_version'];
+        }
     }
 
     /* 条件组合
@@ -607,7 +614,7 @@ class EsGoodsModel extends Model {
         $body['name'] = htmlspecialchars_decode($item['name']);
         $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
-        $es_goods = $es->get($this->dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
+        $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
             $body['material_cat'] = $product_attr['material_cat'];
@@ -745,9 +752,9 @@ class EsGoodsModel extends Model {
         $this->_findnulltoempty($body);
 
         if ($es_goods) {
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
-            $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         }
         if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . "\r\n" . var_export($flag, true), LOG::ERR);
@@ -942,7 +949,7 @@ class EsGoodsModel extends Model {
                     }
                     $body['show_cats'] = $this->_getValue($scats, $sku, [], 'json');
                     $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
-                    $flag = $es->add_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+                    $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
                     if (!isset($flag['create'])) {
                         LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
                     }
@@ -1209,7 +1216,7 @@ class EsGoodsModel extends Model {
                 $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
             }
 
-            $es->refresh($this->dbName);
+            $es->refresh($this->update_dbName);
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -1240,7 +1247,7 @@ class EsGoodsModel extends Model {
 
             $body = $this->getInsertCodition($data);
             $id = $sku;
-            $flag = $es->update_document($this->dbName, $this->tableName . '_' . $lang, $body, $id);
+            $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
             if ($flag['_shards']['successful'] !== 1) {
                 LOG::write("FAIL:" . $id . var_export($flag, true), LOG::ERR);
                 return true;
@@ -1286,12 +1293,12 @@ class EsGoodsModel extends Model {
                 $data['status'] = $goods_info['status'];
                 $type = $this->tableName . '_' . $lang;
                 $spus[] = $goods_info['spu'];
-                $es->update_document($this->dbName, $type, $data, $sku);
+                $es->update_document($this->update_dbName, $type, $data, $sku);
             } elseif (is_array($skus)) {
 
 
                 $updateParams = [];
-                $updateParams['index'] = $this->dbName;
+                $updateParams['index'] = $this->update_dbName;
                 $updateParams['type'] = 'goods_' . $lang;
                 $goods_model = new GoodsModel();
                 $goods_list = $goods_model->field('deleted_flag,checked_by,checked_at,updated_by,updated_at,status,sku,spu')
@@ -1319,7 +1326,7 @@ class EsGoodsModel extends Model {
                 $esproduct_model = new EsProductModel();
                 $esproduct_model->Update_Attrs($spus, $lang);
             }
-            $es->refresh($this->dbName);
+            $es->refresh($this->update_dbName);
             return true;
         } catch (Exception $ex) {
 
@@ -1365,7 +1372,7 @@ class EsGoodsModel extends Model {
             return false;
         }
         $es = new ESClient();
-        $index = $this->dbName;
+        $index = $this->update_dbName;
         $type_goods = 'goods_' . $lang;
         $count_goods = $es->setbody(["query" => ['bool' => [ESClient::SHOULD => [
                                 [ESClient::TERM => ["show_cats.cat_no3" => $old_cat_no]],
@@ -1380,7 +1387,7 @@ class EsGoodsModel extends Model {
                                     [ESClient::TERM => ["show_cats.cat_no1" => $old_cat_no]]
                         ]]]])->search($index, $type_goods, $i, 100);
             $updateParams = array();
-            $updateParams['index'] = $this->dbName;
+            $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = $type_goods;
             if ($ret) {
                 foreach ($ret['hits']['hits'] as $item) {
@@ -1391,7 +1398,7 @@ class EsGoodsModel extends Model {
                 $es->bulk($updateParams);
             }
         }
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         return true;
     }
 
@@ -1425,7 +1432,7 @@ class EsGoodsModel extends Model {
         $data['attrs'] = json_encode($goods_attrs[$sku], JSON_UNESCAPED_UNICODE);
         $id = $sku;
         $type = $this->tableName . '_' . $lang;
-        $es->update_document($this->dbName, $type, $data, $id);
+        $es->update_document($this->update_dbName, $type, $data, $id);
         return true;
     }
 
@@ -1454,16 +1461,16 @@ class EsGoodsModel extends Model {
         $id = $sku;
         if ($lang) {
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
         } else {
             $type = $this->tableName . '_en';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
             $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
             $type = $this->tableName . '_ru';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
             $type = $this->tableName . '_es';
-            $es->update_document($this->dbName, $type, $data, $id);
+            $es->update_document($this->update_dbName, $type, $data, $id);
         }
         return true;
     }
@@ -1498,7 +1505,7 @@ class EsGoodsModel extends Model {
             }
             $data['status'] = self::STATUS_DELETED;
             $type = $this->tableName . '_' . $lang;
-            $es->update_document($this->dbName, $type, $data, $sku);
+            $es->update_document($this->update_dbName, $type, $data, $sku);
             if (isset($goods['spu']) && $goods['spu']) {
                 $product_model = new ProductModel();
                 $productr_supplier_model = new ProductSupplierModel();
@@ -1510,11 +1517,11 @@ class EsGoodsModel extends Model {
                     $sku_count = 0;
                 }
 
-                $es->update_document($this->dbName, 'product_' . $lang, ['sku_count' => strval($sku_count), 'suppliers' => $suppliers], $goods['spu']);
+                $es->update_document($this->update_dbName, 'product_' . $lang, ['sku_count' => strval($sku_count), 'suppliers' => $suppliers], $goods['spu']);
             }
         } elseif (is_array($skus)) {
             $product_updateParams = $updateParams = [];
-            $product_updateParams['index'] = $updateParams['index'] = $this->dbName;
+            $product_updateParams['index'] = $updateParams['index'] = $this->update_dbName;
             $updateParams['type'] = 'goods_' . $lang;
             $product_updateParams['type'] = 'product_' . $lang;
             $goodses = $this->field('spu')->where(['sku' => ['in', $skus], 'lang' => $lang])->group('spu')->select();
@@ -1553,7 +1560,7 @@ class EsGoodsModel extends Model {
             }
             $es->bulk($product_updateParams);
         }
-        $es->refresh($this->dbName);
+        $es->refresh($this->update_dbName);
         return true;
     }
 
@@ -1576,7 +1583,7 @@ class EsGoodsModel extends Model {
         }
         $type_goods = 'goods_' . $lang;
         $updateParams = array();
-        $updateParams['index'] = $this->dbName;
+        $updateParams['index'] = $this->update_dbName;
         $updateParams['type'] = $type_goods;
         foreach ($skus as $sku) {
 
@@ -1600,7 +1607,7 @@ class EsGoodsModel extends Model {
         $goods_attach_model = new GoodsAttachModel();
         $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
         $updateParams = array();
-        $updateParams['index'] = $this->dbName;
+        $updateParams['index'] = $this->update_dbName;
         if ($lang) {
             $langs = [$lang];
         } else {
