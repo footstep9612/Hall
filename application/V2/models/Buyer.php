@@ -155,6 +155,7 @@ class BuyerModel extends PublicModel {
 //            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
 //        }
         //$count = $this->query($sql_count);
+        $condition['page']=isset($condition['page'])?$condition['page']:0;
         $sql .= ' LIMIT ' . $condition['page'] . ', 10';
         $lang=isset($condition['lang'])?$condition['lang']:'zh';
         $info = $this->query($sql);
@@ -271,12 +272,15 @@ class BuyerModel extends PublicModel {
         }
 
         if(!empty($data['buyer_no'])){  //客户编号
+            $data['buyer_no']=trim($data['buyer_no']," ");
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
         if(!empty($data['buyer_code'])){    //客户CRM代码
+            $data['buyer_code']=trim($data['buyer_code']," ");
             $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
         }
         if(!empty($data['name'])){    //客户名称
+            $data['name']=trim($data['name']," ");
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         if(!empty($data['status'])){    //审核状态
@@ -292,6 +296,7 @@ class BuyerModel extends PublicModel {
 //            $cond .= " and buyer.buyer_level='".$data['buyer_level']."'";
 //        }
         if(!empty($data['employee_name'])){  //经办人名称
+            $data['employee_name']=trim($data['employee_name']," ");
             $cond .= " and employee.name like '%".$data['employee_name']."%'";
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
