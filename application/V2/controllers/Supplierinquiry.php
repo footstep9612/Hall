@@ -95,7 +95,9 @@ class SupplierinquiryController extends PublicController {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出一个月以内的数据
-        $condition['created_at_start'] = $this->_getLastMonthDate();
+        if (empty($condition['created_at_start'])) {
+            $condition['created_at_start'] = $this->_getLastMonthDate();
+        }
         $data = $supplier_inquiry_model->Inquiryexport($condition);
 
         if ($data) {
@@ -123,7 +125,9 @@ class SupplierinquiryController extends PublicController {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出一个月以内的数据
-        $condition['created_at_start'] = $this->_getLastMonthDate();
+        if (empty($condition['created_at_start'])) {
+            $condition['created_at_start'] = $this->_getLastMonthDate();
+        }
         $data = $supplier_inquiry_model->InquiryToatolexport($condition);
 
         if ($data) {
