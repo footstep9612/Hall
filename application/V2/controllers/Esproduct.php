@@ -134,6 +134,33 @@ class EsproductController extends PublicController {
         }
     }
 
+    /**
+     * 临时方法（导出数据用） 2018/03/29
+     * @param $condition
+     * @return array
+     * @author 买买提
+     */
+    public function exportListAction($condition)
+    {
+        $model = new EsProductModel();
+        $lang = $this->getPut('lang', 'zh');
+        $condition = $this->getPut();
+        //p($condition);
+        $this->_handleCondition($condition);
+        //p($condition);
+        $ret = $model->getProducts($condition, null, $lang);
+
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->_getdata($data, $lang);
+        }
+
+        foreach ($list as $item){
+            $spu_data[]= $item['spu'];
+        }
+        return $spu_data;
+    }
+
     /*
      * 搜索条件处理
      */
