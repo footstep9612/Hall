@@ -300,6 +300,10 @@ class BuyerModel extends PublicModel {
             $data['employee_name']=trim($data['employee_name']," ");
             $cond .= " and employee.name like '%".$data['employee_name']."%'";
         }
+        if(!empty($data['created_name'])){  //创建人名称
+            $data['created_name']=trim($data['created_name']," ");
+            $cond .= " and employee.name like '%".$data['created_name']."%'";
+        }
         if (!empty($condition['min_percent'])) { //信息完整度小
             $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
         }
@@ -2196,7 +2200,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2241,7 +2245,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
         }
 
 //        if($data['admin'] == 0){   //查看部分统计
@@ -2260,6 +2264,10 @@ EOF;
 //        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
+        }
+        if(!empty($data['created_name'])){  //创建人名称
+            $data['created_name']=trim($data['created_name']," ");
+            $cond .= " and employee.name like '%".$data['created_name']."%'";
         }
 //        if(!empty($data['all_id'])){
 //            $str = implode(',',$data['all_id']);
@@ -2303,8 +2311,10 @@ EOF;
         }
         $totalCount = $this->alias('buyer')
             ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+            ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
             ->where($cond)
             ->count();
+
         if($totalCount <= 0){
             return false;   //空数据
         }
@@ -2346,9 +2356,10 @@ EOF;
             foreach($fieldBusiness as $v){
                 $field .= ',business.'.$v;
             }
-            $field .= ',(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
+            $field .= ',employee.name as created_name';
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+                ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
