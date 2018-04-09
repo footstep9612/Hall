@@ -587,7 +587,6 @@ EOF;
         return $info['code'];
     }
     public function noticeEmailAction(){
-        return null;
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
         if(empty($data['buyer_id'])){
