@@ -303,7 +303,8 @@ class BuyerAccountModel extends PublicModel {
             ->field('buyer.name as company_name,account.email as account_email,account.show_name,account.created_by,agent.agent_id')
             ->where($cond)
             ->select();
-print_r($account);
+        echo $this->getLastSql();
+print_r($account);die;
         $company_name=$account[0]['company_name'];   //客户公司
         $show_name=$account[0]['show_name'];   //客户姓名
         $account_email=$account[0]['account_email'];   //客户账号
