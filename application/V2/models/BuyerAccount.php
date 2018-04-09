@@ -333,6 +333,7 @@ class BuyerAccountModel extends PublicModel {
         $arr['customer']['account_email']=$account_email;
         $arr['customer']['account_pwd']=$account_pwd;
         $arr['agent_info']=$agentInfo;
+        print_r($arr);die;
         return $arr;
     }
     private function randStr($length)

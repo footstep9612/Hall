@@ -596,7 +596,6 @@ EOF;
         $info=$BuyerAccount->setPwdEmail($data['buyer_id']);    //客户和经办人信息
         if($lang=='zh'){
             $customer=$this->getCustomerEnHtml($info['customer'],$info['agent_info']);    //发给客户模板
-            print_r($customer);die;
             $code=$this->postSentEmail($info['customer']['account_email'],'Welcome to use ERUI !',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
@@ -605,7 +604,6 @@ EOF;
             }
         }else{
             $customer=$this->getCustomerEnHtml($info['customer'],$info['agent_info']);    //发给客户模板
-            print_r($customer);die;
             $code=$this->postSentEmail($info['customer']['account_email'],'Welcome to use ERUI !',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
