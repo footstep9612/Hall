@@ -595,7 +595,7 @@ EOF;
         $BuyerAccount=new BuyerAccountModel();
         $info=$BuyerAccount->setPwdEmail($data['buyer_id']);    //客户和经办人信息
         if($lang=='zh'){
-            $customer=$this->getCustomerHtml($info['customer'],$info['agent_info']);    //发给客户模板
+            $customer=$this->getCustomerEnHtml($info['customer'],$info['agent_info']);    //发给客户模板
             $code=$this->postSentEmail($info['customer']['account_email'],'欢迎使用 Erui!',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
