@@ -1240,7 +1240,10 @@ EOF;
         $arr['order']['count'] = $orderInfo['count'];
         $arr['order']['account'] = $orderInfo['account'];
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
+        $arr['order']['year'] = $orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
+        $arr['order']['order_rate'] = $orderInfo['count'].'/'.$inquiryInfo['quote_count'];
+        $arr['order']['account_rate'] = $orderInfo['account'].'/'.$inquiryInfo['account'];
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
