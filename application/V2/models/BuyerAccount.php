@@ -303,7 +303,7 @@ class BuyerAccountModel extends PublicModel {
             ->field('buyer.name as company_name,account.email as account_email,account.show_name,account.created_by,agent.agent_id')
             ->where($cond)
             ->select();
-
+print_r($account);
         $company_name=$account[0]['company_name'];   //客户公司
         $show_name=$account[0]['show_name'];   //客户姓名
         $account_email=$account[0]['account_email'];   //客户账号
@@ -316,9 +316,9 @@ class BuyerAccountModel extends PublicModel {
             }
         }
 
+        print_r($agentArr);die;
         $agent_arr=array_values(array_flip(array_flip($agentArr)));
         $agent_str=implode(',',$agent_arr);
-        print_r($agent_str);die;
         $agentInfo=$this->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
         if(count($agentInfo)>1){
             foreach($agentInfo as $k => $v){

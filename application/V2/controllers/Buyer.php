@@ -437,7 +437,7 @@ class BuyerController extends PublicController {
       </div>  
       <!-- 版权标识 -->  
       <div style="border: 1px solid black;" align="center">  
-        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
+        <p>If the button cannot be clicked, please copy the following address to the browser and open it：<a href="http://www.erui.com">www.erui.com</a></p>  
         <p>Contact us if you have any questions</p>  
         <p>E-mail:{$agent_email}</p>  
         <p>Tel:{$agent_tel}</p>  
