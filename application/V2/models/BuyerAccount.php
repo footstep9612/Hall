@@ -320,6 +320,7 @@ class BuyerAccountModel extends PublicModel {
         $agent_str=implode(',',$agent_arr);
 
         $agentInfo=$this->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
+        print_r($agentInfo);
         foreach($agentInfo as $k => $v){
             if($v['id']==$created_by){
                 $self=$v;
@@ -327,13 +328,12 @@ class BuyerAccountModel extends PublicModel {
             }
         }
         array_unshift($agentInfo,$self);
-
+print_r($agentInfo);die;
         $arr['customer']['company_name']=$company_name;
         $arr['customer']['show_name']=$show_name;
         $arr['customer']['account_email']=$account_email;
         $arr['customer']['account_pwd']=$account_pwd;
         $arr['agent_info']=$agentInfo;
-        print_r($arr);die;
         return $arr;
     }
     private function randStr($length)
