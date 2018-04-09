@@ -300,10 +300,9 @@ class BuyerAccountModel extends PublicModel {
         $account=$this->alias('account')
             ->join('erui_buyer.buyer buyer on account.buyer_id=buyer.id and buyer.deleted_flag=\'N\'','left')
             ->join('erui_buyer.buyer_agent agent on account.buyer_id=agent.buyer_id and agent.deleted_flag=\'N\'','left')
-            ->field('buyer.name as company_name,account.email as account_email,account.show_name,account.created_by,agent.agent_id')
+            ->field('buyer.name as company_name,account.email as account_email,account.show_name,buyer.created_by,agent.agent_id')
             ->where($cond)
             ->select();
-
         $company_name=$account[0]['company_name'];   //客户公司
         $show_name=$account[0]['show_name'];   //客户姓名
         $account_email=$account[0]['account_email'];   //客户账号
@@ -318,15 +317,16 @@ class BuyerAccountModel extends PublicModel {
 
         $agent_arr=array_values(array_flip(array_flip($agentArr)));
         $agent_str=implode(',',$agent_arr);
-
         $agentInfo=$this->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
-        foreach($agentInfo as $k => $v){
-            if($v['id']==$created_by){
-                $self=$v;
-                unset($agentInfo[$k]);
+        if(count($agentInfo)>1){
+            foreach($agentInfo as $k => $v){
+                if($v['id']==$created_by){
+                    $self=$v;
+                    unset($agentInfo[$k]);
+                }
             }
+            array_unshift($agentInfo,$self);
         }
-        array_unshift($agentInfo,$self);
 
         $arr['customer']['company_name']=$company_name;
         $arr['customer']['show_name']=$show_name;

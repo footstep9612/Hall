@@ -27,7 +27,7 @@ class EdiController extends PublicController{
    // private $serverIP = 'credit.eruidev.com';
 
    // private $serverPort = '80';
-    
+
     private $serverDir = 'ediserver';
 
     private $serverDirSec = 'ws_services';
