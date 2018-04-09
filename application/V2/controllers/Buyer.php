@@ -923,6 +923,10 @@ EOF;
             $data['mobile']=$this->validPhone($data['mobile']);
             $arr['official_phone'] = $data['mobile'];
         }
+        if (!empty($data['official_phone'])) {
+            $data['mobile']=$this->validPhone($data['official_phone']);
+            $arr['official_phone'] = $data['mobile'];
+        }
         if (!empty($data['buyer_level'])) {
             $arr['buyer_level'] = $data['buyer_level'];
             $arr['level_at'] = date("Y-m-d H:i:s");
