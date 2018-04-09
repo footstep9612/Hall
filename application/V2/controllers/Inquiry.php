@@ -1104,6 +1104,25 @@ class InquiryController extends PublicController {
         $results = $Item->deleteData($data);
         $this->jsonReturn($results);
     }
+    
+    /**
+     * @desc 删除指定询单的所有SKU
+     *
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function delInquiryItemAction() {
+        $condition = $this->put_data;
+        if (!empty($condition['inquiry_id'])) {
+            $inquiryItemModel = new InquiryItemModel();
+            $res = $inquiryItemModel->delByInquiryId($condition['inquiry_id']);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-103');
+            $this->setMessage(L('MISSING_PARAMETER'));
+            $this->jsonReturn();
+        }
+    }
 
     /*
      * 询单sku附件列表

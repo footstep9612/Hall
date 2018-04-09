@@ -437,7 +437,7 @@ class BuyerController extends PublicController {
       </div>  
       <!-- 版权标识 -->  
       <div style="border: 1px solid black;" align="center">  
-        <p>如果按钮无法点击，请将以下地址复制到浏览器中打开：<a href="http://www.erui.com">www.erui.com</a></p>  
+        <p>If this button doesn’t work, please open this website ：<a href="http://www.erui.com">www.erui.com</a></p>  
         <p>Contact us if you have any questions</p>  
         <p>E-mail:{$agent_email}</p>  
         <p>Tel:{$agent_tel}</p>  
@@ -596,8 +596,8 @@ EOF;
         $BuyerAccount=new BuyerAccountModel();
         $info=$BuyerAccount->setPwdEmail($data['buyer_id']);    //客户和经办人信息
         if($lang=='zh'){
-            $customer=$this->getCustomerHtml($info['customer'],$info['agent_info']);    //发给客户模板
-            $code=$this->postSentEmail($info['customer']['account_email'],'欢迎使用 Erui!',$customer); //发送给客户
+            $customer=$this->getCustomerEnHtml($info['customer'],$info['agent_info']);    //发给客户模板
+            $code=$this->postSentEmail($info['customer']['account_email'],'Welcome to use ERUI !',$customer); //发送给客户
             $sent=[$code];
             foreach($info['agent_info'] as $k => $v){
                 $agent=$this->getAgentHtml($info['customer'],$v);    //发给经办人模板
@@ -921,6 +921,10 @@ EOF;
         }
         if (!empty($data['mobile'])) {
             $data['mobile']=$this->validPhone($data['mobile']);
+            $arr['official_phone'] = $data['mobile'];
+        }
+        if (!empty($data['official_phone'])) {
+            $data['mobile']=$this->validPhone($data['official_phone']);
             $arr['official_phone'] = $data['mobile'];
         }
         if (!empty($data['buyer_level'])) {

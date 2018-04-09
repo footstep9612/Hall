@@ -357,6 +357,23 @@ class InquiryitemModel extends PublicModel {
     }
     
     /**
+     * @desc 获取关联询单SKU记录总数
+     *
+     * @param array $condition
+     * @return int
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function getJoinCount_($condition = []) {
+        $where = $this->getJoinWhere_($condition);
+    
+        return $this->alias('a')
+                            ->join($this->joinTable_, 'LEFT')
+                            ->where($where)
+                            ->count('a.id');
+    }
+    
+    /**
      * @desc 获取关联询单SKU列表
      *
      * @param array $condition
@@ -386,16 +403,20 @@ class InquiryitemModel extends PublicModel {
     public function getJoinList_($condition = []) {
         $where = $this->getJoinWhere_($condition);
         try {
+            $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+            $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
             $list = $this->alias('a')
                                 ->field($this->joinField_)
                                 ->join($this->joinTable_, 'LEFT')
                                 ->where($where)
+                                ->page($currentPage, $pageSize)
                                 ->order('a.id DESC')
                                 ->select();
             if ($list) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
+                $results['count'] = $this->getJoinCount_($condition);
             } else {
                 $results['code'] = '-101';
                 $results['message'] = L('NO_DATA');
@@ -406,6 +427,18 @@ class InquiryitemModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
+    }
+    
+    /**
+     * @desc 根据询单ID删除SKU记录
+     *
+     * @param int $inquiryId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function delByInquiryId($inquiryId) {
+        return $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
     }
 
 }
