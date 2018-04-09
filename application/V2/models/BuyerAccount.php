@@ -318,17 +318,18 @@ class BuyerAccountModel extends PublicModel {
 
         $agent_arr=array_values(array_flip(array_flip($agentArr)));
         $agent_str=implode(',',$agent_arr);
-
+        print_r($agent_str);die;
         $agentInfo=$this->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
-        print_r($agentInfo);
-        foreach($agentInfo as $k => $v){
-            if($v['id']==$created_by){
-                $self=$v;
-                unset($agentInfo[$k]);
+        if(count($agentInfo)>1){
+            foreach($agentInfo as $k => $v){
+                if($v['id']==$created_by){
+                    $self=$v;
+                    unset($agentInfo[$k]);
+                }
             }
+            array_unshift($agentInfo,$self);
         }
-        array_unshift($agentInfo,$self);
-print_r($agentInfo);die;
+
         $arr['customer']['company_name']=$company_name;
         $arr['customer']['show_name']=$show_name;
         $arr['customer']['account_email']=$account_email;
