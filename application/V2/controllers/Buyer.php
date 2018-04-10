@@ -837,6 +837,8 @@ EOF;
         $res=$agent->crmUpdateAgent($data);
         $buyer=new BuyerModel();
         $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
+        $account=new BuyerAccountModel();
+        $account->where(array('buyer_id'=>$data['id']))->save(array('status'=>'VALID'));
         if($res){
             //授信添加市场经办人--更新状态--klp
             $credit_model = new BuyerCreditModel();
@@ -857,7 +859,9 @@ EOF;
         }
         $close_info=isset($data['close_info'])?$data['close_info']:null;
         $buyer=new BuyerModel();
+        $account=new BuyerAccountModel();
         $buyer->where(array('id'=>$data['buyer_id']))->save(array('close_info'=>$close_info,'status'=>'REJECTED'));
+        $account->where(array('buyer_id'=>$data['buyer_id']))->save(array('status'=>'REJECTED'));
         $this->jsonReturn(array("code" => 1, "message" =>L('success')));
     }
     public function updateAction() {
@@ -877,8 +881,6 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_name')));    //公司名称不能为空
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {   //邮箱
@@ -888,8 +890,6 @@ EOF;
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
                 $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
             }
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_email')));    //邮箱不能为空
         }
         if (!empty($data['first_name'])) {  //姓名
             $arr['first_name'] = $data['first_name'];
@@ -909,8 +909,6 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('crm_existed'))); //"客户代码已存在"
             }
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_crm')));    //code不能为空
         }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
