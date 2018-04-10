@@ -662,13 +662,13 @@ class HandleController extends Yaf_Controller_Abstract
     {
         $data = $this->getProductsWithSkuStatics();
         //$excelFile = SupplierHelper::productStatics($data);
-        p($data);
-        p(count($data));
+        //p($data);
+        //p(count($data));
     }
 
     private function getProductsWithSkuStatics()
     {
-        //php最大执行时间
+
         ini_set('max_execution_time', '0');
 
 //        if (redisExist('product_statics_data_1')){
@@ -679,7 +679,7 @@ class HandleController extends Yaf_Controller_Abstract
         $productFields = 'spu,lang,bizline_id,name,show_name,created_by,status,brand';
         $productWhere = ['deleted_flag' => 'N'];
 
-        $products = $productModel->where($productWhere)->field($productFields)->limit(2,300)->select();
+        $products = $productModel->where($productWhere)->field($productFields)->limit(1,4000)->select();
 
         foreach ($products as &$product){
 
@@ -713,6 +713,7 @@ class HandleController extends Yaf_Controller_Abstract
             //产品状态
             $product['status'] = $this->setStatus($product['status']);
         }
+
         //存入redis
         //redisSet('product_statics_data_1', json_encode($products));
         //redisDel('product_statics_data');
