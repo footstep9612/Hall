@@ -54,8 +54,10 @@ class EsversionController extends EsproductController {
         } elseif ($select_version && $select_version != $version['select_version']) {
             $flag = $model->UpdateVersion($alias, $update_version, $select_version);
             if ($flag) {
-                if ($es->index_existsAlias($version['alias'] . '_' . $version['select_version'], $version['alias'])) {
+                if ($version['select_version'] && $es->index_existsAlias($version['alias'] . '_' . $version['select_version'], $version['alias'])) {
                     $es->index_deleteAlias($version['alias'] . '_' . $version['select_version'], $version['alias']);
+                } else {
+                    $es->index_delete($version['alias']);
                 }
                 $es->index_alias($version['alias'] . '_' . $version['update_version'], $version['alias']);
                 $this->setCode(1);

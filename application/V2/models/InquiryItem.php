@@ -428,5 +428,17 @@ class InquiryitemModel extends PublicModel {
             return $results;
         }
     }
+    
+    /**
+     * @desc 根据询单ID删除SKU记录
+     *
+     * @param int $inquiryId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function delByInquiryId($inquiryId) {
+        return $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
+    }
 
 }

@@ -17,7 +17,7 @@ class EsgoodsController extends PublicController {
 
     protected $index = 'erui_goods';
     protected $es = '';
-    protected $langs = ['en', 'es', 'ru', 'zh'];
+    protected $langs = ['en', 'zh', 'es', 'ru'];
     protected $version = '1';
 
     //put your code here
