@@ -262,6 +262,13 @@ class EsproductController extends PublicController {
         exit;
     }
 
+    public function getStateAction() {
+        $es = new ESClient();
+        $ret = $es->getstate($this->index);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
     /*
      * 处理ES 数据
      * @author  zhongyg
