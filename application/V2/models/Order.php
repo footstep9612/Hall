@@ -201,83 +201,57 @@ class OrderModel extends PublicModel {
 //        $prev=(substr($date,0,4)-1).substr($date,4,10); //一年前的今天
 //        $sql = "select count(id) as `count`,FORMAT(sum(amount),2) as account,min(amount) as `min`,max(amount) as `max` from `erui_order`.`order` where buyer_id=$buyer_id";
 //        $sql = "select amount,currency_bn from `erui_order`.`order` where buyer_id=$buyer_id AND deleted_flag='N'";
-        $sqlOrder="select `order`.id AS order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
-//        $sqlOrder.=" left join erui_order.order_log order_log";
-//        $sqlOrder.=" on order.id=order_log.order_id";
+        $sqlOrder="select `order`.id AS order_id,`order`.amount,`order`.currency_bn,`order`.created_at from erui_order.order `order`";
         $sqlOrder.=" WHERE `order`.buyer_id=$buyer_id";
-//        $sqlOrder.=" AND `order`.show_status='GOING'";
         $sqlOrder.=" AND `order`.deleted_flag='N'";
-//        $sqlOrder.=" AND order_log.deleted_flag='N'";
-//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-//        }else{
-//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-//            $sqlOrder.=" AND DATE_FORMAT(order_log.log_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-//        }
         $order = $this->query($sqlOrder);
-        //订单已完成
-//        $sqlOrdero="select `order`.id as order_id,`order`.amount,`order`.currency_bn from erui_order.order `order`";
-//        $sqlOrdero.=" WHERE `order`.buyer_id=$buyer_id";
-//        $sqlOrdero.=" AND `order`.show_status='COMPLETED'";
-//        $sqlOrdero.=" AND `order`.deleted_flag='N'";
-//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-//        }else{
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-//            $sqlOrdero.=" AND DATE_FORMAT(`order`.complete_at,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-//        }
-//        $ordero = $this->query($sqlOrdero);
-//        $order=array_merge($orderi,$ordero);
-        $orderArr=$this->sumAccountAtatis($order);  //order
-        $orderAmount=$orderArr['amount'];   //order arr
-        $orderCount=count($orderArr['count']); //order count
-
-        $sqlNewOrder="select `order_account`.order_id,currency_bn,order_account.money as amount from erui_new_order.order `order`";
-        $sqlNewOrder.=" left join erui_new_order.order_account order_account";
-        $sqlNewOrder.=" on `order`.id=order_account.order_id";
+//        print_r($order);die;
+//        $orderArr=$this->sumAccountAtatis($order);  //order
+////        $orderAmount=$orderArr['amount'];   //order arr
+//        $orderYear=$orderArr['year'];   //order arr
+//        $orderCount=count($orderArr['count']); //order count
+//print_r($orderYear);die;
+        $sqlNewOrder="select `order`.id as order_id,order.currency_bn,order.total_price as amount,order.create_time as created_at from erui_new_order.order `order`";
         $sqlNewOrder.=" where crm_code=(SELECT buyer_code from erui_buyer.buyer where id=$buyer_id)";
-        $sqlNewOrder.=" and (`order`.status=4 or `order`.status=3)";
         $sqlNewOrder.=" and `order`.delete_flag=0";
-        $sqlNewOrder.=" and order_account.del_yn=1";
-//        if(!empty($level_at) && !empty($expiry_at)){    //会员有效期内的回款
-//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$level_at','%Y-%m-%d') ";
-//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$expiry_at','%Y-%m-%d') ";
-//        }else{
-//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') >=  DATE_FORMAT('$prev','%Y-%m-%d') ";
-//            $sqlNewOrder.=" AND DATE_FORMAT(order_account.payment_date,'%Y-%m-%d') <=  DATE_FORMAT('$date','%Y-%m-%d') ";
-//        }
-        $newOrder=$this->query($sqlNewOrder);
-        $orderNewArr=$this->sumAccountAtatis($newOrder);    //newOrder
-        $orderNewAmount=$orderNewArr['amount'];   //newOrder arr
-        $orderNewCount=count($orderNewArr['count']); //newOrder count
 
-        $mergeAmount=array_merge($orderAmount,$orderNewAmount); //总订单金额arr
-        sort($mergeAmount);
-        $count=$orderCount+$orderNewCount;  //总订单个数
-        $sum=array_sum($mergeAmount);   //总订单金额
+        $newOrder=$this->query($sqlNewOrder);
+        $orderMerge=array_merge($order,$newOrder);
+        $orderArr=$this->sumAccountAtatis($orderMerge);
+        $orderYear=$orderArr['year'];   //年度订单金额
+        $str='';
+        foreach($orderYear as $k => $v){
+            $str.=$k.' : '.$v." $\n";
+        }
+        $count=count($orderArr['count']);  //订单数量
+        $amount=$orderArr['amount'];  //订单金额arr
+        sort($amount);
+        $sum=array_sum($orderYear); //总订单金额
+
         //返回数据
         if($count==0){
             $arr=array(
                 'count'=>0,
                 'account'=>0,
                 'min'=>0,
-                'max'=>0
+                'max'=>0,
+                'year'=>0
             );
         }elseif($count==1){
             $arr=array(
                 'count'=>1,
                 'account'=>$sum,
                 'min'=>0,
-                'max'=>$sum
+                'max'=>$sum,
+                'year'=>$str
             );
         }else{
             $arr=array(
                 'count'=>$count,
                 'account'=>$sum,
-                'min'=>reset($mergeAmount),
-                'max'=>end($mergeAmount)
+                'min'=>reset($amount),
+                'max'=>end($amount),
+                'year'=>$str
             );
         }
         $data=array(
@@ -285,6 +259,7 @@ class OrderModel extends PublicModel {
             'account'=>sprintf("%.2f",$arr['account']),
             'min'=>sprintf("%.2f",$arr['min']),
             'max'=>sprintf("%.2f",$arr['max']),
+            'year'=>$str
         );
         return $data;
     }
@@ -293,6 +268,9 @@ class OrderModel extends PublicModel {
         $count=array();
         $arr=[];
         $val=0;
+        $result=[];
+        $sum=[];
+        $amount=[];
         foreach($order as $k => $v){
             if($v['currency_bn']=='USD'){   //一次交易50万=高级
                 $val=$v['amount'];
@@ -305,11 +283,25 @@ class OrderModel extends PublicModel {
             }elseif($v['currency_bn']=='RUB'){
                 $val=$v['amount']*0.01785;
             }
-            $arr[]=$val;
+            $arr[$k]['amount']=$val;
+            $amount[]=$val;
             $count[]=$v['order_id'];
+            $arr[$k]['year']=substr($v['created_at'],0,4);
         }
-        $data['amount']=$arr;
+        foreach($arr as $k => $v){
+            if($v['year']=='2017'){
+                $result['2017'][]=$v['amount'];
+            }elseif($v['year']=='2018'){
+                $result['2018'][]=$v['amount'];
+            }
+        }
+        foreach($result as $k => $v){
+            $sum[$k]=array_sum($v);
+        }
+//        $data['amount']=$arr;
         $data['count']=array_flip(array_flip($count));
+        $data['year']=$sum;
+        $data['amount']=$amount;
         return $data;
     }
     /**

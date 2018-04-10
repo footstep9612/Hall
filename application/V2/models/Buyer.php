@@ -435,9 +435,10 @@ class BuyerModel extends PublicModel {
             ->order('agent.created_at desc,buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
+        $level = new BuyerLevelModel();
+        $country = new CountryModel();
         foreach($info as $k => $v){
             if(!empty($v['buyer_level'])){ //客户等级
-                $level = new BuyerLevelModel();
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
             if(!empty($v['percent'])){  //信息完整度
@@ -446,7 +447,6 @@ class BuyerModel extends PublicModel {
                 $info[$k]['percent']='--';
             }
             if(!empty($v['country_bn'])){ //国家
-                $country = new CountryModel();
                 $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
             }
         }
@@ -755,10 +755,10 @@ class BuyerModel extends PublicModel {
         }
 //        $datajson = $this->create($data);
         $datajson = $data;
-        if($create['is_group_crm'] == true){
-            $group_status = $this->addGroupCrm($datajson);
-            $datajson['group_status'] = $group_status;
-        }
+//        if($create['is_group_crm'] == true){
+//            $group_status = $this->addGroupCrm($datajson);
+//            $datajson['group_status'] = $group_status;
+//        }
         $datajson['source']=1;
         try {
             $res = $this->add($datajson);
