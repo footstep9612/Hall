@@ -518,7 +518,9 @@ class EsproductController extends PublicController {
      */
     public function indexAction() {
         $body['mappings'] = [];
-
+        $body['settings']['analysis']['analyzer']['caseSensitive'] = [
+            'filter' => 'lowercase', 'type' => 'custom', 'tokenizer' => 'keyword'
+        ];
         foreach ($this->langs as $lang) {
             $product_properties = $this->productAction($lang);
             $goods_properties = $this->goodsAction($lang);
@@ -532,8 +534,33 @@ class EsproductController extends PublicController {
 
         if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
             $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
+
             //$es->index_alias($this->index . '_' . $this->version, $this->index);
         }
+        $es->open($this->index . '_' . $this->version);
+        $this->setCode(1);
+        $this->setMessage('成功!');
+        $this->jsonReturn();
+    }
+
+    /**
+     * Description of 创建索引
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+    public function putSettingsAction() {
+        $body = [];
+        $body['settings']['analysis']['analyzer']['caseSensitive'] = [
+            'filter' => 'lowercase', 'type' => 'custom', 'tokenizer' => 'keyword'
+        ];
+//        $body['settings']['number_of_shards'] = 5;
+        $body['settings']['number_of_replicas'] = 1;
+        $es = new ESClient();
+        $es->close($this->index . '_' . $this->version);
+        $flag = $es->putSettings($this->index . '_' . $this->version, $body);
+        $es->open($this->index . '_' . $this->version);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -552,6 +579,7 @@ class EsproductController extends PublicController {
         $product_properties = $this->productAction('en');
         $goods_properties = $this->goodsAction('en');
         $es = new ESClient();
+        $es->close($this->index . '_' . $this->version);
         foreach ($this->langs as $lang) {
             $goods_mapParam = ['goods_' . $lang => [
                     'properties' => $goods_properties,
@@ -563,10 +591,11 @@ class EsproductController extends PublicController {
             ]];
             logs(json_encode($product_mapParam));
             //logs(json_encode($goods_mapParam));
-            $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
-            $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
-        }
+            $flag = $es->putMapping($this->index . '_' . $this->version, 'goods_' . $lang, $goods_mapParam);
 
+            $flag = $es->putMapping($this->index . '_' . $this->version, 'product_' . $lang, $product_mapParam);
+        }
+        $es->open($this->index . '_' . $this->version);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -594,6 +623,11 @@ class EsproductController extends PublicController {
                 ],
                 'all' => [
                     'index' => 'not_analyzed',
+                    'type' => $type
+                ],
+                'lower' => [
+                    'analyzer' => 'caseSensitive',
+                    'search_analyzer' => 'caseSensitive',
                     'type' => $type
                 ],
                 'standard' => [
@@ -818,6 +852,11 @@ class EsproductController extends PublicController {
                 ],
                 'all' => [
                     'index' => 'not_analyzed',
+                    'type' => $type
+                ],
+                'lower' => [
+                    'analyzer' => 'caseSensitive',
+                    'search_analyzer' => 'caseSensitive',
                     'type' => $type
                 ],
                 'standard' => [

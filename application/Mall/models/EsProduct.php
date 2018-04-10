@@ -239,12 +239,24 @@ class EsProductModel extends Model {
 
                 if (empty($brands)) {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                                ['bool' => [ESClient::MUST => [
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword), 'boost' => 300]]]]]],
+                                ['bool' => [ESClient::MUST => [
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            [ESClient::WILDCARD => ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 280]]]]]],
+                                ['bool' => [ESClient::MUST => [
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 250]]]]]],
+                                [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword), 'boost' => 150]]],
+                                [ESClient::WILDCARD => ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 100]]],
+                                [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 50]]],
                                 ['bool' => [ESClient::MUST => [[ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 100]]],
                                             [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]]]]],
                                 ['bool' => [ESClient::MUST => [[ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 0]]],
                                             [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 99, 'minimum_should_match' => '50%', 'operator' => 'or']]]]]],
                                 [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 45, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                //  [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
+                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                                 [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],

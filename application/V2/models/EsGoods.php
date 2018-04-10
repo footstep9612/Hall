@@ -513,7 +513,15 @@ class EsGoodsModel extends Model {
                 $where_count['sku'] = ['in', $goods_skus];
             }
             $count = $this->where($where_count)->count('id');
-
+            $espoducmodel = new EsProductModel();
+            $es = new ESClient();
+            $goodsmodel = new GoodsModel();
+            $product_model = new ProductModel();
+            $goods_attach_model = new GoodsAttachModel();
+            $goods_cost_price_model = new GoodsCostPriceModel();
+            $goods_attr_model = new GoodsAttrModel();
+            $goods_supplier_model = new GoodsSupplierModel();
+            $show_cat_goods_model = new ShowCatGoodsModel();
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
             for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
@@ -553,9 +561,7 @@ class EsGoodsModel extends Model {
 
                 $spus = array_unique($spus);
                 $skus = array_unique($skus);
-                $espoducmodel = new EsProductModel();
-                $es = new ESClient();
-                $goodsmodel = new GoodsModel();
+
                 if ($lang == 'zh') {
                     $name_locs = $goodsmodel->getNamesBySkus($skus, 'en');
                 } else {
@@ -563,37 +569,41 @@ class EsGoodsModel extends Model {
                 }
                 $productattrs = $espoducmodel->getproductattrsbyspus($spus, $lang);
 
-                $product_model = new ProductModel();
+
                 $product_names = $product_model->getProductNames($nonamespus, $lang);
-                $goods_attach_model = new GoodsAttachModel();
+
                 $attachs = $goods_attach_model->getgoods_attachsbyskus($skus, $lang);
 
-                $goods_cost_price_model = new GoodsCostPriceModel();
+
                 $costprices = $goods_cost_price_model->getCostPricesBySkus($skus);
 
-                $goods_attr_model = new GoodsAttrModel();
+
                 $goods_attrs = $goods_attr_model->getgoods_attrbyskus($skus, $lang);
 
-                $goods_supplier_model = new GoodsSupplierModel();
+
                 $suppliers = $goods_supplier_model->getsuppliersbyskus($skus);
-                $show_cat_goods_model = new ShowCatGoodsModel();
+
                 $scats = $show_cat_goods_model->getshow_catsbyskus($skus, $lang);
 
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
+
 //                $updateParams = [];
 //                $updateParams['index'] = $this->dbName;
 //                $updateParams['type'] = 'goods_' . $lang;
                 foreach ($goods as $key => $item) {
+                    $time2 = microtime(true);
                     $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
+                    echo microtime(true) - $time2, "\r\n";
                     print_r($flag);
                     ob_flush();
                     flush();
                 }
                 echo microtime(true) - $time1, "\r\n";
+
 
 //                $flag = $es->bulk($updateParams);
 //                var_dump($flag);
@@ -614,8 +624,8 @@ class EsGoodsModel extends Model {
         $body['name'] = htmlspecialchars_decode($item['name']);
         $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
-        $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
 
+        $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
             $body['material_cat'] = $product_attr['material_cat'];
         } else {
