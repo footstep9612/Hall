@@ -181,11 +181,9 @@ class BuyerAccountModel extends PublicModel {
             $where['password_hash'] = md5($data['password']);
         }
         $row = $this->where($where)->find();
-        var_dump($row);
         if($row){
             $buyer_model = new BuyerModel();
             $res = $buyer_model->field('deleted_flag')->where(['id'=>$row['buyer_id']])->find();
-            echo  $buyer_model->getLastSql();die;
             if($res['deleted_flag'] == 'Y'){
                 jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
             }
