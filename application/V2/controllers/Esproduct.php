@@ -20,7 +20,7 @@ class EsproductController extends PublicController {
     protected $langs = ['en', 'es', 'ru', 'zh'];
     protected $version = null;
 
-    //put your code here
+//put your code here
     public function init() {
 
         if ($this->getRequest()->isCli()) {
@@ -105,11 +105,11 @@ class EsproductController extends PublicController {
                 $condition['pagesize'] = 0;
                 $ret_N = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_N'] = intval($ret_N[0]['hits']['total']);
-                //    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
+//    $send['onshelf_sku_count_N'] =$model->getSkuCountByCondition($condition, $lang);
                 $condition['onshelf_flag'] = 'Y';
                 $ret_y = $model->getProducts($condition, null, $lang);
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
-                //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
+//  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
 
             $condition['status'] = 'DRAFT';
@@ -149,9 +149,9 @@ class EsproductController extends PublicController {
         $model = new EsProductModel();
         $lang = $this->getPut('lang', 'zh');
         $condition = $this->getPut();
-        //p($condition);
+//p($condition);
         $this->_handleCondition($condition);
-        //p($condition);
+//p($condition);
         $ret = $model->getProducts($condition, null, $lang);
 
         if ($ret) {
@@ -255,6 +255,13 @@ class EsproductController extends PublicController {
         exit;
     }
 
+    public function getSettingsAction() {
+        $es = new ESClient();
+        $ret = $es->getSettings($this->index);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
     /*
      * 处理ES 数据
      * @author  zhongyg
@@ -267,7 +274,7 @@ class EsproductController extends PublicController {
 
         $user_ids = [];
         $spus = [];
-        //  $esgoods = new EsGoodsModel();
+//  $esgoods = new EsGoodsModel();
         foreach ($data['hits']['hits'] as $key => $item) {
             $product = $list[$key] = $item["_source"];
             $attachs = json_decode($item["_source"]['attachs'], true);
@@ -290,9 +297,9 @@ class EsproductController extends PublicController {
             if ($product['onshelf_by']) {
                 $user_ids[] = $product['onshelf_by'];
             }
-            //  if ($is_recycled && !empty($product['spu'])) {
+//  if ($is_recycled && !empty($product['spu'])) {
             $spus[] = $product['spu'];
-            //  }
+//  }
             $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
             $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
         }
@@ -532,12 +539,17 @@ class EsproductController extends PublicController {
         $es = new ESClient();
         $state = $es->getstate();
 
-        if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
-            $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
+        if ($this->version && !isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
 
-            //$es->index_alias($this->index . '_' . $this->version, $this->index);
+            $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
+            $es->open($this->index . '_' . $this->version);
+//$es->index_alias($this->index . '_' . $this->version, $this->index);
+        } elseif (!$this->version && !isset($state['metadata']['indices'][$this->index])) {
+
+            $es->create_index($this->index, $body, 5, 1);
+            $es->open($this->index);
         }
-        $es->open($this->index . '_' . $this->version);
+
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -558,9 +570,15 @@ class EsproductController extends PublicController {
 //        $body['settings']['number_of_shards'] = 5;
         $body['settings']['number_of_replicas'] = 1;
         $es = new ESClient();
-        $es->close($this->index . '_' . $this->version);
-        $flag = $es->putSettings($this->index . '_' . $this->version, $body);
-        $es->open($this->index . '_' . $this->version);
+        if ($this->version) {
+            $es->close($this->index . '_' . $this->version);
+            $flag = $es->putSettings($this->index . '_' . $this->version, $body);
+            $es->open($this->index . '_' . $this->version);
+        } else {
+            $es->close($this->index);
+            $flag = $es->putSettings($this->index, $body);
+            $es->open($this->index);
+        }
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -579,23 +597,43 @@ class EsproductController extends PublicController {
         $product_properties = $this->productAction('en');
         $goods_properties = $this->goodsAction('en');
         $es = new ESClient();
-        $es->close($this->index . '_' . $this->version);
-        foreach ($this->langs as $lang) {
-            $goods_mapParam = ['goods_' . $lang => [
-                    'properties' => $goods_properties,
-                    '_all' => ['enabled' => true]
-            ]];
-            $product_mapParam = ['product_' . $lang => [
-                    'properties' => $product_properties,
-                    '_all' => ['enabled' => true]
-            ]];
-            logs(json_encode($product_mapParam));
-            //logs(json_encode($goods_mapParam));
-            $flag = $es->putMapping($this->index . '_' . $this->version, 'goods_' . $lang, $goods_mapParam);
+        if ($this->version) {
+            $es->close($this->index . '_' . $this->version);
+            foreach ($this->langs as $lang) {
+                $goods_mapParam = ['goods_' . $lang => [
+                        'properties' => $goods_properties,
+                        '_all' => ['enabled' => true]
+                ]];
+                $product_mapParam = ['product_' . $lang => [
+                        'properties' => $product_properties,
+                        '_all' => ['enabled' => true]
+                ]];
+                logs(json_encode($product_mapParam));
+//logs(json_encode($goods_mapParam));
+                $flag = $es->putMapping($this->index . '_' . $this->version, 'goods_' . $lang, $goods_mapParam);
 
-            $flag = $es->putMapping($this->index . '_' . $this->version, 'product_' . $lang, $product_mapParam);
+                $flag = $es->putMapping($this->index . '_' . $this->version, 'product_' . $lang, $product_mapParam);
+            }
+            $es->open($this->index . '_' . $this->version);
+        } else {
+            $es->close($this->index);
+            foreach ($this->langs as $lang) {
+                $goods_mapParam = ['goods_' . $lang => [
+                        'properties' => $goods_properties,
+                        '_all' => ['enabled' => true]
+                ]];
+                $product_mapParam = ['product_' . $lang => [
+                        'properties' => $product_properties,
+                        '_all' => ['enabled' => true]
+                ]];
+                logs(json_encode($product_mapParam));
+//logs(json_encode($goods_mapParam));
+                $flag = $es->putMapping($this->index, 'goods_' . $lang, $goods_mapParam);
+
+                $flag = $es->putMapping($this->index, 'product_' . $lang, $product_mapParam);
+            }
+            $es->open($this->index . '_' . $this->version);
         }
-        $es->open($this->index . '_' . $this->version);
         $this->setCode(1);
         $this->setMessage('成功!');
         $this->jsonReturn();
@@ -686,7 +724,7 @@ class EsproductController extends PublicController {
             'compose_require_pack' => $not_analyzed, //仓储运输包装及其他要求
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'name' => $ik_analyzed,
                     'name_en' => $ik_analyzed,
@@ -694,7 +732,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'costprices' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'contact_first_name' => $not_analyzed,
@@ -728,10 +766,10 @@ class EsproductController extends PublicController {
             'deleted_flag' => $not_analyzed, //删除标志
             /* 扩展内容 */
             'name_loc' => $ik_analyzed, //中文品名
-            // 'brand' => $ik_analyzed, //品牌
-            // 'suppliers' => $ik_analyzed, //供应商数组 json
+// 'brand' => $ik_analyzed, //品牌
+// 'suppliers' => $ik_analyzed, //供应商数组 json
             'brand' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -743,7 +781,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'suppliers' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
@@ -756,7 +794,7 @@ class EsproductController extends PublicController {
             //   'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -769,35 +807,35 @@ class EsproductController extends PublicController {
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
             'attrs' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [//属性数组 json
                     'spec_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_goods_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_hs_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'other_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]]
                 ]],
             'material_cat' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -807,7 +845,7 @@ class EsproductController extends PublicController {
                     'cat_name3' => $ik_analyzed,
                 ]], // $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -898,7 +936,7 @@ class EsproductController extends PublicController {
             'qrcode' => $not_analyzed, //二维码
             'name' => $ik_analyzed, //产品名称
             'show_name' => $ik_analyzed, // 产品展示
-            //'brand' => $ik_analyzed, //品牌
+//'brand' => $ik_analyzed, //品牌
             'keywords' => $ik_analyzed, //关键词
             'exe_standard' => $ik_analyzed, //执行标准
             'tech_paras' => $ik_analyzed, //简介',
@@ -925,7 +963,7 @@ class EsproductController extends PublicController {
             'view_count' => ['type' => $type], //浏览数量
             'bizline_id' => $not_analyzed, //产品线ID
             'bizline' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'name' => $ik_analyzed,
                     'name_en' => $ik_analyzed,
@@ -949,10 +987,10 @@ class EsproductController extends PublicController {
             'min_exw_day' => $not_analyzed, //出货周期（天）
             'min_pack_unit' => $not_analyzed, //成交单位
             'minimumorderouantity' => $not_analyzed, //最小订货数量
-            //  'specs' => $ik_analyzed, //规格数组 json
+//  'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -978,36 +1016,36 @@ class EsproductController extends PublicController {
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
             'attrs' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'spec_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_goods_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'ex_hs_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]],
                     'other_attrs' => [
-                        // 'type' => 'nested',
+// 'type' => 'nested',
                         'properties' => [
                             'name' => $ik_analyzed,
                             'value' => $ik_analyzed,
                         ]]
                 ]], //$ik_analyzed, //属性数组 json
-            // 'suppliers' => $ik_analyzed, //供应商数组 json
+// 'suppliers' => $ik_analyzed, //供应商数组 json
             'brand' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'lang' => $not_analyzed,
                     'name' => $ik_analyzed,
@@ -1019,7 +1057,7 @@ class EsproductController extends PublicController {
                 ],
             ],
             'suppliers' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'supplier_id' => $not_analyzed,
                     'supplier_name' => $ik_analyzed,
@@ -1036,7 +1074,7 @@ class EsproductController extends PublicController {
             'image_count' => $int_analyzed,
             'relation_flag' => $not_analyzed,
             'material_cat' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -1046,7 +1084,7 @@ class EsproductController extends PublicController {
                     'cat_name3' => $ik_analyzed,
                 ]], // $ik_analyzed, //物料分类对象 json
             'material_cat_zh' => [
-                // 'type' => 'nested',
+// 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
