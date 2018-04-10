@@ -556,13 +556,14 @@ class BuyerAgentModel extends PublicModel {
                 $agent_name.=','.$v['agent_name'];
             }
         }
+        $agent_name=substr($agent_name,1);
         if(!empty($info)){
             $agent=array(
                 'created_by'=>end($info)['created_by'],
                 'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
                 'update_at'=>end($info)['created_at'],
-                'agent_name'=>substr($agent_name,1)
+                'agent_name'=>$agent_name
             );
         }else{
             $agent=array(
