@@ -506,8 +506,8 @@ class BuyerAgentModel extends PublicModel {
             foreach($agent_arr as $k => $v){
                 $agentArr[$k]['buyer_id']=$buyer_id;
                 $agentArr[$k]['agent_id']=$v;
-                $agentArr[$k]['created_by']=$data['created_by'];
-                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
+                $agentArr[$k]['created_by']=$this->user['id'];
+                $agentArr[$k]['created_at']=$time;
             }
             $res=$this->addAll($agentArr);
             return $res;
