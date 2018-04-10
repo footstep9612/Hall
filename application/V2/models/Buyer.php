@@ -755,10 +755,10 @@ class BuyerModel extends PublicModel {
         }
 //        $datajson = $this->create($data);
         $datajson = $data;
-//        if($create['is_group_crm'] == true){
-//            $group_status = $this->addGroupCrm($datajson);
-//            $datajson['group_status'] = $group_status;
-//        }
+        if($create['is_group_crm'] == true){
+            $group_status = $this->addGroupCrm($datajson);
+            $datajson['group_status'] = $group_status;
+        }
         $datajson['source']=1;
         try {
             $res = $this->add($datajson);
