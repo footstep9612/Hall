@@ -849,6 +849,17 @@ EOF;
         }
         $this->jsonReturn($datajson);
     }
+    //关闭客户
+    public function closeBuyerAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));
+        }
+        $close_info=isset($data['close_info'])?$data['close_info']:null;
+        $buyer=new BuyerModel();
+        $buyer->where(array('id'=>$data['buyer_id']))->save(array('close_info'=>$close_info,'status'=>'REJECTED'));
+        $this->jsonReturn(array("code" => 1, "message" =>L('success')));
+    }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         if (!empty($data['id'])) {
