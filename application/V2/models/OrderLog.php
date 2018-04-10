@@ -248,7 +248,7 @@ class OrderLogModel extends PublicModel {
 
         $page = !empty($condition['currentPage']) ? $condition['currentPage'] : 1;
         $pagesize = !empty($condition['pageSize']) ? $condition['pageSize'] : 10;
-
+        $where['a.is_history'] = 0;
         $joinTable = 'erui_order.order b ON a.order_id = b.id';
         $field = 'a.id,a.order_id,a.log_group,a.out_no,a.waybill_no,a.log_at,b.execute_no,b.buyer_id';
 

@@ -13,6 +13,8 @@ class HandleController extends Yaf_Controller_Abstract
 
     public function init()
     {
+        //parent::init();
+
         header('Content-type:text/html;charset=utf8');
     }
 
@@ -281,25 +283,48 @@ class HandleController extends Yaf_Controller_Abstract
     /**
      * 导出指定供应商的SKU信息
      */
-    public function exportSupplierSkuAction()
+    public function exportAction()
     {
         /*
-         * 1、湖北江汉石油仪器仪表股份有限公司
-         * 2、中国石油集团济柴动力总厂
-         * 3、青岛天时油气装备服务集团有限公司
-         * 4、江苏如通石油机械股份有限公司
-         * 5、烟台石油机械有限公司
+         *  德州博儒石油机械制造有限公司  N
+            济南万齐石油装备有限公司 N
+            青岛海科石油装备有限公司 Y
+            济南隆超石油机械锻造有限公司 Y
+            青岛双圣海新能源科技有限公司 Y
+            淄博华创精细陶瓷有限公司 Y
+            安平县星火金属网厂 Y
+            青岛天时油气装备服务集团股份有限公司 Y
+            成都西部石油装备股份有限公司 Y
+            河北宇通特种胶管有限公司 y
+            山东龙口特种胶管有限公司 y
+            河北景渤石油机械有限公司 y
+            东营欧菲德石油技术有限公司 y
+            北京普世科石油机械新技术有限公司 y
+            宝鸡市工程液压件厂 y
+            江苏如通石油机械股份有限公司 y
+            江苏如石机械股份有限公司 y
+            南京安佰科照明科技有限公司 y
+            湖北江汉石油仪器仪表股份有限公司 y
          */
         set_time_limit(0);
 
-        $supplierName = '中国石油集团济柴动力总厂';
+        $condition = $this->validateRequestParams();
+
+        $supplierName = '青岛海科石油装备有限公司';
         $supplierId = (new SupplierModel)->where(['name' => $supplierName, 'status' => 'APPROVED'])->getField('id');
 
         if (!$supplierId) die(json_encode([ 'code'=> -1, 'message'=> '供应商不存在或未审核!']));
 
-        $data = $this->getSpuBySupplier($supplierId);
+        //$data = $this->getSpuBySupplier($supplierId);
         //$data = $this->getSpuByBrandAction('济柴');
-        //p($data);
+        //$data = (new EsproductController)->exportListAction($condition);
+
+        $sku = $this->getOnShelfSkuBy($supplierId);
+        //p(count($sku));
+
+        //导出供应商的已上架的SKU
+        $file = SupplierHelper::SupplierOnShelfSku($sku, $supplierName);
+        p($file);
 
         (new GoodsModel)->exportAll([
             'spus' => $data,
@@ -308,9 +333,39 @@ class HandleController extends Yaf_Controller_Abstract
 
         //$data = $this->getSkuDataBySupplierID($supplierId);
         //p($condition);
-        //$localFile = $this->createSupplierExcel($data, $supplierName);
+        $localFile = $this->createSupplierExcel($data, $supplierName);
 
-        //p($localFile);
+        p($localFile);
+    }
+
+    /**
+     * 获取供应商的已上架的SKU
+     * @param $supplier 供应商id
+     * @return array
+     */
+    public function getOnShelfSkuBy($supplier)
+    {
+        //供应商的sku
+        $goodsSupplier = new GoodsSupplierModel();
+        $data = $goodsSupplier->where(['supplier_id' =>$supplier, 'deleted_flag' => 'N'])->field('sku,pn')->select();
+
+        //是否已上架
+        foreach ($data as $key=>$value) {
+            $isOnShelf = (new ShowCatGoodsModel)->where(['sku' => $value['sku'], 'onshelf_flag' => 'Y'])->count();
+            if (!$isOnShelf) {
+                unset($data[$key]);
+            }
+
+            $price = (new GoodsCostPriceModel)->where(['sku' => $value['sku'], 'deleted_flag' => 'N'])->field('price,price_validity')->find();
+            $sku_data[] = [
+                'sku' => $value['sku'],
+                'pn' => $value['pn'],
+                'price' => $price['price'],
+                'price_validity' => $price['price_validity'],
+            ];
+        }
+
+        return $sku_data;
     }
 
     public function spuWithSkuAction()
@@ -598,6 +653,140 @@ class HandleController extends Yaf_Controller_Abstract
         //4.保存文件
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         return ExcelHelperTrait::createExcelToLocalDir($objWriter, "SUPPLIER_" . date('Ymd-His') . '.xls');
+    }
+
+    /**
+     * 供应商的产品、品牌，商品统计数据
+     */
+    public function productsWithSkuStaticsAction()
+    {
+        $data = $this->getProductsWithSkuStatics();
+        //$excelFile = SupplierHelper::productStatics($data);
+        p($data);
+        p(count($data));
+    }
+
+    private function getProductsWithSkuStatics()
+    {
+        //php最大执行时间
+        ini_set('max_execution_time', '0');
+
+//        if (redisExist('product_statics_data_1')){
+//            return json_decode(redisGet('product_statics_data_1'),true);
+//        }
+
+        $productModel = new ProductModel();
+        $productFields = 'spu,lang,bizline_id,name,show_name,created_by,status,brand';
+        $productWhere = ['deleted_flag' => 'N'];
+
+        $products = $productModel->where($productWhere)->field($productFields)->limit(2,300)->select();
+
+        foreach ($products as &$product){
+
+            //创建人
+            if ($product['created_by']){
+                $product['created_by'] = $this-$this->setUserNameBy($product['created_by']);
+            }
+
+            //sku数量
+            $product['en_sku_count'] = $this->getSkuBy($product['spu'], 'en');
+            $product['zh_sku_count'] = $this->getSkuBy($product['spu'], 'zh');
+
+            //品牌
+            $brand= json_decode($product['brand'],true);
+            if ($product['lang']=='en'){
+                $product['brand_en'] = $brand['name'];
+                $product['brand_zh'] = $this->getBrandBy($brand['name']);
+            }else{
+                $product['brand_en'] = $this->getBrandBy($brand['name'], 'zh');
+                $product['brand_zh'] = $brand['name'];
+            }
+            unset($product['brand']);
+
+            //品类组
+            $product['bizline'] = $this->getBizlineBy($product['bizline_id']);
+            unset($product['bizline_id']);
+
+            //供应商
+            $product['supplier'] = $this->getSupplierBy($product['spu']);
+
+            //产品状态
+            $product['status'] = $this->setStatus($product['status']);
+        }
+        //存入redis
+        //redisSet('product_statics_data_1', json_encode($products));
+        //redisDel('product_statics_data');
+
+        return $products;
+    }
+
+    private function getBrandBy($brand, $lang='en')
+    {
+        //$where = ['name' => $brand, 'lang' => $lang, 'deleted_flag' => 'N'];
+        $brandModel = new BrandModel();
+
+        $name = trim($brand);
+        $map2['brand.brand'] = ['like', '%"name":"' . $name . '"%'];
+        $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+        $map2['deleted_flag'] = 'N';
+        $map2['_logic'] = 'or';
+        $where[]['_complex'] = $map2;
+
+
+        $data = $brandModel->where($where)->find();
+        $data = json_decode($data['brand'],true);
+
+        if ($lang=='en'){
+            return $data[1]['name'];
+        }
+
+        return $data[0]['name'];
+
+    }
+
+    private function getSkuBy($spu, $lang)
+    {
+        return (new GoodsModel)->where(['spu'=> $spu, 'lang' => $lang, 'deleted_flag' => 'N'])->count();
+    }
+
+    private function setStatus($status)
+    {
+        switch ($status){
+            case 'DRAFT' : return '草稿'; break;
+            case 'CHECKING' : return '审核中'; break;
+            case 'VALID' : return '审核通过'; break;
+            case 'INVALID' : return '驳回'; break;
+        }
+    }
+
+    private function getBizlineBy($bizline_id)
+    {
+        return (new BizlineModel)->where(['id' => $bizline_id, 'deleted_flag' => 'N'])->getField('name');
+    }
+
+    private function getSupplierBy($spu)
+    {
+        $where = ['ps.spu' => $spu, 'ps.deleted_flag' => 'N'];
+        $fields = 'ps.supplier_id,s.name,s.created_by,sa.agent_id';
+
+        $productSupplierModel = new ProductSupplierModel();
+        $supplier =  $productSupplierModel->alias('ps')
+                                            ->join('erui_supplier.supplier s ON ps.supplier_id=s.id')
+                                            ->join('erui_supplier.supplier_agent sa ON ps.supplier_id=sa.supplier_id')
+                                            ->where($where)
+                                            ->field($fields)
+                                            ->find();
+        if ($supplier){
+            $supplier['creator'] = $this->setUserNameBy($supplier['created_by']);
+            $supplier['agent'] = $this->setUserNameBy($supplier['agent_id']);
+        }
+
+        return $supplier;
+    }
+
+    private function setUserNameBy($user)
+    {
+        return (new EmployeeModel)->where(['id' => $user, 'deleted_flag' => 'N' ])->getField('name');
     }
 
 }

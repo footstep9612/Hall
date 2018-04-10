@@ -289,4 +289,71 @@ class BuyerAccountModel extends PublicModel {
     public function getBuyerAccount($buyer_id){
         return $this->field('email')->where(array('buyer_id'=>$buyer_id))->find();
     }
+    //CRM-wangs
+    public function setPwdEmail($buyer_id){
+        $pwd=$this->randStr(6);
+        $password=md5($pwd);
+//        $this->where(array('buyer_id'=>$buyer_id))->save(array('password_hash'=>md5($pwd)));
+        $save="update erui_buyer.buyer_account set password_hash='$password',sent_email=sent_email+1 WHERE buyer_id=$buyer_id";
+        $this->query($save);
+        $cond="account.buyer_id=$buyer_id and account.deleted_flag='N'";
+        $account=$this->alias('account')
+            ->join('erui_buyer.buyer buyer on account.buyer_id=buyer.id and buyer.deleted_flag=\'N\'','left')
+            ->join('erui_buyer.buyer_agent agent on account.buyer_id=agent.buyer_id and agent.deleted_flag=\'N\'','left')
+            ->field('buyer.name as company_name,account.email as account_email,account.show_name,buyer.created_by,agent.agent_id')
+            ->where($cond)
+            ->select();
+        $company_name=$account[0]['company_name'];   //客户公司
+        $show_name=$account[0]['show_name'];   //客户姓名
+        $account_email=$account[0]['account_email'];   //客户账号
+        $account_pwd=$pwd;   //客户账号密码
+        $created_by=$account[0]['created_by'];   //创建姓名id
+        $agentArr=[$created_by];
+        if(!empty($account[0]['agent_id'])){
+            foreach($account as $k => $v){
+                $agentArr[]=$v['agent_id'];
+            }
+        }
+
+        $agent_arr=array_values(array_flip(array_flip($agentArr)));
+        $agent_str=implode(',',$agent_arr);
+        $agentInfo=$this->query("select id,user_no,email,`name`,mobile from erui_sys.employee WHERE deleted_flag='N' AND id in ($agent_str)");
+        if(count($agentInfo)>1){
+            foreach($agentInfo as $k => $v){
+                if($v['id']==$created_by){
+                    $self=$v;
+                    unset($agentInfo[$k]);
+                }
+            }
+            array_unshift($agentInfo,$self);
+        }
+
+        $arr['customer']['company_name']=$company_name;
+        $arr['customer']['show_name']=$show_name;
+        $arr['customer']['account_email']=$account_email;
+        $arr['customer']['account_pwd']=$account_pwd;
+        $arr['agent_info']=$agentInfo;
+        return $arr;
+    }
+    private function randStr($length)
+    {
+        $pattern = 'abcdefghjkmnpqrstuvwxy';
+        $len=strlen($pattern);
+        $str='';
+        for($i=0;$i<3;$i++)
+        {
+            $str .= $pattern{mt_rand(0,$len-1)};    //生成php随机数
+        }
+
+        $num = '23456789';
+        $num_len=strlen($num);
+        for($i=0;$i<3;$i++)
+        {
+            $str .= $num{mt_rand(0,$num_len-1)};    //生成php随机数
+        }
+        $arr=str_split($str);
+        shuffle($arr);
+        $pwd=implode('',$arr);
+        return $pwd;
+    }
 }

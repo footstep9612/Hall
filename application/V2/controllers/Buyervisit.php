@@ -11,7 +11,16 @@ class BuyervisitController extends PublicController {
     public function init() {
         parent::init();
     }
-
+    private function crmUserRole($user_id,$access){ //获取角色
+        $role=new RoleUserModel();
+        $arr=$role->crmGetUserRole($user_id);
+        if(in_array($access,$arr)){
+            $admin=1;   //市场专员
+        }else{
+            $admin=0;
+        }
+        return $admin;
+    }
     /**
      * Description of 列表
      * @author  link
@@ -20,6 +29,8 @@ class BuyervisitController extends PublicController {
     public function listAction() {
         $data = $this->getPut();
         $visit_model = new BuyerVisitModel();
+        $data['admin']=$this->getUserRole();
+        $data['created_by']=$this->user['id'];
         $arr = $visit_model->getList($data);
         if ($arr !== false) {
             jsonReturn($arr);
@@ -35,12 +46,13 @@ class BuyervisitController extends PublicController {
      */
     public function infoAction() {
         $data = $this->getPut();
+        $data['lang']=$this->getLang();
         if(!isset($data['id']) || empty($data['id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
 
         $visit_model = new BuyerVisitModel();
-        $arr = $visit_model->getInfoById($data['id'], (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
+        $arr = $visit_model->getInfoById($data, (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -113,8 +125,10 @@ class BuyervisitController extends PublicController {
      */
     public function demadListAction(){
         $data = $this->getPut();
+        $data['admin']=$this->getUserRole();
+        $data['created_by']=$this->user['id'];
         $visit_model = new BuyerVisitModel();
-        $arr = $visit_model->getDemadList($data);
+        $arr = $visit_model->getDemadList($data,$this->getLang());
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
@@ -167,6 +181,7 @@ class BuyervisitController extends PublicController {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin']=$this->getUserRole();
         $model = new BuyerVisitModel();
         $arr = $model->exportStatisVisit($data);
         if($arr === false){
@@ -179,7 +194,7 @@ class BuyervisitController extends PublicController {
         if(!empty($arr)){
             $dataJson=array(
                 'code'=>1,
-                'message'=>'下载成功',
+                'message'=>'Success',
                 'name'=>$arr['name'],
                 'url'=>$arr['url']
             );
@@ -187,5 +202,61 @@ class BuyervisitController extends PublicController {
             $model->saveExcel($arr['name'],$arr['url'],$created_by);
         }
         $this->jsonReturn($dataJson);
+    }
+    //导出客户调研报告-wangs
+    public function exportStatisReportAction(){
+        $created_by = $this -> user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['admin']=$this->getUserRole();
+        $model = new BuyerVisitModel();
+        $arr = $model->exportStatisVisit($data,true);
+        if($arr === false){
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'暂无数据'
+            );
+            $this->jsonReturn($dataJson);
+        }
+        if(!empty($arr)){
+            $dataJson=array(
+                'code'=>1,
+                'message'=>'Success',
+                'name'=>$arr['name'],
+                'url'=>$arr['url']
+            );
+            $model = new BuyerExcelModel();
+            $model->saveExcel($arr['name'],$arr['url'],$created_by);
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //获取用户的角色
+    public function getUserRole(){
+        $config = \Yaf_Application::app()->getConfig();
+        $ssoServer=$config['ssoServer'];
+        $token=$_COOKIE['eruitoken'];
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+                    "Cookie: ".$_COOKIE."\r\n",
+                'content' =>json_encode(array('token'=>$token))
+
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($ssoServer,false,$context);
+        $info=json_decode($json,true);
+
+        $arr['role']=$info['role_no'];
+        if(!empty($info['country_bn'])){
+            $countryArr=[];
+            foreach($info['country_bn'] as $k => $v){
+                $countryArr[]="'".$v."'";
+            }
+            $countryStr=implode(',',$countryArr);
+        }
+        $arr['country']=$countryStr;
+        return $arr;
     }
 }

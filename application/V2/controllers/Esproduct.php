@@ -18,7 +18,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '2';
+    protected $version = null;
 
     //put your code here
     public function init() {
@@ -28,6 +28,11 @@ class EsproductController extends PublicController {
             error_reporting(E_ERROR | E_STRICT);
         } else {
             parent::init();
+        }
+        if (!$this->version) {
+            $model = new EsVersionModel();
+            $version = $model->getVersion();
+            $this->version = $version['update_version'];
         }
     }
 
@@ -132,6 +137,32 @@ class EsproductController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
+    }
+
+    /**
+     * 临时方法（导出数据用） 2018/03/29
+     * @param $condition
+     * @return array
+     * @author 买买提
+     */
+    public function exportListAction($condition) {
+        $model = new EsProductModel();
+        $lang = $this->getPut('lang', 'zh');
+        $condition = $this->getPut();
+        //p($condition);
+        $this->_handleCondition($condition);
+        //p($condition);
+        $ret = $model->getProducts($condition, null, $lang);
+
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->_getdata($data, $lang);
+        }
+
+        foreach ($list as $item) {
+            $spu_data[] = $item['spu'];
+        }
+        return $spu_data;
     }
 
     /*
@@ -501,7 +532,7 @@ class EsproductController extends PublicController {
 
         if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
             $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
-            $es->index_alias($this->index . '_' . $this->version, $this->index);
+            //$es->index_alias($this->index . '_' . $this->version, $this->index);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
