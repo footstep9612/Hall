@@ -240,13 +240,13 @@ class EsProductModel extends Model {
                 if (empty($brands)) {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 ['bool' => [ESClient::MUST => [
-                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *', 'boost' => 150]]]]]],
                                             [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword), 'boost' => 300]]]]]],
                                 ['bool' => [ESClient::MUST => [
-                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *', 'boost' => 150]]]]]],
                                             [ESClient::WILDCARD => ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 280]]]]]],
                                 ['bool' => [ESClient::MUST => [
-                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*', 'boost' => 150]]]]]],
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *', 'boost' => 150]]]]]],
                                             [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 250]]]]]],
                                 [ESClient::WILDCARD => ['show_name.lower' => ['value' => '*' . strtolower($keyword), 'boost' => 150]]],
                                 [ESClient::WILDCARD => ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 100]]],
