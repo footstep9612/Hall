@@ -1224,8 +1224,6 @@ EOF;
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
-        $orderInfo['account']=5;
-        $inquiryInfo['account']=3;
         if($orderInfo['count']==0 || $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = 0;
         }else{
