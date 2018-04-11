@@ -304,6 +304,7 @@ class SuppliersController extends PublicController {
         $extraData = [
             'sign_agreement_flag' => $condition['sign_agreement_flag'],
             'sign_agreement_time' => $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'],
+            'sign_agreement_end_time' => $condition['sign_agreement_end_time'] == '' ? null : $condition['sign_agreement_end_time'],
             'est_time_arrival' => $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'],
             'distribution_amount' => $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'],
             'providing_sample_flag' => $condition['providing_sample_flag'],
@@ -312,6 +313,8 @@ class SuppliersController extends PublicController {
             'info_upload_flag' => $condition['info_upload_flag'],
             'photo_upload_flag' => $condition['photo_upload_flag']
         ];
+
+        //协议到期时间用该大于现在的时间
 
         if ($hasExtra) {
             $extraData['updated_by'] = $this->user['id'];
@@ -343,7 +346,6 @@ class SuppliersController extends PublicController {
      */
     public function getSupplierListAction() {
         $condition = $this->put_data;
-        
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
         if (!$isErui) {
@@ -368,7 +370,7 @@ class SuppliersController extends PublicController {
         }
 
         $supplierList = $this->suppliersModel->getJoinList($condition);
-        
+
         foreach ($supplierList as &$supplier) {
             $count = $this->supplierQualificationModel->getExpiryDateCount($supplier['id']);
             $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
@@ -376,6 +378,8 @@ class SuppliersController extends PublicController {
             $supplier['dev_name'] = $this->employeeModel->getUserNameById($supplier['agent_id']);
             // 供货范围
             $supplier['material_cat'] = $this->supplierMaterialCatModel->getCatBySupplierId($supplier['id']);
+            //协议到期时间
+            $supplier['sign_agreement_end_date'] = $this->supplierExtraInfoModel->getSignAgreementEndDateBy($supplier['id']);
         }
 
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
