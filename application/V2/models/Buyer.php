@@ -302,7 +302,7 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['created_name'])){  //创建人名称
             $data['created_name']=trim($data['created_name']," ");
-            $cond .= " and employee.name like '%".$data['created_name']."%'";
+            $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
             $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
@@ -412,6 +412,7 @@ class BuyerModel extends PublicModel {
             'created_at',   //注册时间/创建时间
         );
         $field = 'employee.name as employee_name,country.name as country_name,';
+
         $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
@@ -2359,7 +2360,7 @@ EOF;
             $field .= ',employee.name as created_name';
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-                ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
+                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
