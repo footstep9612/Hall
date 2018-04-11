@@ -415,7 +415,6 @@ class EsProductModel extends Model {
                 $analyzer = 'ik';
             }
 
-
             $body = $this->getCondition($condition, $lang);
 
             $pagesize = 10;
@@ -456,6 +455,7 @@ class EsProductModel extends Model {
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+            header('ERROR:' . $ex->getMessage());
             return [];
         }
     }
@@ -516,13 +516,18 @@ class EsProductModel extends Model {
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
+
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
             return $data;
         } catch (Exception $ex) {
+
+            echo $ex->getMessage();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+            header('ERROR:' . $ex->getMessage());
             return [];
         }
     }
