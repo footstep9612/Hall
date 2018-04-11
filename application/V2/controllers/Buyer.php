@@ -881,8 +881,6 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_name')));    //公司名称不能为空
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {   //邮箱
