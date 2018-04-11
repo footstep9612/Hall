@@ -28,7 +28,7 @@ class EsversionController extends EsproductController {
             parent::init();
         }
         $this->model = new EsVersionModel();
-        $this->esversion = $model->getVersion();
+        $this->esversion = $this->model->getVersion();
         $this->version = $this->esversion['update_version'];
     }
 
