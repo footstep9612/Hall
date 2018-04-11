@@ -272,7 +272,7 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
-                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]], 'boost' => 2]],
+                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]], 'boost' => 3]],
                                                     ]]],
                                         ]]],
                                 //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]]]
