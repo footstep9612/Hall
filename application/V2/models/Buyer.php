@@ -302,7 +302,7 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['created_name'])){  //创建人名称
             $data['created_name']=trim($data['created_name']," ");
-            $cond .= " and employee.name like '%".$data['created_name']."%'";
+            $cond .= " and employee.name like '%".$data['created_name']."%' and buyer.source=1 ";
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
             $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
