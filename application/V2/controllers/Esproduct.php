@@ -238,7 +238,6 @@ class EsproductController extends PublicController {
         } else {
             $ret = $es->getSettings($this->index);
         }
-
         echo json_encode($ret, 256);
         exit;
     }
