@@ -852,19 +852,7 @@ class BuyerVisitModel extends PublicModel {
         $buyerModel = new BuyerModel(); //客户
         $dpModel = new VisitDemadTypeModel();   //需求类型
         $bvrModel = new BuyerVisitReplyModel(); //拜访回复记录
-//        $field='buyer_visit.id';
-//        $fieldArr=array(
-//            'buyer_id','name','visit_at','visit_type','visit_level','visit_position','demand_type','visit_objective','visit_personnel','visit_result','created_by');
-//        foreach($fieldArr as $v){
-//            $field.=',buyer_visit.'.$v;
-//        }
-//        $field.=',employee.name as created_name';
-//        $result = $this->alias('buyer_visit')
-//            ->join('erui_sys.employee employee on buyer_visit.created_by=employee.id','left')
-//            ->field($field)
-//            ->where($condition)
-//            ->limit($offset,$pageSize)
-//            ->select();
+
         //数据信息
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
@@ -1043,17 +1031,12 @@ class BuyerVisitModel extends PublicModel {
         }else{
             $condition=" 1=1 ";
         }
-//        if(!empty($data['country_bn'])){    //国家权限============================================
-//            $countryArr=explode(',',$data['country_bn']);
-//            $countryStr='';
-//            foreach($countryArr as $v){
-//                $countryStr.=",'".$v."'";
-//            }
-//            $countryStr=substr($countryStr,1);
-//            if($data['admin']==0){  //没有查看所有的权限
-//                $condition .= " and buyer.country_bn in ($countryStr)";
-//            }
-//        }
+        if(!empty($data['visit_level'])){  //拜访级别
+            $condition.=" and visit_level like '%\"".$data['visit_level']."\"%'";
+        }
+        if(!empty($data['visit_position'])){  //拜访职位
+            $condition.=" and visit_position like '%\"".$data['visit_position']."\"%'";
+        }
         if(!empty($data['buyer_name'])){  //客户名称
             $condition.=" and buyer.name like '%$data[buyer_name]%'";
         }
