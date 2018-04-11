@@ -34,7 +34,7 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null) {
         $body = [];
-        $condition['keyword'] = 'helmet';
+
         if ($lang == 'zh') {
             $analyzer = 'ik';
         } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
