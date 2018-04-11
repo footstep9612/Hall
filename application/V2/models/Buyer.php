@@ -976,7 +976,6 @@ EOF;
         if (!empty($create['status'])) {     //关闭客户信息备注
             $data['status'] = $create['status'];
         }
-        print_r($data);die;
         return $this->where($where)->save($data);
     }
 
