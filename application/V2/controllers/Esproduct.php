@@ -124,32 +124,6 @@ class EsproductController extends PublicController {
         }
     }
 
-    /**
-     * 临时方法（导出数据用） 2018/03/29
-     * @param $condition
-     * @return array
-     * @author 买买提
-     */
-    public function exportListAction($condition) {
-        $model = new EsProductModel();
-        $lang = $this->getPut('lang', 'zh');
-        $condition = $this->getPut();
-//p($condition);
-        $this->_handleCondition($condition);
-//p($condition);
-        $ret = $model->getProducts($condition, null, $lang);
-
-        if ($ret) {
-            $data = $ret[0];
-            $list = $this->_getdata($data, $lang);
-        }
-
-        foreach ($list as $item) {
-            $spu_data[] = $item['spu'];
-        }
-        return $spu_data;
-    }
-
     /*
      * 搜索条件处理
      */
@@ -510,45 +484,8 @@ class EsproductController extends PublicController {
         $es = new ESClient();
         $state = $es->getstate();
 
-        if ($this->version && !isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
-
-            $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
-            $es->open($this->index . '_' . $this->version);
-//$es->index_alias($this->index . '_' . $this->version, $this->index);
-        } elseif (!$this->version && !isset($state['metadata']['indices'][$this->index])) {
-
+        if (!isset($state['metadata']['indices'][$this->index])) {
             $es->create_index($this->index, $body, 5, 1);
-            $es->open($this->index);
-        }
-
-        $this->setCode(1);
-        $this->setMessage('成功!');
-        $this->jsonReturn();
-    }
-
-    /**
-     * Description of 创建索引
-     * @author  zhongyg
-     * @date    2017-8-1 16:50:09
-     * @version V2.0
-     * @desc   ES 产品
-     */
-    public function putSettingsAction() {
-        $body = [];
-        $body['settings']['analysis']['analyzer']['caseSensitive'] = [
-            'filter' => 'lowercase', 'type' => 'custom', 'tokenizer' => 'keyword'
-        ];
-//        $body['settings']['number_of_shards'] = 5;
-        $body['settings']['number_of_replicas'] = 1;
-        $es = new ESClient();
-        if ($this->version) {
-            $es->close($this->index . '_' . $this->version);
-            $flag = $es->putSettings($this->index . '_' . $this->version, $body);
-            $es->open($this->index . '_' . $this->version);
-        } else {
-            $es->close($this->index);
-            $flag = $es->putSettings($this->index, $body);
-            $es->open($this->index);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -961,7 +898,7 @@ class EsproductController extends PublicController {
 //  'specs' => $ik_analyzed, //规格数组 json
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
-// 'type' => 'nested',
+                // 'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
