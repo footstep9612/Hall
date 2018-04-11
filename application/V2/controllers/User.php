@@ -544,6 +544,10 @@ class UserController extends PublicController {
         if (!empty($data['citizenship'])) {
             $arr['citizenship'] = $data['citizenship'];
         }
+        if (!empty($data['deleted_flag'])) {
+            $arr['deleted_flag'] = $data['deleted_flag'];
+        }
+
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
         if ($res !== false) {

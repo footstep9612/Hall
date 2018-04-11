@@ -262,6 +262,9 @@ class UserModel extends PublicModel {
         if (isset($create['citizenship'])) {
             $data['citizenship'] = $create['citizenship'];
         }
+        if (isset($create['deleted_flag'])) {
+            $data['deleted_flag'] = $create['deleted_flag'];
+        }
         switch ($create['status']) {
             case self::STATUS_DELETED:
                 $data['status'] = $create['status'];
