@@ -18,7 +18,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = null;
+    protected $version = '1';
 
     //put your code here
     public function init() {
@@ -29,11 +29,6 @@ class EsproductController extends PublicController {
         } else {
             parent::init();
         }
-        if (!$this->version) {
-            $model = new EsVersionModel();
-            $version = $model->getVersion();
-            $this->version = $version['update_version'];
-        }
     }
 
     public function clearCacheAction() {
@@ -41,22 +36,25 @@ class EsproductController extends PublicController {
         $keys = $redis->getKeys('*');
         $config = Yaf_Registry::get("config");
         $rconfig = $config->redis->config->toArray();
-
-        for ($i = 0; $i < 16; $i++) {
-            $rconfig['dbname'] = $i;
-            $redis = new phpredis($rconfig);
-            $keys = $redis->getKeys('*');
-            $delkeys = [];
-            foreach ($keys as $key) {
-                if (strpos($key, 'erui_boss_language') === false && strpos($key, 'user_info_') === false && strpos($key, 'shopmall_user_info') === false && strpos($key, 'sess') === false) {
-                    $delkeys[] = $key;
-                }
+        $rconfig['dbname'] = 3;
+        $redis3 = new phpredis($rconfig);
+        $key3s = $redis3->getKeys('*');
+        $delkeys = [];
+        foreach ($keys as $key) {
+            if (strpos($key, 'user_info_') === false) {
+                $delkeys[] = $key;
             }
-            $redis->delete($delkeys);
         }
-        unset($redis, $delkeys, $keys, $delkeys);
-        $op_log_model = new OpLogModel();
-        $op_log_model->deleted_data();
+        $redis->delete($delkeys);
+        $delkeys = [];
+        foreach ($key3s as $key) {
+            if (strpos($key, 'shopmall_user_info') === false) {
+                $delkeys[] = $key;
+            }
+        }
+        $redis3->delete($delkeys);
+
+        unset($redis, $redis3, $keys, $delkeys);
         $this->jsonReturn();
     }
 
@@ -111,22 +109,9 @@ class EsproductController extends PublicController {
                 $send['onshelf_count_Y'] = intval($ret_y[0]['hits']['total']);
                 //  $send['onshelf_sku_count_Y'] = $model->getSkuCountByCondition($condition, $lang);
             }
-
-            $condition['status'] = 'DRAFT';
-            $condition['onshelf_flag'] = 'N';
-            $send['draft_count'] = $model->getCount($condition, $lang);
-            $condition['status'] = 'CHECKING';
-            $condition['onshelf_flag'] = 'N';
-            $send['checking_count'] = $model->getCount($condition, $lang);
-            $condition['status'] = 'VALID';
+            $condition['deleted_flag'] = 'Y';
             $condition['onshelf_flag'] = 'A';
-            $send['valid_count'] = $model->getCount($condition, $lang);
-            $condition['status'] = 'INVALID';
-            $condition['onshelf_flag'] = 'N';
-            $send['invalid_count'] = $model->getCount($condition, $lang);
-            $condition['status'] = 'VALID';
-            $condition['onshelf_flag'] = 'N';
-            $send['onshelfing_count'] = $model->getCount($condition, $lang);
+            //  $send['deleted_flag_count_Y'] = $model->getCount($condition, $lang);
             $send['data'] = $list;
 
             $this->setCode(MSG::MSG_SUCCESS);
@@ -137,32 +122,6 @@ class EsproductController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-    }
-
-    /**
-     * 临时方法（导出数据用） 2018/03/29
-     * @param $condition
-     * @return array
-     * @author 买买提
-     */
-    public function exportListAction($condition) {
-        $model = new EsProductModel();
-        $lang = $this->getPut('lang', 'zh');
-        $condition = $this->getPut();
-        //p($condition);
-        $this->_handleCondition($condition);
-        //p($condition);
-        $ret = $model->getProducts($condition, null, $lang);
-
-        if ($ret) {
-            $data = $ret[0];
-            $list = $this->_getdata($data, $lang);
-        }
-
-        foreach ($list as $item) {
-            $spu_data[] = $item['spu'];
-        }
-        return $spu_data;
     }
 
     /*
@@ -303,13 +262,10 @@ class EsproductController extends PublicController {
             if (isset($status_sku_counts[$product['spu']]) && $status_sku_counts[$product['spu']]) {
                 $status_sku_count = $status_sku_counts[$product['spu']];
                 $list[$k]['sku_count'] = $product['sku_count'] . PHP_EOL . '(' .
-                        ($status_sku_count['draft_count'] > 0 ? '   暂存:' . $status_sku_count['draft_count'] : ' 暂存:0') .
-                        ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : ' 待审核:0') .
-                        ($status_sku_count['valid_count'] > 0 ? '   通过:' . $status_sku_count['valid_count'] : ' 通过:0') .
-                        ($status_sku_count['invalid_count'] > 0 ? '   已驳回:' . $status_sku_count['invalid_count'] : ' 已驳回:0') . ')';
-            } else {
-                $list[$k]['sku_count'] = 0 . PHP_EOL . '(' .
-                        ' 暂存:0' . ' 待审核:0' . ' 通过:0' . ' 已驳回:0' . ')';
+                        ($status_sku_count['draft_count'] > 0 ? '   暂存:' . $status_sku_count['draft_count'] : '') .
+                        ($status_sku_count['checking_count'] > 0 ? '   待审核:' . $status_sku_count['checking_count'] : '') .
+                        ($status_sku_count['valid_count'] > 0 ? '   通过:' . $status_sku_count['valid_count'] : '') .
+                        ($status_sku_count['invalid_count'] > 0 ? '   已驳回:' . $status_sku_count['invalid_count'] : '') . ')';
             }
         }
 
@@ -431,24 +387,6 @@ class EsproductController extends PublicController {
         }
     }
 
-    public function importAction() {
-//        $es = $this->getPut('es');
-//        if ($es === true) {
-//            system('nohup /data/es.sh >>/data/esproduct.txt &”');
-//            $this->setCode(1);
-//            $this->setMessage('成功!');
-//            $this->jsonReturn();
-//        }
-//        if (PHP_SAPI !== 'cli') {
-//            system('nohup /usr/local/php/bin/php -q ' . MYPATH . '/public/cli.php /v2/esproduct/import >>/data/esproduct.txt &”');
-//            $this->setCode(1);
-//            $this->setMessage('成功!');
-//            $this->jsonReturn();
-//        } else {
-        $this->import();
-//        }
-    }
-
     /**
      * Description of 数据导入
      * @author  zhongyg
@@ -456,7 +394,7 @@ class EsproductController extends PublicController {
      * @version V2.0
      * @desc   ES 产品
      */
-    public function import($lang = 'en') {
+    public function importAction($lang = 'en') {
         try {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
@@ -530,9 +468,8 @@ class EsproductController extends PublicController {
         $es = new ESClient();
         $state = $es->getstate();
 
-        if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
-            $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
-            //$es->index_alias($this->index . '_' . $this->version, $this->index);
+        if (!isset($state['metadata']['indices'][$this->index])) {
+            $es->create_index($this->index, $body, 5, 1);
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -914,19 +851,6 @@ class EsproductController extends PublicController {
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
                 // 'type' => 'nested',
-                'properties' => [
-                    'cat_no1' => $not_analyzed,
-                    'cat_no2' => $not_analyzed,
-                    'cat_no3' => $not_analyzed,
-                    'cat_name1' => $ik_analyzed,
-                    'cat_name2' => $ik_analyzed,
-                    'cat_name3' => $ik_analyzed,
-                    'market_area_bn' => $not_analyzed,
-                    'country_bn' => $not_analyzed,
-                    'onshelf_flag' => $not_analyzed,
-                ]], //展示分类数组 json
-            'show_cats_nested' => [
-                'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
