@@ -304,6 +304,7 @@ class SuppliersController extends PublicController {
         $extraData = [
             'sign_agreement_flag' => $condition['sign_agreement_flag'],
             'sign_agreement_time' => $condition['sign_agreement_time'] == '' ? null : $condition['sign_agreement_time'],
+            'sign_agreement_end_time' => $condition['sign_agreement_end_time'] == '' ? null : $condition['sign_agreement_end_time'],
             'est_time_arrival' => $condition['est_time_arrival'] == '' ? null : $condition['est_time_arrival'],
             'distribution_amount' => $condition['distribution_amount'] == '' ? null : $condition['distribution_amount'],
             'providing_sample_flag' => $condition['providing_sample_flag'],
@@ -312,6 +313,8 @@ class SuppliersController extends PublicController {
             'info_upload_flag' => $condition['info_upload_flag'],
             'photo_upload_flag' => $condition['photo_upload_flag']
         ];
+
+        //协议到期时间用该大于现在的时间
 
         if ($hasExtra) {
             $extraData['updated_by'] = $this->user['id'];
