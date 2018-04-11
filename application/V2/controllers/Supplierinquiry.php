@@ -94,9 +94,10 @@ class SupplierinquiryController extends PublicController {
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        // 导出一个月以内的数据
+        // 导出多少天以内的数据
         if (empty($condition['created_at_start'])) {
-            $condition['created_at_start'] = $this->_getLastMonthDate();
+            $days = empty($condition['last_days']) ? 31 : $condition['last_days'];
+            $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->Inquiryexport($condition);
 
@@ -124,9 +125,10 @@ class SupplierinquiryController extends PublicController {
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
-        // 导出一个月以内的数据
+        // 导出多少天以内的数据
         if (empty($condition['created_at_start'])) {
-            $condition['created_at_start'] = $this->_getLastMonthDate();
+            $days = empty($condition['last_days']) ? 31 : $condition['last_days'];
+            $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->InquiryToatolexport($condition);
 
@@ -144,14 +146,14 @@ class SupplierinquiryController extends PublicController {
     }
     
     /**
-     * @desc 获取一个月之前的日期
+     * @desc 获取多少天之前的日期
      * 
-     * @return string
+     * @return int $days 当前时间之前的天数
      * @author liujf
-     * @time 2018-03-07
+     * @time 2018-04-11
      */
-    private function _getLastMonthDate() {
-        return date('Y-m-d', strtotime(date('Y-m-d')) - 30 * 24 * 3600);
+    private function _getLastDaysDate($days) {
+        return date('Y-m-d', strtotime(date('Y-m-d')) - $days * 24 * 3600);
     }
 
 }
