@@ -15,6 +15,8 @@
  */
 class EsversionController extends EsproductController {
 
+    protected $esversion = null;
+
     //put your code here
     public function init() {
 
@@ -24,6 +26,9 @@ class EsversionController extends EsproductController {
         } else {
             parent::init();
         }
+        $model = new EsVersionModel();
+        $this->esversion = $model->getVersion();
+        $this->version = $this->esversion['update_version'];
     }
 
     /*
@@ -38,8 +43,7 @@ class EsversionController extends EsproductController {
         $update_version = $this->getPut('update_version');
         $select_version = $this->getPut('select_version');
         $alias = $this->getPut('alias', 'erui_goods');
-        $model = new EsVersionModel();
-        $version = $model->getVersion();
+        $version = $this->esversion;
         $es = new ESClient();
         if ($update_version && $update_version != $version['update_version']) {
             $this->version = $update_version;
