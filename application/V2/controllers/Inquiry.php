@@ -1074,9 +1074,14 @@ class InquiryController extends PublicController {
             $Item->startTrans();
             foreach ($data['sku'] as $val) {
                 $condition = $val;
-                $condition['updated_by'] = $this->user['id'];
-
-                $results = $Item->updateData($condition);
+                if ($condition['id'] == '') {
+                    $condition['inquiry_id'] = $data['id'];
+                    $condition['created_by'] = $this->user['id'];
+                    $results = $Item->addData($condition);
+                } else {
+                    $condition['updated_by'] = $this->user['id'];
+                    $results = $Item->updateData($condition);
+                }
                 if ($results['code'] != 1) {
                     $Item->rollback();
                     $this->jsonReturn($results);

@@ -180,13 +180,14 @@ class BuyerAccountModel extends PublicModel {
         if (!empty($data['password'])) {
             $where['password_hash'] = md5($data['password']);
         }
-        $buyer_model = new BuyerModel();
-        $res = $buyer_model->field('deleted_flag')->where(['official_email'=>$where['email']])->find();
-        if($res && $res['deleted_flag'] == 'Y'){
-            jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
-        }
-        //$where['status'] = 'VALID';
         $row = $this->where($where)->find();
+        if($row){
+            $buyer_model = new BuyerModel();
+            $res = $buyer_model->field('deleted_flag')->where(['id'=>$row['buyer_id']])->find();
+            if($res['deleted_flag'] == 'Y'){
+                jsonReturn(null, -1, ShopMsg::getMessage('-145',$lang));
+            }
+        }
         return $row;
     }
 
