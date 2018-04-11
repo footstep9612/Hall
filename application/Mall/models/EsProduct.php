@@ -255,7 +255,7 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
-                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]], 'boost' => 20]],
+                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
@@ -272,10 +272,9 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
-                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]], 'boost' => 2]],
+                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]],
                                         ]]],
-                                //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]]]
                                 //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 //  [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
