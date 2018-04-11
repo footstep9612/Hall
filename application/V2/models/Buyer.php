@@ -302,7 +302,6 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['created_name'])){  //创建人名称
             $data['created_name']=trim($data['created_name']," ");
-//            $condition = " employee.deleted_flag='N' and employee.name like '%".$data['created_name']."%'";
             $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
@@ -331,8 +330,6 @@ class BuyerModel extends PublicModel {
         if(!empty($data['level_at_end'])){  //审核时间===buy
             $cond .= " and buyer.level_at <= '".$data['level_at_end']."'";
         }
-        $arr['cond']=$cond;
-        $arr['condition']=$condition;
         return $cond;
     }
     //crm客户统计获取客户总数-wangs
@@ -390,8 +387,6 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
-//        $cond=$condArr['cond'];
-//        $condition=$condArr['condition'];
         if($cond==false){   //无角色,无数据
             return false;
         }
