@@ -16,10 +16,12 @@ class SuppliersModel extends PublicModel {
     protected $joinTable3 = 'erui_supplier.supplier_bank_info d ON a.id = d.supplier_id ';
     protected $joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ';
     protected $joinTable5 = 'erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'';
-    protected $joinField = 'a.*, b.name AS org_name, f.agent_id';
-    protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
+    protected $joinField = 'a.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time';
+    protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.sign_agreement_end_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
 
     protected $exportFields = 'a.id,a.name,a.social_credit_code,a.created_at,a.created_by,a.checked_at,a.checked_by,a.org_id,a.erui_status, b.name AS org_name';
+
+    protected $listFields = '';
 
     public function __construct() {
         parent::__construct();
@@ -153,6 +155,7 @@ class SuppliersModel extends PublicModel {
         return $this->alias('a')
                         ->join($this->joinTable1, 'LEFT')
                         ->join($this->joinTable5, 'LEFT')
+                        ->join($this->joinTable4, 'LEFT')
                         ->field($this->joinField)
                         ->where($where)
                         ->page($currentPage, $pageSize)
