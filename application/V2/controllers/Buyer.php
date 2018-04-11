@@ -1224,8 +1224,18 @@ EOF;
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
-        $arr['order']['order_rate'] = $orderInfo['count'].'/'.$inquiryInfo['quote_count'];
-        $arr['order']['account_rate'] = $orderInfo['account'].'/'.$inquiryInfo['account'];
+        $orderInfo['account']=5;
+        $inquiryInfo['account']=3;
+        if($orderInfo['count']==0 || $inquiryInfo['quote_count']==0){
+            $arr['order']['order_rate'] = 0;
+        }else{
+            $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
+        }
+        if($orderInfo['account']==0 || $inquiryInfo['account']==0){
+            $arr['order']['account_rate'] = 0;
+        }else{
+            $arr['order']['account_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
+        }
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
