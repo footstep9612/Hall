@@ -261,7 +261,7 @@ class EsProductModel extends Model {
 //                                [ESClient::MATCH_PHRASE => ['brand.name.' . $analyzer => ['query' => $keyword, 'boost' => 39]]],
                                 [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-                                [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 100]]],
+                                [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
                     ]]];
                 } else {
                     $brand_name = $keyword;
