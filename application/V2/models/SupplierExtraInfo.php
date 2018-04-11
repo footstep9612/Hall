@@ -133,4 +133,33 @@ class SupplierExtraInfoModel extends PublicModel {
 
 		return $this->where($where)->save(['deleted_flag' => 'Y']);
 	}
+
+    /**
+     * 获取供应商协议到期时间
+     * @param $supplier 供应商id
+     * @return mixed
+     * @author 买买提
+     * @time 2018-04-11
+     */
+    public function getSignAgreementEndTimeBy($supplier)
+    {
+        return $this->where(['supplier_id' => $supplier])->getField('sign_agreement_end_time');
+	}
+
+    /**
+     * 获取协议到期天数
+     * @param $supplier 供应商id
+     * @return string
+     * @author 买买提
+     * @time 2018-04-11
+     */
+    public function getSignAgreementEndDateBy($supplier)
+    {
+        $nowTime = time();
+
+        $expiryTime = $this->getSignAgreementEndTimeBy($supplier);
+        $date =  ceil(empty($expiryTime) ? 0 : (dateToTimeStamp($expiryTime) + 86399 - $nowTime) / 86400);
+
+        return $date > 0 && $date <= 30 ? "剩{$date}天到期" : '';
+    }
 }
