@@ -881,6 +881,8 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_name')));    //公司名称不能为空
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {   //邮箱
@@ -890,6 +892,8 @@ EOF;
             if ($buyer_id > 0 && $buyer_id != $data['id']) {
                 $this->jsonReturn(array("code" => "-101", "message" =>L('email_existed')));    //该邮箱已经被其他账号使用
             }
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_email')));
         }
         if (!empty($data['first_name'])) {  //姓名
             $arr['first_name'] = $data['first_name'];
@@ -909,6 +913,8 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('crm_existed'))); //"客户代码已存在"
             }
             $arr['buyer_code'] = $data['buyer_code'];   //新增CRM编码，张玉良 2017-9-27
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_crm')));
         }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];   //新增CRM编码，张玉良 2017-9-27
@@ -983,42 +989,9 @@ EOF;
             $agent=new BuyerAgentModel($agentArr);
             $agent->crmUpdateAgent($agentArr);
         }   //crm 更新市场经办人end----------------------------------------
-//        if (!empty($data['password'])) {
-//            $account['password_hash'] = $data['password'];
-//            // $buyer_account_model->update_data($arr_account, $where_account);
-//        }
-//        $buyer_attach_model = new BuyerattachModel();
-//        if (!empty($data['attach_url'])) {
-//            $where_attach['attach_url'] = $data['attach_url'];
-//            $buyer_attach_model->update_data($where_attach);
-//        }
-        //$model = new UserModel();
         if (!empty($account)) {
             $buyer_account_model->where($where_account)->save($account);
         }
-//        if (!empty($data['status']) && $res !== false) {
-//            if ($data['status'] == 'APPROVED' || $data['status'] == 'REJECTED') {
-//                $info = $buyer_account_model->info($where_account);
-//                $info_buyer = $model->info($where);
-//
-//                if ($info['email']) {
-//                    if ($data['status'] == 'APPROVED') {
-//                        //审核通过邮件
-//                        if ($info_buyer['lang']) {
-//                            $body = $this->getView()->render('buyer/approved_' . $info_buyer['lang'] . '.html');
-//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-//                        }
-//                    }
-//                    if ($data['status'] == 'REJECTED') {
-//                        //驳回邮件
-//                        if ($info_buyer['lang']) {
-//                            $body = $this->getView()->render('buyer/rejected_' . $info_buyer['lang'] . '.html');
-//                            send_Mail($info['email'], 'Erui.com', $body, $arr['name']);
-//                        }
-//                    }
-//                }
-//            }
-//        }
         if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = L('success');
