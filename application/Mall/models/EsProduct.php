@@ -251,10 +251,10 @@ class EsProductModel extends Model {
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 5000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
+                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
-                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 100, 'minimum_should_match' => '50%', 'operator' => 'or']]],
+                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 3000]]],
+                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 90, 'minimum_should_match' => '50%', 'operator' => 'and']]],
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
@@ -266,13 +266,14 @@ class EsProductModel extends Model {
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
-                                                                ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
+                                                                ['value' => '* ' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
+                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
-                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 90, 'minimum_should_match' => '50%', 'operator' => 'or']]],
-                                                    ]]]]]],
+                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 300]]],
+                                                    ]]],
+                                        ]]],
+                                [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 45, 'minimum_should_match' => '50%', 'operator' => 'and']]],
                                 //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 //  [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
