@@ -2482,6 +2482,7 @@ EOF;
      */
     public function checkBuyerCrm($data){
         $field = array(
+            'id', //id
             'official_email', //邮箱
             'country_bn', //国家
             'official_phone', //区号,电话
