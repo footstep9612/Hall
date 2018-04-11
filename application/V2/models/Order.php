@@ -294,6 +294,10 @@ class OrderModel extends PublicModel {
                 $result['2017'][]=$v['amount'];
             }elseif($v['year']=='2018'){
                 $result['2018'][]=$v['amount'];
+            }elseif($v['year']=='2016'){
+                $result['2016'][]=$v['amount'];
+            }elseif($v['year']=='2015'){
+                $result['2015'][]=$v['amount'];
             }
         }
         foreach($result as $k => $v){
