@@ -2360,7 +2360,7 @@ EOF;
             $field .= ',employee.name as created_name';
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-                ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
+                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
