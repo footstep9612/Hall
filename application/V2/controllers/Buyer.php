@@ -1253,7 +1253,7 @@ EOF;
         if(!empty($data['buyer_id'])){
             if($data['buyer_id']==$info['id']){
                 $dataJson = array(
-                    'code'=>12,
+                    'code'=>2,
                     'message'=>L('Normal_customer') //正常录入客户信息流程
                 );
                 $this->jsonReturn($dataJson);
