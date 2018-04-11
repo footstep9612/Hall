@@ -128,9 +128,9 @@ class NotificationController extends PublicController
 
         $distance = $end_time - $start_time;
 
-        $day = round( $distance / 86400 );
-        $hour = round( ($distance % 86400) / 3600 );
-        $minut = round( ($distance % 3600) / 60 );
+        $day = floor($distance / 86400);
+        $hour = floor($distance % 86400 / 3600);
+        $minut = round($distance % 86400 % 3600 / 60);
 
         $distance_str = $day.L('NOTIFICATION_DAYS').$hour.L('NOTIFICATION_HOURS').$minut.L('NOTIFICATION_MINUTES');
         return $distance_str;
