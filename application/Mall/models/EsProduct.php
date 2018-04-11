@@ -246,18 +246,16 @@ class EsProductModel extends Model {
                                                         [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
+                                                        ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 5000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 4000]]],
+                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 3000]]],
-                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => $keyword]],
-                                                                'boost' => 10,
-                                                            ]],
+                                                            ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
+                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
@@ -265,18 +263,16 @@ class EsProductModel extends Model {
                                                         [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
+                                                        ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
-                                                                ['value' => '* ' . strtolower($keyword), 'boost' => 500]]],
+                                                                ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 400]]],
+                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 300]]],
-                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => $keyword]],
-                                                                'boost' => 10,
-                                                            ]],
+                                                            ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
+                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]],
                                         ]]],
                                 //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
