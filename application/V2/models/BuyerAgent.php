@@ -471,17 +471,21 @@ class BuyerAgentModel extends PublicModel {
         if(empty($data['id']) || empty($data['user_ids'])){
             return false;
         }
+        $time = date('Y-m-d H:i:s');
         $buyer_id=$data['id'];
         $agent_arr = explode(',', $data['user_ids']);
         $agent=$this->field('agent_id')->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))->select();
-        //
+        // 更改询单经办人
+        if (!empty($agent_arr[0])) {
+            (new InquiryModel())->where(['buyer_id' => $buyer_id])->save(['agent_id' => $agent_arr[0], 'updated_by' => $this->user['id'], 'updated_at' => $time]);
+        }
         if(empty($agent)){ //
             $agentArr=array();
             foreach($agent_arr as $k => $v){
                 $agentArr[$k]['buyer_id']=$buyer_id;
                 $agentArr[$k]['agent_id']=$v;
-                $agentArr[$k]['created_by']=$data['created_by'];
-                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
+                $agentArr[$k]['created_by']=$this->user['id'];
+                $agentArr[$k]['created_at']=$time;
             }
             $res=$this->addAll($agentArr);
             return $res;
@@ -502,8 +506,8 @@ class BuyerAgentModel extends PublicModel {
             foreach($agent_arr as $k => $v){
                 $agentArr[$k]['buyer_id']=$buyer_id;
                 $agentArr[$k]['agent_id']=$v;
-                $agentArr[$k]['created_by']=$data['created_by'];
-                $agentArr[$k]['created_at']=date('Y-m-d H:i:s');
+                $agentArr[$k]['created_by']=$this->user['id'];
+                $agentArr[$k]['created_at']=$time;
             }
             $res=$this->addAll($agentArr);
             return $res;
@@ -552,13 +556,14 @@ class BuyerAgentModel extends PublicModel {
                 $agent_name.=','.$v['agent_name'];
             }
         }
+        $agent_name=substr($agent_name,1);
         if(!empty($info)){
             $agent=array(
                 'created_by'=>end($info)['created_by'],
                 'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
                 'update_at'=>end($info)['created_at'],
-                'agent_name'=>substr($agent_name,1)
+                'agent_name'=>$agent_name
             );
         }else{
             $agent=array(

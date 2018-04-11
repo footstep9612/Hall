@@ -1238,6 +1238,10 @@ class SupplierInquiryModel extends PublicModel {
                     }
                 }
             }
+            // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+                $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
+            }
         }
     }
 
@@ -1276,6 +1280,10 @@ class SupplierInquiryModel extends PublicModel {
                         }
                     }
                 }
+            }
+            // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+                $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             }
         }
     }

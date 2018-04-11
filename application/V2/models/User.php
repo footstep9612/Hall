@@ -82,7 +82,7 @@ class UserModel extends PublicModel {
         $lang = $condition['lang'] ? : 'zh';
         unset($condition['lang']);
         $where = $this->getCondition($condition);
-        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as group_name,group_concat(DISTINCT `role`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
+        $sql = 'SELECT `employee`.`id`,`employee`.`status`,`employee`.`deleted_flag`,`employee`.`created_at`,`employee`.`show_name`,`employee`.`gender`,`employee`.`user_no`,`employee`.`name`,`employee`.`email`,`employee`.`mobile` ,group_concat(DISTINCT `org`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as group_name,group_concat(DISTINCT `role`.`name' . ($lang == 'zh' ? '' : '_' . $lang) .'`) as role_name,group_concat(DISTINCT `country`.`name`) as country_name,group_concat(DISTINCT `country_member`.`country_bn`) as country';
         $sql .= ' FROM ' . $this->g_table;
         $sql .= ' left join  org_member on employee.id = org_member.employee_id ';
         $sql .= ' left join  org on org_member.org_id = org.id AND org.deleted_flag = \'N\'';
@@ -261,6 +261,9 @@ class UserModel extends PublicModel {
         }
         if (isset($create['citizenship'])) {
             $data['citizenship'] = $create['citizenship'];
+        }
+        if (isset($create['deleted_flag'])) {
+            $data['deleted_flag'] = $create['deleted_flag'];
         }
         switch ($create['status']) {
             case self::STATUS_DELETED:
