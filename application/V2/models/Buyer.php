@@ -302,7 +302,7 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['created_name'])){  //创建人名称
             $data['created_name']=trim($data['created_name']," ");
-            $cond .= " and employee.name like '%".$data['created_name']."%'";
+            $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
         if (!empty($condition['min_percent'])) { //信息完整度小
             $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
@@ -412,6 +412,7 @@ class BuyerModel extends PublicModel {
             'created_at',   //注册时间/创建时间
         );
         $field = 'employee.name as employee_name,country.name as country_name,';
+
         $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
@@ -975,35 +976,7 @@ EOF;
         if (!empty($create['status'])) {     //关闭客户信息备注
             $data['status'] = $create['status'];
         }
-//        if (isset($create['status'])) {
-//            switch ($create['status']) {
-//                case self::STATUS_APPROVED:
-//                    $data['status'] = $create['status'];
-//                    if ($where['id']) {
-//                        $checked_log_arr['id'] = $where['id'];
-//                        $checked_log_arr['status'] = self::STATUS_APPROVED;
-//                        $checked_log_arr['checked_by'] = $create['checked_by'];
-//                        $checked_log_arr['remarks'] = $create['remarks'];//?
-//                        $checked_log = new BuyerCheckedLogModel();
-//                        $checked_log->create_data($checked_log_arr);
-//                    }
-//                    break;
-//                case self::STATUS_APPROVING:
-//                    $data['status'] = $create['status'];
-//                    break;
-//                case self::STATUS_REJECTED:
-//                    $data['status'] = $create['status'];
-//                    if ($where['id']) {
-//                        $checked_log_arr['id'] = $where['id'];
-//                        $checked_log_arr['status'] = self::STATUS_REJECTED;
-//                        $checked_log_arr['checked_by'] = $create['checked_by'];
-//                        $checked_log_arr['remarks'] = $create['remarks'];
-//                        $checked_log = new BuyerCheckedLogModel();
-//                        $checked_log->create_data($checked_log_arr);
-//                    }
-//                    break;
-//            }
-//        }
+        print_r($data);die;
         return $this->where($where)->save($data);
     }
 
@@ -2359,7 +2332,7 @@ EOF;
             $field .= ',employee.name as created_name';
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-                ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
+                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
@@ -2481,6 +2454,7 @@ EOF;
      */
     public function checkBuyerCrm($data){
         $field = array(
+            'id', //id
             'official_email', //邮箱
             'country_bn', //国家
             'official_phone', //区号,电话

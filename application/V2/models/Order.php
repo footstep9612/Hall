@@ -221,8 +221,9 @@ class OrderModel extends PublicModel {
         $orderYear=$orderArr['year'];   //年度订单金额
         $str='';
         foreach($orderYear as $k => $v){
-            $str.=$k.' : '.$v." $\n";
+            $str.=','.$k.'--$'.$v;
         }
+        $str=substr($str,1);
         $count=count($orderArr['count']);  //订单数量
         $amount=$orderArr['amount'];  //订单金额arr
         sort($amount);
@@ -293,6 +294,10 @@ class OrderModel extends PublicModel {
                 $result['2017'][]=$v['amount'];
             }elseif($v['year']=='2018'){
                 $result['2018'][]=$v['amount'];
+            }elseif($v['year']=='2016'){
+                $result['2016'][]=$v['amount'];
+            }elseif($v['year']=='2015'){
+                $result['2015'][]=$v['amount'];
             }
         }
         foreach($result as $k => $v){
