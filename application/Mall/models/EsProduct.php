@@ -273,8 +273,8 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
                                                         [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 90, 'minimum_should_match' => '50%', 'operator' => 'or']]],
                                                     ]]]]]],
-                                [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-                                [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
+                                //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
+                                //  [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
                                 [ESClient::TERM => ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 10000]]],
                     ]]];
