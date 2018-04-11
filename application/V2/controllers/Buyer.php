@@ -1250,6 +1250,15 @@ EOF;
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
+        if(!empty($data['buyer_id'])){
+            if($data['buyer_id']==$info['id']){
+                $dataJson = array(
+                    'code'=>12,
+                    'message'=>L('Normal_customer') //正常录入客户信息流程
+                );
+                $this->jsonReturn($dataJson);
+            }
+        }
         if (!empty($info)) {
             $dataJson = array(
                 'code' => 0,
