@@ -976,35 +976,6 @@ EOF;
         if (!empty($create['status'])) {     //关闭客户信息备注
             $data['status'] = $create['status'];
         }
-//        if (isset($create['status'])) {
-//            switch ($create['status']) {
-//                case self::STATUS_APPROVED:
-//                    $data['status'] = $create['status'];
-//                    if ($where['id']) {
-//                        $checked_log_arr['id'] = $where['id'];
-//                        $checked_log_arr['status'] = self::STATUS_APPROVED;
-//                        $checked_log_arr['checked_by'] = $create['checked_by'];
-//                        $checked_log_arr['remarks'] = $create['remarks'];//?
-//                        $checked_log = new BuyerCheckedLogModel();
-//                        $checked_log->create_data($checked_log_arr);
-//                    }
-//                    break;
-//                case self::STATUS_APPROVING:
-//                    $data['status'] = $create['status'];
-//                    break;
-//                case self::STATUS_REJECTED:
-//                    $data['status'] = $create['status'];
-//                    if ($where['id']) {
-//                        $checked_log_arr['id'] = $where['id'];
-//                        $checked_log_arr['status'] = self::STATUS_REJECTED;
-//                        $checked_log_arr['checked_by'] = $create['checked_by'];
-//                        $checked_log_arr['remarks'] = $create['remarks'];
-//                        $checked_log = new BuyerCheckedLogModel();
-//                        $checked_log->create_data($checked_log_arr);
-//                    }
-//                    break;
-//            }
-//        }
         return $this->where($where)->save($data);
     }
 
