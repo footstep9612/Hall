@@ -34,6 +34,7 @@ class EsProductModel extends Model {
 
     private function getCondition($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null) {
         $body = [];
+        $condition['keyword'] = 'helmet';
         if ($lang == 'zh') {
             $analyzer = 'ik';
         } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
@@ -254,7 +255,9 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 3000]]],
-                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 90, 'minimum_should_match' => '50%', 'operator' => 'and']]],
+                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => $keyword]],
+                                                                'boost' => 10,
+                                                            ]],
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
@@ -271,9 +274,11 @@ class EsProductModel extends Model {
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 300]]],
+                                                        ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => $keyword]],
+                                                                'boost' => 10,
+                                                            ]],
                                                     ]]],
                                         ]]],
-                                [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 45, 'minimum_should_match' => '50%', 'operator' => 'and']]],
                                 //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
                                 //  [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
@@ -432,8 +437,9 @@ class EsProductModel extends Model {
             unset($condition['source']);
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
-            }
-            if (isset($condition['keyword']) && $condition['keyword']) {
+            } elseif (isset($condition['keyword']) && $condition['keyword']) {
+
+
                 $es->setbody($body)->setsort('_score')
                         ->setsort('created_at', 'DESC')
                         ->setsort('id', 'DESC');
