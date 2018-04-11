@@ -16,6 +16,7 @@
 class EsversionController extends EsproductController {
 
     protected $esversion = null;
+    protected $model = null;
 
     //put your code here
     public function init() {
@@ -26,7 +27,7 @@ class EsversionController extends EsproductController {
         } else {
             parent::init();
         }
-        $model = new EsVersionModel();
+        $this->model = new EsVersionModel();
         $this->esversion = $model->getVersion();
         $this->version = $this->esversion['update_version'];
     }
@@ -44,10 +45,10 @@ class EsversionController extends EsproductController {
         $select_version = $this->getPut('select_version');
         $alias = $this->getPut('alias', 'erui_goods');
         $version = $this->esversion;
-        $es = new ESClient();
+        $model = $es = new ESClient();
         if ($update_version && $update_version != $version['update_version']) {
             $this->version = $update_version;
-            $flag = $model->UpdateVersion($alias, $update_version, $select_version);
+            $flag = $this->model->UpdateVersion($alias, $update_version, $select_version);
             if ($flag) {
                 $this->indexAction();
             } else {
@@ -56,7 +57,7 @@ class EsversionController extends EsproductController {
                 $this->jsonReturn();
             }
         } elseif ($select_version && $select_version != $version['select_version']) {
-            $flag = $model->UpdateVersion($alias, $update_version, $select_version);
+            $flag = $this->model->UpdateVersion($alias, $update_version, $select_version);
             if ($flag) {
                 if ($version['select_version'] && $es->index_existsAlias($version['alias'] . '_' . $version['select_version'], $version['alias'])) {
                     $es->index_deleteAlias($version['alias'] . '_' . $version['select_version'], $version['alias']);
