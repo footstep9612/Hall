@@ -1049,7 +1049,7 @@ class ExcelmanagerController extends PublicController {
 
         $excelFile = $this->createRejectedFile($data);
 
-        p($localFile);
+        //p($localFile);
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
