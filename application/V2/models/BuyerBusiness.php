@@ -192,10 +192,11 @@ class BuyerBusinessModel extends PublicModel
         $data['equipment']['subject_name']='equipment'; //入网主题信息
         $data['erui']['subject_name']='erui';
         //业务数据
-        $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->find();
+        $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id']))->find();
 
         if($businessExist){
-            $addRes = $this ->where(array('buyer_id'=>$data['buyer_id'],'created_by'=>$data['created_by']))->save($arr);
+            unset($arr['created_by']);
+            $addRes = $this ->where(array('buyer_id'=>$data['buyer_id']))->save($arr);
 //            $subjectExist=$subject ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
 //            if($subjectExist){
 //            }else{
@@ -232,7 +233,7 @@ class BuyerBusinessModel extends PublicModel
     public function delBusiness($buyer_id,$created_by){
         $map = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by
+//            'created_by'=>$created_by
         );
         return $this -> where($map) -> delete();
     }
@@ -240,7 +241,7 @@ class BuyerBusinessModel extends PublicModel
     public function showBusiness($buyer_id,$created_by){
         $map = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by
+//            'created_by'=>$created_by
         );
         $info = $this -> where($map) -> select();
         return $info;
@@ -249,7 +250,7 @@ class BuyerBusinessModel extends PublicModel
     public function showBusinessFind($buyer_id,$created_by){
         $map = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by
+//            'created_by'=>$created_by
         );
         $fieldArr = array(
             'buyer_id', //客户id

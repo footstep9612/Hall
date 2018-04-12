@@ -633,7 +633,11 @@ EOF;
         $this->jsonReturn($dataJson);
     }
     public function createAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         $lang=$this->getLang();
 
         $model = new BuyerModel();
@@ -672,6 +676,8 @@ EOF;
                 jsonReturn('', -103, L('crm_existed'));
             }
             $arr['buyer_code'] = $data['buyer_code'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_crm')));
         }
 
         if (!empty($data['first_name'])) {  //注册人信息姓名-show_name
@@ -693,10 +699,14 @@ EOF;
             $buyer_contact_data['phone'] = $data['mobile'];
         }
         if (!empty($data['biz_scope'])) {   //经营范围
-            $arr['biz_scope'] = trim($data['biz_scope'],' ');
+            $arr['biz_scope'] = $data['biz_scope'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_scope')));
         }
         if (!empty($data['intent_product'])) {  //意向产品
-            $arr['intent_product'] = trim($data['intent_product'],' ');
+            $arr['intent_product'] = $data['intent_product'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_product')));
         }
         if (!empty($data['purchase_amount'])) { //预计年采购额
             $arr['purchase_amount'] = trim($data['purchase_amount'],' ');
@@ -865,7 +875,11 @@ EOF;
         $this->jsonReturn(array("code" => 1, "message" =>L('success')));
     }
     public function updateAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
@@ -881,6 +895,8 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_name')));
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {   //邮箱
@@ -922,9 +938,13 @@ EOF;
         }
         if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_scope')));
         }
         if (!empty($data['intent_product'])) {  //意向产品
             $arr['intent_product'] = $data['intent_product'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_product')));
         }
         if (!empty($data['purchase_amount'])) {     //年采购额
             $arr['purchase_amount'] = $data['purchase_amount'];
@@ -1220,15 +1240,19 @@ EOF;
         $arr['order']['count'] = $orderInfo['count'];
         $arr['order']['account'] = $orderInfo['account'];
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
-        $arr['order']['year'] = $orderInfo['year'];
+        $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
-        if($orderInfo['count']==0 || $inquiryInfo['quote_count']==0){
+        if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = 0;
+        }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
+            $arr['order']['order_rate'] ='100%';
         }else{
             $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
         }
-        if($orderInfo['account']==0 || $inquiryInfo['account']==0){
+        if($orderInfo['account']==0 && $inquiryInfo['account']==0){
             $arr['order']['account_rate'] = 0;
+        }elseif($orderInfo['account']>=$inquiryInfo['account']){
+            $arr['order']['account_rate'] = '100%';
         }else{
             $arr['order']['account_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
         }

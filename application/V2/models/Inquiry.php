@@ -1061,13 +1061,10 @@ class InquiryModel extends PublicModel {
             return $data;
         }
         $count = count($arr);
-        $str = '';
-        foreach($arr as $v){
-            $str.=','.$v['id'];
-        }
-        $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select id as quote_id,total_purchase as amount,purchase_cur_bn as currency_bn from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select quote.id as quote_id,quote.total_purchase as amount,quote.purchase_cur_bn as currency_bn from erui_rfq.inquiry inquiry ";
+        $sql .= " left join erui_rfq.quote quote on inquiry.id=quote.inquiry_id and quote.deleted_flag='N'";
+        $sql .= " where inquiry.deleted_flag='N' and (inquiry.quote_status='QUOTED' or inquiry.quote_status='COMPLETED') and inquiry.buyer_id=$buyer_id";
         $info = $quote->query($sql);
         $res=$this->sumAccountQuote($info);
         $amount=array_sum($res['amount']);

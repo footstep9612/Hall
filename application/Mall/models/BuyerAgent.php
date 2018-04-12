@@ -42,6 +42,7 @@ class BuyerAgentModel extends PublicModel{
         try{
             $condition = [
                 'buyer_id'=>$buyer_id,
+                'deleted_flag'=>'N',
             ];
             $agentIds = $this->field('agent_id')->where($condition)->select();
             return $agentIds ? $agentIds : [];

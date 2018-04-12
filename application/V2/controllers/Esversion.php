@@ -22,6 +22,7 @@ class EsversionController extends EsproductController {
     public function init() {
 
         if ($this->getRequest()->isCli()) {
+
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } else {
@@ -45,7 +46,7 @@ class EsversionController extends EsproductController {
         $select_version = $this->getPut('select_version');
         $alias = $this->getPut('alias', 'erui_goods');
         $version = $this->esversion;
-        $model = $es = new ESClient();
+        $es = new ESClient();
         if ($update_version && $update_version != $version['update_version']) {
             $this->version = $update_version;
             $flag = $this->model->UpdateVersion($alias, $update_version, $select_version);

@@ -128,6 +128,15 @@ class SuppliersModel extends PublicModel {
 
         $where = $this->getJoinWhere($condition);
 
+        if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <=30';
+            $count = $this->alias('a')->join($this->joinTable1, 'LEFT')->join($this->joinTable5, 'LEFT')->join($this->joinTable4, 'LEFT')->where($where)->where('')->count('a.id');
+            return $count > 0 ? $count : 0;
+        }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
+            $count = $this->alias('a')->join($this->joinTable1, 'LEFT')->join($this->joinTable5, 'LEFT')->join($this->joinTable4, 'LEFT')->where($where)->where('')->count('a.id');
+            return $count > 0 ? $count : 0;
+        }
+
         $count = $this->alias('a')
                                  ->join($this->joinTable1, 'LEFT')
                                  ->join($this->joinTable5, 'LEFT')
@@ -152,12 +161,39 @@ class SuppliersModel extends PublicModel {
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
+        if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30';
+            return $this->alias('a')
+                ->join($this->joinTable1, 'LEFT')
+                ->join($this->joinTable5, 'LEFT')
+                ->join($this->joinTable4, 'LEFT')
+                ->field($this->joinField)
+                ->where($where)
+                ->where('')
+                ->page($currentPage, $pageSize)
+                ->order('a.id DESC')
+                ->select();
+        }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30';
+            return $this->alias('a')
+                ->join($this->joinTable1, 'LEFT')
+                ->join($this->joinTable5, 'LEFT')
+                ->join($this->joinTable4, 'LEFT')
+                ->field($this->joinField)
+                ->where($where)
+                ->where('')
+                ->page($currentPage, $pageSize)
+                ->order('a.id DESC')
+                ->select();
+        }
+
         return $this->alias('a')
                         ->join($this->joinTable1, 'LEFT')
                         ->join($this->joinTable5, 'LEFT')
                         ->join($this->joinTable4, 'LEFT')
                         ->field($this->joinField)
                         ->where($where)
+                        ->where('')
                         ->page($currentPage, $pageSize)
                         ->order('a.id DESC')
                         ->select();

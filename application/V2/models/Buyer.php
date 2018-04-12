@@ -304,11 +304,11 @@ class BuyerModel extends PublicModel {
             $data['created_name']=trim($data['created_name']," ");
             $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
-        if (!empty($condition['min_percent'])) { //信息完整度小
-            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
+        if (!empty($data['min_percent'])) { //信息完整度小
+            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $data['min_percent'];
         }
-        if (!empty($condition['max_percent'])) { //信息完整度大
-            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $condition['max_percent'];
+        if (!empty($data['max_percent'])) { //信息完整度大
+            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $data['max_percent'];
         }
         if(!empty($data['checked_at_start'])){  //审核时间===buy
             $cond .= " and agent.created_at >= '".$data['checked_at_start']."'";
@@ -1812,7 +1812,7 @@ EOF;
         }
         //必须数据
         $arr = array(
-            'created_by'    => $created_by, //客户id
+//            'created_by'    => $created_by, //客户id
 //            'created_at'    => date('Y-m-d H:i:s'), //客户id
             'build_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'build_modify_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
@@ -2053,9 +2053,9 @@ EOF;
             $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
             $arr[$k]['created_name'] = $v['created_name'];  //客户档案创建时间
             if($lang=='zh'){
-                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'油气':'非油气';    //是否油气
             }else{
-                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'YES':'NO';    //是否油气
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'oil gas':'Non oil gas';    //是否油气
             }
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
@@ -2172,7 +2172,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2217,7 +2217,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
         }
 
 //        if($data['admin'] == 0){   //查看部分统计
@@ -2398,7 +2398,7 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期','创建人', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
             $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
