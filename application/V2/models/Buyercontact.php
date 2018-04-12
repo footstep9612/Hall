@@ -266,6 +266,7 @@ class BuyercontactModel extends PublicModel
             $value['created_by']=$created_by;
             $value['created_at']=date('Y-m-d H:i:s');
             if(!empty($value['id'])){
+                unset($value['created_by']);
                 $this->where(array('id'=>$value['id']))->save($value);   //编辑
             }else{
                 unset($value['id']);
