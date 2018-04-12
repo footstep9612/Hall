@@ -195,6 +195,7 @@ class BuyerBusinessModel extends PublicModel
         $businessExist=$this ->where(array('buyer_id'=>$data['buyer_id']))->find();
 
         if($businessExist){
+            unset($arr['created_by']);
             $addRes = $this ->where(array('buyer_id'=>$data['buyer_id']))->save($arr);
 //            $subjectExist=$subject ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
 //            if($subjectExist){
