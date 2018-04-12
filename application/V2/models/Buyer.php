@@ -387,7 +387,6 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
-        print_r($cond);die;
         if($cond==false){   //无角色,无数据
             return false;
         }
