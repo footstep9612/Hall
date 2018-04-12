@@ -2053,9 +2053,9 @@ EOF;
             $arr[$k]['created_at'] = $v['build_time'];  //客户档案创建时间
             $arr[$k]['created_name'] = $v['created_name'];  //客户档案创建时间
             if($lang=='zh'){
-                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'是':'否';    //是否油气
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'油气':'非油气';    //是否油气
             }else{
-                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'YES':'NO';    //是否油气
+                $arr[$k]['is_oilgas'] = $v['is_oilgas']=='Y'?'oil gas':'Non oil gas';    //是否油气
             }
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
@@ -2398,7 +2398,7 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期', '是否油气', '客户级别', '定级日期','创建人', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别', '定级日期','创建人', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
             $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
