@@ -418,8 +418,6 @@ class BuyerModel extends PublicModel {
             $field .= ',buyer.'.$v;
         }
         $field .= ' ,agent.agent_id,agent.created_at as checked_at';
-        $field .= ' ,account.sent_email';
-        $field .= ' ,account.email as account_email';
         //excel导出标识
         if($excel==true){
             $offset=0;
