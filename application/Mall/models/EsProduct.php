@@ -249,12 +249,12 @@ class EsProductModel extends Model {
                                                         ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        [ESClient::WILDCARD => ['show_name.lower' =>
-                                                                ['value' => '* ' . strtolower($keyword), 'boost' => 5000]]],
+                                                        [ESClient::WILDCARD => ['show_name.low' =>
+                                                                ['value' => '*' . strtolower($keyword), 'boost' => 5000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 4000]]],
+                                                            ['show_name.low' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 3000]]],
+                                                            ['show_name.low' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
                                                     //  ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]], 'boost' => 20]],
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
@@ -266,12 +266,12 @@ class EsProductModel extends Model {
                                                         ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        [ESClient::WILDCARD => ['show_name.lower' =>
-                                                                ['value' => '* ' . strtolower($keyword), 'boost' => 500]]],
+                                                        [ESClient::WILDCARD => ['show_name.low' =>
+                                                                ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . ' *', 'boost' => 400]]],
+                                                            ['show_name.low' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => '* ' . strtolower($keyword) . ' *', 'boost' => 300]]],
+                                                            ['show_name.low' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
                                                     ]]],
                                         ]]],
                                 ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]], 'boost' => 2]],
