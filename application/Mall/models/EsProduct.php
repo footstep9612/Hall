@@ -250,6 +250,8 @@ class EsProductModel extends Model {
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
+                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 3000]]],
+                                                        [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 5000]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
@@ -265,6 +267,8 @@ class EsProductModel extends Model {
                                                         ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
+                                                        [ESClient::WILDCARD => ['show_name.lower' =>
+                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 300]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
