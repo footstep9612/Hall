@@ -40,7 +40,7 @@ class MilestoneEventModel extends Model {
     public function showMilestoneEvent($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N',
         );
         $info=$this->where($cond)->select();
@@ -49,7 +49,7 @@ class MilestoneEventModel extends Model {
     public function updateMilestoneEvent($event,$buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $arrId=array();
