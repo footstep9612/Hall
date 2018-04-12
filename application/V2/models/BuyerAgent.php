@@ -564,7 +564,7 @@ class BuyerAgentModel extends PublicModel {
                 'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
                 'update_at'=>end($info)['created_at'],
-                'agent_name'=>$agent_name
+                'agent_name'=>trim($agent_name,',')
             );
         }else{
             $agent=array(
