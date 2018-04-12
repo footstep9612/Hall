@@ -1247,7 +1247,7 @@ EOF;
         }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
             $arr['order']['order_rate'] ='100%';
         }else{
-            $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
+            $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
         }
         if($orderInfo['account']==0 && $inquiryInfo['account']==0){
             $arr['order']['account_rate'] = 0;
