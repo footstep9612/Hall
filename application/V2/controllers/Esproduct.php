@@ -18,7 +18,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
+    protected $version = null;
 
 //put your code here
     public function init() {
@@ -209,21 +209,35 @@ class EsproductController extends PublicController {
 
     public function deleteAction() {
         $es = new ESClient();
-        $ret = $es->delete_index($this->index);
+        $old_version = $this->getPut('old_version');
+        if ($old_version) {
+            $ret = $es->delete_index($this->index . '_' . $old_version);
+        } else {
+            $ret = $es->delete_index($this->index);
+        }
         echo json_encode($ret, 256);
         exit;
     }
 
     public function getSettingsAction() {
         $es = new ESClient();
-        $ret = $es->getSettings($this->index);
+        if ($this->version) {
+            $ret = $es->getSettings($this->index . '_' . $this->version);
+        } else {
+            $ret = $es->getSettings($this->index);
+        }
+
         echo json_encode($ret, 256);
         exit;
     }
 
     public function getStateAction() {
         $es = new ESClient();
-        $ret = $es->getstate($this->index);
+        if ($this->version) {
+            $ret = $es->getSettings($this->index . '_' . $this->version);
+        } else {
+            $ret = $es->getSettings($this->index);
+        }
         echo json_encode($ret, 256);
         exit;
     }
