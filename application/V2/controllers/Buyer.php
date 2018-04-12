@@ -633,7 +633,11 @@ EOF;
         $this->jsonReturn($dataJson);
     }
     public function createAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         $lang=$this->getLang();
 
         $model = new BuyerModel();
@@ -865,7 +869,11 @@ EOF;
         $this->jsonReturn(array("code" => 1, "message" =>L('success')));
     }
     public function updateAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
@@ -881,6 +889,8 @@ EOF;
                 $this->jsonReturn(array("code" => "-101", "message" => L('name_existed')));    //该公司名称已存在
             }
             $arr['name'] = $data['name'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_name')));
         }
         $buyer_account_model = new BuyerAccountModel();
         if (!empty($data['email'])) {   //邮箱
@@ -922,9 +932,13 @@ EOF;
         }
         if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_scope')));
         }
         if (!empty($data['intent_product'])) {  //意向产品
             $arr['intent_product'] = $data['intent_product'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_product')));
         }
         if (!empty($data['purchase_amount'])) {     //年采购额
             $arr['purchase_amount'] = $data['purchase_amount'];

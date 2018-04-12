@@ -31,6 +31,8 @@ return array(
     'param_error'=>'请输入正确参数',
     'Group_crm'=>'集团CRM客户信息',
     'Normal_customer'=>'正常录入客户信息流程',
+    'empty_scope'=>'经营范围不可为空',
+    'empty_product'=>'意向产品不可为空',
 
 
 
