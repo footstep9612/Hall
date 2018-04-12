@@ -150,7 +150,7 @@ class IndustrychainModel extends PublicModel
     public function showChain($buyer_id,$created_by){
         $cond = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $res = $this->where($cond)->select();
