@@ -22,6 +22,8 @@ class QuoteController extends PublicController{
         $this->quoteItemModel = new QuoteItemModel();
         $this->inquiryModel   = new InquiryModel();
         $this->inquiryItemModel = new InquiryItemModel();
+        $this->finalQuoteItemModel = new FinalQuoteItemModel();
+        $this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
 
         $this->requestParams = json_decode(file_get_contents("php://input"), true);
 
@@ -321,8 +323,10 @@ class QuoteController extends PublicController{
 
         //更新当前办理人
         $now_agent_id = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('agent_id');
-
-        $response = $this->inquiryModel->updateData([
+        
+        $this->inquiryModel->startTrans();
+        
+        $res1 = $this->inquiryModel->updateData([
             'id'           => $request['inquiry_id'],
             'now_agent_id' => $now_agent_id,
             'inflow_time'   => date('Y-m-d H:i:s',time()),
@@ -331,8 +335,26 @@ class QuoteController extends PublicController{
             'updated_by'   => $this->user['id'],
             'updated_at'   =>date('Y-m-d H:i:s',time())
         ]);
-
-        $this->jsonReturn($response);
+        
+        // 记录历史报价
+        $list = $this->finalQuoteItemModel->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->select();
+        foreach ($list as &$item) {
+            $item['created_by'] = $this->user['id'];
+            $item['created_at'] = date('Y-m-d H:i:s');
+        }
+        $res2 =  $this->historicalSkuQuoteModel->addAll($list);
+        
+        if ($res1 && $res2) {
+            $this->inquiryModel->commit();
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn(true);
+        } else {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
 
     }
 
