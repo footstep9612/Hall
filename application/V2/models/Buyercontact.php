@@ -235,7 +235,7 @@ class BuyercontactModel extends PublicModel
     public function updateBuyerContact($contact,$buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $exist=$this->field('id')->where($cond)->select();
@@ -353,7 +353,7 @@ class BuyercontactModel extends PublicModel
     public function showBuyerExistContact($buyer_id,$created_by){
         $cond = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N',
         );
         $fieldArr = array(
