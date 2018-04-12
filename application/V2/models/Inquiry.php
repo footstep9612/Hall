@@ -1067,7 +1067,9 @@ class InquiryModel extends PublicModel {
         }
         $str = substr($str,1);
         $quote = new QuoteModel();
-        $sql = "select id as quote_id,total_purchase as amount,purchase_cur_bn as currency_bn from erui_rfq.quote where inquiry_id in ($str)";
+        $sql = "select quote.id as quote_id,quote.total_purchase as amount,quote.purchase_cur_bn as currency_bn from erui_rfq.quote  quote";
+        $sql .= " join erui_rfq.inquiry  inquiry on quote.inquiry_id=inquiry.id and inquiry.deleted_flag='N'";
+        $sql .= " where (status='' or status='') AND quote.inquiry_id in ($str)";
         $info = $quote->query($sql);
         $res=$this->sumAccountQuote($info);
         $amount=array_sum($res['amount']);
