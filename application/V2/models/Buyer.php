@@ -1812,7 +1812,7 @@ EOF;
         }
         //必须数据
         $arr = array(
-            'created_by'    => $created_by, //客户id
+//            'created_by'    => $created_by, //客户id
 //            'created_at'    => date('Y-m-d H:i:s'), //客户id
             'build_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
             'build_modify_time'    => date('Y-m-d H:i:s'), //客户档案信息创建时间---
