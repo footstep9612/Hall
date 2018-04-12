@@ -1473,8 +1473,11 @@ class SupplierInquiryModel extends PublicModel {
                     $val['period_of_validity'] = '';
                 }
 
-
                 $arr[$key] = $val;
+                // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+                if (!in_array($val['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+                    $arr[$key]['quote_unit_price'] = $arr[$key]['total_quote_price'] = $arr[$key]['total_quoted_price_usd'] = '';
+                }
             }
         }
     }
