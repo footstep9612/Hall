@@ -79,6 +79,8 @@ class UserModel extends PublicModel {
      * @author jhw
      */
     public function getlist($condition = [], $order = " employee.id desc") {
+        $page=$condition['page'];
+        $offset=($page-1)*10;
         $lang = $condition['lang'] ? : 'zh';
         unset($condition['lang']);
         $where = $this->getCondition($condition);
@@ -92,9 +94,10 @@ class UserModel extends PublicModel {
         $sql .= " left join  `erui_dict`.`country` on country_member.country_bn = country.bn and country.lang='$lang'";
         $sql .= $where;
         $sql .= ' group by `employee`.`id`';
-        if ($condition['num']) {
-            $sql .= ' LIMIT ' . $condition['page'] . ',' . $condition['num'];
-        }
+//        if ($condition['num']) {
+//            $sql .= ' LIMIT ' . $offset . ',10' ;
+//        }
+        $sql .= ' LIMIT ' . $offset . ',10' ;
         $list =  $this->query($sql);
         return $list;
     }
