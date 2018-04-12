@@ -1240,7 +1240,7 @@ EOF;
         $arr['order']['count'] = $orderInfo['count'];
         $arr['order']['account'] = $orderInfo['account'];
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
-        $arr['order']['year'] = $orderInfo['year'];
+        $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
         if($orderInfo['count']==0 || $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = 0;
