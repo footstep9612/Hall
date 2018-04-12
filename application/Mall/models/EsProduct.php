@@ -242,43 +242,47 @@ class EsProductModel extends Model {
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
-                                                        [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 1000]]],
+                                                        [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 100]]],
                                                         [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*']]]]]],
+                                                        ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
+//                                                        [ESClient::WILDCARD => ['show_name.lower' =>
+//                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 3000]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 5000]]],
-                                                        [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
+                                                        [ESClient::PREFIX =>
+                                                            ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 4000]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
-                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]]]]],
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
-                                                        [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 1000]]],
+                                                        [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 100]]],
                                                         [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-                                                        ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '*for*']]]]]],
+                                                        ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
+//                                                        [ESClient::WILDCARD => ['show_name.lower' =>
+//                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 300]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
-                                                        [ESClient::WILDCARD =>
-                                                            ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 400]]],
+                                                        [ESClient::PREFIX =>
+                                                            ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 400]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 300]]],
-                                                        [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'boost' => 10, 'minimum_should_match' => '50%', 'operator' => 'and']]]
                                                     ]]],
                                         ]]],
-                                //  [ESClient::MATCH => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 2, 'operator' => 'and']]],
-                                //  [ESClient::MATCH => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1, 'operator' => 'and']]],
-                                [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 10000]]],
-                                [ESClient::TERM => ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 10000]]],
+                                ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]], 'boost' => 22]],
+                                //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]]]
+                                [ESClient::MATCH_PHRASE => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
+                                [ESClient::MATCH_PHRASE => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
+                                [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 1000]]],
+                                [ESClient::TERM => ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 1000]]],
                     ]]];
                 } else {
                     $brand_name = $keyword;
@@ -291,7 +295,6 @@ class EsProductModel extends Model {
                 $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
         }
-
 
         return $body;
     }
@@ -414,7 +417,6 @@ class EsProductModel extends Model {
                 $analyzer = 'ik';
             }
 
-
             $body = $this->getCondition($condition, $lang);
 
             $pagesize = 10;
@@ -455,6 +457,7 @@ class EsProductModel extends Model {
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+
             return [];
         }
     }
@@ -515,13 +518,18 @@ class EsProductModel extends Model {
             $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
+
+
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
             return $data;
         } catch (Exception $ex) {
+
+            echo $ex->getMessage();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
+
             return [];
         }
     }

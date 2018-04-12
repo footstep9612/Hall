@@ -18,7 +18,7 @@ class EsproductController extends PublicController {
     protected $index = 'erui_goods';
     protected $es = '';
     protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $version = '1';
+    protected $version = null;
 
 //put your code here
     public function init() {
@@ -209,21 +209,35 @@ class EsproductController extends PublicController {
 
     public function deleteAction() {
         $es = new ESClient();
-        $ret = $es->delete_index($this->index);
+        $old_version = $this->getPut('old_version');
+        if ($old_version) {
+            $ret = $es->delete_index($this->index . '_' . $old_version);
+        } else {
+            $ret = $es->delete_index($this->index);
+        }
         echo json_encode($ret, 256);
         exit;
     }
 
     public function getSettingsAction() {
         $es = new ESClient();
-        $ret = $es->getSettings($this->index);
+        if ($this->version) {
+            $ret = $es->getSettings($this->index . '_' . $this->version);
+        } else {
+            $ret = $es->getSettings($this->index);
+        }
+
         echo json_encode($ret, 256);
         exit;
     }
 
     public function getStateAction() {
         $es = new ESClient();
-        $ret = $es->getstate($this->index);
+        if ($this->version) {
+            $ret = $es->getSettings($this->index . '_' . $this->version);
+        } else {
+            $ret = $es->getSettings($this->index);
+        }
         echo json_encode($ret, 256);
         exit;
     }
@@ -483,9 +497,14 @@ class EsproductController extends PublicController {
         }
         $es = new ESClient();
         $state = $es->getstate();
-
-        if (!isset($state['metadata']['indices'][$this->index])) {
-            $es->create_index($this->index, $body, 5, 1);
+        if (!$this->version) {
+            if (!isset($state['metadata']['indices'][$this->index])) {
+                $es->create_index($this->index, $body, 5, 1);
+            }
+        } else {
+            if (!isset($state['metadata']['indices'][$this->index . '_' . $this->version])) {
+                $es->create_index($this->index . '_' . $this->version, $body, 5, 1);
+            }
         }
         $this->setCode(1);
         $this->setMessage('成功!');
@@ -899,6 +918,19 @@ class EsproductController extends PublicController {
             'material_cat_no' => $not_analyzed, //物料编码
             'show_cats' => [
                 // 'type' => 'nested',
+                'properties' => [
+                    'cat_no1' => $not_analyzed,
+                    'cat_no2' => $not_analyzed,
+                    'cat_no3' => $not_analyzed,
+                    'cat_name1' => $ik_analyzed,
+                    'cat_name2' => $ik_analyzed,
+                    'cat_name3' => $ik_analyzed,
+                    'market_area_bn' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'onshelf_flag' => $not_analyzed,
+                ]], //展示分类数组 json
+            'show_cats_nested' => [
+                'type' => 'nested',
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,

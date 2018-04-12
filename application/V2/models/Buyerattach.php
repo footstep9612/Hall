@@ -166,7 +166,7 @@ class BuyerattachModel extends PublicModel {
         //财务表中记录的id
         $cond = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'attach_group'=>$type,
             'deleted_flag'=>'N'
         );
@@ -306,7 +306,7 @@ class BuyerattachModel extends PublicModel {
     public function showBuyerExistAttach($type,$buyer_id,$created_by,$deleted_flag='N'){
         $cond = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>$deleted_flag,
             'attach_group'=>$type
         );

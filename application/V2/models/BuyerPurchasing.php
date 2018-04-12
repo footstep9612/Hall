@@ -11,7 +11,7 @@ class BuyerPurchasingModel extends PublicModel
     public function updatePurchase($purchase,$buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $arrId=array();
@@ -145,7 +145,7 @@ class BuyerPurchasingModel extends PublicModel
     public function showPurchase($buyer_id,$created_by){
         $map = array(
             'purchasing.buyer_id'=>$buyer_id,
-            'purchasing.created_by'=>$created_by,
+//            'purchasing.created_by'=>$created_by,
             'purchasing.deleted_flag'=>'N',
             'attach.attach_group'=>'PURCHASING',
             'attach.deleted_flag'=>'N',

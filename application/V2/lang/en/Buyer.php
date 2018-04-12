@@ -31,6 +31,8 @@ return array(
     'param_error'=>'Please enter the correct parameters',
     'Group_crm'=>'Group CRM customer information',
     'Normal_customer'=>'Normal entry of customer information process',
+    'empty_scope'=>'The scope of business can not be empty',
+    'empty_product'=>'The intended product can not be empty',
 
     'error' => ' error',
     'repeat' => ' repeat',

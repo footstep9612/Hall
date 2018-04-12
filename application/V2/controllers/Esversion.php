@@ -15,15 +15,22 @@
  */
 class EsversionController extends EsproductController {
 
+    protected $esversion = null;
+    protected $model = null;
+
     //put your code here
     public function init() {
 
         if ($this->getRequest()->isCli()) {
+
             ini_set("display_errors", "On");
             error_reporting(E_ERROR | E_STRICT);
         } else {
             parent::init();
         }
+        $this->model = new EsVersionModel();
+        $this->esversion = $this->model->getVersion();
+        $this->version = $this->esversion['update_version'];
     }
 
     /*
@@ -38,12 +45,11 @@ class EsversionController extends EsproductController {
         $update_version = $this->getPut('update_version');
         $select_version = $this->getPut('select_version');
         $alias = $this->getPut('alias', 'erui_goods');
-        $model = new EsVersionModel();
-        $version = $model->getVersion();
+        $version = $this->esversion;
         $es = new ESClient();
         if ($update_version && $update_version != $version['update_version']) {
             $this->version = $update_version;
-            $flag = $model->UpdateVersion($alias, $update_version, $select_version);
+            $flag = $this->model->UpdateVersion($alias, $update_version, $select_version);
             if ($flag) {
                 $this->indexAction();
             } else {
@@ -52,11 +58,12 @@ class EsversionController extends EsproductController {
                 $this->jsonReturn();
             }
         } elseif ($select_version && $select_version != $version['select_version']) {
-            $flag = $model->UpdateVersion($alias, $update_version, $select_version);
+            $flag = $this->model->UpdateVersion($alias, $update_version, $select_version);
             if ($flag) {
                 if ($version['select_version'] && $es->index_existsAlias($version['alias'] . '_' . $version['select_version'], $version['alias'])) {
                     $es->index_deleteAlias($version['alias'] . '_' . $version['select_version'], $version['alias']);
-                } else {
+                } elseif ($es->index_existsAlias($version['alias'], $version['alias'])) {
+
                     $es->index_delete($version['alias']);
                 }
                 $es->index_alias($version['alias'] . '_' . $version['update_version'], $version['alias']);

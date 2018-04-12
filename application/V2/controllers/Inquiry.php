@@ -1074,6 +1074,7 @@ class InquiryController extends PublicController {
             $Item->startTrans();
             foreach ($data['sku'] as $val) {
                 $condition = $val;
+                $condition['qty'] = isDecimal($val['qty']) ? $val['qty'] : null;
                 if ($condition['id'] == '') {
                     $condition['inquiry_id'] = $data['id'];
                     $condition['created_by'] = $this->user['id'];
@@ -1121,7 +1122,15 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryItemModel = new InquiryItemModel();
             $res = $inquiryItemModel->delByInquiryId($condition['inquiry_id']);
-            $this->jsonReturn($res);
+            if ($res) {
+                $this->setCode('1');
+                $this->setMessage(L('SUCCESS'));
+                $this->jsonReturn($res);
+            } else {
+                $this->setCode('-101');
+                $this->setMessage(L('FAIL'));
+                $this->jsonReturn();
+            }
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
