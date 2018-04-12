@@ -2171,7 +2171,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2216,7 +2216,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
         }
 
 //        if($data['admin'] == 0){   //查看部分统计
