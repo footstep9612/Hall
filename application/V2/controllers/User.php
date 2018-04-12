@@ -77,10 +77,10 @@ class UserController extends PublicController {
         if (!empty($data['role_name'])) {
             $where['role_name'] = trim($data['role_name']);
         }
-//        if (!empty($data['currentPage'])) {
-//            $where['page'] = intval($data['currentPage']) > 1 ? (intval($data['currentPage']) - 1) * $where['num'] : 0;
-//        }
-        $where['page'] = isset($data['currentPage'])?$data['currentPage']:1;
+        if (!empty($data['currentPage'])) {
+            $where['page'] = intval($data['currentPage']) > 1 ? (intval($data['currentPage']) - 1) * $where['num'] : 0;
+        }
+        //$where['page'] = isset($data['currentPage'])?$data['currentPage']:1;
 
         $user_modle = new UserModel();
         $data = $user_modle->getlist($where);
