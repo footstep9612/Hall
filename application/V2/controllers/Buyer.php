@@ -633,7 +633,11 @@ EOF;
         $this->jsonReturn($dataJson);
     }
     public function createAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         $lang=$this->getLang();
 
         $model = new BuyerModel();
@@ -865,7 +869,11 @@ EOF;
         $this->jsonReturn(array("code" => 1, "message" =>L('success')));
     }
     public function updateAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
+        $input = json_decode(file_get_contents("php://input"), true);
+        $data=[];
+        foreach($input as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
