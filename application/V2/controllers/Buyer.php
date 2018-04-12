@@ -676,6 +676,8 @@ EOF;
                 jsonReturn('', -103, L('crm_existed'));
             }
             $arr['buyer_code'] = $data['buyer_code'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_crm')));
         }
 
         if (!empty($data['first_name'])) {  //注册人信息姓名-show_name
@@ -697,10 +699,14 @@ EOF;
             $buyer_contact_data['phone'] = $data['mobile'];
         }
         if (!empty($data['biz_scope'])) {   //经营范围
-            $arr['biz_scope'] = trim($data['biz_scope'],' ');
+            $arr['biz_scope'] = $data['biz_scope'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_scope')));
         }
         if (!empty($data['intent_product'])) {  //意向产品
-            $arr['intent_product'] = trim($data['intent_product'],' ');
+            $arr['intent_product'] = $data['intent_product'];
+        }else{
+            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_product')));
         }
         if (!empty($data['purchase_amount'])) { //预计年采购额
             $arr['purchase_amount'] = trim($data['purchase_amount'],' ');
