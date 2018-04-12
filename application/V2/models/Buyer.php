@@ -304,11 +304,11 @@ class BuyerModel extends PublicModel {
             $data['created_name']=trim($data['created_name']," ");
             $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
-        if (!empty($condition['min_percent'])) { //信息完整度小
-            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
+        if (!empty($data['min_percent'])) { //信息完整度小
+            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $data['min_percent'];
         }
-        if (!empty($condition['max_percent'])) { //信息完整度大
-            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $condition['max_percent'];
+        if (!empty($data['max_percent'])) { //信息完整度大
+            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $data['max_percent'];
         }
         if(!empty($data['checked_at_start'])){  //审核时间===buy
             $cond .= " and agent.created_at >= '".$data['checked_at_start']."'";
@@ -387,6 +387,7 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
+        print_r($cond);die;
         if($cond==false){   //无角色,无数据
             return false;
         }
