@@ -31,12 +31,12 @@ class HistoricalSkuQuoteModel extends PublicModel {
         }
         // 商品SKU
         if (!empty($condition['sku'])) {
-            $where['_complex']['e.sku'] = $condition['sku'];
+            $where['_complex']['d.sku'] = $condition['sku'];
             $required = true;
         }
         // 商品供应商PN码
         if (!empty($condition['pn'])) {
-            $where['_complex']['b.pn'] = $condition['pn'];
+            $where['_complex']['c.pn'] = $condition['pn'];
             $required = true;
         }
         // 中文品名
@@ -47,7 +47,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
         // 品牌和型号
         if (!empty($condition['brand']) && !empty($condition['model'])) { 
             $where['_complex'][] =  [[
-                'b.brand' => $condition['brand'],
+                'c.brand' => $condition['brand'],
                 'b.model' => $condition['model']
             ]];
             $required = true;
@@ -106,12 +106,12 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	$order = $order ? : 'a.id DESC';
     	return $this->getSqlJoint($condition)
                             ->field('a.created_at,
-                                          b.name, b.name_zh, b.pn, b.brand, b.model,
-                                          c.quote_qty, c.period_of_validity, c.delivery_days, c.stock_loc, c.purchase_unit_price, c.purchase_price_cur_bn,
-                                          d.name'. ($lang == 'zh' ? '' : '_en') . ' AS supplier_name,
-                                          e.sku,
+                                          b.name, b.name_zh, b.model,
+                                          c.pn, c.brand, c.quote_qty, c.period_of_validity, c.delivery_days, c.stock_loc, c.purchase_unit_price, c.purchase_price_cur_bn,
+                                          d.sku, d.supplier_id,
+                                          e.name'. ($lang == 'zh' ? '' : '_en') . ' AS supplier_name,
                                           CASE
-                                          WHEN (e.sku <> \'\' AND e.sku = \'' . $condition['sku'] . '\')
+                                          WHEN (d.sku <> \'\' AND d.sku = \'' . $condition['sku'] . '\')
                                                         OR (b.pn <> \'\' AND b.pn = \'' . $condition['pn'] . '\')
                                                         OR ((b.name <> \'\' AND b.name = \'' . $condition['name'] . '\') AND (b.name_zh <> \'\' AND b.name_zh = \'' . $condition['name_zh'] . '\')) AND (b.brand <> \'\' AND b.brand = \'' . $condition['brand'] . '\') AND (b.model <> \'\' AND b.model = \'' . $condition['model'] . '\') THEN 100
                                           WHEN (b.name_zh <> \'\' AND b.name_zh = \'' . $condition['name_zh'] . '\') AND (b.model <> \'\' AND b.model = \'' . $condition['model'] . '\') THEN 90
@@ -145,8 +145,8 @@ class HistoricalSkuQuoteModel extends PublicModel {
         return $this->alias('a')
                             ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
                             ->join($quoteItemTableName . ' c ON a.quote_item_id = c.id AND c.deleted_flag = \'N\'', 'LEFT')
-                            ->join($suppliersTableName . ' d ON c.supplier_id = d.id AND d.deleted_flag = \'N\'', 'LEFT')
-                            ->join($finalQuoteItemTableName . ' e ON a.inquiry_item_id = e.inquiry_item_id AND e.deleted_flag = \'N\'', 'LEFT')
+                            ->join($finalQuoteItemTableName . ' d ON a.inquiry_item_id = d.inquiry_item_id AND d.deleted_flag = \'N\'', 'LEFT')
+                            ->join($suppliersTableName . ' e ON d.supplier_id = e.id AND e.deleted_flag = \'N\'', 'LEFT')
                             ->where($where)
     	                    ->group('a.id');
     }
