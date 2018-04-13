@@ -25,6 +25,7 @@ return [
     'QUOTE_DD_REQUIRED'         =>      '交货期必填',
     'QUOTE_DD_NUMBER'           =>      '交货期必须是数字',
     'QUOTE_POF_REQUIRED'        =>      '报价有效期必填',
+    'QUOTE_QQ_NUMBER'           =>      '数量必须是数字',
 
     'QUOTE_DELETE_FAIL'         =>      '删除失败',
 
