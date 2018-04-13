@@ -363,7 +363,7 @@ class QuoteController extends PublicController{
      */
     public function skuAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequests('inquiry_id,currentPage,pageSize');
 
         $list = $this->quoteItemModel->getList($request);
 
@@ -389,6 +389,7 @@ class QuoteController extends PublicController{
         $this->jsonReturn([
             'code' => 1,
             'message' => L('QUOTE_SUCCESS'),
+            'count' => $this->quoteItemModel->getCount($request),
             'data' => $list
         ]);
 
