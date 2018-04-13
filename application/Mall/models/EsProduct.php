@@ -44,8 +44,10 @@ class EsProductModel extends Model {
         }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         ESClient::getQurey($condition, $body, ESClient::TERM, 'spu');
-        ESClient::getQureyByArr($condition, $body, ESClient::TERMS, 'spus', 'spu');
-
+        if (isset($condition['spus']) && $condition['spus']) {
+            $name_arr = $condition[['spus']];
+            $body['query']['bool']['must'][] = [ESClient::TERMS => ['spu' => $name_arr]];
+        }
         if (isset($condition['country_bn']) && $condition['country_bn'] && $condition['country_bn'] !== 'Argentina') {
             $show_cat_model = new ShowCatModel();
             $country_bn = $condition['country_bn'];
