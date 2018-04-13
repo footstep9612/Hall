@@ -74,7 +74,7 @@ class BuyervisitController extends PublicController {
         if ($arr !== false && $arr!='warn') {
             jsonReturn($arr);
         }elseif($arr=='warn'){
-            jsonReturn('', 0, '操作频繁,请30秒后操作!');
+            jsonReturn('', 0, L('warn'));
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
@@ -97,7 +97,7 @@ class BuyervisitController extends PublicController {
         if ($arr !== false) {
             jsonReturn($arr);
         }elseif($arr=='warn'){
-            jsonReturn('', 0, '操作频繁,请30秒后操作!');
+            jsonReturn('', 0, L('warn'));
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
