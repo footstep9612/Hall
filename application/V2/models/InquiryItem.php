@@ -159,6 +159,7 @@ class InquiryItemModel extends PublicModel {
             $id = $this->add($data);
             if($id){
                 $results['code'] = '1';
+                $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';

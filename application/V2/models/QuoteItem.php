@@ -195,39 +195,76 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      */
     public function updateItemBatch($data,$user){
-
+        $i = 0;
+        $this->startTrans();
         foreach ($data as $key=>$value){
-
             if(!empty($value['purchase_unit_price'])){
                 if (!is_numeric($value['purchase_unit_price'])){
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER') ];
                 }
+            } else {
+                $value['purchase_unit_price'] = null;
             }
             if(!empty($value['gross_weight_kg'])) {
                 if (!is_numeric($value['gross_weight_kg'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER') ];
                 }
+            } else {
+                $value['gross_weight_kg'] = null;
             }
             if(!empty($value['package_size'])){
-                if (!is_numeric($value['package_size'])){
+                if (!is_numeric($value['package_size'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
                 }
+            } else {
+                $value['package_size'] = null;
+            }
+            if(!empty($value['quote_qty'])){
+                if (!is_numeric($value['quote_qty'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
+                    return ['code'=>'-104','message'=> L('QUOTE_QQ_NUMBER')];
+                }
+            } else {
+                $value['quote_qty'] = null;
             }
             if(!empty($value['delivery_days'])) {
                 if (!is_numeric($value['delivery_days'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
             }
-
-            $value['updated_at'] = date('Y-m-d H:i:s');
-            $value['updated_by'] = $user;
-
-            $this->save($this->create($value));
-
-
+            $value = $this->create($value);
+            $time = date('Y-m-d H:i:s');
+            if (empty($value['id'])) {
+                $value['created_by'] = $user;
+                $value['created_at'] = $time;
+                $result = $this->add($value);
+            } else {
+                $value['updated_by'] = $user;
+                $value['updated_at'] = $time;
+                $result = $this->save($value);
+            }
+            if (!$result) {
+                $this->rollback();
+                return ['code' => '-101', 'message' => L('FAIL')];
+            }
+            $i++;
         }
-        return true;
-
+        $this->commit();
+        return ['code' => '1', 'message' => L('SUCCESS')];
     }
 
     public function syncSku($request,$user){
