@@ -292,6 +292,16 @@ class BuyerVisitModel extends PublicModel {
      * @return bool
      */
     public function edit($_input = []){
+        $date=time();
+        $at=$this->field('created_at')->where(array('created_by'=>$_input['created_by']))->order('id desc')->limit(1)->select();
+        if(!empty($at)){
+            $ex_at=strtotime($at[0]['created_at']);
+            $diff=$date-$ex_at;
+            if($diff<5){
+                return 'warn';
+            }
+
+        }
         if(!isset($_input['buyer_id']) || empty($_input['buyer_id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, L('buyer_id'));    //客户不能为空
         }
@@ -1059,17 +1069,17 @@ class BuyerVisitModel extends PublicModel {
                 $condition.=" and reply.created_at is null";
             }
         }
-        if(!empty($data['visit_strart_at'])){  //拜访时间strart
-            $condition.=" and visit.visit_at>='$data[visit_strart_at]'";
+        if(!empty($data['visit_at_start'])){  //拜访时间strart
+            $condition.=" and visit.visit_at>='$data[visit_at_start]'";
         }
-        if(!empty($data['visit_end_at'])){  //拜访时间end
-            $condition.=" and visit.visit_at<='$data[visit_end_at]'";
+        if(!empty($data['visit_at_end'])){  //拜访时间end
+            $condition.=" and visit.visit_at<='$data[visit_at_end]'";
         }
-        if(!empty($data['created_strart_at'])){  //拜访记录创建时间strart
-            $condition.=" and visit.created_at>='$data[created_strart_at]'";
+        if(!empty($data['visit_start_time'])){  //拜访记录创建时间strart
+            $condition.=" and visit.created_at>='$data[visit_start_time] 00:00:00'";
         }
-        if(!empty($data['created_end_at'])){  //拜访记录创建时间end
-            $condition.=" and visit.created_at<='$data[created_end_at]'";
+        if(!empty($data['visit_end_time'])){  //拜访记录创建时间end
+            $condition.=" and visit.created_at<='$data[visit_end_time] 23:59:59'";
         }
         //按拜访记录id为条件
         if (!empty($data['all_id'])) {
