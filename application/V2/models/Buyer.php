@@ -285,7 +285,11 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         if(!empty($data['status'])){    //审核状态
-            $cond .= " and buyer.status='".$data['status']."'";
+            if($data['status']=='PASS'){
+                $cond .= " and buyer.is_build=1";
+            }else{
+                $cond .= " and buyer.status='".$data['status']."'";
+            }
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $cond .= " and buyer.is_build=0 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
@@ -439,6 +443,9 @@ class BuyerModel extends PublicModel {
         $level = new BuyerLevelModel();
         $country = new CountryModel();
         foreach($info as $k => $v){
+            if($v['status']=='APPROVED'){
+                $info[$k]['employee_name']='APPROVED';
+            }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
@@ -1829,7 +1836,7 @@ EOF;
             'level_at' => $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//建立档案标识
-            'status' =>'PASS',//建立档案信息状态标识
+//            'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
             'company_model' =>$data['company_model'],    //公司性质
 
