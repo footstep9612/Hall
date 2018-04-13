@@ -182,6 +182,19 @@ class SupplierBrandModel extends PublicModel {
     }
 
     /**
+     * @desc 检出供应商品牌的关系
+     * @param $supplier
+     * @param $brand
+     * @return mixed
+     * @author 买买提
+     * @time 2018--4-13
+     */
+    public function checkBrandBy($supplier, $brand)
+    {
+        return $this->where(['supplier_id' => $supplier, 'brand_id' => $brand, 'status' => 'VALID'])->find();
+    }
+
+    /**
      * @desc 获取供应商的品牌(对象)
      * @param $supplier 供应商id
      * @return mixed
@@ -192,7 +205,7 @@ class SupplierBrandModel extends PublicModel {
     public function brandsObjectBy($supplier)
     {
         $where = ['a.supplier_id' => $supplier, 'a.status' => 'VALID'];
-        $field = 'b.brand';
+        $field = 'b.id,b.brand';
 
         return $this->alias('a')->join($this->joinBrandsTable, 'LEFT')->where($where)->field($field)->select();
     }

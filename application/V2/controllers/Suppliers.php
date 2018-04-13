@@ -269,6 +269,30 @@ class SuppliersController extends PublicController {
             $change = $this->_checkFieldsChange($supplier, $checkFields, $condition);
         }
 
+        //供应商的品牌
+        if (isset($condition['brand'])) {
+            foreach ($condition['brand'] as $brand) {
+
+                $hasThisBrand = (new SupplierBrandModel)->checkBrandBy($condition['supplier_id'], $brand['id']);
+                if (!$hasThisBrand) {
+
+                    $brand_arr = json_decode($brand['brand'],true);
+
+                    (new SupplierBrandModel)->add((new SupplierBrandModel)->create([
+                        'supplier_id' => $condition['supplier_id'],
+                        'brand_id' => $brand['id'],
+                        'status' => 'VALID',
+                        'created_by' => $this->user['id'],
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'brand_en' => $brand_arr[0]['name'],
+                        'brand_zh' => $brand_arr[1]['name'],
+                        'brand_es' => $brand_arr[2]['name'],
+                        'brand_ru' => $brand_arr[3]['name']
+                    ]));
+                }
+            }
+        }
+
         if ($change) {
             $supplierData['status'] = 'APPROVING';
             $supplierData['erui_status'] = 'CHECKING';
