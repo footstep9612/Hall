@@ -221,7 +221,7 @@ class OrderModel extends PublicModel {
         $orderYear=$orderArr['year'];   //年度订单金额
         $str='';
         foreach($orderYear as $k => $v){
-            $str.=','.$k.'--$'.$v;
+            $str.=';'.$k.'--$'.sprintf("%.4f",$v);
         }
         $str=substr($str,1);
         $count=count($orderArr['count']);  //订单数量
@@ -257,9 +257,9 @@ class OrderModel extends PublicModel {
         }
         $data=array(
             'count'=>$arr['count'],
-            'account'=>sprintf("%.2f",$arr['account']),
-            'min'=>sprintf("%.2f",$arr['min']),
-            'max'=>sprintf("%.2f",$arr['max']),
+            'account'=>sprintf("%.4f",$arr['account']),
+            'min'=>sprintf("%.4f",$arr['min']),
+            'max'=>sprintf("%.4f",$arr['max']),
             'year'=>$str
         );
         return $data;

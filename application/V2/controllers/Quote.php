@@ -373,7 +373,17 @@ class QuoteController extends PublicController{
 
         foreach ($list as $key=>$value){
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
-            $list[$key]['supplier_name']       = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+            // 参考历史报价数量
+            $condition = [
+                'sku' => $value['sku'],
+                'pn' => $value['pn'],
+                'name' => $value['name'],
+                'name_zh' => $value['name_zh'],
+                'brand' => $value['brand'],
+                'model' => $value['model']
+            ];
+            $list[$key]['historical_quote_count'] = $this->historicalSkuQuoteModel->getCount($condition);
         }
 
         $this->jsonReturn([
