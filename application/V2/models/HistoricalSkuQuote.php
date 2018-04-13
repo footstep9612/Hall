@@ -132,18 +132,18 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @time 2018-04-12
      */
     public function getSqlJoint($condition = []) {
-        $inquiryitemModel = new InquiryitemModel();
+        $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
         $finalQuoteItemModel = new FinalQuoteItemModel();
         $suppliersModel = new SuppliersModel();
         // 获取表名
-        $inquiryitemTableName = $inquiryitemModel->getTableName();
+        $inquiryItemTableName = $inquiryItemModel->getTableName();
         $quoteItemTableName = $quoteItemModel->getTableName();
         $finalQuoteItemTableName = $finalQuoteItemModel->getTableName();
         $suppliersTableName = $suppliersModel->getTableName();
         $where = $this->getWhere($condition);
         return $this->alias('a')
-                            ->join($inquiryitemTableName . ' b ON a.inquiry_item_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+                            ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
                             ->join($quoteItemTableName . ' c ON a.quote_item_id = c.id AND c.deleted_flag = \'N\'', 'LEFT')
                             ->join($suppliersTableName . ' d ON c.supplier_id = d.id AND d.deleted_flag = \'N\'', 'LEFT')
                             ->join($finalQuoteItemTableName . ' e ON a.inquiry_item_id = e.inquiry_item_id AND e.deleted_flag = \'N\'', 'LEFT')

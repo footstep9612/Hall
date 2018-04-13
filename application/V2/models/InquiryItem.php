@@ -7,7 +7,7 @@
  * Date: 2017/8/2
  * Time: 10:54
  */
-class InquiryitemModel extends PublicModel {
+class InquiryItemModel extends PublicModel {
 
     protected $dbName = 'erui_rfq'; //数据库名称
     protected $tableName = 'inquiry_item'; //数据表表名
