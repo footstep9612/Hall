@@ -17,7 +17,7 @@ return array(
     'format_error' => 'format_error',
     'already existed' => 'already existed',
     'repeat' => 'repeat',
-    'warn' => 'Operation frequently, please operate after 30 seconds!',
+    'warn' => 'Operation frequently, please operate after 5 seconds!',
 );
 
 

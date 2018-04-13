@@ -297,7 +297,7 @@ class BuyerVisitModel extends PublicModel {
         if(!empty($at)){
             $ex_at=strtotime($at[0]['created_at']);
             $diff=$date-$ex_at;
-            if($diff<30){
+            if($diff<5){
                 return 'warn';
             }
 
