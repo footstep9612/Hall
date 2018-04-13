@@ -210,7 +210,11 @@ class EsProductModel extends Model {
         }
         $name = $sku = $spu = $show_cat_no = $status = $show_name = $attrs = '';
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
-        $this->_getQureyByArr($condition, $body, ESClient::TERMS, 'spus', 'spu');
+
+        if (isset($condition['spus']) && $condition['spus']) {
+            $name_arr = $condition['spus'];
+            $body['query']['bool']['must'][] = [ESClient::TERMS => ['spu' => $name_arr]];
+        }
 //   $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
             $show_cat_no = trim($condition['show_cat_no']);
