@@ -292,6 +292,16 @@ class BuyerVisitModel extends PublicModel {
      * @return bool
      */
     public function edit($_input = []){
+        $date=time();
+        $at=$this->field('created_at')->where(array('created_by'=>$_input['created_by']))->order('id desc')->limit(1)->select();
+        if(!empty($at)){
+            $ex_at=strtotime($at[0]['created_at']);
+            $diff=$date-$ex_at;
+            if($diff<30){
+                return 'warn';
+            }
+
+        }
         if(!isset($_input['buyer_id']) || empty($_input['buyer_id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, L('buyer_id'));    //客户不能为空
         }

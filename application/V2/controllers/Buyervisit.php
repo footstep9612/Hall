@@ -70,8 +70,10 @@ class BuyervisitController extends PublicController {
         $visit_model = new BuyerVisitModel();
         unset($data['id']);
         $arr = $visit_model->edit($data);
-        if ($arr !== false) {
+        if ($arr !== false && $arr!='warn') {
             jsonReturn($arr);
+        }elseif($arr=='warn'){
+            jsonReturn('', 0, '操作频繁,请30秒后操作!');
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
@@ -92,6 +94,8 @@ class BuyervisitController extends PublicController {
         $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
+        }elseif($arr=='warn'){
+            jsonReturn('', 0, '操作频繁,请30秒后操作!');
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
