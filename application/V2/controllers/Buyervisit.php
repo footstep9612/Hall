@@ -67,11 +67,14 @@ class BuyervisitController extends PublicController {
      */
     public function createAction() {
         $data = $this->getPut();
+        $data['created_by']=$this->user['id'];
         $visit_model = new BuyerVisitModel();
         unset($data['id']);
         $arr = $visit_model->edit($data);
-        if ($arr !== false) {
+        if ($arr !== false && $arr!='warn') {
             jsonReturn($arr);
+        }elseif($arr=='warn'){
+            jsonReturn('', 0, '操作频繁,请30秒后操作!');
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
@@ -84,6 +87,7 @@ class BuyervisitController extends PublicController {
      */
     public function updateAction() {
         $data = $this->getPut();
+        $data['created_by']=$this->user['id'];
         if(!isset($data['id']) || empty($data['id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'ID不能为空');
         }
@@ -92,6 +96,8 @@ class BuyervisitController extends PublicController {
         $arr = $visit_model->edit($data);
         if ($arr !== false) {
             jsonReturn($arr);
+        }elseif($arr=='warn'){
+            jsonReturn('', 0, '操作频繁,请30秒后操作!');
         }else{
             jsonReturn('', ErrorMsg::FAILED);
         }
