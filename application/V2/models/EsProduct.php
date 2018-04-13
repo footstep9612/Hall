@@ -212,7 +212,7 @@ class EsProductModel extends Model {
         $this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
 
         if (isset($condition['spus']) && $condition['spus']) {
-            $name_arr = $condition[['spus']];
+            $name_arr = $condition['spus'];
             $body['query']['bool']['must'][] = [ESClient::TERMS => ['spu' => $name_arr]];
         }
 //   $this->_getQurey($condition, $body, ESClient::WILDCARD, 'show_cat_no', 'show_cats.all');

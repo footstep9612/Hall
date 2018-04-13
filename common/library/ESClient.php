@@ -1222,16 +1222,7 @@ class ESClient {
         }
         if (isset($condition[$names]) && $condition[$names]) {
             $name_arr = $condition[$names];
-            $bool = [];
-            $arr = [];
-            foreach ($name_arr as $name) {
-                if (!empty($name)) {
-                    $arr[] = trim($name);
-                }
-            }
-            if (!empty($arr)) {
-                $body['query']['bool']['must'][] = [$qurey_type => [$field => $arr]];
-            }
+            $body['query']['bool']['must'][] = [$qurey_type => [$field => $name_arr]];
         }
     }
 

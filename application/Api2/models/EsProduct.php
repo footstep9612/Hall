@@ -45,7 +45,7 @@ class EsProductModel extends Model {
         ESClient::getQurey($condition, $body, ESClient::MATCH_PHRASE, 'spu');
 
         if (isset($condition['spus']) && $condition['spus']) {
-            $name_arr = $condition[['spus']];
+            $name_arr = $condition['spus'];
             $body['query']['bool']['must'][] = [ESClient::TERMS => ['spu' => $name_arr]];
         }
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {

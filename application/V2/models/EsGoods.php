@@ -71,11 +71,11 @@ class EsGoodsModel extends Model {
         ESClient::getQurey($condition, $body, ESClient::TERM, 'sku');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'spu');
         if (isset($condition['skus']) && $condition['skus']) {
-            $name_arr = $condition[['skus']];
+            $name_arr = $condition['skus'];
             $body['query']['bool']['must'][] = [ESClient::TERMS => ['sku' => $name_arr]];
         }
         if (isset($condition['spus']) && $condition['spus']) {
-            $name_arr = $condition[['spus']];
+            $name_arr = $condition['spus'];
             $body['query']['bool']['must'][] = [ESClient::TERMS => ['spu' => $name_arr]];
         }
 //        if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
