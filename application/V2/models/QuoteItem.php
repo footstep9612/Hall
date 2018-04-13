@@ -50,7 +50,7 @@ class QuoteItemModel extends PublicModel {
         return $this->getSqlJoint($request)
                             ->field($fields)
                             ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
+                            ->order('a.id ASC')
                             ->select();
     }
     
