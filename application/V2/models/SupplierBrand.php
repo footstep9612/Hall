@@ -18,6 +18,8 @@ class SupplierBrandModel extends PublicModel {
 
     protected $joinBrandsTable = 'erui_dict.brand b ON a.brand_id=b.id';
 
+    protected $languages = ['en', 'es', 'ru', 'zh'];
+
     public function __construct($str = '') {
         parent::__construct();
     }
@@ -207,7 +209,22 @@ class SupplierBrandModel extends PublicModel {
         $where = ['a.supplier_id' => $supplier, 'a.status' => 'VALID'];
         $field = 'b.id,b.brand';
 
-        return $this->alias('a')->join($this->joinBrandsTable, 'LEFT')->where($where)->field($field)->select();
+        $data = $this->alias('a')->join($this->joinBrandsTable, 'LEFT')->where($where)->field($field)->select();
+
+        foreach ($data as $key => $item) {
+            $brands = json_decode($item['brand'], true);
+
+            $brand = [];
+            foreach ($this->langs as $lang) {
+                $brand[$lang] = [];
+            }
+            foreach ($brands as $val) {
+                $brand[$val['lang']] = $val;
+                $brand[$val['lang']]['id'] = $item['id'];
+            }
+            $data[$key] = $brand;
+        }
+        return $data;
     }
 
     /**
