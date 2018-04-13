@@ -111,20 +111,26 @@ class IndexserviceController extends PublicController {
         $home_floor_model = new HomeFloorModel();
         $floors = $home_floor_model->getList($jsondata);
         if ($floors) {
+            $floor_ids = [];
             foreach ($floors as $key => $floor) {
-                $jsondata['floor_id'] = $floor['id'];
-                $keywords = $this->_getFloorKeyword($jsondata);
-                $cats = $this->_getFloorcats($jsondata);
-                $spus = $this->_getSpus($jsondata);
-                $data = $this->_getProducts($jsondata, $spus);
-                $ads = $this->_getFloorads($jsondata, 'BACKGROUP');
-                $floors[$key]['keywords'] = $keywords;
-                $floors[$key]['show_cat'] = $cats;
-                $floors[$key]['products'] = $data;
-                $floors[$key]['ads'] = isset($ads[0]) ? $ads[0] : [];
-                unset($jsondata['floor_id'], $data, $spus, $cats, $ads, $keywords);
+                $floor_ids[] = $floor['id'];
             }
+
+            $jsondata['floor_id'] = $floor_ids;
+            $keywords = $this->_getFloorKeyword($jsondata);
+            $ads = $this->_getFloorads($jsondata, 'BACKGROUP');
+            $cats = $this->_getFloorcats($jsondata);
+            $products = $this->_getProducts($jsondata);
+            foreach ($floors as $key => $floor) {
+                $floors[$key]['keywords'] = isset($keywords[$floor['id']]) ? $keywords[$floor['id']] : [];
+                $floors[$key]['ads'] = isset($ads[$floor['id']][0]) ? $ads[$floor['id']][0] : [];
+                $floors[$key]['show_cat'] = isset($cats[$floor['id']]) ? $cats[$floor['id']] : [];
+                $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
+            }
+
+            unset($jsondata['floor_id'], $products, $cats, $ads, $keywords);
         }
+
 
         return $floors;
     }
@@ -139,7 +145,11 @@ class IndexserviceController extends PublicController {
     private function _getFloorKeyword($jsondata) {
         $home_floor_keyword_model = new HomeFloorKeywordModel();
         $list = $home_floor_keyword_model->getList($jsondata);
-        return $list;
+        $ret = [];
+        foreach ($list as $val) {
+            $ret[$val['floor_id']] [] = $val;
+        }
+        return $ret;
     }
 
     /**
@@ -153,51 +163,23 @@ class IndexserviceController extends PublicController {
         $home_floor_show_cat_model = new HomeFloorShowCatModel();
 
         $list = $home_floor_show_cat_model->getList($condition);
-        return $list;
-    }
-
-    /**
-     * Description of 获取现货楼层列表
-     * @author  zhongyg
-     * @date    2017-8-1 16:50:09
-     * @version V2.0
-     * @desc  现货楼层
-     */
-    private function _getSpus($condition) {
-        $home_floor_product_model = new HomeFloorProductModel();
-
-        $list = $home_floor_product_model->getList($condition);
-        return $list;
-    }
-
-    /**
-     * Description of 获取现货楼层列表
-     * @author  zhongyg
-     * @date    2017-8-1 16:50:09
-     * @version V2.0
-     * @desc  现货楼层
-     */
-    private function _getProducts($condition, $spus) {
-        $country_bn = $condition['country_bn'];
-        $lang = $condition['lang'];
-        $condition['spus'] = $spus;
-        $condition['onshelf_flag'] = 'Y';
-        $condition['pagesize'] = 8;
-        $model = new EsProductModel();
-        $data = $model->getNewProducts($condition, $lang, $country_bn);
-        foreach ($data[0]['hits']['hits'] as $key => $item) {
-            $list[$key] = $item["_source"];
-            $attachs = json_decode($item["_source"]['attachs'], true);
-            if ($attachs && isset($attachs['BIG_IMAGE'][0])) {
-                $list[$key]['img'] = $attachs['BIG_IMAGE'][0];
-            } else {
-                $list[$key]['img'] = null;
-            }
-            $list[$key]['id'] = $item['_id'];
-            $list[$key]['specs'] = $list[$key]['attrs']['spec_attrs'];
-            $list[$key]['attachs'] = json_decode($list[$key]['attachs'], true);
+        $ret = [];
+        foreach ($list as $val) {
+            $ret[$val['floor_id']] [] = $val;
         }
-        unset($data, $model, $condition, $lang, $country_bn);
+        return $ret;
+    }
+
+    /**
+     * Description of 获取现货楼层列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc  现货楼层
+     */
+    private function _getProducts($condition) {
+        $home_floor_product_model = new HomeFloorProductModel();
+        $list = $home_floor_product_model->getFloorProducts($condition);
 
         return $list;
     }
@@ -215,7 +197,11 @@ class IndexserviceController extends PublicController {
         $home_floor_ads_model = new HomeFloorAdsModel();
 
         $list = $home_floor_ads_model->getList($condition);
-        return $list;
+        $ret = [];
+        foreach ($list as $val) {
+            $ret[$val['floor_id']] [] = $val;
+        }
+        return $ret;
     }
 
 }
