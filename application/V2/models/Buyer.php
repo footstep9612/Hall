@@ -2243,6 +2243,9 @@ EOF;
 //        }else{
 //            $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
 //        }
+        if(!empty($data['country_bn'])){    //国家搜索
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
+        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
         }
