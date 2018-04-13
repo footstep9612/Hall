@@ -270,6 +270,9 @@ class BuyerModel extends PublicModel {
         if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
             $cond .= " and (buyer.source=2 or buyer.source=3) ";
         }
+        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
+            $cond .= " and buyer.country_bn='$data[country_bn]'";
+        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
