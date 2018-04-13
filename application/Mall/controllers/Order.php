@@ -662,7 +662,7 @@ class OrderController extends PublicController {
             $email = $res['email'];
             $this->orderEmail($email,$arrEmail,$lang,$config_email['url']);
             //我方(加拿大人员)
-            $order_address = COMMON_CONF_PATH  . DS . 'order_email.php';
+            $order_address = COMMON_CONF_PATH  . DS . 'order_email.'.CONFBDP.'.php';
             $canada_email = include_once($order_address);
             if(isset($canada_email[$country_bn])){
                 $arrEmail['preInfo'] = ShopMsg::getMessage('2002-1', $lang);   //我方(加拿大人员)
