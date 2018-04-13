@@ -1067,7 +1067,7 @@ class InquiryModel extends PublicModel {
         $sql .= " where inquiry.deleted_flag='N' and (inquiry.quote_status='QUOTED' or inquiry.quote_status='COMPLETED') and inquiry.buyer_id=$buyer_id";
         $info = $quote->query($sql);
         $res=$this->sumAccountQuote($info);
-        $amount=array_sum($res['amount']);
+        $amount=sprintf("%.4f",array_sum($res['amount']));
         $qCount=count($res['count']);
         if(empty($res['count']) && empty($res['amount'])){
             $data = array(
