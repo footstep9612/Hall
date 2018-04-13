@@ -499,7 +499,7 @@ class InquiryController extends PublicController {
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $agentId,
                 'status' => 'REJECT_CLOSE',
-                'quote_status' => 'COMPLETED',
+                'quote_status' => 'NOT_QUOTED',
                 'updated_by' => $this->user['id']
             ];
     
@@ -1074,7 +1074,9 @@ class InquiryController extends PublicController {
             $Item->startTrans();
             foreach ($data['sku'] as $val) {
                 $condition = $val;
-                $condition['qty'] = isDecimal($val['qty']) ? $val['qty'] : null;
+                if (isset($condition['qty']) && !isDecimal($condition['qty'])) {
+                    $condition['qty'] = 1;
+                }
                 if ($condition['id'] == '') {
                     $condition['inquiry_id'] = $data['id'];
                     $condition['created_by'] = $this->user['id'];
@@ -1134,6 +1136,32 @@ class InquiryController extends PublicController {
         } else {
             $this->setCode('-103');
             $this->setMessage(L('MISSING_PARAMETER'));
+            $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 获取SKU历史报价列表
+     *
+     * @author liujf
+     * @time 2018-04-11
+     */
+    public function getHistoricalSkuQuoteListAction() {
+        $condition = $this->put_data;
+        $historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
+        $historicalSkuQuoteList = $historicalSkuQuoteModel->getList($condition);
+        foreach ($historicalSkuQuoteList as &$historicalSkuQuote) {
+            $historicalSkuQuote['matching_percent'] .= '%';
+        }
+        if ($historicalSkuQuoteList) {
+            $res['code'] = 1;
+            $res['message'] = L('SUCCESS');
+            $res['data'] = $historicalSkuQuoteList;
+            $res['count'] = $historicalSkuQuoteModel->getCount($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
     }

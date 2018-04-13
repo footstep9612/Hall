@@ -17,6 +17,9 @@ return array(
     'format_error' => '格式错误',
     'already existed' => '已存在',
     'repeat' => '重复',
+
+
+    'warn' => '操作频繁,请5秒后重试!'
 );
 
 

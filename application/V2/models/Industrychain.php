@@ -150,7 +150,7 @@ class IndustrychainModel extends PublicModel
     public function showChain($buyer_id,$created_by){
         $cond = array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $res = $this->where($cond)->select();
@@ -218,7 +218,7 @@ class IndustrychainModel extends PublicModel
         }
         $cond=array(    //查询数据
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         $arrId=array();
@@ -240,7 +240,7 @@ class IndustrychainModel extends PublicModel
         foreach($info as $k => $v){
             if(!empty($v['id'])){
                 $v['buyer_id']=$buyer_id;
-                $v['created_by']=$created_by;
+//                $v['created_by']=$created_by;
                 $v['created_at']=date('Y-m-d H:i:s');
                 $this->where(array('id'=>$v['id']))->save($v);  //编辑
                 if(!empty($diffId)){

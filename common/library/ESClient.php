@@ -1226,10 +1226,10 @@ class ESClient {
             $arr = [];
             foreach ($name_arr as $name) {
                 if (!empty($name)) {
-                    $arr = trim($name);
+                    $arr[] = trim($name);
                 }
             }
-            if (!empty($bool)) {
+            if (!empty($arr)) {
                 $body['query']['bool']['must'][] = [$qurey_type => [$field => $arr]];
             }
         }

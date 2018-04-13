@@ -95,7 +95,7 @@ class BuyerfilesController extends PublicController
         $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
         $cond=array(
             'buyer_id'=>$buyer_id,
-            'created_by'=>$created_by,
+//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         //客户基本信息

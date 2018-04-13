@@ -1242,13 +1242,17 @@ EOF;
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
-        if($orderInfo['count']==0 || $inquiryInfo['quote_count']==0){
+        if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = 0;
+        }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
+            $arr['order']['order_rate'] ='100%';
         }else{
             $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
         }
-        if($orderInfo['account']==0 || $inquiryInfo['account']==0){
+        if($orderInfo['account']==0 && $inquiryInfo['account']==0){
             $arr['order']['account_rate'] = 0;
+        }elseif($orderInfo['account']>=$inquiryInfo['account']){
+            $arr['order']['account_rate'] = '100%';
         }else{
             $arr['order']['account_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
         }

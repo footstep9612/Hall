@@ -261,7 +261,9 @@ class BuyerModel extends PublicModel {
         }else{
             $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         }
-
+        foreach($data as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
             $cond .= " and buyer.source=1 ";
         }
@@ -285,7 +287,11 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         if(!empty($data['status'])){    //审核状态
-            $cond .= " and buyer.status='".$data['status']."'";
+            if($data['status']=='PASS'){
+                $cond .= " and buyer.is_build=1";
+            }else{
+                $cond .= " and buyer.status='".$data['status']."'";
+            }
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
             $cond .= " and buyer.is_build=0 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
@@ -304,11 +310,11 @@ class BuyerModel extends PublicModel {
             $data['created_name']=trim($data['created_name']," ");
             $cond .= " AND buyer.created_by=(select employee.id from erui_sys.employee employee where employee.deleted_flag='N' AND employee.name like '%".$data['created_name']."%')";
         }
-        if (!empty($condition['min_percent'])) { //信息完整度小
-            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $condition['min_percent'];
+        if (!empty($data['min_percent'])) { //信息完整度小
+            $cond .= ' And `erui_buyer`.`buyer`.percent  >=' . $data['min_percent'];
         }
-        if (!empty($condition['max_percent'])) { //信息完整度大
-            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $condition['max_percent'];
+        if (!empty($data['max_percent'])) { //信息完整度大
+            $cond .= ' And `erui_buyer`.`buyer`.percent  <=' . $data['max_percent'];
         }
         if(!empty($data['checked_at_start'])){  //审核时间===buy
             $cond .= " and agent.created_at >= '".$data['checked_at_start']."'";
@@ -439,6 +445,9 @@ class BuyerModel extends PublicModel {
         $level = new BuyerLevelModel();
         $country = new CountryModel();
         foreach($info as $k => $v){
+            if($v['status']=='APPROVED'){
+                $info[$k]['employee_name']='APPROVED';
+            }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
@@ -1829,7 +1838,7 @@ EOF;
             'level_at' => $level_at,  //定级日期
             'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//建立档案标识
-            'status' =>'PASS',//建立档案信息状态标识
+//            'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
             'company_model' =>$data['company_model'],    //公司性质
 
@@ -2172,7 +2181,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2217,7 +2226,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and buyer.is_build=1 and buyer.status='PASS' and buyer.deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
         }
 
 //        if($data['admin'] == 0){   //查看部分统计
