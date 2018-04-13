@@ -297,13 +297,11 @@ class BuyerVisitModel extends PublicModel {
         if(!empty($at)){
             $ex_at=strtotime($at[0]['created_at']);
             $diff=$date-$ex_at;
-            echo $diff;die;
             if($diff<300){
                 return 'warn';
             }
 
         }
-        echo 0;die;
         if(!isset($_input['buyer_id']) || empty($_input['buyer_id'])){
             jsonReturn('', ErrorMsg::ERROR_PARAM, L('buyer_id'));    //客户不能为空
         }
