@@ -43,7 +43,7 @@ class HomeFloorShowCatModel extends PublicModel {
         $where = $this->_getCondition($condition);
 
 
-        return $this->field('cat_name,cat_no')
+        return $this->field('cat_name,cat_no,floor_id')
                         ->where($where)
                         ->order('sort_order desc')
                         ->select();

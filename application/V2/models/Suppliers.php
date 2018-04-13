@@ -193,7 +193,6 @@ class SuppliersModel extends PublicModel {
                         ->join($this->joinTable4, 'LEFT')
                         ->field($this->joinField)
                         ->where($where)
-                        ->where('')
                         ->page($currentPage, $pageSize)
                         ->order('a.id DESC')
                         ->select();

@@ -44,7 +44,7 @@ class HomeFloorAdsModel extends PublicModel {
         $where = $this->_getCondition($condition);
         $start_no = 0;
 
-        $this->field('img_name,img_url,group,link')
+        $this->field('img_name,img_url,group,link,floor_id')
                 ->where($where)
                 ->order('sort_order desc');
         if (isset($condition['pagesize'])) {

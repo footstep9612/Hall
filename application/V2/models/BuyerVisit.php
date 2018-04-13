@@ -1069,17 +1069,17 @@ class BuyerVisitModel extends PublicModel {
                 $condition.=" and reply.created_at is null";
             }
         }
-        if(!empty($data['visit_strart_at'])){  //拜访时间strart
-            $condition.=" and visit.visit_at>='$data[visit_strart_at]'";
+        if(!empty($data['visit_at_start'])){  //拜访时间strart
+            $condition.=" and visit.visit_at>='$data[visit_at_start]'";
         }
-        if(!empty($data['visit_end_at'])){  //拜访时间end
-            $condition.=" and visit.visit_at<='$data[visit_end_at]'";
+        if(!empty($data['visit_at_end'])){  //拜访时间end
+            $condition.=" and visit.visit_at<='$data[visit_at_end]'";
         }
-        if(!empty($data['created_strart_at'])){  //拜访记录创建时间strart
-            $condition.=" and visit.created_at>='$data[created_strart_at]'";
+        if(!empty($data['visit_start_time'])){  //拜访记录创建时间strart
+            $condition.=" and visit.created_at>='$data[visit_start_time] 00:00:00'";
         }
-        if(!empty($data['created_end_at'])){  //拜访记录创建时间end
-            $condition.=" and visit.created_at<='$data[created_end_at]'";
+        if(!empty($data['visit_end_time'])){  //拜访记录创建时间end
+            $condition.=" and visit.created_at<='$data[visit_end_time] 23:59:59'";
         }
         //按拜访记录id为条件
         if (!empty($data['all_id'])) {
