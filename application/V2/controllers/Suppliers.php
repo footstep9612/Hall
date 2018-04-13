@@ -399,7 +399,23 @@ class SuppliersController extends PublicController {
 
         $res = $this->suppliersModel->getJoinDetail($condition);
 
+        //供应商的品牌(对象)
+        $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
+
         $this->jsonReturn($res);
+    }
+
+    /**
+     * @desc 删除供应商的品牌
+     *
+     * @author 买买提
+     * @time 2018-04-12
+     */
+    public function delBrandsAction()
+    {
+        $request = $this->validateRequestParams('supplier_id,brand_id');
+        $response = (new SupplierBrandModel)->delBrand($request['supplier_id'], $request['brand_id']);
+        $this->jsonReturn($response);
     }
 
     /**
