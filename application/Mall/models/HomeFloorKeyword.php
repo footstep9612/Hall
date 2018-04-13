@@ -43,7 +43,7 @@ class HomeFloorKeywordModel extends PublicModel {
         $where = $this->_getCondition($condition);
 
 
-        return $this->field('keyword')
+        return $this->field('keyword,floor_id')
                         ->where($where)
                         ->order('sort_order desc')
                         ->select();
