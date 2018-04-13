@@ -2245,11 +2245,11 @@ EOF;
 //            $cond .= " and buyer.id in ($str)";
 //        }
         if(!empty($data['buyer_level'])){
-            if($data['buyer_level']=='普通会员' || $data['buyer_level']='Member'){
+            if($data['buyer_level']=='普通会员' || $data['buyer_level']=='Member'){
                 $cond .= " and buyer.buyer_level=52";
-            }elseif($data['buyer_level']=='高级会员' || $data['buyer_level']='Senior member'){
+            }elseif($data['buyer_level']=='高级会员' || $data['buyer_level']=='Senior member'){
                 $cond .= " and buyer.buyer_level=53";
-            }elseif($data['buyer_level']=='注册会员' || $data['buyer_level']='Registered member'){
+            }elseif($data['buyer_level']=='注册会员' || $data['buyer_level']=='Registered member'){
                 $cond .= " and buyer.buyer_level is null";
             }else{
                 $cond .= " and buyer.buyer_level='wangs'";
