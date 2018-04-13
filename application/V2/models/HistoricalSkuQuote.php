@@ -103,7 +103,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	    }
     	    $order = implode(',', $orderArr);
     	}
-    	$order = $order ? : 'a.id DESC';
+    	$order = ($order ? $order . ',' : '') . 'a.id DESC';
     	return $this->getSqlJoint($condition)
                             ->field('a.created_at,
                                           b.name, b.name_zh, b.model,

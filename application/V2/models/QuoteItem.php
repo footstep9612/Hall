@@ -25,6 +25,18 @@ class QuoteItemModel extends PublicModel {
     public function delItem($where){
         return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
     }
+    
+    /**
+     * @desc 获取记录总数
+ 	 * 
+     * @param array $request 
+     * @return int
+     * @author liujf 
+     * @time 2018-04-13
+     */
+    public function getCount($request) {
+    	return $this->getSqlJoint($request)->count('a.id');
+    }
 
     /**
      * 获取sku列表
@@ -32,18 +44,35 @@ class QuoteItemModel extends PublicModel {
      * @return mixed 数据
      */
     public function getList($request){
-
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
+        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
+        return $this->getSqlJoint($request)
+                            ->field($fields)
+                            ->page($currentPage, $pageSize)
+                            ->order('a.id DESC')
+                            ->select();
+    }
+    
+    /**
+     * @desc 获取组装sql后的对象
+     *
+     * @param array $request
+     * @return object
+     * @author liujf
+     * @time 2018-04-13
+     */
+    public function getSqlJoint($request) {
+        $inquiryItemModel = new InquiryItemModel();
+        $inquiryItemAttachModel = new InquiryItemAttachModel();
+        $inquiryItemTableName = $inquiryItemModel->getTableName();
+        $inquiryItemAttachTableName = $inquiryItemAttachModel->getTableName();
         $where['a.inquiry_id'] = $request['inquiry_id'];
         $where['a.deleted_flag'] = 'N';
-
-        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
         return $this->alias('a')
-            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id', 'LEFT')
-            ->join('erui_rfq.inquiry_item_attach c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
-            ->field($fields)
-            ->where($where)
-            ->select();
-
+                            ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id', 'LEFT')
+                            ->join($inquiryItemAttachTableName . ' c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
+                            ->where($where);
     }
 
     public function updateSupplier($data){
