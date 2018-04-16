@@ -2653,21 +2653,30 @@ EOF;
         $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
         $sql.=' order by created_at ';
         $member=$this->query($sql);
-        $res=$this->packDailyData($member,$data['start_time'],$data['end_time']);
-        print_r($res);die;
+        $customer=$this->packDailyData($member,$data['start_time'],$data['end_time']);
+        return $customer;
     }
     //整理每天的数据
     public function packDailyData($data,$start_time,$end_time){
         $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
         $arr=[];
+        $info=[];
         for($i=0;$i<$days;$i++){
             $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
             $arr[$i]['count']=0;
         }
-        foreach($data as $key=> $value){
-//            $arr[]
-
-            print_r($value);die;
+        foreach($arr as $key => &$value){
+            foreach($data as $k => $v){
+                if($v['created_at'] == $value['created_at']){
+                    $arr[$key]['created_at']=$value['created_at'];
+                    $arr[$key]['count']=$v['count'];
+                }
+            }
         }
+        foreach($arr as $k => $v){
+            $info['day'][]=$v['created_at'];
+            $info['count'][]=intval($v['count']);
+        }
+        return $info;
     }
 }

@@ -328,4 +328,20 @@ class BuyerfilesController extends PublicController
         );
         $this->jsonReturn($dataJson);
     }
+    //统计询单量
+    public function statisInquiryAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $inquiry=new InquiryModel();
+        $member=$inquiry->statisInquiry($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'询单',
+            'data'=>$member
+        );
+        $this->jsonReturn($dataJson);
+    }
 }
