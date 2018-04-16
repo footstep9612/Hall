@@ -22,7 +22,7 @@ class TemporarySupplierModel extends PublicModel
     /**
      * @var string
      */
-    protected $listFields = 'a.id,a.name,a.is_relation,a.relations_count,e.name created_by,a.quotations_count,o.name org_name,a.registration_time';
+    protected $listFields = 'a.id,a.name,a.name_en,a.is_relation,a.relations_count,a.created_by created_by_id,e.name created_by,a.quotations_count,a.org_id,o.name org_name,a.registration_time';
 
     /**
      * @var string
@@ -85,15 +85,17 @@ class TemporarySupplierModel extends PublicModel
     }
 
 
-    public function getCount(array $condition, $is_join=true)
+    public function getCount(array $condition)
     {
-        if ($is_join){
-            return $this->alias('a')->where($this->setCondition($condition, true))->count();
-        }
-        return $this->where($condition)->count();
+        return $this->alias('a')
+            ->join($this->joinOrgTable, 'LEFT')
+            ->join($this->joinEmployyeTable, 'LEFT')
+            ->where($this->setCondition($condition))
+            ->field($this->listFields)
+            ->count();
     }
 
-    private function setCondition(array $condition, $getCount=false)
+    private function setCondition(array $condition)
     {
         //公司名称
         if (!empty($condition['name'])) {
@@ -117,12 +119,9 @@ class TemporarySupplierModel extends PublicModel
         //删除标识
         $where['a.deleted_flag'] = 'N';
 
-        if (!$getCount) {
+        $where['o.deleted_flag'] = 'N';
 
-            $where['o.deleted_flag'] = 'N';
-
-            $where['e.deleted_flag'] = 'N';
-        }
+        $where['e.deleted_flag'] = 'N';
 
         return $where;
     }
