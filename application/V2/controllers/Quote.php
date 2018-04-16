@@ -491,7 +491,7 @@ class QuoteController extends PublicController{
             //判断报价单SKU表是否存在数据，有就删除
             $quoteItemIds = $this->quoteItemModel->where(['inquiry_item_id' => ['in', $inquiryItemIds], 'deleted_flag' => 'N'])->getField('id',true);
             if($quoteItemIds){
-                $resquote = $this->quoteItemModel->delItem($inquiryItemIds);    //删除报价单SKU
+                $resquote = $this->quoteItemModel->delItem($request['id']);    //删除报价单SKU
                 if($resquote){
                     //判断物流SKU表是否存在数据，有就删除
                     $logiItemIds = $quoteItemLogiModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id',true);
