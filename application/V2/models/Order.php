@@ -239,6 +239,7 @@ class OrderModel extends PublicModel {
         $amount=$orderArr['amount'];  //订单金额arr
         sort($amount);
         $sum=array_sum($amount); //总订单金额
+        $year=date('Y');
         //返回数据
         if($count==0){
             $arr=array(
@@ -246,7 +247,7 @@ class OrderModel extends PublicModel {
                 'account'=>0,
                 'min'=>0,
                 'max'=>0,
-                'year'=>0
+                'year'=>array(array('year'=>$year,'amount'=>0))
             );
         }elseif($count==1){
             $arr=array(
@@ -270,7 +271,7 @@ class OrderModel extends PublicModel {
             'account'=>sprintf("%.4f",$arr['account']),
             'min'=>sprintf("%.4f",$arr['min']),
             'max'=>sprintf("%.4f",$arr['max']),
-            'year'=>$yearArr
+            'year'=>$arr['year']
         );
         return $data;
     }
