@@ -2234,9 +2234,6 @@ EOF;
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
-            $cond .= " and buyer.country_bn='$data[country_bn]'";
-        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
         }
@@ -2580,5 +2577,97 @@ EOF;
             }
         }
         return $arr;
+    }
+    //crm 获取地区,国家,会员统计中使用
+    private function _getCountry($lang,$area_bn='',$country_bn=''){
+        if(!empty($country_bn)){
+            $countryArr=array($country_bn);
+            return $countryArr;
+        }
+        if(!empty($area_bn)){
+            $country=new MarketAreaCountryModel();
+            $countryArr=$country->getCountryBn($area_bn, $lang);
+            return $countryArr;
+        }
+        return '';
+    }
+    //获取会员统计cond
+    private function getStatisMemberCond($data){
+        $cond=' buyer.deleted_flag=\'N\'';  //客户状态
+        if(!empty($data['area_bn']) || !empty($data['area_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
+            if(!empty($countryArr)){
+                $str='';
+                foreach($countryArr as $k => $v){
+                    $str.=",'".$v."'";
+                }
+                $str=substr($str,1);
+                if(count($countryArr)==1){
+                    $cond.=' and buyer.country_bn='.$str;
+                }else{
+                    $cond.=' and buyer.country_bn in ('.$str.')';
+                }
+            }
+        }
+        if(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+            $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        }
+        return $cond;
+    }
+    //crm会员统计模块-wangs
+    public function statisMemberInfo($data){
+        $cond=$this->getStatisMemberCond($data);
+        $lang=$data['lang'];
+        $sql='select count(source) as `count`,source from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by source ';
+        $sql.=' order by source ';
+        $source=$this->query($sql);
+        $arr=array(
+            ['source'=>'boss','count'=>0],
+            ['source'=>'website','count'=>0],
+            ['source'=>'app','count'=>0]
+        );
+        if(!empty($source)){
+            foreach($source as $k => $v){
+                if($v['source']==1){
+                    $arr[$k]['count']=$v['count'];
+                }elseif($v['source']==2){
+                    $arr[$k]['count']=$v['count'];
+                }elseif($v['source']==3){
+                    $arr[$k]['count']=$v['count'];
+                }
+            }
+        }
+        return $arr;
+    }
+    //会员增长
+    public function memberSpeed($data){
+        $cond=$this->getStatisMemberCond($data);
+        $lang=$data['lang'];
+        $sql='select count(id) as `count`,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $member=$this->query($sql);
+        $res=$this->packDailyData($member,$data['start_time'],$data['end_time']);
+        print_r($res);die;
+    }
+    //整理每天的数据
+    public function packDailyData($data,$start_time,$end_time){
+        $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
+        $arr=[];
+        for($i=0;$i<$days;$i++){
+            $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
+            $arr[$i]['count']=0;
+        }
+        foreach($data as $key=> $value){
+//            $arr[]
+
+            print_r($value);die;
+        }
     }
 }

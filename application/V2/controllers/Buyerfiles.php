@@ -296,4 +296,36 @@ class BuyerfilesController extends PublicController
         );
         return $this->jsonReturn($dataJson);
     }
+    //会员统计
+    public function statisMemberAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $buyer=new BuyerModel();
+        $member=$buyer->statisMemberInfo($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'会员来源统计',
+            'data'=>$member
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //会员增长
+    public function memberSpeedAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $buyer=new BuyerModel();
+        $member=$buyer->memberSpeed($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'会员增长',
+            'data'=>$member
+        );
+        $this->jsonReturn($dataJson);
+    }
 }
