@@ -42,6 +42,29 @@ class TemporarySupplierModel extends PublicModel
         parent::__construct();
     }
 
+    public function byId($id)
+    {
+        return $this->where(['id' => $id, 'deleted_flag' => 'N'])->find();
+    }
+
+    public function skuById($id)
+    {
+        $fields = 'i.name,i.name_zh,i.qty,i.unit,i.brand,i.model,i.remarks,q.purchase_unit_price';
+        $where = [
+            'a.id' => $id,
+            'a.deleted_flag' => 'N',
+            'q.deleted_flag' => 'N',
+            'i.deleted_flag' => 'N',
+        ];
+
+        return $this->alias('a')
+            ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
+            ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
+            ->field($fields)
+            ->where($where)
+            ->select();
+    }
+
     public function getList(array $condition=[])
     {
 
@@ -60,6 +83,7 @@ class TemporarySupplierModel extends PublicModel
 
         return $data;
     }
+
 
     public function getCount(array $condition, $is_join=true)
     {
@@ -101,6 +125,12 @@ class TemporarySupplierModel extends PublicModel
         }
 
         return $where;
+    }
+
+    public function relationSupplierById($id)
+    {
+        $temporarySupplier = (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id])->find();
+        return (new SupplierModel)->where(['supplier_no' => $temporarySupplier['supplier_no'], 'deleted_flag' => 'N'])->getField('name');
     }
 
 }
