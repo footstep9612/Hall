@@ -219,16 +219,26 @@ class OrderModel extends PublicModel {
         $orderMerge=array_merge($order,$newOrder);
         $orderArr=$this->sumAccountAtatis($orderMerge);
         $orderYear=$orderArr['year'];   //年度订单金额
-        $str='';
+        $yearArr=[];
         foreach($orderYear as $k => $v){
-            $str.=';'.$k.'--$'.sprintf("%.4f",$v);
+            $yearArr[$k]['year']=$k;
+            $yearArr[$k]['amount']=$v;
         }
-        $str=substr($str,1);
+        $yearArr=array_merge($yearArr,array());
+        $sum=0;
+        foreach($yearArr as $k => $v){
+            $sum+=$v['amount'];
+        }
+//        print_r($yearArr);die;
+//        $str='';
+//        foreach($orderYear as $k => $v){
+//            $str.=';'.$k.'--$'.sprintf("%.4f",$v);
+//        }
+//        $str=substr($str,1);
         $count=count($orderArr['count']);  //订单数量
         $amount=$orderArr['amount'];  //订单金额arr
         sort($amount);
-        $sum=array_sum($orderYear); //总订单金额
-
+        $sum=array_sum($amount); //总订单金额
         //返回数据
         if($count==0){
             $arr=array(
@@ -244,7 +254,7 @@ class OrderModel extends PublicModel {
                 'account'=>$sum,
                 'min'=>0,
                 'max'=>$sum,
-                'year'=>$str
+                'year'=>$yearArr
             );
         }else{
             $arr=array(
@@ -252,7 +262,7 @@ class OrderModel extends PublicModel {
                 'account'=>$sum,
                 'min'=>reset($amount),
                 'max'=>end($amount),
-                'year'=>$str
+                'year'=>$yearArr
             );
         }
         $data=array(
@@ -260,7 +270,7 @@ class OrderModel extends PublicModel {
             'account'=>sprintf("%.4f",$arr['account']),
             'min'=>sprintf("%.4f",$arr['min']),
             'max'=>sprintf("%.4f",$arr['max']),
-            'year'=>$str
+            'year'=>$yearArr
         );
         return $data;
     }
