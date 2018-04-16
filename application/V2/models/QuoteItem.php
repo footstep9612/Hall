@@ -198,6 +198,9 @@ class QuoteItemModel extends PublicModel {
         $i = 0;
         $this->startTrans();
         foreach ($data as $key=>$value){
+            if (!is_numeric($value['supplier_id'])) {
+                $value['supplier_id'] = null;
+            }
             if(!empty($value['purchase_unit_price'])){
                 if (!is_numeric($value['purchase_unit_price'])){
                     if ($i > 0) {
