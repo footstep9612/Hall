@@ -19,11 +19,11 @@ class QuoteItemModel extends PublicModel {
 
     /**
      * 删除报价单项(一个或多个)
-     * @param $where 条件
+     * @param string $ids
      * @return bool True|False
      */
-    public function delItem($where){
-        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+    public function delItem($ids){
+        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
     }
     
     /**
