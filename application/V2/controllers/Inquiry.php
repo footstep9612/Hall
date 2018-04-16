@@ -1072,6 +1072,8 @@ class InquiryController extends PublicController {
 
         if (isset($data['sku'])) {
             $Item->startTrans();
+            // 记录插入的询单SKU主键ID
+            $insertItemIds = [];
             foreach ($data['sku'] as $val) {
                 $condition = $val;
                 if (isset($condition['qty']) && !isDecimal($condition['qty'])) {
@@ -1088,7 +1090,10 @@ class InquiryController extends PublicController {
                 if ($results['code'] != 1) {
                     $Item->rollback();
                     $this->jsonReturn($results);
-                    die;
+                } else {
+                    if ($results['insert_id']) {
+                        $insertItemIds[] = $results['insert_id'];
+                    }
                 }
             }
             $Item->commit();
@@ -1096,7 +1101,9 @@ class InquiryController extends PublicController {
             $results['code'] = '-101';
             $results['message'] = L('FAIL');
         }
-
+        if ($insertItemIds) {
+            $results['insert_item_ids'] = $insertItemIds;
+        }
         $this->jsonReturn($results);
     }
 

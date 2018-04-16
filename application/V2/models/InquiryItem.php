@@ -159,6 +159,7 @@ class InquiryItemModel extends PublicModel {
             $id = $this->add($data);
             if($id){
                 $results['code'] = '1';
+                $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
             }else{
                 $results['code'] = '-101';
@@ -410,7 +411,7 @@ class InquiryItemModel extends PublicModel {
                                 ->join($this->joinTable_, 'LEFT')
                                 ->where($where)
                                 ->page($currentPage, $pageSize)
-                                ->order('a.id DESC')
+                                ->order('a.id ASC')
                                 ->select();
             if ($list) {
                 $results['code'] = '1';

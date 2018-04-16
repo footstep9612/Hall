@@ -25,6 +25,7 @@ return [
     'QUOTE_DD_REQUIRED'         =>      'Delivery days required',
     'QUOTE_DD_NUMBER'           =>      'Delivery days must be number',
     'QUOTE_POF_REQUIRED'        =>      'Period of validity required',
+    'QUOTE_QQ_NUMBER'           =>      'Quote qty must be numbe',
 
     'QUOTE_DELETE_FAIL'         =>      'Quote delete failed',
 
