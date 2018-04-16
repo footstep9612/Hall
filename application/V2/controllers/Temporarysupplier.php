@@ -36,8 +36,8 @@ class TemporarySupplierController extends PublicController
             'data' => [
                 'data' => $list,
                 'total' => $this->temporarySupplier->getCount($request),
-                'relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'Y', 'deleted_flag' => 'N'], false),
-                'un_relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'N', 'deleted_flag' => 'N'], false),
+                'relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'Y']),
+                'un_relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'N']),
             ]
         ]);
 
