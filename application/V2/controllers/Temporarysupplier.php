@@ -11,7 +11,7 @@ class TemporarySupplierController extends PublicController
 
     public function init()
     {
-        //parent::init();
+        parent::init();
         $this->temporarySupplier = new TemporarySupplierModel();
     }
 
@@ -66,7 +66,8 @@ class TemporarySupplierController extends PublicController
      */
     public function relationAction()
     {
-
-        //code
+        $request = $this->validateRequestParams('id,supplier_id,supplier_no');
+        $response = (new TemporarySupplierRelationModel)->setRelation($request, $this->user['id']);
+        $this->jsonReturn($response);
     }
 }
