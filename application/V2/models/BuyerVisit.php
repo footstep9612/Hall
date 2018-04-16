@@ -240,7 +240,7 @@ class BuyerVisitModel extends PublicModel {
             if($result){
                 //产品信息
                 $visit_product=new VisitProductModel();
-                $product=$visit_product->getProductInfo($result['id']);
+                $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark',true,$lang);
                 //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
@@ -267,16 +267,20 @@ class BuyerVisitModel extends PublicModel {
                 $result['product_info'] = $product;     //产品信息
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
-                    $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
+                    $demandInfo = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
+                    $result['demand_type']=$this->packStrData($demandInfo);
 
                     $vp_model = new VisitPositionModel();
-                    $result['visit_position'] = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
+                    $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
+                    $result['visit_position']=$this->packStrData($positionInfo);
 
                     $vl_model = new VisitLevelModel();
-                    $result['visit_level'] = $vl_model->field('name')->where(['id'=>['in', $result['visit_level']]])->select();
+                    $levelInfo = $vl_model->field('name')->where(['id'=>['in', $result['visit_level']]])->select();
+                    $result['visit_level']=$this->packStrData($levelInfo);
 
                     $vt_model = new VisitTypeModel();
-                    $result['visit_type'] = $vt_model->field('name')->where(['id'=>['in', $result['visit_type']]])->select();
+                    $typeInfo = $vt_model->field('name')->where(['id'=>['in', $result['visit_type']]])->select();
+                    $result['visit_type']=$this->packStrData($typeInfo);
                 }
             }
             return $result ? $result : [];
@@ -285,7 +289,13 @@ class BuyerVisitModel extends PublicModel {
             return false;
         }
     }
-
+    private function packStrData($data){
+        $str='';
+        foreach($data as $k => $v){
+            $str.=','.$v['name'];
+        }
+        return substr($str,1);
+    }
     /**
      * 编辑（新增/修改）
      * @param array $_input
