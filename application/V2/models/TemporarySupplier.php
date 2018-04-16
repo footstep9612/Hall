@@ -22,7 +22,7 @@ class TemporarySupplierModel extends PublicModel
     /**
      * @var string
      */
-    protected $listFields = 'a.id,a.name,a.is_relation,a.relations_count,e.name created_by,a.quotations_count,o.name org_name,a.registration_time';
+    protected $listFields = 'a.id,a.name,a.name_en,a.is_relation,a.relations_count,a.created_by created_by_id,e.name created_by,a.quotations_count,a.org_id,o.name org_name,a.registration_time';
 
     /**
      * @var string
