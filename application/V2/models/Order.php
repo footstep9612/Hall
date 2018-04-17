@@ -222,7 +222,7 @@ class OrderModel extends PublicModel {
         $yearArr=[];
         foreach($orderYear as $k => $v){
             $yearArr[$k]['year']=$k;
-            $yearArr[$k]['amount']=$v;
+            $yearArr[$k]['amount']=(sprintf("%.4f",$v));
         }
         $yearArr=array_merge($yearArr,array());
         $sum=0;
