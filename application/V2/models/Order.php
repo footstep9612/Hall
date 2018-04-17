@@ -570,4 +570,123 @@ class OrderModel extends PublicModel {
         return $arr;
     }
     //会员自动升级end---------------------------------------------------------------------------------------
+    private function _getCountry($lang,$area_bn='',$country_bn=''){
+        if(!empty($country_bn)){
+            $countryArr=array($country_bn);
+            return $countryArr;
+        }
+        if(!empty($area_bn)){
+            $country=new MarketAreaCountryModel();
+            $countryArr=$country->getCountryBn($area_bn, $lang);
+            return $countryArr;
+        }
+        return '';
+    }
+    //会员统计系列获取条件-wangs
+    public function getStatisOrderCond($data){
+        $cond=' order.delete_flag=0';  //客户状态
+        if(!empty($data['area_bn']) || !empty($data['area_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
+            if(!empty($countryArr)){
+                $str='';
+                foreach($countryArr as $k => $v){
+                    $str.=",'".$v."'";
+                }
+                $str=substr($str,1);
+                if(count($countryArr)==1){
+                    $cond.=' and order.country='.$str;
+                }else{
+                    $cond.=' and order.country in ('.$str.')';
+                }
+            }
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
+            $data['end_time']=date('Y-m-d H:i:s');
+            $cond.=' and order.create_time >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and order.create_time <= \''.$data['end_time'].'\'';
+        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+            $cond.=' and order.create_time >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and order.create_time <= \''.$data['end_time'].' 23:59:59\'';
+        }
+        return $cond;
+    }
+    //会员统计---start
+    public function statisCondOrder($data){
+        $cond=$this->getStatisOrderCond($data); //新订单
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
+            $data['end_time']=date('Y-m-d');
+        }
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(create_time,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_new_order.order  ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(create_time,\'%Y-%m-%d\') ';
+        $sql.=' order by create_time ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        $oldOrder=$this->getStatisOldOrder($data);
+        if(!empty($oldOrder)){
+            foreach($arr as $key => $value){
+                foreach($oldOrder as $k => $v){
+                    if($value['created_at']==$v['created_at']){
+                        $arr[$key]['count']=$value['count']+$v['count'];
+                    }
+                }
+            }
+        }
+        $result=[];
+        foreach($arr as $k => $v){
+            $result['day'][]=$v['created_at'];
+            $result['count'][]=intval($v['count']);
+        }
+        return $result;
+    }
+    public function getStatisOldOrder($data){
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){
+            return [];
+        }
+        if($data['end_time'] < '2018-03-01'){
+            return [];
+        }
+        $cond=' order.deleted_flag=\'N\'';  //客户状态
+        $cond.=' and order.created_at >= \''.$data['start_time'].' 00:00:00\'';
+        $cond.=' and order.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_order.order  ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        return $arr;
+    }
+    //整理每天的数据
+    public function packDailyData($data,$start_time,$end_time){
+        $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
+        $arr=[];
+        $info=[];
+        for($i=0;$i<$days;$i++){
+            $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
+            $arr[$i]['count']=0;
+        }
+        foreach($arr as $key => &$value){
+            foreach($data as $k => $v){
+                if($v['created_at'] == $value['created_at']){
+                    $arr[$key]['created_at']=$value['created_at'];
+                    $arr[$key]['count']=$v['count'];
+                }
+            }
+        }
+//        foreach($arr as $k => $v){
+//            $info['day'][]=$v['created_at'];
+//            $info['count'][]=intval($v['count']);
+//        }
+        return $arr;
+    }
+    //会员统计---end
 }

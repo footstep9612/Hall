@@ -2609,9 +2609,17 @@ EOF;
                 }
             }
         }
-        if(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
+            $data['end_time']=date('Y-m-d H:i:s');
+            $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and buyer.created_at <= \''.$data['end_time'].'\'';
+        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
             $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
             $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        }
+        if(!empty($data['source'])){
+            $cond.=' and buyer.source='.$data['source'];
         }
         return $cond;
     }
@@ -2646,6 +2654,10 @@ EOF;
     //会员增长
     public function memberSpeed($data){
         $cond=$this->getStatisMemberCond($data);
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
+            $data['end_time']=date('Y-m-d');
+        }
         $lang=$data['lang'];
         $sql='select count(id) as `count`,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at from erui_buyer.buyer buyer ';
         $sql.=' where ';
@@ -2678,5 +2690,21 @@ EOF;
             $info['count'][]=intval($v['count']);
         }
         return $info;
+    }
+    //统计会员信息列表CRM-wangs
+    public function statisMemberList($data){
+        $cond=$this->getStatisMemberCond($data);
+        $sql='select ';
+        $sql.=' buyer.id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
+        $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
+        $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
+        $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at ';
+        $sql.=' from erui_buyer.buyer buyer ';
+        $sql.=' left join erui_operation.market_area_country country on buyer.country_bn=country.country_bn';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' order by buyer.created_at desc';
+        $info=$this->query($sql);
+        print_r($info);die;
     }
 }

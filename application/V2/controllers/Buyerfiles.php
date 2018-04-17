@@ -336,11 +336,59 @@ class BuyerfilesController extends PublicController
         $data['created_by'] = $created_by;
         $data['lang'] = $lang;
         $inquiry=new InquiryModel();
-        $member=$inquiry->statisInquiry($data);
+        $inquiryInfo=$inquiry->statisCondInquiry($data);
         $dataJson = array(
             'code'=>1,
-            'message'=>'询单',
-            'data'=>$member
+            'message'=>'询单量统计',
+            'data'=>$inquiryInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //统计报价量
+    public function statisQuoteAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $inquiry=new InquiryModel();
+        $quoteInfo=$inquiry->statisCondQuote($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'报价量统计',
+            'data'=>$quoteInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //统计报价量
+    public function statisOrderAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $order=new OrderModel();
+        $orderInfo=$order->statisCondOrder($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'订单量统计',
+            'data'=>$orderInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //会员统计信息列表
+    public function statisMemberListAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberList($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'统计会员信息列表',
+            'data'=>$memInfo
         );
         $this->jsonReturn($dataJson);
     }
