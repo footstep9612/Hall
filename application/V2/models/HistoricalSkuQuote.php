@@ -117,8 +117,8 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	}
     	$orderBy = ($orderBy ? $orderBy . ',' : '') . 'a.id DESC';
     	return $this->getSqlJoint($condition)
-                            ->field('a.created_at,
-                                          b.name, b.name_zh, b.model,
+                            ->field('a.created_at, '
+                                          . ($lang ==  'zh' ? 'b.name_zh' : 'b.name') . ' AS sku_name, b.model,
                                           c.pn, c.brand, c.quote_qty, c.period_of_validity, c.delivery_days, c.stock_loc, c.purchase_unit_price, c.purchase_price_cur_bn,
                                           d.sku, d.supplier_id,
                                           e.name'. ($lang == 'zh' ? '' : '_en') . ' AS supplier_name,
