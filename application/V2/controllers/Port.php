@@ -11,8 +11,6 @@ class PortController extends PublicController {
 
     public function init() {
         parent::init();
-
-        $this->_model = new PortModel();
     }
 
     /*
@@ -26,14 +24,15 @@ class PortController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
-        $arr = $this->_model->getListbycondition($condtion);
+        $port_model = new PortModel();
+        $arr = $port_model->getListbycondition($condtion);
         $this->_setUserName($arr);
         if ($arr) {
 
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
-            $data['count'] = $this->_model->getCount($condtion);
+            $data['count'] = $port_model->getCount($condtion);
 
             $this->jsonReturn($data);
         } elseif ($arr === null) {
@@ -57,8 +56,8 @@ class PortController extends PublicController {
     public function listAllAction() {
         $condtion = $this->getPut();
         $condtion['lang'] = $this->getPut('lang', 'zh');
-
-        $arr = $this->_model->getAll($condtion);
+        $port_model = new PortModel();
+        $arr = $port_model->getAll($condtion);
 
         $this->_setUserName($arr);
         if ($arr) {
@@ -130,7 +129,8 @@ class PortController extends PublicController {
             if ($country_bn) {
                 $where['country_bn'] = $country_bn;
             }
-            $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
+            $port_model = new PortModel();
+            $result = $port_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
                                     . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                             ->where($where)->find();
 
@@ -164,8 +164,9 @@ class PortController extends PublicController {
             $langs = ['en', 'zh', 'es', 'ru'];
             $country_model = new CountryModel();
             $country = $country_model->getTableName();
+            $port_model = new PortModel();
             foreach ($langs as $lang) {
-                $result = $this->_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
+                $result = $port_model->field('country_bn,bn,port_type,trans_mode,name,remarks,'
                                         . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
 
@@ -236,9 +237,34 @@ class PortController extends PublicController {
      */
 
     public function createAction() {
-        $condtion = $this->getPut();
+        $condition = $this->getPut();
+        $port_model = new PortModel();
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($condition['zh']['name'])) {
 
-        $result = $this->_model->create_data($condtion);
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        } else {
+
+            $newbn = ucwords($condition['en']['name']);
+            $row = $port_model->Exits(['country_bn' => trim($condition['country_bn']), 'bn' => $newbn, 'status' => 'VALID']);
+
+            if ($row) {
+                $this->setMessage('英文');
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
+        $result = $port_model->create_data($condition);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -260,8 +286,32 @@ class PortController extends PublicController {
     public function updateAction() {
 
         $condition = $this->getPut();
+        $port_model = new PortModel();
+        $newbn = ucwords($condition['en']['name']);
 
-        $result = $this->_model->update_data($condition);
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($condition['zh']['name'])) {
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        } elseif ($newbn && $newbn != $condition['bn']) {
+            $row = $port_model->where(['country_bn' => trim($condition['country_bn']), 'bn' => $newbn, 'status' => 'VALID'])->find();
+            if ($row) {
+                $this->setMessage('英文港口已存在');
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
+        $result = $port_model->update_data($condition);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -283,6 +333,7 @@ class PortController extends PublicController {
     public function deleteAction() {
 
         $condition = $this->getPut();
+        $port_model = new PortModel();
         if ($condition['bn']) {
             if (is_string($condition['bn'])) {
                 $where['bn'] = $condition['bn'];
@@ -296,7 +347,7 @@ class PortController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-        $result = $this->_model->where($where)->save(['status' => 'DELETED',]);
+        $result = $port_model->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
