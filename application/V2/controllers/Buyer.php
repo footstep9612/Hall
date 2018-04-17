@@ -1238,7 +1238,7 @@ EOF;
         $arr['visit'] = $visitInfo;
         $arr['demand'] = $demandInfo;
         $arr['order']['count'] = $orderInfo['count'];
-        $arr['order']['account'] = $orderInfo['account'];
+        $arr['order']['account'] = $orderInfo['account']==0?0:$orderInfo['account'];
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;

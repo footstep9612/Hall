@@ -269,8 +269,8 @@ class OrderModel extends PublicModel {
         $data=array(
             'count'=>$arr['count'],
             'account'=>sprintf("%.4f",$arr['account']),
-            'min'=>sprintf("%.4f",$arr['min']),
-            'max'=>sprintf("%.4f",$arr['max']),
+            'min'=>$arr['min']==0?0:sprintf("%.4f",$arr['min']),
+            'max'=>$arr['max']==0?0:sprintf("%.4f",$arr['max']),
             'year'=>$arr['year']
         );
         return $data;
