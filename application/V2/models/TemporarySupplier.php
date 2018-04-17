@@ -35,6 +35,14 @@ class TemporarySupplierModel extends PublicModel
     protected $joinEmployyeTable = 'erui_sys.employee e ON a.created_by=e.id';
 
     /**
+     * @var string
+     */
+    protected $joinTable1 = 'erui_sys.org b ON a.org_id = b.id';
+    protected $joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ';
+    protected $joinTable5 = 'erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'';
+    protected $joinField = 'a.id,a.supplier_no,a.name,a.created_by, b.name AS org_name, f.agent_id';
+
+    /**
      * TemporarySupplierModel constructor.
      */
     public function __construct()
@@ -147,5 +155,64 @@ class TemporarySupplierModel extends PublicModel
             'updated_at' => date('Y-m-d H:i:s')
         ]);
 
+    }
+
+    public function getRegularSupplierList(array $condition)
+    {
+        $where = $this->setRegularCondition($condition);
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        $supplier = new SuppliersModel();
+
+        return $supplier->alias('a')
+            ->join($this->joinTable1, 'LEFT')
+            ->join($this->joinTable5, 'LEFT')
+            ->join($this->joinTable4, 'LEFT')
+            ->field($this->joinField)
+            ->where($where)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
+
+    }
+
+    public function getRegularCount(array $condition)
+    {
+        $where = $this->setRegularCondition($condition);
+        $supplier = new SuppliersModel();
+
+        return $supplier->alias('a')
+            ->join($this->joinTable1, 'LEFT')
+            ->join($this->joinTable5, 'LEFT')
+            ->join($this->joinTable4, 'LEFT')
+            ->field($this->joinField)
+            ->where($where)
+            ->order('a.id DESC')
+            ->count();
+    }
+
+    private function setRegularCondition(array $condition)
+    {
+        $where['a.deleted_flag'] = 'N';
+        $where['a.status'] = ['neq', 'OVERDUE'];
+
+        if (!empty($condition['id'])) {
+            $where['a.id'] = $condition['id'];
+        }
+
+        if (!empty($condition['name'])) {
+            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+        }
+
+        if (!empty($condition['status'])) {
+            $where['a.status'] = [['eq', $condition['status']], $where['a.status']];
+        }
+
+        if (isset($condition['agent_ids'])) {
+            $where['f.agent_id'] = ['in', $condition['agent_ids'] ? : ['-1']];
+        }
+        return $where;
     }
 }
