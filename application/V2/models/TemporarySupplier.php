@@ -132,4 +132,20 @@ class TemporarySupplierModel extends PublicModel
         return (new SupplierModel)->where(['supplier_no' => $temporarySupplier['supplier_no'], 'deleted_flag' => 'N'])->getField('name');
     }
 
+    public function setDeleteWithRelationBy($id, $user)
+    {
+        $this->where(['id' => $id])->save([
+            'deleted_flag' => 'Y',
+            'is_relation' => 'Y',
+            'updated_by' => $user,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id])->save([
+            'deleted_flag' => 'Y',
+            'updated_by' => $user,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+    }
 }
