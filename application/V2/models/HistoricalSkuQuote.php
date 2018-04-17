@@ -77,7 +77,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @desc 获取列表
  	 * 
      * @param array $condition
-     * @return array
+     * @return mixed
      * @author liujf 
      * @time 2018-04-12
      */
@@ -121,6 +121,18 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	                    ->page($currentPage, $pageSize)
     	                    ->order($order)
     	                    ->select();
+    }
+    
+    /**
+     * @desc 获取采购价格区间
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-17
+     */
+    public function getPriceRange($condition = []) {
+        return $this->getSqlJoint($condition)->field('CONCAT(ROUND(MIN(c.purchase_unit_price), 2), '-', ROUND(MAX(c.purchase_unit_price), 2)) AS price_range')->find()['price_range'];
     }
     
     /**
