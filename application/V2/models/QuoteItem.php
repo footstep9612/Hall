@@ -19,11 +19,11 @@ class QuoteItemModel extends PublicModel {
 
     /**
      * 删除报价单项(一个或多个)
-     * @param $where 条件
+     * @param string $ids
      * @return bool True|False
      */
-    public function delItem($where){
-        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+    public function delItem($ids){
+        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
     }
     
     /**
@@ -50,7 +50,7 @@ class QuoteItemModel extends PublicModel {
         return $this->getSqlJoint($request)
                             ->field($fields)
                             ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
+                            ->order('a.id ASC')
                             ->select();
     }
     
@@ -198,6 +198,9 @@ class QuoteItemModel extends PublicModel {
         $i = 0;
         $this->startTrans();
         foreach ($data as $key=>$value){
+            if (!is_numeric($value['supplier_id'])) {
+                $value['supplier_id'] = null;
+            }
             if(!empty($value['purchase_unit_price'])){
                 if (!is_numeric($value['purchase_unit_price'])){
                     if ($i > 0) {

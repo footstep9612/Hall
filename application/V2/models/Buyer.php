@@ -2234,9 +2234,6 @@ EOF;
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
-            $cond .= " and buyer.country_bn='$data[country_bn]'";
-        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
         }

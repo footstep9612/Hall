@@ -482,21 +482,19 @@ class QuoteController extends PublicController{
         $finalQuoteItemModel = new FinalQuoteItemModel();
 
         $request = $this->validateRequests('id');
-        $inquiryItemIds = $request['id'];
+        $inquiryItemIds = explode(',', $request['id']) ? : ['-1'];
 
         //先删除询单SKU，在删除报价单SKU，最后删除物流和市场报价单SKU
         $this->inquiryItemModel->startTrans();
         $results = $this->inquiryItemModel->deleteData($request);    //删除询单SKU
         if($results['code'] == 1){
             //判断报价单SKU表是否存在数据，有就删除
-            $quoteItemIds = $this->quoteItemModel->where('inquiry_item_id IN('.$inquiryItemIds.')')->getField('id',true);
+            $quoteItemIds = $this->quoteItemModel->where(['inquiry_item_id' => ['in', $inquiryItemIds], 'deleted_flag' => 'N'])->getField('id',true);
             if($quoteItemIds){
-                $resquote = $this->quoteItemModel->delItem($inquiryItemIds);    //删除报价单SKU
+                $resquote = $this->quoteItemModel->delItem($request['id']);    //删除报价单SKU
                 if($resquote){
-                    $quoteItemId = implode(',',$quoteItemIds);
-
                     //判断物流SKU表是否存在数据，有就删除
-                    $logiItemIds = $quoteItemLogiModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    $logiItemIds = $quoteItemLogiModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id',true);
                     if($logiItemIds){
                         $logiItemId['r_id'] = implode(',',$logiItemIds);
                         $reslogi = $quoteItemLogiModel->delRecord($logiItemId);
@@ -509,7 +507,7 @@ class QuoteController extends PublicController{
                     }
 
                     //判断物流SKU表是否存在数据，有就删除
-                    $finalItemIds = $finalQuoteItemModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    $finalItemIds = $finalQuoteItemModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id',true);
                     if($finalItemIds){
                         $finalItemId['id'] = implode(',',$finalItemIds);
                         $resfinal = $finalQuoteItemModel->delItem($finalItemId);
