@@ -70,4 +70,48 @@ class TemporarySupplierController extends PublicController
         $response = (new TemporarySupplierRelationModel)->setRelation($request, $this->user['id']);
         $this->jsonReturn($response);
     }
+
+    /**
+     * @desc 关联供应商(正式供应商列表)
+     * @author 买买提
+     * @time 2018--4-17
+     */
+    public function regularAction()
+    {
+        $request = $this->validateRequestParams();
+
+        $isErui = (new InquiryModel)->getDeptOrgId($this->user['group_id'], 'erui');
+        if (!$isErui) {
+            // 非易瑞事业部门的看他所在事业部和易瑞的
+            $orgUb = (new InquiryModel)->getDeptOrgId($this->user['group_id'], 'ub');
+            $request['org_id'] = $orgUb ? array_merge((new OrgModel)->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
+        }
+
+        // 开发人
+        if ($request['developer'] != '') {
+            $request['agent_ids'] = (new EmployeeModel)->getUserIdByName($request['developer']) ? : [];
+        }
+
+        $suppliers = $this->temporarySupplier->getRegularSupplierList($request);
+
+        foreach ($suppliers as &$supplier) {
+
+            // 开发人
+            $supplier['dev_name'] = (new EmployeeModel)->getUserNameById($supplier['agent_id']);
+            //创建人
+            $supplier['created_by'] = (new EmployeeModel)->getUserNameById($supplier['created_by']);
+            // 供货范围
+            $supplier['material_cat'] = (new SupplierMaterialCatModel)->getCatBySupplierId($supplier['id']);
+            //是否关联供应商
+            $supplier['is_relation'] = (new TemporarySupplierRelationModel)->checkTemporaryRegularRelationBy($request['temporary_supplier_id'], $supplier['id']) ? 'Y' : 'N';
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'total' => $this->temporarySupplier->getRegularCount($request),
+            'data' => $suppliers
+        ]);
+
+    }
 }

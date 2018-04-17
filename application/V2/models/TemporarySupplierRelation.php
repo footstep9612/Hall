@@ -56,4 +56,9 @@ class TemporarySupplierRelationModel extends PublicModel
         $this->rollback();
         return $result;
     }
+
+    public function checkTemporaryRegularRelationBy($temporarySupplier, $regularSupplier)
+    {
+        return $this->where(['temporary_supplier_id' => $temporarySupplier, 'supplier_id' => $regularSupplier])->count();
+    }
 }
