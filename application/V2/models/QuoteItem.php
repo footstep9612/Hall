@@ -19,11 +19,23 @@ class QuoteItemModel extends PublicModel {
 
     /**
      * 删除报价单项(一个或多个)
-     * @param $where 条件
+     * @param string $ids
      * @return bool True|False
      */
-    public function delItem($where){
-        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+    public function delItem($ids){
+        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
+    }
+    
+    /**
+     * @desc 获取记录总数
+ 	 * 
+     * @param array $request 
+     * @return int
+     * @author liujf 
+     * @time 2018-04-13
+     */
+    public function getCount($request) {
+    	return $this->getSqlJoint($request)->count('a.id');
     }
 
     /**
@@ -32,18 +44,35 @@ class QuoteItemModel extends PublicModel {
      * @return mixed 数据
      */
     public function getList($request){
-
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
+        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
+        return $this->getSqlJoint($request)
+                            ->field($fields)
+                            ->page($currentPage, $pageSize)
+                            ->order('a.id ASC')
+                            ->select();
+    }
+    
+    /**
+     * @desc 获取组装sql后的对象
+     *
+     * @param array $request
+     * @return object
+     * @author liujf
+     * @time 2018-04-13
+     */
+    public function getSqlJoint($request) {
+        $inquiryItemModel = new InquiryItemModel();
+        $inquiryItemAttachModel = new InquiryItemAttachModel();
+        $inquiryItemTableName = $inquiryItemModel->getTableName();
+        $inquiryItemAttachTableName = $inquiryItemAttachModel->getTableName();
         $where['a.inquiry_id'] = $request['inquiry_id'];
         $where['a.deleted_flag'] = 'N';
-
-        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
         return $this->alias('a')
-            ->join('erui_rfq.inquiry_item b ON a.inquiry_item_id = b.id', 'LEFT')
-            ->join('erui_rfq.inquiry_item_attach c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
-            ->field($fields)
-            ->where($where)
-            ->select();
-
+                            ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id', 'LEFT')
+                            ->join($inquiryItemAttachTableName . ' c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
+                            ->where($where);
     }
 
     public function updateSupplier($data){
@@ -166,39 +195,79 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      */
     public function updateItemBatch($data,$user){
-
+        $i = 0;
+        $this->startTrans();
         foreach ($data as $key=>$value){
-
+            if (!is_numeric($value['supplier_id'])) {
+                $value['supplier_id'] = null;
+            }
             if(!empty($value['purchase_unit_price'])){
                 if (!is_numeric($value['purchase_unit_price'])){
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER') ];
                 }
+            } else {
+                $value['purchase_unit_price'] = null;
             }
             if(!empty($value['gross_weight_kg'])) {
                 if (!is_numeric($value['gross_weight_kg'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER') ];
                 }
+            } else {
+                $value['gross_weight_kg'] = null;
             }
             if(!empty($value['package_size'])){
-                if (!is_numeric($value['package_size'])){
+                if (!is_numeric($value['package_size'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
                 }
+            } else {
+                $value['package_size'] = null;
+            }
+            if(!empty($value['quote_qty'])){
+                if (!is_numeric($value['quote_qty'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
+                    return ['code'=>'-104','message'=> L('QUOTE_QQ_NUMBER')];
+                }
+            } else {
+                $value['quote_qty'] = null;
             }
             if(!empty($value['delivery_days'])) {
                 if (!is_numeric($value['delivery_days'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
                     return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
             }
-
-            $value['updated_at'] = date('Y-m-d H:i:s');
-            $value['updated_by'] = $user;
-
-            $this->save($this->create($value));
-
-
+            $value = $this->create($value);
+            $time = date('Y-m-d H:i:s');
+            if (empty($value['id'])) {
+                $value['created_by'] = $user;
+                $value['created_at'] = $time;
+                $result = $this->add($value);
+            } else {
+                $value['updated_by'] = $user;
+                $value['updated_at'] = $time;
+                $result = $this->save($value);
+            }
+            if (!$result) {
+                $this->rollback();
+                return ['code' => '-101', 'message' => L('FAIL')];
+            }
+            $i++;
         }
-        return true;
-
+        $this->commit();
+        return ['code' => '1', 'message' => L('SUCCESS')];
     }
 
     public function syncSku($request,$user){

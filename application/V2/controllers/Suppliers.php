@@ -73,16 +73,8 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function updateSupplierInfoAction() {
-        $condition = $this->put_data;
 
-        if ($condition['supplier_id'] == '')
-            jsonReturn('', -101, '缺少供应商id参数!');
-
-        if ($condition['status'] == '')
-            jsonReturn('', -101, '状态不能为空!');
-
-        if ($condition['items'] == '')
-            jsonReturn('', -101, '缺少items参数!');
+        $condition = $this->validateRequestParams('supplier_id,status,items');
 
         if ($condition['status'] != 'DRAFT' && $condition['supplier_type'] == '')
             jsonReturn('', -101, '企业类型不能为空!');
@@ -269,6 +261,29 @@ class SuppliersController extends PublicController {
             $change = $this->_checkFieldsChange($supplier, $checkFields, $condition);
         }
 
+        //供应商的品牌
+        if (isset($condition['brand'])) {
+            $deleteAll = (new SupplierBrandModel)->where(['supplier_id' => $condition['supplier_id']])->delete();
+            foreach ($condition['brand'] as $brand) {
+                (new SupplierBrandModel)->add((new SupplierBrandModel)->create([
+                    'supplier_id' => $condition['supplier_id'],
+                    'brand_id' => $brand['en']['id'],
+                    'status' => 'VALID',
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'brand_en' => $brand['en']['name'],
+                    'brand_zh' => $brand['zh']['name'],
+                    'brand_es' => $brand['es']['name'],
+                    'brand_ru' => $brand['ru']['name']
+                ]));
+            }
+        }
+
+        //临时供应商完善
+        if (isset($condition['temporary_supplier_id'])) {
+            (new TemporarySupplierModel)->setDeleteWithRelationBy($condition['temporary_supplier_id'], $this->user['id']);
+        }
+
         if ($change) {
             $supplierData['status'] = 'APPROVING';
             $supplierData['erui_status'] = 'CHECKING';
@@ -399,7 +414,23 @@ class SuppliersController extends PublicController {
 
         $res = $this->suppliersModel->getJoinDetail($condition);
 
+        //供应商的品牌(对象)
+        $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
+
         $this->jsonReturn($res);
+    }
+
+    /**
+     * @desc 删除供应商的品牌
+     *
+     * @author 买买提
+     * @time 2018-04-12
+     */
+    public function delBrandsAction()
+    {
+        $request = $this->validateRequestParams('supplier_id,brand_id');
+        $response = (new SupplierBrandModel)->delBrand($request['supplier_id'], $request['brand_id']);
+        $this->jsonReturn($response);
     }
 
     /**

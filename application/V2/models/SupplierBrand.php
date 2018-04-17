@@ -16,6 +16,10 @@ class SupplierBrandModel extends PublicModel {
     protected $tableName = 'supplier_brand';
     protected $dbName = 'erui_supplier'; //数据库名称
 
+    protected $joinBrandsTable = 'erui_dict.brand b ON a.brand_id=b.id';
+
+    protected $languages = ['en', 'es', 'ru', 'zh'];
+
     public function __construct($str = '') {
         parent::__construct();
     }
@@ -177,6 +181,63 @@ class SupplierBrandModel extends PublicModel {
             Log::write($ex->getMessage());
             return false;
         }
+    }
+
+    /**
+     * @desc 检出供应商品牌的关系
+     * @param $supplier
+     * @param $brand
+     * @return mixed
+     * @author 买买提
+     * @time 2018--4-13
+     */
+    public function checkBrandBy($supplier, $brand)
+    {
+        return $this->where(['supplier_id' => $supplier, 'brand_id' => $brand, 'status' => 'VALID'])->find();
+    }
+
+    /**
+     * @desc 获取供应商的品牌(对象)
+     * @param $supplier 供应商id
+     * @return mixed
+     * @throws Exception
+     * @author 买买提
+     * @time 2018--4-13
+     */
+    public function brandsObjectBy($supplier)
+    {
+        $where = ['a.supplier_id' => $supplier, 'a.status' => 'VALID'];
+        $field = 'b.id,b.brand';
+
+        $data = $this->alias('a')->join($this->joinBrandsTable, 'LEFT')->where($where)->field($field)->select();
+
+        foreach ($data as $key => $item) {
+            $brands = json_decode($item['brand'], true);
+
+            $brand = [];
+            foreach ($this->langs as $lang) {
+                $brand[$lang] = [];
+            }
+            foreach ($brands as $val) {
+                $brand[$val['lang']] = $val;
+                $brand[$val['lang']]['id'] = $item['id'];
+            }
+            $data[$key] = $brand;
+        }
+        return $data;
+    }
+
+    /**
+     * @desc 删除供应商的品牌
+     * @param $supplier 供应商
+     * @param $brand 品牌
+     * @return bool
+     * @author 买买提
+     * @time 2018--4-13
+     */
+    public function delBrand($supplier, $brand)
+    {
+       return $this->where(['supplier_id' => $supplier, 'brand_id' => $brand])->save(['status' => 'DELETED']);
     }
 
     /**

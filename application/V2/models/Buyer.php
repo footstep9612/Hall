@@ -270,6 +270,9 @@ class BuyerModel extends PublicModel {
         if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
             $cond .= " and (buyer.source=2 or buyer.source=3) ";
         }
+//        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
+//            $cond .= " and buyer.country_bn='$data[country_bn]'";
+//        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
@@ -2228,26 +2231,13 @@ EOF;
         }else{
             $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
         }
-
-//        if($data['admin'] == 0){   //查看部分统计
-//            $cond .= " and buyer.created_by=$data[created_by] ";
-//            if(!empty($data['country_bn'])){    //国家权限
-//                $countryArr=array();
-//                $countrys=explode(',',$data['country_bn']);
-//                foreach($countrys as $k => $v){
-//                    $countryArr[]="'".$v."'";
-//                }
-//                $countryStr=implode(',',$countryArr);
-//                $cond .= " And `buyer`.country_bn in ($countryStr)";
-//            }
-//        }else{
-//            $cond=" 1=1 and is_build=1 and status='PASS' and deleted_flag='N'";
-//        }
+        foreach($data as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " and buyer.country_bn='$data[country_search]'";
         }
         if(!empty($data['created_name'])){  //创建人名称
-            $data['created_name']=trim($data['created_name']," ");
             $cond .= " and employee.name like '%".$data['created_name']."%'";
         }
 //        if(!empty($data['all_id'])){
@@ -2255,7 +2245,16 @@ EOF;
 //            $cond .= " and buyer.id in ($str)";
 //        }
         if(!empty($data['buyer_level'])){
-            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+            if($data['buyer_level']=='普通会员' || $data['buyer_level']=='Member'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='高级会员' || $data['buyer_level']=='Senior member'){
+                $cond .= " and buyer.buyer_level=53";
+            }elseif($data['buyer_level']=='注册会员' || $data['buyer_level']=='Registered member'){
+                $cond .= " and buyer.buyer_level is null";
+            }else{
+                $cond .= " and buyer.buyer_level='wangs'";
+            }
+//            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
         if(!empty($data['buyer_code'])){
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";

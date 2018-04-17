@@ -37,7 +37,7 @@ class QuoteController extends PublicController{
 
         $request = $this->validateRequestParams('inquiry_id');
         $condition = ['inquiry_id'=>$request['inquiry_id']];
-        $field = 'package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
+        $field = 'id,package_mode,total_weight,package_volumn,period_of_validity,payment_mode,trade_terms_bn,delivery_period,payment_period,fund_occupation_rate,bank_interest,gross_profit_rate,certification_fee,premium_rate,quote_remarks,trans_mode_bn,dispatch_place,delivery_addr,total_bank_fee,exchange_rate,total_purchase,purchase_cur_bn,from_port,to_port,from_country,to_country,logi_quote_flag,total_logi_fee,total_exw_price,total_quote_price';
 
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
 
@@ -363,7 +363,7 @@ class QuoteController extends PublicController{
      */
     public function skuAction(){
 
-        $request = $this->validateRequests('inquiry_id');
+        $request = $this->validateRequests('inquiry_id,currentPage,pageSize');
 
         $list = $this->quoteItemModel->getList($request);
 
@@ -389,6 +389,7 @@ class QuoteController extends PublicController{
         $this->jsonReturn([
             'code' => 1,
             'message' => L('QUOTE_SUCCESS'),
+            'count' => $this->quoteItemModel->getCount($request),
             'data' => $list
         ]);
 
@@ -481,21 +482,19 @@ class QuoteController extends PublicController{
         $finalQuoteItemModel = new FinalQuoteItemModel();
 
         $request = $this->validateRequests('id');
-        $inquiryItemIds = $request['id'];
+        $inquiryItemIds = explode(',', $request['id']) ? : ['-1'];
 
         //先删除询单SKU，在删除报价单SKU，最后删除物流和市场报价单SKU
         $this->inquiryItemModel->startTrans();
         $results = $this->inquiryItemModel->deleteData($request);    //删除询单SKU
         if($results['code'] == 1){
             //判断报价单SKU表是否存在数据，有就删除
-            $quoteItemIds = $this->quoteItemModel->where('inquiry_item_id IN('.$inquiryItemIds.')')->getField('id',true);
+            $quoteItemIds = $this->quoteItemModel->where(['inquiry_item_id' => ['in', $inquiryItemIds], 'deleted_flag' => 'N'])->getField('id',true);
             if($quoteItemIds){
-                $resquote = $this->quoteItemModel->delItem($inquiryItemIds);    //删除报价单SKU
+                $resquote = $this->quoteItemModel->delItem($request['id']);    //删除报价单SKU
                 if($resquote){
-                    $quoteItemId = implode(',',$quoteItemIds);
-
                     //判断物流SKU表是否存在数据，有就删除
-                    $logiItemIds = $quoteItemLogiModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    $logiItemIds = $quoteItemLogiModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id',true);
                     if($logiItemIds){
                         $logiItemId['r_id'] = implode(',',$logiItemIds);
                         $reslogi = $quoteItemLogiModel->delRecord($logiItemId);
@@ -508,7 +507,7 @@ class QuoteController extends PublicController{
                     }
 
                     //判断物流SKU表是否存在数据，有就删除
-                    $finalItemIds = $finalQuoteItemModel->where('quote_item_id IN('.$quoteItemId.')')->getField('id',true);
+                    $finalItemIds = $finalQuoteItemModel->where(['quote_item_id' => ['in', $quoteItemIds], 'deleted_flag' => 'N'])->getField('id',true);
                     if($finalItemIds){
                         $finalItemId['id'] = implode(',',$finalItemIds);
                         $resfinal = $finalQuoteItemModel->delItem($finalItemId);
