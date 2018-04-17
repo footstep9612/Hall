@@ -93,11 +93,9 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	if (!empty($condition['order_by'])) {
     	    // 存在的排序字段、排序字段和方式的映射、实际排序字段
     	    $orderExist = $orderMapping = $orderFact = [];
-    	    $orderFields = explode(',', $condition['order_by']);
-    	    foreach ($orderFields as $v) {
-    	        $tmpArr = explode(':', $v);
-    	        $orderField = trim($tmpArr[0]);
-    	        $orderType = strtoupper(trim($tmpArr[1]));
+    	    foreach ($condition['order_by'] as $k => $v) {
+    	        $orderField = trim($k);
+    	        $orderType = strtoupper(trim($v));
     	        if (in_array($orderField, $orderReferFields)) {
     	            $orderExist[] =$orderField;
     	            $orderMapping[$orderField] = in_array($orderType, $orderReferType) ? $orderType : 'ASC';
