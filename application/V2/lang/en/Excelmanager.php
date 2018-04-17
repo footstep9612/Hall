@@ -9,5 +9,16 @@ return [
     'EXCEL_SKU_NAME_ZH_REQUIRED'  =>   'Required Chinese name is not filled',
     'EXCEL_SKU_QTY_REQUIRED'  =>   'The required quantity is not filled or not in the correct format',
     'EXCEL_SKU_UNIT_REQUIRED'  =>   'The required units are not filled',
+    'EXCEL_SKU_CATEGORY_REQUIRED'  =>   'Required category is not filled',
+    'EXCEL_SKU_BRAND_REQUIRED'  =>   'Required brand is not filled',
+    'EXCEL_SKU_PURCHASE_UNIT_PRICE_REQUIRED'  =>   'The required purchase unit price is not filled or not in the correct format',
+    'EXCEL_SKU_PURCHASE_PRICE_CURRENCY_REQUIRED'  =>   'Required purchase price currency is not filled',
+    'EXCEL_SKU_GROSS_WEIGHT_REQUIRED'  =>   'The required gross weight is not filled or not in the correct format',
+    'EXCEL_SKU_PACKAGE_MODE_REQUIRED'  =>   'Required package mode is not filled',
+    'EXCEL_SKU_PACKAGE_SIZE_REQUIRED'  =>   'The required package size is not filled or not in the correct format',
+    'EXCEL_SKU_STOCK_LOCATION_REQUIRED'  =>   'Required stock location is not filled',
+    'EXCEL_SKU_GOODS_SOURCE_REQUIRED'  =>   'Required goods source is not filled',
+    'EXCEL_SKU_DELIVERY_DAYS_REQUIRED'  =>   'The required delivery days is not filled or not in the correct format',
+    'EXCEL_SKU_VALIDITY_PERIOD_REQUIRED'  =>   'Required period of validity is not filled',
 ];
 

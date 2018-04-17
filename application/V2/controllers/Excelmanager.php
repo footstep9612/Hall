@@ -48,14 +48,30 @@ class ExcelmanagerController extends PublicController {
     }
 
     /**
-     * @desc 下载sku导入模板(询单管理->新增询单)
+     * @desc 下载询单sku导入模板(询单管理->新增询单)
      */
     public function downloadInquirySkuTemplateAction() {
         $this->jsonReturn([
             'code' => 1,
             'message' => L('EXCEL_SUCCESS'),
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/00/63/rBFgyFoSidKAZRkqAAAm7vzdxvQ96.xlsx'
+                'url' => 'http://file01.erui.com/group1/M00/03/F2/rBFgyFrUD06ASXl7AAAiy1WTkS423.xlsx'
+            ]
+        ]);
+    }
+    
+    /**
+     * @desc 下载报价sku导入模板接口
+     *
+     * @author liujf
+     * @time 2018-04-16
+     */
+    public function downloadQuoteSkuTemplateAction() {
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('EXCEL_SUCCESS'),
+            'data' => [
+                'url' => 'http://file01.erui.com/group1/M00/03/F4/rBFgyFrUWdGAQyVDAAAkLI5wb2w85.xlsx'
             ]
         ]);
     }
@@ -96,6 +112,24 @@ class ExcelmanagerController extends PublicController {
     }
     
     /**
+     * @desc 导入报价sku接口
+     *
+     * @author liujf
+     * @time 2018-04-16
+     */
+    public function importQuoteSkuAction() {
+        $request = $this->validateRequests('inquiry_id,file_url,file_name');
+        $inquiryId = $request['inquiry_id'];
+        $remoteFile = $request['file_url'];
+        $fileName = $request['file_name'];
+        //下载到本地临时文件
+        $localFile = ExcelHelperTrait::download2local($remoteFile);
+        $data = ExcelHelperTrait::ready2import($localFile);
+        $response = $this->_importQuoteSkuHandler($localFile, $data, inquiryId, $fileName);
+        $this->jsonReturn($response);
+    }
+    
+    /**
      * @desc 导入订单sku接口
      *
      * @author liujf
@@ -125,18 +159,18 @@ class ExcelmanagerController extends PublicController {
 
         //遍历重组
         foreach ($data as $k => $v) {
-            //$sku[$k]['sku'] = $v[1]; //平台sku
             $sku[$k]['inquiry_id'] = $inquiry_id; //询单id
-            $sku[$k]['pn'] = $v[1]; //商品供应商P/N码
-            $sku[$k]['name'] = $v[2]; //外文品名
-            $sku[$k]['name_zh'] = $v[3]; //中文品名
-            $sku[$k]['qty'] = $v[4]; //数量
-            $sku[$k]['unit'] = $v[5]; //单位
-            $sku[$k]['brand'] = $v[6]; //品牌
-            $sku[$k]['model'] = $v[7]; //型号
-            $sku[$k]['remarks'] = $v[8]; //客户需求描述
-            $sku[$k]['buyer_goods_no'] = $v[9]; //客户询单号
-            $sku[$k]['created_at'] = date('Y-m-d H:i:s', time()); //添加时间
+            $sku[$k]['sku'] = $v[1]; //平台sku
+            //$sku[$k]['pn'] = $v[1]; //商品供应商PN码
+            $sku[$k]['buyer_goods_no'] = $v[2]; //客户商品号
+            $sku[$k]['name'] = $v[3]; //外文品名
+            $sku[$k]['name_zh'] = $v[4]; //中文品名
+            $sku[$k]['qty'] = $v[5]; //数量
+            $sku[$k]['unit'] = $v[6]; //单位
+            $sku[$k]['brand'] = $v[7]; //品牌
+            $sku[$k]['model'] = $v[8]; //型号
+            $sku[$k]['remarks'] = $v[9]; //客户需求描述
+            $sku[$k]['created_at'] = date('Y-m-d H:i:s'); //添加时间
         }
 
         //写入数据库
@@ -192,6 +226,173 @@ class ExcelmanagerController extends PublicController {
             'message' => L('EXCEL_SUCCESS'), 
             'total_count' => $totalCount, 
             'success_count' => $successCount, 
+            'fail_count' => $totalCount - $successCount,
+            'fail_list' => $failList
+        ];
+    }
+    
+    /**
+     * @desc 执行报价sku导入操作
+     *
+     * @param string $localFile
+     * @param array $data
+     * @param int $inquiryId
+     * @param string $fileName
+     * @return array
+     * @author liujf
+     * @time 2018-04-16
+     */
+    private function _importQuoteSkuHandler($localFile, $data, $inquiryId, $fileName) {
+        $quoteModel = new QuoteModel();
+        $inquiryItemModel = new InquiryItemModel();
+        $quoteItemModel = new QuoteItemModel();
+        $suppliersModel = new SuppliersModel();
+        array_shift($data); //去掉第一行数据(excel文件的标题)
+        if (empty($data)) {
+            return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
+        }
+        $data = dataTrim($data);
+        //遍历重组
+        foreach ($data as $k => $v) {
+            $sku['inquiry_id'] = $inquiryId; //询单id
+            $sku['quote_id'] = $quoteModel->where(['inquiry_id' => $inquiryId, 'deleted_flag' => 'N'])->getField('id'); //报价单id
+            $sku[$k]['sku'] = $v[1]; //平台sku
+            $sku[$k]['buyer_goods_no'] = $v[2]; //客户商品号
+            $sku[$k]['category'] = $v[3]; //产品分类
+            $sku[$k]['name'] = $v[4]; //外文品名
+            $sku[$k]['name_zh'] = $v[5]; //中文品名
+            $sku[$k]['qty'] = $v[6]; //数量
+            $sku[$k]['unit'] = $v[7]; //单位
+            $sku[$k]['brand'] = $v[8]; //品牌
+            $sku[$k]['model'] = $v[9]; //型号
+            $sku[$k]['remarks'] = $v[10]; //客户需求描述
+            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[11], 'deleted_flag' => 'N'])->getField('id');
+            $sku[$k]['quote_brand'] = $v[12]; //品牌(报价)
+            $sku[$k]['pn'] = $v[13]; //商品供应商PN码
+            $sku[$k]['purchase_unit_price'] = $v[14]; //采购单价
+            $sku[$k]['purchase_price_cur_bn'] = $v[15]; //采购币种
+            $sku[$k]['gross_weight_kg'] = $v[16]; //毛重
+            $sku[$k]['package_mode'] = $v[17]; //包装方式
+            $sku[$k]['package_size'] = $v[18]; //包装体积
+            $sku[$k]['stock_loc'] = $v[19]; //存放地
+            $sku[$k]['goods_source'] = $v[20]; //产品来源
+            $sku[$k]['delivery_days'] = $v[21]; //交货周期
+            $sku[$k]['period_of_validity'] = $v[22]; //报价有效期
+            $sku[$k]['reason_for_no_quote'] = $v[23]; //未报价分析
+            $sku[$k]['created_at'] = date('Y-m-d H:i:s'); //添加时间
+        }
+        // 总数
+        $totalCount = count($sku);
+        // 成功数
+        $successCount = 0;
+        // 失败的数据列
+        $failList = [];
+        foreach ($sku as $item => $value) {
+            $failData = [
+                'file_name' => $fileName,
+                'sequence_num' => $item + 1,
+                'sku_name' => $this->lang == 'zh' ? $value['name_zh'] : $value['name'],
+                'status' => L('EXCEL_FAILD')
+            ];
+            if ($value['category'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
+            } elseif ($value['name'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
+            } elseif ($value['name_zh'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_NAME_ZH_REQUIRED');
+            } elseif (!is_numeric($value['qty'])) {
+                $failData['reason'] = L('EXCEL_SKU_QTY_REQUIRED');
+            } elseif ($value['unit'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_UNIT_REQUIRED');
+            } elseif ($value['quote_brand'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_BRAND_REQUIRED');
+            } elseif (!is_numeric($value['purchase_unit_price'])) {
+                $failData['reason'] = L('EXCEL_SKU_PURCHASE_UNIT_PRICE_REQUIRED');
+            } elseif ($value['purchase_price_cur_bn'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_PURCHASE_PRICE_CURRENCY_REQUIRED');
+            } elseif (!is_numeric($value['gross_weight_kg'])) {
+                $failData['reason'] = L('EXCEL_SKU_GROSS_WEIGHT_REQUIRED');
+            } elseif ($value['package_mode'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_PACKAGE_MODE_REQUIRED');
+            } elseif (!is_numeric($value['package_size'])) {
+                $failData['reason'] = L('EXCEL_SKU_PACKAGE_SIZE_REQUIRED');
+            } elseif ($value['stock_loc'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_STOCK_LOCATION_REQUIRED');
+            } elseif ($value['goods_source'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_GOODS_SOURCE_REQUIRED');
+            } elseif (!is_numeric($value['delivery_days'])) {
+                $failData['reason'] = L('EXCEL_SKU_DELIVERY_DAYS_REQUIRED');
+            } elseif ($value['period_of_validity'] == '') {
+                $failData['reason'] = L('EXCEL_SKU_VALIDITY_PERIOD_REQUIRED');
+            } else {
+                $inquiryItemModel->startTrans();
+                try {
+                    // 新增询单SKU记录
+                    $inquiryItemData = [
+                        'inquiry_id' => $value['inquiry_id'],
+                        'sku' => $value['sku'],
+                        'buyer_goods_no' => $value['buyer_goods_no'],
+                        'name' => $value['name'],
+                        'name_zh' => $value['name_zh'],
+                        'qty' => $value['qty'],
+                        'unit' => $value['unit'],
+                        'brand' => $value['brand'],
+                        'model' => $value['model'],
+                        'remarks' => $value['remarks'],
+                        'category' => $value['category'],
+                        'created_at' => $value['created_at']
+                    ];
+                    $inquiryItemId = $inquiryItemModel->add($inquiryItemData);
+                    // 新增报价SKU记录
+                    $quoteItemData = [
+                        'quote_id' => $value['inquiry_id'],
+                        'inquiry_id' => $value['inquiry_id'],
+                        'inquiry_item_id' => $inquiryItemId,
+                        'sku' => $value['sku'],
+                        'brand' => $value['quote_brand'],
+                        'pn' => $value['pn'],
+                        'supplier_id' => $value['supplier_id'],
+                        'quote_qty' => $value['qty'],
+                        'quote_unit' => $value['unit'],
+                        'purchase_unit_price' => $value['purchase_unit_price'],
+                        'purchase_price_cur_bn' => $value['purchase_price_cur_bn'],
+                        'gross_weight_kg' => $value['gross_weight_kg'],
+                        'package_mode' => $value['package_mode'],
+                        'package_size' => $value['package_size'],
+                        'stock_loc' => $value['stock_loc'],
+                        'goods_source' => $value['goods_source'],
+                        'delivery_days' => $value['delivery_days'],
+                        'period_of_validity' => date('Y-m-d', strtotime($value['period_of_validity'])),
+                        'reason_for_no_quote' => $value['reason_for_no_quote'],
+                        'created_at' => $value['created_at']
+                    ];
+                    $quoteItemId = $quoteItemModel->add($quoteItemData);
+                    if ($inquiryItemId && $quoteItemId) {
+                        $successCount++;
+                        unset($failData);
+                        $inquiryItemModel->commit();
+                    } else {
+                        $failData['reason'] = L('EXCEL_UNKNOWN');
+                        $inquiryItemModel->rollback();
+                    }
+                } catch (Exception $e) {
+                    $failData['reason'] = $e->getMessage();
+                    $inquiryItemModel->rollback();
+                }
+            }
+            if (isset($failData)) {
+                $failList[] = $failData;
+            }
+        }
+        //删除本地临时文件
+        if (is_file($localFile) && file_exists($localFile)) {
+            unlink($localFile);
+        }
+        return [
+            'code' => '1',
+            'message' => L('EXCEL_SUCCESS'),
+            'total_count' => $totalCount,
+            'success_count' => $successCount,
             'fail_count' => $totalCount - $successCount,
             'fail_list' => $failList
         ];
