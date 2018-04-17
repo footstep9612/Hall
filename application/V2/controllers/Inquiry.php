@@ -1165,6 +1165,8 @@ class InquiryController extends PublicController {
             $res['message'] = L('SUCCESS');
             $res['data'] = $historicalSkuQuoteList;
             $res['count'] = $historicalSkuQuoteModel->getCount($condition);
+            // 采购价格区间
+            $res['price_range'] = $historicalSkuQuoteModel->getPriceRange($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
