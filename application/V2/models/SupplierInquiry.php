@@ -409,6 +409,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
                 . 'WHEN \'CLARIFY\' THEN \'项目澄清\' '
                 . 'WHEN \'REJECT_MARKET\' THEN \'驳回市场\' '
+                . 'WHEN \'REJECT_CLOSE\' THEN \'驳回市场关闭\' '
                 . 'WHEN \'CC_DISPATCHING\' THEN \'易瑞客户中心\' '
                 . 'WHEN \'BIZ_QUOTING\' THEN \'事业部报价\' '
                 . 'WHEN \'LOGI_DISPATCHING\' THEN \'物流分单员\' '
@@ -550,6 +551,7 @@ class SupplierInquiryModel extends PublicModel {
                 . 'WHEN \'CC_DISPATCHING\' THEN \'易瑞客户中心\' '
                 . 'WHEN \'CLARIFY\' THEN \'项目澄清\' '
                 . 'WHEN \'REJECT_MARKET\' THEN \'驳回市场\' '
+                . 'WHEN \'REJECT_CLOSE\' THEN \'驳回市场关闭\' '
                 . 'WHEN \'BIZ_QUOTING\' THEN \'事业部报价\' '
                 . 'WHEN \'LOGI_DISPATCHING\' THEN \'物流分单员\' '
                 . 'WHEN \'LOGI_QUOTING\' THEN \'物流报价\' '
@@ -595,7 +597,6 @@ class SupplierInquiryModel extends PublicModel {
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
         $this->_setQuoteSpendTime($list);
-
         // $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
     }
@@ -1042,6 +1043,7 @@ class SupplierInquiryModel extends PublicModel {
      */
     private function _setClarifyTime(&$list) {
         $inquiryCheckLogModel = new InquiryCheckLogModel();
+        $inquiryCheckLogTableName = $inquiryCheckLogModel->getTableName();
         $nowTime = time();
         $clarifyMapping = [
             'BIZ_DISPATCHING' => 'biz_dispatching_clarification_time',
@@ -1062,10 +1064,17 @@ class SupplierInquiryModel extends PublicModel {
                 $item[$v] = '';
             }
             $item['clarification_time'] = '';
-            // 最后一次流入事业部分单员的日志ID
+            /*// 最后一次流入事业部分单员的日志ID
             $lastBizDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->getField('id');
             // 最后一次流入客户中心的日志ID
             $lastEruiDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'CC_DISPATCHING']))->order('id DESC')->getField('id');
+            */
+            // 优化后的代码，减少数据库查询次数
+            $lastIdSql = '(SELECT MAX(id) FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = ';
+            $idData = $inquiryCheckLogModel->field($lastIdSql . '\'BIZ_DISPATCHING\' ) AS last_biz_dispatching_id, '
+                                                                                      . $lastIdSql . '\'CC_DISPATCHING\' ) AS last_erui_dispatching_id')->find();
+            $lastBizDispatchingID = $idData['last_biz_dispatching_id'];
+            $lastEruiDispatchingID = $idData['last_erui_dispatching_id'];
             // 项目澄清时间的参考ID
             $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
             if ($referenceID) {
@@ -1075,15 +1084,24 @@ class SupplierInquiryModel extends PublicModel {
                     // 计算各环节的项目澄清时间（事业部分单员除外）
                     $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
                 }
-                // 最后一次事业部分单员的项目澄清时间
+                /*// 最后一次事业部分单员的项目澄清时间
                 $item[$clarifyMapping['BIZ_DISPATCHING']] = $inquiryCheckLogModel->field('(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find()['clarify_time'];
                 // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
                 $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
+                */
+                // 优化后的代码，减少数据库查询次数
+                $tmpClarifySql = 'FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = \'CLARIFY\'';
+                $lastBizDispatchingClarifySql = '(SELECT UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at) ' . $tmpClarifySql . ' AND out_node = \'BIZ_DISPATCHING\' ORDER BY id DESC LIMIT 1)';
+                $totalClarifySql = '(SELECT SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) ' . $tmpClarifySql . ')';
+                $nodeData = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time, '
+                                                                                                . $lastBizDispatchingClarifySql . ' AS last_biz_dispatching_clarify_time, '
+                                                                                                . $totalClarifySql . ' AS total_clarify_time')->where($where)->order('id DESC')->find();
+                $item[$clarifyMapping['BIZ_DISPATCHING']] = $nodeData['last_biz_dispatching_clarify_time'];
                 $lastClarifyTime = '';
-                if ($lastLog['out_node'] == 'CLARIFY' && in_array($lastLog['in_node'], $clarifyNode)) {
-                    $lastClarifyTime = $nowTime - $lastLog['out_time'];
-                    $item[$clarifyMapping[$lastLog['in_node']]] += $lastClarifyTime;
-                    if ($lastLog['in_node'] == 'BIZ_DISPATCHING') {
+                if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
+                    $lastClarifyTime = $nowTime - $nodeData['out_time'];
+                    $item[$clarifyMapping[$nodeData['in_node']]] += $lastClarifyTime;
+                    if ($nodeData['in_node'] == 'BIZ_DISPATCHING') {
                         $item[$clarifyMapping['BIZ_DISPATCHING']] = $lastClarifyTime;
                     }
                 }
@@ -1094,7 +1112,8 @@ class SupplierInquiryModel extends PublicModel {
                     }
                 }
                 // 总的项目澄清时间
-                $item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
+                //$item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
+                $item['clarification_time'] = $nodeData['total_clarify_time'] + $lastClarifyTime;
                 if ($item['clarification_time'] > 0) {
                     $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
                 }
@@ -1111,19 +1130,38 @@ class SupplierInquiryModel extends PublicModel {
      */
     private function _setQuoteSpendTime(&$list) {
         $inquiryCheckLogModel = new InquiryCheckLogModel();
+        $inquiryCheckLogTableName = $inquiryCheckLogModel->getTableName();
         $nowTime = time();
         foreach ($list as &$item) {
-            $where['inquiry_id'] = $item['inquiry_id'];
+            /*$where['inquiry_id'] = $item['inquiry_id'];
             // 第一次流入事业部分单员的时间
             $firstBizDispatchingTime = $inquiryCheckLogModel->field('MIN(into_at) AS first_time')->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->find()['first_time'];
+            //$firstBizDispatchingTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id ASC')->getField('into_at');
             // 最后一次流出事业部审核的时间
             $lastMarketApprovingTime = $inquiryCheckLogModel->field('MAX(out_at) AS last_time')->where(array_merge($where, ['in_node' => 'MARKET_APPROVING']))->find()['last_time'];
+            //$lastMarketApprovingTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'MARKET_APPROVING']))->order('id DESC')->getField('out_at');
             // 第一次流入物流分单员的时间
             $firstLogiDispatchingTime = $inquiryCheckLogModel->field('MIN(into_at) AS first_time')->where(array_merge($where, ['in_node' => 'LOGI_DISPATCHING']))->find()['first_time'];
+            //$firstLogiDispatchingTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'LOGI_DISPATCHING']))->order('id ASC')->getField('into_at');
             // 最后一次流出物流报价的时间
             $lastlogiQuotingTime = $inquiryCheckLogModel->field('MAX(out_at) AS last_time')->where(array_merge($where, ['in_node' => 'LOGI_QUOTING']))->find()['last_time'];
+            //$lastlogiQuotingTime = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'LOGI_QUOTING']))->order('id DESC')->getField('out_at');
             // 物流审核耗时
             $logiApprovingSpend = $inquiryCheckLogModel->field('ROUND(SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) / 3600, 2) AS spend')->where(array_merge($where, ['in_node' => 'LOGI_APPROVING']))->find()['spend'];
+            */
+            // 优化后的代码，减少数据库查询次数
+            $intoAtSql = '(SELECT MIN(into_at) FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = ';
+            $outAtSql = str_replace('MIN(into_at)', 'MAX(out_at)', $intoAtSql);
+            $nodeData = $inquiryCheckLogModel->field('ROUND(SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) / 3600, 2) AS logi_approving_spend, '
+                                                                                            . $intoAtSql . '\'BIZ_DISPATCHING\' ) AS first_biz_dispatching_time, '
+                                                                                            . $outAtSql . '\'MARKET_APPROVING\' ) AS last_market_approving_time, '
+                                                                                            . $intoAtSql . '\'LOGI_DISPATCHING\' ) AS first_logi_dispatching_time, '
+                                                                                            . $outAtSql . '\'LOGI_QUOTING\' ) AS last_logi_quoting_time')->where(['inquiry_id' => $item['inquiry_id'], 'in_node' => 'LOGI_APPROVING'])->find();
+            $firstBizDispatchingTime = $nodeData['first_biz_dispatching_time'];
+            $lastMarketApprovingTime = $nodeData['last_market_approving_time'];
+            $firstLogiDispatchingTime = $nodeData['first_logi_dispatching_time'];
+            $lastlogiQuotingTime = $nodeData['last_logi_quoting_time'];
+            $logiApprovingSpend = $nodeData['logi_approving_spend'];
             // 整体报价耗时
             $item['whole_quoted_time'] = number_format((($lastMarketApprovingTime ? strtotime($lastMarketApprovingTime) : $nowTime) - ($firstBizDispatchingTime ? strtotime($firstBizDispatchingTime) : strtotime($item['created_at'])))  / 3600, 2);
             // 商务技术报价耗时
@@ -1205,52 +1243,14 @@ class SupplierInquiryModel extends PublicModel {
         $exchange_rate_model = new ExchangeRateModel();
 
         foreach ($list as $key => $item) {
-            $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
-            $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
-            $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
-
-            if ($item['purchase_price_cur_bn'] == 'USD') {
-                $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
-            } else {
-                if ($item['exchange_rate'] && $item['exchange_rate'] > 1) {
-                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
-                } elseif ($item['exchange_rate']) {
-                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
-                } else {
-                    $exchange_rate = $exchange_rate_model
-                            ->where(['cur_bn1' => $item['purchase_price_cur_bn'],
-                                'cur_bn2' => 'USD',
-                                'effective_date' => ['egt', date('Y-m')],
-                            ])
-                            ->order('created_at DESC')
-                            ->getField('rate');
-
-                    if (!$exchange_rate) {
-                        $exchange_rate_change = $exchange_rate_model->where([
-                                    'cur_bn2' => $item['purchase_price_cur_bn'],
-                                    'cur_bn1' => 'USD',
-                                    'effective_date' => ['egt', date('Y-m')],
-                                ])->order('created_at DESC')->getField('rate');
-                        $exchange_rate = $exchange_rate_change > 0 ? 1 / $exchange_rate_change : null;
-                    }
-                    if ($exchange_rate) {
-                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rate;
-                    }
-                }
-            }
             // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
-            }
-        }
-    }
-
-    private function _setTotalCalculatePrice(&$list) {
-        $exchange_rate_model = new ExchangeRateModel();
-
-        foreach ($list as $key => $item) {
-            if ($item['purchase_price_cur_bn'] && $item['total_quote_price']) {
-
+            } else {
+                $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
+                $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
+                $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
+    
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {
@@ -1281,9 +1281,49 @@ class SupplierInquiryModel extends PublicModel {
                     }
                 }
             }
+        }
+    }
+
+    private function _setTotalCalculatePrice(&$list) {
+        $exchange_rate_model = new ExchangeRateModel();
+
+        foreach ($list as $key => $item) {
             // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
+            } else {
+                if ($item['purchase_price_cur_bn'] && $item['total_quote_price']) {
+    
+                    if ($item['purchase_price_cur_bn'] == 'USD') {
+                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
+                    } else {
+                        if ($item['exchange_rate'] && $item['exchange_rate'] > 1) {
+                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
+                        } elseif ($item['exchange_rate']) {
+                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
+                        } else {
+                            $exchange_rate = $exchange_rate_model
+                                    ->where(['cur_bn1' => $item['purchase_price_cur_bn'],
+                                        'cur_bn2' => 'USD',
+                                        'effective_date' => ['egt', date('Y-m')],
+                                    ])
+                                    ->order('created_at DESC')
+                                    ->getField('rate');
+    
+                            if (!$exchange_rate) {
+                                $exchange_rate_change = $exchange_rate_model->where([
+                                            'cur_bn2' => $item['purchase_price_cur_bn'],
+                                            'cur_bn1' => 'USD',
+                                            'effective_date' => ['egt', date('Y-m')],
+                                        ])->order('created_at DESC')->getField('rate');
+                                $exchange_rate = $exchange_rate_change > 0 ? 1 / $exchange_rate_change : null;
+                            }
+                            if ($exchange_rate) {
+                                $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rate;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -1445,18 +1485,23 @@ class SupplierInquiryModel extends PublicModel {
                 $final_quoteprices[$final_quote['inquiry_id']] = $final_quote;
             }
             foreach ($arr as $key => $val) {
-                if (isset($final_quoteprices[$val['inquiry_id']]['total_quote_price'])) {
-                    $val['total_quote_price'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
-                    $val['purchase_price_cur_bn'] = 'USD';
-                    $val['total_quoted_price_usd'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
-                } elseif (isset($quoteprices[$val['inquiry_id']]['total_quote_price'])) {
-                    $val['total_quote_price'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
-                    $val['purchase_price_cur_bn'] = 'USD';
-                    $val['total_quoted_price_usd'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
+                // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+                if (!in_array($val['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+                    $arr[$key]['quote_unit_price'] = $arr[$key]['total_quote_price'] = $arr[$key]['total_quoted_price_usd'] = '';
                 } else {
-                    $val['total_quote_price'] = '';
-                    $val['purchase_price_cur_bn'] = '';
-                    $val['total_quoted_price_usd'] = '';
+                    if (isset($final_quoteprices[$val['inquiry_id']]['total_quote_price'])) {
+                        $val['total_quote_price'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
+                        $val['purchase_price_cur_bn'] = 'USD';
+                        $val['total_quoted_price_usd'] = $final_quoteprices[$val['inquiry_id']]['total_quote_price'];
+                    } elseif (isset($quoteprices[$val['inquiry_id']]['total_quote_price'])) {
+                        $val['total_quote_price'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
+                        $val['purchase_price_cur_bn'] = 'USD';
+                        $val['total_quoted_price_usd'] = $quoteprices[$val['inquiry_id']]['total_quote_price'];
+                    } else {
+                        $val['total_quote_price'] = '';
+                        $val['purchase_price_cur_bn'] = '';
+                        $val['total_quoted_price_usd'] = '';
+                    }
                 }
 
                 if (isset($quoteprices[$val['inquiry_id']]['total_weight'])) {
@@ -1474,10 +1519,6 @@ class SupplierInquiryModel extends PublicModel {
                 }
 
                 $arr[$key] = $val;
-                // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
-                if (!in_array($val['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
-                    $arr[$key]['quote_unit_price'] = $arr[$key]['total_quote_price'] = $arr[$key]['total_quoted_price_usd'] = '';
-                }
             }
         }
     }
