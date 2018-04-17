@@ -192,7 +192,7 @@ class OrderModel extends PublicModel {
      * 获取订单数，金额-统计
      * wangs
      */
-    public function statisOrder1($buyer_id){
+    public function statisOrder($buyer_id){
 //        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
 //        $buyer=$this->query($sql);
 //        $level_at=$buyer[0]['level_at'];
@@ -275,7 +275,7 @@ class OrderModel extends PublicModel {
         );
         return $data;
     }
-    public function statisOrder($buyer_id){
+    public function statisOrder1($buyer_id){
 //        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
 //        $buyer=$this->query($sql);
 //        $level_at=$buyer[0]['level_at'];
