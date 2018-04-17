@@ -883,6 +883,8 @@ EOF;
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
+            $arr['checked_by'] = $this->user['id'];
+            $arr['checked_at'] = date('Y-m-d H:i:s');
 //            $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));    //用户id不能为空

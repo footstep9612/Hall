@@ -392,4 +392,48 @@ class BuyerfilesController extends PublicController
         );
         $this->jsonReturn($dataJson);
     }
+    //会员属性统计信息列表
+    public function statisMemberAttrAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberAttr($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'会员属性统计列表',
+            'data'=>$memInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //地区国家
+    public function areaCountryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $area=new CountryModel();
+        $info=$area->table('erui_operation.market_area')
+            ->field('bn as area_bn,name as area_name')
+            ->where(array('deleted_flag'=>'N','lang'=>$lang))
+            ->select();
+        if(!empty($data['area_bn'])){
+            $info=$area->table('erui_operation.market_area_country country_bn')
+                ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                ->field('country_bn.country_bn,country.name as country_name')
+                ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'lang'=>$lang))
+                ->select();
+        }else{
+            $info=$area->table('erui_operation.market_area')
+                ->field('bn as area_bn,name as area_name')
+                ->where(array('deleted_flag'=>'N','lang'=>$lang))
+                ->select();
+        }
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'地区国家列表',
+            'data'=>$info
+        );
+        $this->jsonReturn($dataJson);
+    }
 }

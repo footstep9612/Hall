@@ -884,7 +884,13 @@ EOF;
     public function update_data($create, $where) {
 
         if (isset($create['buyer_code'])) {
-            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+            $data['buyer_code'] = $create['buyer_code'];
+        }
+        if (isset($create['checked_by'])) {
+            $data['checked_by'] = $create['checked_by'];
+        }
+        if (isset($create['checked_at'])) {
+            $data['checked_at'] = $create['checked_at'];
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
@@ -2621,6 +2627,9 @@ EOF;
         if(!empty($data['source'])){
             $cond.=' and buyer.source='.$data['source'];
         }
+        if(!empty($data['buyer_level'])){
+            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        }
         return $cond;
     }
     //crm会员统计模块-wangs
@@ -2692,19 +2701,65 @@ EOF;
         return $info;
     }
     //统计会员信息列表CRM-wangs
-    public function statisMemberList($data){
+    public function statisMemberList($data,$order=false){
         $cond=$this->getStatisMemberCond($data);
+        $page=isset($data['page'])?$data['page']:1;
+        $offset=($page-1)*10;
+        $total=$this->getStatisTotal($cond);
         $sql='select ';
         $sql.=' buyer.id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
         $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
         $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
-        $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at ';
+        $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
+        $sql.=' buyer.buyer_level,buyer.intent_product ';
         $sql.=' from erui_buyer.buyer buyer ';
         $sql.=' left join erui_operation.market_area_country country on buyer.country_bn=country.country_bn';
         $sql.=' where ';
         $sql.=$cond;
         $sql.=' order by buyer.created_at desc';
+        $sql.=' limit '.$offset.',10';
         $info=$this->query($sql);
+        if($order==true){
+            $arr['total']=$total;
+            $arr['page']=$page;
+            $arr['info']=$info;
+            return $arr;
+        }
+        foreach($info as $k => &$v){
+            $info[$k]['agent']=$this->getStatisAgent($v['id']);
+            if($v['is_build']==1){
+                $info[$k]['status']='PASS';
+            }
+            unset($v['is_build']);
+            unset($v['id']);
+        }
+        $arr['total']=$total;
+        $arr['page']=$page;
+        $arr['info']=$info;
+        return $arr;
+    }
+    public function getStatisTotal($cond){
+        return $this->where($cond)->count();
+    }
+    public function getStatisAgent($buyer_id){
+        $sql_agent='select employee.name';
+        $sql_agent.=' from erui_buyer.buyer_agent agent ';
+        $sql_agent.=' left join erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag=\'N\'';
+        $sql_agent.=' where agent.deleted_flag=\'N\' AND agent.buyer_id='.$buyer_id;
+        $agentInfo=$this->query($sql_agent);
+        $agentStr='';
+        foreach($agentInfo as $k => $v){
+            $agentStr.=','.$v['name'];
+        }
+        $agentStr=substr($agentStr,1);
+        return $agentStr;
+    }
+    //会员属性统计
+    public function statisMemberAttr($data){
+        $arr=$this->statisMemberList($data,true);
+        $total=$arr['total'];
+        $page=$arr['page'];
+        $info=$arr['info'];
         print_r($info);die;
     }
 }
