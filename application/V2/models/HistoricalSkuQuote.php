@@ -88,7 +88,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
     	$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     	// 排序
-    	$orderReferFields = ['matching_percent', 'delivery_days', 'purchase_unit_price'];
+    	$orderReferFields = ['matching_percent', 'period_of_validity', 'purchase_unit_price'];
     	$orderReferType = ['ASC', 'DESC'];
     	if (!empty($condition['order_by'])) {
     	    // 存在的排序字段、排序字段和方式的映射、实际排序字段
@@ -105,8 +105,8 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	    if (in_array('matching_percent', $orderExist)) {
     	        $orderFact[] = 'matching_percent ' . $orderMapping['matching_percent'];
     	    }
-    	    if (in_array('delivery_days', $orderExist)) {
-    	        $orderFact[] = 'delivery_days ' . $orderMapping['delivery_days'];
+    	    if (in_array('period_of_validity', $orderExist)) {
+    	        $orderFact[] = 'period_of_validity ' . $orderMapping['period_of_validity'];
     	    }
     	    if (in_array('purchase_unit_price', $orderExist)) {
     	        $orderFact[] = 'purchase_unit_price ' . $orderMapping['purchase_unit_price'];
