@@ -275,8 +275,12 @@ class BuyerVisitModel extends PublicModel {
                 $result['product_info'] = $product;     //产品信息
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
-                    $demandInfo = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
-                    $result['demand_type']=$this->packStrData($demandInfo);
+                    if(!empty($result['demand_type'])){
+                        $demandInfo = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
+                        $result['demand_type']=$this->packStrData($demandInfo);
+                    }else{
+                        $result['demand_type']='';
+                    }
 
                     $vp_model = new VisitPositionModel();
                     $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();

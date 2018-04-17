@@ -65,12 +65,20 @@ class CurrencyModel extends PublicModel {
      * @return array|mixed
      * @author  zhongyg
      */
-    public function getlist() {
+    public function getlist($status) {
 
         try {
+            $where = [];
+            if ($status == 'VALID') {
+                $where['status'] = $status;
+                $where['deleted_flag'] = 'N';
+            } elseif ($status == 'DELETED') {
+                $where['status'] = $status;
+                $where['deleted_flag'] = 'Y';
+            }
             $field = 'bn,symbol,name';
             $result = $this->field($field)
-                            ->where(['deleted_flag' => 'N'])
+                            ->where($where)
                             ->order('bn')->select();
             if ($result) {
 
@@ -127,4 +135,5 @@ class CurrencyModel extends PublicModel {
             return '';
         }
     }
+
 }

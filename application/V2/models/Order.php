@@ -192,7 +192,7 @@ class OrderModel extends PublicModel {
      * 获取订单数，金额-统计
      * wangs
      */
-    public function statisOrder1($buyer_id){
+    public function statisOrder($buyer_id){
 //        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
 //        $buyer=$this->query($sql);
 //        $level_at=$buyer[0]['level_at'];
@@ -222,7 +222,7 @@ class OrderModel extends PublicModel {
         $yearArr=[];
         foreach($orderYear as $k => $v){
             $yearArr[$k]['year']=$k;
-            $yearArr[$k]['amount']=$v;
+            $yearArr[$k]['amount']=(sprintf("%.4f",$v));
         }
         $yearArr=array_merge($yearArr,array());
         $sum=0;
@@ -269,13 +269,13 @@ class OrderModel extends PublicModel {
         $data=array(
             'count'=>$arr['count'],
             'account'=>sprintf("%.4f",$arr['account']),
-            'min'=>sprintf("%.4f",$arr['min']),
-            'max'=>sprintf("%.4f",$arr['max']),
+            'min'=>$arr['min']==0?0:sprintf("%.4f",$arr['min']),
+            'max'=>$arr['max']==0?0:sprintf("%.4f",$arr['max']),
             'year'=>$arr['year']
         );
         return $data;
     }
-    public function statisOrder($buyer_id){
+    public function statisOrder1($buyer_id){
 //        $sql="select level_at,expiry_at from erui_buyer.buyer WHERE id=$buyer_id AND deleted_flag='N' AND is_build=1 ";
 //        $buyer=$this->query($sql);
 //        $level_at=$buyer[0]['level_at'];
