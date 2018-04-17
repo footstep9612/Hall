@@ -304,7 +304,7 @@ class OrderModel extends PublicModel {
         $orderYear=$orderArr['year'];   //年度订单金额
         $str='';
         foreach($orderYear as $k => $v){
-            $str.=$k.'--$'.sprintf("%.4f",$v).';<br>';
+            $str.=$k.'--$'.sprintf("%.4f",$v).";<br>";
         }
 //        $str=substr($str,1);
         $count=count($orderArr['count']);  //订单数量
