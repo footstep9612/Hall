@@ -11,8 +11,6 @@ class CityController extends PublicController {
 
     public function init() {
         parent::init();
-
-        $this->_model = new CityModel();
     }
 
     /*
@@ -26,12 +24,13 @@ class CityController extends PublicController {
     public function listAction() {
         $condtion = $this->getPut(null);
         $condtion['lang'] = $this->getPut('lang', 'zh');
-        $arr = $this->_model->getListbycondition($condtion);
+        $city_model = new CityModel();
+        $arr = $city_model->getListbycondition($condtion);
         if ($arr) {
             $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
             $data['code'] = MSG::MSG_SUCCESS;
             $data['data'] = $arr;
-            $data['count'] = $this->_model->getCount($condtion);
+            $data['count'] = $city_model->getCount($condtion);
 
             $this->jsonReturn($data);
         } elseif ($arr === null) {
@@ -55,8 +54,8 @@ class CityController extends PublicController {
     public function listallAction() {
         $condtion = $this->getPut(null);
         $condtion['lang'] = $this->getPut('lang', 'zh');
-
-        $arr = $this->_model->getAll($condtion);
+        $city_model = new CityModel();
+        $arr = $city_model->getAll($condtion);
         if ($arr) {
             foreach ($arr as $key => $item) {
                 // $item['city_country'] = $item['name'] . '(' . $item['country'] . ')';
@@ -102,7 +101,8 @@ class CityController extends PublicController {
             if ($country_bn) {
                 $where['country_bn'] = $country_bn;
             }
-            $result = $this->_model->field('lang,region_bn,country_bn,bn,'
+            $city_model = new CityModel();
+            $result = $city_model->field('lang,region_bn,country_bn,bn,'
                                     . 'name,time_zone,status,created_by,created_at,'
                                     . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                             ->where($where)->find();
@@ -137,8 +137,9 @@ class CityController extends PublicController {
             $langs = ['en', 'zh', 'es', 'ru'];
             $country_model = new CountryModel();
             $country = $country_model->getTableName();
+            $city_model = new CityModel();
             foreach ($langs as $lang) {
-                $result = $this->_model->field('lang,region_bn,country_bn,bn,'
+                $result = $city_model->field('lang,region_bn,country_bn,bn,'
                                         . 'name,time_zone,status,created_by,created_at,'
                                         . '(select name from ' . $country . ' where bn=country_bn and lang=port.lang) as country')
                                 ->where(['bn' => $bn, 'lang' => $lang])->find();
@@ -203,10 +204,36 @@ class CityController extends PublicController {
 
     public function createAction() {
         $condition = $this->getPut();
-        $data = $this->_model->create($condition);
+        $city_model = new CityModel();
+        $data = $city_model->create($condition);
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($condition['zh']['name'])) {
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        } else {
+
+            $newbn = ucwords($condition['en']['name']);
+            $row = $city_model->Exits(['country_bn' => trim($condition['country_bn']), 'bn' => $newbn, 'status' => 'VALID']);
+
+            if ($row) {
+                $this->setMessage('英文');
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
         $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
-        $result = $this->_model->add($data);
+        $result = $city_model->add($data);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -228,8 +255,32 @@ class CityController extends PublicController {
     public function updateAction() {
 
         $condition = $this->getPut();
+        $city_model = new CityModel();
+        if (empty($condition['country_bn'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择国家!');
+            $this->jsonReturn();
+        }
+        $newbn = ucwords($condition['en']['name']);
+        if (empty($condition['en']['name'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入英文');
+            $this->jsonReturn();
+        } elseif (empty($condition['zh']['name'])) {
 
-        $result = $this->_model->update_data($condition, $this->user['id']);
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请输入中文');
+            $this->jsonReturn();
+        } elseif ($newbn && $newbn != $condition['bn']) {
+            $row = $city_model->where(['country_bn' => trim($condition['country_bn']), 'bn' => $newbn, 'status' => 'VALID'])->find();
+            if ($row) {
+                $this->setMessage('英文港口已存在');
+                $this->setCode(MSG::MSG_EXIST);
+                $this->jsonReturn();
+            }
+        }
+
+        $result = $city_model->update_data($condition, $this->user['id']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -263,8 +314,8 @@ class CityController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
-
-        $result = $this->_model->where($where)->save(['status' => 'DELETED']);
+        $city_model = new CityModel();
+        $result = $city_model->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
