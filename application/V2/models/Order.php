@@ -638,9 +638,16 @@ class OrderModel extends PublicModel {
             }
         }
         $result=[];
+//        foreach($arr as $k => $v){
+//            $result['day'][]=$v['created_at'];
+//            $result['count'][]=intval($v['count']);
+//        }
         foreach($arr as $k => $v){
-            $result['day'][]=$v['created_at'];
-            $result['count'][]=intval($v['count']);
+            $result['xAxis']['day'][]=$v['created_at'];
+            $result['xAxis']['type']='category';
+            $result['yAxis']['type']='value';
+
+            $result['series']['data'][]=intval($v['count']);
         }
         return $result;
     }
