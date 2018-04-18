@@ -417,6 +417,14 @@ class BuyerVisitModel extends PublicModel {
         }
         return $arr;
     }
+    //统计会员的拜访记录数量
+    public function statisVisitCount($buyer_id){
+        $visit=$this->singleVisitInfo($buyer_id);
+        $demand=$this->singleVisitDemandInfo($buyer_id);
+        $arr['visit_count']=$visit['totalVisit'];
+        $arr['demand_count']=$demand['totalDemand'];
+        return $arr;
+    }
     //单个客户管理搜索列表页获取拜访次数信息-wangs
     public function singleVisitInfo($id){
         //本周

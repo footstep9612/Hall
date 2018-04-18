@@ -2643,18 +2643,18 @@ EOF;
         $sql.=' order by source ';
         $source=$this->query($sql);
         $arr=array(
-            ['source'=>'boss','count'=>0],
-            ['source'=>'website','count'=>0],
-            ['source'=>'app','count'=>0]
+            ['name'=>'boss','value'=>0],
+            ['name'=>'website','value'=>0],
+            ['name'=>'app','value'=>0]
         );
         if(!empty($source)){
             foreach($source as $k => $v){
                 if($v['source']==1){
-                    $arr[$k]['count']=$v['count'];
+                    $arr[$k]['value']=$v['count'];
                 }elseif($v['source']==2){
-                    $arr[$k]['count']=$v['count'];
+                    $arr[$k]['value']=$v['count'];
                 }elseif($v['source']==3){
-                    $arr[$k]['count']=$v['count'];
+                    $arr[$k]['value']=$v['count'];
                 }
             }
         }
@@ -2790,5 +2790,32 @@ EOF;
         $result['page']=$page;
         $result['info']=$info;  //数据
         return $result;
+    }
+    //会员行为统计列表
+    public function statisMemberBehave($data){
+        $cond=$this->getStatisMemberCond($data);
+        $page=isset($data['page'])?$data['page']:1;
+        $offset=($page-1)*10;
+        $total=$this->getStatisTotal($cond);
+        $sql='select ';
+        $sql.=' buyer.id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code ';
+
+        $sql.=' from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' order by buyer.created_at desc';
+        $sql.=' limit '.$offset.',10';
+        $info=$this->query($sql);
+
+        $lang=$data['lang'];
+        $visit=new BuyerVisitModel();
+        $order=new OrderModel();
+        foreach($info as $key => $value){
+            $visitInfo=$visit->statisVisitCount($value['id']);   //统计拜访记录
+            $info[$key]['visit_count']=$visitInfo['visit_count'];
+            $info[$key]['demand_count']=$visitInfo['demand_count'];
+            $orderInfo=$order->statisOrderStatusCount($value['id'],$value['buyer_code']);    //统计订单各个状态的数量
+            print_r($orderInfo);die;
+        }
     }
 }

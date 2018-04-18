@@ -408,6 +408,22 @@ class BuyerfilesController extends PublicController
         );
         $this->jsonReturn($dataJson);
     }
+    //会员行为统计信息列表
+    public function statisMemberBehaveAction(){
+        $created_by = $this -> user['id'];
+        $lang=$this->getLang();
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $lang;
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberBehave($data);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'会员行为统计列表',
+            'data'=>$memInfo
+        );
+        $this->jsonReturn($dataJson);
+    }
     //地区国家
     public function areaCountryAction(){
         $data = json_decode(file_get_contents("php://input"), true);

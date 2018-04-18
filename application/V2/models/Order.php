@@ -186,7 +186,96 @@ class OrderModel extends PublicModel {
 
         return $this->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')->where($where)->count();
     }
+    //统计客户的订单(各个状态下的数量及金额)-wangs
+    public function statisOrderStatusCount($buyer_id,$buyer_code=''){
+        $old=$this->getOldStatusCount($buyer_id);
+        print_r($old);die;
+        $new=$this->getNewStatusCount($buyer_code);
 
+    }
+    public function getOldStatusCount($buyer_id){
+        $buyer_id=279;
+        $sql='select';
+        $sql.=' `order`.id as order_id,`order`.show_status, `order`.amount,`order`.currency_bn, ';
+        $sql.=' payment.amount as payment_amount ';
+        $sql.=' from erui_order.order `order` ';
+        $sql.=' left join erui_order.order_payment `payment` on `order`.id=payment.order_id ';
+        $sql.=' where  `order`.deleted_flag=\'N\' and `order`.buyer_id='.$buyer_id;
+//        $sql.=' group by show_status ';
+        $info=$this->query($sql);
+        $info=$this->packOrderAmount($info);
+        print_r($info);die;
+        $arr=array(
+            ['count'=>0,'show_status'=>'UNCONFIRM','amount'=>0], //待确认
+            ['count'=>0,'show_status'=>'GOING','amount'=>0],    //进行中
+            ['count'=>0,'show_status'=>'OUTGOING','amount'=>0], //已出库
+            ['count'=>0,'show_status'=>'DISPATCHED','amount'=>0],   //已发运
+            ['count'=>0,'show_status'=>'COMPLETED','amount'=>0] //已完成
+        );
+        if(!empty($info)){
+            foreach($arr as $key => &$value){
+                foreach($info as $k => $v){
+                    if($value['show_status']==$v['show_status']){
+                        $value['count']=$v['count'];
+                        $value['amount']=$v['amount'];
+                    }
+                }
+            }
+        }
+        return $arr;
+    }
+    public function packOrderAmount($data){
+        $count=[];
+        $unconfirmed=0; //待确认
+        $going=0;   //进行中
+        $outgoing=0;    //已出库
+        $dispatched=0;  //已发运
+        $completed=0;   //已完成
+
+        $amount=0;
+        $paymentAmount=0;
+        foreach($data as $k => $v){
+            $count[]=$v['order_id'];
+            if($v['currency_bn']=='USD'){   //订单金额
+                $amount+=$v['amount'];
+                $paymentAmount+=$v['payment_amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $amount+=$v['amount']*0.1583;
+                $paymentAmount+=$v['payment_amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $amount+=$v['amount']*1.2314;
+                $paymentAmount+=$v['payment_amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $amount+=$v['amount']*0.7918;
+                $paymentAmount+=$v['payment_amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $amount+=$v['amount']*0.01785;
+                $paymentAmount+=$v['payment_amount']*0.01785;
+            }
+
+            if($v['show_status']=='UNCONFIRM'){ //订单状态个数
+                $unconfirmed+=1;
+            }elseif($v['show_status']=='GOING'){
+                $going+=1;
+            }elseif($v['show_status']=='OUTGOING'){
+                $outgoing+=1;
+            }elseif($v['show_status']=='DISPATCHED'){
+                $dispatched+=1;
+            }elseif($v['show_status']=='COMPLETED'){
+                $completed+=1;
+            }
+
+        }
+        $arr['total']=count(array_flip(array_flip($count)));
+        $arr['unconfirmed']=$unconfirmed;
+        $arr['going']=$going;
+        $arr['outgoing']=$outgoing;
+        $arr['dispatched']=$dispatched;
+        $arr['completed']=$completed;
+        $arr['payment_amount']=$paymentAmount;
+        $arr['amount']=$amount;
+        return $arr;
+    }
     /**
      * @param $buyer_id
      * 获取订单数，金额-统计
