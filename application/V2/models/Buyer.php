@@ -2695,8 +2695,11 @@ EOF;
             }
         }
         foreach($arr as $k => $v){
-            $info['day'][]=$v['created_at'];
-            $info['count'][]=intval($v['count']);
+            $info['xAxis']['day'][]=$v['created_at'];
+            $info['xAxis']['type']='category';
+            $info['yAxis']['type']='value';
+
+            $info['series']['data'][]=intval($v['count']);
         }
         return $info;
     }
