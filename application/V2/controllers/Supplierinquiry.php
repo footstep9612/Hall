@@ -32,7 +32,7 @@ class SupplierinquiryController extends PublicController {
 
         if ($data) {
             $suppliercount = $supplier_inquiry_model->getSupplierCount();
-            $inquirycount = $supplier_inquiry_model->getInquiryCount();
+            $inquirycount = $supplier_inquiry_model->getInquiryCount($condition);
             // $count = 0; // $supplier_inquiry_model->getCount($condition);
             $this->setvalue('suppliercount', $suppliercount);
             $this->setvalue('inquirycount', $inquirycount);
@@ -69,7 +69,7 @@ class SupplierinquiryController extends PublicController {
         $data = $supplier_inquiry_model->getInquirysBySupplierId($supplier_id, $condition);
 
         if ($data) {
-            $count = $supplier_inquiry_model->getInquiryCount($supplier_id, $condition);
+            $count = $supplier_inquiry_model->getInquiryCount($condition, $supplier_id);
             $this->setvalue('count', $count);
             $this->jsonReturn($data);
         } elseif ($data === null) {

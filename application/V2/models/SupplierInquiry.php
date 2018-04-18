@@ -212,7 +212,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getInquiryCount($supplier_id = null, $condition) {
+    public function getInquiryCount(array $condition, $supplier_id = null) {
 
         $final_quote_item_model = new FinalQuoteItemModel();
         $supplier_model = new SupplierModel();
