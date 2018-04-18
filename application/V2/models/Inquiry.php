@@ -1044,7 +1044,7 @@ class InquiryModel extends PublicModel {
         return $this->where(['id' => $id])->getField('serial_no');
     }
     
-     /* @param $buyer_id
+     /* @param $buyer_id======================================================================
      * 获取询单数量
      * wangs
      */
@@ -1120,6 +1120,41 @@ class InquiryModel extends PublicModel {
         foreach($ids as $k => $v){
             $arr[$k]=$this->statisInquiry($v);
         }
+        return $arr;
+    }
+    //会员属性统计
+    public function getBuyerInquiry($buyer_id){
+        $order=new OrderModel();
+        $orderInfo=$order->statisOrder($buyer_id);
+        $orderCount=$orderInfo['count'];    //订单数
+        $orderAmount=$orderInfo['account']; //订单总额
+
+        $inquiryInfo=$this->statisInquiry($buyer_id);
+        $inquiryCount=$inquiryInfo['inquiry_count']; //询单个数
+        $quoteCount=$inquiryInfo['quote_count']; //报价个数
+        $quoteAmount=$inquiryInfo['account']; //报价总额
+
+
+        if($orderCount==0 && $inquiryCount==0){ //成单率=订单个数/报价个数
+            $orderRate = '0%';
+        }elseif($orderCount>=$inquiryCount){
+            $orderRate ='100%';
+        }else{
+            $orderRate = (sprintf("%.4f",$orderCount/$quoteCount)*100).'%';
+        }
+
+        if($orderAmount==0 && $quoteAmount==0){ //成单金额率=订单金额/报价金额
+            $orderAmountRate = '0%';
+        }elseif($orderAmount>=$quoteAmount){
+            $orderAmountRate = '100%';
+        }else{
+            $orderAmountRate = (sprintf("%.4f",$orderAmount/$quoteAmount)*100).'%';
+        }
+        $arr['inquiry_count']=$inquiryCount; //询单个数
+        $arr['quote_count']=$quoteCount; //报价个数
+        $arr['order_count']=$orderCount; //订单数
+        $arr['order_rate']=$orderRate; //成单率
+        $arr['order_amount_rate']=$orderAmountRate; //成单金额率
         return $arr;
     }
     //crm 获取地区,国家,会员统计中使用====================================================================
@@ -1220,14 +1255,8 @@ class InquiryModel extends PublicModel {
             }
         }
         foreach($arr as $k => $v){
-            $info['xAxis']['day'][]=$v['created_at'];
-            $info['xAxis']['type']='category';
-            $info['yAxis']['type']='value';
-
-            $info['series'][0]['data'][]=intval($v['count']);
-            $info['series'][0]['type']='line';
-            $info['series'][0]['areaStyle']= new stdClass();
-            $info['series'][0]['smooth']=true;
+            $info['day'][]=$v['created_at'];
+            $info['count'][]=intval($v['count']);
         }
         return $info;
     }

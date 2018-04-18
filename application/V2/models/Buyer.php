@@ -2695,12 +2695,8 @@ EOF;
             }
         }
         foreach($arr as $k => $v){
-            $info['xAxis']['day'][]=$v['created_at'];
-            $info['xAxis']['type']='category';
-            $info['yAxis']['type']='value';
-
-            $info['series'][0]['data'][]=intval($v['count']);
-            $info['series'][0]['type']='line';
+            $info['day'][]=$v['created_at'];
+            $info['count'][]=intval($v['count']);
         }
         return $info;
     }
@@ -2715,7 +2711,8 @@ EOF;
         $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
         $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
         $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
-        $sql.=' buyer.buyer_level,buyer.intent_product ';
+        $sql.=' (select buyer_level from erui_config.buyer_level where deleted_flag=\'N\' and id=buyer.buyer_level) as buyer_level, ';
+        $sql.=' buyer.intent_product ';
         $sql.=' from erui_buyer.buyer buyer ';
         $sql.=' left join erui_operation.market_area_country country on buyer.country_bn=country.country_bn';
         $sql.=' where ';
@@ -2734,8 +2731,10 @@ EOF;
             if($v['is_build']==1){
                 $info[$k]['status']='PASS';
             }
-            unset($v['is_build']);
             unset($v['id']);
+            unset($v['is_build']);
+            unset($v['buyer_level']);
+            unset($v['intent_product']);
         }
         $arr['total']=$total;
         $arr['page']=$page;
@@ -2764,6 +2763,32 @@ EOF;
         $total=$arr['total'];
         $page=$arr['page'];
         $info=$arr['info'];
-        print_r($info);die;
+        $lang=$data['lang'];
+        $inquiry=new InquiryModel();
+        foreach($info as $key => &$value){
+            if(!empty($value['buyer_level'])){
+                $level_name=json_decode($value['buyer_level'],true);
+                foreach($level_name as $k => $v){
+                    if($lang==$v['lang']){
+                        $value['buyer_level']=$v['name'];
+                    }
+                }
+            }
+            $InquiryOrder=$inquiry->getBuyerInquiry($value['id']);
+            $info[$key]['inquiry_count']=$InquiryOrder['inquiry_count'];   //询单个数
+            $info[$key]['quote_count']=$InquiryOrder['quote_count'];   //报价个数
+            $info[$key]['order_count']=$InquiryOrder['order_count'];   //订单数
+            $info[$key]['order_rate']=$InquiryOrder['order_rate'];   //成单率
+            $info[$key]['order_amount_rate']=$InquiryOrder['order_amount_rate'];   //成单金额率
+            unset($info[$key]['id']);
+            unset($info[$key]['is_build']);
+            unset($info[$key]['status']);
+            unset($info[$key]['created_at']);
+            unset($info[$key]['checked_at']);
+        }
+        $result['total']=$total;
+        $result['page']=$page;
+        $result['info']=$info;  //数据
+        return $result;
     }
 }

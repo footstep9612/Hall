@@ -638,21 +638,21 @@ class OrderModel extends PublicModel {
             }
         }
         $result=[];
-//        foreach($arr as $k => $v){
-//            $result['day'][]=$v['created_at'];
-//            $result['count'][]=intval($v['count']);
-//        }
         foreach($arr as $k => $v){
-            $result['xAxis']['day'][]=$v['created_at'];
-            $result['xAxis']['type']='category';
-            $result['yAxis']['type']='value';
-
-            $result['series'][0]['data'][]=intval($v['count']);
-            $result['series'][0]['type']='line';
-            $result['series'][0]['areaStyle']= new stdClass();
-            $result['series'][0]['smooth']=true;
+            $result['day'][]=$v['created_at'];
+            $result['count'][]=intval($v['count']);
         }
         return $result;
+//        foreach($arr as $k => $v){
+//            $result['xAxis']['day'][]=$v['created_at'];
+//            $result['xAxis']['type']='category';
+//            $result['yAxis']['type']='value';
+//
+//            $result['series'][0]['data'][]=intval($v['count']);
+//            $result['series'][0]['type']='line';
+//            $result['series'][0]['areaStyle']= new stdClass();
+//            $result['series'][0]['smooth']=true;
+//        }
     }
     public function getStatisOldOrder($data){
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){
