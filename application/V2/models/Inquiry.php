@@ -1224,7 +1224,10 @@ class InquiryModel extends PublicModel {
             $info['xAxis']['type']='category';
             $info['yAxis']['type']='value';
 
-            $info['series']['data'][]=intval($v['count']);
+            $info['series'][0]['data'][]=intval($v['count']);
+            $info['series'][0]['type']='line';
+            $info['series'][0]['areaStyle']= new stdClass();
+            $info['series'][0]['smooth']=true;
         }
         return $info;
     }

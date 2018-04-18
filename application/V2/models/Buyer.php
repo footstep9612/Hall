@@ -2699,7 +2699,8 @@ EOF;
             $info['xAxis']['type']='category';
             $info['yAxis']['type']='value';
 
-            $info['series']['data'][]=intval($v['count']);
+            $info['series'][0]['data'][]=intval($v['count']);
+            $info['series'][0]['type']='line';
         }
         return $info;
     }

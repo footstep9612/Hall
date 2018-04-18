@@ -647,7 +647,10 @@ class OrderModel extends PublicModel {
             $result['xAxis']['type']='category';
             $result['yAxis']['type']='value';
 
-            $result['series']['data'][]=intval($v['count']);
+            $result['series'][0]['data'][]=intval($v['count']);
+            $result['series'][0]['type']='line';
+            $result['series'][0]['areaStyle']= new stdClass();
+            $result['series'][0]['smooth']=true;
         }
         return $result;
     }
