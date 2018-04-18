@@ -188,41 +188,25 @@ class OrderModel extends PublicModel {
     }
     //统计客户的订单(各个状态下的数量及金额)-wangs
     public function statisOrderStatusCount($buyer_id,$buyer_code=''){
-        $old=$this->getOldStatusCount($buyer_id);
-        print_r($old);die;
-        $new=$this->getNewStatusCount($buyer_code);
+        $old=$this->getOldStatusCount($buyer_id);   //老订单
+        return $old;
+        $new=$this->getNewStatusCount($buyer_code); //新订单
+        print_r($new);die;
+
+    }
+    public function getNewStatusCount($buyer_code){
 
     }
     public function getOldStatusCount($buyer_id){
-        $buyer_id=279;
         $sql='select';
         $sql.=' `order`.id as order_id,`order`.show_status, `order`.amount,`order`.currency_bn, ';
         $sql.=' payment.amount as payment_amount ';
         $sql.=' from erui_order.order `order` ';
         $sql.=' left join erui_order.order_payment `payment` on `order`.id=payment.order_id ';
         $sql.=' where  `order`.deleted_flag=\'N\' and `order`.buyer_id='.$buyer_id;
-//        $sql.=' group by show_status ';
         $info=$this->query($sql);
         $info=$this->packOrderAmount($info);
-        print_r($info);die;
-        $arr=array(
-            ['count'=>0,'show_status'=>'UNCONFIRM','amount'=>0], //待确认
-            ['count'=>0,'show_status'=>'GOING','amount'=>0],    //进行中
-            ['count'=>0,'show_status'=>'OUTGOING','amount'=>0], //已出库
-            ['count'=>0,'show_status'=>'DISPATCHED','amount'=>0],   //已发运
-            ['count'=>0,'show_status'=>'COMPLETED','amount'=>0] //已完成
-        );
-        if(!empty($info)){
-            foreach($arr as $key => &$value){
-                foreach($info as $k => $v){
-                    if($value['show_status']==$v['show_status']){
-                        $value['count']=$v['count'];
-                        $value['amount']=$v['amount'];
-                    }
-                }
-            }
-        }
-        return $arr;
+        return $info;
     }
     public function packOrderAmount($data){
         $count=[];
@@ -272,8 +256,8 @@ class OrderModel extends PublicModel {
         $arr['outgoing']=$outgoing;
         $arr['dispatched']=$dispatched;
         $arr['completed']=$completed;
-        $arr['payment_amount']=$paymentAmount;
-        $arr['amount']=$amount;
+        $arr['payment_amount']= $paymentAmount==0?0:sprintf("%.4f",$paymentAmount);
+        $arr['amount']= $amount==0?0:sprintf("%.4f",$amount);
         return $arr;
     }
     /**

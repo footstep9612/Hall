@@ -2806,7 +2806,9 @@ EOF;
         $sql.=' order by buyer.created_at desc';
         $sql.=' limit '.$offset.',10';
         $info=$this->query($sql);
-
+        if(empty($info)){
+            return $info;
+        }
         $lang=$data['lang'];
         $visit=new BuyerVisitModel();
         $order=new OrderModel();
@@ -2815,7 +2817,16 @@ EOF;
             $info[$key]['visit_count']=$visitInfo['visit_count'];
             $info[$key]['demand_count']=$visitInfo['demand_count'];
             $orderInfo=$order->statisOrderStatusCount($value['id'],$value['buyer_code']);    //统计订单各个状态的数量
-            print_r($orderInfo);die;
+            $info[$key]['order_count']=$orderInfo['total']; //该该客户订单总数
+            $info[$key]['order_unconfirmed']=$orderInfo['unconfirmed']; //待确认的订单数
+            $info[$key]['order_going']=$orderInfo['going']; //进行中的订单数
+            $info[$key]['order_outgoing']=$orderInfo['outgoing']; //已出库的订单数
+            $info[$key]['order_dispatched']=$orderInfo['dispatched']; //已发运订单数
+            $info[$key]['order_completed']=$orderInfo['completed']; //已完成订单数
+            $info[$key]['order_payment']=$orderInfo['payment_amount']; //订单回款金额
+            $info[$key]['order_amount']=$orderInfo['amount']; //总订单销售金额
+//            unset($info[$key]['id']);
         }
+        return $info;
     }
 }
