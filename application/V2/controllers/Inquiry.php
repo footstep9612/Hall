@@ -1077,18 +1077,23 @@ class InquiryController extends PublicController {
             foreach ($data['sku'] as $val) {
                 $condition = $val;
                 if ($condition['name'] == '' || $condition['name_zh'] == '' || $condition['qty'] == '' || $condition['unit'] == '') {
-                    continue;
-                }
-                if (!isDecimal($condition['qty'])) {
-                    $condition['qty'] = 1;
-                }
-                if ($condition['id'] == '') {
-                    $condition['inquiry_id'] = $data['id'];
-                    $condition['created_by'] = $this->user['id'];
-                    $results = $Item->addData($condition);
+                    if ($condition['id'] == '') {
+                        continue;
+                    } else {
+                        $results = $Item->deleteData($condition);
+                    }
                 } else {
-                    $condition['updated_by'] = $this->user['id'];
-                    $results = $Item->updateData($condition);
+                    if (!isDecimal($condition['qty'])) {
+                        $condition['qty'] = 1;
+                    }
+                    if ($condition['id'] == '') {
+                        $condition['inquiry_id'] = $data['id'];
+                        $condition['created_by'] = $this->user['id'];
+                        $results = $Item->addData($condition);
+                    } else {
+                        $condition['updated_by'] = $this->user['id'];
+                        $results = $Item->updateData($condition);
+                    }
                 }
                 if ($results['code'] != 1) {
                     $Item->rollback();
