@@ -46,7 +46,7 @@ class QuoteItemModel extends PublicModel {
     public function getList($request){
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'a.id,a.quote_id,a.inquiry_id,a.inquiry_item_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
+        $fields = 'a.id,b.id inquiry_item_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
         return $this->getSqlJoint($request)
                             ->field($fields)
                             ->page($currentPage, $pageSize)
