@@ -1076,7 +1076,10 @@ class InquiryController extends PublicController {
             $insertItemIds = [];
             foreach ($data['sku'] as $val) {
                 $condition = $val;
-                if (isset($condition['qty']) && !isDecimal($condition['qty'])) {
+                if ($condition['name'] == '' || $condition['name_zh'] == '' || $condition['qty'] == '' || $condition['unit'] == '') {
+                    continue;
+                }
+                if (!isDecimal($condition['qty'])) {
                     $condition['qty'] = 1;
                 }
                 if ($condition['id'] == '') {
@@ -1167,6 +1170,8 @@ class InquiryController extends PublicController {
             $res['count'] = $historicalSkuQuoteModel->getCount($condition);
             // 采购价格区间
             $res['price_range'] = $historicalSkuQuoteModel->getPriceRange($condition);
+            // 匹配的品名数
+            $res['matching_name_count'] = $historicalSkuQuoteModel->getMatchingNameCount($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');

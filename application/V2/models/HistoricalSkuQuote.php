@@ -88,25 +88,35 @@ class HistoricalSkuQuoteModel extends PublicModel {
     	$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
     	$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     	// 排序
-    	$orderReferFields = ['purchase_unit_price', 'delivery_days', 'matching_percent'];
+    	$orderReferFields = ['matching_percent', 'period_of_validity', 'purchase_unit_price'];
     	$orderReferType = ['ASC', 'DESC'];
     	if (!empty($condition['order_by'])) {
-    	    $orderArr = [];
-    	    $orderFields = explode(',', $condition['order_by']);
-    	    foreach ($orderFields as $v) {
-    	        $tmpArr = explode(':', $v);
-    	        $orderField = trim($tmpArr[0]);
-    	        $orderType = strtoupper(trim($tmpArr[1]));
+    	    // 存在的排序字段、排序字段和方式的映射、实际排序字段
+    	    $orderExist = $orderMapping = $orderFact = [];
+    	    foreach ($condition['order_by'] as $k => $v) {
+    	        $orderField = trim($k);
+    	        $orderType = strtoupper(trim($v));
     	        if (in_array($orderField, $orderReferFields)) {
-    	            $orderArr[] =$orderField . ' ' . (in_array($orderType, $orderReferType) ? $orderType : 'ASC');
+    	            $orderExist[] =$orderField;
+    	            $orderMapping[$orderField] = in_array($orderType, $orderReferType) ? $orderType : 'ASC';
     	        }
     	    }
-    	    $order = implode(',', $orderArr);
+    	    $orderExist = array_unique($orderExist);
+    	    if (in_array('matching_percent', $orderExist)) {
+    	        $orderFact[] = 'matching_percent ' . $orderMapping['matching_percent'];
+    	    }
+    	    if (in_array('period_of_validity', $orderExist)) {
+    	        $orderFact[] = 'period_of_validity ' . $orderMapping['period_of_validity'];
+    	    }
+    	    if (in_array('purchase_unit_price', $orderExist)) {
+    	        $orderFact[] = 'purchase_unit_price ' . $orderMapping['purchase_unit_price'];
+    	    }
+    	    $orderBy = implode(',', $orderFact);
     	}
-    	$order = ($order ? $order . ',' : '') . 'a.id DESC';
+    	$orderBy = ($orderBy ? $orderBy . ',' : '') . 'a.id DESC';
     	return $this->getSqlJoint($condition)
-                            ->field('a.created_at,
-                                          b.name, b.name_zh, b.model,
+                            ->field('a.created_at, '
+                                          . ($lang ==  'zh' ? 'b.name_zh' : 'b.name') . ' AS sku_name, b.model,
                                           c.pn, c.brand, c.quote_qty, c.period_of_validity, c.delivery_days, c.stock_loc, c.purchase_unit_price, c.purchase_price_cur_bn,
                                           d.sku, d.supplier_id,
                                           e.name'. ($lang == 'zh' ? '' : '_en') . ' AS supplier_name,
@@ -119,7 +129,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
                                           WHEN (b.brand <> \'\' AND b.brand = \'' . $condition['brand'] . '\') AND (b.model <> \'\' AND b.model = \'' . $condition['model'] . '\') THEN 70
                                           END AS matching_percent')
     	                    ->page($currentPage, $pageSize)
-    	                    ->order($order)
+    	                    ->order($orderBy)
     	                    ->select();
     }
     
@@ -132,7 +142,27 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @time 2018-04-17
      */
     public function getPriceRange($condition = []) {
-        return $this->getSqlJoint($condition)->field('CONCAT(ROUND(MIN(c.purchase_unit_price), 2), '-', ROUND(MAX(c.purchase_unit_price), 2)) AS price_range')->find()['price_range'];
+        return $this->getSqlJoint($condition)->field('CONCAT(ROUND(MIN(c.purchase_unit_price), 2), \'-\', ROUND(MAX(c.purchase_unit_price), 2)) AS price_range')->find()['price_range'];
+    }
+    
+    /**
+     * @desc 获取匹配的品名数
+     *
+     * @param array $condition
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-17
+     */
+    public function getMatchingNameCount($condition = []) {
+        // 语言
+        $lang = defined(LANG_SET) ? LANG_SET : 'zh';
+        if ($lang == 'zh') {
+            $where = ['b.name_zh' => [['neq', ''], ['eq', $condition['name_zh']]]];
+        } else {
+            $where = ['b.name' => [['neq', ''], ['eq', $condition['name']]]];
+        }
+        $ids = $this->getSqlJoint($condition)->where($where)->getField('a.id', true);
+        return count($ids);
     }
     
     /**
