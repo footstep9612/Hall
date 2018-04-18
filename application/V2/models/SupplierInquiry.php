@@ -212,7 +212,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getInquiryCount($supplier_id = null) {
+    public function getInquiryCount(array $condition, $supplier_id = null) {
 
         $final_quote_item_model = new FinalQuoteItemModel();
         $supplier_model = new SupplierModel();
@@ -248,8 +248,16 @@ class SupplierInquiryModel extends PublicModel {
             'i.status' => 'QUOTE_SENT',
             'i.quote_status' => 'COMPLETED',
             'i.id' => ['in', $inquiry_ids],
-            'mac.market_area_bn' => ['in', $this->areas],
+            //'mac.market_area_bn' => ['in', $this->areas],
         ];
+
+        //按区域筛选
+        if (!empty($condition['area_bn'])) {
+            $where['mac.market_area_bn'] = ['in', [trim($condition['area_bn'])]];
+        }else {
+            $where['mac.market_area_bn'] = ['in', $this->areas];
+        }
+
         $inquiry_model = new InquiryModel();
         $count = $inquiry_model
                 ->alias('i')
@@ -288,8 +296,16 @@ class SupplierInquiryModel extends PublicModel {
             'status' => 'QUOTE_SENT',
             'quote_status' => 'COMPLETED',
             'id' => ['in', $inquiry_ids],
-            'area_bn' => ['in', $this->areas]
+            //'area_bn' => ['in', $this->areas]
         ];
+
+        //按区域筛选
+        if (!empty($condition['area_bn'])) {
+            $where['area_bn'] = ['in', [trim($condition['area_bn'])]];
+        }else {
+            $where['area_bn'] = ['in', $this->areas];
+        }
+
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model
                 ->field('id as inquiry_id,inquiry_no,serial_no,created_at')

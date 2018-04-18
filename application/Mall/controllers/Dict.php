@@ -426,4 +426,17 @@ class DictController extends PublicController {
         }
 
     }
+
+    /**
+     * 获取国家联系信息
+     */
+    public function getContactAction(){
+        $data = $this->getPut();
+        $contact = new CountryContactModel();
+        $result = $contact->getInfo($data);
+        if($result && $result!==false){
+            jsonReturn($result);
+        }
+        jsonReturn('',MSG::MSG_FAILED);
+    }
 }
