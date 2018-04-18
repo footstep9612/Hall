@@ -106,6 +106,15 @@ class TemporarySupplierController extends PublicController
             $supplier['is_relation'] = (new TemporarySupplierRelationModel)->checkTemporaryRegularRelationBy($request['temporary_supplier_id'], $supplier['id']) ? 'Y' : 'N';
         }
 
+        if (count($suppliers)==1) {
+            $this->jsonReturn([
+                'code' => 1,
+                'message' => '成功',
+                'total' => count($suppliers),
+                'data' => $suppliers
+            ]);
+        }
+
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',

@@ -24,16 +24,16 @@ class TemporarySupplierRelationModel extends PublicModel
     {
         $temporarySupplierModel = new TemporarySupplierModel();
         $temporarySupplier = $temporarySupplierModel->byId($condition['id']);
-
+        //一个临时供应商只能跟一个正式供应商关联
         $flag = $this->where([
-            'deleted_flag' => 'N',
-            'temporary_supplier_no' => $temporarySupplier['supplier_no'],
-            'supplier_no' => $condition['supplier_no'],
-        ])->find();
+            'temporary_supplier_id' => $condition['id'],
+            //'supplier_no' => $condition['supplier_no'],
+        ])->delete();
 
-        if ($flag) {
-            jsonReturn([], -104, '已经关联过供应商');
-        }
+        $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N'])->save([
+            'is_relation' => 'N',
+            'relations_count' => 0
+        ]);
 
         $this->startTrans();
         $result = $this->add($this->create([
@@ -49,7 +49,9 @@ class TemporarySupplierRelationModel extends PublicModel
             $this->commit();
             $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N'])->save([
                 'is_relation' => 'Y',
-                'relations_count' => $temporarySupplier['relations_count'] + 1
+                'relations_count' => $temporarySupplier['relations_count'] + 1,
+                'created_at' => date('Y-m-d H:i:s'),
+                'created_by' => $user
             ]);
         }
 
