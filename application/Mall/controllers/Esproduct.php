@@ -33,9 +33,9 @@ class EsproductController extends PublicController {
         $size = $this->getPut('size', '10');
         $body = $this->getPut('body');
         $body['_source'] = ['spu', 'show_name'];
+        $_function = ['function', 'search'];
         $es->setbody($body);
-        $ret = $es->search($index, $type, $from, $size);
-
+        $ret = $es->$_function($index, $type, $from, $size);
         echo json_encode($ret);
         die;
     }
