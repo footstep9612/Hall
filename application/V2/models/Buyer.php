@@ -2707,7 +2707,7 @@ EOF;
         $offset=($page-1)*10;
         $total=$this->getStatisTotal($cond);
         $sql='select ';
-        $sql.=' buyer.id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
         $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
         $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
         $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
@@ -2727,11 +2727,10 @@ EOF;
             return $arr;
         }
         foreach($info as $k => &$v){
-            $info[$k]['agent']=$this->getStatisAgent($v['id']);
+            $info[$k]['agent']=$this->getStatisAgent($v['buyer_id']);
             if($v['is_build']==1){
                 $info[$k]['status']='PASS';
             }
-            unset($v['id']);
             unset($v['is_build']);
             unset($v['buyer_level']);
             unset($v['intent_product']);
@@ -2774,13 +2773,13 @@ EOF;
                     }
                 }
             }
-            $InquiryOrder=$inquiry->getBuyerInquiry($value['id']);
+            $InquiryOrder=$inquiry->getBuyerInquiry($value['buyer_id']);
             $info[$key]['inquiry_count']=$InquiryOrder['inquiry_count'];   //询单个数
             $info[$key]['quote_count']=$InquiryOrder['quote_count'];   //报价个数
             $info[$key]['order_count']=$InquiryOrder['order_count'];   //订单数
             $info[$key]['order_rate']=$InquiryOrder['order_rate'];   //成单率
             $info[$key]['order_amount_rate']=$InquiryOrder['order_amount_rate'];   //成单金额率
-            unset($info[$key]['id']);
+//            unset($info[$key]['id']);
             unset($info[$key]['is_build']);
             unset($info[$key]['status']);
             unset($info[$key]['created_at']);
@@ -2798,7 +2797,7 @@ EOF;
         $offset=($page-1)*10;
         $total=$this->getStatisTotal($cond);
         $sql='select ';
-        $sql.=' buyer.id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code ';
 
         $sql.=' from erui_buyer.buyer buyer ';
         $sql.=' where ';
@@ -2813,10 +2812,10 @@ EOF;
         $visit=new BuyerVisitModel();
         $order=new OrderModel();
         foreach($info as $key => $value){
-            $visitInfo=$visit->statisVisitCount($value['id']);   //统计拜访记录
+            $visitInfo=$visit->statisVisitCount($value['buyer_id']);   //统计拜访记录
             $info[$key]['visit_count']=$visitInfo['visit_count'];
             $info[$key]['demand_count']=$visitInfo['demand_count'];
-            $orderInfo=$order->statisOrderStatusCount($value['id'],$value['buyer_code']);    //统计订单各个状态的数量
+            $orderInfo=$order->statisOrderStatusCount($value['buyer_id'],$value['buyer_code']);    //统计订单各个状态的数量
             $info[$key]['order_count']=$orderInfo['total']; //该该客户订单总数
             $info[$key]['order_unconfirmed']=$orderInfo['unconfirmed']; //待确认的订单数
             $info[$key]['order_going']=$orderInfo['going']; //进行中的订单数
@@ -2825,8 +2824,10 @@ EOF;
             $info[$key]['order_completed']=$orderInfo['completed']; //已完成订单数
             $info[$key]['order_payment']=$orderInfo['payment_amount']; //订单回款金额
             $info[$key]['order_amount']=$orderInfo['amount']; //总订单销售金额
-//            unset($info[$key]['id']);
         }
-        return $info;
+        $arr['total']=$total;
+        $arr['page']=$page;
+        $arr['info']=$info;
+        return $arr;
     }
 }
