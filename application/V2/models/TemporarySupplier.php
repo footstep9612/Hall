@@ -159,6 +159,11 @@ class TemporarySupplierModel extends PublicModel
 
     public function getRegularSupplierList(array $condition)
     {
+
+        if (!empty($condition['is_relation'])) {
+            return $this->isRelationRegularSuppliers($condition);
+        }
+
         $where = $this->setRegularCondition($condition);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
@@ -175,6 +180,34 @@ class TemporarySupplierModel extends PublicModel
             ->page($currentPage, $pageSize)
             ->order('a.id DESC')
             ->select();
+
+    }
+
+    private function isRelationRegularSuppliers(array $condition)
+    {
+        $supplier = new SuppliersModel();
+
+        //$temporary_supplier_id = $condition['is_relation']=='Y' ? $condition['temporary_supplier_id'] : ;
+        if ($condition['is_relation']=='Y') {
+            $ts_id = $condition['temporary_supplier_id'];
+        }
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        return $supplier->alias('a')
+                        ->join('erui_supplier.temporary_supplier_relation ts ON a.id=ts.supplier_id', 'LEFT')
+                        ->join($this->joinTable1, 'LEFT')
+                        ->join($this->joinTable5, 'LEFT')
+                        ->where([
+                            'ts.temporary_supplier_id' => $ts_id,
+                            'ts.deleted_flag' => 'N',
+                            'a.deleted_flag' => 'N',
+                        ])
+                        ->field($this->joinField)
+                        ->page($currentPage, $pageSize)
+                        ->order('a.id DESC')
+                        ->select();
 
     }
 
