@@ -25,6 +25,21 @@ class EsproductController extends PublicController {
         $this->es = new ESClient();
     }
 
+    public function SearchAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index', 'erui_goods');
+        $type = $this->getPut('type', 'product_en');
+        $from = $this->getPut('from', '0');
+        $size = $this->getPut('size', '10');
+        $body = $this->getPut('body');
+        $body['_source'] = ['spu', 'show_name'];
+        $es->setbody($body);
+        $ret = $es->search($index, $type, $from, $size);
+
+        echo json_encode($ret);
+        die;
+    }
+
     /*
      * 门户新需求 产品列表
      */
