@@ -413,10 +413,6 @@ class BuyerfilesController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
         $area=new CountryModel();
-        $info=$area->table('erui_operation.market_area')
-            ->field('bn as area_bn,name as area_name')
-            ->where(array('deleted_flag'=>'N','lang'=>$lang))
-            ->select();
         if(!empty($data['area_bn'])){
             $info=$area->table('erui_operation.market_area_country country_bn')
                 ->join('erui_dict.country country on country_bn.country_bn=country.bn')
