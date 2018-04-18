@@ -256,6 +256,7 @@ class QuoteItemModel extends PublicModel {
                 if ($value['id'] == '') {
                     $inquiryItemData['created_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
+                    $quoteItemData['inquiry_item_id'] = $inquiryItemResult['insert_id'];
                     $quoteItemData['created_by'] = $user;
                     $quoteItemData['created_at'] = $time;
                     $quoteItemResult = $this->add($quoteItemData);
