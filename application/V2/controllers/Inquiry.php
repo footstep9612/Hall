@@ -1092,7 +1092,7 @@ class InquiryController extends PublicController {
                         $results = $Item->addData($condition);
                     } else {
                         $condition['updated_by'] = $this->user['id'];
-                        $Item->updateData($condition);
+                        $results = $Item->updateData($condition);
                     }
                 }
                 if ($results['code'] != 1) {
