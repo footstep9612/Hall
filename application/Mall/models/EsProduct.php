@@ -272,7 +272,7 @@ class EsProductModel extends Model {
 //                                                        [ESClient::WILDCARD => ['show_name.lower' =>
 //                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 300]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
-                                                                ['value' => '*' . strtolower($keyword), 'boost' => 2000]]],
+                                                                ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
                                                             ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 201]]],
                                                         [ESClient::WILDCARD =>
