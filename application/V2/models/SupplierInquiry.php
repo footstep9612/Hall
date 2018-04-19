@@ -1645,13 +1645,13 @@ class SupplierInquiryModel extends PublicModel {
 
         //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
         foreach ($suppliers as &$supplier) {
-            $supplier['Middle-East'] = $this->areaInquiryStaticsBy($supplier['id'], 'Middle East');
-            $supplier['South-America'] = $this->areaInquiryStaticsBy($supplier['id'], 'South America');
-            $supplier['North-America'] = $this->areaInquiryStaticsBy($supplier['id'], 'North America');
-            $supplier['Africa'] = $this->areaInquiryStaticsBy($supplier['id'], 'Africa');
-            $supplier['Europe'] = $this->areaInquiryStaticsBy($supplier['id'], 'Europe');
-            $supplier['Pan-Russian'] = $this->areaInquiryStaticsBy($supplier['id'], 'Pan Russian');
-            $supplier['Asia-Pacific'] = $this->areaInquiryStaticsBy($supplier['id'], 'Asia-Pacific');
+            $supplier['Middle-East'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Middle East');
+            $supplier['South-America'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'South America');
+            $supplier['North-America'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'North America');
+            $supplier['Africa'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Africa');
+            $supplier['Europe'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Europe');
+            $supplier['Pan-Russian'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Pan Russian');
+            $supplier['Asia-Pacific'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Asia-Pacific');
 
             $supplier['total'] = $supplier['Middle-East'] + $supplier['South-America'] + $supplier['North-America'] + $supplier['Africa'] + $supplier['Europe'] + $supplier['Pan-Russian'] + $supplier['Asia-Pacific'];
         }
