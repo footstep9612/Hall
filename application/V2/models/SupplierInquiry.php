@@ -1577,7 +1577,7 @@ class SupplierInquiryModel extends PublicModel {
     public function suppliersWithFilterAndTotals(array $attributes)
     {
         $where = $this->setSuppliersFilterConditions($attributes);
-        $fields = 'id,name supplier_name,supplier_no';
+        $fields = 'id supplier_id,name supplier_name,supplier_no';
 
         $currentPage = empty($attributes['currentPage']) ? 1 : $attributes['currentPage'];
         $pageSize = empty($attributes['pageSize']) ? 10 : $attributes['pageSize'];
