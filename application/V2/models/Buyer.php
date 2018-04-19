@@ -2792,7 +2792,7 @@ EOF;
 //            unset($info[$key]['id']);
             unset($info[$key]['is_build']);
             unset($info[$key]['status']);
-            unset($info[$key]['created_at']);
+//            unset($info[$key]['created_at']);
             unset($info[$key]['checked_at']);
         }
         $result['total']=$total;
@@ -2807,7 +2807,8 @@ EOF;
         $offset=($page-1)*10;
         $total=$this->getStatisTotal($cond);
         $sql='select ';
-        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
+        $sql.=' buyer.created_at ';
 
         $sql.=' from erui_buyer.buyer buyer ';
         $sql.=' where ';
@@ -2816,6 +2817,11 @@ EOF;
         $sql.=' limit '.$offset.',10';
         $info=$this->query($sql);
         if(empty($info)){
+            $info=array(
+                'total'=>0,
+                'page'=>1,
+                'info'=>[],
+            );
             return $info;
         }
         $lang=$data['lang'];
