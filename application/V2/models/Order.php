@@ -189,13 +189,85 @@ class OrderModel extends PublicModel {
     //统计客户的订单(各个状态下的数量及金额)-wangs
     public function statisOrderStatusCount($buyer_id,$buyer_code=''){
         $old=$this->getOldStatusCount($buyer_id);   //老订单
-        return $old;
+        if(empty($buyer_code)){
+            return $old;
+        }
         $new=$this->getNewStatusCount($buyer_code); //新订单
-        print_r($new);die;
-
+        $result=array(
+            'total'=>$old['total']+$new['total'],
+            'unconfirmed'=>$old['unconfirmed']+$new['unconfirmed'],
+            'going'=>$old['going']+$new['going'],
+            'outgoing'=>$old['outgoing']+$new['outgoing'],
+            'dispatched'=>$old['dispatched']+$new['dispatched'],
+            'completed'=>$old['completed']+$new['completed'],
+            'payment_amount'=>$old['payment_amount']+$new['payment_amount'],
+            'amount'=>$old['amount']+$new['amount']
+        );
+        return $result;
     }
     public function getNewStatusCount($buyer_code){
+        $sql='select';
+        $sql.=' `order`.id as order_id,`order`.status, `order`.process_progress,`order`.total_price as amount,`order`.currency_bn';
+        $sql.=' ,account.money as payment_amount';
+        $sql.=' from erui_new_order.`order` `order`';
+        $sql.=' left join erui_new_order.`order_account` `account` on `order`.id=account.order_id';
+        $sql.=' where `order`.delete_flag=0' ;
+        $sql.=' and crm_code=\''.$buyer_code."'" ;
+        $info=$this->query($sql);
+        $info=$this->packNewOrderAmount($info);
+        return $info;
+    }
+    public function packNewOrderAmount($data){
+        $count=[];
+        $unconfirmed=0; //待确认
+        $going=0;   //进行中
+        $outgoing=0;    //已出库
+        $dispatched=0;  //已发运
+        $completed=0;   //已完成
 
+        $amount=0;
+        $paymentAmount=0;
+        foreach($data as $k => $v){
+            $count[]=$v['order_id'];
+            if($v['currency_bn']=='USD'){   //订单金额
+                $amount+=$v['amount'];
+                $paymentAmount+=$v['payment_amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $amount+=$v['amount']*0.1583;
+                $paymentAmount+=$v['payment_amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $amount+=$v['amount']*1.2314;
+                $paymentAmount+=$v['payment_amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $amount+=$v['amount']*0.7918;
+                $paymentAmount+=$v['payment_amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $amount+=$v['amount']*0.01785;
+                $paymentAmount+=$v['payment_amount']*0.01785;
+            }
+            //1:待确认 2:未执行 3:执行中 4：完成
+            //1,未执行;2,正常执行;3,采购中;4,已报检;5,质检中;6,已入库;7,出库质检;8,已出库;9,已发运
+            if(empty($v['process_progress'])||$v['process_progress']==1||$v['status']==1||$v['status']==2){ //待确认,未执行
+                $unconfirmed+=1;
+            }elseif($v['process_progress']==2||$v['process_progress']==3||$v['process_progress']==4||$v['process_progress']==5||$v['process_progress']==6||$v['process_progress']==7){  //进行中
+                $going+=1;
+            }elseif($v['process_progress']==8 && $v['status']!=4){ //已出库
+                $outgoing+=1;
+            }elseif($v['process_progress']==9 && $v['status']!=4){ //已发运
+                $dispatched+=1;
+            }elseif($v['status']==4){    //已完成
+                $completed+=1;
+            }
+        }
+        $arr['total']=count(array_flip(array_flip($count)));    //订单数
+        $arr['unconfirmed']=$unconfirmed;   //待确认
+        $arr['going']=$going;   //进行中
+        $arr['outgoing']=$outgoing; //已出库
+        $arr['dispatched']=$dispatched; //已发运
+        $arr['completed']=$completed;   //已完成
+        $arr['payment_amount']= $paymentAmount==0?0:sprintf("%.4f",$paymentAmount); //回款金额
+        $arr['amount']= $amount==0?0:sprintf("%.4f",$amount);   //订单金额
+        return $arr;
     }
     public function getOldStatusCount($buyer_id){
         $sql='select';
