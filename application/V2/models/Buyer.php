@@ -2599,9 +2599,9 @@ EOF;
     }
     //获取上周日期时间段
     public function getLastWeek(){
-        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-7,date('Y'));
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-9,date('Y'));
 
-        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-7,date('Y'));
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-9,date('Y'));
         $arr['start_time']=date('Y-m-d',$beginLastweek);
         $arr['end_time']=date('Y-m-d',$endLastweek);
         return $arr;
