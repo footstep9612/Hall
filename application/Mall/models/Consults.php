@@ -22,15 +22,15 @@ class ConsultsModel extends PublicModel
 
         $data = $this->create($data);
         if(!isset($data['country_bn']) || empty($data['country_bn'])){
-            jsonReturn(false,Msg::MSG_FAILED,'country_bn not null');
+            jsonReturn(false,MSG::MSG_FAILED,'country_bn not null');
         }
         $data['country_bn'] = ucfirst($data['country_bn']);
         $data['type'] = isset($data['type']) ? strtoupper($data['type']) : 'PRODUCT';
         if($data['type']=='PRODUCT' && !isset($data['spu'])){
-            jsonReturn(false,Msg::MSG_FAILED,'spu not null');
+            jsonReturn(false,MSG::MSG_FAILED,'spu not null');
         }
         if(empty($data['content'])){
-            jsonReturn(false,Msg::MSG_FAILED,'content not null');
+            jsonReturn(false,MSG::MSG_FAILED,'content not null');
         }
         if(!isset($data['buyer_id'])){
             $data['buyer_id'] = null;
