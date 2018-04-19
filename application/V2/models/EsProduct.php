@@ -664,12 +664,20 @@ class EsProductModel extends Model {
                 foreach ($products as $item) {
                     $this->_findnulltoempty($item);
                     $spu = $item['spu'];
-                    $mcat_nos[] = $item['material_cat_no'];
+
                     $attr_spus[] = $spu;
                     $brands[$spu] = $item['brand'];
-                    $brands[$spu] = $item['brand'];
-                    $bizline_ids[] = $item['bizline_id'];
-                    $material_cat_nos[$spu] = $item['material_cat_no'];
+
+
+
+                    if (!empty($item['material_cat_no'])) {
+                        $mcat_nos[] = $item['material_cat_no'];
+                    }
+
+
+                    if (!empty($item['bizline_id'])) {
+                        $bizline_ids[] = $item['bizline_id'];
+                    }
                 }
 
                 $bizline_model = new BizlineModel();
@@ -842,9 +850,17 @@ class EsProductModel extends Model {
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
                     foreach ($products as $item) {
-                        $mcat_nos[] = $item['material_cat_no'];
-                        $spus[] = $item['spu'];
-                        $bizline_ids[] = $item['bizline_id'];
+                        if (!empty($item['material_cat_no'])) {
+                            $mcat_nos[] = $item['material_cat_no'];
+                        }
+
+                        if (!empty($item['spu'])) {
+                            $spus[] = $item['spu'];
+                        }
+
+                        if (!empty($item['bizline_id'])) {
+                            $bizline_ids[] = $item['bizline_id'];
+                        }
                     }
                     $spus = array_unique($spus);
                     $mcat_nos = array_unique($mcat_nos);
