@@ -69,8 +69,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @time 2018-04-12
      */
     public function getCount($condition = []) {
-    	$ids = $this->getSqlJoint($condition)->getField('a.id', true);
-    	return count($ids);
+    	return $this->getSqlJoint($condition)->count('a.id');
     }
     
     /**
@@ -149,7 +148,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @desc 获取匹配的品名数
      *
      * @param array $condition
-     * @return mixed
+     * @return int
      * @author liujf
      * @time 2018-04-17
      */
@@ -161,8 +160,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
         } else {
             $where = ['b.name' => [['neq', ''], ['eq', $condition['name']]]];
         }
-        $ids = $this->getSqlJoint($condition)->where($where)->getField('a.id', true);
-        return count($ids);
+        return $this->getSqlJoint($condition)->where($where)->count('a.id');
     }
     
     /**
@@ -189,8 +187,7 @@ class HistoricalSkuQuoteModel extends PublicModel {
                             ->join($quoteItemTableName . ' c ON a.quote_item_id = c.id AND c.deleted_flag = \'N\'', 'LEFT')
                             ->join($finalQuoteItemTableName . ' d ON a.inquiry_item_id = d.inquiry_item_id AND d.deleted_flag = \'N\'', 'LEFT')
                             ->join($suppliersTableName . ' e ON d.supplier_id = e.id AND e.deleted_flag = \'N\'', 'LEFT')
-                            ->where($where)
-    	                    ->group('a.id');
+                            ->where($where);
     }
     
 }
