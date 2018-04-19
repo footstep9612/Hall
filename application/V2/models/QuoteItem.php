@@ -315,11 +315,14 @@ class QuoteItemModel extends PublicModel {
      */
     public function getQouteFinalSku($request){
         $where = ['a.inquiry_id'=>$request['inquiry_id'],'a.deleted_flag'=>'N'];
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
         return $this->alias('a')
             ->join('erui_rfq.inquiry_item b ON b.id=a.inquiry_item_id','LEFT')
             ->join('erui_rfq.final_quote_item c ON c.quote_item_id=a.id','LEFT')
             ->field($this->finalSkuFields)
             ->where($where)
+            ->page($currentPage, $pageSize)
             ->select();
     }
 
