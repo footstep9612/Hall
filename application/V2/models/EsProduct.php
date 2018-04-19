@@ -915,8 +915,12 @@ class EsProductModel extends Model {
     private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers, &$bizline_arr) {
 
         $spu = $id = $item['spu'];
-        $es_product = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
 
+        $es_product = null;
+
+        if ($es->exists($this->update_dbName, $this->tableName . '_' . $lang, $id)) {
+            $es_product = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'brand,material_cat_no');
+        }
         $body = $item;
         $body['name'] = htmlspecialchars_decode($item['name']);
         $body['tech_paras'] = htmlspecialchars_decode($item['tech_paras']);
