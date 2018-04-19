@@ -240,7 +240,11 @@ class BuyerVisitModel extends PublicModel {
             if($result){
                 //产品信息
                 $visit_product=new VisitProductModel();
-                $product=$visit_product->getProductInfo($result['id']);
+                if($is_show_name==true){
+                    $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark',true,$lang);
+                }else{
+                    $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark');
+                }
                 //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
@@ -252,12 +256,18 @@ class BuyerVisitModel extends PublicModel {
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->alias('buyer')
                 ->join("erui_dict.country country on buyer.country_bn=country.bn",'left')
-                ->field('buyer.buyer_no,buyer.buyer_code,buyer.name,country.name as country_name')
+                ->field('buyer.country_bn,buyer.buyer_no,buyer.buyer_code,buyer.name,country.name as country_name')
                 ->where(['buyer.id'=>$result['buyer_id'],"country.lang"=>$lang])->find();
+                $area=$buyer_model->table('erui_operation.market_area_country')->alias('country')
+                    ->join('erui_operation.market_area area on country.market_area_bn=area.bn')
+                    ->field('area.name')
+                    ->where(array('country.country_bn'=>$buyerInfo['country_bn'],'lang'=>$lang,'deleted_flag'=>'N'))->find();
+                $buyerInfo['area']=$area['name'];
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
                 $result['buyer_code'] = $buyerInfo['buyer_code'];
                 $result['country_name'] = $buyerInfo['country_name'];
+                $result['area'] = $buyerInfo['area'];
                 $result['demand_content'] = $result['demand_content'];
                 $result['visit_type'] = json_decode( $result['visit_type']);
                 $result['visit_level'] = json_decode( $result['visit_level']);
@@ -267,16 +277,24 @@ class BuyerVisitModel extends PublicModel {
                 $result['product_info'] = $product;     //产品信息
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
-                    $result['demand_type'] = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
+                    if(!empty($result['demand_type'])){
+                        $demandInfo = $vdt_model->field('name')->where(['id'=>['in', $result['demand_type']]])->select();
+                        $result['demand_type']=$this->packStrData($demandInfo);
+                    }else{
+                        $result['demand_type']='';
+                    }
 
                     $vp_model = new VisitPositionModel();
-                    $result['visit_position'] = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
+                    $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
+                    $result['visit_position']=$this->packStrData($positionInfo);
 
                     $vl_model = new VisitLevelModel();
-                    $result['visit_level'] = $vl_model->field('name')->where(['id'=>['in', $result['visit_level']]])->select();
+                    $levelInfo = $vl_model->field('name')->where(['id'=>['in', $result['visit_level']]])->select();
+                    $result['visit_level']=$this->packStrData($levelInfo);
 
                     $vt_model = new VisitTypeModel();
-                    $result['visit_type'] = $vt_model->field('name')->where(['id'=>['in', $result['visit_type']]])->select();
+                    $typeInfo = $vt_model->field('name')->where(['id'=>['in', $result['visit_type']]])->select();
+                    $result['visit_type']=$this->packStrData($typeInfo);
                 }
             }
             return $result ? $result : [];
@@ -285,7 +303,13 @@ class BuyerVisitModel extends PublicModel {
             return false;
         }
     }
-
+    private function packStrData($data){
+        $str='';
+        foreach($data as $k => $v){
+            $str.=','.$v['name'];
+        }
+        return substr($str,1);
+    }
     /**
      * 编辑（新增/修改）
      * @param array $_input
@@ -656,7 +680,10 @@ class BuyerVisitModel extends PublicModel {
         //数据信息
         $sql='select ';
         $sql.=' visit.id as visit_id,';   //拜访id
-        $sql.=' region.name as region_name,';   //地区
+        $sql.=' (select name from erui_operation.market_area_country country';
+        $sql.=' left join erui_operation.market_area area on country.market_area_bn=area.bn ';
+        $sql.=' where  country.country_bn=buyer.country_bn and area.lang=\''.$lang.'\' and area.deleted_flag=\'N\'';
+        $sql.=' ) as region_name,'; //地区
         $sql.=' country.name as country_name, ';    //国家
         $sql.=' employee.name as created_name,'; //提报人
         $sql.=' buyer.name as buyer_name,';    //客户名称
@@ -673,7 +700,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' left join erui_buyer.buyer  on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
         $sql.=' left join erui_buyer.buyer_business business on buyer.id=business.buyer_id';  //buyer
         $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $sql.=' left join erui_dict.region region on country.region_bn=region.bn and region.deleted_flag=\'N\' and region.lang=\''.$lang."'";  //buyer
         $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
         $sql.=' where ';
         $sql.=$condition;
@@ -874,7 +900,10 @@ class BuyerVisitModel extends PublicModel {
         //数据信息
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
-        $sql.=' region.name as region_name,';
+        $sql.=' (select name from erui_operation.market_area_country country';
+        $sql.=' left join erui_operation.market_area area on country.market_area_bn=area.bn ';
+        $sql.=' where  country.country_bn=buyer.country_bn and area.lang=\''.$lang.'\' and area.deleted_flag=\'N\'';
+        $sql.=' ) as region_name,';
         $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
         $sql.=' reply.created_at as reply_time,';
         $sql.=' visit.demand_content,';
@@ -884,7 +913,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' from erui_buyer.buyer_visit visit ';
         $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
         $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $sql.=' left join erui_dict.region region on country.region_bn=region.bn and region.deleted_flag=\'N\' and region.lang=\''.$lang."'";  //buyer
         $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
         $sql.=' where ';
@@ -893,23 +921,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' order by visit.created_at desc ';
         $sql.=' limit '.$offset.','.$pageSize;
         $result=$this->query($sql);
-//        foreach($result as $index => $r){
-//            //客户信息
-//            $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
-//            $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
-//            $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
-//            $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-//        }
-//        foreach($result as $index => $r){
-//            //业务部门反馈时间
-//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-//            $result[$index]['reply_time'] =$replyInfo['created_at'];
-//        }
-//        foreach($result as $index => $r){
-//            //业务部门反馈时间
-//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-//            $result[$index]['reply_time'] =$replyInfo['created_at'];
-//        }
         $visit_product=new VisitProductModel();
         foreach($result as $index => $r) {
             $product = $visit_product->getProductName($r['visit_id'], $lang);  //品类信息

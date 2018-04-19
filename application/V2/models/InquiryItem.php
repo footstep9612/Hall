@@ -411,7 +411,7 @@ class InquiryItemModel extends PublicModel {
                                 ->join($this->joinTable_, 'LEFT')
                                 ->where($where)
                                 ->page($currentPage, $pageSize)
-                                ->order('a.id DESC')
+                                ->order('a.id ASC')
                                 ->select();
             if ($list) {
                 $results['code'] = '1';

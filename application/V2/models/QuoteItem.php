@@ -19,11 +19,11 @@ class QuoteItemModel extends PublicModel {
 
     /**
      * 删除报价单项(一个或多个)
-     * @param $where 条件
+     * @param string $ids
      * @return bool True|False
      */
-    public function delItem($where){
-        return $this->where('inquiry_item_id IN('.$where.')')->save(['deleted_flag'=>'Y']);
+    public function delItem($ids){
+        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
     }
     
     /**
@@ -46,11 +46,11 @@ class QuoteItemModel extends PublicModel {
     public function getList($request){
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'a.id,b.sku,b.id inquiry_item_id,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
+        $fields = 'a.id,b.id inquiry_item_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
         return $this->getSqlJoint($request)
                             ->field($fields)
                             ->page($currentPage, $pageSize)
-                            ->order('a.id DESC')
+                            ->order('a.id ASC')
                             ->select();
     }
     
@@ -195,69 +195,82 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      */
     public function updateItemBatch($data,$user){
+        $inquiryItemModel = new InquiryItemModel();
+        $data = dataTrim($data);
         $i = 0;
         $this->startTrans();
         foreach ($data as $key=>$value){
-            if(!empty($value['purchase_unit_price'])){
+            // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == ''
+                || $value['category'] == '' || $value['category'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == ''
+                || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == ''
+                || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == ''
+                || $value['delivery_days'] == '' || $value['period_of_validity'] == '') {
+                if ($value['id'] == '') {
+                    continue;
+                } else {
+                    $inquiryItemResult = $inquiryItemModel->deleteData(['id' => $value['inquiry_item_id']]);
+                    $quoteItemResult = $this->delItem($value['inquiry_item_id']);
+                }
+            } else {
+                if (!is_numeric($value['supplier_id'])) {
+                    $value['supplier_id'] = null;
+                }
                 if (!is_numeric($value['purchase_unit_price'])){
                     if ($i > 0) {
                         $this->rollback();
                     }
                     return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER') ];
                 }
-            } else {
-                $value['purchase_unit_price'] = null;
-            }
-            if(!empty($value['gross_weight_kg'])) {
                 if (!is_numeric($value['gross_weight_kg'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
                     return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER') ];
                 }
-            } else {
-                $value['gross_weight_kg'] = null;
-            }
-            if(!empty($value['package_size'])){
                 if (!is_numeric($value['package_size'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
                     return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
                 }
-            } else {
-                $value['package_size'] = null;
-            }
-            if(!empty($value['quote_qty'])){
-                if (!is_numeric($value['quote_qty'])) {
-                    if ($i > 0) {
-                        $this->rollback();
-                    }
-                    return ['code'=>'-104','message'=> L('QUOTE_QQ_NUMBER')];
-                }
-            } else {
-                $value['quote_qty'] = null;
-            }
-            if(!empty($value['delivery_days'])) {
                 if (!is_numeric($value['delivery_days'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
                     return ['code' => '-104', 'message' => L('QUOTE_DD_NUMBER')];
                 }
+                if (!is_numeric($value['qty'])) {
+                    if ($i > 0) {
+                        $this->rollback();
+                    }
+                    return ['code' => '-104', 'message' => L('QUOTE_QQ_NUMBER')];
+                }
+                $time = date('Y-m-d H:i:s');
+                $inquiryItemData = $quoteItemData = $value;
+                unset($inquiryItemData['id'], $quoteItemData['id']);
+                $inquiryItemData['brand'] = $value['inquiry_brand'];
+                $quoteItemData['quote_qty'] = $value['qty'];
+                $quoteItemData['quote_unit'] = $value['unit'];
+                $quoteItemData = $this->create($quoteItemData);
+                if ($value['id'] == '') {
+                    $inquiryItemData['created_by'] = $user;
+                    $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
+                    $quoteItemData['inquiry_item_id'] = $inquiryItemResult['insert_id'];
+                    $quoteItemData['created_by'] = $user;
+                    $quoteItemData['created_at'] = $time;
+                    $quoteItemResult = $this->add($quoteItemData);
+                } else {
+                    $inquiryItemData['id'] = $value['inquiry_item_id'];
+                    $inquiryItemData['updated_by'] = $user;
+                    $inquiryItemResult = $inquiryItemModel->updateData($inquiryItemData);
+                    $quoteItemData['id'] = $value['id'];
+                    $quoteItemData['updated_by'] = $user;
+                    $quoteItemData['updated_at'] = $time;
+                    $quoteItemResult = $this->save($quoteItemData);
+                }
             }
-            $value = $this->create($value);
-            $time = date('Y-m-d H:i:s');
-            if (empty($value['id'])) {
-                $value['created_by'] = $user;
-                $value['created_at'] = $time;
-                $result = $this->add($value);
-            } else {
-                $value['updated_by'] = $user;
-                $value['updated_at'] = $time;
-                $result = $this->save($value);
-            }
-            if (!$result) {
+            if ($inquiryItemResult['code'] != 1 || !$quoteItemResult) {
                 $this->rollback();
                 return ['code' => '-101', 'message' => L('FAIL')];
             }
@@ -302,11 +315,14 @@ class QuoteItemModel extends PublicModel {
      */
     public function getQouteFinalSku($request){
         $where = ['a.inquiry_id'=>$request['inquiry_id'],'a.deleted_flag'=>'N'];
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
         return $this->alias('a')
             ->join('erui_rfq.inquiry_item b ON b.id=a.inquiry_item_id','LEFT')
             ->join('erui_rfq.final_quote_item c ON c.quote_item_id=a.id','LEFT')
             ->field($this->finalSkuFields)
             ->where($where)
+            ->page($currentPage, $pageSize)
             ->select();
     }
 

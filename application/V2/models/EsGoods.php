@@ -630,8 +630,11 @@ class EsGoodsModel extends Model {
         $body['name'] = htmlspecialchars_decode($item['name']);
         $body['show_name'] = htmlspecialchars_decode($item['show_name']);
         $product_attr = $productattrs[$spu];
+        $es_goods = null;
 
-        $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
+        if ($es->exists($this->update_dbName, $this->tableName . '_' . $lang, $id)) {
+            $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
+        }
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
             $body['material_cat'] = $product_attr['material_cat'];
         } else {

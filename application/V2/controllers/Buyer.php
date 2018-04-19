@@ -700,13 +700,9 @@ EOF;
         }
         if (!empty($data['biz_scope'])) {   //经营范围
             $arr['biz_scope'] = $data['biz_scope'];
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_scope')));
         }
         if (!empty($data['intent_product'])) {  //意向产品
             $arr['intent_product'] = $data['intent_product'];
-        }else{
-            $this->jsonReturn(array("code" => "-101", "message" =>L('empty_product')));
         }
         if (!empty($data['purchase_amount'])) { //预计年采购额
             $arr['purchase_amount'] = trim($data['purchase_amount'],' ');
@@ -1240,7 +1236,7 @@ EOF;
         $arr['visit'] = $visitInfo;
         $arr['demand'] = $demandInfo;
         $arr['order']['count'] = $orderInfo['count'];
-        $arr['order']['account'] = $orderInfo['account'];
+        $arr['order']['account'] = $orderInfo['account']==0?0:$orderInfo['account'];
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;

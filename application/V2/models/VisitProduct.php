@@ -78,12 +78,33 @@ class VisitProductModel extends PublicModel {
         }
         return true;
     }
-    public function getProductInfo($visit_id,$field='*'){
+    public function getProductInfo($visit_id,$field='*',$check=false,$lang='zh'){
         $cond=array(
             'visit_id'=>$visit_id,
             'deleted_flag'=>'N',
         );
         $info=$this->field($field)->where($cond)->select();
+        if($check==true){
+            foreach($info as $k => $v){
+                $cateArr=explode(',',$v['product_cate']);
+                if(in_array(0,$cateArr)){
+                    $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
+                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
+                    if($lang=='zh'){
+                        $info[$k]['product_cate']=$material['name']."/其他";
+                    }else{
+                        $info[$k]['product_cate']=$material['name']."/Others";
+                    }
+                }else{
+                    $a=$cateArr[0];
+                    $b=$cateArr[1];
+                    $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
+                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
+                    $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
+                }
+            }
+            return $info;
+        }
         foreach($info as $k => $v){
             $info[$k]['product_cate']=explode(',',$v['product_cate']);
         }
