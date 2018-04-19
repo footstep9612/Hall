@@ -1076,16 +1076,24 @@ class InquiryController extends PublicController {
             $insertItemIds = [];
             foreach ($data['sku'] as $val) {
                 $condition = $val;
-                if (isset($condition['qty']) && !isDecimal($condition['qty'])) {
-                    $condition['qty'] = 1;
-                }
-                if ($condition['id'] == '') {
-                    $condition['inquiry_id'] = $data['id'];
-                    $condition['created_by'] = $this->user['id'];
-                    $results = $Item->addData($condition);
+                if ($condition['name'] == '' || $condition['name_zh'] == '' || $condition['qty'] == '' || $condition['unit'] == '') {
+                    if ($condition['id'] == '') {
+                        continue;
+                    } else {
+                        $results = $Item->deleteData($condition);
+                    }
                 } else {
-                    $condition['updated_by'] = $this->user['id'];
-                    $results = $Item->updateData($condition);
+                    if (!isDecimal($condition['qty'])) {
+                        $condition['qty'] = 1;
+                    }
+                    if ($condition['id'] == '') {
+                        $condition['inquiry_id'] = $data['id'];
+                        $condition['created_by'] = $this->user['id'];
+                        $results = $Item->addData($condition);
+                    } else {
+                        $condition['updated_by'] = $this->user['id'];
+                        $results = $Item->updateData($condition);
+                    }
                 }
                 if ($results['code'] != 1) {
                     $Item->rollback();
@@ -1167,6 +1175,8 @@ class InquiryController extends PublicController {
             $res['count'] = $historicalSkuQuoteModel->getCount($condition);
             // 采购价格区间
             $res['price_range'] = $historicalSkuQuoteModel->getPriceRange($condition);
+            // 匹配的品名数
+            $res['matching_name_count'] = $historicalSkuQuoteModel->getMatchingNameCount($condition);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
