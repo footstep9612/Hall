@@ -256,10 +256,12 @@ class BuyerVisitModel extends PublicModel {
                 $buyer_model = new BuyerModel();
                 $buyerInfo = $buyer_model->alias('buyer')
                 ->join("erui_dict.country country on buyer.country_bn=country.bn",'left')
-                ->field('country.region_bn,buyer.buyer_no,buyer.buyer_code,buyer.name,country.name as country_name')
+                ->field('buyer.country_bn,buyer.buyer_no,buyer.buyer_code,buyer.name,country.name as country_name')
                 ->where(['buyer.id'=>$result['buyer_id'],"country.lang"=>$lang])->find();
-                $area=$buyer_model->table('erui_dict.region')->field('name')
-                    ->where(array('bn'=>$buyerInfo['region_bn'],'lang'=>$lang,'deleted_flag'=>'N'))->find();
+                $area=$buyer_model->table('erui_operation.market_area_country')->alias('country')
+                    ->join('erui_operation.market_area area on country.market_area_bn=area.bn')
+                    ->field('area.name')
+                    ->where(array('country.country_bn'=>$buyerInfo['country_bn'],'lang'=>$lang,'deleted_flag'=>'N'))->find();
                 $buyerInfo['area']=$area['name'];
                 $result['buyer_name'] = $buyerInfo['name'];
                 $result['buyer_no'] = $buyerInfo['buyer_no'];
