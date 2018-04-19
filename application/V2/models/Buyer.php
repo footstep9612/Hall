@@ -2597,9 +2597,33 @@ EOF;
         }
         return '';
     }
+    //获取上周日期时间段
+    public function getLastWeek(){
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-7,date('Y'));
+
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-7,date('Y'));
+        $arr['start_time']=date('Y-m-d',$beginLastweek);
+        $arr['end_time']=date('Y-m-d',$endLastweek);
+        return $arr;
+    }
     //获取会员统计cond
     private function getStatisMemberCond($data){
         $cond=' buyer.deleted_flag=\'N\'';  //客户状态
+        if(!empty($data['source'])){    //来源
+            $cond.=' and buyer.source='.$data['source'];
+        }
+        if(!empty($data['buyer_level'])){   //等级
+            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+            $week=$this->getLastWeek();
+            $cond.=' and buyer.created_at >= \''.$week['start_time'].' 00:00:00\'';
+            $cond.=' and buyer.created_at <= \''.$week['end_time'].' 23:59:59\'';
+        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+            $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        }
+
         if(!empty($data['area_bn']) || !empty($data['area_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
             if(!empty($countryArr)){
@@ -2614,21 +2638,6 @@ EOF;
                     $cond.=' and buyer.country_bn in ('.$str.')';
                 }
             }
-        }
-        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
-            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
-            $data['end_time']=date('Y-m-d H:i:s');
-            $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
-            $cond.=' and buyer.created_at <= \''.$data['end_time'].'\'';
-        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
-            $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
-            $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
-        }
-        if(!empty($data['source'])){
-            $cond.=' and buyer.source='.$data['source'];
-        }
-        if(!empty($data['buyer_level'])){
-            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
         }
         return $cond;
     }
@@ -2664,8 +2673,9 @@ EOF;
     public function memberSpeed($data){
         $cond=$this->getStatisMemberCond($data);
         if(empty($data['start_time']) && empty($data['end_time'])){
-            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
-            $data['end_time']=date('Y-m-d');
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
         }
         $lang=$data['lang'];
         $sql='select count(id) as `count`,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at from erui_buyer.buyer buyer ';

@@ -1170,6 +1170,15 @@ class InquiryModel extends PublicModel {
         }
         return '';
     }
+    //获取上周日期时间段
+    public function getLastWeek(){
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-7,date('Y'));
+
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-7,date('Y'));
+        $arr['start_time']=date('Y-m-d',$beginLastweek);
+        $arr['end_time']=date('Y-m-d',$endLastweek);
+        return $arr;
+    }
     //会员统计系列获取条件-wangs
     public function getStatisInquiryCondCrm($data){
         $cond=' inquiry.deleted_flag=\'N\'';  //客户状态
@@ -1189,10 +1198,9 @@ class InquiryModel extends PublicModel {
             }
         }
         if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
-            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
-            $data['end_time']=date('Y-m-d H:i:s');
-            $cond.=' and inquiry.created_at >= \''.$data['start_time'].' 00:00:00\'';
-            $cond.=' and inquiry.created_at <= \''.$data['end_time'].'\'';
+            $week=$this->getLastWeek();
+            $cond.=' and inquiry.created_at >= \''.$week['start_time'].' 00:00:00\'';
+            $cond.=' and inquiry.created_at <= \''.$week['end_time'].' 23:59:59\'';
         }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
             $cond.=' and inquiry.created_at >= \''.$data['start_time'].' 00:00:00\'';
             $cond.=' and inquiry.created_at <= \''.$data['end_time'].' 23:59:59\'';
@@ -1203,8 +1211,9 @@ class InquiryModel extends PublicModel {
     public function statisCondInquiry($data){
         $cond=$this->getStatisInquiryCondCrm($data);
         if(empty($data['start_time']) && empty($data['end_time'])){
-            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
-            $data['end_time']=date('Y-m-d');
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
         }
         $sql='select ';
         $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
@@ -1222,8 +1231,9 @@ class InquiryModel extends PublicModel {
     public function statisCondQuote($data){
         $cond=$this->getStatisInquiryCondCrm($data);
         if(empty($data['start_time']) && empty($data['end_time'])){
-            $data['start_time']=date('Y-m-d', strtotime('-6 days'));
-            $data['end_time']=date('Y-m-d');
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
         }
         $sql='select ';
         $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
