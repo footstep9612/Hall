@@ -1659,7 +1659,7 @@ class SupplierInquiryModel extends PublicModel {
         return $suppliers;
     }
 
-    private function areaInquiryStaticsBy($supplier, $area)
+    public function areaInquiryStaticsBy($supplier, $area='')
     {
         $supplierIds = (new TemporarySupplierRelationModel)->regularSupplierWithTemporarySupplierIdsBy($supplier);
 
@@ -1668,7 +1668,7 @@ class SupplierInquiryModel extends PublicModel {
             'i.status' => 'QUOTE_SENT',
             'i.quote_status' => 'COMPLETED',
             'fqi.supplier_id' => ['IN', implode(',', $supplierIds)],
-            'mac.market_area_bn' => trim($area)
+            'mac.market_area_bn' => !empty($area) ? trim($area) : ['IN', $this->areas]
         ];
 
         $inquiry = new InquiryModel();
@@ -1677,6 +1677,37 @@ class SupplierInquiryModel extends PublicModel {
                                     ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
                                     ->where($where)
                                     ->count("DISTINCT(i.id)");
+        return $supplier_inquiry;
+    }
+
+    public function areaInquiryDataBy(array $condition=null)
+    {
+
+        $supplierIds = (new TemporarySupplierRelationModel)->regularSupplierWithTemporarySupplierIdsBy($condition['supplier_id']);
+
+        $where = [
+            'i.deleted_flag' => 'N',
+            'i.status' => 'QUOTE_SENT',
+            'i.quote_status' => 'COMPLETED',
+            'fqi.supplier_id' => ['IN', implode(',', $supplierIds)],
+            'mac.market_area_bn' => !empty($condition['area_bn']) ? trim($condition['area_bn']) : ['IN', $this->areas]
+        ];
+
+        $currentPage = empty($attributes['current_no']) ? 1 : $attributes['current_no'];
+        $pageSize = empty($attributes['pageSize']) ? 10 : $attributes['pageSize'];
+
+        $inquiry = new InquiryModel();
+
+
+        $supplier_inquiry = $inquiry->alias('i')
+            ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+            ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+            ->where($where)
+            ->field('i.id inquiry_id,i.inquiry_no,i.serial_no,i.created_at')
+            ->group('i.id')
+            ->page($currentPage, $pageSize)
+            ->select();
+
         return $supplier_inquiry;
     }
 
