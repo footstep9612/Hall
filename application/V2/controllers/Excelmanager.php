@@ -125,7 +125,7 @@ class ExcelmanagerController extends PublicController {
         //下载到本地临时文件
         $localFile = ExcelHelperTrait::download2local($remoteFile);
         $data = ExcelHelperTrait::ready2import($localFile);
-        $response = $this->_importQuoteSkuHandler($localFile, $data, inquiryId, $fileName);
+        $response = $this->_importQuoteSkuHandler($localFile, $data, $inquiryId, $fileName);
         $this->jsonReturn($response);
     }
     
