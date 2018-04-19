@@ -1567,4 +1567,117 @@ class SupplierInquiryModel extends PublicModel {
         }
     }
 
+    /**
+     * @desc 获取供应商和总数
+     * @param array $attributes
+     * @author 买买提
+     * @time 2018-04-19
+     * @return array
+     */
+    public function suppliersWithFilterAndTotals(array $attributes)
+    {
+        $where = $this->setSuppliersFilterConditions($attributes);
+        $fields = 'id,name supplier_name,supplier_no';
+
+        $currentPage = empty($attributes['currentPage']) ? 1 : $attributes['currentPage'];
+        $pageSize = empty($attributes['pageSize']) ? 10 : $attributes['pageSize'];
+
+        return [
+            (new SuppliersModel)->where($where)->field($fields)->page($currentPage, $pageSize)->order('id DESC')->select(),
+            $this->totalSuppliersWithFilter($attributes)
+        ];
+    }
+
+    /**
+     * @desc 获取总条数
+     * @param array $attributes
+     * @author 买买提
+     * @time 2018-04-19
+     * @return mixed
+     * @throws Exception
+     */
+    public function totalSuppliersWithFilter(array $attributes=null)
+    {
+        return (new SuppliersModel)->where($this->setSuppliersFilterConditions($attributes))->count();
+    }
+
+    /**
+     * @desc 设置查询条件
+     * @param array $condition
+     * @author 买买提
+     * @time 2018-04-19
+     * @return array
+     */
+    private function setSuppliersFilterConditions(array $condition=null)
+    {
+
+        $where = [
+            'deleted_flag' => 'N',
+            'status' => ['in', ['APPROVED', 'DRAFT', 'APPROVING', 'INVALID']],
+            'name' =>['neq', '']
+        ];
+
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];
+        }
+
+        if (!empty($condition['name'])) {
+            $where['supplier_no'] = ['like', '%' . $condition['supplier_no'] . '%'];
+        }
+
+        if (!empty($condition['supplier_name'])) {
+            $where['name'] = ['like', '%' . $condition['supplier_name'] . '%'];
+        }
+
+        if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
+            $where['created_at'] = [
+                ['egt', $condition['create_start_time']],
+                ['elt', $condition['create_end_time'] . ' 23:59:59']
+            ];
+        }
+
+        return $where;
+    }
+
+    public function setInquiryStatics(array $suppliers=null)
+    {
+        if (is_null($suppliers)) return null;
+
+        //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
+        foreach ($suppliers as &$supplier) {
+            $supplier['Middle-East'] = $this->areaInquiryStaticsBy($supplier['id'], 'Middle East');
+            $supplier['South-America'] = $this->areaInquiryStaticsBy($supplier['id'], 'South America');
+            $supplier['North-America'] = $this->areaInquiryStaticsBy($supplier['id'], 'North America');
+            $supplier['Africa'] = $this->areaInquiryStaticsBy($supplier['id'], 'Africa');
+            $supplier['Europe'] = $this->areaInquiryStaticsBy($supplier['id'], 'Europe');
+            $supplier['Pan-Russian'] = $this->areaInquiryStaticsBy($supplier['id'], 'Pan Russian');
+            $supplier['Asia-Pacific'] = $this->areaInquiryStaticsBy($supplier['id'], 'Asia-Pacific');
+
+            $supplier['total'] = $supplier['Middle-East'] + $supplier['South-America'] + $supplier['North-America'] + $supplier['Africa'] + $supplier['Europe'] + $supplier['Pan-Russian'] + $supplier['Asia-Pacific'];
+        }
+
+        return $suppliers;
+    }
+
+    private function areaInquiryStaticsBy($supplier, $area)
+    {
+        $supplierIds = (new TemporarySupplierRelationModel)->regularSupplierWithTemporarySupplierIdsBy($supplier);
+
+        $where = [
+            'i.deleted_flag' => 'N',
+            'i.status' => 'QUOTE_SENT',
+            'i.quote_status' => 'COMPLETED',
+            'fqi.supplier_id' => ['IN', implode(',', $supplierIds)],
+            'mac.market_area_bn' => trim($area)
+        ];
+
+        $inquiry = new InquiryModel();
+        $supplier_inquiry = $inquiry->alias('i')
+                                    ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+                                    ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+                                    ->where($where)
+                                    ->count("DISTINCT(i.id)");
+        return $supplier_inquiry;
+    }
+
 }

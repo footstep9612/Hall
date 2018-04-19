@@ -17,14 +17,40 @@ class SupplierinquiryController extends PublicController {
 
     //put your code here
     public function init() {
-        parent::init();
+        //parent::init();
+    }
+
+    /**
+     * @desc 供应商的询单统计(重写版)
+     * @author 买买提
+     * @time 2018-04-19
+     */
+    public function listAction()
+    {
+        $request = $this->validateRequestParams();
+        $supplier_inquiry_model = new SupplierInquiryModel();
+
+        list($suppliers, $total) = $supplier_inquiry_model->suppliersWithFilterAndTotals($request);
+
+        $suppliersStatics = $supplier_inquiry_model->setInquiryStatics($suppliers);
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'count' => $total,
+            'suppliercount' => $total,
+            'inquirycount' => $supplier_inquiry_model->getInquiryCount($request),
+            'data' => $suppliersStatics
+        ]);
+
+        p($total);
     }
 
     /*
      * 供应商询单统计
      */
 
-    public function listAction() {
+    public function listOldAction() {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         list($data, $count) = $supplier_inquiry_model->getList($condition);

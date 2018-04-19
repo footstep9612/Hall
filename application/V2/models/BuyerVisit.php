@@ -672,7 +672,10 @@ class BuyerVisitModel extends PublicModel {
         //数据信息
         $sql='select ';
         $sql.=' visit.id as visit_id,';   //拜访id
-        $sql.=' region.name as region_name,';   //地区
+        $sql.=' (select name from erui_operation.market_area_country country';
+        $sql.=' left join erui_operation.market_area area on country.market_area_bn=area.bn ';
+        $sql.=' where  country.country_bn=buyer.country_bn and area.lang=\''.$lang.'\' and area.deleted_flag=\'N\'';
+        $sql.=' ) as region_name,'; //地区
         $sql.=' country.name as country_name, ';    //国家
         $sql.=' employee.name as created_name,'; //提报人
         $sql.=' buyer.name as buyer_name,';    //客户名称
@@ -689,7 +692,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' left join erui_buyer.buyer  on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
         $sql.=' left join erui_buyer.buyer_business business on buyer.id=business.buyer_id';  //buyer
         $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $sql.=' left join erui_dict.region region on country.region_bn=region.bn and region.deleted_flag=\'N\' and region.lang=\''.$lang."'";  //buyer
         $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
         $sql.=' where ';
         $sql.=$condition;
@@ -890,7 +892,10 @@ class BuyerVisitModel extends PublicModel {
         //数据信息
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name, ';
-        $sql.=' region.name as region_name,';
+        $sql.=' (select name from erui_operation.market_area_country country';
+        $sql.=' left join erui_operation.market_area area on country.market_area_bn=area.bn ';
+        $sql.=' where  country.country_bn=buyer.country_bn and area.lang=\''.$lang.'\' and area.deleted_flag=\'N\'';
+        $sql.=' ) as region_name,';
         $sql.=' visit.id as visit_id,visit.visit_at,visit.created_at,';
         $sql.=' reply.created_at as reply_time,';
         $sql.=' visit.demand_content,';
@@ -900,7 +905,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' from erui_buyer.buyer_visit visit ';
         $sql.=' left join erui_buyer.buyer on visit.buyer_id=buyer.id and deleted_flag=\'N\'';  //buyer
         $sql.=' left join erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag=\'N\' and country.lang=\''.$lang."'";  //buyer
-        $sql.=' left join erui_dict.region region on country.region_bn=region.bn and region.deleted_flag=\'N\' and region.lang=\''.$lang."'";  //buyer
         $sql.=' left join erui_buyer.buyer_visit_reply reply on visit.id=reply.visit_id ';  //reply
         $sql.=' left join erui_sys.employee employee on visit.created_by=employee.id '; //employee
         $sql.=' where ';
@@ -909,23 +913,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' order by visit.created_at desc ';
         $sql.=' limit '.$offset.','.$pageSize;
         $result=$this->query($sql);
-//        foreach($result as $index => $r){
-//            //客户信息
-//            $buyInfo = $buyerModel->field('name,buyer_code,buyer_no')->where(array('id'=>$r['buyer_id']))->find();
-//            $result[$index]['buyer_name'] = $buyInfo ? $buyInfo['name'] : '';
-//            $result[$index]['buyer_code'] = $buyInfo ? $buyInfo['buyer_code'] : '';
-//            $result[$index]['buyer_no'] = $buyInfo ? $buyInfo['buyer_no'] : '';
-//        }
-//        foreach($result as $index => $r){
-//            //业务部门反馈时间
-//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-//            $result[$index]['reply_time'] =$replyInfo['created_at'];
-//        }
-//        foreach($result as $index => $r){
-//            //业务部门反馈时间
-//            $replyInfo = $bvrModel->field('created_at')->where(['visit_id'=>$r['id']])->order('created_at')->find();
-//            $result[$index]['reply_time'] =$replyInfo['created_at'];
-//        }
         $visit_product=new VisitProductModel();
         foreach($result as $index => $r) {
             $product = $visit_product->getProductName($r['visit_id'], $lang);  //品类信息
