@@ -535,6 +535,36 @@ class QuoteController extends PublicController{
             $this->jsonReturn($results);
         }
     }
+    
+    /**
+     * @desc 删除指定报价单的所有SKU
+     *
+     * @author liujf
+     * @time 2018-04-19
+     */
+    public function delQuoteItemAction() {
+        $request = $this->validateRequests('quote_id');
+        $inquiryId = $this->quoteModel->where(['id' => $request['quote_id'], 'deleted_flag' => 'N'])->getField('inquiry_id');
+        $this->inquiryItemModel->startTrans();
+        $res1 = $this->inquiryItemModel->delByInquiryId($inquiryId);
+        $res2 = $this->quoteItemModel->delByQuoteId($request['quote_id']);
+        if ($res1 && $res2) {
+            $this->inquiryItemModel->commit();
+            $res = true;
+        } else {
+            $this->inquiryItemModel->rollback();
+            $res = false;
+        }
+        if ($res) {
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
 
     /**
      * 同步询单和报价SKU

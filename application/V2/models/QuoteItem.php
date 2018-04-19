@@ -325,5 +325,17 @@ class QuoteItemModel extends PublicModel {
             ->page($currentPage, $pageSize)
             ->select();
     }
+    
+    /**
+     * @desc 根据报价单ID删除SKU记录
+     *
+     * @param int $quoteId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-19
+     */
+    public function delByQuoteId($quoteId) {
+        return $this->where(['quote_id' => $quoteId])->setField('deleted_flag', 'Y');
+    }
 
 }
