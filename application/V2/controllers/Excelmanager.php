@@ -252,10 +252,11 @@ class ExcelmanagerController extends PublicController {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
         }
         $data = dataTrim($data);
+        $quoteId = $quoteModel->where(['inquiry_id' => $inquiryId, 'deleted_flag' => 'N'])->getField('id');
         //遍历重组
         foreach ($data as $k => $v) {
-            $sku['inquiry_id'] = $inquiryId; //询单id
-            $sku['quote_id'] = $quoteModel->where(['inquiry_id' => $inquiryId, 'deleted_flag' => 'N'])->getField('id'); //报价单id
+            $sku[$k]['inquiry_id'] = $inquiryId; //询单id
+            $sku[$k]['quote_id'] = $quoteId; //报价单id
             $sku[$k]['sku'] = $v[1]; //平台sku
             $sku[$k]['buyer_goods_no'] = $v[2]; //客户商品号
             $sku[$k]['category'] = $v[3]; //产品分类
