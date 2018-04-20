@@ -1063,7 +1063,7 @@ class InquiryController extends PublicController {
 
     /*
      * 批量修改询单sku
-     * Author:张玉良
+     * Author:张玉良、刘俊飞
      */
 
     public function updateItemBatchAction() {
