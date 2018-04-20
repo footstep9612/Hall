@@ -311,8 +311,10 @@ class BuyerfilesController extends PublicController
     public function statisMemberAction(){
         $created_by = $this -> user['id'];
         $lang=$this->getLang();
+        $role=$this->getUserRole();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin'] = $role;
         $data['lang'] = $lang;
         $buyer=new BuyerModel();
         $member=$buyer->statisMemberInfo($data);
