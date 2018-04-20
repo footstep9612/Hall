@@ -110,12 +110,12 @@ class TemporarySupplierModel extends PublicModel
             $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
         }
         //状态
-        if (!empty($condition['is_relation'])) {
+        if (!empty($condition['is_relation']) && $condition['is_relation'] !='ALL') {
             $where['a.is_relation'] = $condition['is_relation'];
         }
         //创建人
         if (!empty($condition['created_by'])) {
-            $where['a.created_by'] = (new EmployeeModel)->getUserIdByName($condition['created_by']);
+            $where['a.created_by'] = (new EmployeeModel)->getUserIdByName($condition['created_by'])[0];
         }
         //注册时间
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
