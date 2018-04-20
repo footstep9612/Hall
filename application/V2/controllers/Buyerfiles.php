@@ -345,11 +345,10 @@ class BuyerfilesController extends PublicController
     }
     //统计询单量
     public function statisInquiryAction(){
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $inquiry=new InquiryModel();
         $inquiryInfo=$inquiry->statisCondInquiry($data);
         $dataJson = array(
