@@ -69,7 +69,8 @@ class HistoricalSkuQuoteModel extends PublicModel {
      * @time 2018-04-12
      */
     public function getCount($condition = []) {
-    	return $this->getSqlJoint($condition)->count('a.id');
+    	$count = $this->getSqlJoint($condition)->count('a.id');
+    	return $count > 0 ? $count : 0;
     }
     
     /**
@@ -160,7 +161,8 @@ class HistoricalSkuQuoteModel extends PublicModel {
         } else {
             $where = ['b.name' => [['neq', ''], ['eq', $condition['name']]]];
         }
-        return $this->getSqlJoint($condition)->where($where)->count('a.id');
+        $count = $this->getSqlJoint($condition)->where($where)->count('a.id');
+        return $count > 0 ? $count : 0;
     }
     
     /**
