@@ -434,11 +434,7 @@ class QuoteController extends PublicController{
     public function finalSkuAction(){
 
         $request = $this->validateRequests('inquiry_id');
-
-        //$finalQuoteItemModel = new FinalQuoteItemModel();
-        //$list = $finalQuoteItemModel->getFinalSku($request);
-        $quoteItem = new QuoteItemModel();
-        $list = $quoteItem->getQouteFinalSku($request);
+        $list = $this->quoteItemModel->getQuoteFinalSku($request);
 
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
@@ -449,7 +445,12 @@ class QuoteController extends PublicController{
             $list[$key]['final_quote_unit_price'] = sprintf("%.4f", $list[$key]['final_quote_unit_price']);
         }
 
-        $this->jsonReturn($list);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'count' => $this->quoteItemModel->getFinalCount($request),
+            'data' => $list
+        ]);
 
     }
 
