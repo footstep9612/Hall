@@ -34,7 +34,6 @@ class BuyerfilesController extends PublicController
         $context = stream_context_create($opt);
         $json = file_get_contents($ssoServer,false,$context);
         $info=json_decode($json,true);
-
         $arr['role']=$info['role_no'];
         if(!empty($info['country_bn'])){
             $countryArr=[];
@@ -43,7 +42,19 @@ class BuyerfilesController extends PublicController
             }
             $countryStr=implode(',',$countryArr);
         }
+        $buyer=new BuyerModel();
+        $areas=$buyer->table('erui_operation.market_area_country')
+            ->field('distinct market_area_bn as area_bn')
+            ->where("country_bn in ($countryStr)")->select();
+        if(!empty($areas)){
+            $areaArr=[];
+            foreach($areas as $k => $v){
+                $areaArr[]="'".$v['area_bn']."'";
+            }
+            $areaStr=implode(',',$areaArr);
+        }
         $arr['country']=$countryStr;
+        $arr['area']=$areaStr;
         return $arr;
     }
     /*
@@ -379,9 +390,11 @@ class BuyerfilesController extends PublicController
     //会员统计信息列表
     public function statisMemberListAction(){
         $created_by = $this -> user['id'];
+        $role=$this->getUserRole();
         $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin'] = $role;
         $data['lang'] = $lang;
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberList($data);
@@ -395,10 +408,12 @@ class BuyerfilesController extends PublicController
     //会员属性统计信息列表
     public function statisMemberAttrAction(){
         $created_by = $this -> user['id'];
+        $role=$this->getUserRole();
         $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
         $data['lang'] = $lang;
+        $data['admin'] = $role;
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberAttr($data);
         $dataJson = array(
@@ -410,18 +425,28 @@ class BuyerfilesController extends PublicController
     }
     //会员行为统计信息列表
     public function statisMemberBehaveAction(){
+        $role=$this->getUserRole();
         $created_by = $this -> user['id'];
         $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['admin'] = $role;
         $data['lang'] = $lang;
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberBehave($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'会员行为统计列表',
-            'data'=>$memInfo
-        );
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权查看会员行为统计列表',
+                'data'=>[]
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员行为统计列表',
+                'data'=>$memInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //地区国家
@@ -429,21 +454,39 @@ class BuyerfilesController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
         $area=new CountryModel();
-        if(!empty($data['area_bn'])){
-            $info=$area->table('erui_operation.market_area_country country_bn')
-                ->join('erui_dict.country country on country_bn.country_bn=country.bn')
-                ->field('country_bn.country_bn,country.name as country_name')
-                ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'lang'=>$lang))
-                ->select();
+        $role=$this->getUserRole();
+        if(in_array('CRM客户管理',$role['role'])){  //所有权限
+            if(!empty($data['area_bn'])){
+                $info=$area->table('erui_operation.market_area_country country_bn')
+                    ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                    ->field('country_bn.country_bn,country.name as country_name')
+                    ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'lang'=>$lang))
+                    ->select();
+            }else{
+                $info=$area->table('erui_operation.market_area')
+                    ->field('bn as area_bn,name as area_name')
+                    ->where(array('deleted_flag'=>'N','lang'=>$lang))
+                    ->select();
+            }
+        }elseif(in_array('201711242',$role['role'])){   //所属地区国家权限
+            if(!empty($data['area_bn'])){
+                $info=$area->table('erui_operation.market_area_country country_bn')
+                    ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                    ->field('country_bn.country_bn,country.name as country_name')
+                    ->where("country_bn.market_area_bn='$data[area_bn]' and lang='$lang' and country_bn.country_bn in ($role[country])")
+                    ->select();
+            }else{
+                $info=$area->table('erui_operation.market_area')
+                    ->field('bn as area_bn,name as area_name')
+                    ->where("bn in ($role[area]) and deleted_flag='N' and lang='$lang'")
+                    ->select();
+            }
         }else{
-            $info=$area->table('erui_operation.market_area')
-                ->field('bn as area_bn,name as area_name')
-                ->where(array('deleted_flag'=>'N','lang'=>$lang))
-                ->select();
+            $info=null;
         }
         $dataJson = array(
             'code'=>1,
-            'message'=>'地区国家列表',
+            'message'=>'地区国家权限列表',
             'data'=>$info
         );
         $this->jsonReturn($dataJson);
