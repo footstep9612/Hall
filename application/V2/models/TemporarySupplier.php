@@ -43,6 +43,12 @@ class TemporarySupplierModel extends PublicModel
     protected $joinField = 'a.id,a.supplier_no,a.name,a.created_by, b.name AS org_name, f.agent_id';
 
     /**
+     * 营销区域
+     * @var array
+     */
+    protected $areas = ['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe'];
+
+    /**
      * TemporarySupplierModel constructor.
      */
     public function __construct()
@@ -110,12 +116,12 @@ class TemporarySupplierModel extends PublicModel
             $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
         }
         //状态
-        if (!empty($condition['is_relation'])) {
+        if (!empty($condition['is_relation']) && $condition['is_relation'] !='ALL') {
             $where['a.is_relation'] = $condition['is_relation'];
         }
         //创建人
         if (!empty($condition['created_by'])) {
-            $where['a.created_by'] = (new EmployeeModel)->getUserIdByName($condition['created_by']);
+            $where['a.created_by'] = (new EmployeeModel)->getUserIdByName($condition['created_by'])[0];
         }
         //注册时间
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
@@ -134,12 +140,26 @@ class TemporarySupplierModel extends PublicModel
         return $where;
     }
 
+    /**
+     * @desc 已关联的供应商名称
+     * @param $id 供应商
+     * @return mixed
+     * @author 买买提
+     * @time 2018-04-20
+     */
     public function relationSupplierById($id)
     {
         $temporarySupplier = (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id])->find();
         return (new SupplierModel)->where(['supplier_no' => $temporarySupplier['supplier_no'], 'deleted_flag' => 'N'])->getField('name');
     }
 
+    /**
+     * @desc 删除关联关系
+     * @param $id 临时供应商
+     * @param $user 用户
+     * @author 买买提
+     * @time 2018-04-20
+     */
     public function setDeleteWithRelationBy($id, $user)
     {
         $this->where(['id' => $id])->save([
@@ -157,6 +177,14 @@ class TemporarySupplierModel extends PublicModel
 
     }
 
+    /**
+     * @desc 正式供应商列表
+     * @param array $condition
+     * @return mixed
+     * @throws Exception
+     * @author 买买提
+     * @time 2018-04-20
+     */
     public function getRegularSupplierList(array $condition)
     {
 
@@ -183,11 +211,18 @@ class TemporarySupplierModel extends PublicModel
 
     }
 
+    /**
+     * @desc 是否关关联供应商(正式=临时)
+     * @param array $condition
+     * @return mixed
+     * @throws Exception
+     * @author 买买提
+     * @time 2018-04-20
+     */
     private function isRelationRegularSuppliers(array $condition)
     {
         $supplier = new SuppliersModel();
 
-        //$temporary_supplier_id = $condition['is_relation']=='Y' ? $condition['temporary_supplier_id'] : ;
         if ($condition['is_relation']=='Y') {
             $ts_id = $condition['temporary_supplier_id'];
         }
@@ -211,6 +246,14 @@ class TemporarySupplierModel extends PublicModel
 
     }
 
+    /**
+     * @desc 正式供应商统计
+     * @param array $condition
+     * @return mixed
+     * @throws Exception
+     * @author 买买提
+     * @time 2018-04-20
+     */
     public function getRegularCount(array $condition)
     {
         $where = $this->setRegularCondition($condition);
@@ -226,6 +269,13 @@ class TemporarySupplierModel extends PublicModel
             ->count();
     }
 
+    /**
+     * @desc 正式供应商筛选条件
+     * @param array $condition
+     * @return mixed
+     * @author 买买提
+     * @time 2018-04-20
+     */
     private function setRegularCondition(array $condition)
     {
         $where['a.deleted_flag'] = 'N';
@@ -247,5 +297,31 @@ class TemporarySupplierModel extends PublicModel
             $where['f.agent_id'] = ['in', $condition['agent_ids'] ? : ['-1']];
         }
         return $where;
+    }
+
+    /**
+     * @desc 供应商的报价次数
+     * @param $temporarySupplierId 供应商(临时)
+     * @return mixed
+     * @throws Exception
+     * @author 买买提
+     * @time 2018-04-20
+     */
+    public function temporarySupplierInquiryCountsBy($temporarySupplierId)
+    {
+        $where = [
+            'i.deleted_flag' => 'N',
+            'i.status' => 'QUOTE_SENT',
+            'i.quote_status' => 'COMPLETED',
+            'fqi.supplier_id' => $temporarySupplierId,
+            'mac.market_area_bn' => !empty($area) ? trim($area) : ['IN', $this->areas]
+        ];
+
+        $inquiry = new InquiryModel();
+        return $inquiry->alias('i')
+            ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+            ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+            ->where($where)
+            ->count("DISTINCT(i.id)");
     }
 }

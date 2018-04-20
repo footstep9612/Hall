@@ -8,11 +8,6 @@ class QuoteItemModel extends PublicModel {
     protected $dbName = 'erui_rfq';
     protected $tableName = 'quote_item';
 
-    protected $finalSkuFields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
-                               a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
-                               a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
-
-
     public function __construct() {
         parent::__construct();
     }
@@ -21,6 +16,7 @@ class QuoteItemModel extends PublicModel {
      * 删除报价单项(一个或多个)
      * @param string $ids
      * @return bool True|False
+     * @author mmt、liujf
      */
     public function delItem($ids){
         return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
@@ -42,6 +38,7 @@ class QuoteItemModel extends PublicModel {
      * 获取sku列表
      * @param $request 条件
      * @return mixed 数据
+     * @author mmt、liujf
      */
     public function getList($request){
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
@@ -193,6 +190,7 @@ class QuoteItemModel extends PublicModel {
      * @param $user 当前用户
      *
      * @return array|bool
+     * @author mmt、liujf
      */
     public function updateItemBatch($data,$user){
         $inquiryItemModel = new InquiryItemModel();
@@ -308,22 +306,67 @@ class QuoteItemModel extends PublicModel {
         }
 
     }
+    
+    /**
+     * @desc 获取报价审核人SKU记录总数
+     *
+     * @param array $request
+     * @return int
+     * @author liujf
+     * @time 2018-04-20
+     */
+    public function getFinalCount($request) {
+        return $this->getFinalSqlJoint($request)->count('a.id');
+    }
 
     /**
      * 获取SKU关联信息
-     * author:张玉良
+     * author:张玉良、刘俊飞
      */
-    public function getQouteFinalSku($request){
-        $where = ['a.inquiry_id'=>$request['inquiry_id'],'a.deleted_flag'=>'N'];
+    public function getQuoteFinalSku($request){
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
+        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
+                         a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
+                         a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
+        return $this->getFinalSqlJoint($request)
+                            ->field($fields)
+                            ->page($currentPage, $pageSize)
+                            ->order('a.id ASC')
+                            ->select();
+    }
+    
+    /**
+     * @desc 获取报价审核人SKU组装sql后的对象
+     *
+     * @param array $request
+     * @return object
+     * @author liujf
+     * @time 2018-04-20
+     */
+    public function getFinalSqlJoint($request) {
+        $inquiryItemModel = new InquiryItemModel();
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        $inquiryItemTableName = $inquiryItemModel->getTableName();
+        $finalQuoteItemTableName = $finalQuoteItemModel->getTableName();
+        $where['a.inquiry_id'] = $request['inquiry_id'];
+        $where['a.deleted_flag'] = 'N';
         return $this->alias('a')
-            ->join('erui_rfq.inquiry_item b ON b.id=a.inquiry_item_id','LEFT')
-            ->join('erui_rfq.final_quote_item c ON c.quote_item_id=a.id','LEFT')
-            ->field($this->finalSkuFields)
-            ->where($where)
-            ->page($currentPage, $pageSize)
-            ->select();
+                            ->join($inquiryItemTableName . ' b ON b.id = a.inquiry_item_id', 'LEFT')
+                            ->join($finalQuoteItemTableName . ' c ON c.quote_item_id = a.id', 'LEFT')
+                            ->where($where);
+    }
+    
+    /**
+     * @desc 根据报价单ID删除SKU记录
+     *
+     * @param int $quoteId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-19
+     */
+    public function delByQuoteId($quoteId) {
+        return $this->where(['quote_id' => $quoteId])->setField('deleted_flag', 'Y');
     }
 
 }

@@ -7,6 +7,9 @@
 class TemporarySupplierController extends PublicController
 {
 
+    /**
+     * @var 模型
+     */
     private $temporarySupplier;
 
     public function init()
@@ -28,6 +31,7 @@ class TemporarySupplierController extends PublicController
 
         foreach ($list as &$item) {
             $item['relation_supplier_name'] = $this->temporarySupplier->relationSupplierById($item['id']);
+            $item['quotations_count'] = $this->temporarySupplier->temporarySupplierInquiryCountsBy($item['id']);
         }
 
         $this->jsonReturn([

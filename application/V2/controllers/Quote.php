@@ -32,6 +32,7 @@ class QuoteController extends PublicController{
 
     /**
      * 报价信息
+     * @author mmt、liujf
      */
     public function infoAction(){
 
@@ -82,6 +83,7 @@ class QuoteController extends PublicController{
 
     /**
      * 更新报价信息
+     * @author mmt、liujf
      */
     public function updateInfoAction(){
 
@@ -316,6 +318,7 @@ class QuoteController extends PublicController{
 
     /**
      * 确认报价(审核人)
+     * @author mmt、liujf
      */
     public function confirmAction(){
 
@@ -360,6 +363,7 @@ class QuoteController extends PublicController{
 
     /**
      * SKU列表
+     * @author mmt、liujf
      */
     public function skuAction(){
 
@@ -430,15 +434,12 @@ class QuoteController extends PublicController{
 
     /**
      * 报价审核人sku列表
+     * @author mmt、liujf
      */
     public function finalSkuAction(){
 
         $request = $this->validateRequests('inquiry_id');
-
-        //$finalQuoteItemModel = new FinalQuoteItemModel();
-        //$list = $finalQuoteItemModel->getFinalSku($request);
-        $quoteItem = new QuoteItemModel();
-        $list = $quoteItem->getQouteFinalSku($request);
+        $list = $this->quoteItemModel->getQuoteFinalSku($request);
 
         if (!$list) $this->jsonReturn(['code'=>'-104','message'=> L('QUOTE_NO_DATA') ]);
 
@@ -449,7 +450,12 @@ class QuoteController extends PublicController{
             $list[$key]['final_quote_unit_price'] = sprintf("%.4f", $list[$key]['final_quote_unit_price']);
         }
 
-        $this->jsonReturn($list);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('QUOTE_SUCCESS'),
+            'count' => $this->quoteItemModel->getFinalCount($request),
+            'data' => $list
+        ]);
 
     }
 
@@ -533,6 +539,36 @@ class QuoteController extends PublicController{
         }else{
             $this->inquiryItemModel->rollback();
             $this->jsonReturn($results);
+        }
+    }
+    
+    /**
+     * @desc 删除指定报价单的所有SKU
+     *
+     * @author liujf
+     * @time 2018-04-19
+     */
+    public function delQuoteItemAction() {
+        $request = $this->validateRequests('quote_id');
+        $inquiryId = $this->quoteModel->where(['id' => $request['quote_id'], 'deleted_flag' => 'N'])->getField('inquiry_id');
+        $this->inquiryItemModel->startTrans();
+        $res1 = $this->inquiryItemModel->delByInquiryId($inquiryId);
+        $res2 = $this->quoteItemModel->delByQuoteId($request['quote_id']);
+        if ($res1 && $res2) {
+            $this->inquiryItemModel->commit();
+            $res = true;
+        } else {
+            $this->inquiryItemModel->rollback();
+            $res = false;
+        }
+        if ($res) {
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
         }
     }
 
