@@ -2680,7 +2680,7 @@ EOF;
         }
         if($time==true){
             if(!empty($data['start_time'])){ //默认数据
-                $cond.=' and buyer.created_at >= \''.$data['end_time'].' 23:59:59\'';
+                $cond.=' and buyer.created_at >= \''.$data['start_time'].' 23:59:59\'';
             }
             if(!empty($data['start_time'])){ //默认数据
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
