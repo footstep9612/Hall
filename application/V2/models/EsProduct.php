@@ -953,7 +953,7 @@ class EsProductModel extends Model {
 
         $body['sku_count'] = intval($body['sku_count']);
 
-        $material_cat_no = $item['material_cat_no'];
+        $material_cat_no = trim($item['material_cat_no']);
         if (isset($mcats[$material_cat_no])) {
             $body['material_cat'] = $mcats[$item['material_cat_no']];
         } else {
@@ -966,7 +966,7 @@ class EsProductModel extends Model {
         }
 
 
-        if (isset($mcats_zh[$item['material_cat_no']])) {
+        if (isset($mcats_zh[trim($item['material_cat_no'])])) {
             $body['material_cat_zh'] = $mcats_zh[$item['material_cat_no']];
         } else {
             $body['material_cat_zh'] = new stdClass();
