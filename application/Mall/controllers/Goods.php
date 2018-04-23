@@ -23,8 +23,14 @@ class GoodsController extends PublicController{
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
+        $stock = (isset($input['type']) && !empty($input['type'])) ? true : false;
+        if ($stock && (!isset($input['country_bn']) || empty($input['country_bn']))) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, '现货国家不能为空');
+        }
+        $country_bn = $input['country_bn'] ? $input['country_bn'] : '';
+
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->getInfoBySku($input['sku'], $input['lang']);
+        $result = $goodsModel->getInfo($input['sku'], $input['lang'],$stock,$country_bn);
         if ($result !== false) {
             jsonReturn($result);
         }else{

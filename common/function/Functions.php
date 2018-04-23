@@ -1959,3 +1959,18 @@ function dateToTimeStamp($str) {
 function isDecimal($param) {
     return !!preg_match('/^\s*((\d+\.\d*)|(\d*\.\d+)|(\d+))\s*$/', $param);
 }
+
+/**
+ * 多维数组排序
+ * @param $data
+ * @param $sort_order_field
+ * @param int $sort_order
+ * @param int $sort_type
+ */
+function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_type=SORT_NUMERIC){
+    foreach($data as $val){
+        $key_arrays[]=$val[$sort_order_field];
+    }
+    array_multisort($key_arrays,$sort_order,$sort_type,$data);
+    return $data;
+}

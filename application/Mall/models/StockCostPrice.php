@@ -62,4 +62,56 @@ class StockCostPriceModel extends PublicModel {
         return array();
     }
 
+    /**
+     * 根据sku获取价格段
+     */
+    public function getSkuPriceBySku($sku = '', $country_bn = '') {
+        if (!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn)) {
+            return '';
+        }
+        $scpTable = $this->getTableName();
+        $condition = [
+            'sku' => $sku,
+            'country_bn' => $country_bn,
+            'price_validity_start' => ['elt', date('Y-m-d', time())],
+        ];
+        $map['price_validity_end'] = ['egt', date('Y-m-d', time())];
+        $map[$scpTable . '.price_validity_end'] = ['exp', 'is null'];
+        $map['_logic'] = 'or';
+        $condition['_complex'] = $map;
+        try {
+            $priceInfo = $this->field('min_price as price,min_purchase_qty,max_purchase_qty,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty ASC')->select();
+            return $priceInfo ? $priceInfo : '';
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuPriceBySku:' . $e, Log::ERR);
+            return false;
+        }
+    }
+
+    /**
+     * 根据相应数量返回相应价格
+     */
+    public function getSkuPriceByCount($sku = '', $country_bn = '', $count = '') {
+        if (!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($count) || !is_numeric($count)) {
+            return '';
+        }
+
+        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'min_purchase_qty' => ['elt', $count]];
+        try {
+            $priceInfo = $this->field('min_price as price,min_purchase_qty,max_purchase_qty,price_validity_end,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty DESC')->select();
+            if ($priceInfo) {
+                foreach ($priceInfo as $item) {
+                    if (($item['price_validity_end'] >= date('Y-m-d', time()) || empty($item['price_validity_end'])) && (empty($item['max_purchase_qty']) || $item['max_purchase_qty'] >= $count)) {
+                        return $item;
+                        break;
+                    }
+                }
+            }
+            return '';
+        } catch (Exception $e) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuPriceByCount:' . $e, Log::ERR);
+            return false;
+        }
+    }
+
 }
