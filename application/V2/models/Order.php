@@ -798,15 +798,21 @@ class OrderModel extends PublicModel {
         return $arr;
     }
     //会员自动升级end---------------------------------------------------------------------------------------
-    private function _getCountry($lang,$area_bn='',$country_bn=''){
+    //crm 获取地区,国家,会员统计中使用====================================================================
+    private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
         if(!empty($country_bn)){
-            $countryArr=array($country_bn);
-            return $countryArr;
+            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                return [['country_bn'=>$country_bn]];
+            }
         }
         if(!empty($area_bn)){
-            $country=new MarketAreaCountryModel();
-            $countryArr=$country->getCountryBn($area_bn, $lang);
-            return $countryArr;
+            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                $country=new MarketAreaCountryModel();
+                $countryArr=$country->field('country_bn')
+                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->select();
+                return $countryArr;
+            }
         }
         return '';
     }
@@ -819,24 +825,74 @@ class OrderModel extends PublicModel {
         $arr['end_time']=date('Y-m-d',$endLastweek);
         return $arr;
     }
-    //会员统计系列获取条件-wangs
-    public function getStatisOrderCond($data){
-        $cond=' order.delete_flag=0';  //客户状态
-        if(!empty($data['area_bn']) || !empty($data['area_bn'])){   //地区国家
-            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
+    //统计权限
+    public function statisAdmin($admin){
+        if(in_array('CRM客户管理',$admin['role'])){    //运营专员,CRM客户管理所有权限
+            $access=1;
+        }elseif(in_array('201711242',$admin['role'])){  //市场区域国家负责人
+            $access=$admin['country'];
+        }else{
+            $access=0;
+        }
+        return $access;
+    }
+    public function countryAdmin($data,$column){ //国家权限
+//        $cond=' 1 ';
+        $admin=$this->statisAdmin($data['admin']);
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){
                 $str='';
                 foreach($countryArr as $k => $v){
-                    $str.=",'".$v."'";
+                    $str.=",'".$v['country_bn']."'";
                 }
                 $str=substr($str,1);
                 if(count($countryArr)==1){
-                    $cond.=' and order.country='.$str;
+                    $cond=' and '.$column.'.country_bn='.$str;
                 }else{
-                    $cond.=' and order.country in ('.$str.')';
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                }
+            }else{
+                return false;   //无地区国家权限
+            }
+        }else{
+            if($admin===0){  //无权限
+                return false;
+            }elseif($admin===1){ //所有权限
+                $cond='';
+            }else{  //国家负责人
+                if(!empty($admin)){
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                }else{
+                    return false;
                 }
             }
         }
+        return $cond;
+    }
+    //会员统计系列获取条件-wangs
+    public function getStatisOrderCond($data){
+        $cond=' order.delete_flag=0';  //客户状态
+        $admin=$this->countryAdmin($data,'order'); //获取国家权限
+        if($admin===false){  //无权限
+            return false;
+        }
+        $cond.=$admin;
+//        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+//            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
+//            if(!empty($countryArr)){
+//                $str='';
+//                foreach($countryArr as $k => $v){
+//                    $str.=",'".$v."'";
+//                }
+//                $str=substr($str,1);
+//                if(count($countryArr)==1){
+//                    $cond.=' and order.country='.$str;
+//                }else{
+//                    $cond.=' and order.country in ('.$str.')';
+//                }
+//            }
+//        }
         if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
             $week=$this->getLastWeek();
             $cond.=' and order.create_time >= \''.$week['start_time'].' 00:00:00\'';
@@ -850,6 +906,9 @@ class OrderModel extends PublicModel {
     //会员统计---start
     public function statisCondOrder($data){
         $cond=$this->getStatisOrderCond($data); //新订单
+        if($cond===false){
+            return false;
+        }
         if(empty($data['start_time']) && empty($data['end_time'])){
             $week=$this->getLastWeek();
             $data['start_time']=$week['start_time'];

@@ -2630,21 +2630,9 @@ EOF;
         }
         return $access;
     }
-    //获取会员统计cond
-    private function getStatisMemberCond($data,$time=false){
+    //获取国家权限
+    public function countryAdmin($data,$column){
         $admin=$this->statisAdmin($data['admin']);
-//        if($admin===0){  //无权限
-//            return false;
-//        }elseif($admin===1){ //所有权限
-//            $cond=' 1 and ';
-//        }else{  //国家负责人
-//            if(!empty($admin)){
-//                $cond=' buyer.country_bn in ('.$admin.') and ';
-//            }else{
-//                return false;
-//            }
-//        }
-        $cond=' buyer.deleted_flag=\'N\'';  //客户状态
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){
@@ -2654,24 +2642,34 @@ EOF;
                 }
                 $str=substr($str,1);
                 if(count($countryArr)==1){
-                    $cond.=' and buyer.country_bn='.$str;
+                    $cond=' and '.$column.'.country_bn='.$str;
                 }else{
-                    $cond.=' and buyer.country_bn in ('.$str.')';
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
                 }
             }
         }else{
             if($admin===0){  //无权限
                 return false;
             }elseif($admin===1){ //所有权限
-                $cond.='';
+                $cond='';
             }else{  //国家负责人
                 if(!empty($admin)){
-                    $cond.=' and buyer.country_bn in ('.$admin.') ';
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
                 }else{
                     return false;
                 }
             }
         }
+        return $cond;
+    }
+    //获取会员统计cond
+    private function getStatisMemberCond($data,$time=false){
+        $cond=' buyer.deleted_flag=\'N\'';  //客户状态
+        $admin=$this->countryAdmin($data,'buyer');
+        if($admin===false){ //无权限
+           return false;
+        }
+        $cond.=$admin;
         if(!empty($data['source'])){    //来源
             $cond.=' and buyer.source='.$data['source'];
         }
@@ -2680,7 +2678,7 @@ EOF;
         }
         if($time==true){
             if(!empty($data['start_time'])){ //默认数据
-                $cond.=' and buyer.created_at >= \''.$data['start_time'].' 23:59:59\'';
+                $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
             }
             if(!empty($data['start_time'])){ //默认数据
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
@@ -2700,6 +2698,9 @@ EOF;
     //crm会员统计模块-wangs
     public function statisMemberInfo($data){
         $cond=$this->getStatisMemberCond($data);
+        if($cond===false){
+            return false;
+        }
         $lang=$data['lang'];
         $sql='select count(source) as `count`,source from erui_buyer.buyer buyer ';
         $sql.=' where ';
@@ -2728,6 +2729,9 @@ EOF;
     //会员增长
     public function memberSpeed($data){
         $cond=$this->getStatisMemberCond($data);
+        if($cond===false){
+            return false;
+        }
         if(empty($data['start_time']) && empty($data['end_time'])){
             $week=$this->getLastWeek();
             $data['start_time']=$week['start_time'];
@@ -2769,6 +2773,9 @@ EOF;
     //统计会员信息列表CRM-wangs
     public function statisMemberList($data,$order=false){
         $cond=$this->getStatisMemberCond($data,true);
+        if($cond===false){
+            return false;
+        }
         $page=isset($data['page'])?$data['page']:1;
         $pageSize=isset($data['pageSize'])?$data['pageSize']:10;
         $offset=($page-1)*$pageSize;
@@ -2828,6 +2835,9 @@ EOF;
     //会员属性统计
     public function statisMemberAttr($data){
         $arr=$this->statisMemberList($data,true);
+        if($arr===false){
+            return false;
+        }
         $total=$arr['total'];
         $page=$arr['page'];
         $pageSize=$arr['pageSize'];

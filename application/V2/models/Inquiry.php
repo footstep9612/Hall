@@ -1196,7 +1196,7 @@ class InquiryModel extends PublicModel {
         return $access;
     }
     public function countryAdmin($data,$column){ //国家权限
-        $cond=' 1 ';
+//        $cond=' 1 ';
         $admin=$this->statisAdmin($data['admin']);
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
@@ -1207,9 +1207,9 @@ class InquiryModel extends PublicModel {
                 }
                 $str=substr($str,1);
                 if(count($countryArr)==1){
-                    $cond.=' and '.$column.'.country_bn='.$str;
+                    $cond=' and '.$column.'.country_bn='.$str;
                 }else{
-                    $cond.=' and '.$column.'.country_bn in ('.$str.')';
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
                 }
             }else{
                 return false;   //无地区国家权限
@@ -1218,10 +1218,10 @@ class InquiryModel extends PublicModel {
             if($admin===0){  //无权限
                 return false;
             }elseif($admin===1){ //所有权限
-                $cond.='';
+                $cond='';
             }else{  //国家负责人
                 if(!empty($admin)){
-                    $cond.=' and '.$column.'.country_bn in ('.$admin.') ';
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
                 }else{
                     return false;
                 }
@@ -1233,9 +1233,10 @@ class InquiryModel extends PublicModel {
     public function getStatisInquiryCondCrm($data){
         $cond=' inquiry.deleted_flag=\'N\'';  //客户状态
         $admin=$this->countryAdmin($data,'inquiry'); //获取国家权限
-        if($admin==false){  //无权限
+        if($admin===false){  //无权限
             return false;
         }
+        $cond.=$admin;
         if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
             $week=$this->getLastWeek();
             $cond.=' and inquiry.created_at >= \''.$week['start_time'].' 00:00:00\'';
@@ -1250,7 +1251,7 @@ class InquiryModel extends PublicModel {
     public function statisCondInquiry($data){
         $cond=$this->getStatisInquiryCondCrm($data);
         if($cond==false){   //无权限
-            return [];
+            return false;
         }
         if(empty($data['start_time']) && empty($data['end_time'])){
             $week=$this->getLastWeek();
@@ -1272,6 +1273,9 @@ class InquiryModel extends PublicModel {
     //地区,国家,时间段统计询单量-wangs
     public function statisCondQuote($data){
         $cond=$this->getStatisInquiryCondCrm($data);
+        if($cond===false){
+            return false;
+        }
         if(empty($data['start_time']) && empty($data['end_time'])){
             $week=$this->getLastWeek();
             $data['start_time']=$week['start_time'];

@@ -307,40 +307,49 @@ class BuyerfilesController extends PublicController
         );
         return $this->jsonReturn($dataJson);
     }
-    //会员统计
+    //会员统计来源
     public function statisMemberAction(){
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
-        $role=$this->getUserRole();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['admin'] = $role;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];;
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $buyer=new BuyerModel();
         $member=$buyer->statisMemberInfo($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'会员来源统计',
-            'data'=>$member
-        );
+        if($member===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权查看会员来源统计',
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员来源统计',
+                'data'=>$member
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //会员增长
     public function memberSpeedAction(){
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
+        $data['created_by'] = $this -> user['id'];
         $role=$this->getUserRole();
-        $data['lang'] = $lang;
+        $data['lang'] = $this->getLang();
         $data['admin'] = $role;
         $buyer=new BuyerModel();
         $member=$buyer->memberSpeed($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'会员增长',
-            'data'=>$member
-        );
+        if($member===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看会员增长'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员增长',
+                'data'=>$member
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //统计询单量
@@ -351,97 +360,120 @@ class BuyerfilesController extends PublicController
         $data['lang'] = $this->getLang();
         $inquiry=new InquiryModel();
         $inquiryInfo=$inquiry->statisCondInquiry($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'询单量统计',
-            'data'=>$inquiryInfo
-        );
+        if($inquiryInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看询单量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'询单量统计',
+                'data'=>$inquiryInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //统计报价量
     public function statisQuoteAction(){
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $inquiry=new InquiryModel();
         $quoteInfo=$inquiry->statisCondQuote($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'报价量统计',
-            'data'=>$quoteInfo
-        );
+        if($quoteInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看报价量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'报价量统计',
+                'data'=>$quoteInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //统计报价量
     public function statisOrderAction(){
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $order=new OrderModel();
         $orderInfo=$order->statisCondOrder($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'订单量统计',
-            'data'=>$orderInfo
-        );
+        if($orderInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看订单量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'订单量统计',
+                'data'=>$orderInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //会员统计信息列表
     public function statisMemberListAction(){
-        $created_by = $this -> user['id'];
-        $role=$this->getUserRole();
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['admin'] = $role;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberList($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'统计会员信息列表',
-            'data'=>$memInfo
-        );
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限统计会员信息列表'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'统计会员信息列表',
+                'data'=>$memInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //会员属性统计信息列表
     public function statisMemberAttrAction(){
-        $created_by = $this -> user['id'];
-        $role=$this->getUserRole();
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['lang'] = $lang;
-        $data['admin'] = $role;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberAttr($data);
-        $dataJson = array(
-            'code'=>1,
-            'message'=>'会员属性统计列表',
-            'data'=>$memInfo
-        );
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看会员属性统计列表'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员属性统计列表',
+                'data'=>$memInfo
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     //会员行为统计信息列表
     public function statisMemberBehaveAction(){
-        $role=$this->getUserRole();
-        $created_by = $this -> user['id'];
-        $lang=$this->getLang();
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $data['admin'] = $role;
-        $data['lang'] = $lang;
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
         $buyer=new BuyerModel();
         $memInfo=$buyer->statisMemberBehave($data);
         if($memInfo===false){
             $dataJson = array(
                 'code'=>1,
-                'message'=>'无权查看会员行为统计列表',
-                'data'=>[]
+                'message'=>'无权查看会员行为统计列表'
             );
         }else{
             $dataJson = array(
