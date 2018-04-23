@@ -27,12 +27,13 @@ class QuestionnaireController extends PublicController {
         if (!empty($jsondata["token"])) {
             $token = $jsondata["token"];
             $tokeninfo = JwtInfo($token); //解析token
-            $userinfo = json_decode(redisGet('user_info_' . $tokeninfo['id']), true);
+            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+
             if (empty($userinfo)) {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
-                $buyer_id = $userinfo['id'];
+                $buyer_id = $userinfo['buyer_id'];
             }
         } elseif (!empty($jsondata["source_token"])) {
             $buyer_id = (new BuyerSourceModel)->getBuyerIdByToken($jsondata["source_token"]);
