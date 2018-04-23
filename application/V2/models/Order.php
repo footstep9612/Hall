@@ -848,9 +848,9 @@ class OrderModel extends PublicModel {
                 }
                 $str=substr($str,1);
                 if(count($countryArr)==1){
-                    $cond=' and '.$column.'.country_bn='.$str;
+                    $cond=' and '.$column.'.country='.$str;
                 }else{
-                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                    $cond=' and '.$column.'.country in ('.$str.')';
                 }
             }else{
                 return false;   //无地区国家权限
@@ -862,7 +862,7 @@ class OrderModel extends PublicModel {
                 $cond='';
             }else{  //国家负责人
                 if(!empty($admin)){
-                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                    $cond=' and '.$column.'.country in ('.$admin.') ';
                 }else{
                     return false;
                 }
