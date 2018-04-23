@@ -699,7 +699,7 @@ class UserController extends PublicController {
         $orgModel = new OrgModel();
         $originChina = L('ORIGIN_CHINA');
         $originForeign = L('ORIGIN_FOREIGN');
-        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originForeign . '\', \'' . $originForeign . '\') AS citizenship';
+        $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originChina . '\', \'' . $originForeign . '\') AS citizenship';
         $userList = $userModel->getList_($condition, $field);
         foreach ($userList as &$user) {
             $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);

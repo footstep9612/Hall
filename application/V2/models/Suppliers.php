@@ -141,6 +141,15 @@ class SuppliersModel extends PublicModel {
             return $count > 0 ? $count : 0;
         }
 
+        if (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='Y') {
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListWithPaginationBy($condition);
+            return $count > 0 ? $count : 0;
+
+        }elseif (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='N') {
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListWithPaginationBy($condition, 'RIGHT');
+            return $count > 0 ? $count : 0;
+        }
+
         $count = $this->alias('a')
                                  ->join($this->joinTable1, 'LEFT')
                                  ->join($this->joinTable5, 'LEFT')
@@ -189,6 +198,40 @@ class SuppliersModel extends PublicModel {
                 ->page($currentPage, $pageSize)
                 ->order('a.id DESC')
                 ->select();
+        }
+
+        if (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='Y') {
+
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListWithPaginationBy($condition);
+
+            $list = [];
+            foreach ($data as $item) {
+                $list[] = (new SupplierQualificationModel)->alias('a')
+                                ->join('erui_supplier.supplier s ON a.supplier_id=s.id', 'LEFT')
+                                ->join('erui_sys.org b ON s.org_id = b.id', 'LEFT')
+                                ->join('erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ', 'LEFT')
+                                ->join('erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'', 'LEFT')
+                                ->field('s.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time,a.expiry_date')
+                                ->where(['a.supplier_id' => $item['supplier_id']])
+                                ->find();
+            }
+            return $list;
+
+        }elseif (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='N') {
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListWithPaginationBy($condition, 'RIGHT');
+
+            $list = [];
+            foreach ($data as $item) {
+                $list[] = (new SupplierQualificationModel)->alias('a')
+                    ->join('erui_supplier.supplier s ON a.supplier_id=s.id', 'LEFT')
+                    ->join('erui_sys.org b ON s.org_id = b.id', 'LEFT')
+                    ->join('erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ', 'LEFT')
+                    ->join('erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'', 'LEFT')
+                    ->field('s.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time,a.expiry_date')
+                    ->where(['a.supplier_id' => $item['supplier_id']])
+                    ->find();
+            }
+            return $list;
         }
 
         return $this->alias('a')
