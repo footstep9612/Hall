@@ -16,8 +16,8 @@
 class BuyerQuestionnaireModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'buyer_source';
-    protected $dbName = 'buyer_questionnaire'; //数据库名称
+    protected $tableName = 'buyer_questionnaire';
+    protected $dbName = 'erui_buyer'; //数据库名称
     protected $g_table = 'erui_buyer.buyer_questionnaire';
 
     public function __construct() {
@@ -25,12 +25,19 @@ class BuyerQuestionnaireModel extends PublicModel {
     }
 
     public function create_data($buyer_id, $questionnaire) {
-        $data['buyer_id'] = $buyer_id;
-        $data['questionnaire'] = $questionnaire;
-        $data['created_at'] = date('Y-m-d H:i:s');
+        try {
+            $data['buyer_id'] = $buyer_id;
+            $data['questionnaire'] = $questionnaire;
+            $data['created_at'] = date('Y-m-d H:i:s');
 
+            $data = $this->create($data);
 
-        return [$this->add($data), $data['token']];
+            return $this->add($data);
+        } catch (Exception $ex) {
+
+            echo $ex->getMessage();
+            return false;
+        }
     }
 
 }

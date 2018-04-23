@@ -24,6 +24,11 @@ class BuyerSourceModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getBuyerIdByToken($token) {
+
+        return $this->where(['token' => $token])->getField('buyer_id');
+    }
+
     public function create_data($buyer_id, $introduction_source) {
         $data['buyer_id'] = $buyer_id;
         $data['source'] = $introduction_source;
