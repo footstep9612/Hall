@@ -221,7 +221,7 @@ class SupplierQualificationModel extends PublicModel {
         if ($type=='LEFT') {
             $where = 'to_days(expiry_date)-to_days(now()) <= 30';
         }else {
-            $where = 'to_days(expiry_date)-to_days(now()) >= 30';
+            $where = 'to_days(expiry_date)-to_days(now()) > 30';
         }
 
         return [
