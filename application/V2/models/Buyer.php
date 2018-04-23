@@ -884,7 +884,13 @@ EOF;
     public function update_data($create, $where) {
 
         if (isset($create['buyer_code'])) {
-            $data['buyer_code'] = $create['buyer_code'];    //新增CRM编码，张玉良 2017-9-27
+            $data['buyer_code'] = $create['buyer_code'];
+        }
+        if (isset($create['checked_by'])) {
+            $data['checked_by'] = $create['checked_by'];
+        }
+        if (isset($create['checked_at'])) {
+            $data['checked_at'] = $create['checked_at'];
         }
         if (isset($create['lang'])) {
             $data['lang'] = $create['lang'];
@@ -2576,6 +2582,344 @@ EOF;
                 $arr['email']=1;
             }
         }
+        return $arr;
+    }
+    //crm 获取地区,国家,会员统计中使用
+    private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
+        if(!empty($country_bn)){
+            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                return [['country_bn'=>$country_bn]];
+            }
+        }
+        if(!empty($area_bn)){
+            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                $country=new MarketAreaCountryModel();
+                $countryArr=$country->field('country_bn')
+                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->select();
+                return $countryArr;
+            }
+        }
+        return '';
+//        if(!empty($country_bn)){
+//            $countryArr=array($country_bn);
+//            return $countryArr;
+//        }
+//        if(!empty($area_bn)){
+//            $country=new MarketAreaCountryModel();
+//            $countryArr=$country->getCountryBn($area_bn, $lang);
+//            return $countryArr;
+//        }
+    }
+    //获取上周日期时间段
+    public function getLastWeek(){
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-9,date('Y'));
+
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-9,date('Y'));
+        $arr['start_time']=date('Y-m-d',$beginLastweek);
+        $arr['end_time']=date('Y-m-d',$endLastweek);
+        return $arr;
+    }
+    public function statisAdmin($admin){
+        if(in_array('CRM客户管理',$admin['role'])){    //运营专员,CRM客户管理所有权限
+            $access=1;
+        }elseif(in_array('201711242',$admin['role'])){  //市场区域国家负责人
+            $access=$admin['country'];
+        }else{
+            $access=0;
+        }
+        return $access;
+    }
+    //获取国家权限
+    public function countryAdmin($data,$column){
+        $admin=$this->statisAdmin($data['admin']);
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
+            if(!empty($countryArr)){
+                $str='';
+                foreach($countryArr as $k => $v){
+                    $str.=",'".$v['country_bn']."'";
+                }
+                $str=substr($str,1);
+                if(count($countryArr)==1){
+                    $cond=' and '.$column.'.country_bn='.$str;
+                }else{
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                }
+            }
+        }else{
+            if($admin===0){  //无权限
+                return false;
+            }elseif($admin===1){ //所有权限
+                $cond='';
+            }else{  //国家负责人
+                if(!empty($admin)){
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                }else{
+                    return false;
+                }
+            }
+        }
+        return $cond;
+    }
+    //获取会员统计cond
+    private function getStatisMemberCond($data,$time=false){
+        $cond=' buyer.deleted_flag=\'N\'';  //客户状态
+        $admin=$this->countryAdmin($data,'buyer');
+        if($admin===false){ //无权限
+           return false;
+        }
+        $cond.=$admin;
+        if(!empty($data['source'])){    //来源
+            $cond.=' and buyer.source='.$data['source'];
+        }
+        if(!empty($data['buyer_level'])){   //等级
+            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        }
+        if($time==true){
+            if(!empty($data['start_time'])){ //默认数据
+                $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
+            }
+            if(!empty($data['start_time'])){ //默认数据
+                $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
+            }
+        }else{
+            if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+                $week=$this->getLastWeek();
+                $cond.=' and buyer.created_at >= \''.$week['start_time'].' 00:00:00\'';
+                $cond.=' and buyer.created_at <= \''.$week['end_time'].' 23:59:59\'';
+            }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+                $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
+                $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
+            }
+        }
+        return $cond;
+    }
+    //crm会员统计模块-wangs
+    public function statisMemberInfo($data){
+        $cond=$this->getStatisMemberCond($data);
+        if($cond===false){
+            return false;
+        }
+        $lang=$data['lang'];
+        $sql='select count(source) as `count`,source from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by source ';
+        $sql.=' order by source ';
+        $source=$this->query($sql);
+        $arr=array(
+            ['name'=>'boss','value'=>0],
+            ['name'=>'website','value'=>0],
+            ['name'=>'app','value'=>0]
+        );
+        if(!empty($source)){
+            foreach($source as $k => $v){
+                if($v['source']==1){
+                    $arr[$k]['value']=$v['count'];
+                }elseif($v['source']==2){
+                    $arr[$k]['value']=$v['count'];
+                }elseif($v['source']==3){
+                    $arr[$k]['value']=$v['count'];
+                }
+            }
+        }
+        return $arr;
+    }
+    //会员增长
+    public function memberSpeed($data){
+        $cond=$this->getStatisMemberCond($data);
+        if($cond===false){
+            return false;
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
+        }
+        $lang=$data['lang'];
+        $sql='select count(id) as `count`,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $member=$this->query($sql);
+        $customer=$this->packDailyData($member,$data['start_time'],$data['end_time']);
+        return $customer;
+    }
+    //整理每天的数据
+    public function packDailyData($data,$start_time,$end_time){
+        $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
+        $arr=[];
+        $info=[];
+        for($i=0;$i<$days;$i++){
+            $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
+            $arr[$i]['count']=0;
+        }
+        foreach($arr as $key => &$value){
+            foreach($data as $k => $v){
+                if($v['created_at'] == $value['created_at']){
+                    $arr[$key]['created_at']=$value['created_at'];
+                    $arr[$key]['count']=$v['count'];
+                }
+            }
+        }
+        foreach($arr as $k => $v){
+            $info['day'][]=$v['created_at'];
+            $info['count'][]=intval($v['count']);
+        }
+        return $info;
+    }
+    //统计会员信息列表CRM-wangs
+    public function statisMemberList($data,$order=false){
+        $cond=$this->getStatisMemberCond($data,true);
+        if($cond===false){
+            return false;
+        }
+        $page=isset($data['page'])?$data['page']:1;
+        $pageSize=isset($data['pageSize'])?$data['pageSize']:10;
+        $offset=($page-1)*$pageSize;
+        $total=$this->getStatisTotal($cond);
+        $sql='select ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
+        $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
+        $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
+        $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
+        $sql.=' (select buyer_level from erui_config.buyer_level where deleted_flag=\'N\' and id=buyer.buyer_level) as buyer_level, ';
+        $sql.=' buyer.intent_product ';
+        $sql.=' from erui_buyer.buyer buyer ';
+        $sql.=' left join erui_operation.market_area_country country on buyer.country_bn=country.country_bn';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' order by buyer.created_at desc';
+        $sql.=' limit '.$offset.','.$pageSize;
+        $info=$this->query($sql);
+        if($order==true){
+            $arr['total']=$total;
+            $arr['page']=$page;
+            $arr['pageSize']=$pageSize;
+            $arr['info']=$info;
+            return $arr;
+        }
+        foreach($info as $k => &$v){
+            $info[$k]['agent']=$this->getStatisAgent($v['buyer_id']);
+            if($v['is_build']==1){
+                $info[$k]['status']='PASS';
+            }
+            unset($v['is_build']);
+            unset($v['buyer_level']);
+            unset($v['intent_product']);
+        }
+        $arr['total']=$total;
+        $arr['page']=$page;
+        $arr['pageSize']=$pageSize;
+        $arr['info']=$info;
+        return $arr;
+    }
+    public function getStatisTotal($cond){
+        return $this->where($cond)->count();
+    }
+    public function getStatisAgent($buyer_id){
+        $sql_agent='select employee.name';
+        $sql_agent.=' from erui_buyer.buyer_agent agent ';
+        $sql_agent.=' left join erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag=\'N\'';
+        $sql_agent.=' where agent.deleted_flag=\'N\' AND agent.buyer_id='.$buyer_id;
+        $agentInfo=$this->query($sql_agent);
+        $agentStr='';
+        foreach($agentInfo as $k => $v){
+            $agentStr.=','.$v['name'];
+        }
+        $agentStr=substr($agentStr,1);
+        return $agentStr;
+    }
+    //会员属性统计
+    public function statisMemberAttr($data){
+        $arr=$this->statisMemberList($data,true);
+        if($arr===false){
+            return false;
+        }
+        $total=$arr['total'];
+        $page=$arr['page'];
+        $pageSize=$arr['pageSize'];
+        $info=$arr['info'];
+        $lang=$data['lang'];
+        $inquiry=new InquiryModel();
+        foreach($info as $key => &$value){
+            if(!empty($value['buyer_level'])){
+                $level_name=json_decode($value['buyer_level'],true);
+                foreach($level_name as $k => $v){
+                    if($lang==$v['lang']){
+                        $value['buyer_level']=$v['name'];
+                    }
+                }
+            }
+            $InquiryOrder=$inquiry->getBuyerInquiry($value['buyer_id']);
+            $info[$key]['inquiry_count']=$InquiryOrder['inquiry_count'];   //询单个数
+            $info[$key]['quote_count']=$InquiryOrder['quote_count'];   //报价个数
+            $info[$key]['order_count']=$InquiryOrder['order_count'];   //订单数
+            $info[$key]['order_rate']=$InquiryOrder['order_rate'];   //成单率
+            $info[$key]['order_amount_rate']=$InquiryOrder['order_amount_rate'];   //成单金额率
+//            unset($info[$key]['id']);
+            unset($info[$key]['is_build']);
+            unset($info[$key]['status']);
+//            unset($info[$key]['created_at']);
+            unset($info[$key]['checked_at']);
+        }
+        $result['total']=$total;
+        $result['page']=$page;
+        $result['pageSize']=$pageSize;
+        $result['info']=$info;  //数据
+        return $result;
+    }
+    //会员行为统计列表
+    public function statisMemberBehave($data){
+        $cond=$this->getStatisMemberCond($data,true);
+        if($cond===false){
+            return false;   //无权限查看
+        }
+        $page=isset($data['page'])?$data['page']:1;
+        $pageSize=isset($data['pageSize'])?$data['pageSize']:10;
+        $offset=($page-1)*$pageSize;
+        $total=$this->getStatisTotal($cond);
+        $sql='select ';
+        $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
+        $sql.=' buyer.created_at ';
+
+        $sql.=' from erui_buyer.buyer buyer ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' order by buyer.created_at desc';
+        $sql.=' limit '.$offset.','.$pageSize;
+        $info=$this->query($sql);
+        if(empty($info)){
+            $info=array(
+                'total'=>0,
+                'page'=>1,
+                'info'=>[],
+            );
+            return $info;
+        }
+        $lang=$data['lang'];
+        $visit=new BuyerVisitModel();
+        $order=new OrderModel();
+        foreach($info as $key => $value){
+            $visitInfo=$visit->statisVisitCount($value['buyer_id']);   //统计拜访记录
+            $info[$key]['visit_count']=$visitInfo['visit_count'];
+            $info[$key]['demand_count']=$visitInfo['demand_count'];
+            $orderInfo=$order->statisOrderStatusCount($value['buyer_id'],$value['buyer_code']);    //统计订单各个状态的数量
+            $info[$key]['order_count']=$orderInfo['total']; //该该客户订单总数
+            $info[$key]['order_unconfirmed']=$orderInfo['unconfirmed']; //待确认的订单数
+            $info[$key]['order_going']=$orderInfo['going']; //进行中的订单数
+            $info[$key]['order_outgoing']=$orderInfo['outgoing']; //已出库的订单数
+            $info[$key]['order_dispatched']=$orderInfo['dispatched']; //已发运订单数
+            $info[$key]['order_completed']=$orderInfo['completed']; //已完成订单数
+            $info[$key]['order_payment']=$orderInfo['payment_amount']; //订单回款金额
+            $info[$key]['order_amount']=$orderInfo['amount']; //总订单销售金额
+        }
+        $arr['total']=$total;
+        $arr['page']=$page;
+        $arr['pageSize']=$pageSize;
+        $arr['info']=$info;
         return $arr;
     }
 }

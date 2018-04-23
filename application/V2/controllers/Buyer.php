@@ -879,6 +879,8 @@ EOF;
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
+            $arr['checked_by'] = $this->user['id'];
+            $arr['checked_at'] = date('Y-m-d H:i:s');
 //            $where_attach['buyer_id'] = $data['id'];
         } else {
             $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));    //用户id不能为空
@@ -1239,14 +1241,14 @@ EOF;
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
         if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
-            $arr['order']['order_rate'] = 0;
+            $arr['order']['order_rate'] = '0%';
         }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
             $arr['order']['order_rate'] ='100%';
         }else{
             $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
         }
         if($orderInfo['account']==0 && $inquiryInfo['account']==0){
-            $arr['order']['account_rate'] = 0;
+            $arr['order']['account_rate'] = '0%';
         }elseif($orderInfo['account']>=$inquiryInfo['account']){
             $arr['order']['account_rate'] = '100%';
         }else{
