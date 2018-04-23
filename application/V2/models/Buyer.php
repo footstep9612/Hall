@@ -387,6 +387,17 @@ class BuyerModel extends PublicModel {
         }
         return $levelCount;
     }
+    public function getAreaByCountrybn($country_bn,$lang='zh'){
+        $sql='select ';
+        $sql.=' name ';
+        $sql.=' from erui_operation.market_area_country country';
+        $sql.=' join erui_operation.market_area area ';
+        $sql.=' on  country.market_area_bn=area.bn';
+        $sql.=' where country.country_bn=\''.$country_bn.'\'';
+        $sql.=' and area.lang=\''.$lang.'\'';
+        $info=$this->query($sql);
+        return $info[0]['name'];
+    }
     /**
      * @param $data
      * 客户管理-客户统计-所有客户的搜索列表
@@ -461,6 +472,7 @@ class BuyerModel extends PublicModel {
             }
             if(!empty($v['country_bn'])){ //国家
                 $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
             }
         }
         if($excel==false){
