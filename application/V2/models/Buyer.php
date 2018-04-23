@@ -2375,9 +2375,9 @@ EOF;
 //                    if(empty($v['build_time'])){
 //                        $info[$k]['build_time']=$v['created_at'];
 //                    }
-                    if(empty($v['level_at'])){
-                        $info[$k]['level_at']=substr($v['created_at'],0,10);
-                    }
+//                    if(empty($v['level_at'])){
+//                        $info[$k]['level_at']=substr($v['created_at'],0,10);
+//                    }
                     if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
                         $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
                     }
