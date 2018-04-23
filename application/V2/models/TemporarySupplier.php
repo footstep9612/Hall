@@ -164,7 +164,8 @@ class TemporarySupplierModel extends PublicModel
     {
         $this->where(['id' => $id])->save([
             'deleted_flag' => 'Y',
-            'is_relation' => 'Y',
+            'is_relation' => 'N',
+            'relations_count' => 0,
             'updated_by' => $user,
             'updated_at' => date('Y-m-d H:i:s')
         ]);
