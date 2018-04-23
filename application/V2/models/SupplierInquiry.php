@@ -1629,6 +1629,10 @@ class SupplierInquiryModel extends PublicModel {
             $where['name'] = ['like', '%' . $condition['supplier_name'] . '%'];
         }
 
+        if (!empty($condition['supplier_no'])) {
+            $where['supplier_no'] = ['like', '%' . $condition['supplier_no'] . '%'];
+        }
+
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
             $where['created_at'] = [
                 ['egt', $condition['create_start_time']],
