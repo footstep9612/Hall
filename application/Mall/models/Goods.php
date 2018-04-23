@@ -45,7 +45,7 @@ class GoodsModel extends PublicModel{
                 }
                 $goodsInfo = array_merge($goodsInfo,$productInfo);
 
-                if($stock && $country_bn){
+                if($stock && $country_bn){    //现货处理
                     $stockModel = new StockModel();
                     $field_stock = "name,show_name,stock,price,price_strategy_type,price_rule_id,price_cur_bn,price_symbol";
                     $condition_stock = [
@@ -100,6 +100,20 @@ class GoodsModel extends PublicModel{
                 ];
                 $goodsAttr = $gaModel->field($field_attr)->where($condition_attr)->find();
                 $goodsInfo['spec_attrs'] = $goodsAttr ? $goodsAttr['spec_attrs'] : '';
+
+                //商品图片附件
+                $gaModel = new GoodsAttachModel();
+                $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => $goodsInfo['sku'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
+                if ($attachInfo) {
+                    $goodsInfo['attach'] = $attachInfo;
+                }
+                if(empty($goodsInfo['attachAry'])){    //当sku无附件图时，取spu图
+                    $paModel = new ProductAttachModel();
+                    $attachInfo = $paModel->field('spu,attach_url,attach_name')->where(['spu' => $goodsInfo['spu'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
+                    if ($attachInfo) {
+                        $goodsInfo['attach'] = $attachInfo;
+                    }
+                }
             }
             return $goodsInfo ? $goodsInfo : [];
         }catch (Exception $e){
