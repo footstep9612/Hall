@@ -2,63 +2,59 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Register</title>
+        <title>Title</title>
         <style>
-            .content {
-                width: 630px;
-                margin: 0 auto;
-                border: 2px solid #000099;
-            }
+            html,body,ul,li,ol,dl,dd,dt,p,h1,h2,h3,h4,h5,h6,form,fieldset,legend,img{margin:0;padding:0}fieldset,img,input,button{border:0;padding:0;margin:0;outline-style:none}ul,ol{list-style:none}input{padding-top:0;padding-bottom:0;font-family:Arial,"SimSun","微软雅黑";color:#666}select,input{vertical-align:middle}select,input,textarea{font-size:12px;margin:0}textarea{resize:none}img{border:0;vertical-align:middle}table{border-collapse:collapse}body{font:12px/150% Arial,Verdana,"微软雅黑","\5b8b\4f53";color:#333;background:#fff;min-width:1200px;overflow-y:scroll}.clearfix:before,.clearfix:after{content:"";display:table}.clearfix:after{clear:both}.clearfix{*zoom:1}a{color:#666;text-decoration:none}a:hover{color:#eb6100;text-decoration:none}h1,h2,h3,h4,h5,h6{text-decoration:none;font-weight:normal;font-size:100%}s,i,em{font-style:normal;text-decoration:none}.col-red{color:#eb6100!important}.fl{float:left}.fr{float:right}.header_logo{width:800px;margin:0 auto;font-style:oblique;font-weight:600;border-bottom:1px solid #f4f6f9}.header_logo>h2{float:left;font-size:20px;color:#eb6202;font-weight:600;padding:32px 0 0 20px}.header_logo>img{float:left;padding:23px 0}.header_logo>p{float:right;font-size:16px;padding-top:36px;color:#333}.main{width:800px;margin:0 auto;color:#333}.content_info{padding:25px 0 40px 19px}.content_info .info_name{font-size:14px;font-weight:600;line-height:24px;color:#333}.content_info p{line-height:24px}.content_info .info_name>span{color:#666}.content_info p:nth-of-type(4){text-indent:10px;color:#666;font-size:14px}.content_info p:nth-of-type(5){text-indent:20px;font-size:14px;color:#666}.content_info p:nth-of-type(3),.content_info p:nth-of-type(6){padding-top:35px}.content_info a{display:block;font-size:14px;color:#009ed1;font-weight:600;line-height:24px}.content_info p:nth-of-type(7){font-size:12px;color:#999}.content_info p:nth-of-type(8){padding-top:35px;font-size:14px;color:#666}.content_cooperation{background:#f4f6f9}.content_cooperation>h3{padding:12px 0 36px 8px;font-size:20px;line-height:24px;color:#122a88;font-weight:600}.content_cooperation dl{float:left;width:100px;text-align:center;margin-left:100px}.content_cooperation dl>dt{font-size:20px;color:#eb6100;margin-bottom:15px}.content_cooperation dl>dd{font-size:18px;color:#666}.content_cooperation dl:nth-of-type(1){margin-left:35px}.content_cooperation>h4{margin:26px 0 10px 8px;font-size:20px;color:#333;font-weight:600}.content_cooperation>img{padding-left:44px}.content_cooperation>p{padding-top:34px;text-align:center;font-size:14px;color:#666}.content_cooperation>p>a{text-decoration:underline;color:#009ed1}
 
-            .address {
-                width: 100%;
-                display: inline-block;
-                word-wrap: break-word;
-                font-size: 14px;
-                color: #666;
-            }
-
-            .tip {
-                color: #666;
-                font-size: 14px;
-                padding: 50px 0;
-                width: 85%;
-                margin: 0 auto;
-                border-bottom: 1px dashed #999;
-            }
         </style>
     </head>
     <body>
-        <p>
-        <div>
-            <p><strong>ERUI</strong><br>
-                <strong>PRESENTATION-2018</strong></p>
-            <p align="left">PRESENTATION-2018</p>
-            <p><strong>&nbsp;</strong></p>
+        <div class="header_logo clearfix">
+            <img src="http://file01.erui.com/group2/M00/03/C3/rBFgyFrdSAiAdZJMAAAJ2aPTKQo483.png" alt="logo">
+            <h2>High efficient supply chain</h2>
+            <p>Phone number:400-820-9199</p>
         </div>
-        <strong> </strong><br>
-        <div>
-            <p>DATE:  10TH MAY 2018 <br>
-                TIME:       4:00 PM-9:00 PM<br>
-                LOCATION:  SIGNATURE AL KHOBAR</p>
+        <div class="main">   <p align="left"><em>Name</em><em>：</em><em>(</em><em><?=$show_name?></em><em>)</em><br>
+                <em>Registration ID</em><em>：</em><em>(</em><em><?=$buyer_id?></em><em>)</em></p>
+            <div class="content_info">
+                <p class="info_name">Name: <span><?=$show_name?></span></p>
+                <p class="info_name">Registration ID: <span><?=$buyer_id?></span></p>
+                <p class="info_name">Dear Mr. <span><?=$show_name?></span></p>
+                <p>Greetings!</p>
+                <p>Welcome to be the valuable membership of Erui, whom we will provide with preferable service in the future. In order to serve the enterprises in the means of more suitable, we would like to invite you to finish our questionnaire online.</p>
+                <p class="info_name">You can get approach with the questionnaires in the below ways:</p>
+                <a href="http://www.erui.com/questionnaire?token=<?=$token?>">1．http://www.erui.com/questionnaire?token=<?=$token?>;</a>
+                <a href="http://www.erui.com/questionnaire?token=<?=$token?>">2．http://www.erui.com/questionnaire?token=<?=$token?>;</a>
+                <p>Completing the questionnaire is simple and should only take 3-5 minutes.</p>
+                <p>Best regards.</p>
+            </div>
+            <div class="content_cooperation clearfix">
+                <h3>One-Stop Procurement Platform in Oil & Gas Energy Industry</h3>
+                <div class="clearfix">
+                    <dl>
+                        <dt>80+</dt>
+                        <dd>Branches</dd>
+                    </dl>
+                    <dl>
+                        <dt>3500+</dt>
+                        <dd>Global Customers</dd>
+                    </dl>
+                    <dl>
+                        <dt>40000+</dt>
+                        <dd>SPU</dd>
+                    </dl>
+                    <dl>
+                        <dt>300000+</dt>
+                        <dd>SKU</dd>
+                    </dl>
+                </div>
+                <h4>Major partners</h4>
+                <img src="http://file01.erui.com/group2/M00/03/C3/rBFgyFrdSEyAFMtYAABrFiWqBqM510.png" alt="cooperation">
+                <p>
+                    Contact our website:
+                    <a href="http://www.erui.com">www.erui.com</a>
+                </p>
+            </div>
         </div>
-         
-    </p>
-    <p align="left">&nbsp;</p>
-    <br clear="ALL">
-    <p align="left"><em>OPEN  UP THE NEW ERA OF SUPPLY CHAIN IN THE OIL&amp;GAS ENERGY FIELD.</em><em>&nbsp;</em></p>
-    <p align="left">(以下蓝色字体为回执邮件内容)</p>
-    <p align="left"><em>Name</em><em>：</em><em>(</em><em><?=$show_name?></em><em>)</em><br>
-        <em>Registration ID</em><em>：</em><em>(</em><em><?=$buyer_id?></em><em>)</em></p>
-    <p align="left">Dear Mr. <?=$show_name?></p>
-    <p align="left">Greetings!</p>
-    <p align="left">Welcome to be the valuable membership of Erui, whom  we will provide with preferable service in the future.<br>
-        In order to serve the enterprises in the means of  more suitable, we would like to invite you to finish our questionnaire online.</p>
-    <p align="left">You can get approach with the questionnaires in the  below ways： <br>
-        1．http://www.erui.com/questionnaire <br>
-        2．http://www.erui.com/questionnaire； <br>
-        Completing  the questionnaire is simple and should only take 3-5 minutes.</p>
-    <p>Best  regards.<br>
-        (请考虑是否加Terms of use 和Privacy  Policy.)</p>
-</body>
+    </body>
 </html>

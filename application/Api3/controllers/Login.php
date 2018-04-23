@@ -404,7 +404,7 @@ class LoginController extends PublicController {
      */
 
     private function sendmail($email, $token, $buyer_id, $show_name) {
-        $body = $this->getView()->render('login/email.html', [
+        $body = $this->getView()->render('login/receipt_email.html', [
             'email' => $email,
             'token' => $token,
             'buyer_id' => $buyer_id,
@@ -412,6 +412,7 @@ class LoginController extends PublicController {
                 ]
         );
         $res = send_Mail($email, 'REGISTRATION confirmation', $body, $show_name);
+
         if ($res['code'] == 1) {
             $buyersource = new BuyerSourceModel();
             $ret = $buyersource->update_sendmail($buyer_id);
