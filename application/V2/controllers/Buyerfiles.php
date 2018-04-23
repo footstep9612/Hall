@@ -34,7 +34,6 @@ class BuyerfilesController extends PublicController
         $context = stream_context_create($opt);
         $json = file_get_contents($ssoServer,false,$context);
         $info=json_decode($json,true);
-
         $arr['role']=$info['role_no'];
         if(!empty($info['country_bn'])){
             $countryArr=[];
@@ -43,7 +42,19 @@ class BuyerfilesController extends PublicController
             }
             $countryStr=implode(',',$countryArr);
         }
+        $buyer=new BuyerModel();
+        $areas=$buyer->table('erui_operation.market_area_country')
+            ->field('distinct market_area_bn as area_bn')
+            ->where("country_bn in ($countryStr)")->select();
+        if(!empty($areas)){
+            $areaArr=[];
+            foreach($areas as $k => $v){
+                $areaArr[]="'".$v['area_bn']."'";
+            }
+            $areaStr=implode(',',$areaArr);
+        }
         $arr['country']=$countryStr;
+        $arr['area']=$areaStr;
         return $arr;
     }
     /*
@@ -295,5 +306,224 @@ class BuyerfilesController extends PublicController
             'data'=>$percent.'%'
         );
         return $this->jsonReturn($dataJson);
+    }
+    //会员统计来源
+    public function statisMemberAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];;
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $member=$buyer->statisMemberInfo($data);
+        if($member===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权查看会员来源统计',
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员来源统计',
+                'data'=>$member
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //会员增长
+    public function memberSpeedAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $role=$this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $data['admin'] = $role;
+        $buyer=new BuyerModel();
+        $member=$buyer->memberSpeed($data);
+        if($member===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看会员增长'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员增长',
+                'data'=>$member
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //统计询单量
+    public function statisInquiryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $inquiry=new InquiryModel();
+        $inquiryInfo=$inquiry->statisCondInquiry($data);
+        if($inquiryInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看询单量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'询单量统计',
+                'data'=>$inquiryInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //统计报价量
+    public function statisQuoteAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $inquiry=new InquiryModel();
+        $quoteInfo=$inquiry->statisCondQuote($data);
+        if($quoteInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看报价量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'报价量统计',
+                'data'=>$quoteInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //统计报价量
+    public function statisOrderAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $order=new OrderModel();
+        $orderInfo=$order->statisCondOrder($data);
+        if($orderInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看订单量统计'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'订单量统计',
+                'data'=>$orderInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //会员统计信息列表
+    public function statisMemberListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberList($data);
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限统计会员信息列表'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'统计会员信息列表',
+                'data'=>$memInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //会员属性统计信息列表
+    public function statisMemberAttrAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberAttr($data);
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权限查看会员属性统计列表'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员属性统计列表',
+                'data'=>$memInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //会员行为统计信息列表
+    public function statisMemberBehaveAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this -> user['id'];
+        $data['admin'] = $this->getUserRole();
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $memInfo=$buyer->statisMemberBehave($data);
+        if($memInfo===false){
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'无权查看会员行为统计列表'
+            );
+        }else{
+            $dataJson = array(
+                'code'=>1,
+                'message'=>'会员行为统计列表',
+                'data'=>$memInfo
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //地区国家
+    public function areaCountryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $area=new CountryModel();
+        $role=$this->getUserRole();
+        if(in_array('CRM客户管理',$role['role'])){  //所有权限
+            if(!empty($data['area_bn'])){
+                $info=$area->table('erui_operation.market_area_country country_bn')
+                    ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                    ->field('country_bn.country_bn,country.name as country_name')
+                    ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'lang'=>$lang))
+                    ->select();
+            }else{
+                $info=$area->table('erui_operation.market_area')
+                    ->field('bn as area_bn,name as area_name')
+                    ->where(array('deleted_flag'=>'N','lang'=>$lang))
+                    ->select();
+            }
+        }elseif(in_array('201711242',$role['role'])){   //所属地区国家权限
+            if(!empty($data['area_bn'])){
+                $info=$area->table('erui_operation.market_area_country country_bn')
+                    ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                    ->field('country_bn.country_bn,country.name as country_name')
+                    ->where("country_bn.market_area_bn='$data[area_bn]' and lang='$lang' and country_bn.country_bn in ($role[country])")
+                    ->select();
+            }else{
+                $info=$area->table('erui_operation.market_area')
+                    ->field('bn as area_bn,name as area_name')
+                    ->where("bn in ($role[area]) and deleted_flag='N' and lang='$lang'")
+                    ->select();
+            }
+        }else{
+            $info=null;
+        }
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'地区国家权限列表',
+            'data'=>$info
+        );
+        $this->jsonReturn($dataJson);
     }
 }

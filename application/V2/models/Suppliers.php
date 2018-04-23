@@ -104,6 +104,10 @@ class SuppliersModel extends PublicModel {
         if (isset($condition['created_ids'])) {
             $where['a.created_by'] = ['in', $condition['created_ids'] ? : ['-1']];
         }
+
+        if (isset($condition['checked_ids'])) {
+            $where['a.checked_by'] = ['in', $condition['checked_ids'] ? : ['-1']];
+        }
         
         if (isset($condition['supplier_ids'])) {
             $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];

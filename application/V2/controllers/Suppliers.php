@@ -378,6 +378,11 @@ class SuppliersController extends PublicController {
         if ($condition['created_name'] != '') {
             $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
         }
+
+        // 审核人
+        if ($condition['checked_name'] != '') {
+            $condition['checked_ids'] = $this->employeeModel->getUserIdByName($condition['checked_name']) ? : [];
+        }
         
         // 供货范围
         if ($condition['cat_name'] != '') {
@@ -395,6 +400,10 @@ class SuppliersController extends PublicController {
             $supplier['material_cat'] = $this->supplierMaterialCatModel->getCatBySupplierId($supplier['id']);
             //协议到期时间
             $supplier['sign_agreement_end_date'] = $this->supplierExtraInfoModel->getSignAgreementEndDateBy($supplier['id']);
+
+            $supplier['created_by'] = (new EmployeeModel)->getNameByid($supplier['created_by'])['name'];
+            $supplier['checked_by'] = (new EmployeeModel)->getNameByid($supplier['checked_by'])['name'];
+
         }
 
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
