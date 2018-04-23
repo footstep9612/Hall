@@ -72,7 +72,8 @@ class InquiryItemModel extends PublicModel {
      */
     public function getCount($condition = []) {
         $where = $this->getCondition($condition);
-        return $this->where($where)->count('id');
+        $count = $this->where($where)->count('id');
+        return $count > 0 ? $count : 0;
     }
 
     /**
@@ -351,10 +352,11 @@ class InquiryItemModel extends PublicModel {
     public function getJoinCount($condition = []) {
         $where = $this->getJoinWhere($condition);
         
-        return $this->alias('a')
-                            ->join($this->joinTable, 'LEFT')
-                            ->where($where)
-                            ->count('a.id');
+        $count = $this->alias('a')
+                                 ->join($this->joinTable, 'LEFT')
+                                 ->where($where)
+                                 ->count('a.id');
+        return $count > 0 ? $count : 0;
     }
     
     /**
@@ -368,10 +370,11 @@ class InquiryItemModel extends PublicModel {
     public function getJoinCount_($condition = []) {
         $where = $this->getJoinWhere_($condition);
     
-        return $this->alias('a')
-                            ->join($this->joinTable_, 'LEFT')
-                            ->where($where)
-                            ->count('a.id');
+        $count = $this->alias('a')
+                                 ->join($this->joinTable_, 'LEFT')
+                                 ->where($where)
+                                 ->count('a.id');
+        return $count > 0 ? $count : 0;
     }
     
     /**

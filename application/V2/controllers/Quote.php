@@ -32,6 +32,7 @@ class QuoteController extends PublicController{
 
     /**
      * 报价信息
+     * @author mmt、liujf
      */
     public function infoAction(){
 
@@ -82,6 +83,7 @@ class QuoteController extends PublicController{
 
     /**
      * 更新报价信息
+     * @author mmt、liujf
      */
     public function updateInfoAction(){
 
@@ -316,6 +318,7 @@ class QuoteController extends PublicController{
 
     /**
      * 确认报价(审核人)
+     * @author mmt、liujf
      */
     public function confirmAction(){
 
@@ -360,6 +363,7 @@ class QuoteController extends PublicController{
 
     /**
      * SKU列表
+     * @author mmt、liujf
      */
     public function skuAction(){
 
@@ -430,6 +434,7 @@ class QuoteController extends PublicController{
 
     /**
      * 报价审核人sku列表
+     * @author mmt、liujf
      */
     public function finalSkuAction(){
 

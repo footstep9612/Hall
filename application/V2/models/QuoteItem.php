@@ -31,7 +31,8 @@ class QuoteItemModel extends PublicModel {
      * @time 2018-04-13
      */
     public function getCount($request) {
-    	return $this->getSqlJoint($request)->count('a.id');
+    	$count = $this->getSqlJoint($request)->count('a.id');
+    	return $count > 0 ? $count : 0;
     }
 
     /**
@@ -316,7 +317,8 @@ class QuoteItemModel extends PublicModel {
      * @time 2018-04-20
      */
     public function getFinalCount($request) {
-        return $this->getFinalSqlJoint($request)->count('a.id');
+        $count = $this->getFinalSqlJoint($request)->count('a.id');
+        return $count > 0 ? $count : 0;
     }
 
     /**
