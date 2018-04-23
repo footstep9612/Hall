@@ -116,6 +116,7 @@ class GoodsModel extends PublicModel{
             }
             return $goodsInfo ? $goodsInfo : [];
         }catch (Exception $e){
+            jsonReturn($e);
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);
             return false;
         }
