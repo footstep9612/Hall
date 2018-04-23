@@ -186,7 +186,152 @@ class OrderModel extends PublicModel {
 
         return $this->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')->where($where)->count();
     }
+    //统计客户的订单(各个状态下的数量及金额)-wangs
+    public function statisOrderStatusCount($buyer_id,$buyer_code=''){
+        $old=$this->getOldStatusCount($buyer_id);   //老订单
+        if(empty($buyer_code)){
+            return $old;
+        }
+        $new=$this->getNewStatusCount($buyer_code); //新订单
+        $result=array(
+            'total'=>$old['total']+$new['total'],
+            'unconfirmed'=>$old['unconfirmed']+$new['unconfirmed'],
+            'going'=>$old['going']+$new['going'],
+            'outgoing'=>$old['outgoing']+$new['outgoing'],
+            'dispatched'=>$old['dispatched']+$new['dispatched'],
+            'completed'=>$old['completed']+$new['completed'],
+            'payment_amount'=>$old['payment_amount']+$new['payment_amount'],
+            'amount'=>$old['amount']+$new['amount']
+        );
+        return $result;
+    }
+    public function getNewStatusCount($buyer_code){
+        $sql='select';
+        $sql.=' `order`.id as order_id,`order`.status, `order`.process_progress,`order`.total_price as amount,`order`.currency_bn';
+        $sql.=' ,account.money as payment_amount';
+        $sql.=' from erui_new_order.`order` `order`';
+        $sql.=' left join erui_new_order.`order_account` `account` on `order`.id=account.order_id';
+        $sql.=' where `order`.delete_flag=0' ;
+        $sql.=' and crm_code=\''.$buyer_code."'" ;
+        $info=$this->query($sql);
+        $info=$this->packNewOrderAmount($info);
+        return $info;
+    }
+    public function packNewOrderAmount($data){
+        $count=[];
+        $unconfirmed=0; //待确认
+        $going=0;   //进行中
+        $outgoing=0;    //已出库
+        $dispatched=0;  //已发运
+        $completed=0;   //已完成
 
+        $amount=0;
+        $paymentAmount=0;
+        foreach($data as $k => $v){
+            $count[]=$v['order_id'];
+            if($v['currency_bn']=='USD'){   //订单金额
+                $amount+=$v['amount'];
+                $paymentAmount+=$v['payment_amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $amount+=$v['amount']*0.1583;
+                $paymentAmount+=$v['payment_amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $amount+=$v['amount']*1.2314;
+                $paymentAmount+=$v['payment_amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $amount+=$v['amount']*0.7918;
+                $paymentAmount+=$v['payment_amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $amount+=$v['amount']*0.01785;
+                $paymentAmount+=$v['payment_amount']*0.01785;
+            }
+            //1:待确认 2:未执行 3:执行中 4：完成
+            //1,未执行;2,正常执行;3,采购中;4,已报检;5,质检中;6,已入库;7,出库质检;8,已出库;9,已发运
+            if(empty($v['process_progress'])||$v['process_progress']==1||$v['status']==1||$v['status']==2){ //待确认,未执行
+                $unconfirmed+=1;
+            }elseif($v['process_progress']==2||$v['process_progress']==3||$v['process_progress']==4||$v['process_progress']==5||$v['process_progress']==6||$v['process_progress']==7){  //进行中
+                $going+=1;
+            }elseif($v['process_progress']==8 && $v['status']!=4){ //已出库
+                $outgoing+=1;
+            }elseif($v['process_progress']==9 && $v['status']!=4){ //已发运
+                $dispatched+=1;
+            }elseif($v['status']==4){    //已完成
+                $completed+=1;
+            }
+        }
+        $arr['total']=count(array_flip(array_flip($count)));    //订单数
+        $arr['unconfirmed']=$unconfirmed;   //待确认
+        $arr['going']=$going;   //进行中
+        $arr['outgoing']=$outgoing; //已出库
+        $arr['dispatched']=$dispatched; //已发运
+        $arr['completed']=$completed;   //已完成
+        $arr['payment_amount']= $paymentAmount==0?0:sprintf("%.4f",$paymentAmount); //回款金额
+        $arr['amount']= $amount==0?0:sprintf("%.4f",$amount);   //订单金额
+        return $arr;
+    }
+    public function getOldStatusCount($buyer_id){
+        $sql='select';
+        $sql.=' `order`.id as order_id,`order`.show_status, `order`.amount,`order`.currency_bn, ';
+        $sql.=' payment.amount as payment_amount ';
+        $sql.=' from erui_order.order `order` ';
+        $sql.=' left join erui_order.order_payment `payment` on `order`.id=payment.order_id ';
+        $sql.=' where  `order`.deleted_flag=\'N\' and `order`.buyer_id='.$buyer_id;
+        $info=$this->query($sql);
+        $info=$this->packOrderAmount($info);
+        return $info;
+    }
+    public function packOrderAmount($data){
+        $count=[];
+        $unconfirmed=0; //待确认
+        $going=0;   //进行中
+        $outgoing=0;    //已出库
+        $dispatched=0;  //已发运
+        $completed=0;   //已完成
+
+        $amount=0;
+        $paymentAmount=0;
+        foreach($data as $k => $v){
+            $count[]=$v['order_id'];
+            if($v['currency_bn']=='USD'){   //订单金额
+                $amount+=$v['amount'];
+                $paymentAmount+=$v['payment_amount'];
+            }elseif($v['currency_bn']=='CNY'){
+                $amount+=$v['amount']*0.1583;
+                $paymentAmount+=$v['payment_amount']*0.1583;
+            }elseif($v['currency_bn']=='EUR'){
+                $amount+=$v['amount']*1.2314;
+                $paymentAmount+=$v['payment_amount']*1.2314;
+            }elseif($v['currency_bn']=='CAD'){
+                $amount+=$v['amount']*0.7918;
+                $paymentAmount+=$v['payment_amount']*0.7918;
+            }elseif($v['currency_bn']=='RUB'){
+                $amount+=$v['amount']*0.01785;
+                $paymentAmount+=$v['payment_amount']*0.01785;
+            }
+
+            if($v['show_status']=='UNCONFIRM'){ //订单状态个数
+                $unconfirmed+=1;
+            }elseif($v['show_status']=='GOING'){
+                $going+=1;
+            }elseif($v['show_status']=='OUTGOING'){
+                $outgoing+=1;
+            }elseif($v['show_status']=='DISPATCHED'){
+                $dispatched+=1;
+            }elseif($v['show_status']=='COMPLETED'){
+                $completed+=1;
+            }
+
+        }
+        $arr['total']=count(array_flip(array_flip($count)));
+        $arr['unconfirmed']=$unconfirmed;
+        $arr['going']=$going;
+        $arr['outgoing']=$outgoing;
+        $arr['dispatched']=$dispatched;
+        $arr['completed']=$completed;
+        $arr['payment_amount']= $paymentAmount==0?0:sprintf("%.4f",$paymentAmount);
+        $arr['amount']= $amount==0?0:sprintf("%.4f",$amount);
+        return $arr;
+    }
     /**
      * @param $buyer_id
      * 获取订单数，金额-统计
@@ -653,4 +798,201 @@ class OrderModel extends PublicModel {
         return $arr;
     }
     //会员自动升级end---------------------------------------------------------------------------------------
+    //crm 获取地区,国家,会员统计中使用====================================================================
+    private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
+        if(!empty($country_bn)){
+            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                return [['country_bn'=>$country_bn]];
+            }
+        }
+        if(!empty($area_bn)){
+            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                $country=new MarketAreaCountryModel();
+                $countryArr=$country->field('country_bn')
+                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->select();
+                return $countryArr;
+            }
+        }
+        return '';
+    }
+    //获取上周日期时间段
+    public function getLastWeek(){
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-9,date('Y'));
+
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-9,date('Y'));
+        $arr['start_time']=date('Y-m-d',$beginLastweek);
+        $arr['end_time']=date('Y-m-d',$endLastweek);
+        return $arr;
+    }
+    //统计权限
+    public function statisAdmin($admin){
+        if(in_array('CRM客户管理',$admin['role'])){    //运营专员,CRM客户管理所有权限
+            $access=1;
+        }elseif(in_array('201711242',$admin['role'])){  //市场区域国家负责人
+            $access=$admin['country'];
+        }else{
+            $access=0;
+        }
+        return $access;
+    }
+    public function countryAdmin($data,$column){ //国家权限
+//        $cond=' 1 ';
+        $admin=$this->statisAdmin($data['admin']);
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
+            if(!empty($countryArr)){
+                $str='';
+                foreach($countryArr as $k => $v){
+                    $str.=",'".$v['country_bn']."'";
+                }
+                $str=substr($str,1);
+                if(count($countryArr)==1){
+                    $cond=' and '.$column.'.country_bn='.$str;
+                }else{
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                }
+            }else{
+                return false;   //无地区国家权限
+            }
+        }else{
+            if($admin===0){  //无权限
+                return false;
+            }elseif($admin===1){ //所有权限
+                $cond='';
+            }else{  //国家负责人
+                if(!empty($admin)){
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                }else{
+                    return false;
+                }
+            }
+        }
+        return $cond;
+    }
+    //会员统计系列获取条件-wangs
+    public function getStatisOrderCond($data){
+        $cond=' order.delete_flag=0';  //客户状态
+        $admin=$this->countryAdmin($data,'order'); //获取国家权限
+        if($admin===false){  //无权限
+            return false;
+        }
+        $cond.=$admin;
+//        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+//            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn']);
+//            if(!empty($countryArr)){
+//                $str='';
+//                foreach($countryArr as $k => $v){
+//                    $str.=",'".$v."'";
+//                }
+//                $str=substr($str,1);
+//                if(count($countryArr)==1){
+//                    $cond.=' and order.country='.$str;
+//                }else{
+//                    $cond.=' and order.country in ('.$str.')';
+//                }
+//            }
+//        }
+        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+            $week=$this->getLastWeek();
+            $cond.=' and order.create_time >= \''.$week['start_time'].' 00:00:00\'';
+            $cond.=' and order.create_time <= \''.$week['end_time'].' 23:59:59\'';
+        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+            $cond.=' and order.create_time >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and order.create_time <= \''.$data['end_time'].' 23:59:59\'';
+        }
+        return $cond;
+    }
+    //会员统计---start
+    public function statisCondOrder($data){
+        $cond=$this->getStatisOrderCond($data); //新订单
+        if($cond===false){
+            return false;
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
+        }
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(create_time,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_new_order.order  ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(create_time,\'%Y-%m-%d\') ';
+        $sql.=' order by create_time ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        $oldOrder=$this->getStatisOldOrder($data);
+        if(!empty($oldOrder)){
+            foreach($arr as $key => $value){
+                foreach($oldOrder as $k => $v){
+                    if($value['created_at']==$v['created_at']){
+                        $arr[$key]['count']=$value['count']+$v['count'];
+                    }
+                }
+            }
+        }
+        $result=[];
+        foreach($arr as $k => $v){
+            $result['day'][]=$v['created_at'];
+            $result['count'][]=intval($v['count']);
+        }
+        return $result;
+//        foreach($arr as $k => $v){
+//            $result['xAxis']['day'][]=$v['created_at'];
+//            $result['xAxis']['type']='category';
+//            $result['yAxis']['type']='value';
+//
+//            $result['series'][0]['data'][]=intval($v['count']);
+//            $result['series'][0]['type']='line';
+//            $result['series'][0]['areaStyle']= new stdClass();
+//            $result['series'][0]['smooth']=true;
+//        }
+    }
+    public function getStatisOldOrder($data){
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){
+            return [];
+        }
+        if($data['end_time'] < '2018-03-01'){
+            return [];
+        }
+        $cond=' order.deleted_flag=\'N\'';  //客户状态
+        $cond.=' and order.created_at >= \''.$data['start_time'].' 00:00:00\'';
+        $cond.=' and order.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_order.order  ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        return $arr;
+    }
+    //整理每天的数据
+    public function packDailyData($data,$start_time,$end_time){
+        $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
+        $arr=[];
+        $info=[];
+        for($i=0;$i<$days;$i++){
+            $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
+            $arr[$i]['count']=0;
+        }
+        foreach($arr as $key => &$value){
+            foreach($data as $k => $v){
+                if($v['created_at'] == $value['created_at']){
+                    $arr[$key]['created_at']=$value['created_at'];
+                    $arr[$key]['count']=$v['count'];
+                }
+            }
+        }
+//        foreach($arr as $k => $v){
+//            $info['day'][]=$v['created_at'];
+//            $info['count'][]=intval($v['count']);
+//        }
+        return $arr;
+    }
+    //会员统计---end
 }

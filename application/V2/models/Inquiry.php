@@ -1044,7 +1044,7 @@ class InquiryModel extends PublicModel {
         return $this->where(['id' => $id])->getField('serial_no');
     }
     
-     /* @param $buyer_id
+     /* @param $buyer_id======================================================================
      * 获取询单数量
      * wangs
      */
@@ -1121,5 +1121,199 @@ class InquiryModel extends PublicModel {
             $arr[$k]=$this->statisInquiry($v);
         }
         return $arr;
+    }
+    //会员属性统计
+    public function getBuyerInquiry($buyer_id){
+        $order=new OrderModel();
+        $orderInfo=$order->statisOrder($buyer_id);
+        $orderCount=$orderInfo['count'];    //订单数
+        $orderAmount=$orderInfo['account']; //订单总额
+
+        $inquiryInfo=$this->statisInquiry($buyer_id);
+        $inquiryCount=$inquiryInfo['inquiry_count']; //询单个数
+        $quoteCount=$inquiryInfo['quote_count']; //报价个数
+        $quoteAmount=$inquiryInfo['account']; //报价总额
+
+
+        if($orderCount==0 && $inquiryCount==0){ //成单率=订单个数/报价个数
+            $orderRate = '0%';
+        }elseif($orderCount>=$inquiryCount){
+            $orderRate ='100%';
+        }else{
+            $orderRate = (sprintf("%.4f",$orderCount/$quoteCount)*100).'%';
+        }
+
+        if($orderAmount==0 && $quoteAmount==0){ //成单金额率=订单金额/报价金额
+            $orderAmountRate = '0%';
+        }elseif($orderAmount>=$quoteAmount){
+            $orderAmountRate = '100%';
+        }else{
+            $orderAmountRate = (sprintf("%.4f",$orderAmount/$quoteAmount)*100).'%';
+        }
+        $arr['inquiry_count']=$inquiryCount; //询单个数
+        $arr['quote_count']=$quoteCount; //报价个数
+        $arr['order_count']=$orderCount; //订单数
+        $arr['order_rate']=$orderRate; //成单率
+        $arr['order_amount_rate']=$orderAmountRate; //成单金额率
+        return $arr;
+    }
+    //crm 获取地区,国家,会员统计中使用====================================================================
+    private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
+        if(!empty($country_bn)){
+            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                return [['country_bn'=>$country_bn]];
+            }
+        }
+        if(!empty($area_bn)){
+            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                $country=new MarketAreaCountryModel();
+                $countryArr=$country->field('country_bn')
+                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->select();
+                return $countryArr;
+            }
+        }
+        return '';
+    }
+    //获取上周日期时间段
+    public function getLastWeek(){
+        $beginLastweek=mktime(0,0,0,date('m'),date('d')-date('w')+1-9,date('Y'));
+
+        $endLastweek=mktime(23,59,59,date('m'),date('d')-date('w')+7-9,date('Y'));
+        $arr['start_time']=date('Y-m-d',$beginLastweek);
+        $arr['end_time']=date('Y-m-d',$endLastweek);
+        return $arr;
+    }
+    //统计权限
+    public function statisAdmin($admin){
+        if(in_array('CRM客户管理',$admin['role'])){    //运营专员,CRM客户管理所有权限
+            $access=1;
+        }elseif(in_array('201711242',$admin['role'])){  //市场区域国家负责人
+            $access=$admin['country'];
+        }else{
+            $access=0;
+        }
+        return $access;
+    }
+    public function countryAdmin($data,$column){ //国家权限
+//        $cond=' 1 ';
+        $admin=$this->statisAdmin($data['admin']);
+        if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
+            $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
+            if(!empty($countryArr)){
+                $str='';
+                foreach($countryArr as $k => $v){
+                    $str.=",'".$v['country_bn']."'";
+                }
+                $str=substr($str,1);
+                if(count($countryArr)==1){
+                    $cond=' and '.$column.'.country_bn='.$str;
+                }else{
+                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                }
+            }else{
+                return false;   //无地区国家权限
+            }
+        }else{
+            if($admin===0){  //无权限
+                return false;
+            }elseif($admin===1){ //所有权限
+                $cond='';
+            }else{  //国家负责人
+                if(!empty($admin)){
+                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                }else{
+                    return false;
+                }
+            }
+        }
+        return $cond;
+    }
+    //会员统计系列获取条件-wangs
+    public function getStatisInquiryCondCrm($data){
+        $cond=' inquiry.deleted_flag=\'N\'';  //客户状态
+        $admin=$this->countryAdmin($data,'inquiry'); //获取国家权限
+        if($admin===false){  //无权限
+            return false;
+        }
+        $cond.=$admin;
+        if(empty($data['start_time']) && empty($data['end_time'])){ //默认数据
+            $week=$this->getLastWeek();
+            $cond.=' and inquiry.created_at >= \''.$week['start_time'].' 00:00:00\'';
+            $cond.=' and inquiry.created_at <= \''.$week['end_time'].' 23:59:59\'';
+        }elseif(!empty($data['start_time']) && !empty($data['end_time'])){   //时间段搜索
+            $cond.=' and inquiry.created_at >= \''.$data['start_time'].' 00:00:00\'';
+            $cond.=' and inquiry.created_at <= \''.$data['end_time'].' 23:59:59\'';
+        }
+        return $cond;
+    }
+    //地区,国家,时间段统计询单量-wangs
+    public function statisCondInquiry($data){
+        $cond=$this->getStatisInquiryCondCrm($data);
+        if($cond==false){   //无权限
+            return false;
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
+        }
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_rfq.inquiry ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=" and status in ('REJECT_MARKET','REJECT_CLOSE','BIZ_DISPATCHING','CC_DISPATCHING','BIZ_QUOTING','LOGI_DISPATCHING','LOGI_QUOTING','LOGI_APPROVING','BIZ_APPROVING','MARKET_APPROVING','MARKET_CONFIRMING','QUOTE_SENT','INQUIRY_CLOSED')";
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        return $arr;
+    }
+    //地区,国家,时间段统计询单量-wangs
+    public function statisCondQuote($data){
+        $cond=$this->getStatisInquiryCondCrm($data);
+        if($cond===false){
+            return false;
+        }
+        if(empty($data['start_time']) && empty($data['end_time'])){
+            $week=$this->getLastWeek();
+            $data['start_time']=$week['start_time'];
+            $data['end_time']=$week['end_time'];
+        }
+        $sql='select ';
+        $sql.=' count(id) as count,DATE_FORMAT(created_at,\'%Y-%m-%d\') as created_at ';
+        $sql.=' from erui_rfq.inquiry ';
+        $sql.=' where ';
+        $sql.=$cond;
+        $sql.=" and quote_status in ('QUOTED','COMPLETED')";
+        $sql.=' group by DATE_FORMAT(created_at,\'%Y-%m-%d\') ';
+        $sql.=' order by created_at ';
+        $info=$this->query($sql);
+        $arr=$this->packDailyData($info,$data['start_time'],$data['end_time']);
+        return $arr;
+    }
+    //整理每天的数据
+    public function packDailyData($data,$start_time,$end_time){
+        $days=(strtotime($end_time)-strtotime($start_time))/86400+1;
+        $arr=[];
+        $info=[];
+        for($i=0;$i<$days;$i++){
+            $arr[$i]['created_at']=date("Y-m-d",strtotime("$start_time +$i day"));
+            $arr[$i]['count']=0;
+        }
+        foreach($arr as $key => &$value){
+            foreach($data as $k => $v){
+                if($v['created_at'] == $value['created_at']){
+                    $arr[$key]['created_at']=$value['created_at'];
+                    $arr[$key]['count']=$v['count'];
+                }
+            }
+        }
+        foreach($arr as $k => $v){
+            $info['day'][]=$v['created_at'];
+            $info['count'][]=intval($v['count']);
+        }
+        return $info;
     }
 }
