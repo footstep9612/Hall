@@ -2372,9 +2372,9 @@ EOF;
                     if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
                         $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
                     }
-                    if(empty($v['build_time'])){
-                        $info[$k]['build_time']=$v['created_at'];
-                    }
+//                    if(empty($v['build_time'])){
+//                        $info[$k]['build_time']=$v['created_at'];
+//                    }
                     if(empty($v['level_at'])){
                         $info[$k]['level_at']=substr($v['created_at'],0,10);
                     }
