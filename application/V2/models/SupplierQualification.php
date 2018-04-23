@@ -209,4 +209,31 @@ class SupplierQualificationModel extends PublicModel {
 	    }
 	    return $supplierIds;
 	}
+
+    public function getExpiryQualificationsListWithPaginationBy(array $condition = [], $type='LEFT')
+    {
+
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+
+        $field = 'supplier_id,expiry_date';
+
+        if ($type=='LEFT') {
+            $where = 'to_days(expiry_date)-to_days(now()) <= 30';
+        }else {
+            $where = 'to_days(expiry_date)-to_days(now()) > 30';
+        }
+
+        return [
+            $this->field($field)
+                ->where($where)
+                ->page($currentPage, $pageSize)
+                ->order('id DESC')
+                ->select(),
+            $this->field($field)
+                ->where($where)
+                ->order('id DESC')
+                ->count()
+        ];
+	}
 }
