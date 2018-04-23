@@ -14,6 +14,7 @@ class GoodsController extends PublicController{
      * 询单商品详情
      */
     public function infoAction(){
+        jsonReturn('11');
         $input = $this->getPut();
         if(!isset($input['sku']) || empty($input['sku'])){
             jsonReturn('', ErrorMsg::NOTNULL_SKU);
