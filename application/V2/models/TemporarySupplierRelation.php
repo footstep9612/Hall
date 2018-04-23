@@ -59,6 +59,22 @@ class TemporarySupplierRelationModel extends PublicModel
         return $result;
     }
 
+    public function unRelation($id, $user)
+    {
+        (new TemporarySupplierModel)->where(['id' => $id])->save([
+            'is_relation' => 'N',
+            'relations_count' => 0,
+            'updated_by' => $user,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        $this->where(['temporary_supplier_id' => $id])->save([
+            'deleted_flag' => 'Y',
+            'updated_by' => $user,
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     public function checkTemporaryRegularRelationBy($temporarySupplier, $regularSupplier)
     {
         return $this->where(['temporary_supplier_id' => $temporarySupplier, 'supplier_id' => $regularSupplier])->count();

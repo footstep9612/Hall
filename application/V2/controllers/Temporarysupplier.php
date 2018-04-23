@@ -84,7 +84,7 @@ class TemporarySupplierController extends PublicController
     public function unRelationAction()
     {
         $request = $this->validateRequestParams('id,supplier_id,supplier_no');
-        $response = (new TemporarySupplierModel)->setDeleteWithRelationBy($request['id'], $this->user['id']);
+        $response = (new TemporarySupplierRelationModel)->unRelation($request['id'], $this->user['id']);
         $this->jsonReturn($response);
     }
 
