@@ -478,13 +478,13 @@ class BuyerModel extends PublicModel {
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
         }
-//        if($excel==false){
-//            $arr['currentPage'] = $currentPage;
-//            $arr['totalPage'] = $totalPage;
-//            $arr['totalCount'] = $totalCount;
-//            $arr['info'] = $info;
-//            return $arr;
-//        }
+        if($excel==false){
+            $arr['currentPage'] = $currentPage;
+            $arr['totalPage'] = $totalPage;
+            $arr['totalCount'] = $totalCount;
+            $arr['info'] = $info;
+            return $arr;
+        }
         //整合excel导出数据
         $package=$this->packageBuyerListExcelData($info,$lang);
         $excelFile=$this->crmExportBuyerListExcel($package,$lang);
