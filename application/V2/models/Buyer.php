@@ -478,15 +478,16 @@ class BuyerModel extends PublicModel {
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
         }
-        if($excel==false){
-            $arr['currentPage'] = $currentPage;
-            $arr['totalPage'] = $totalPage;
-            $arr['totalCount'] = $totalCount;
-            $arr['info'] = $info;
-            return $arr;
-        }
+//        if($excel==false){
+//            $arr['currentPage'] = $currentPage;
+//            $arr['totalPage'] = $totalPage;
+//            $arr['totalCount'] = $totalCount;
+//            $arr['info'] = $info;
+//            return $arr;
+//        }
         //整合excel导出数据
         $package=$this->packageBuyerListExcelData($info,$lang);
+        print_r($package);die;
         $excelFile=$this->crmExportBuyerListExcel($package,$lang);
         //
         $arr['tmp_name'] = $excelFile;
@@ -532,7 +533,7 @@ class BuyerModel extends PublicModel {
                 if($v['buyer_level']==null){
                     $arr[$k]['buyer_level']='注册会员';
                 }
-//            $arr[$k]['source']=$v['source'];  //客户来源
+            $arr[$k]['mem_cate']=$v['mem_cate'];  //客户来源
                 if($v['source']==1){
                     $arr[$k]['source']='后台注册';
                 }elseif($v['source']==2){
@@ -565,7 +566,7 @@ class BuyerModel extends PublicModel {
                 if($v['buyer_level']==null){
                     $arr[$k]['buyer_level']='Registered member';
                 }
-//            $arr[$k]['source']=$v['source'];  //客户来源
+            $arr[$k]['mem_cate']=$v['mem_cate'];  //客户来源
                 if($v['source']==1){
                     $arr[$k]['source']='Registered on BOSS system';
                 }elseif($v['source']==2){
@@ -588,10 +589,10 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='customer';
-            $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '用户来源','定级日期');
+            $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '客户分类','用户来源','定级日期');
         }else{
             $sheetName='Customer list';
-            $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Registration source of customer','Verification date');
+            $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Customer cate','Registration source of customer','Verification date');
         }
         //创建对象
         $excel = new PHPExcel();
@@ -2430,9 +2431,9 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别','客户分类', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
-            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
+            $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level','Customer cate', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
         //创建对象
         $excel = new PHPExcel();
