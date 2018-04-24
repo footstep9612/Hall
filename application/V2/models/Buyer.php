@@ -2598,30 +2598,37 @@ EOF;
     }
     //crm 获取地区,国家,会员统计中使用
     private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
-        if(!empty($country_bn)){
-            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+        $admin=$this->statisAdmin($admin);
+        if($admin===1){
+            if(!empty($country_bn)){
                 return [['country_bn'=>$country_bn]];
             }
-        }
-        if(!empty($area_bn)){
-            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+            if(!empty($area_bn)){
                 $country=new MarketAreaCountryModel();
                 $countryArr=$country->field('country_bn')
-                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->where("market_area_bn='$area_bn'")
                     ->select();
                 return $countryArr;
             }
+        }else{
+            if(!empty($country_bn)){
+                if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                    return [['country_bn'=>$country_bn]];
+                }
+            }
+            if(!empty($area_bn)){
+                if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                    $country=new MarketAreaCountryModel();
+                    $countryArr=$country->field('country_bn')
+                        ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                        ->select();
+                    return $countryArr;
+                }
+            }
+            return '';
         }
-        return '';
-//        if(!empty($country_bn)){
-//            $countryArr=array($country_bn);
-//            return $countryArr;
-//        }
-//        if(!empty($area_bn)){
-//            $country=new MarketAreaCountryModel();
-//            $countryArr=$country->getCountryBn($area_bn, $lang);
-//            return $countryArr;
-//        }
+
+
     }
     //获取上周日期时间段
     public function getLastWeek(){
@@ -2688,11 +2695,20 @@ EOF;
         if(!empty($data['buyer_level'])){   //等级
             $cond.=' and buyer.buyer_level='.$data['buyer_level'];
         }
+
+        if(!empty($data['start_time'])){   //等级
+            $data['start_time']=substr($data['start_time'],0,10);
+        }
+        if(!empty($data['end_time'])){   //等级
+            $data['end_time']=substr($data['end_time'],0,10);
+        }
+
+
         if($time==true){
             if(!empty($data['start_time'])){ //默认数据
                 $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
             }
-            if(!empty($data['start_time'])){ //默认数据
+            if(!empty($data['end_time'])){ //默认数据
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
             }
         }else{
@@ -2795,7 +2811,7 @@ EOF;
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
         $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
-        $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\') as country_name ,';
+        $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\' AND deleted_flag=\'N\') as country_name ,';
         $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
         $sql.=' (select buyer_level from erui_config.buyer_level where deleted_flag=\'N\' and id=buyer.buyer_level) as buyer_level, ';
         $sql.=' buyer.intent_product ';
