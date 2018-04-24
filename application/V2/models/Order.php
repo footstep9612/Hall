@@ -855,6 +855,9 @@ class OrderModel extends PublicModel {
     public function countryAdmin($data,$column){ //国家权限
 //        $cond=' 1 ';
         $admin=$this->statisAdmin($data['admin']);
+        if($admin===0){ //无权限
+            return false;
+        }
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){

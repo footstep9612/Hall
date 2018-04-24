@@ -2610,8 +2610,6 @@ EOF;
                     ->select();
                 return $countryArr;
             }
-        }elseif($access===0){
-            return false;
         }else{
             if(!empty($country_bn)){
                 if(preg_match("/$country_bn/i", $admin['country'])){    //国家
@@ -2654,6 +2652,9 @@ EOF;
     //获取国家权限
     public function countryAdmin($data,$column){
         $admin=$this->statisAdmin($data['admin']);
+        if($admin===0){ //无权限
+            return false;
+        }
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){
@@ -2723,6 +2724,7 @@ EOF;
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
             }
         }
+        echo $cond;die;
         return $cond;
     }
     //crm会员统计模块-wangs
