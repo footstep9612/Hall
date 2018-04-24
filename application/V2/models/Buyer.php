@@ -2724,7 +2724,6 @@ EOF;
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
             }
         }
-        echo $cond;die;
         return $cond;
     }
     //crm会员统计模块-wangs
