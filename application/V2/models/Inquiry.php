@@ -1166,21 +1166,37 @@ class InquiryModel extends PublicModel {
     }
     //crm 获取地区,国家,会员统计中使用====================================================================
     private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
-        if(!empty($country_bn)){
-            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+        $access=$this->statisAdmin($admin);
+        if($access===1){
+            if(!empty($country_bn)){
                 return [['country_bn'=>$country_bn]];
             }
-        }
-        if(!empty($area_bn)){
-            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+            if(!empty($area_bn)){
                 $country=new MarketAreaCountryModel();
                 $countryArr=$country->field('country_bn')
-                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->where("market_area_bn='$area_bn'")
                     ->select();
                 return $countryArr;
             }
+        }elseif($access===0){
+            return false;
+        }else{
+            if(!empty($country_bn)){
+                if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                    return [['country_bn'=>$country_bn]];
+                }
+            }
+            if(!empty($area_bn)){
+                if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                    $country=new MarketAreaCountryModel();
+                    $countryArr=$country->field('country_bn')
+                        ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                        ->select();
+                    return $countryArr;
+                }
+            }
         }
-        return '';
+        return false;
     }
     //获取上周日期时间段
     public function getLastWeek(){
@@ -1205,6 +1221,9 @@ class InquiryModel extends PublicModel {
     public function countryAdmin($data,$column){ //国家权限
 //        $cond=' 1 ';
         $admin=$this->statisAdmin($data['admin']);
+        if($admin===0){ //无权限
+            return false;
+        }
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){
