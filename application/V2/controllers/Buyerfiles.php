@@ -495,7 +495,7 @@ class BuyerfilesController extends PublicController
                 $info=$area->table('erui_operation.market_area_country country_bn')
                     ->join('erui_dict.country country on country_bn.country_bn=country.bn')
                     ->field('country_bn.country_bn,country.name as country_name')
-                    ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'lang'=>$lang))
+                    ->where(array('country_bn.market_area_bn'=>$data['area_bn'],'country.lang'=>$lang,'country.deleted_flag'=>'N'))
                     ->select();
             }else{
                 $info=$area->table('erui_operation.market_area')
@@ -508,7 +508,7 @@ class BuyerfilesController extends PublicController
                 $info=$area->table('erui_operation.market_area_country country_bn')
                     ->join('erui_dict.country country on country_bn.country_bn=country.bn')
                     ->field('country_bn.country_bn,country.name as country_name')
-                    ->where("country_bn.market_area_bn='$data[area_bn]' and lang='$lang' and country_bn.country_bn in ($role[country])")
+                    ->where("country_bn.market_area_bn='$data[area_bn]' and country.lang='$lang' and country.deleted_flag='N' and country_bn.country_bn in ($role[country])")
                     ->select();
             }else{
                 $info=$area->table('erui_operation.market_area')
