@@ -2695,6 +2695,15 @@ EOF;
         if(!empty($data['buyer_level'])){   //等级
             $cond.=' and buyer.buyer_level='.$data['buyer_level'];
         }
+
+        if(!empty($data['start_time'])){   //等级
+            $data['start_time']=substr($data['start_time'],0,10);
+        }
+        if(!empty($data['end_time'])){   //等级
+            $data['end_time']=substr($data['end_time'],0,10);
+        }
+
+
         if($time==true){
             if(!empty($data['start_time'])){ //默认数据
                 $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
