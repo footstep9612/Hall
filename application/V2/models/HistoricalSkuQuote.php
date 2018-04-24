@@ -192,4 +192,31 @@ class HistoricalSkuQuoteModel extends PublicModel {
                             ->where($where);
     }
     
+    /**
+     * @desc 获取物流SKU历史报价
+     *
+     * @param string $fromCountry 起运国简称
+     * @param string $sku SKU
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-24
+     */
+    public function getLogiSkuQuote($fromCountry, $sku) {
+        $quoteModel = new QuoteModel();
+        $quoteItemLogiModel = new QuoteItemLogiModel();
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        $quoteTableName = $quoteModel->getTableName();
+        $quoteItemLogiTableName = $quoteItemLogiModel->getTableName();
+        $finalQuoteItemTableName = $finalQuoteItemModel->getTableName();
+        $where = ['b.from_country' => [['neq', ''], ['eq', $fromCountry]], 'd.sku' => [['neq', ''], ['eq', $sku]]];
+        return $this->alias('a')
+                            ->join($quoteTableName . ' b ON a.quote_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+                            ->join($quoteItemLogiTableName . ' c ON a.quote_item_id = c.quote_item_id AND c.deleted_flag = \'N\'', 'LEFT')
+                            ->join($finalQuoteItemTableName . ' d ON a.quote_item_id = d.quote_item_id AND d.deleted_flag = \'N\'', 'LEFT')
+                            ->field('c.tax_no, c.rebate_rate, c.export_tariff_rate')
+                            ->where($where)
+                            ->order('a.id DESC')
+                            ->find();
+    }
+    
 }
