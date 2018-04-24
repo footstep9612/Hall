@@ -423,6 +423,9 @@ class SuppliersController extends PublicController {
 
         $res = $this->suppliersModel->getJoinDetail($condition);
 
+        //国家
+        $res['country_bn'] = (new CountryModel)->getCountryNameByBn($res['country_bn']);
+
         //供应商的品牌(对象)
         $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
 
