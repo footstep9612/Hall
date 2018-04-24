@@ -487,7 +487,6 @@ class BuyerModel extends PublicModel {
 //        }
         //整合excel导出数据
         $package=$this->packageBuyerListExcelData($info,$lang);
-        print_r($package);die;
         $excelFile=$this->crmExportBuyerListExcel($package,$lang);
         //
         $arr['tmp_name'] = $excelFile;
