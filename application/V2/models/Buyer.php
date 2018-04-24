@@ -2598,8 +2598,8 @@ EOF;
     }
     //crm 获取地区,国家,会员统计中使用
     private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
-        $admin=$this->statisAdmin($admin);
-        if($admin===1){
+        $access=$this->statisAdmin($admin);
+        if($access===1){
             if(!empty($country_bn)){
                 return [['country_bn'=>$country_bn]];
             }
@@ -2610,6 +2610,8 @@ EOF;
                     ->select();
                 return $countryArr;
             }
+        }elseif($access===0){
+            return false;
         }else{
             if(!empty($country_bn)){
                 if(preg_match("/$country_bn/i", $admin['country'])){    //国家
@@ -2625,8 +2627,8 @@ EOF;
                     return $countryArr;
                 }
             }
-            return '';
         }
+        return false;
 
 
     }
