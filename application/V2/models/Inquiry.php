@@ -1264,7 +1264,6 @@ class InquiryModel extends PublicModel {
             $cond.=' and inquiry.created_at >= \''.$data['start_time'].' 00:00:00\'';
             $cond.=' and inquiry.created_at <= \''.$data['end_time'].' 23:59:59\'';
         }
-        echo $cond;die;
         return $cond;
     }
     //地区,国家,时间段统计询单量-wangs
