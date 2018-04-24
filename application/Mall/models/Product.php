@@ -107,10 +107,11 @@ class ProductModel extends PublicModel {
                 $stock = true;
                 $condition_stock = ['spu' => $input['spu'], 'lang' => $input['lang'], 'country_bn' => $input['country_bn'], 'status' => 'VALID', 'deleted_flag' => 'N'];
                 $stockModel = new StockModel();
-                $stockSku = $stockModel->field('sku,stock')->where($condition_stock)->select();
+                $stockSku = $stockModel->field('sku,stock,price_strategy_type,price,price_cur_bn,price_symbol')->where($condition_stock)->select();
                 foreach ($stockSku as $item) {
                     $skus[] = $item['sku'];
                     $skuStock[$item['sku']] = $item['stock'];
+                    $stockAry[$item['sku']] = $item;
                 }
                 $condition["$gtable.sku"] = ['in', $skus];
             }
@@ -204,15 +205,23 @@ class ProductModel extends PublicModel {
                 if ($stock) {
                     //现货价格
                     foreach ($result as $index => $item) {
-                        /**
-                         * 单价格
-                          $priceInfo = self::getSkuPriceByCount($item['sku'], $input['country_bn'], $item['min_order_qty']);
-                          $result[$index]['price'] = $priceInfo['price'];
-                          $result[$index]['price_cur_bn'] = $priceInfo['price_cur_bn'];
-                          $result[$index]['price_symbol'] = $priceInfo['price_symbol'];
-                         */
-                        $priceInfo = self::getSkuPriceBySku($item['sku'], $input['country_bn']);
-                        $result[$index]['priceAry'] = $priceInfo;
+                        $result[$index] = array_merge($result[$index],$stockAry[$item['sku']]);
+                        if(isset($stockAry[$item['sku']]['price_strategy_type'])){
+                            switch($stockAry[$item['sku']]['price_strategy_type']){
+                                case 1:
+                                    $priceInfo = self::getSkuPriceBySku($item['sku'], $input['country_bn']);
+                                    break;
+                                case 2:
+                                    $stockPrice = $stockAry[$item['sku']];
+                                    unset($stockPrice['price']);
+                                    $psdM = new PriceStrategyDiscountModel();
+                                    $priceInfo = $psdM->getPriceList($item['sku'],$input['country_bn'],$stockAry[$item['sku']]['price'],$stockPrice);
+                                    break;
+                            }
+                            $result[$index]['priceAry'] = $priceInfo;
+                        }else{
+                            $result[$index]['priceAry'] = [];
+                        }
                     }
                 }
             }
@@ -252,24 +261,38 @@ class ProductModel extends PublicModel {
             $attachs = [];
             $attrs = [];
             if ($result) {
-
                 $skuAry = [];
+                $stockAry = []; //库存
                 foreach ($result as $index => $r) {
                     $skuAry[] = $r['sku'];
                     if ($input['type']) {
-                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $input['buyNumber'][$r['sku']]);
-                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
+                        $stockInfo = $productModel->getSkuStockBySku($r['sku'], $input['country_bn'], $input['lang']);
+                        $stockAry[$r['sku']] = $symbol = $stockInfo ? $stockInfo[$r['sku']] : [];
+                        $r = array_merge($r,$stockAry[$r['sku']]);
+                        switch($stockAry[$r['sku']]['price_strategy_type']){
+                            case 1:
+                                $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $input['buyNumber'][$r['sku']]);
+                                $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
+                                break;
+                            case 2:
+                                $psdM = new PriceStrategyDiscountModel();
+                                $r['priceAry'] = $psdM->getPrice($r['sku'],$input['country_bn'], $input['buyNumber'][$r['sku']],$stockAry[$r['sku']]['price']);
+                                unset($symbol['price']);
+                                $r['priceAry'] = array_merge($r['priceAry'],$symbol);
+                                $r['priceList'] = $psdM->getPriceList($r['sku'], $input['country_bn'],$stockAry[$r['sku']]['price'],$symbol);
+                                break;
+                        }
                     }
                     $result[$r['sku']] = $r;
                     $result[$r['sku']]['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? (empty($r['spu_name']) ? '' : $r['spu_name']) : $r['spu_show_name']) : $r['name']) : $r['show_name'];
                     unset($result[$index]);
                 }
 
-                //库存
-                $stockAry = [];
-                if ($input['type']) {
+
+                /*if ($input['type']) {
                     $stockAry = $productModel->getSkuStockBySku($skuAry, $input['country_bn'], $input['lang']);
-                }
+                    jsonReturn($stockAry);
+                }*/
 
                 $gattrModel = new GoodsAttrModel();
                 $condition_attr = ['sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
@@ -355,9 +378,14 @@ class ProductModel extends PublicModel {
     /**
      * 根据相应数量返回相应价格
      */
-    public function getSkuPriceByCount($sku = '', $country_bn = '', $count = '') {
+    public function getSkuPriceByCount($sku = '', $country_bn = '', $count = '',$stockInfo=[]) {
         if (!isset($sku) || empty($sku) || !isset($country_bn) || empty($country_bn) || !isset($count) || !is_numeric($count)) {
             return '';
+        }
+
+        if(empty($stockInfo)){
+            $stockModel = new StockModel();
+            $stockInfo = $stockModel->field('sku,spu,country_bn,lang,price_strategy_type,price_cur_bn,price_symbol')->where([])->find();
         }
 
         $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'min_purchase_qty' => ['elt', $count]];
@@ -429,7 +457,7 @@ class ProductModel extends PublicModel {
         $condition['status'] = 'VALID';
         try {
             $sModel = new StockModel();
-            $stockInfo = $sModel->field('stock,sku,spu,country_bn,lang')->where($condition)->order('stock DESC')->select();
+            $stockInfo = $sModel->field('stock,sku,price,price_strategy_type,price_cur_bn,price_symbol')->where($condition)->order('stock DESC')->select();
             $data = [];
             if ($stockInfo) {
                 foreach ($stockInfo as $item) {
@@ -474,20 +502,32 @@ class ProductModel extends PublicModel {
                 $productTable = $productModel->getTableName();
                 $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
                                 ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku" => ['in', $skus], "$goodsTable.lang" => $input['lang'], "$goodsTable.deleted_flag" => 'N'])->select();
-                $goodsAry = [];
-                foreach ($goods as $r) {
-                    $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']) : $r['show_name'];
-                    if ($input['type']) {
-                        $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
-                        $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
-                    }
-                    $goodsAry[$r['sku']] = $r;
-                }
-
                 //库存
                 $stockAry = [];
                 if ($input['type']) {
                     $stockAry = $productModel->getSkuStockBySku($skus, $input['country_bn'], $input['lang']);
+                }
+                $goodsAry = [];
+                foreach ($goods as $r) {
+                    $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']) : $r['show_name'];
+                    if ($input['type']) {
+                        switch($stockAry[$r['sku']]['price_strategy_type']){
+                            case 1:
+                                $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
+                                $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
+                                break;
+                            case 2:
+                                $psdM = new PriceStrategyDiscountModel();
+                                $priceInfo = $psdM->getPrice($r['sku'], $input['country_bn'],$result[$r['sku']]['buy_number'],$stockAry[$r['sku']]['price']);
+                                $stockPrice = $stockAry[$r['sku']];
+                                unset($stockPrice['price']);
+                                $r['priceAry'] = array_merge($priceInfo,$stockPrice);
+                                $r['priceList'] = $psdM->getPriceList($r['sku'], $input['country_bn'],$stockAry[$r['sku']]['price'],$stockPrice);
+                                break;
+                        }
+
+                    }
+                    $goodsAry[$r['sku']] = $r;
                 }
 
                 //扩展属性
