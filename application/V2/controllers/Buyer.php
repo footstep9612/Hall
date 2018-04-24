@@ -1240,6 +1240,7 @@ EOF;
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
+        $arr['mem_cate'] = $orderInfo['mem_cate'];
         if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = '0%';
         }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){

@@ -458,6 +458,7 @@ class BuyerModel extends PublicModel {
             ->select();
         $level = new BuyerLevelModel();
         $country = new CountryModel();
+        $order = new OrderModel();
         foreach($info as $k => $v){
             if($v['status']=='APPROVED'){
                 $info[$k]['employee_name']='APPROVED';
@@ -474,6 +475,8 @@ class BuyerModel extends PublicModel {
                 $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
             }
+            $orderInfo=$order->statisOrder($v['id']);
+            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;
@@ -2095,6 +2098,8 @@ EOF;
                 $arr[$k]['buyer_level']='Registered member';
             }
 
+            $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
+
             $arr[$k]['level_at'] = $v['level_at'];  //等级设置时间
             $arr[$k]['reg_capital'] = $v['reg_capital'];    //注册资金
             $arr[$k]['reg_capital_cur'] = $v['reg_capital_cur'];    //货币
@@ -2190,6 +2195,7 @@ EOF;
                     $info[$key]['order_account']=$v['account'];
                     $info[$key]['min_range']=$v['min'];
                     $info[$key]['max_range']=$v['max'];
+                    $info[$key]['mem_cate']=$v['mem_cate'];
                 }
             }
         }
