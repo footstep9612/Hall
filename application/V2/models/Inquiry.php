@@ -131,14 +131,21 @@ class InquiryModel extends PublicModel {
          
         $where['deleted_flag'] = 'N';
         
-        if (!empty($condition['status'])) {
-            $where['status'] = $condition['status'];    //项目状态
-        }else if($condition['list_type'] == 'quote'){
-            $where['status'] = array('neq','DRAFT');
+        if ($condition['list_type'] != 'inquiry') {
+            $where['status'] = ['neq', 'DRAFT'];
+            if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
+                $where['status'] = $condition['status'];    //项目状态
+            }
+        } else {
+            if (!empty($condition['status'])) {
+                $where['status'] = $condition['status'];
+            }
         }
+        
         if (!empty($condition['buyer_code'])) {
             $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
+        
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];    //国家
         }
