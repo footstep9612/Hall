@@ -2598,30 +2598,37 @@ EOF;
     }
     //crm 获取地区,国家,会员统计中使用
     private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
-        if(!empty($country_bn)){
-            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+        $admin=$this->statisAdmin($admin);
+        if($admin===1){
+            if(!empty($country_bn)){
                 return [['country_bn'=>$country_bn]];
             }
-        }
-        if(!empty($area_bn)){
-            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+            if(!empty($area_bn)){
                 $country=new MarketAreaCountryModel();
                 $countryArr=$country->field('country_bn')
-                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->where("market_area_bn='$area_bn'")
                     ->select();
                 return $countryArr;
             }
+        }else{
+            if(!empty($country_bn)){
+                if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                    return [['country_bn'=>$country_bn]];
+                }
+            }
+            if(!empty($area_bn)){
+                if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                    $country=new MarketAreaCountryModel();
+                    $countryArr=$country->field('country_bn')
+                        ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                        ->select();
+                    return $countryArr;
+                }
+            }
+            return '';
         }
-        return '';
-//        if(!empty($country_bn)){
-//            $countryArr=array($country_bn);
-//            return $countryArr;
-//        }
-//        if(!empty($area_bn)){
-//            $country=new MarketAreaCountryModel();
-//            $countryArr=$country->getCountryBn($area_bn, $lang);
-//            return $countryArr;
-//        }
+
+
     }
     //获取上周日期时间段
     public function getLastWeek(){
@@ -2692,7 +2699,7 @@ EOF;
             if(!empty($data['start_time'])){ //默认数据
                 $cond.=' and buyer.created_at >= \''.$data['start_time'].' 00:00:00\'';
             }
-            if(!empty($data['start_time'])){ //默认数据
+            if(!empty($data['end_time'])){ //默认数据
                 $cond.=' and buyer.created_at <= \''.$data['end_time'].' 23:59:59\'';
             }
         }else{
