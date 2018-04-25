@@ -64,6 +64,7 @@ class SupplierchainController extends PublicController {
     public function listAction() {
         $condition = $this->getPut();
         $supplier_model = new SupplierChainModel();
+        /*
         $org_model = new OrgModel();
         $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
 
@@ -72,6 +73,7 @@ class SupplierchainController extends PublicController {
             $this->setMessage('您不属于事业部或易瑞,没有查看权限!');
             $this->jsonReturn();
         }
+        */
         $data = $supplier_model->getList($condition);
         if ($data) {
             $this->setvalue('count', $supplier_model->getCount($condition));
