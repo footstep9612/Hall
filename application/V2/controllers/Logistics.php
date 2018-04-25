@@ -246,9 +246,19 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
-
+    	        // 港杂费和国际运费
+    	        $logiCostList = $this->quoteLogiCostModel->getList(['inquiry_id' => $quoteLogiFee['inquiry_id']], 'unit, qty, price, cur_bn, type');
+    	        $quoteLogiFee['port_surcharge_items'] = $quoteLogiFee['inter_shipping_items'] = [];
+    	        foreach ($logiCostList as $logiCost) {
+    	            $costType = $logiCost['type'];
+    	            unset($logiCost['type']);
+    	            if ($costType == 'port_surcharge') {
+    	                $quoteLogiFee['port_surcharge_items'][] = $logiCost;
+    	            } elseif ($costType == 'inter_shipping') {
+    	                $quoteLogiFee['inter_shipping_items'][] = $logiCost;
+    	            }
+    	        }
     	    }
-    	
     	    $this->jsonReturn($quoteLogiFee);
 	    } else {
 	        $this->jsonReturn(false);
