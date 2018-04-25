@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel{
 
                 if($stock && $country_bn){    //现货处理
                     $stockModel = new StockModel();
-                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_rule_id,price_cur_bn,price_symbol";
+                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol";
                     $condition_stock = [
                         'sku'=>$goodsInfo['sku'],
                         'country_bn'=>$country_bn,
@@ -72,15 +72,7 @@ class GoodsModel extends PublicModel{
                                 break;
                             case 2:    //折扣
                                 $psdM = new PriceStrategyDiscountModel();
-                                $discount = $psdM->getPriceDiscountById($stockInfo['price_rule_id']);
-                                $priceAry = [];
-                                if($discount){
-                                    $priceAry['price'] = ($discount['discount'] && $goodsInfo['price']) ? ($goodsInfo['price']*($discount['discount']*10)/100) : null;
-                                    $priceAry['discount'] = $discount['discount'];
-                                    if(!empty($discount['validity_end'])){
-                                        $priceAry['validity'] = round((strtotime($discount['validity_end'])-time())/(3600*24));
-                                    }
-                                }
+                                $priceAry = $psdM->getPrice($goodsInfo['sku'],$country_bn,'MIN',$goodsInfo['price']);
                                 $goodsInfo['priceAry'] =$priceAry;
                             break;
                         }
@@ -100,7 +92,6 @@ class GoodsModel extends PublicModel{
                 ];
                 $goodsAttr = $gaModel->field($field_attr)->where($condition_attr)->find();
                 $goodsInfo['spec_attrs'] = $goodsAttr ? $goodsAttr['spec_attrs'] : '';
-
                 //商品图片附件
                 $gaModel = new GoodsAttachModel();
                 $attachInfo = $gaModel->field('sku,attach_url,attach_name')->where(['sku' => $goodsInfo['sku'], 'deleted_flag' => 'N', 'status' => 'VALID'])->order('default_flag DESC')->select();
