@@ -356,13 +356,23 @@ class OrderModel extends PublicModel {
 //        $orderYear=$orderArr['year'];   //order arr
 //        $orderCount=count($orderArr['count']); //order count
 //print_r($orderYear);die;
-        $sqlNewOrder="select `order`.id as order_id,order.currency_bn,order.total_price as amount,order.create_time as created_at from erui_new_order.order `order`";
+        $sqlNewOrder="select `order`.id as order_id,order.currency_bn,order.total_price as amount,order.create_time as created_at,`order`.order_belongs from erui_new_order.order `order`";
         $sqlNewOrder.=" where crm_code=(SELECT buyer_code from erui_buyer.buyer where id=$buyer_id)";
         $sqlNewOrder.=" and `order`.delete_flag=0";
 
         $newOrder=$this->query($sqlNewOrder);
         $orderMerge=array_merge($order,$newOrder);
         $orderArr=$this->sumAccountAtatis($orderMerge);
+        $cateArr=$orderArr['cate']; //会员订单分类
+        if(in_array('1',$cateArr) && in_array('2',$cateArr)){
+            $order_belongs='KERUI&ERUI';
+        }elseif(in_array('1',$cateArr) && !in_array('2',$cateArr)){
+            $order_belongs='ERUI';
+        }elseif(in_array('2',$cateArr) && !in_array('1',$cateArr)){
+            $order_belongs='KERUI';
+        }else{
+            $order_belongs='';
+        }
         $orderYear=$orderArr['year'];   //年度订单金额
         $yearArr=[];
         foreach($orderYear as $k => $v){
@@ -416,7 +426,8 @@ class OrderModel extends PublicModel {
             'account'=>sprintf("%.4f",$arr['account']),
             'min'=>$arr['min']==0?0:sprintf("%.4f",$arr['min']),
             'max'=>$arr['max']==0?0:sprintf("%.4f",$arr['max']),
-            'year'=>$arr['year']
+            'year'=>$arr['year'],
+            'mem_cate'=>$order_belongs
         );
         return $data;
     }
@@ -500,6 +511,7 @@ class OrderModel extends PublicModel {
         $result=[];
         $sum=[];
         $amount=[];
+        $cate=[];
         foreach($order as $k => $v){
             if($v['currency_bn']=='USD'){   //一次交易50万=高级
                 $val=$v['amount'];
@@ -511,6 +523,9 @@ class OrderModel extends PublicModel {
                 $val=$v['amount']*0.7918;
             }elseif($v['currency_bn']=='RUB'){
                 $val=$v['amount']*0.01785;
+            }
+            if(!empty($v['order_belongs'])){
+                $cate[]=$v['order_belongs'];
             }
             $arr[$k]['amount']=$val;
             $amount[]=$val;
@@ -535,6 +550,7 @@ class OrderModel extends PublicModel {
         $data['count']=array_flip(array_flip($count));
         $data['year']=$sum;
         $data['amount']=$amount;
+        $data['cate']=$cate;
         return $data;
     }
     /**
@@ -800,21 +816,37 @@ class OrderModel extends PublicModel {
     //会员自动升级end---------------------------------------------------------------------------------------
     //crm 获取地区,国家,会员统计中使用====================================================================
     private function _getCountry($lang,$area_bn='',$country_bn='',$admin){
-        if(!empty($country_bn)){
-            if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+        $access=$this->statisAdmin($admin);
+        if($access===1){
+            if(!empty($country_bn)){
                 return [['country_bn'=>$country_bn]];
             }
-        }
-        if(!empty($area_bn)){
-            if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+            if(!empty($area_bn)){
                 $country=new MarketAreaCountryModel();
                 $countryArr=$country->field('country_bn')
-                    ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                    ->where("market_area_bn='$area_bn'")
                     ->select();
                 return $countryArr;
             }
+        }elseif($access===0){
+            return false;
+        }else{
+            if(!empty($country_bn)){
+                if(preg_match("/$country_bn/i", $admin['country'])){    //国家
+                    return [['country_bn'=>$country_bn]];
+                }
+            }
+            if(!empty($area_bn)){
+                if(preg_match("/$area_bn/i", $admin['area'])){    //地区下的国家
+                    $country=new MarketAreaCountryModel();
+                    $countryArr=$country->field('country_bn')
+                        ->where("market_area_bn='$area_bn' and country_bn in ($admin[country])")
+                        ->select();
+                    return $countryArr;
+                }
+            }
         }
-        return '';
+        return false;
     }
     //获取上周日期时间段
     public function getLastWeek(){
@@ -839,6 +871,9 @@ class OrderModel extends PublicModel {
     public function countryAdmin($data,$column){ //国家权限
 //        $cond=' 1 ';
         $admin=$this->statisAdmin($data['admin']);
+        if($admin===0){ //无权限
+            return false;
+        }
         if(!empty($data['area_bn']) || !empty($data['country_bn'])){   //地区国家
             $countryArr=$this->_getCountry($data['lang'],$data['area_bn'],$data['country_bn'],$data['admin']);
             if(!empty($countryArr)){
@@ -848,9 +883,9 @@ class OrderModel extends PublicModel {
                 }
                 $str=substr($str,1);
                 if(count($countryArr)==1){
-                    $cond=' and '.$column.'.country_bn='.$str;
+                    $cond=' and '.$column.'.country='.$str;
                 }else{
-                    $cond=' and '.$column.'.country_bn in ('.$str.')';
+                    $cond=' and '.$column.'.country in ('.$str.')';
                 }
             }else{
                 return false;   //无地区国家权限
@@ -862,7 +897,7 @@ class OrderModel extends PublicModel {
                 $cond='';
             }else{  //国家负责人
                 if(!empty($admin)){
-                    $cond=' and '.$column.'.country_bn in ('.$admin.') ';
+                    $cond=' and '.$column.'.country in ('.$admin.') ';
                 }else{
                     return false;
                 }

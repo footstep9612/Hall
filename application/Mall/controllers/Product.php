@@ -107,13 +107,21 @@ class ProductController extends PublicController {
         }
 
         $productModel = new ProductModel();
-        $priceInfo = $productModel->getSkuPriceByCount($input['sku'], $input['country_bn'], $input['count']);
-
         $stockInfo = $productModel->getSkuStockBySku($input['sku'], $input['country_bn'], $input['lang']);
+        switch($stockInfo[$input['sku']]['price_strategy_type']){
+            case 1:
+                $priceInfo = $productModel->getSkuPriceByCount($input['sku'], $input['country_bn'], $input['count'],($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']] : []);
+                break;
+            case 2:
+                $psdM = new PriceStrategyDiscountModel();
+                $priceInfo = $psdM->getPrice($input['sku'], $input['country_bn'],$input['count'],$stockInfo[$input['sku']]['price']);
+                break;
+        }
+
         $data = [
             'price' => $priceInfo ? $priceInfo['price'] : '',
-            'price_cur_bn' => $priceInfo ? $priceInfo['price_cur_bn'] : '',
-            'price_symbol' => $priceInfo ? $priceInfo['price_symbol'] : '',
+            'price_cur_bn' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_cur_bn'])) ? $stockInfo[$input['sku']]['price_cur_bn'] : (isset($priceInfo['price_cur_bn']) ? $priceInfo['price_cur_bn'] : ''),
+            'price_symbol' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_symbol'])) ? $stockInfo[$input['sku']]['price_symbol'] : (isset($priceInfo['price_symbol']) ? $priceInfo['price_symbol'] : ''),
             'stock' => ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']]['stock'] : 0
         ];
         jsonReturn($data);

@@ -21,6 +21,7 @@ class LogisticsController extends PublicController {
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();
 		$this->orgMemberModel = new OrgMemberModel();
+		$this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -36,7 +37,14 @@ class LogisticsController extends PublicController {
 	
 	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
-	    $data = $this->quoteItemLogiModel->getJoinList($condition);
+	    $data = dataTrim($this->quoteItemLogiModel->getJoinList($condition));
+	    
+	    foreach ($data as &$item) {
+	        $skuInfo = $this->historicalSkuQuoteModel->getLogiSkuQuote($item['from_country'], $item['sku']);
+	        $item['tax_no'] = $item['tax_no'] ? : $skuInfo['tax_no'];
+	        $item['rebate_rate'] = $item['rebate_rate'] ? : $skuInfo['rebate_rate'];
+	        $item['export_tariff_rate'] = $item['export_tariff_rate'] ? : $skuInfo['export_tariff_rate'];
+	    }
 	
 	    $this->_handleList($this->quoteItemLogiModel, $data, $condition, true);
 	}
@@ -75,40 +83,26 @@ class LogisticsController extends PublicController {
 	        $flag = true;
 	        $data = [];
 	        
-	        //$this->quoteItemLogiModel->startTrans();
+	        $this->quoteItemLogiModel->startTrans();
 	        
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
 	            $itemData['tax_no'] = $item['tax_no'];
-	            $itemData['rebate_rate'] = strval($item['rebate_rate']) != '' ? $item['rebate_rate'] : null;
-	            $itemData['export_tariff_rate'] = strval($item['export_tariff_rate']) != '' ? $item['export_tariff_rate'] : null;
+	            $itemData['rebate_rate'] = isDecimal($item['rebate_rate']) ? $item['rebate_rate'] : null;
+	            $itemData['export_tariff_rate'] = isDecimal($item['export_tariff_rate']) ? $item['export_tariff_rate'] : null;
 	            $itemData['supervised_criteria'] = $item['supervised_criteria'];
 	            $itemData['updated_by'] = $this->user['id'];
 	            $itemData['updated_at'] = $this->time;
 	            
 	            $res = $this->quoteItemLogiModel->updateInfo($where, $itemData);
 	            
-	            /*if (!$res) {
-	                $this->quoteItemLogiModel->rollback();
-	                $flag = false;
-	                break;
-	            }*/
-	            
 	            if (!$res) {
-	               $data[] = $where['id'];
-	               $flag = false;
+	                $this->quoteItemLogiModel->rollback();
+	                $this->jsonReturn($res);
 	            }
 	        }
-	        
-	       // if ($flag) $this->quoteItemLogiModel->commit();
-	
-	        if ($flag) {
-	            $this->jsonReturn($flag);
-	        } else {
-	            $this->setCode('-101');
-	            $this->setMessage(L('FAIL'));
-	            parent::jsonReturn($data);
-	        }
+	        $this->quoteItemLogiModel->commit();
+	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
 	    }

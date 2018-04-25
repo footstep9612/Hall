@@ -149,7 +149,7 @@ class TemporarySupplierModel extends PublicModel
      */
     public function relationSupplierById($id)
     {
-        $temporarySupplier = (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id])->find();
+        $temporarySupplier = (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id, 'deleted_flag' => 'N'])->find();
         return (new SupplierModel)->where(['supplier_no' => $temporarySupplier['supplier_no'], 'deleted_flag' => 'N'])->getField('name');
     }
 
@@ -164,7 +164,8 @@ class TemporarySupplierModel extends PublicModel
     {
         $this->where(['id' => $id])->save([
             'deleted_flag' => 'Y',
-            'is_relation' => 'Y',
+            'is_relation' => 'N',
+            'relations_count' => 0,
             'updated_by' => $user,
             'updated_at' => date('Y-m-d H:i:s')
         ]);

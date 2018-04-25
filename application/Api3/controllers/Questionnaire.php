@@ -30,7 +30,7 @@ class QuestionnaireController extends PublicController {
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
 
             if (empty($userinfo)) {
-                echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+                echo json_encode(array("code" => "-104", "message" => "User does not exist!"));
                 exit;
             } else {
                 $buyer_id = $userinfo['buyer_id'];
@@ -38,7 +38,7 @@ class QuestionnaireController extends PublicController {
         } elseif (!empty($jsondata["source_token"])) {
             $buyer_id = (new BuyerSourceModel)->getBuyerIdByToken($jsondata["source_token"]);
             if (empty($buyer_id)) {
-                echo json_encode(array("code" => "-104", "message" => "source_token 不正确!"));
+                echo json_encode(array("code" => "-104", "message" => "Token error!"));
                 exit;
             }
         }
@@ -47,14 +47,24 @@ class QuestionnaireController extends PublicController {
             $flag = (new BuyerQuestionnaireModel)->create_data($buyer_id, $jsondata['questionnaire']);
             if ($flag) {
                 (new BuyerSourceModel)->update_questionnaire($buyer_id);
-                echo json_encode(array("code" => "1", "message" => "提交成功!"));
+                echo json_encode(array("code" => "1", "message" => "Submitted successfully!"));
             } else {
-                echo json_encode(array("code" => "-1", "message" => "提交失败!"));
+                echo json_encode(array("code" => "-1", "message" => "Submitted failed!"));
+            }
+
+            exit;
+        } elseif (!empty($jsondata["email"])) {
+            $flag = (new BuyerQuestionnaireModel)->create_data($buyer_id, $jsondata['questionnaire'], $jsondata["email"]);
+            if ($flag) {
+
+                echo json_encode(array("code" => "1", "message" => "Submitted successfully!"));
+            } else {
+                echo json_encode(array("code" => "-1", "message" => "Submitted successfully!"));
             }
 
             exit;
         } else {
-            echo json_encode(array("code" => "-104", "message" => "用户不存在"));
+            echo json_encode(array("code" => "-104", "message" => "User does not exist!"));
             exit;
         }
     }

@@ -76,6 +76,19 @@ class TemporarySupplierController extends PublicController
     }
 
     /**
+     * @desc 取消关联
+     * @desc 正式供应商关联到临时供应商 hasMany的关系
+     * @author 买买提
+     * @time 2018-4-23
+     */
+    public function unRelationAction()
+    {
+        $request = $this->validateRequestParams('id,supplier_id,supplier_no');
+        $response = (new TemporarySupplierRelationModel)->unRelation($request['id'], $this->user['id']);
+        $this->jsonReturn($response);
+    }
+
+    /**
      * @desc 关联供应商(正式供应商列表)
      * @author 买买提
      * @time 2018--4-17

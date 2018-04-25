@@ -1118,6 +1118,10 @@ EOF;
         $account = new BuyerAccountModel();
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
         $buerInfo['buyer_account'] = $accountInfo['email'];
+        //客户订单分类
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
         $agentInfo = $agent->buyerMarketAgent($data);
@@ -1240,6 +1244,7 @@ EOF;
         $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
         $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
         $arr['inquiry'] = $inquiryInfo;
+        $arr['mem_cate'] = $orderInfo['mem_cate'];
         if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
             $arr['order']['order_rate'] = '0%';
         }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
