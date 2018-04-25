@@ -22,6 +22,7 @@ class LogisticsController extends PublicController {
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();
 		$this->orgMemberModel = new OrgMemberModel();
 		$this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
+		$this->quoteLogiCostModel = new QuoteLogiCostModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -286,12 +287,70 @@ class LogisticsController extends PublicController {
 	        $data['total_exw_price'] = $quote['total_exw_price'];
 	        $data['certification_fee'] = $quote['certification_fee'];
 	        $data['certification_fee_cur'] = 'CNY';
+	        $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
+	        
+	        //计算并保存港杂费和国际运费数据
+	        if (!in_array($data['trade_terms_bn'], ['EXW', 'FCA', 'FAS']) ) {
+	            if (empty($data['port_surcharge_items'])) {
+	                jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_ITEMS'));
+	            } else {
+	                $portSurchargeList = $interShippingList = [];
+	                $data['port_surcharge'] = $data['inter_shipping'] = 0;
+	                foreach ($data['port_surcharge_items'] as $portSurchargeItem) {
+	                    if ($portSurchargeItem['unit'] == '') {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_UNIT'));
+	                    }
+	                    if (!isDecimal($portSurchargeItem['qty'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_QTY'));
+	                    }
+	                    if (!isDecimal($portSurchargeItem['price'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_PRICE'));
+	                    }
+	                    if ($portSurchargeItem['cur_bn'] == '') {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_CUR'));
+	                    }
+	                    $portSurchargeData = $this->quoteLogiCostModel->create($portSurchargeItem);
+	                    $portSurchargeData['inquiry_id'] = $quote['inquiry_id'];
+	                    $portSurchargeData['quote_id'] = $quote['id'];
+	                    $portSurchargeData['type'] = 'port_surcharge';
+	                    $portSurchargeData['created_by'] = $this->user['id'];
+	                    $portSurchargeData['created_at'] = $this->time;
+	                    $portSurchargeList[] = $portSurchargeData;
+	                    $data['port_surcharge'] +=  round($portSurchargeItem['price'] * $portSurchargeItem['qty'] / $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
+	                }
+	                if ($data['trade_terms_bn'] != 'FOB') {
+	                    if (empty($data['inter_shipping_items'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_ITEMS'));
+	                    } else {
+	                        foreach ($data['inter_shipping_items'] as $interShippingItem) {
+	                            if ($interShippingItem['unit'] == '') {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_UNIT'));
+	                            }
+	                            if (!isDecimal($interShippingItem['qty'])) {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_QTY'));
+	                            }
+	                            if (!isDecimal($interShippingItem['price'])) {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_PRICE'));
+	                            }
+	                            if ($interShippingItem['cur_bn'] == '') {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_CUR'));
+	                            }
+	                            $interShippingData = $this->quoteLogiCostModel->create($interShippingItem);
+	                            $interShippingData['inquiry_id'] = $quote['inquiry_id'];
+	                            $interShippingData['quote_id'] = $quote['id'];
+	                            $interShippingData['type'] = 'inter_shipping';
+	                            $interShippingData['created_by'] = $this->user['id'];
+	                            $interShippingData['created_at'] = $this->time;
+	                            $interShippingList[] = $interShippingData;
+	                            $data['inter_shipping'] +=  round($interShippingItem['price'] * $interShippingItem['qty'] / $this->_getRateUSD($interShippingItem['cur_bn']), 8);
+	                        }
+	                    }
+	                }
+	                $logiCostList = array_merge($portSurchargeList, $interShippingList);
+	            }
+	        }
 	        
 	        $data = $this->calcuTotalLogiFee($data);
-	        
-	        //if ($quoteLogiFee['logi_agent_id'] == '') {
-	        //    $data['logi_agent_id'] = $this->user['id'];
-	        //}
 	        
 	        // 去掉暂无的数据
 	        $data['logi_from_port'] = $data['logi_from_port'] == L('NOTHING') ? null : $data['logi_from_port'];
@@ -316,7 +375,7 @@ class LogisticsController extends PublicController {
 	        
 	        $quoteItemList = $this->quoteItemModel->where($where)->select();
 	        
-	        $res3 = true;
+	        $res3 = $res4 = true;
 	        foreach ($quoteItemList as $quoteItem) {
 	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
 	            
@@ -327,7 +386,12 @@ class LogisticsController extends PublicController {
                 }
 	        }
 	        
-	       if ($res1 && $res2 && $res3) {
+	        if (isset($logiCostList)) {
+	            $this->quoteLogiCostModel->delRecord($where);
+	            $res4 = $this->quoteLogiCostModel->addAll($logiCostList);
+	        }
+	        
+	       if ($res1 && $res2 && $res3 && $res4) {
                 $this->quoteLogiFeeModel->commit();
                 $res = true;
             } else {
