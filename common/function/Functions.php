@@ -1968,9 +1968,12 @@ function isDecimal($param) {
  * @param int $sort_type
  */
 function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_type=SORT_NUMERIC){
-    foreach($data as $val){
-        $key_arrays[]=$val[$sort_order_field];
+    if(is_array($data)){
+        foreach($data as $val){
+            $key_arrays[]=$val[$sort_order_field];
+        }
+        array_multisort($key_arrays,$sort_order,$sort_type,$data);
+        return $data;
     }
-    array_multisort($key_arrays,$sort_order,$sort_type,$data);
-    return $data;
+    return [];
 }
