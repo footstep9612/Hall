@@ -553,12 +553,9 @@ class ShowcatController extends PublicController {
      * 2018-2-10
      */
 
-    public function updateShowCats() {
+    public function updateShowCatsAction() {
         $show_cat = new ShowCatModel();
-        $show_cat_goods = new ShowCatGoodsModel();
-        $show_cat_product = new ShowCatProductModel();
-        $country_bn = $this->getPut('country_bn');
-        $show_cat_res = $show_cat->field('id,cat_no')->where('country_bn=' . $country_bn)->select();
+        $show_cat_res = $show_cat->field('id,cat_no')->select();
 
         if (!empty($show_cat_res)) {
             $show_cat->startTrans();
@@ -572,20 +569,7 @@ class ShowcatController extends PublicController {
                     $cat_no_arr = $a . ':' . $b . ':' . $c;
 
                     $re = $show_cat->where('id=' . $val['id'])->save(['cat_no' => $cat_no_arr]);
-                    if ($re) {
-                        $re2 = $show_cat_goods->where('cat_no=' . $val['cat_no'])->save(['cat_no' => $cat_no_arr]);
-                        if (!$re2) {
-                            $show_cat->rollback();
-                            $results['code'] = '-101';
-                            $results['message'] = '失败！';
-                        }
-                        $re3 = $show_cat_product->where('cat_no=' . $val['cat_no'])->save(['cat_no' => $cat_no_arr]);
-                        if (!$re3) {
-                            $show_cat->rollback();
-                            $results['code'] = '-101';
-                            $results['message'] = '失败！';
-                        }
-                    } else {
+                    if (!$re) {
                         $show_cat->rollback();
                         $results['code'] = '-101';
                         $results['message'] = '失败！';
@@ -596,5 +580,87 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+    public function updateShowCatsParentAction() {
+        $show_cat = new ShowCatModel();
+        $show_cat_res = $show_cat->field('id,parent_cat_no')->group('parent_cat_no')->select();
 
+        if (!empty($show_cat_res)) {
+            $show_cat->startTrans();
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            foreach ($show_cat_res as $val) {
+                if (strlen($val['parent_cat_no']) < 7 && strlen($val['parent_cat_no']) > 5) {
+                    $a = substr($val['parent_cat_no'], 0, 2);
+                    $b = substr($val['parent_cat_no'], 2, 2);
+                    $c = substr($val['parent_cat_no'], 4, 2);
+                    $cat_no_arr = $a . ':' . $b . ':' . $c;
+
+                    $re = $show_cat->where(['parent_cat_no=' . $val['parent_cat_no']])->save(['parent_cat_no' => $cat_no_arr]);
+                    if (!$re) {
+                        $show_cat->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '失败！';
+                    }
+                }
+            }
+            $show_cat->commit();
+            $this->jsonReturn($results);
+        }
+    }
+    public function updateShowCatsGoodsAction() {
+        $show_cat_goods = new ShowCatGoodsModel();
+        $country_bn = $this->getPut('country_bn');
+        $show_cat_res = $show_cat_goods->field('id,cat_no')->group('cat_no')->select();
+
+        if (!empty($show_cat_res)) {
+            $show_cat_goods->startTrans();
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            foreach ($show_cat_res as $val) {
+                if (strlen($val['cat_no']) < 7) {
+                    $a = substr($val['cat_no'], 0, 2);
+                    $b = substr($val['cat_no'], 2, 2);
+                    $c = substr($val['cat_no'], 4, 2);
+                    $cat_no_arr = $a . ':' . $b . ':' . $c;
+
+                    $re = $show_cat_goods->where('cat_on=' . $val['cat_no'])->save(['cat_no' => $cat_no_arr]);
+                    if (!$re) {
+                        $show_cat_goods->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '失败！';
+                    }
+                }
+            }
+            $show_cat_goods->commit();
+            $this->jsonReturn($results);
+        }
+    }
+    public function updateShowCatsProductAction() {
+        $show_cat_product = new ShowCatProductModel();
+        $country_bn = $this->getPut('country_bn');
+        $show_cat_res = $show_cat_product->field('id,cat_no')->group('cat_no')->select();
+
+        if (!empty($show_cat_res)) {
+            $show_cat_product->startTrans();
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            foreach ($show_cat_res as $val) {
+                if (strlen($val['cat_no']) < 7) {
+                    $a = substr($val['cat_no'], 0, 2);
+                    $b = substr($val['cat_no'], 2, 2);
+                    $c = substr($val['cat_no'], 4, 2);
+                    $cat_no_arr = $a . ':' . $b . ':' . $c;
+
+                    $re = $show_cat_product->where('cat_on=' . $val['cat_on'])->save(['cat_no' => $cat_no_arr]);
+                    if (!$re) {
+                        $show_cat_product->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '失败！';
+                    }
+                }
+            }
+            $show_cat_product->commit();
+            $this->jsonReturn($results);
+        }
+    }
 }
