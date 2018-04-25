@@ -67,7 +67,7 @@ class GoodsModel extends PublicModel{
                             case 1:    //阶梯价
                                 $scpriceM = new StockCostPriceModel();
                                 $goodsInfo['priceList'] = $scpriceM->getSkuPriceBySku($goodsInfo['sku'],$country_bn);
-                                $goodsPrice = my_array_multisort($goodsInfo['priceList'],'price');
+                                $goodsPrice = $this->my_array_multisort($goodsInfo['priceList'],'price');
                                 $goodsInfo['priceAry'] = $goodsPrice[0];
                                 break;
                             case 2:    //折扣
@@ -153,6 +153,24 @@ class GoodsModel extends PublicModel{
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Goods】getInfoBySku:' . $e , Log::ERR);
             return false;
         }
+    }
+
+    /**
+     * 多维数组排序
+     * @param $data
+     * @param $sort_order_field
+     * @param int $sort_order
+     * @param int $sort_type
+     */
+    private function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_type=SORT_NUMERIC){
+        if(is_array($data)){
+            foreach($data as $val){
+                $key_arrays[]=$val[$sort_order_field];
+            }
+            array_multisort($key_arrays,$sort_order,$sort_type,$data);
+            return $data;
+        }
+        return [];
     }
 
 }
