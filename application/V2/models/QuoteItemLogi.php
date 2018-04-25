@@ -13,7 +13,7 @@ class QuoteItemLogiModel extends PublicModel {
     protected $joinTable2 = 'erui_rfq.inquiry_item c ON b.inquiry_item_id = c.id';
     protected $joinTable3 = 'erui_rfq.quote d ON a.inquiry_id = d.inquiry_id';
     protected $joinTable4 = 'erui_sys.employee e ON d.biz_quote_by = e.id';
-    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size,c.buyer_goods_no,c.name,c.name_zh,c.remarks,c.brand,c.unit,c.model,e.name AS quoter';//q去掉了c.name AS name_zh, c.show_name_loc,
+    protected $joinField = 'a.id, a.tax_no, a.rebate_rate, a.export_tariff_rate, a.supervised_criteria, b.sku, b.quote_qty, b.quote_unit, b.net_weight_kg, b.gross_weight_kg, b.package_size,c.buyer_goods_no,c.name,c.name_zh,c.remarks,c.brand,c.unit,c.model,d.from_country,e.name AS quoter';//q去掉了c.name AS name_zh, c.show_name_loc,
 
     public function __construct() {
         parent::__construct();

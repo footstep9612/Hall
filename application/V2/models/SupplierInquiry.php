@@ -1188,21 +1188,19 @@ class SupplierInquiryModel extends PublicModel {
                 $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
             }
             // 物流报价用时
-            $logiSpend = $quoteTime['logi_dispatching_quoted_time'] + $quoteTime['logi_quoting_quoted_time'] + $quoteTime['logi_approving_quoted_time']
-                                     - (str_replace(',', '', $item['logi_dispatching_clarification_time']) + str_replace(',', '', $item['logi_quoting_clarification_time']) + str_replace(',', '', $item['logi_approving_clarification_time'])) * 3600;
+            $logiSpend = $quoteTime['logi_dispatching_quoted_time'] + $quoteTime['logi_quoting_quoted_time'] + $quoteTime['logi_approving_quoted_time'];
             $item['logi_quoted_time'] = number_format($logiSpend / 3600, 2);
-            $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time']
-                                                          - (str_replace(',', '', $item['biz_quoting_clarification_time']) + str_replace(',', '', $item['biz_approving_clarification_time']) + str_replace(',', '', $item['market_approving_clarification_time'])) * 3600;
+            $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time'];
             if ($item['org_is_erui'] == 'Y') {
                 // 易瑞商务技术报价用时
-                $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $tmpDispatchingSpend - str_replace(',', '', $item['cc_dispatching_clarification_time']) * 3600;
+                $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $tmpDispatchingSpend;
                 $item['cc_quoted_time'] = number_format($ccSpend / 3600, 2);
                 // 事业部商务技术报价用时
                 $item['biz_quoted_time'] = 0;
                 $realSpend = $ccSpend + $logiSpend;
             } else {
                 $item['cc_quoted_time'] = 0;
-                $bizSpend = $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend - str_replace(',', '', $item['biz_dispatching_clarification_time']) * 3600;
+                $bizSpend = $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;
                 $item['biz_quoted_time'] = number_format($bizSpend / 3600, 2);
                 $realSpend = $bizSpend + $logiSpend;
             }

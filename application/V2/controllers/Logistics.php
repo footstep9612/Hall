@@ -21,6 +21,8 @@ class LogisticsController extends PublicController {
 		$this->quoteLogiQwvModel = new QuoteLogiQwvModel();
 		$this->marketAreaTeamModel = new MarketAreaTeamModel();
 		$this->orgMemberModel = new OrgMemberModel();
+		$this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
+		$this->quoteLogiCostModel = new QuoteLogiCostModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -36,7 +38,14 @@ class LogisticsController extends PublicController {
 	
 	    if (empty($condition['inquiry_id'])) $this->jsonReturn(false);
 	    
-	    $data = $this->quoteItemLogiModel->getJoinList($condition);
+	    $data = dataTrim($this->quoteItemLogiModel->getJoinList($condition));
+	    
+	    foreach ($data as &$item) {
+	        $skuInfo = $this->historicalSkuQuoteModel->getLogiSkuQuote($item['from_country'], $item['sku']);
+	        $item['tax_no'] = $item['tax_no'] ? : $skuInfo['tax_no'];
+	        $item['rebate_rate'] = $item['rebate_rate'] ? : $skuInfo['rebate_rate'];
+	        $item['export_tariff_rate'] = $item['export_tariff_rate'] ? : $skuInfo['export_tariff_rate'];
+	    }
 	
 	    $this->_handleList($this->quoteItemLogiModel, $data, $condition, true);
 	}
@@ -75,40 +84,26 @@ class LogisticsController extends PublicController {
 	        $flag = true;
 	        $data = [];
 	        
-	        //$this->quoteItemLogiModel->startTrans();
+	        $this->quoteItemLogiModel->startTrans();
 	        
 	        foreach ($condition['items'] as $item) {
 	            $where['id'] = $item['id'];
 	            $itemData['tax_no'] = $item['tax_no'];
-	            $itemData['rebate_rate'] = strval($item['rebate_rate']) != '' ? $item['rebate_rate'] : null;
-	            $itemData['export_tariff_rate'] = strval($item['export_tariff_rate']) != '' ? $item['export_tariff_rate'] : null;
+	            $itemData['rebate_rate'] = isDecimal($item['rebate_rate']) ? $item['rebate_rate'] : null;
+	            $itemData['export_tariff_rate'] = isDecimal($item['export_tariff_rate']) ? $item['export_tariff_rate'] : null;
 	            $itemData['supervised_criteria'] = $item['supervised_criteria'];
 	            $itemData['updated_by'] = $this->user['id'];
 	            $itemData['updated_at'] = $this->time;
 	            
 	            $res = $this->quoteItemLogiModel->updateInfo($where, $itemData);
 	            
-	            /*if (!$res) {
-	                $this->quoteItemLogiModel->rollback();
-	                $flag = false;
-	                break;
-	            }*/
-	            
 	            if (!$res) {
-	               $data[] = $where['id'];
-	               $flag = false;
+	                $this->quoteItemLogiModel->rollback();
+	                $this->jsonReturn($res);
 	            }
 	        }
-	        
-	       // if ($flag) $this->quoteItemLogiModel->commit();
-	
-	        if ($flag) {
-	            $this->jsonReturn($flag);
-	        } else {
-	            $this->setCode('-101');
-	            $this->setMessage(L('FAIL'));
-	            parent::jsonReturn($data);
-	        }
+	        $this->quoteItemLogiModel->commit();
+	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
 	    }
@@ -251,9 +246,19 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
-
+    	        // 港杂费和国际运费
+    	        $logiCostList = $this->quoteLogiCostModel->getList(['inquiry_id' => $quoteLogiFee['inquiry_id']], 'unit, qty, price, cur_bn, type');
+    	        $quoteLogiFee['port_surcharge_items'] = $quoteLogiFee['inter_shipping_items'] = [];
+    	        foreach ($logiCostList as $logiCost) {
+    	            $costType = $logiCost['type'];
+    	            unset($logiCost['type']);
+    	            if ($costType == 'port_surcharge') {
+    	                $quoteLogiFee['port_surcharge_items'][] = $logiCost;
+    	            } elseif ($costType == 'inter_shipping') {
+    	                $quoteLogiFee['inter_shipping_items'][] = $logiCost;
+    	            }
+    	        }
     	    }
-    	
     	    $this->jsonReturn($quoteLogiFee);
 	    } else {
 	        $this->jsonReturn(false);
@@ -292,12 +297,70 @@ class LogisticsController extends PublicController {
 	        $data['total_exw_price'] = $quote['total_exw_price'];
 	        $data['certification_fee'] = $quote['certification_fee'];
 	        $data['certification_fee_cur'] = 'CNY';
+	        $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
+	        
+	        //计算并保存港杂费和国际运费数据
+	        if (!in_array($data['trade_terms_bn'], ['EXW', 'FCA', 'FAS']) ) {
+	            if (empty($data['port_surcharge_items'])) {
+	                jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_ITEMS'));
+	            } else {
+	                $portSurchargeList = $interShippingList = [];
+	                $data['port_surcharge'] = $data['inter_shipping'] = 0;
+	                foreach ($data['port_surcharge_items'] as $portSurchargeItem) {
+	                    if ($portSurchargeItem['unit'] == '') {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_UNIT'));
+	                    }
+	                    if (!isDecimal($portSurchargeItem['qty'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_QTY'));
+	                    }
+	                    if (!isDecimal($portSurchargeItem['price'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_PRICE'));
+	                    }
+	                    if ($portSurchargeItem['cur_bn'] == '') {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_PORT_SURCHARGE_CUR'));
+	                    }
+	                    $portSurchargeData = $this->quoteLogiCostModel->create($portSurchargeItem);
+	                    $portSurchargeData['inquiry_id'] = $quote['inquiry_id'];
+	                    $portSurchargeData['quote_id'] = $quote['id'];
+	                    $portSurchargeData['type'] = 'port_surcharge';
+	                    $portSurchargeData['created_by'] = $this->user['id'];
+	                    $portSurchargeData['created_at'] = $this->time;
+	                    $portSurchargeList[] = $portSurchargeData;
+	                    $data['port_surcharge'] +=  round($portSurchargeItem['price'] * $portSurchargeItem['qty'] / $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
+	                }
+	                if ($data['trade_terms_bn'] != 'FOB') {
+	                    if (empty($data['inter_shipping_items'])) {
+	                        jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_ITEMS'));
+	                    } else {
+	                        foreach ($data['inter_shipping_items'] as $interShippingItem) {
+	                            if ($interShippingItem['unit'] == '') {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_UNIT'));
+	                            }
+	                            if (!isDecimal($interShippingItem['qty'])) {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_QTY'));
+	                            }
+	                            if (!isDecimal($interShippingItem['price'])) {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_PRICE'));
+	                            }
+	                            if ($interShippingItem['cur_bn'] == '') {
+	                                jsonReturn('', -101, L('MISSING_PARAMETER_INTER_SHIPPING_CUR'));
+	                            }
+	                            $interShippingData = $this->quoteLogiCostModel->create($interShippingItem);
+	                            $interShippingData['inquiry_id'] = $quote['inquiry_id'];
+	                            $interShippingData['quote_id'] = $quote['id'];
+	                            $interShippingData['type'] = 'inter_shipping';
+	                            $interShippingData['created_by'] = $this->user['id'];
+	                            $interShippingData['created_at'] = $this->time;
+	                            $interShippingList[] = $interShippingData;
+	                            $data['inter_shipping'] +=  round($interShippingItem['price'] * $interShippingItem['qty'] / $this->_getRateUSD($interShippingItem['cur_bn']), 8);
+	                        }
+	                    }
+	                }
+	                $logiCostList = array_merge($portSurchargeList, $interShippingList);
+	            }
+	        }
 	        
 	        $data = $this->calcuTotalLogiFee($data);
-	        
-	        //if ($quoteLogiFee['logi_agent_id'] == '') {
-	        //    $data['logi_agent_id'] = $this->user['id'];
-	        //}
 	        
 	        // 去掉暂无的数据
 	        $data['logi_from_port'] = $data['logi_from_port'] == L('NOTHING') ? null : $data['logi_from_port'];
@@ -322,7 +385,7 @@ class LogisticsController extends PublicController {
 	        
 	        $quoteItemList = $this->quoteItemModel->where($where)->select();
 	        
-	        $res3 = true;
+	        $res3 = $res4 = true;
 	        foreach ($quoteItemList as $quoteItem) {
 	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
 	            
@@ -333,7 +396,12 @@ class LogisticsController extends PublicController {
                 }
 	        }
 	        
-	       if ($res1 && $res2 && $res3) {
+	        if (isset($logiCostList)) {
+	            $this->quoteLogiCostModel->delRecord($where);
+	            $res4 = $this->quoteLogiCostModel->addAll($logiCostList);
+	        }
+	        
+	       if ($res1 && $res2 && $res3 && $res4) {
                 $this->quoteLogiFeeModel->commit();
                 $res = true;
             } else {

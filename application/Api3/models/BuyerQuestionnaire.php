@@ -24,12 +24,15 @@ class BuyerQuestionnaireModel extends PublicModel {
         parent::__construct();
     }
 
-    public function create_data($buyer_id, $questionnaire) {
+    public function create_data($buyer_id, $questionnaire, $email = null) {
         try {
             $data['buyer_id'] = $buyer_id;
             $data['questionnaire'] = $questionnaire;
             $data['created_at'] = date('Y-m-d H:i:s');
 
+            if ($email) {
+                $data['email'] = $email;
+            }
             $data = $this->create($data);
 
             return $this->add($data);

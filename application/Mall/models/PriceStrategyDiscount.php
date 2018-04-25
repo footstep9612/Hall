@@ -36,4 +36,75 @@ class PriceStrategyDiscountModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取价格
+     * @param $sku
+     * @param $country_bn
+     * @param $num
+     * @param $price
+     * @return array
+     */
+    public function getPrice($sku='',$country_bn='',$num='MIN',$price=''){
+        if(empty($sku) || empty($country_bn) || empty($price)){
+            return [];
+        }
+        $condition = [
+            'country_bn'=>$country_bn,
+            'sku'=>$sku,
+            'deleted_at'=>['exp', 'is null'],
+            'validity_start' => [['exp', 'is null'], ['elt',date('Y-m-d H:i:s',time())],'or'],
+            'validity_end' =>[['exp','is null'],['gt',date('Y-m-d H:i:s',time())],'or']
+        ];
+        $order = 'min_purchase_qty DESC';
+        if($num == 'MIN'){
+            $order = 'discount ASC';
+        }else{
+            $num = is_numeric($num) ? $num : 1;
+            $condition['min_purchase_qty'] =['elt',$num];
+            $condition['max_purchase_qty'] =[['egt',$num],['exp','is null'],'or'];
+        }
+        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->find();
+        $priceAry = [];
+        if($discount){
+            $priceAry['price'] = ($discount['discount'] && $price) ? ($price*($discount['discount']*10)/100) : null;
+            $priceAry['discount'] = $discount['discount'];
+            if(!empty($discount['validity_end'])){
+                $priceAry['validity'] = round((strtotime($discount['validity_end'])-time())/(3600*24));
+            }
+        }
+        return $priceAry;
+    }
+
+    /**
+     * 获取价格
+     * @param $sku
+     * @param $country_bn
+     * @param $num
+     * @param $price
+     * @return array
+     */
+    public function getPriceList($sku='',$country_bn='',$price='',$symbol=[]){
+        if(empty($sku) || empty($country_bn) || empty($price) ){
+            return [];
+        }
+        $condition = [
+            'country_bn'=>$country_bn,
+            'sku'=>$sku,
+            'deleted_at'=>['exp', 'is null'],
+            'validity_start' => [['exp', 'is null'], ['elt',date('Y-m-d H:i:s',time())],'or'],
+            'validity_end' =>[['exp','is null'],['gt',date('Y-m-d H:i:s',time())],'or']
+        ];
+        $order = 'min_purchase_qty DESC';
+        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->select();
+        if($discount){
+            for($i = 0; $i<count($discount); $i++){
+                $discount[$i]['price'] = ( $discount[$i]['discount'] && $price) ? ($price*($discount[$i]['discount']*10)/100) : null;
+                if(!empty($symbol)){
+                    $discount[$i] = array_merge($discount[$i],$symbol);
+                }
+            }
+        }
+        return $discount ? $discount : [];
+    }
+
 }
