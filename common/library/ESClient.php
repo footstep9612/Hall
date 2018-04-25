@@ -652,8 +652,8 @@ class ESClient {
      * }}}}
      */
 
-    public function setmatch_phrase($query, $slop = 0, $field) {
-        $this->body['query']['match_phrase']['$field'] = [
+    public function setmatch_phrase($query, $slop = 0, $field = null) {
+        $this->body['query']['match_phrase'][$field] = [
             "query" => $query,
             "slop" => $slop,
         ];
@@ -842,11 +842,11 @@ class ESClient {
                     self::MUST,
                     self::MUST_NOT])) {
 
-            $val = $this->setdata($should, $bost);
+            $val = $this->setdata($type, $bost);
             $this->body['query']['bool']['filter'] [] = [$type => $val, $type1 => $data,];
             return $this;
         } else {
-            $val = $this->setdata($should, $bost);
+            $val = $this->setdata($type, $bost);
             $this->body['query']['bool']['filter'] [] = [$type => $val];
             return $this;
         }
@@ -1097,7 +1097,7 @@ class ESClient {
         $params['type'] = $type;
         $params['body']['query']['bool']['must'] = $must;
         $params['body']['query']['bool']['must_not'] = $must_not;
-        $params['body']['query']['bool']['should'] = $must_not;
+        $params['body']['query']['bool']['should'] = $should;
 
         $results = $this->server->search($params);
         return $results;
@@ -1183,7 +1183,7 @@ class ESClient {
      * @desc   ES 产品
      */
 
-    public static function getStatus(&$condition, &$body, $qurey_type = self::MATCH, $name = '', $field = '', $array = [], $default = 'VALID') {
+    public static function getStatus(&$condition, &$body, $qurey_type = self::MATCH_PHRASE, $name = '', $field = '', $array = [], $default = 'VALID') {
         if (!$field) {
             $field = [$name];
         }
@@ -1193,12 +1193,12 @@ class ESClient {
 
             } elseif (in_array($status, $array)) {
 
-                $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $status]];
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $status]];
             } else {
-                $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $default]];
+                $body['query']['bool']['must'][] = [$qurey_type => [$field => $default]];
             }
         } else {
-            $body['query']['bool']['must'][] = [self::MATCH_PHRASE => [$field => $default]];
+            $body['query']['bool']['must'][] = [$qurey_type => [$field => $default]];
         }
     }
 
