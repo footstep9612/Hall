@@ -1,14 +1,14 @@
 <?php
 /**
- * 仓库管理
+ * 价格策略折扣
  * Created by PhpStorm.
  * User: linkai
  * Date: 2018/4/26
  * Time: 9:50
  */
-class StorageModel extends PublicModel{
+class PriceStrategyDiscountModel extends PublicModel{
     //put your code here
-    protected $tableName = 'storage';
+    protected $tableName = 'price_strategy_discount';
     protected $dbName = 'erui_stock';
 
     public function __construct() {
@@ -16,24 +16,26 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 新增仓库
+     * 新增
      * @param $input
      * @return bool|mixed
      */
     public function createData($input){
-        if(empty($input['country_bn']) || empty($input['storage_name'])){
+        if(empty($input['sku']) || empty($input['country_bn']) ||  empty($input['discount'])){
             return false;
         }
         try{
-            $data =[
-                'country_bn' => ucfirst(trim($input['country_bn'])),
-                'storage_name' => trim($input['storage_name']),
-                'keyword' => trim($input['keyword']),
-                'description' => trim($input['description']),
-                'remark' => trim($input['remark']),
-                'content' => trim($input['content']),
+            $data = [
+                'country_bn' => intval($input['storage_id']),
+                'sku' => trim($input['sku']),
             ];
-            if($this->getExit(['country_bn'=>$data['country_bn'],'storage_name'=>$data['storage_name']])===false){
+            if($this->getExit($data)===false){
+                $data['discount'] = trim($input['discount']);
+                $data['name'] = trim($input['name']);
+                $data['min_purchase_qty'] = trim($input['min_purchase_qty']);
+                $data['max_purchase_qty'] = trim($input['max_purchase_qty']);
+                $data['validity_start'] = trim($input['validity_start']);
+                $data['validity_end'] = trim($input['validity_end']);
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $flag = $this->add($data);
@@ -46,20 +48,22 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 更新仓库
+     * 更新
      * @param $input
      * @return bool|mixed
      */
     public function updateData($input){
-        if(empty($input['id'])){
-            jsonReturn('',MSG::MSG_FAILED, 'Id不能为空');
+        if(empty($input['country_bn'])){
+            jsonReturn('',MSG::MSG_FAILED, 'country_bn不能为空');
+        }
+        if(empty($input['sku'])){
+            jsonReturn('',MSG::MSG_FAILED,'sku不能为空');
         }
         try{
             $data = [];
             foreach($input as $k=>$v){
-                if(in_array($k,['country_bn','storage_name','keyword','description','remark','content','status'])){
-                    $v = (trim($v)=='country_bn') ? ucfirst(trim($v)) : time($v);
-                    $data[$k] = $v;
+                if(in_array($k,['discount','name','min_purchase_qty','max_purchase_qty','validity_start','validity_end'])){
+                    $data[$k] = time($v);
                 }
             }
             if(empty($data)){
@@ -68,7 +72,7 @@ class StorageModel extends PublicModel{
             $data['updated_at'] = date('Y-m-d H:i:s',time());
             $data['updated_by'] = defined('UID') ? UID : 0;
 
-            $where =['id'=>$input['id']];
+            $where =['sku'=>trim($input['sku']),'country_bn'=>ucfirst(trim($input['country_bn']))];
             $flag = $this->where($where)->save($data);
             return $flag ? $flag : false;
         }catch (Exception $e){
@@ -77,20 +81,23 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 删除仓库
+     * 删除
      * @param $input
      * @return bool|mixed
      */
     public function deleteData($input){
-        if(empty($input['id'])){
-            jsonReturn('',MSG::MSG_FAILED, 'Id不能为空');
+        if(empty($input['country_bn'])){
+            jsonReturn('',MSG::MSG_FAILED, 'country_bn不能为空');
+        }
+        if(empty($input['sku'])){
+            jsonReturn('',MSG::MSG_FAILED,'sku不能为空');
         }
         try{
             $data = [];
             $data['deleted_at'] = date('Y-m-d H:i:s',time());
             $data['deleted_by'] = defined('UID') ? UID : 0;
 
-            $where =['id'=>$input['id']];
+            $where =['sku'=>trim($input['sku']),'country_bn'=>ucfirst(trim($input['country_bn']))];
             $flag = $this->where($where)->save($data);
             return $flag ? $flag : false;
         }catch (Exception $e){

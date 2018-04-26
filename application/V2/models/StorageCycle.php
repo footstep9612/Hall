@@ -1,14 +1,14 @@
 <?php
 /**
- * 仓库管理
+ * 仓库物流时效管理
  * Created by PhpStorm.
  * User: linkai
  * Date: 2018/4/26
  * Time: 9:50
  */
-class StorageModel extends PublicModel{
+class StorageCycleModel extends PublicModel{
     //put your code here
-    protected $tableName = 'storage';
+    protected $tableName = 'storage_cycle';
     protected $dbName = 'erui_stock';
 
     public function __construct() {
@@ -16,24 +16,24 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 新增仓库
+     * 新增
      * @param $input
      * @return bool|mixed
      */
     public function createData($input){
-        if(empty($input['country_bn']) || empty($input['storage_name'])){
+        if(empty($input['storage_id']) || empty($input['sku']) ||  empty($input['cycle'])){
             return false;
         }
         try{
-            $data =[
-                'country_bn' => ucfirst(trim($input['country_bn'])),
-                'storage_name' => trim($input['storage_name']),
-                'keyword' => trim($input['keyword']),
-                'description' => trim($input['description']),
-                'remark' => trim($input['remark']),
-                'content' => trim($input['content']),
+            $data = [
+                'storage_id' => intval($input['storage_id']),
+                'spu' => trim($input['spu']),
+                'sku' => trim($input['sku']),
+                'to_country_bn' => ucfirst(trim($input['to_country_bn'])),
+                'to_city' => trim($input['to_city']),
             ];
-            if($this->getExit(['country_bn'=>$data['country_bn'],'storage_name'=>$data['storage_name']])===false){
+            if($this->getExit($data)===false){
+                $data['cycle'] = trim($input['cycle']);
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $flag = $this->add($data);
@@ -46,7 +46,7 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 更新仓库
+     * 更新
      * @param $input
      * @return bool|mixed
      */
@@ -57,8 +57,8 @@ class StorageModel extends PublicModel{
         try{
             $data = [];
             foreach($input as $k=>$v){
-                if(in_array($k,['country_bn','storage_name','keyword','description','remark','content','status'])){
-                    $v = (trim($v)=='country_bn') ? ucfirst(trim($v)) : time($v);
+                if(in_array($k,['storage_id','spu','sku','to_country_bn','to_city','cycle'])){
+                    $v = (trim($v)=='to_country_bn') ? ucfirst(trim($v)) : time($v);
                     $data[$k] = $v;
                 }
             }
@@ -77,7 +77,7 @@ class StorageModel extends PublicModel{
     }
 
     /**
-     * 删除仓库
+     * 删除
      * @param $input
      * @return bool|mixed
      */
