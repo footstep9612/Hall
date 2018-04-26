@@ -646,8 +646,6 @@ class SupplierController extends PublicController {
             $this->jsonReturn();
         }
 
-        /*
-         * 去掉事业部限制 2018-04-26 买买提
         $org_model = new OrgModel();
 
         $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
@@ -656,7 +654,6 @@ class SupplierController extends PublicController {
             $this->setMessage('您不属于易瑞或事业部,没有供应商审核权限!');
             $this->jsonReturn();
         }
-        */
 
         $supplier_model = new SupplierChainModel();
         $supplier = $supplier_model->field(['supplier_level,erui_status,status,org_id'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
@@ -672,11 +669,15 @@ class SupplierController extends PublicController {
             $this->jsonReturn();
         }
 
+        /*
+         * 去掉事业部限制 2018-04-26 买买提
+
         if (!in_array($supplier['org_id'], $condition['org_id']) && !empty($supplier['org_id'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您所属的事业部和供应商的事业部不匹配,不能对该供应商进行审核!');
             $this->jsonReturn();
         }
+        */
 
         $status = $this->getPut('status');
         if (empty($status)) {
