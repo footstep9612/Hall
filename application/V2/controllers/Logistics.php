@@ -251,6 +251,7 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['port_surcharge_items'] = $quoteLogiFee['inter_shipping_items'] = [];
     	        foreach ($logiCostList as $logiCost) {
     	            $costType = $logiCost['type'];
+    	            $logiCost['show'] = false;
     	            unset($logiCost['type']);
     	            if ($costType == 'port_surcharge') {
     	                $quoteLogiFee['port_surcharge_items'][] = $logiCost;
