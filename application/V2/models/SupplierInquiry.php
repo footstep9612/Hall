@@ -1205,9 +1205,9 @@ class SupplierInquiryModel extends PublicModel {
                 $realSpend = $bizSpend + $logiSpend;
             }
             // 真实报价用时
-            $item['real_quoted_time'] = number_format($realSpend / 3600, 2);
+            $item['real_quoted_time'] = $logiSpend > 0 ? number_format($realSpend / 3600, 2) : '';
             // 整体报价用时
-            $item['whole_quoted_time'] = number_format(($realSpend + str_replace(',', '', $item['clarification_time']) * 3600)  / 3600, 2);
+            $item['whole_quoted_time'] = $logiSpend > 0 ? number_format(($realSpend + str_replace(',', '', $item['clarification_time']) * 3600)  / 3600, 2) : '';
         }
     }
 
