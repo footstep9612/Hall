@@ -63,7 +63,7 @@ class PriceStrategyDiscountModel extends PublicModel{
             $data = [];
             foreach($input as $k=>$v){
                 if(in_array($k,['discount','name','min_purchase_qty','max_purchase_qty','validity_start','validity_end'])){
-                    $data[$k] = time($v);
+                    $data[$k] = trim($v);
                 }
             }
             if(empty($data)){
@@ -74,6 +74,7 @@ class PriceStrategyDiscountModel extends PublicModel{
 
             $where =['sku'=>trim($input['sku']),'country_bn'=>ucfirst(trim($input['country_bn']))];
             $flag = $this->where($where)->save($data);
+            unset($data);
             return $flag ? $flag : false;
         }catch (Exception $e){
             return false;
