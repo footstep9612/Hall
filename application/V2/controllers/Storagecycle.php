@@ -19,7 +19,7 @@ class StoragecycleController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货仓库
      */
-    public function CreateAction() {
+    public function createAction() {
         $storage_id = $this->getPut('storage_id');
         if (empty($storage_id)) {
             jsonReturn('',MSG::ERROR_PARAM,'请选择仓库！');

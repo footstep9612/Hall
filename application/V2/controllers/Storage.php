@@ -19,7 +19,7 @@ class StorageController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货仓库
      */
-    public function CreateAction() {
+    public function createAction() {
         $country_bn = $this->getPut('country_bn');
         if (empty($country_bn)) {
             jsonReturn('',MSG::ERROR_PARAM,'请选择国家！');
