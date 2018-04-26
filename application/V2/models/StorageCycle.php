@@ -58,7 +58,7 @@ class StorageCycleModel extends PublicModel{
             $data = [];
             foreach($input as $k=>$v){
                 if(in_array($k,['storage_id','spu','sku','to_country_bn','to_city','cycle'])){
-                    $v = (trim($v)=='to_country_bn') ? ucfirst(trim($v)) : time($v);
+                    $v = (trim($k)=='to_country_bn') ? ucfirst(trim($v)) : trim($v);
                     $data[$k] = $v;
                 }
             }
@@ -70,6 +70,7 @@ class StorageCycleModel extends PublicModel{
 
             $where =['id'=>$input['id']];
             $flag = $this->where($where)->save($data);
+            unset($data);
             return $flag ? $flag : false;
         }catch (Exception $e){
             return false;
