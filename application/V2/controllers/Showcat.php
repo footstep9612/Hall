@@ -664,4 +664,32 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+    public function updateShowCatsMaterialAction() {
+        $show_material_cat = new ShowMaterialCatModel();
+        $show_cat_res = $show_material_cat->field('show_cat_no')->group('show_cat_no')->select();
+
+        if (!empty($show_cat_res)) {
+            $show_material_cat->startTrans();
+            $results['code'] = '1';
+            $results['message'] = '成功！';
+            foreach ($show_cat_res as $val) {
+                if (strlen($val['show_cat_no']) < 7) {
+                    $a = substr($val['show_cat_no'], 0, 2);
+                    $b = substr($val['show_cat_no'], 2, 2);
+                    $c = substr($val['show_cat_no'], 4, 2);
+                    $cat_no_arr = $a . ':' . $b . ':' . $c;
+
+                    $where['show_cat_no'] = $val['show_cat_no'];
+                    $re = $show_material_cat->where($where)->save(['show_cat_no' => $cat_no_arr]);
+                    if (!$re) {
+                        $show_material_cat->rollback();
+                        $results['code'] = '-101';
+                        $results['message'] = '失败！';
+                    }
+                }
+            }
+            $show_material_cat->commit();
+            $this->jsonReturn($results);
+        }
+    }
 }
