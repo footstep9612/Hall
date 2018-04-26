@@ -19,7 +19,7 @@ class PricestrategydiscountController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货
      */
-    public function CreateAction() {
+    public function createAction() {
         $sku = $this->getPut('sku');
         if (empty($sku)) {
             jsonReturn('',MSG::ERROR_PARAM,'请输入sku！');
@@ -34,11 +34,10 @@ class PricestrategydiscountController extends PublicController {
         }
         $PriceStrategyDiscountModel = new PriceStrategyDiscountModel();
         $flag = $PriceStrategyDiscountModel->createData($this->getPut());
-
-        if ($flag) {
-            $this->jsonReturn($flag);
-        } elseif ($flag === false) {
+        if ($flag === false) {
             $this->jsonReturn('',MSG::MSG_FAILED);
+        } else {
+            $this->jsonReturn($flag);
         }
     }
 
