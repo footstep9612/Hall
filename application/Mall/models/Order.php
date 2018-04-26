@@ -183,6 +183,7 @@ class OrderModel extends PublicModel {
         $skuAry = [];
         $sku_stock = [];
         foreach($data as $sku => $number){
+            $priceInfo = [];
             $skuAry[] = $sku;
             $number = intval($number);
             $data_temp = [];
@@ -196,9 +197,20 @@ class OrderModel extends PublicModel {
             }else{
                 jsonReturn('', 1044, '已经下架');
             }
-
             //获取价格信息
-            $priceInfo = $productModel->getSkuPriceByCount($sku,$country_bn,$number);
+            switch($stockInfo[$sku]['price_strategy_type']){
+                case 1:
+                    $priceInfo = $productModel->getSkuPriceByCount($sku, $country_bn, $number);
+                    break;
+                case 2:
+                    $psdM = new PriceStrategyDiscountModel();
+                    $priceInfo = $psdM->getPrice($sku, $country_bn, $number, $stockInfo[$sku]['price']);
+                    $stockPrice = $stockInfo[$sku];
+                    unset($stockPrice['price']);
+                    $priceInfo = array_merge($priceInfo,$stockPrice);
+                    break;
+            }
+            //$priceInfo = $productModel->getSkuPriceByCount($sku,$country_bn,$number);
             $currency_bn = $priceInfo ? $priceInfo['price_cur_bn'] : null;
 
             //获取商品基本信息

@@ -594,8 +594,8 @@ class ShowcatController extends PublicController {
                     $b = substr($val['parent_cat_no'], 2, 2);
                     $c = substr($val['parent_cat_no'], 4, 2);
                     $cat_no_arr = $a . ':' . $b . ':' . $c;
-
-                    $re = $show_cat->where(['parent_cat_no=' . $val['parent_cat_no']])->save(['parent_cat_no' => $cat_no_arr]);
+                    $where['parent_cat_no'] = $val['parent_cat_no'];
+                    $re = $show_cat->where($where)->save(['parent_cat_no' => $cat_no_arr]);
                     if (!$re) {
                         $show_cat->rollback();
                         $results['code'] = '-101';
@@ -617,13 +617,14 @@ class ShowcatController extends PublicController {
             $results['code'] = '1';
             $results['message'] = '成功！';
             foreach ($show_cat_res as $val) {
-                if (strlen($val['cat_no']) < 7) {
+                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) >  5) {
                     $a = substr($val['cat_no'], 0, 2);
                     $b = substr($val['cat_no'], 2, 2);
                     $c = substr($val['cat_no'], 4, 2);
                     $cat_no_arr = $a . ':' . $b . ':' . $c;
 
-                    $re = $show_cat_goods->where('cat_on=' . $val['cat_no'])->save(['cat_no' => $cat_no_arr]);
+                    $where['cat_no'] = $val['cat_no'];
+                    $re = $show_cat_goods->where($where)->save(['cat_no' => $cat_no_arr]);
                     if (!$re) {
                         $show_cat_goods->rollback();
                         $results['code'] = '-101';
@@ -645,13 +646,14 @@ class ShowcatController extends PublicController {
             $results['code'] = '1';
             $results['message'] = '成功！';
             foreach ($show_cat_res as $val) {
-                if (strlen($val['cat_no']) < 7) {
+                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) >  5) {
                     $a = substr($val['cat_no'], 0, 2);
                     $b = substr($val['cat_no'], 2, 2);
                     $c = substr($val['cat_no'], 4, 2);
                     $cat_no_arr = $a . ':' . $b . ':' . $c;
 
-                    $re = $show_cat_product->where('cat_on=' . $val['cat_on'])->save(['cat_no' => $cat_no_arr]);
+                    $where['cat_no'] = $val['cat_no'];
+                    $re = $show_cat_product->where($where)->save(['cat_no' => $cat_no_arr]);
                     if (!$re) {
                         $show_cat_product->rollback();
                         $results['code'] = '-101';
