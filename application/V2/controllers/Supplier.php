@@ -645,6 +645,9 @@ class SupplierController extends PublicController {
             $this->setMessage('供应商ID必须是数字!');
             $this->jsonReturn();
         }
+
+        /*
+         * 去掉事业部限制 2018-04-26 买买提
         $org_model = new OrgModel();
 
         $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
@@ -653,6 +656,7 @@ class SupplierController extends PublicController {
             $this->setMessage('您不属于易瑞或事业部,没有供应商审核权限!');
             $this->jsonReturn();
         }
+        */
 
         $supplier_model = new SupplierChainModel();
         $supplier = $supplier_model->field(['supplier_level,erui_status,status,org_id'])->where(['id' => $supplier_id, 'deleted_flag' => 'N'])->find();
