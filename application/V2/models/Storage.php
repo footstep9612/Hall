@@ -58,7 +58,7 @@ class StorageModel extends PublicModel{
             $data = [];
             foreach($input as $k=>$v){
                 if(in_array($k,['country_bn','storage_name','keyword','description','remark','content','status'])){
-                    $v = (trim($v)=='country_bn') ? ucfirst(trim($v)) : time($v);
+                    $v = (trim($k)=='country_bn') ? ucfirst(trim($v)) : trim($v);
                     $data[$k] = $v;
                 }
             }
@@ -70,6 +70,7 @@ class StorageModel extends PublicModel{
 
             $where =['id'=>$input['id']];
             $flag = $this->where($where)->save($data);
+            unset($data);
             return $flag ? $flag : false;
         }catch (Exception $e){
             return false;

@@ -26,16 +26,16 @@ class PriceStrategyDiscountModel extends PublicModel{
         }
         try{
             $data = [
-                'country_bn' => intval($input['storage_id']),
+                'country_bn' => ucfirst(trim($input['country_bn'])),
                 'sku' => trim($input['sku']),
             ];
             if($this->getExit($data)===false){
                 $data['discount'] = trim($input['discount']);
                 $data['name'] = trim($input['name']);
-                $data['min_purchase_qty'] = trim($input['min_purchase_qty']);
-                $data['max_purchase_qty'] = trim($input['max_purchase_qty']);
-                $data['validity_start'] = trim($input['validity_start']);
-                $data['validity_end'] = trim($input['validity_end']);
+                $data['min_purchase_qty'] = isset($input['min_purchase_qty']) ? intval($input['min_purchase_qty']) : 1;
+                $data['max_purchase_qty'] = isset($input['max_purchase_qty']) ? intval($input['max_purchase_qty']) : null;
+                $data['validity_start'] = isset($input['validity_start']) ? trim($input['validity_start']) : null;
+                $data['validity_end'] = isset($input['validity_end']) ? trim($input['validity_end']) : null;
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $flag = $this->add($data);
@@ -63,7 +63,7 @@ class PriceStrategyDiscountModel extends PublicModel{
             $data = [];
             foreach($input as $k=>$v){
                 if(in_array($k,['discount','name','min_purchase_qty','max_purchase_qty','validity_start','validity_end'])){
-                    $data[$k] = time($v);
+                    $data[$k] = trim($v);
                 }
             }
             if(empty($data)){
@@ -74,6 +74,7 @@ class PriceStrategyDiscountModel extends PublicModel{
 
             $where =['sku'=>trim($input['sku']),'country_bn'=>ucfirst(trim($input['country_bn']))];
             $flag = $this->where($where)->save($data);
+            unset($data);
             return $flag ? $flag : false;
         }catch (Exception $e){
             return false;
