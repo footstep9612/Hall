@@ -529,13 +529,13 @@ class EsGoodsModel extends Model {
             $goods_supplier_model = new GoodsSupplierModel();
             $show_cat_goods_model = new ShowCatGoodsModel();
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
-            for ($i = 0; $i < $count; $i += 100) {
+            for ($i = 0; $i < $count; $i += 1000) {
                 if ($i > $count) {
                     $i = $count;
                 }
 
                 echo $i, PHP_EOL, '<BR>';
-                usleep(300);
+                //  usleep(300);
                 ob_flush();
                 flush();
 
@@ -550,7 +550,7 @@ class EsGoodsModel extends Model {
                 if ($goods_skus) {
                     $where['sku'] = ['in', $goods_skus];
                 }
-                $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
+                $goods = $this->where($where)->limit(0, 1000)->order('id ASC')->select();
                 $nonamespus = $spus = $skus = [];
 
                 if ($goods) {
@@ -594,25 +594,25 @@ class EsGoodsModel extends Model {
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
 
-//                $updateParams = [];
-//                $updateParams['index'] = $this->dbName;
-//                $updateParams['type'] = 'goods_' . $lang;
+                $updateParams = [];
+                $updateParams['index'] = $this->update_dbName;
+                $updateParams['type'] = $this->tableName . '_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $time2 = microtime(true);
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
-                    if ($key === 99) {
+//                    $time2 = microtime(true);
+                    list($type, $body) = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names, true);
+                    if ($key === 999) {
                         $max_id = $item['id'];
                     }
-                    echo microtime(true) - $time2, "\r\n";
-                    print_r($flag);
-                    ob_flush();
-                    flush();
+//                    echo microtime(true) - $time2, "\r\n";
+//                    print_r($flag);
+//                    ob_flush();
+//                    flush();
+                    $updateParams['body'][] = [$type => ['_id' => $item['sku']]];
+                    $updateParams['body'][] = ['doc' => $body];
                 }
+                $flag = $es->bulk($updateParams);
                 echo microtime(true) - $time1, "\r\n";
-
-
-//                $flag = $es->bulk($updateParams);
-//                var_dump($flag);
+                var_dump($flag);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -621,7 +621,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = []) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = [], $is_body = false) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -770,7 +770,12 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
 
-        if ($es_goods) {
+        if ($es_goods && $is_body) {
+
+            return ['update', $body];
+        } elseif (!$es_goods && $is_body) {
+            return ['create', $body];
+        } elseif ($es_goods) {
             $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
