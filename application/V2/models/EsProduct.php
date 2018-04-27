@@ -831,7 +831,7 @@ class EsProductModel extends Model {
 
             flush();
             $k = 1;
-            for ($i = 0; $i < $count; $i += 1000) {
+            for ($i = 0; $i < $count; $i += 100) {
                 $time1 = microtime(true);
                 if ($i > $count) {
                     $i = $count;
@@ -846,7 +846,7 @@ class EsProductModel extends Model {
                 if ($product_spus) {
                     $where['spu'] = ['in', $product_spus];
                 }
-                $products = $this->where($where)->limit(0, 1000)
+                $products = $this->where($where)->limit(0, 100)
                                 ->order('id ASC')->select();
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
@@ -896,16 +896,15 @@ class EsProductModel extends Model {
                     $updateParams['index'] = $this->update_dbName;
                     $updateParams['type'] = $this->tableName . '_' . $lang;
                     foreach ($products as $key => $item) {
-                        list($type, $body) = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr, true);
-                        if ($key === 999) {
+                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr, false);
+                        if ($key === 99) {
                             $max_id = $item['id'];
                         }
-                        $updateParams['body'][] = [$type => ['_id' => $item['spu']]];
-                        $updateParams['body'][] = ['doc' => $body];
+                        var_dump($flag);
                     }
-                    $flag = $es->bulk($updateParams);
 
-                    var_dump($flag);
+
+
                     echo microtime(true) - $time1, "\r\n";
                 } else {
                     $this->_delcache();
