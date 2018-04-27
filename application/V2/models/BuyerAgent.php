@@ -577,7 +577,7 @@ class BuyerAgentModel extends PublicModel {
                 'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
                 'update_at'=>end($info)['created_at'],
-                'agent_name'=>$agent_info
+                'agent_info'=>$agent_info
             );
         }else{
             $agent=array(
@@ -585,7 +585,7 @@ class BuyerAgentModel extends PublicModel {
                 'created_name'=>null,
                 'created_at'=>null,
                 'update_at'=>null,
-                'agent_name'=>null
+                'agent_info'=>null
             );
         }
         return $agent;
