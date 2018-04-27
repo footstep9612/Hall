@@ -900,12 +900,13 @@ class EsProductModel extends Model {
                         if ($key === 999) {
                             $max_id = $item['id'];
                         }
-                        $updateParams['body'][] = [$type => ['_id' => $item['sku']]];
+                        $updateParams['body'][] = [$type => ['_id' => $item['spu']]];
                         $updateParams['body'][] = ['doc' => $body];
                     }
                     $flag = $es->bulk($updateParams);
-                    echo microtime(true) - $time1, "\r\n";
+
                     var_dump($flag);
+                    echo microtime(true) - $time1, "\r\n";
                 } else {
                     $this->_delcache();
                     return false;
