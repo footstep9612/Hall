@@ -231,15 +231,68 @@ class EsproductController extends PublicController {
         exit;
     }
 
-    public function getStateAction() {
+    public function setSettingsAction() {
         $es = new ESClient();
         if ($this->version) {
             $ret = $es->getSettings($this->index . '_' . $this->version);
         } else {
             $ret = $es->getSettings($this->index);
         }
+
         echo json_encode($ret, 256);
         exit;
+    }
+
+    public function getStateAction() {
+        $es = new ESClient();
+        $ret = $es->getstate();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function getnodesAction() {
+        $es = new ESClient();
+        $ret = $es->nodes();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 别名
+     */
+
+    public function setAliasAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $body = $this->getPut('body');
+        $ret = $es->index_alias($index, $body);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 别名
+     */
+
+    public function setAliasesAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        $ret = $es->index_Aliases($index, $name);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function deleteAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->deleteAlias($index, $name);
+    }
+
+    public function existsAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->existsAlias($index, $name);
     }
 
     /*
