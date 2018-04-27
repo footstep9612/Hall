@@ -611,8 +611,9 @@ class EsGoodsModel extends Model {
                     $updateParams['body'][] = ['doc' => $body];
                 }
                 $flag = $es->bulk($updateParams);
-                echo microtime(true) - $time1, "\r\n";
+
                 var_dump($flag);
+                echo microtime(true) - $time1, "\r\n";
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
