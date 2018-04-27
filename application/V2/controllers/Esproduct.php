@@ -209,8 +209,11 @@ class EsproductController extends PublicController {
 
     public function deleteAction() {
         $es = new ESClient();
+        $index = $this->getPut('index');
         $old_version = $this->getPut('old_version');
-        if ($old_version) {
+        if ($index) {
+            $ret = $es->delete_index($index);
+        } elseif ($old_version) {
             $ret = $es->delete_index($this->index . '_' . $old_version);
         } else {
             $ret = $es->delete_index($this->index);
