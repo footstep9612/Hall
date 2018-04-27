@@ -831,7 +831,8 @@ class EsProductModel extends Model {
 
             flush();
             $k = 1;
-            for ($i = 0; $i < $count; $i += 100) {
+            for ($i = 0; $i < $count; $i += 1000) {
+                $time1 = microtime(true);
                 if ($i > $count) {
                     $i = $count;
                 }
@@ -845,7 +846,7 @@ class EsProductModel extends Model {
                 if ($product_spus) {
                     $where['spu'] = ['in', $product_spus];
                 }
-                $products = $this->where($where)->limit(0, 100)
+                $products = $this->where($where)->limit(0, 1000)
                                 ->order('id ASC')->select();
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
@@ -891,15 +892,20 @@ class EsProductModel extends Model {
                     $bizline_arr = $bizline_model->getNameByIds($bizline_ids);
                     $onshelf_flags = $this->getonshelf_flag($spus, $lang);
                     echo '<pre>';
+                    $updateParams = [];
+                    $updateParams['index'] = $this->update_dbName;
+                    $updateParams['type'] = $this->tableName . '_' . $lang;
                     foreach ($products as $key => $item) {
-                        $flag = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr);
-                        if ($key === 99) {
+                        list($type, $body) = $this->_adddoc($item, $attachs, $scats, $mcats, $product_attrs, $minimumorderouantitys, $onshelf_flags, $lang, $max_id, $es, $k, $mcats_zh, $name_locs, $suppliers, $bizline_arr, true);
+                        if ($key === 999) {
                             $max_id = $item['id'];
                         }
-                        print_r($flag);
-                        ob_flush();
-                        flush();
+                        $updateParams['body'][] = [$type => ['_id' => $item['sku']]];
+                        $updateParams['body'][] = ['doc' => $body];
                     }
+                    $flag = $es->bulk($updateParams);
+                    echo microtime(true) - $time1, "\r\n";
+                    var_dump($flag);
                 } else {
                     $this->_delcache();
                     return false;
@@ -912,7 +918,7 @@ class EsProductModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers, &$bizline_arr) {
+    private function _adddoc(&$item, &$attachs, &$scats, &$mcats, &$product_attrs, &$minimumorderouantitys, &$onshelf_flags, &$lang, &$max_id, &$es, &$k, &$mcats_zh, &$name_locs, &$suppliers, &$bizline_arr, $is_body = false) {
 
         $spu = $id = $item['spu'];
 
@@ -1045,11 +1051,17 @@ class EsProductModel extends Model {
         }
         $body['supplier_count'] = strval($body['supplier_count']);
         $this->_findnulltoempty($body);
-        if ($es_product) {
+        if ($es_product && $is_body) {
+
+            return ['update', $body];
+        } elseif (!$es_product && $is_body) {
+            return ['create', $body];
+        } elseif ($es_product) {
             $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
-        } if (!isset($flag['_version'])) {
+        }
+        if (!isset($flag['_version'])) {
             LOG::write("FAIL:" . $item['id'] . var_export($flag, true), LOG::ERR);
         }
 
