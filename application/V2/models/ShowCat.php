@@ -793,10 +793,12 @@ class ShowCatModel extends PublicModel {
 
     public function getCatNo($parent_cat_no = '', $level_no = 1) {
 
-        if ($level_no < 1)
+        if ($level_no < 1) {
             $level_no = 1;
-        if ($level_no >= 3)
+        }
+        if ($level_no >= 3) {
             $level_no = 3;
+        }
 
         //一级分类编码
         if (empty($parent_cat_no) && $level_no == 1) {
@@ -897,6 +899,8 @@ class ShowCatModel extends PublicModel {
         } else {
             $data['level_no'] = 1;
         }
+
+
         if (!isset($data['cat_no'])) {
             $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
             if (!$cat_no) {
@@ -1162,6 +1166,7 @@ class ShowCatModel extends PublicModel {
             }
             $where['level_no'] = ['eq', $level_no];
             $where['deleted_flag'] = 'N';
+            $where['status'] = 'VALID';
             $where['lang'] = $lang;
             $where['name'] = trim($name);
             $where['market_area_bn'] = $market_area_bn;
