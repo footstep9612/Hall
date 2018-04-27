@@ -551,20 +551,22 @@ class BuyerAgentModel extends PublicModel {
         $sql.=" FROM erui_buyer.buyer_agent agent";
         $sql.=" WHERE buyer_id=$buyer_id";
         $info=$this->query($sql);
-        $agent_name='';
+//        $agent_name='';
+        $agentArr=[];
         foreach($info as $k => $v){
             if($v['deleted_flag']=='N'){
-                $agent_name.=','.$v['agent_name'];
+//                $agent_name.=','.$v['agent_name'];
+                $agentArr[$k]['agent_name']=$v['agent_name'];
+                $agentArr[$k]['agent_id']=$v['agent_id'];
             }
         }
-        $agent_name=substr($agent_name,1);
-        if(!empty($info)){
+        if(!empty($agentArr)){
             $agent=array(
                 'created_by'=>end($info)['created_by'],
                 'created_name'=>end($info)['created_name'],
                 'created_at'=>reset($info)['created_at'],
                 'update_at'=>end($info)['created_at'],
-                'agent_name'=>trim($agent_name,',')
+                'agent_info'=>array_merge($agentArr,[])
             );
         }else{
             $agent=array(
@@ -572,9 +574,28 @@ class BuyerAgentModel extends PublicModel {
                 'created_name'=>null,
                 'created_at'=>null,
                 'update_at'=>null,
-                'agent_name'=>null
+                'agent_info'=>[]
             );
         }
         return $agent;
+//        $agent_name=substr($agent_name,1);
+//        if(!empty($info)){
+//            $agent=array(
+//                'created_by'=>end($info)['created_by'],
+//                'created_name'=>end($info)['created_name'],
+//                'created_at'=>reset($info)['created_at'],
+//                'update_at'=>end($info)['created_at'],
+//                'agent_name'=>trim($agent_name,',')
+//            );
+//        }else{
+//            $agent=array(
+//                'created_by'=>null,
+//                'created_name'=>null,
+//                'created_at'=>null,
+//                'update_at'=>null,
+//                'agent_name'=>null
+//            );
+//        }
+//        return $agent;
     }
 }
