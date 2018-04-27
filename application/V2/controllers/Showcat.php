@@ -596,7 +596,6 @@ class ShowcatController extends PublicController {
                     $b = substr($val['parent_cat_no'], 2, 2);
                     $c = substr($val['parent_cat_no'], 4, 2);
                     $cat_no_arr = $a . ':' . $b . ':' . $c;
-
                     $where['parent_cat_no'] = $val['parent_cat_no'];
                     $re = $show_cat->where($where)->save(['parent_cat_no' => $cat_no_arr]);
                     if (!$re) {
@@ -613,6 +612,7 @@ class ShowcatController extends PublicController {
 
     public function updateShowCatsGoodsAction() {
         $show_cat_goods = new ShowCatGoodsModel();
+        $country_bn = $this->getPut('country_bn');
         $show_cat_res = $show_cat_goods->field('id,cat_no')->group('cat_no')->select();
 
         if (!empty($show_cat_res)) {
@@ -642,6 +642,7 @@ class ShowcatController extends PublicController {
 
     public function updateShowCatsProductAction() {
         $show_cat_product = new ShowCatProductModel();
+        $country_bn = $this->getPut('country_bn');
         $show_cat_res = $show_cat_product->field('id,cat_no')->group('cat_no')->select();
 
         if (!empty($show_cat_res)) {
