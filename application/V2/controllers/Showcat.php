@@ -381,7 +381,7 @@ class ShowcatController extends PublicController {
         if (empty($data['parent_cat_no'])) {
             $level_no = 1;
         } else {
-            $info = $this->_model->where(['cat_no' => $data['parent_cat_no']])->find();
+            $info = $this->_model->where(['cat_no' => $data['parent_cat_no'], 'status' => 'VALID', 'deleted_flag' => 'N'])->find();
             if (intval($info['level_no'])) {
                 $level_no = intval($info['level_no']) + 1;
             } else {
@@ -397,6 +397,7 @@ class ShowcatController extends PublicController {
         $this->_exist($data, 'es', $level_no, $market_area_bn, $country_bn, null, false);
         $this->_exist($data, 'ru', $level_no, $market_area_bn, $country_bn, null, false);
         $result = $this->_model->create_data($data);
+
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -471,7 +472,7 @@ class ShowcatController extends PublicController {
 
     public function deleteAction() {
         $cat_no = $this->getPut('cat_no');
-        //  $lang = $this->getPut('lang', '');
+//  $lang = $this->getPut('lang', '');
         $result = $this->_model->delete_data($cat_no);
         if ($result) {
             $this->delcache();
@@ -580,6 +581,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+
     public function updateShowCatsParentAction() {
         $show_cat = new ShowCatModel();
         $show_cat_res = $show_cat->field('id,parent_cat_no')->group('parent_cat_no')->select();
@@ -607,6 +609,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+
     public function updateShowCatsGoodsAction() {
         $show_cat_goods = new ShowCatGoodsModel();
         $country_bn = $this->getPut('country_bn');
@@ -617,7 +620,7 @@ class ShowcatController extends PublicController {
             $results['code'] = '1';
             $results['message'] = '成功！';
             foreach ($show_cat_res as $val) {
-                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) >  5) {
+                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) > 5) {
                     $a = substr($val['cat_no'], 0, 2);
                     $b = substr($val['cat_no'], 2, 2);
                     $c = substr($val['cat_no'], 4, 2);
@@ -636,6 +639,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+
     public function updateShowCatsProductAction() {
         $show_cat_product = new ShowCatProductModel();
         $country_bn = $this->getPut('country_bn');
@@ -646,7 +650,7 @@ class ShowcatController extends PublicController {
             $results['code'] = '1';
             $results['message'] = '成功！';
             foreach ($show_cat_res as $val) {
-                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) >  5) {
+                if (strlen($val['cat_no']) < 7 && strlen($val['cat_no']) > 5) {
                     $a = substr($val['cat_no'], 0, 2);
                     $b = substr($val['cat_no'], 2, 2);
                     $c = substr($val['cat_no'], 4, 2);
@@ -665,6 +669,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+
     public function updateShowCatsMaterialAction() {
         $show_material_cat = new ShowMaterialCatModel();
         $show_cat_res = $show_material_cat->field('show_cat_no')->group('show_cat_no')->select();
@@ -693,4 +698,5 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($results);
         }
     }
+
 }
