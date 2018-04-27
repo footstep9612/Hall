@@ -645,6 +645,7 @@ class SupplierController extends PublicController {
             $this->setMessage('供应商ID必须是数字!');
             $this->jsonReturn();
         }
+
         $org_model = new OrgModel();
 
         $condition['org_id'] = $org_model->getOrgIdsById($this->user['group_id']);
@@ -668,11 +669,15 @@ class SupplierController extends PublicController {
             $this->jsonReturn();
         }
 
+        /*
+         * 去掉事业部限制 2018-04-26 买买提
+
         if (!in_array($supplier['org_id'], $condition['org_id']) && !empty($supplier['org_id'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('您所属的事业部和供应商的事业部不匹配,不能对该供应商进行审核!');
             $this->jsonReturn();
         }
+        */
 
         $status = $this->getPut('status');
         if (empty($status)) {

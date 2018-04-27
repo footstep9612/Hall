@@ -251,6 +251,7 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['port_surcharge_items'] = $quoteLogiFee['inter_shipping_items'] = [];
     	        foreach ($logiCostList as $logiCost) {
     	            $costType = $logiCost['type'];
+    	            $logiCost['show'] = false;
     	            unset($logiCost['type']);
     	            if ($costType == 'port_surcharge') {
     	                $quoteLogiFee['port_surcharge_items'][] = $logiCost;
@@ -413,6 +414,22 @@ class LogisticsController extends PublicController {
 	    } else {
 	        $this->jsonReturn(false);
 	    }
+	}
+	
+	/**
+	 * @desc 获取物流费用历史价格列表接口
+	 *
+	 * @author liujf
+	 * @time 2018-04-25
+	 */
+	public function getQuoteLogiCostHistoricalPriceListAction() {
+	    $condition = $this->put_data;
+	    $quote = $this->quoteModel->field('from_country, trade_terms_bn, trans_mode_bn')->where(['inquiry_id' => $condition['inquiry_id']])->find();
+	    $condition['from_country'] = $quote['from_country'];
+	    $condition['trade_terms_bn'] = $quote['trade_terms_bn'];
+	    $condition['trans_mode_id'] = $quote['trans_mode_bn'];
+	    $historicalPriceList = $this->quoteLogiCostModel->getHistoricalPriceList($condition);
+	    $this->jsonReturn($historicalPriceList);
 	}
 	
 	/**
