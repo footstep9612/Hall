@@ -64,11 +64,11 @@ class ShowCatModel extends PublicModel {
     /**
      * 展示分类列表
      * @param array $condition  条件
-     * @param string $field     检索字段
+     * @param string $fields     检索字段
      * @return array|bool
      */
-    public function getListbyfield($condition = [], $field = '') {
-        $field = empty($field) ? 'cat_no,name' : $field;
+    public function getListbyfield($condition = [], $fields = '') {
+        $field = empty($fields) ? 'cat_no,name' : $fields;
         if (empty($condition)) {
             $condition['parent_cat_no'] = 0;
         }
@@ -802,7 +802,7 @@ class ShowCatModel extends PublicModel {
 
         //一级分类编码
         if (empty($parent_cat_no) && $level_no == 1) {
-            $re = $this->field('cat_no')->where(['level_no' => 1])->order('id DESC')->find();
+            $re = $this->field('cat_no')->where(['level_no' => 1, 'deleted_flag' => 'N'])->order('id DESC')->find();
             if (!empty($re['cat_no'])) {
                 // 00+1:00:00
                 $cat_no_seeds = explode(':', $re['cat_no']);
@@ -821,11 +821,13 @@ class ShowCatModel extends PublicModel {
             return false;
         } else {
             $re = $this->field('cat_no,parent_cat_no')
-                    ->where(['parent_cat_no' => $parent_cat_no])
+                    ->where(['parent_cat_no' => $parent_cat_no, 'deleted_flag' => 'N'])
                     ->order('id DESC')
                     ->find();
+
             //p($re);
             //p($this->getLastSql());
+
 
             if (!empty($re['cat_no']) && $level_no == 3) {
 
@@ -844,6 +846,7 @@ class ShowCatModel extends PublicModel {
                 //三级分类编码
                 $parent_cat_seeds = explode(':', $parent_cat_no);
                 $parent_cat_seeds[2] = $parent_cat_seeds[2] + 1;
+
 
                 if ($parent_cat_seeds[2] < 10) {
                     $parent_cat_seeds[2] = str_pad($parent_cat_seeds[2], 2, "0", STR_PAD_LEFT);
@@ -903,6 +906,7 @@ class ShowCatModel extends PublicModel {
 
         if (!isset($data['cat_no'])) {
             $cat_no = $this->getCatNo($data['parent_cat_no'], $data['level_no']);
+
             if (!$cat_no) {
                 return false;
             } else {
@@ -962,6 +966,7 @@ class ShowCatModel extends PublicModel {
 
             $flag = $show_material_cat_model->addAll($dataList);
         }
+
         $this->commit();
         return $cat_no;
     }
@@ -974,11 +979,13 @@ class ShowCatModel extends PublicModel {
     protected $data = array();
 
     public function getNameByCat($cat_no = '', $lang = 'en') {
-        if ($code == '')
+        if ($code == '') {
             return '';
+        }
         $condition = array(
             'cat_no' => $cat_no,
-            'status' => self::STATUS_VALID
+            'status' => self::STATUS_VALID,
+            'deleted_flag' => 'N',
         );
         if ($lang) {
 
@@ -1015,6 +1022,7 @@ class ShowCatModel extends PublicModel {
             $condition = array(
                 'cat_no' => $catNo,
                 'status' => self::STATUS_VALID,
+                'deleted_flag' => 'N',
                 'lang' => $lang
             );
             $result = $this->field($field)->where($condition)->order('sort_order DESC')->find();
@@ -1036,16 +1044,17 @@ class ShowCatModel extends PublicModel {
      * @return array
      */
     public function getCatNoByName($cat_name = '') {
-        if (empty($cat_name))
+        if (empty($cat_name)) {
             return array();
-
+        }
         if (redisHashExist('Show_cat', md5($cat_name))) {
             return (array) json_decode(redisHashGet('Show_cat', md5($cat_name)));
         }
         try {
             $result = $this->field('cat_no')->where(array('name' => array('like', $cat_name)))->order('sort_order DESC')->select();
-            if ($result)
+            if ($result) {
                 redisHashSet('Show_cat', md5($cat_name), json_encode($result));
+            }
 
             return $result ? $result : array();
         } catch (Exception $e) {
@@ -1069,7 +1078,7 @@ class ShowCatModel extends PublicModel {
         try {
             if ($show_cat_nos) {
                 $cat3s = $this->field('market_area_bn, country_bn, parent_cat_no, cat_no, name')
-                        ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID'])
+                        ->where(['cat_no' => ['in', $show_cat_nos], 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N',])
                         ->select();
                 $cat1_nos = $cat2_nos = [];
             } else {
@@ -1084,7 +1093,7 @@ class ShowCatModel extends PublicModel {
             }
             if ($cat2_nos) {
                 $cat2s = $this->field('id, cat_no, name, parent_cat_no')
-                                ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+                                ->where(['cat_no' => ['in', $cat2_nos], 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N',])->select();
             }
             if (!$cat2s) {
                 $newcat3s = [];
@@ -1107,7 +1116,7 @@ class ShowCatModel extends PublicModel {
             }
             if ($cat1_nos) {
                 $cat1s = $this->field('id, cat_no, name')
-                                ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID'])->select();
+                                ->where(['cat_no' => ['in', $cat1_nos], 'lang' => $lang, 'status' => 'VALID', 'deleted_flag' => 'N',])->select();
             }
 
             $newcat2s = [];
@@ -1249,7 +1258,6 @@ class ShowCatModel extends PublicModel {
             if ($cat_no1) {
                 foreach ($show_cat1s['childs'] as $show_cat2s) {
                     $data2 = [];
-                    $cat_no2 = null;
                     $data2['sort_order'] = 1;
                     $data2['level_no'] = 2;
                     $data2['en']['name'] = $show_cat2s['show_cat_name2_en'];
@@ -1275,8 +1283,6 @@ class ShowCatModel extends PublicModel {
     }
 
     public function InsrtIntoShowCat3($show_cat3, $market_area_bn, $country_bn, $cat_no2) {
-        $data3 = [];
-        $cat_no3 = null;
         $data3['sort_order'] = 1;
         $data3['level_no'] = 3;
         $data3['en']['name'] = $show_cat3['show_cat_name3_en'];
@@ -1354,8 +1360,8 @@ class ShowCatModel extends PublicModel {
         }
         for ($currentRow = 2; $currentRow <= $allRow; $currentRow++) {
             for ($currentColumn = 0; $currentColumn <= $allColumn_num; $currentColumn++) {
-                $val = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
-                $val = str_replace('_x000D_', '', $val);
+                $vals = $currentSheet->getCellByColumnAndRow($currentColumn, $currentRow)->getValue();
+                $val = str_replace('_x000D_', '', $vals);
                 $quotient = intval($currentColumn / 26);
                 $remainder = $currentColumn % 26;
                 $f = $quotient > 0 ? chr(65 + $quotient - 1) : '';
@@ -1393,7 +1399,7 @@ class ShowCatModel extends PublicModel {
             $spu_count = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'parent_cat_no' => $cat_no])->sum('spu_count');
             $flag = $this->where(['deleted_flag' => 'N', 'lang' => $lang, 'cat_no' => $cat_no])->save(['spu_count' => $spu_count]);
             if ($flag && $data['parent_cat_no']) {
-                $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $num);
+                $flag = $this->UpdateSpuCountByCatno($data['parent_cat_no'], $lang, $spu_count);
             }
         }
         return $flag;
