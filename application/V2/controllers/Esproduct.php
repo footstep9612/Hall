@@ -348,22 +348,6 @@ class EsproductController extends PublicController {
     }
 
     /*
-     * 删除别名
-     */
-
-    public function deleteAliasAction() {
-        $index = $this->getPut('index');
-        $name = $this->getPut('name');
-        return $this->server->indices()->deleteAlias($index, $name);
-    }
-
-    public function existsAliasAction() {
-        $index = $this->getPut('index');
-        $name = $this->getPut('name');
-        return $this->server->indices()->existsAlias($index, $name);
-    }
-
-    /*
      * 新建别名
      */
 
@@ -387,6 +371,22 @@ class EsproductController extends PublicController {
         $ret = $es->index_Aliases($index, $name);
         echo json_encode($ret, 256);
         exit;
+    }
+
+    /*
+     * 删除别名
+     */
+
+    public function deleteAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->deleteAlias($index, $name);
+    }
+
+    public function existsAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->existsAlias($index, $name);
     }
 
     /*
