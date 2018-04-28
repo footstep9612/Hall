@@ -529,7 +529,7 @@ class EsGoodsModel extends Model {
             $goods_supplier_model = new GoodsSupplierModel();
             $show_cat_goods_model = new ShowCatGoodsModel();
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
-            for ($i = 0; $i < $count; $i += 100) {
+            for ($i = 0; $i < $count; $i += 1000) {
                 if ($i > $count) {
                     $i = $count;
                 }
@@ -550,7 +550,7 @@ class EsGoodsModel extends Model {
                 if ($goods_skus) {
                     $where['sku'] = ['in', $goods_skus];
                 }
-                $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
+                $goods = $this->where($where)->limit(0, 1000)->order('id ASC')->select();
                 $nonamespus = $spus = $skus = [];
 
                 if ($goods) {
