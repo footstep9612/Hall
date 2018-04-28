@@ -288,14 +288,13 @@ class BuyerController extends PublicController {
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=isset($data['lang'])?$data['lang']:'zh';
-        $edit=isset($data['edit'])?$data['edit']:false;
         $model = new BuyerModel();
         $res = $model->info($data);
         if($res['status'] != 'REJECTED'){
             $res['close_info']='';
         }
         $agent=new BuyerAgentModel();
-        $agentRes=$agent->getBuyerAgentList($data['id'],$edit);
+        $agentRes=$agent->getBuyerAgentList($data['id']);
         $countryModel = new CountryModel();
         $marketAreaModel = new MarketAreaModel();
         $res_arr = [$res];

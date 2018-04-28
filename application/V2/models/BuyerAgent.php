@@ -538,7 +538,7 @@ class BuyerAgentModel extends PublicModel {
 //        return $this->addAll($arr);   //添加
     }
     //buyer_id 获取 客户的经办人list
-    public function getBuyerAgentList($buyer_id,$edit=false){
+    public function getBuyerAgentList($buyer_id){
 //        $info=$this->alias('agent')
 //                    ->join('erui_sys.employee employee on agent.created_by=employee.id', 'left')
 //                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
@@ -551,26 +551,14 @@ class BuyerAgentModel extends PublicModel {
         $sql.=" FROM erui_buyer.buyer_agent agent";
         $sql.=" WHERE buyer_id=$buyer_id";
         $info=$this->query($sql);
-        $agent_name='';
-        if($edit==true){
-            $agentArr=[];
-            foreach($info as $k => $v){
-                if($v['deleted_flag']=='N'){
-                    $agentArr[$k]['agent_name']=$v['agent_name'];
-                    $agentArr[$k]['agent_id']=$v['agent_id'];
-                }
+        $agentArr=[];
+        foreach($info as $k => $v){
+            if($v['deleted_flag']=='N'){
+                $agentArr[$k]['agent_name']=$v['agent_name'];
+                $agentArr[$k]['agent_id']=$v['agent_id'];
             }
-            $agent_info=array_merge($agentArr,[]);
-        }else{
-            foreach($info as $k => $v){
-                if($v['deleted_flag']=='N'){
-                    $agent_name.=','.$v['agent_name'];
-                }
-            }
-            $agent_name=substr($agent_name,1);
-            $agent_info=trim($agent_name,',');
         }
-
+        $agent_info=array_merge($agentArr,[]);
         if(!empty($agent_info)){
             $agent=array(
                 'created_by'=>end($info)['created_by'],
@@ -585,7 +573,7 @@ class BuyerAgentModel extends PublicModel {
                 'created_name'=>null,
                 'created_at'=>null,
                 'update_at'=>null,
-                'agent_info'=>null
+                'agent_info'=>[]
             );
         }
         return $agent;
