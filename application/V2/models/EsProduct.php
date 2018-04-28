@@ -846,7 +846,7 @@ class EsProductModel extends Model {
                 if ($product_spus) {
                     $where['spu'] = ['in', $product_spus];
                 }
-                $products = $this->where($where)->limit(0, 1000)
+                $products = $this->where($where)->limit(0, 100)
                                 ->order('id ASC')->select();
                 $bizline_ids = $spus = $mcat_nos = [];
                 if ($products) {
