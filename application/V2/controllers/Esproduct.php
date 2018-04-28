@@ -24,11 +24,12 @@ class EsproductController extends PublicController {
     public function init() {
 
         if ($this->getRequest()->isCli()) {
-            ini_set("display_errors", "On");
-            error_reporting(E_ERROR | E_STRICT);
+
         } else {
             parent::init();
         }
+        ini_set("display_errors", "On");
+        error_reporting(E_ALL | E_STRICT);
     }
 
     public function clearCacheAction() {
@@ -63,12 +64,14 @@ class EsproductController extends PublicController {
         $action = $this->getPut('action');
         $type = $this->getRequest()->getMethod();
         $server = Yaf_Application::app()->getConfig()->esapi;
-        $ch = curl_init($server . $action);
-        curl_setopt($ch, CURLOPT_HEADER, false);
-        curl_setopt($ch, CURLOPT_URL, $server . $action);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $source_hosts = explode(',', $server);
 
+        $ch = curl_init($source_hosts[0] . '/' . $action);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $source_hosts[0] . '/' . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
         switch ($type) {
             case "GET" : curl_setopt($ch, CURLOPT_HTTPGET, true);
                 break;
@@ -86,12 +89,12 @@ class EsproductController extends PublicController {
 
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         $response = curl_exec($ch);
-        if (curl_errno($ch)) {
 
-            return curl_error($ch);
+        if (curl_errno($ch)) {
+            die(curl_error($ch));
         }
         curl_close($ch);
-        return json_decode($response, true);
+        die($response);
     }
 
     /*
