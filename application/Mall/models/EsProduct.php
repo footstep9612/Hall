@@ -127,35 +127,7 @@ class EsProductModel extends Model {
         } else {
             $onshelf_flag = 'Y';
         }
-        if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
-            $show_cat_no = trim($condition['show_cat_no']);
-            $show_cats_nested = [];
-            if ($onshelf_flag) {
-                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
-            }
-            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
-            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
-                        [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
-            ]]];
 
-            $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                [
-                    'path' => "show_cats_nested",
-                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
-            ]];
-        } elseif ($country_bn) {
-            $show_cats_nested = [];
-            if ($onshelf_flag) {
-                $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
-            }
-            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
-            $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                [
-                    'path' => "show_cats_nested",
-                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
-            ]];
-        }
         if (!empty($condition['min_exw_day']) && intval($condition['min_exw_day']) > 0) {
             $body['query']['bool']['must'][] = [ESClient::RANGE => ['min_exw_day' => ['lte' => intval($condition['min_exw_day']),]]];
         }
@@ -237,10 +209,35 @@ class EsProductModel extends Model {
                                 'deleted_flag' => 'N'
                             ])->select();
             if (empty($showcats)) {
+                if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
+                    $show_cat_no = trim($condition['show_cat_no']);
+                    $show_cats_nested = [];
+                    $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
+                    $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+                    $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
+                                [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
+                                [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
+                    ]]];
+                    $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                        [
+                            'path' => "show_cats_nested",
+                            'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+                    ]];
+                } elseif ($country_bn) {
+                    $show_cats_nested = [];
+                    $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
+                    $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+                    $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                        [
+                            'path' => "show_cats_nested",
+                            'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+                    ]];
+                }
                 $brand_model = new BrandModel();
                 $brands = $brand_model->getBrandByBrandName($keyword, $lang);
 
                 if (empty($brands)) {
+
                     $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
                                 ['bool' => [ESClient::MUST => [
                                             ['bool' => [ESClient::SHOULD => [
@@ -251,8 +248,6 @@ class EsProductModel extends Model {
                                                         ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-//                                                        [ESClient::WILDCARD => ['show_name.lower' =>
-//                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 3000]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 40000]]],
                                                         [ESClient::WILDCARD =>
@@ -269,8 +264,6 @@ class EsProductModel extends Model {
                                                         ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
                                                     ]]],
                                             ['bool' => [ESClient::SHOULD => [
-//                                                        [ESClient::WILDCARD => ['show_name.lower' =>
-//                                                                ['value' => '*' . strtolower($keyword) . 's', 'boost' => 300]]],
                                                         [ESClient::WILDCARD => ['show_name.lower' =>
                                                                 ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
                                                         [ESClient::WILDCARD =>
@@ -280,7 +273,6 @@ class EsProductModel extends Model {
                                                     ]]],
                                         ]]],
                                 ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]], 'boost' => 22]],
-                                //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '50%', 'operator' => 'or']]]]
                                 [ESClient::MATCH_PHRASE => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
                                 [ESClient::MATCH_PHRASE => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
                                 [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 1000]]],
