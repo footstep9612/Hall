@@ -66,6 +66,7 @@ class EsproductController extends PublicController {
         $source_hosts = explode(',', $server);
 
         $ch = curl_init($source_hosts[0] . '/' . $action);
+        echo $source_hosts[0] . '/' . $action, PHP_EOL;
         curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_URL, $source_hosts[0] . '/' . $action);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

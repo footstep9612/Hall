@@ -514,7 +514,7 @@ class EsGoodsModel extends Model {
         try {
             ob_clean();
             $max_id = 0;
-            $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
+            $where_count = ['lang' => $lang, 'deleted_flag' => 'N', 'id' => ['gt', 0]];
             if ($goods_skus) {
                 $where_count['sku'] = ['in', $goods_skus];
             }
@@ -529,7 +529,7 @@ class EsGoodsModel extends Model {
             $goods_supplier_model = new GoodsSupplierModel();
             $show_cat_goods_model = new ShowCatGoodsModel();
             echo '共有', $count, '条记录需要导入!', PHP_EOL;
-            for ($i = 0; $i < $count; $i += 1000) {
+            for ($i = 0; $i < $count; $i += 100) {
                 if ($i > $count) {
                     $i = $count;
                 }
@@ -540,7 +540,7 @@ class EsGoodsModel extends Model {
                 flush();
 
                 $time1 = microtime(true);
-                $where = ['lang' => $lang];
+                $where = ['deleted_flag' => 'N', 'lang' => $lang];
 
                 if ($max_id === 0) {
                     $where['id'] = ['gt', 0];
@@ -550,7 +550,7 @@ class EsGoodsModel extends Model {
                 if ($goods_skus) {
                     $where['sku'] = ['in', $goods_skus];
                 }
-                $goods = $this->where($where)->limit(0, 1000)->order('id ASC')->select();
+                $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
                 $nonamespus = $spus = $skus = [];
 
                 if ($goods) {
@@ -630,6 +630,7 @@ class EsGoodsModel extends Model {
         $es_goods = null;
 
         if ($es->exists($this->update_dbName, $this->tableName . '_' . $lang, $id)) {
+
             $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
         }
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
