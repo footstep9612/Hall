@@ -190,8 +190,6 @@ class EsProductModel extends Model {
                 ]
             ];
         }
-
-
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'warranty', 'warranty.' . $analyzer);
 
         if (isset($condition['keyword']) && $condition['keyword']) {
@@ -209,30 +207,7 @@ class EsProductModel extends Model {
                                 'deleted_flag' => 'N'
                             ])->select();
             if (empty($showcats)) {
-                if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
-                    $show_cat_no = trim($condition['show_cat_no']);
-                    $show_cats_nested = [];
-                    $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
-                    $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
-                    $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
-                                [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
-                                [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
-                    ]]];
-                    $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                        [
-                            'path' => "show_cats_nested",
-                            'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
-                    ]];
-                } elseif ($country_bn) {
-                    $show_cats_nested = [];
-                    $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
-                    $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
-                    $body['query']['bool']['must'][] = [ESClient::NESTED =>
-                        [
-                            'path' => "show_cats_nested",
-                            'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
-                    ]];
-                }
+                $this->_setshow_cats_nested($condition, $country_bn, $onshelf_flag, $body);
                 $brand_model = new BrandModel();
                 $brands = $brand_model->getBrandByBrandName($keyword, $lang);
 
@@ -288,11 +263,38 @@ class EsProductModel extends Model {
                 $is_show_cat = true;
                 $this->_getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, $body);
             }
+        } else {
+            $this->_setshow_cats_nested($condition, $country_bn, $onshelf_flag, $body);
         }
 
-//        echo json_encode($body);
-//        die;
         return $body;
+    }
+
+    private function _setshow_cats_nested($condition, $country_bn, $onshelf_flag, &$body) {
+        if (isset($condition['show_cat_no']) && $condition['show_cat_no'] && $country_bn) {
+            $show_cat_no = trim($condition['show_cat_no']);
+            $show_cats_nested = [];
+            $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => [[ESClient::TERM => ['show_cats_nested.cat_no1' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no2' => $show_cat_no]],
+                        [ESClient::TERM => ['show_cats_nested.cat_no3' => $show_cat_no]]
+            ]]];
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        } elseif ($country_bn) {
+            $show_cats_nested = [];
+            $onshelf_flag ? $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]] : '';
+            $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "show_cats_nested",
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
+            ]];
+        }
     }
 
     /* 获取品牌组合
