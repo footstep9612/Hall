@@ -58,6 +58,42 @@ class EsproductController extends PublicController {
         $this->jsonReturn();
     }
 
+    public function SearchAction() {
+        $body = $this->getPut('body');
+        $action = $this->getPut('action');
+        $type = $this->getRequest()->getMethod();
+        $server = Yaf_Application::app()->getConfig()->esapi;
+        $ch = curl_init($server . $action);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $server . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        switch ($type) {
+            case "GET" : curl_setopt($ch, CURLOPT_HTTPGET, true);
+                break;
+            case "POST": curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "PUT" : curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "DELETE":curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+        }
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
+            return [];
+        }
+        curl_close($ch);
+        return json_decode($response, true);
+    }
+
     /*
      * 获取列表
      * @author  zhongyg
@@ -289,6 +325,66 @@ class EsproductController extends PublicController {
             $ret = $es->getSettings($this->index);
         }
 
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function getStateAction() {
+        $es = new ESClient();
+        $ret = $es->getstate();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 获取节点信息
+     */
+
+    public function getnodesAction() {
+        $es = new ESClient();
+        $ret = $es->getnodesinfo();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 删除别名
+     */
+
+    public function deleteAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->deleteAlias($index, $name);
+    }
+
+    public function existsAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->existsAlias($index, $name);
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $body = $this->getPut('body');
+        $ret = $es->index_alias($index, $body);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasesAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        $ret = $es->index_Aliases($index, $name);
         echo json_encode($ret, 256);
         exit;
     }
