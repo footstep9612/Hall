@@ -87,8 +87,8 @@ class EsproductController extends PublicController {
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         $response = curl_exec($ch);
         if (curl_errno($ch)) {
-            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
-            return [];
+
+            return curl_error($ch);
         }
         curl_close($ch);
         return json_decode($response, true);
