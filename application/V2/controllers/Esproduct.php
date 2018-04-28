@@ -58,6 +58,42 @@ class EsproductController extends PublicController {
         $this->jsonReturn();
     }
 
+    public function SearchAction() {
+        $body = $this->getPut('body');
+        $action = $this->getPut('action');
+        $type = $this->getRequest()->getMethod();
+        $server = Yaf_Application::app()->getConfig()->esapi;
+        $ch = curl_init($server . $action);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $server . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        switch ($type) {
+            case "GET" : curl_setopt($ch, CURLOPT_HTTPGET, true);
+                break;
+            case "POST": curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "PUT" : curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "DELETE":curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+        }
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $response = curl_exec($ch);
+        if (curl_errno($ch)) {
+            \think\Log::write('Curl error: ' . curl_error($ch), LOG_ERR);
+            return [];
+        }
+        curl_close($ch);
+        return json_decode($response, true);
+    }
+
     /*
      * 获取列表
      * @author  zhongyg
