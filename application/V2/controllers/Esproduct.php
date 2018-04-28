@@ -209,8 +209,11 @@ class EsproductController extends PublicController {
 
     public function deleteAction() {
         $es = new ESClient();
+        $index = $this->getPut('index');
         $old_version = $this->getPut('old_version');
-        if ($old_version) {
+        if ($index) {
+            $ret = $es->delete_index($index);
+        } elseif ($old_version) {
             $ret = $es->delete_index($this->index . '_' . $old_version);
         } else {
             $ret = $es->delete_index($this->index);
@@ -231,15 +234,123 @@ class EsproductController extends PublicController {
         exit;
     }
 
-    public function getStateAction() {
+    public function getmappingsAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+        if ($this->version) {
+            $ret = $es->getMapping($this->index . '_' . $this->version, $type);
+        } else {
+            $ret = $es->getMapping($this->index, $type);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function setmappingsAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+        $mapParam = $this->getPut('mapParam');
+        if ($this->version) {
+            $ret = $es->putMapping($this->index . '_' . $this->version, $type, $mapParam);
+        } else {
+            $ret = $es->putMapping($this->index, $type, $mapParam);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function deleteMappingAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+
+
+        $mapParam = array();
+
+        $mapParam['type'] = $type;
+        if ($this->version) {
+            $mapParam['index'] = $this->index . '_' . $this->version;
+            $ret = $es->deleteMapping($mapParam);
+        } else {
+            $mapParam['index'] = $this->index . '_' . $this->version;
+            $ret = $es->deleteMapping($mapParam);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function setSettingsAction() {
         $es = new ESClient();
         if ($this->version) {
             $ret = $es->getSettings($this->index . '_' . $this->version);
         } else {
             $ret = $es->getSettings($this->index);
         }
+
         echo json_encode($ret, 256);
         exit;
+    }
+
+    public function getStateAction() {
+        $es = new ESClient();
+        $ret = $es->getstate();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 获取节点信息
+     */
+
+    public function getnodesAction() {
+        $es = new ESClient();
+        $ret = $es->getnodesinfo();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $body = $this->getPut('body');
+        $ret = $es->index_alias($index, $body);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasesAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        $ret = $es->index_Aliases($index, $name);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 删除别名
+     */
+
+    public function deleteAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->deleteAlias($index, $name);
+    }
+
+    public function existsAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->existsAlias($index, $name);
     }
 
     /*

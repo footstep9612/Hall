@@ -212,6 +212,26 @@ class ESClient {
         return $this->server->cluster()->state();
     }
 
+    public function getstats() {
+        return $this->server->cluster()->stats();
+    }
+
+    public function gethealth() {
+        return $this->server->cluster()->health();
+    }
+
+    public function getnodesinfo() {
+        return $this->server->nodes()->info();
+    }
+
+    public function getnodesstats() {
+        return $this->server->nodes()->stats();
+    }
+
+    public function getnodeshealth() {
+        return $this->server->nodes()->health();
+    }
+
     /*
      * 删除索引
      */

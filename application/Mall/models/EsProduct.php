@@ -289,7 +289,7 @@ class EsProductModel extends Model {
                 } else {
                     $brand_name = $keyword;
                     $is_brand = true;
-                    $this->_getEsBrand($brands, $keyword, $body, $lang, $brand_name);
+                    $this->_getEsBrand($brands, $keyword, $body, $lang, $brand_name, $analyzer);
                 }
             } else {
                 $show_cat_name = $keyword;
@@ -298,7 +298,8 @@ class EsProductModel extends Model {
             }
         }
 
-
+//        echo json_encode($body);
+//        die;
         return $body;
     }
 
@@ -344,16 +345,8 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    private function _getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, &$body) {
+    private function _getEsShowCats($showcats, $keyword, $onshelf_flag, $country_bn, &$body, $analyzer = 'en') {
         $show_cat_bool = [];
-
-
-        $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
-        $body['query']['bool']['must'][] = [ESClient::NESTED =>
-            [
-                'path' => "show_cats_nested",
-                'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
-        ]];
 
         foreach ($showcats as $showcat) {
             $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no3' => ['value' => $showcat['cat_no'], 'boost' => 99]]];
@@ -361,16 +354,14 @@ class EsProductModel extends Model {
             $show_cat_bool[] = [ESClient::TERM => ['show_cats_nested.cat_no1' => ['value' => $showcat['cat_no'], 'boost' => 90]]];
         }
         if ($show_cat_bool) {
-
             $show_cats_nested = [];
+            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
             if ($onshelf_flag) {
                 $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.onshelf_flag' => $onshelf_flag]];
             }
             if ($country_bn) {
                 $show_cats_nested[] = [ESClient::TERM => ['show_cats_nested.country_bn' => $country_bn]];
             }
-            $show_cats_nested[] = ['bool' => [ESClient::SHOULD => $show_cat_bool]];
-
             $body['query']['bool']['must'][] = [ESClient::NESTED =>
                 [
                     'path' => "show_cats_nested",
@@ -396,6 +387,48 @@ class EsProductModel extends Model {
                     'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
             ]];
         }
+
+        $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                    ['bool' => [ESClient::MUST => [
+                                ['bool' => [ESClient::SHOULD => [
+                                            [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 100]]],
+                                            [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
+                                        ]]],
+                                ['bool' => [ESClient::SHOULD => [
+                                            ['bool' => [ESClient::MUST_NOT => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
+                                        ]]],
+                                ['bool' => [ESClient::SHOULD => [
+                                            [ESClient::WILDCARD => ['show_name.lower' =>
+                                                    ['value' => '*' . strtolower($keyword), 'boost' => 40000]]],
+                                            [ESClient::WILDCARD =>
+                                                ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 4000]]],
+                                            [ESClient::WILDCARD =>
+                                                ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 3000]]],
+                                        ]]]]]],
+                    ['bool' => [ESClient::MUST => [
+                                ['bool' => [ESClient::SHOULD => [
+                                            [ESClient::TERM => ['recommend_flag' => ['value' => 'Y', 'boost' => 100]]],
+                                            [ESClient::TERM => ['recommend_flag' => ['value' => 'N', 'boost' => 1]]],
+                                        ]]],
+                                ['bool' => [ESClient::SHOULD => [
+                                            ['bool' => [ESClient::MUST => [[ESClient::WILDCARD => ['show_name.lower' => ['value' => '* for *']]]]]],
+                                        ]]],
+                                ['bool' => [ESClient::SHOULD => [
+                                            [ESClient::WILDCARD => ['show_name.lower' =>
+                                                    ['value' => '*' . strtolower($keyword), 'boost' => 500]]],
+                                            [ESClient::WILDCARD =>
+                                                ['show_name.lower' => ['value' => strtolower($keyword) . '*', 'boost' => 201]]],
+                                            [ESClient::WILDCARD =>
+                                                ['show_name.lower' => ['value' => '*' . strtolower($keyword) . '*', 'boost' => 101]]],
+                                        ]]],
+                            ]]],
+                    ['constant_score' => [ESClient::QUERY => [ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]], 'boost' => 22]],
+                    ['bool' => [ESClient::MUST_NOT => [[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or', 'boost' => 1]]]]]],
+                    [ESClient::MATCH_PHRASE => ['tech_paras.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
+                    [ESClient::MATCH_PHRASE => ['exe_standard.' . $analyzer => ['query' => $keyword, 'boost' => 1]]],
+                    [ESClient::TERM => ['spu' => ['value' => $keyword, 'boost' => 1000]]],
+                    [ESClient::TERM => ['show_name.lower' => ['value' => strtolower($keyword), 'boost' => 1000]]],
+        ]]];
     }
 
     /* 通过搜索条件获取数据列表
@@ -439,8 +472,6 @@ class EsProductModel extends Model {
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             } elseif (isset($condition['keyword']) && $condition['keyword']) {
-
-
                 $es->setbody($body)->setsort('_score')
                         ->setsort('created_at', 'DESC')
                         ->setsort('id', 'DESC');

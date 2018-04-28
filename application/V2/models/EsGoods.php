@@ -599,20 +599,16 @@ class EsGoodsModel extends Model {
                 $updateParams['type'] = $this->tableName . '_' . $lang;
                 foreach ($goods as $key => $item) {
 //                    $time2 = microtime(true);
-                    list($type, $body) = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names, true);
-                    if ($key === 999) {
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names, false);
+                    if ($key === 99) {
                         $max_id = $item['id'];
                     }
 //                    echo microtime(true) - $time2, "\r\n";
-//                    print_r($flag);
-//                    ob_flush();
-//                    flush();
-                    $updateParams['body'][] = [$type => ['_id' => $item['sku']]];
-                    $updateParams['body'][] = ['doc' => $body];
+                    print_r($flag);
+                    ob_flush();
+                    flush();
                 }
-                $flag = $es->bulk($updateParams);
 
-                var_dump($flag);
                 echo microtime(true) - $time1, "\r\n";
             }
         } catch (Exception $ex) {
