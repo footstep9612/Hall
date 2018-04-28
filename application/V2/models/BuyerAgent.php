@@ -554,8 +554,8 @@ class BuyerAgentModel extends PublicModel {
         $agentArr=[];
         foreach($info as $k => $v){
             if($v['deleted_flag']=='N'){
-                $agentArr[$k]['agent_name']=$v['agent_name'];
-                $agentArr[$k]['agent_id']=$v['agent_id'];
+                $agentArr[$k]['name']=$v['agent_name'];
+                $agentArr[$k]['id']=$v['agent_id'];
             }
         }
         $agent_info=array_merge($agentArr,[]);
