@@ -24,7 +24,8 @@ class EsproductController extends PublicController {
     public function init() {
 
         if ($this->getRequest()->isCli()) {
-
+            ini_set("display_errors", "On");
+            error_reporting(E_ERROR | E_STRICT);
         } else {
             parent::init();
         }
