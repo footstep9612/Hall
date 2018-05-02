@@ -275,8 +275,11 @@ class EsProductModel extends Model {
                     ['bool' => [ESClient::MUST_NOT =>
                             ['bool' => [ESClient::SHOULD => [
                                         [ESClient::TERM => ['show_cats.cat_no2' => ['value' => '51:03:00']]],
-                                        [ESClient::TERMS => ['show_cats.cat_no1' => ['44:00:00', '46:00:00', '49:00:00', '53:00:00']]
-                                        ]]]
+                                        [ESClient::TERM => ['show_cats.cat_no1' => ['value' => '44:00:00']]],
+                                        [ESClient::TERM => ['show_cats.cat_no1' => ['value' => '46:00:00']]],
+                                        [ESClient::TERM => ['show_cats.cat_no1' => ['value' => '49:00:00']]],
+                                        [ESClient::TERM => ['show_cats.cat_no1' => ['value' => '53:00:00']]],
+                                    ]]
                             ]],
                     ]]
         ]];
@@ -309,12 +312,7 @@ class EsProductModel extends Model {
                         ]]
             ]];
 
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERMS => ['show_cats.cat_no1' => ['value' => ['44:00:00', '46:00:00', '49:00:00', '53:00:00'], 'boost' => 1000]]],
-                        ['bool' => [ESClient::MUST_NOT =>
-                                [ESClient::TERMS => ['show_cats.cat_no1' => ['44:00:00', '46:00:00', '49:00:00', '53:00:00']]]],
-                        ]]
-            ]];
+
             json_encode($show_cats_nested);
         }
     }
