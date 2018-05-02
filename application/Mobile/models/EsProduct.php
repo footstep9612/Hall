@@ -305,17 +305,8 @@ class EsProductModel extends Model {
             $body['query']['bool']['must'][] = [ESClient::NESTED =>
                 [
                     'path' => "show_cats_nested",
-                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested,
-                        ]]
+                    'query' => ['bool' => [ESClient::MUST => $show_cats_nested]]
             ]];
-
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::TERMS => ['show_cats.cat_no1' => ['value' => ['44:00:00', '46:00:00', '49:00:00', '53:00:00'], 'boost' => 1000]]],
-                        ['bool' => [ESClient::MUST_NOT =>
-                                [ESClient::TERMS => ['show_cats.cat_no1' => ['44:00:00', '46:00:00', '49:00:00', '53:00:00']]]],
-                        ]]
-            ]];
-            json_encode($show_cats_nested);
         }
     }
 
