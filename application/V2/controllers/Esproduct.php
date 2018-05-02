@@ -933,6 +933,7 @@ class EsproductController extends PublicController {
                 ]], //物料中文分类对象 json
             'spec_attrs' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'name' => $ik_analyzed,
                     'value' => $ik_analyzed,
@@ -1081,6 +1082,7 @@ class EsproductController extends PublicController {
                 ]], //展示分类数组 json
             'show_cats_nested' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -1143,6 +1145,7 @@ class EsproductController extends PublicController {
             ],
             'spec_attrs' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'name' => $ik_analyzed,
                     'value' => $ik_analyzed,
