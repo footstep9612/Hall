@@ -10,6 +10,7 @@ return [
     'EXCEL_SKU_QTY_REQUIRED'  =>   'The required quantity is not filled or not in the correct format',
     'EXCEL_SKU_UNIT_REQUIRED'  =>   'The required units are not filled',
     'EXCEL_SKU_CATEGORY_REQUIRED'  =>   'Required category is not filled',
+    'EXCEL_SKU_CATEGORY_NOT_EXIST'  =>   'The category does not exist',
     'EXCEL_SKU_BRAND_REQUIRED'  =>   'Required brand is not filled',
     'EXCEL_SKU_PURCHASE_UNIT_PRICE_REQUIRED'  =>   'The required purchase unit price is not filled or not in the correct format',
     'EXCEL_SKU_PURCHASE_PRICE_CURRENCY_REQUIRED'  =>   'Required purchase price currency is not filled',
