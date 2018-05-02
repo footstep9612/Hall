@@ -1309,7 +1309,7 @@ class ExcelmanagerController extends PublicController {
 
         //时间
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
-            $where['a.created_at'] = [
+            $where['b.created_at'] = [
                 ['egt', $condition['create_start_time']],
                 ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
