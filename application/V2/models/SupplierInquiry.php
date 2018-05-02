@@ -1193,7 +1193,7 @@ class SupplierInquiryModel extends PublicModel {
             $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time'];
             if ($item['org_is_erui'] == 'Y') {
                 // 易瑞商务技术报价用时
-                $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $tmpDispatchingSpend;
+                $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;
                 $item['cc_quoted_time'] = number_format($ccSpend / 3600, 2);
                 // 事业部商务技术报价用时
                 $item['biz_quoted_time'] = 0;
