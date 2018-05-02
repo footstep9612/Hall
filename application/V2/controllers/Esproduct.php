@@ -58,6 +58,45 @@ class EsproductController extends PublicController {
         $this->jsonReturn();
     }
 
+    public function SearchAction() {
+        $body = $this->getPut('body');
+        $action = $this->getPut('action');
+        $type = $this->getRequest()->getMethod();
+        $server = Yaf_Application::app()->getConfig()->esapi;
+        $source_hosts = explode(',', $server);
+
+        $ch = curl_init($source_hosts[0] . '/' . $action);
+        echo $source_hosts[0] . '/' . $action, PHP_EOL;
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_URL, $source_hosts[0] . '/' . $action);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+        switch ($type) {
+            case "GET" : curl_setopt($ch, CURLOPT_HTTPGET, true);
+                break;
+            case "POST": curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "PUT" : curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+            case "DELETE":curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+                break;
+        }
+        curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        $response = curl_exec($ch);
+
+        if (curl_errno($ch)) {
+            die(curl_error($ch));
+        }
+        curl_close($ch);
+        die($response);
+    }
+
     /*
      * 获取列表
      * @author  zhongyg
@@ -209,8 +248,11 @@ class EsproductController extends PublicController {
 
     public function deleteAction() {
         $es = new ESClient();
+        $index = $this->getPut('index');
         $old_version = $this->getPut('old_version');
-        if ($old_version) {
+        if ($index) {
+            $ret = $es->delete_index($index);
+        } elseif ($old_version) {
             $ret = $es->delete_index($this->index . '_' . $old_version);
         } else {
             $ret = $es->delete_index($this->index);
@@ -231,15 +273,123 @@ class EsproductController extends PublicController {
         exit;
     }
 
-    public function getStateAction() {
+    public function getmappingsAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+        if ($this->version) {
+            $ret = $es->getMapping($this->index . '_' . $this->version, $type);
+        } else {
+            $ret = $es->getMapping($this->index, $type);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function setmappingsAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+        $mapParam = $this->getPut('mapParam');
+        if ($this->version) {
+            $ret = $es->putMapping($this->index . '_' . $this->version, $type, $mapParam);
+        } else {
+            $ret = $es->putMapping($this->index, $type, $mapParam);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function deleteMappingAction() {
+        $es = new ESClient();
+        $type = $this->getPut('type');
+
+
+        $mapParam = array();
+
+        $mapParam['type'] = $type;
+        if ($this->version) {
+            $mapParam['index'] = $this->index . '_' . $this->version;
+            $ret = $es->deleteMapping($mapParam);
+        } else {
+            $mapParam['index'] = $this->index . '_' . $this->version;
+            $ret = $es->deleteMapping($mapParam);
+        }
+
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    public function setSettingsAction() {
         $es = new ESClient();
         if ($this->version) {
             $ret = $es->getSettings($this->index . '_' . $this->version);
         } else {
             $ret = $es->getSettings($this->index);
         }
+
         echo json_encode($ret, 256);
         exit;
+    }
+
+    public function getStateAction() {
+        $es = new ESClient();
+        $ret = $es->getstate();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 获取节点信息
+     */
+
+    public function getnodesAction() {
+        $es = new ESClient();
+        $ret = $es->getnodesinfo();
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $body = $this->getPut('body');
+        $ret = $es->index_alias($index, $body);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 新建别名
+     */
+
+    public function setAliasesAction() {
+        $es = new ESClient();
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        $ret = $es->index_Aliases($index, $name);
+        echo json_encode($ret, 256);
+        exit;
+    }
+
+    /*
+     * 删除别名
+     */
+
+    public function deleteAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->deleteAlias($index, $name);
+    }
+
+    public function existsAliasAction() {
+        $index = $this->getPut('index');
+        $name = $this->getPut('name');
+        return $this->server->indices()->existsAlias($index, $name);
     }
 
     /*
@@ -783,6 +933,7 @@ class EsproductController extends PublicController {
                 ]], //物料中文分类对象 json
             'spec_attrs' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'name' => $ik_analyzed,
                     'value' => $ik_analyzed,
@@ -931,6 +1082,7 @@ class EsproductController extends PublicController {
                 ]], //展示分类数组 json
             'show_cats_nested' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'cat_no1' => $not_analyzed,
                     'cat_no2' => $not_analyzed,
@@ -993,6 +1145,7 @@ class EsproductController extends PublicController {
             ],
             'spec_attrs' => [
                 'type' => 'nested',
+                'include_in_parent' => true,
                 'properties' => [
                     'name' => $ik_analyzed,
                     'value' => $ik_analyzed,

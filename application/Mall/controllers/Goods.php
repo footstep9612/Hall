@@ -30,7 +30,11 @@ class GoodsController extends PublicController{
         $country_bn = $input['country_bn'] ? $input['country_bn'] : '';
 
         $goodsModel = new GoodsModel();
-        $result = $goodsModel->getInfo($input['sku'], $input['lang'],$stock,$country_bn);
+        if($stock){
+            $result = $goodsModel->getInfo($input['sku'], $input['lang'],$stock,$country_bn);
+        }else{
+            $result = $goodsModel->getInfoBySku($input['sku'], $input['lang']);
+        }
         if ($result !== false) {
             jsonReturn($result);
         }else{

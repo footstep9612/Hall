@@ -18,7 +18,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 
 $module = ucfirst($out[1]);
 
-if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall','api'])) {
+if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall', 'api', 'mobile'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 

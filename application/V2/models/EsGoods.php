@@ -514,7 +514,7 @@ class EsGoodsModel extends Model {
         try {
             ob_clean();
             $max_id = 0;
-            $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
+            $where_count = ['lang' => $lang, 'deleted_flag' => 'N', 'id' => ['gt', 0]];
             if ($goods_skus) {
                 $where_count['sku'] = ['in', $goods_skus];
             }
@@ -535,12 +535,12 @@ class EsGoodsModel extends Model {
                 }
 
                 echo $i, PHP_EOL, '<BR>';
-                usleep(300);
+                //  usleep(300);
                 ob_flush();
                 flush();
 
                 $time1 = microtime(true);
-                $where = ['lang' => $lang];
+                $where = ['deleted_flag' => 'N', 'lang' => $lang];
 
                 if ($max_id === 0) {
                     $where['id'] = ['gt', 0];
@@ -594,25 +594,22 @@ class EsGoodsModel extends Model {
                 $onshelf_flags = $this->getonshelf_flag($skus, $lang);
                 echo '<pre>';
 
-//                $updateParams = [];
-//                $updateParams['index'] = $this->dbName;
-//                $updateParams['type'] = 'goods_' . $lang;
+                $updateParams = [];
+                $updateParams['index'] = $this->update_dbName;
+                $updateParams['type'] = $this->tableName . '_' . $lang;
                 foreach ($goods as $key => $item) {
-                    $time2 = microtime(true);
-                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names);
+//                    $time2 = microtime(true);
+                    $flag = $this->_adddoc($item, $lang, $attachs, $scats, $productattrs, $goods_attrs, $suppliers, $onshelf_flags, $es, $name_locs, $costprices, $product_names, false);
                     if ($key === 99) {
                         $max_id = $item['id'];
                     }
-                    echo microtime(true) - $time2, "\r\n";
+//                    echo microtime(true) - $time2, "\r\n";
                     print_r($flag);
                     ob_flush();
                     flush();
                 }
+
                 echo microtime(true) - $time1, "\r\n";
-
-
-//                $flag = $es->bulk($updateParams);
-//                var_dump($flag);
             }
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
@@ -621,7 +618,7 @@ class EsGoodsModel extends Model {
         }
     }
 
-    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = []) {
+    private function _adddoc(&$item, &$lang, &$attachs, &$scats, &$productattrs, &$goods_attrs, &$suppliers, &$onshelf_flags, &$es, &$name_locs, &$costprices = [], &$product_names = [], $is_body = false) {
 
         $sku = $id = $item['sku'];
         $spu = $item['spu'];
@@ -633,6 +630,7 @@ class EsGoodsModel extends Model {
         $es_goods = null;
 
         if ($es->exists($this->update_dbName, $this->tableName . '_' . $lang, $id)) {
+
             $es_goods = $es->get($this->update_dbName, $this->tableName . '_' . $lang, $id, 'suppliers,min_order_qty,exw_days,min_pack_unit');
         }
         if (isset($product_attr['material_cat']) && $product_attr['material_cat']) {
@@ -770,7 +768,12 @@ class EsGoodsModel extends Model {
         $body['material_cat_no'] = $productattrs[$spu]['material_cat_no'];
         $this->_findnulltoempty($body);
 
-        if ($es_goods) {
+        if ($es_goods && $is_body) {
+
+            return ['update', $body];
+        } elseif (!$es_goods && $is_body) {
+            return ['create', $body];
+        } elseif ($es_goods) {
             $flag = $es->update_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
         } else {
             $flag = $es->add_document($this->update_dbName, $this->tableName . '_' . $lang, $body, $id);
