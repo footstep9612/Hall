@@ -379,6 +379,34 @@ class StockController extends PublicController {
         }
     }
 
+    /**
+     * 更新价格策略
+     */
+    public function updatePSTypeAction(){
+        $input = $this->getPut();
+        $stockModel = new StockModel();
+        $result = $stockModel->updatePriceStrategyType($input);
+        if($result!==false){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    /**
+     * 更新原价信息
+     */
+    public function updatePriceAction(){
+        $input = $this->getPut();
+        $stockModel = new StockModel();
+        $result = $stockModel->updatePrice($input);
+        if($result!==false){
+            jsonReturn($result);
+        }else{
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
     /*
      * Description of 获取价格属性
      * @param array $arr

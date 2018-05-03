@@ -457,4 +457,46 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /**
+     * 国家联系方式
+     */
+    public function contactCreateAction(){
+        $input = $this->getPut();
+        $ccontactModel = new CountryContactModel();
+        $rel = $ccontactModel->addData($input);
+        if($rel !== false){
+            jsonReturn($rel);
+        }else{
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    /**
+     * 国家联系方式
+     */
+    public function contactUpdateAction(){
+        $input = $this->getPut();
+        $ccontactModel = new CountryContactModel();
+        $rel = $ccontactModel->updateData($input);
+        if($rel !== false){
+            jsonReturn($rel);
+        }else{
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    /**
+     * 国家联系方式
+     */
+    public function contactDeleteAction(){
+        $input = $this->getPut();
+        $ccontactModel = new CountryContactModel();
+        $rel = $ccontactModel->deleteData($input);
+        if($rel !== false){
+            jsonReturn($rel);
+        }else{
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
 }

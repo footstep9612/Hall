@@ -7,7 +7,7 @@
 class ExcelmanagerController extends PublicController {
 
     public function init() {
-        parent::init();
+        //parent::init();
     }
 
     /**
@@ -247,6 +247,7 @@ class ExcelmanagerController extends PublicController {
         $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
         $suppliersModel = new SuppliersModel();
+        $inquiryItemModel = new InquiryItemModel();
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
@@ -288,6 +289,8 @@ class ExcelmanagerController extends PublicController {
         $successCount = 0;
         // 失败的数据列
         $failList = [];
+        // 产品分类
+        $category = array_merge($inquiryItemModel->isOil, $inquiryItemModel->noOil);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
@@ -297,6 +300,8 @@ class ExcelmanagerController extends PublicController {
             ];
             if ($value['category'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
+            } elseif (!in_array($value['category'], $category)) {
+                $failData['reason'] = L('EXCEL_SKU_CATEGORY_NOT_EXIST');
             } elseif ($value['name'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
             } elseif ($value['name_zh'] == '') {
@@ -1251,7 +1256,6 @@ class ExcelmanagerController extends PublicController {
 
         $excelFile = $this->createRejectedFile($data);
 
-        //p($localFile);
         //把导出的文件上传到文件服务器上
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
@@ -1297,11 +1301,24 @@ class ExcelmanagerController extends PublicController {
     private function getRejectedInquiry()
     {
 
+        $condition = $this->validateRequestParams();
+
         $inquiryCheckLog = new InquiryCheckLogModel();
 
         $field = "b.id,b.serial_no,b.agent_id,b.adhoc_request,b.now_agent_id,b.org_id,b.area_bn,b.country_bn,b.created_at inquiry_created_at,a.created_at,a.created_by,a.op_note,a.in_node";
-        $where = "b.deleted_flag='N' AND a.action='REJECT' ";
+        //$where = "b.deleted_flag='N' AND a.action='REJECT' ";
+        $where = [
+            'b.deleted_flag' => 'N',
+            'a.action' => 'REJECT'
+        ];
 
+        //时间
+        if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
+            $where['b.created_at'] = [
+                ['egt', $condition['create_start_time']],
+                ['elt', $condition['create_end_time'] . ' 23:59:59']
+            ];
+        }
 
         $data = $inquiryCheckLog->alias('a')->join('erui_rfq.inquiry b ON a.inquiry_id=b.id','LEFT')
             ->field($field)
