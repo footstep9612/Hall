@@ -10,6 +10,7 @@ return [
     'EXCEL_SKU_QTY_REQUIRED'  =>   '必填项数量未填写或格式不正确',
     'EXCEL_SKU_UNIT_REQUIRED'  =>   '必填项单位未填写',
     'EXCEL_SKU_CATEGORY_REQUIRED'  =>   '必填项产品分类未填写',
+    'EXCEL_SKU_CATEGORY_NOT_EXIST'  =>   '该产品分类不存在',
     'EXCEL_SKU_BRAND_REQUIRED'  =>   '必填项品牌未填写',
     'EXCEL_SKU_PURCHASE_UNIT_PRICE_REQUIRED'  =>   '必填项采购单价未填写或格式不正确',
     'EXCEL_SKU_PURCHASE_PRICE_CURRENCY_REQUIRED'  =>   '必填项采购币种未填写',

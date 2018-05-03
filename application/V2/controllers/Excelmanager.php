@@ -247,6 +247,7 @@ class ExcelmanagerController extends PublicController {
         $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
         $suppliersModel = new SuppliersModel();
+        $inquiryItemModel = new InquiryItemModel();
         array_shift($data); //去掉第一行数据(excel文件的标题)
         if (empty($data)) {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
@@ -288,6 +289,8 @@ class ExcelmanagerController extends PublicController {
         $successCount = 0;
         // 失败的数据列
         $failList = [];
+        // 产品分类
+        $category = array_merge($inquiryItemModel->isOil, $inquiryItemModel->noOil);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
@@ -297,6 +300,8 @@ class ExcelmanagerController extends PublicController {
             ];
             if ($value['category'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
+            } elseif (!in_array($value['category'], $category)) {
+                $failData['reason'] = L('EXCEL_SKU_CATEGORY_NOT_EXIST');
             } elseif ($value['name'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
             } elseif ($value['name_zh'] == '') {
