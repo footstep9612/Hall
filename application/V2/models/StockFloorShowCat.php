@@ -155,8 +155,13 @@ class StockFloorShowCatModel extends PublicModel {
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['floor_id'] = intval($condition['floor_id']);
         $condition['deleted_flag'] = 'N';
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;
@@ -212,8 +217,13 @@ class StockFloorShowCatModel extends PublicModel {
                                 'country_bn' => $condition['country_bn']
                             ])->getField('name');
         }
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;
@@ -257,10 +267,15 @@ class StockFloorShowCatModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addCats($floor_id, $country_bn, $lang, $cat_nos) {
+    public function addCats($floor_id, $country_bn, $lang, $cat_nos, $show_type = null) {
 
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($floor_id);
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;

@@ -38,6 +38,7 @@ class StockFloorKeywordModel extends PublicModel {
         $this->_getValue($where, $condition, 'keyword', 'like');
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'lang');
+
         switch ($condition['show_type']) {
             case self::SHOW_TYPE_P:
                 $where['show_type'] = self::SHOW_TYPE_P;
@@ -153,8 +154,13 @@ class StockFloorKeywordModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;
@@ -236,10 +242,15 @@ class StockFloorKeywordModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addKeywords($floor_id, $country_bn, $lang, $keywords) {
+    public function addKeywords($floor_id, $country_bn, $lang, $keywords, $show_type = null) {
 
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($floor_id);
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;

@@ -81,7 +81,19 @@ class StockFloorModel extends PublicModel {
         if ($id) {
             $where['id'] = ['neq', $id];
         }
-
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+        }
         return $this->where($where)->getField('id');
     }
 

@@ -140,8 +140,15 @@ class StockFloorAdsModel extends PublicModel {
      * @desc  现货楼层
      */
     public function createData($condition) {
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($condition['floor_id']);
+
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
+
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;
@@ -205,8 +212,13 @@ class StockFloorAdsModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-        $stock_country = new StockCountryModel();
-        $info = $stock_country->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;

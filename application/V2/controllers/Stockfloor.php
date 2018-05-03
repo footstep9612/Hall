@@ -114,15 +114,14 @@ class StockfloorController extends PublicController {
             $this->jsonReturn();
         }
         $stock_floor_model = new StockFloorModel();
-
-        if ($stock_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'])) {
+        $show_type = $this->getPut('show_type');
+        if ($stock_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'], null, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('所在国家已经存在相同楼层名称,请您添加不同名称的楼层!');
             $this->jsonReturn();
         }
 
-        $show_flag = $this->getPut('show_flag', 'N');
-        $display_position = $this->getPut('display_position');
+
         $list = $stock_floor_model->createData($condition);
         if ($list) {
             $this->jsonReturn($list);
@@ -278,9 +277,9 @@ class StockfloorController extends PublicController {
             $this->jsonReturn();
         }
         $stock_floor_model = new StockFloorModel();
+        $show_type = $this->getPut('show_type');
 
-
-        $flag = $stock_floor_model->addGoods($floor_id, $country_bn, $lang, $skus);
+        $flag = $stock_floor_model->addGoods($floor_id, $country_bn, $lang, $skus, $show_type);
 
         if ($flag) {
             $message = '添加产品成功!';
@@ -339,9 +338,9 @@ class StockfloorController extends PublicController {
             $this->jsonReturn();
         }
         $stock_floor_keyword_model = new StockFloorKeywordModel();
+        $show_type = $this->getPut('show_type');
 
-
-        $flag = $stock_floor_keyword_model->addKeywords($floor_id, $country_bn, $lang, $keywords);
+        $flag = $stock_floor_keyword_model->addKeywords($floor_id, $country_bn, $lang, $keywords, $show_type);
 
         if ($flag) {
             $message = '添加关键词成功!';
@@ -399,10 +398,11 @@ class StockfloorController extends PublicController {
             $this->setMessage('您选择的语言不正确!');
             $this->jsonReturn();
         }
+        $show_type = $this->getPut('show_type');
         $stock_floor_show_cat_model = new StockFloorShowCatModel();
 
 
-        $flag = $stock_floor_show_cat_model->addCats($floor_id, $country_bn, $lang, $cat_nos);
+        $flag = $stock_floor_show_cat_model->addCats($floor_id, $country_bn, $lang, $cat_nos, $show_type);
 
         if ($flag) {
             $message = '添加分类成功!';

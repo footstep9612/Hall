@@ -264,12 +264,17 @@ class HomeFloorModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addProducts($floor_id, $country_bn, $lang, $spus) {
+    public function addProducts($floor_id, $country_bn, $lang, $spus, $show_type = null) {
 
         $this->startTrans();
-        $home_floor_product_model = new HomeFloorProductModel();
+        $info = [];
+        if (empty($show_type) && $floor_id) {
+            $home_floor_product_model = new HomeFloorProductModel();
 
-        $info = $this->getInfo($floor_id);
+            $info = $this->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;

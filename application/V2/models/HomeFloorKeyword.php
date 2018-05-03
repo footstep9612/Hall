@@ -181,9 +181,13 @@ class HomeFloorKeywordModel extends PublicModel {
      * @desc  现货楼层
      */
     public function updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword, $deleted_flag = 'N', $show_type = null) {
-
-        $home_floor_model = new HomeFloorModel();
-        $info = $home_floor_model->getInfo($floor_id);
+        $info = null;
+        if ($floor_id && !$show_type) {
+            $home_floor_model = new HomeFloorModel();
+            $info = $home_floor_model->getInfo($floor_id);
+        } else {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;
@@ -229,10 +233,14 @@ class HomeFloorKeywordModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addKeywords($floor_id, $country_bn, $lang, $keywords) {
-
-        $home_floor_model = new HomeFloorModel();
-        $info = $home_floor_model->getInfo($floor_id);
+    public function addKeywords($floor_id, $country_bn, $lang, $keywords, $show_type = null) {
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;

@@ -155,13 +155,13 @@ class StockcountryadsController extends PublicController {
             $this->jsonReturn();
         }
         $stock_country_ads_model = new StockCountryAdsModel();
-
-        if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang)) {
+        $show_type = $this->getPut('show_type');
+        if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, null, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
-        $list = $stock_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $stock_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -227,13 +227,13 @@ class StockcountryadsController extends PublicController {
             $this->jsonReturn();
         }
         $stock_country_ads_model = new StockCountryAdsModel();
-
-        if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
+        $show_type = $this->getPut('show_type');
+        if ($stock_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
-        $list = $stock_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $stock_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type);
 
         if ($list) {
             $this->jsonReturn($list);

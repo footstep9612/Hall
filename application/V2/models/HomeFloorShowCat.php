@@ -216,8 +216,13 @@ class HomeFloorShowCatModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-        $home_floor_model = new HomeFloorModel();
-        $info = $home_floor_model->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;
@@ -251,10 +256,15 @@ class HomeFloorShowCatModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addCats($floor_id, $country_bn, $lang, $cat_nos) {
+    public function addCats($floor_id, $country_bn, $lang, $cat_nos, $show_type = null) {
 
-        $home_floor_model = new HomeFloorModel();
-        $info = $home_floor_model->getInfo($floor_id);
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;

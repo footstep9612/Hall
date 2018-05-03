@@ -149,13 +149,14 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
         $link = $this->getPut('link');
+        $show_type = $this->getPut('show_type');
 //        if (empty($link)) {
 //            $this->setCode(MSG::MSG_EXIST);
 //            $this->setMessage('请输入广告链接地址!');
 //            $this->jsonReturn();
 //        }
         $home_country_ads_model = new HomeCountryAdsModel();
-        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang)) {
+        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, null, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
@@ -226,9 +227,10 @@ class HomecountryadsController extends PublicController {
 //            $this->setMessage('请输入广告链接地址!');
 //            $this->jsonReturn();
 //        }
+        $show_type = $this->getPut('show_type');
         $home_country_ads_model = new HomeCountryAdsModel();
 
-        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id)) {
+        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();

@@ -112,14 +112,26 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $lang = 'en', $id = null, $show_type = 'P') {
+    public function getExit($country_bn, $lang = 'en', $id = null, $show_type = null) {
 
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         if ($id) {
             $where['id'] = ['neq', $id];
         }
-
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+        }
         return $this->where($where)->field('id')->find();
     }
 

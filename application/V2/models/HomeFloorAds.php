@@ -163,7 +163,15 @@ class HomeFloorAdsModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
-        switch ($condition['show_type']) {
+
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
+        switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;
                 break;
@@ -210,8 +218,13 @@ class HomeFloorAdsModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-        $home_floor_model = new HomeFloorModel();
-        $info = $home_floor_model->getInfo($condition['floor_id']);
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
         switch ($info['show_type']) {
             case self::SHOW_TYPE_A:
                 $show_type = self::SHOW_TYPE_A;
@@ -233,31 +246,6 @@ class HomeFloorAdsModel extends PublicModel {
                 break;
             case self::SHOW_TYPE_AMP:
                 $show_type = self::SHOW_TYPE_AMP;
-                break;
-            default : $show_type = self::SHOW_TYPE_P;
-                break;
-        }
-        switch ($condition['show_type']) {
-            case self::SHOW_TYPE_A:
-                $data['show_type'] = self::SHOW_TYPE_A;
-                break;
-            case self::SHOW_TYPE_P:
-                $data['show_type'] = self::SHOW_TYPE_P;
-                break;
-            case self::SHOW_TYPE_M:
-                $data['show_type'] = self::SHOW_TYPE_M;
-                break;
-            case self::SHOW_TYPE_MP:
-                $data['show_type'] = self::SHOW_TYPE_MP;
-                break;
-            case self::SHOW_TYPE_AP:
-                $data['show_type'] = self::SHOW_TYPE_AP;
-                break;
-            case self::SHOW_TYPE_AM:
-                $data['show_type'] = self::SHOW_TYPE_AM;
-                break;
-            case self::SHOW_TYPE_AMP:
-                $data['show_type'] = self::SHOW_TYPE_AMP;
                 break;
         }
         return $this->where(['id' => $id])->save($data);
