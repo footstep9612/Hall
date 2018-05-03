@@ -23,9 +23,9 @@ class HomeCountryModel extends PublicModel {
     const SHOW_TYPE_A = 'A';
     const SHOW_TYPE_M = 'M';
     const SHOW_TYPE_AP = 'AP';
-    const SHOW_TYPE_MP = 'MP';
+   const SHOW_TYPE_PM = 'PM';
     const SHOW_TYPE_AM = 'AM';
-    const SHOW_TYPE_AMP = 'AMP';
+    const SHOW_TYPE_APM = 'APM';
 
     public function __construct() {
         parent::__construct();
@@ -55,11 +55,11 @@ class HomeCountryModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $where['show_type'] = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_MP:
-                $where['show_type'] = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $where['show_type'] = self::SHOW_TYPE_PM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $where['show_type'] = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $where['show_type'] = self::SHOW_TYPE_APM;
                 break;
         }
         return $where;
@@ -121,15 +121,15 @@ class HomeCountryModel extends PublicModel {
         }
         switch ($show_type) {
             case 'P':
-                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
                 break;
             case 'M':
-                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
                 break;
             case 'A':
-                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
                 break;
-            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
                 break;
         }
         return $this->where($where)->field('id')->find();
@@ -175,8 +175,8 @@ class HomeCountryModel extends PublicModel {
             case self::SHOW_TYPE_M:
                 $data['show_type'] = self::SHOW_TYPE_M;
                 break;
-            case self::SHOW_TYPE_MP:
-                $data['show_type'] = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $data['show_type'] = self::SHOW_TYPE_PM;
                 break;
             case self::SHOW_TYPE_AP:
                 $data['show_type'] = self::SHOW_TYPE_AP;
@@ -184,8 +184,8 @@ class HomeCountryModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $data['show_type'] = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $data['show_type'] = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $data['show_type'] = self::SHOW_TYPE_APM;
                 break;
             default : $data['show_type'] = self::SHOW_TYPE_P;
                 break;
@@ -222,8 +222,8 @@ class HomeCountryModel extends PublicModel {
             case self::SHOW_TYPE_M:
                 $data['show_type'] = self::SHOW_TYPE_M;
                 break;
-            case self::SHOW_TYPE_MP:
-                $data['show_type'] = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $data['show_type'] = self::SHOW_TYPE_PM;
                 break;
             case self::SHOW_TYPE_AP:
                 $data['show_type'] = self::SHOW_TYPE_AP;
@@ -231,8 +231,8 @@ class HomeCountryModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $data['show_type'] = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $data['show_type'] = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $data['show_type'] = self::SHOW_TYPE_APM;
                 break;
         }
         return $this->where(['id' => $id])->save($data);
