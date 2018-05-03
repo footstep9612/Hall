@@ -473,7 +473,11 @@ class ProductModel extends PublicModel {
                         if (!empty($lang)) {
                             $where['lang'] = $lang;
                         }
-                        $updata = array('status' => $status);
+                        $updata = [
+                            'status' => $status,
+                            'updated_at' => date('Y-m-d H:i:s'),
+                            'updated_by' => $userInfo['id']
+                        ];
 
                         /** 报审走报审验证 */
                         /*
@@ -528,7 +532,12 @@ class ProductModel extends PublicModel {
                     if (!empty($lang)) {
                         $where['lang'] = $lang;
                     }
-                    $updata = array('status' => $status);
+
+                    $updata = [
+                        'status' => $status,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => $userInfo['id']
+                    ];
 
                     /** 报审走报审验证 */
                     /*
