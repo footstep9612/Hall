@@ -27,7 +27,19 @@ class HomeCountryNavModel extends PublicModel {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'lang');
-
+        switch ($condition['show_type']) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+        }
         return $where;
     }
 

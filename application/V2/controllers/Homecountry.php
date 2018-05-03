@@ -142,8 +142,8 @@ class HomecountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-
-        $list = $home_country_model->createData($country_bn, $show_flag, $lang, $display_position);
+        $show_type = $this->getPut('show_type', 'P');
+        $list = $home_country_model->createData($country_bn, $show_flag, $lang, $display_position, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -188,8 +188,8 @@ class HomecountryController extends PublicController {
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
 
-
-        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position);
+        $show_type = $this->getPut('show_type');
+        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

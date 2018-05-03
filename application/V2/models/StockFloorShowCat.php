@@ -19,6 +19,14 @@ class StockFloorShowCatModel extends PublicModel {
     protected $tableName = 'stock_floor_show_cat';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+    const SHOW_TYPE_MP = 'MP';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_AMP = 'AMP';
+
     public function __construct() {
         parent::__construct();
     }
@@ -33,7 +41,29 @@ class StockFloorShowCatModel extends PublicModel {
         $this->_getValue($where, $condition, 'created_by');
 
         $this->_getValue($where, $condition, 'lang');
-
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_A:
+                $where['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_MP:
+                $where['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $where['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
         return $where;
     }
 
@@ -53,6 +83,7 @@ class StockFloorShowCatModel extends PublicModel {
         if ($id) {
             $where['id'] = ['neq', $id];
         }
+
         return $this->where($where)->getField('id');
     }
 
@@ -124,9 +155,38 @@ class StockFloorShowCatModel extends PublicModel {
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['floor_id'] = intval($condition['floor_id']);
         $condition['deleted_flag'] = 'N';
+        $stock_country = new StockCountryModel();
+        $info = $stock_country->getInfo($condition['floor_id']);
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $show_type = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $show_type = self::SHOW_TYPE_AMP;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
+        $condition['show_type'] = $show_type;
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+
         return $this->add($data);
     }
 
@@ -152,9 +212,37 @@ class StockFloorShowCatModel extends PublicModel {
                                 'country_bn' => $condition['country_bn']
                             ])->getField('name');
         }
+        $stock_country = new StockCountryModel();
+        $info = $stock_country->getInfo($condition['floor_id']);
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $show_type = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $show_type = self::SHOW_TYPE_AMP;
+                break;
+        }
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['floor_id'] = intval($condition['floor_id']);
         $condition['deleted_flag'] = 'N';
+        if ($show_type) {
+            $condition['show_type'] = $show_type;
+        }
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
@@ -171,14 +259,42 @@ class StockFloorShowCatModel extends PublicModel {
      */
     public function addCats($floor_id, $country_bn, $lang, $cat_nos) {
 
-
+        $stock_country = new StockCountryModel();
+        $info = $stock_country->getInfo($floor_id);
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $show_type = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $show_type = self::SHOW_TYPE_AMP;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
         foreach ($cat_nos as $cat_no) {
             $condition = [
                 'floor_id' => $floor_id,
                 'country_bn' => $country_bn,
                 'lang' => $lang,
-                'cat_no' => $cat_no
+                'cat_no' => $cat_no,
+                'show_type' => $show_type
             ];
+
             $flag = $this->createData($condition);
 
             if (!$flag) {
