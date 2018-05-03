@@ -19,6 +19,14 @@ class HomeFloorProductModel extends PublicModel {
     protected $tableName = 'home_floor_product';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+    const SHOW_TYPE_MP = 'MP';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_AMP = 'AMP';
+
     public function __construct() {
         parent::__construct();
     }
@@ -40,6 +48,39 @@ class HomeFloorProductModel extends PublicModel {
         }
         $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['s.show_type'] = self::SHOW_TYPE_P;
+                $where['sf.show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['s.show_type'] = self::SHOW_TYPE_M;
+                $where['sf.show_type'] = self::SHOW_TYPE_M;
+
+                break;
+            case self::SHOW_TYPE_A:
+                $where['s.show_type'] = self::SHOW_TYPE_A;
+                $where['sf.show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['s.show_type'] = self::SHOW_TYPE_AP;
+                $where['sf.show_type'] = self::SHOW_TYPE_AP;
+
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['s.show_type'] = self::SHOW_TYPE_AM;
+                $where['sf.show_type'] = self::SHOW_TYPE_AM;
+
+                break;
+            case self::SHOW_TYPE_MP:
+                $where['s.show_type'] = self::SHOW_TYPE_MP;
+                $where['sf.show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $where['s.show_type'] = self::SHOW_TYPE_AMP;
+                $where['sf.show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
         return $where;
     }
 
@@ -50,10 +91,11 @@ class HomeFloorProductModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $lang, $spu) {
+    public function getExit($country_bn, $lang, $spu, $show_type = 'P') {
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
         $where['spu'] = $spu;
+
         return $this->where($where)->field('id,floor_id')->find();
     }
 
@@ -111,11 +153,45 @@ class HomeFloorProductModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function createData($country_bn, $spus, $floor_id, $lang) {
+    public function createData($country_bn, $spus, $floor_id, $lang, $show_type = null) {
 
         $this->startTrans();
+
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $show_type = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $show_type = self::SHOW_TYPE_AMP;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
+
         foreach ($spus as $spu) {
-            $row = $this->getExit($country_bn, $lang, $spu);
+            $row = $this->getExit($country_bn, $lang, $spu, $show_type);
 
             if (!$row) {
 
@@ -128,6 +204,7 @@ class HomeFloorProductModel extends PublicModel {
                     'country_bn' => $country_bn,
                     'lang' => $lang,
                     'spu' => $spu,
+                    'show_type' => $show_type,
                     'floor_id' => $floor_id,
                     'name' => $product_name['name'],
                     'show_name' => $product_name['show_name'],

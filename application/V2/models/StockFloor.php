@@ -19,6 +19,14 @@ class StockFloorModel extends PublicModel {
     protected $tableName = 'stock_floor';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+    const SHOW_TYPE_MP = 'MP';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_AMP = 'AMP';
+
     public function __construct() {
         parent::__construct();
     }
@@ -31,6 +39,29 @@ class StockFloorModel extends PublicModel {
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'onshelf_flag', 'bool');
         $this->_getValue($where, $condition, 'lang');
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_A:
+                $where['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_MP:
+                $where['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $where['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
 
         return $where;
     }
@@ -42,13 +73,26 @@ class StockFloorModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $floor_name, $lang, $id = null) {
+    public function getExit($country_bn, $floor_name, $lang, $id = null, $show_type = 'P') {
 
         $where['country_bn'] = trim($country_bn);
         $where['floor_name'] = trim($floor_name);
         $where['lang'] = trim($lang);
         if ($id) {
             $where['id'] = ['neq', $id];
+        }
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
         }
         return $this->where($where)->getField('id');
     }
@@ -112,6 +156,31 @@ class StockFloorModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_A:
+                $data['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $data['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $data['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $data['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $data['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $data['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+            default : $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+        }
         return $this->add($data);
     }
 
@@ -131,7 +200,29 @@ class StockFloorModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_A:
+                $data['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $data['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $data['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $data['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $data['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $data['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
         return $this->where(['id' => $id])->save($data);
     }
 

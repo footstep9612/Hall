@@ -19,6 +19,14 @@ class StockCountryAdsModel extends PublicModel {
     protected $tableName = 'stock_country_ads';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+    const SHOW_TYPE_MP = 'MP';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_AMP = 'AMP';
+
     public function __construct() {
         parent::__construct();
     }
@@ -30,6 +38,29 @@ class StockCountryAdsModel extends PublicModel {
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'img_name', 'like');
         $this->_getValue($where, $condition, 'group');
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_A:
+                $where['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_MP:
+                $where['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $where['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
         return $where;
     }
 
@@ -52,7 +83,7 @@ class StockCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $img_name, $img_url, $group, $lang, $id = null) {
+    public function getExit($country_bn, $img_name, $img_url, $group, $lang, $id = null, $show_type = 'P') {
 
         $where['country_bn'] = $country_bn;
         $where['img_name'] = $img_name;
@@ -61,6 +92,19 @@ class StockCountryAdsModel extends PublicModel {
         $where['lang'] = $lang;
         if ($id) {
             $where['id'] = ['neq', $id];
+        }
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
         }
         return $this->where($where)->field('id')->find();
     }
@@ -85,7 +129,7 @@ class StockCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang) {
+    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = self::SHOW_TYPE_P) {
 
         $data['country_bn'] = $country_bn;
         $data['img_name'] = $img_name;
@@ -95,7 +139,31 @@ class StockCountryAdsModel extends PublicModel {
         $data['lang'] = $lang;
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
-
+        switch ($show_type) {
+            case self::SHOW_TYPE_A:
+                $data['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $data['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $data['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $data['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $data['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $data['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+            default : $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+        }
         return $this->add($data);
     }
 
@@ -106,7 +174,7 @@ class StockCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang) {
+    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = null) {
 
 
 
@@ -118,7 +186,29 @@ class StockCountryAdsModel extends PublicModel {
         $data['link'] = $link;
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-
+        switch ($show_type) {
+            case self::SHOW_TYPE_A:
+                $data['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $data['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_MP:
+                $data['show_type'] = self::SHOW_TYPE_MP;
+                break;
+            case self::SHOW_TYPE_AP:
+                $data['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $data['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_AMP:
+                $data['show_type'] = self::SHOW_TYPE_AMP;
+                break;
+        }
         return $this->where(['id' => $id])->save($data);
     }
 

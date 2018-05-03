@@ -32,9 +32,20 @@ class StockFloorShowCatModel extends PublicModel {
         $this->_getValue($where, $condition, 'cat_name', 'like');
         $this->_getValue($where, $condition, 'cat_no');
         $this->_getValue($where, $condition, 'created_by');
-
         $this->_getValue($where, $condition, 'lang');
-
+        switch ($condition['show_type']) {
+            case 'P':
+                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                break;
+        }
         return $where;
     }
 
