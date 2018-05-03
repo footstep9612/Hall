@@ -29,15 +29,15 @@ class HomeFloorModel extends PublicModel {
         $this->_getValue($where, $condition, 'lang');
         switch ($condition['show_type']) {
             case 'P':
-                $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
                 break;
             case 'M':
-                $where['show_type'] = ['in', ['AMP', 'M', 'MP', 'AM']];
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
                 break;
             case 'A':
-                $where['show_type'] = ['in', ['AMP', 'A', 'AP', 'AM']];
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
                 break;
-            default : $where['show_type'] = ['in', ['AMP', 'P', 'MP', 'AP']];
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
                 break;
         }
         return $where;

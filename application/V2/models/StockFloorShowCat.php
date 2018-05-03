@@ -23,9 +23,9 @@ class StockFloorShowCatModel extends PublicModel {
     const SHOW_TYPE_A = 'A';
     const SHOW_TYPE_M = 'M';
     const SHOW_TYPE_AP = 'AP';
-    const SHOW_TYPE_MP = 'MP';
+    const SHOW_TYPE_PM = 'PM';
     const SHOW_TYPE_AM = 'AM';
-    const SHOW_TYPE_AMP = 'AMP';
+    const SHOW_TYPE_APM = 'APM';
 
     public function __construct() {
         parent::__construct();
@@ -57,11 +57,11 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $where['show_type'] = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_MP:
-                $where['show_type'] = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $where['show_type'] = self::SHOW_TYPE_PM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $where['show_type'] = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $where['show_type'] = self::SHOW_TYPE_APM;
                 break;
         }
         return $where;
@@ -172,8 +172,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_M:
                 $show_type = self::SHOW_TYPE_M;
                 break;
-            case self::SHOW_TYPE_MP:
-                $show_type = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
                 break;
             case self::SHOW_TYPE_AP:
                 $show_type = self::SHOW_TYPE_AP;
@@ -181,8 +181,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $show_type = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $show_type = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
                 break;
             default : $show_type = self::SHOW_TYPE_P;
                 break;
@@ -234,8 +234,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_M:
                 $show_type = self::SHOW_TYPE_M;
                 break;
-            case self::SHOW_TYPE_MP:
-                $show_type = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
                 break;
             case self::SHOW_TYPE_AP:
                 $show_type = self::SHOW_TYPE_AP;
@@ -243,8 +243,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $show_type = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $show_type = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
                 break;
         }
         $condition['sort_order'] = intval($condition['sort_order']);
@@ -286,8 +286,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_M:
                 $show_type = self::SHOW_TYPE_M;
                 break;
-            case self::SHOW_TYPE_MP:
-                $show_type = self::SHOW_TYPE_MP;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
                 break;
             case self::SHOW_TYPE_AP:
                 $show_type = self::SHOW_TYPE_AP;
@@ -295,8 +295,8 @@ class StockFloorShowCatModel extends PublicModel {
             case self::SHOW_TYPE_AM:
                 $show_type = self::SHOW_TYPE_AM;
                 break;
-            case self::SHOW_TYPE_AMP:
-                $show_type = self::SHOW_TYPE_AMP;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
                 break;
             default : $show_type = self::SHOW_TYPE_P;
                 break;
