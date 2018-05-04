@@ -73,6 +73,7 @@ class StockCostPriceModel extends PublicModel {
         $condition = [
             'sku' => $sku,
             'country_bn' => $country_bn,
+            'deleted_flag' => 'N',
             'price_validity_start' => ['elt', date('Y-m-d', time())],
         ];
         $map['price_validity_end'] = ['egt', date('Y-m-d', time())];
@@ -96,7 +97,7 @@ class StockCostPriceModel extends PublicModel {
             return '';
         }
 
-        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'price_validity_start' => ['elt', date('Y-m-d', time())], 'min_purchase_qty' => ['elt', $count]];
+        $condition = ['sku' => $sku, 'country_bn' => $country_bn, 'deleted_flag'=>'N', 'price_validity_start' => ['elt', date('Y-m-d', time())], 'min_purchase_qty' => ['elt', $count]];
         try {
             $priceInfo = $this->field('min_price as price,min_purchase_qty,max_purchase_qty,price_validity_end,price_cur_bn,price_symbol')->where($condition)->order('min_purchase_qty DESC')->select();
             if ($priceInfo) {
