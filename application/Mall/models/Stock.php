@@ -89,13 +89,15 @@ class StockModel extends PublicModel {
 
 
 
-        return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.country_bn,psd.discount,psd.min_purchase_qty,psd.max_purchase_qty')
-                        ->join($price_strategy_discount_table . ' as psd on psd.sku=s.sku and psd.country_bn=s.country_bn '
-                                . '  and validity_start<\'' . date('Y-m-d') . '\' and psd.deleted_at is null and (psd.validity_end is null or psd.validity_end>\'' . date('Y-m-d') . '\')', 'left')
-                        ->where($where)
-                        ->order('s.sort_order desc')
-                        ->select();
+        $data = $this->alias('s')
+                ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn,psd.discount,psd.min_purchase_qty,psd.max_purchase_qty')
+                ->join($price_strategy_discount_table . ' as psd on psd.sku=s.sku and psd.country_bn=s.country_bn '
+                        . '  and validity_start<\'' . date('Y-m-d') . '\' and psd.deleted_at is null and (psd.validity_end is null or psd.validity_end>\'' . date('Y-m-d') . '\') ', 'left')
+                ->where($where)
+                ->order('s.sort_order desc')
+                ->select();
+
+        return $data;
     }
 
     /**
