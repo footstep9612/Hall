@@ -26,7 +26,7 @@ class EsproductController extends PublicController {
     }
 
     public function getFilesAction() {
-        $data = scandir('/');
+        $data = scandir('/es');
         $this->jsonReturn($data);
     }
 
