@@ -25,11 +25,6 @@ class EsproductController extends PublicController {
         $this->es = new ESClient();
     }
 
-    public function getFilesAction() {
-        $data = file_get_contents('/home/test.php');
-        $this->jsonReturn($data);
-    }
-
 //    public function SearchAction() {
 //        $es = new ESClient();
 //        $index = $this->getPut('index', 'erui_goods');
