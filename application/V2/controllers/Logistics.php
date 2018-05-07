@@ -23,6 +23,7 @@ class LogisticsController extends PublicController {
 		$this->orgMemberModel = new OrgMemberModel();
 		$this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
 		$this->quoteLogiCostModel = new QuoteLogiCostModel();
+		$this->transModeModel = new TransModeModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -224,6 +225,7 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
     	        $countryModel = New CountryModel();
     	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['trans_mode_name'] = $this->transModeModel->getTransModeByBn($quoteLogiFee['trans_mode_bn'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : L('NOTHING');
     	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : L('NOTHING');
 				if(empty($quoteLogiFee['from_country'])){
@@ -244,6 +246,7 @@ class LogisticsController extends PublicController {
     	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : L('NOTHING');
     	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_trans_mode_name'] = $this->transModeModel->getTransModeByBn($quoteLogiFee['logi_trans_mode_bn'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
     	        // 港杂费和国际运费
@@ -427,7 +430,6 @@ class LogisticsController extends PublicController {
 	    $quote = $this->quoteModel->field('from_country, trade_terms_bn, trans_mode_bn')->where(['inquiry_id' => $condition['inquiry_id']])->find();
 	    $condition['from_country'] = $quote['from_country'];
 	    $condition['trade_terms_bn'] = $quote['trade_terms_bn'];
-	    $condition['trans_mode_id'] = $quote['trans_mode_bn'];
 	    $historicalPriceList = $this->quoteLogiCostModel->getHistoricalPriceList($condition);
 	    $this->jsonReturn($historicalPriceList);
 	}
