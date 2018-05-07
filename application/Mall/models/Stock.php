@@ -88,9 +88,7 @@ class StockModel extends PublicModel {
 
 
         $data = $this->alias('s')
-<<<<<<< HEAD
                 ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn')
-
                 ->where($where)
                 ->order('s.sort_order desc')
                 ->select();
