@@ -78,7 +78,6 @@ class StockModel extends PublicModel {
      */
     public function getList($country_bn, $lang, $floor_id) {
 
-
         $where = ['s.deleted_flag' => 'N'];
         $where['s.country_bn'] = trim($country_bn);
         $where['s.floor_id'] = trim($floor_id);
@@ -89,7 +88,9 @@ class StockModel extends PublicModel {
 
 
         $data = $this->alias('s')
+<<<<<<< HEAD
                 ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn')
+
                 ->where($where)
                 ->order('s.sort_order desc')
                 ->select();
