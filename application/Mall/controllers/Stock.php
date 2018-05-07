@@ -45,12 +45,12 @@ class StockController extends PublicController {
 
         $stock_model = new StockModel();
         $list = $stock_model->getListByKeyword($condition);
-
         if ($list) {
             $this->_setImage($list);
             $count = $stock_model->getCountByKeyword($condition);
             $this->setvalue('count', $count);
             $this->_setConstPrice($list, $condition['country_bn']);
+            $this->_setDisCount($list, $condition['country_bn']);
             $this->_SetProductInfo($list, $condition['lang']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -95,7 +95,7 @@ class StockController extends PublicController {
         if ($list) {
             $this->_setImage($list);
             $this->_setConstPrice($list, $country_bn);
-
+            $this->_setDisCount($list, $country_bn);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -138,6 +138,44 @@ class StockController extends PublicController {
                 } else {
                     $val['image_url'] = '';
                     $val['image_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取图片
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setDisCount(&$arr, $country_bn) {
+        if ($arr) {
+
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+
+            $price_strategy_discount_model = new PriceStrategyDiscountModel();
+            $disCounts = $price_strategy_discount_model->getDisCountBySkus($skus, $country_bn);
+
+            foreach ($arr as $key => $val) {
+
+                if ($val['sku'] && isset($disCounts[$val['sku']])) {
+                    if (isset($disCounts[$val['sku']])) {
+                        $val['discount'] = $disCounts[$val['sku']]['discount'];
+                        $val['min_purchase_qty'] = $disCounts[$val['sku']]['min_purchase_qty'];
+                        $val['max_purchase_qty'] = $disCounts[$val['sku']]['max_purchase_qty'];
+                    }
+                } else {
+                    $val['discount'] = '';
+                    $val['min_purchase_qty'] = '';
+                    $val['max_purchase_qty'] = '';
                 }
                 $arr[$key] = $val;
             }
