@@ -78,6 +78,11 @@ class StockModel extends PublicModel {
      */
     public function getList($country_bn, $lang, $floor_id) {
 
+<<<<<<< HEAD
+=======
+        $price_strategy_discount_model = new PriceStrategyDiscountModel();
+        $price_strategy_discount_table = $price_strategy_discount_model->getTableName();
+>>>>>>> 09246429757a605db4fb277f0f560eaaa5d84305
         $where = ['s.deleted_flag' => 'N'];
         $where['s.country_bn'] = trim($country_bn);
         $where['s.floor_id'] = trim($floor_id);
@@ -88,7 +93,13 @@ class StockModel extends PublicModel {
 
 
         $data = $this->alias('s')
+<<<<<<< HEAD
                 ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn')
+=======
+                ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn,psd.discount,psd.min_purchase_qty,psd.max_purchase_qty')
+                ->join($price_strategy_discount_table . ' as psd on psd.sku=s.sku and psd.country_bn=s.country_bn '
+                        . '  and validity_start<\'' . date('Y-m-d') . '\' and psd.deleted_at is null and (psd.validity_end is null or psd.validity_end>\'' . date('Y-m-d') . '\') ', 'left')
+>>>>>>> 09246429757a605db4fb277f0f560eaaa5d84305
                 ->where($where)
                 ->order('s.sort_order desc')
                 ->select();
