@@ -124,18 +124,14 @@ class ShowcatController extends PublicController {
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
-
         if (empty($country_bn)) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('国家简称不能为空');
             $this->jsonReturn();
         }
-
         $jsondata['country_bn'] = $country_bn;
-
         $show_model = new ShowCatModel();
         $arr = $show_model->tree($jsondata);
-
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
             foreach ($arr as $key => $val) {
@@ -164,6 +160,38 @@ class ShowcatController extends PublicController {
         }
     }
 
+    public function treeKeywordsAction() {
+        ini_set('memory_limit', '800M');
+        set_time_limit(360);
+        $lang = $this->getPut('lang', 'zh');
+        $jsondata = ['lang' => $lang];
+        $jsondata['level_no'] = 1;
+        $country_bn = $this->getPut('country_bn', '');
+
+        if (empty($country_bn)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空');
+            $this->jsonReturn();
+        }
+
+        $jsondata['country_bn'] = $country_bn;
+        $show_model = new ShowCatModel();
+        $show_keywords_model = new ShowCatKeywordsModel();
+        $arr = $show_model->tree($jsondata);
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            foreach ($arr as $key => $val) {
+                $children_data = $jsondata;
+                $children_data['cat_no'] = $val['value'];
+                $arr[$key]['children'] = $show_keywords_model->getlist($children_data);
+            }
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn($arr);
+        }
+    }
     /**
      * 根据条件获取查询条件
      * @param string $lang 语言
