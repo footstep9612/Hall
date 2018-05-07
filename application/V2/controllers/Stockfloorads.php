@@ -43,11 +43,11 @@ class StockflooradsController extends PublicController {
             $this->jsonReturn();
         }
 
-        if (empty($condition['floor_id'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择楼层!');
-            $this->jsonReturn();
-        }
+//        if (empty($condition['floor_id'])) {
+//            $this->setCode(MSG::MSG_EXIST);
+//            $this->setMessage('请选择楼层!');
+//            $this->jsonReturn();
+//        }
         $stock_floor_ads_model = new StockFloorAdsModel();
 
         $list = $stock_floor_ads_model->getList($condition);

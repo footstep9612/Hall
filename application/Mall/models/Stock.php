@@ -78,7 +78,6 @@ class StockModel extends PublicModel {
      */
     public function getList($country_bn, $lang, $floor_id) {
 
-        //$stock_cost_price_model = new StockCostPriceModel();
 
         $where = ['s.deleted_flag' => 'N'];
         $where['s.country_bn'] = trim($country_bn);
@@ -87,11 +86,15 @@ class StockModel extends PublicModel {
         $where['s.stock'] = ['gt', 0];
         /* 有问题 一个现货 有多个价格体系时 可能重复显示 */
 
-        return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
-                        ->where($where)
-                        ->order('sort_order desc')
-                        ->select();
+
+
+        $data = $this->alias('s')
+                ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn')
+                ->where($where)
+                ->order('s.sort_order desc')
+                ->select();
+
+        return $data;
     }
 
     /**
