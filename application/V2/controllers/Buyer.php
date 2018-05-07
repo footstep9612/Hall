@@ -630,7 +630,17 @@ EOF;
             $dataJson['code']=0;
             $dataJson['message']='Error';
         }
+        $this->operation($data['buyer_id']);    //发送邮件操作时间
         $this->jsonReturn($dataJson);
+    }
+    //操作
+    public function operation($id){
+        $buyer=new BuyerModel();
+        $opt=array(
+            'checked_by'=>$this->user['id'],
+            'checked_at'=>date('Y-m-d H:i:s')
+        );
+        return $buyer->where(array('id'=>$id))->save($opt);
     }
     public function createAction() {
         $input = json_decode(file_get_contents("php://input"), true);
@@ -838,11 +848,13 @@ EOF;
     //crm 更新客户市场经办人-王帅
     public function crmUpdateAgentAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $this->user['id'];
+        $created_by = $this->user['id'];
+        $time=date('Y-m-d H:i:s');
+        $data['created_by'] = $created_by;
         $agent = new BuyerAgentModel();
         $res=$agent->crmUpdateAgent($data);
         $buyer=new BuyerModel();
-        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED'));
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED','checked_by'=>$created_by,'checked_at'=>$time));
         $account=new BuyerAccountModel();
         $account->where(array('buyer_id'=>$data['id']))->save(array('status'=>'VALID'));
         if($res){
@@ -860,13 +872,17 @@ EOF;
     //关闭客户
     public function closeBuyerAction(){
         $data = json_decode(file_get_contents("php://input"), true);
+        $created_by = $this->user['id'];
+        $time=date('Y-m-d H:i:s');
+
         if(empty($data['buyer_id'])){
             $this->jsonReturn(array("code" => "-101", "message" =>L('param_error')));
         }
         $close_info=isset($data['close_info'])?$data['close_info']:null;
         $buyer=new BuyerModel();
         $account=new BuyerAccountModel();
-        $buyer->where(array('id'=>$data['buyer_id']))->save(array('close_info'=>$close_info,'status'=>'REJECTED'));
+        $buyer->where(array('id'=>$data['buyer_id']))
+            ->save(array('close_info'=>$close_info,'status'=>'REJECTED','checked_by'=>$created_by,'checked_at'=>$time));
         $account->where(array('buyer_id'=>$data['buyer_id']))->save(array('status'=>'REJECTED'));
         $this->jsonReturn(array("code" => 1, "message" =>L('success')));
     }
@@ -879,7 +895,7 @@ EOF;
         if (!empty($data['id'])) {
             $where['id'] = $data['id'];
             $where_account['buyer_id'] = $data['id'];
-            $arr['checked_by'] = $this->user['id'];
+            $arr['checked_by'] = $this->user['id']; //操作人员
             $arr['checked_at'] = date('Y-m-d H:i:s');
 //            $where_attach['buyer_id'] = $data['id'];
         } else {
