@@ -430,6 +430,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
+//            'checked_at',   //操作
         );
         $field = 'employee.name as employee_name,country.name as country_name,';
 
@@ -437,7 +438,8 @@ class BuyerModel extends PublicModel {
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
-        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+//        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
         //excel导出标识
