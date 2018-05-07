@@ -453,7 +453,7 @@ class BuyerModel extends PublicModel {
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
-            ->order('agent.created_at desc,buyer.id desc')
+            ->order('buyer.checked_at desc')
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
@@ -769,18 +769,13 @@ class BuyerModel extends PublicModel {
             $data['remarks'] = $create['remarks'];
         }
         if (isset($create['created_by'])) {
+            $time=date('Y-m-d H:i:s');
             $data['created_by'] = $create['created_by'];
+            $data['checked_by'] = $create['created_by'];
+            $data['created_at'] = $time;
+            $data['checked_at'] = $time;
         }
-        if (isset($create['checked_by'])) {
-            $data['checked_by'] = $create['checked_by'];
-        }
-        $data['created_at'] = date('Y-m-d H:i:s');
         $data['status'] = 'APPROVED';  //APPROVING
-        if (isset($create['created_by'])) {
-            $data['checked_by']  = $create['created_by'];
-            $data['checked_at'] = date('Y-m-d H:i:s');
-
-        }
 //        $datajson = $this->create($data);
         $datajson = $data;
 //        if($create['is_group_crm'] == true){
