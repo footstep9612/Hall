@@ -30,8 +30,12 @@ class TemporarySupplierController extends PublicController
         $list = $this->temporarySupplier->getList($request);
 
         foreach ($list as &$item) {
+            //已经关联的供应商
             $item['relation_supplier_name'] = $this->temporarySupplier->relationSupplierById($item['id']);
+
             $item['quotations_count'] = $this->temporarySupplier->temporarySupplierInquiryCountsBy($item['id']);
+            //事业部
+            $item['org_name'] = (new OrgModel)->getNameById($item['org_id'], '');
         }
 
         $this->jsonReturn([
