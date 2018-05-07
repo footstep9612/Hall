@@ -129,7 +129,7 @@ class QuoteLogiCostModel extends PublicModel {
 	    $where = [
 	        'b.from_country' => [['neq', ''], ['eq', $condition['from_country']]],
 	        'b.trade_terms_bn' => [['neq', ''], ['eq', $condition['trade_terms_bn']]],
-	        'b.trans_mode_bn' => [['neq', ''], ['eq', $condition['trans_mode_id']]],
+	        'b.trans_mode_bn' => [['neq', ''], ['eq', $condition['trans_mode_bn']]],
 	        'a.unit' => [['neq', ''], ['eq', $condition['unit']]],
 	        'a.qty' => [['neq', ''], ['eq', $condition['qty']]],
 	        'a.type' => [['neq', ''], ['eq', $condition['type']]],

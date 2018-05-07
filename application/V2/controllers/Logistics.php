@@ -427,7 +427,6 @@ class LogisticsController extends PublicController {
 	    $quote = $this->quoteModel->field('from_country, trade_terms_bn, trans_mode_bn')->where(['inquiry_id' => $condition['inquiry_id']])->find();
 	    $condition['from_country'] = $quote['from_country'];
 	    $condition['trade_terms_bn'] = $quote['trade_terms_bn'];
-	    $condition['trans_mode_id'] = $quote['trans_mode_bn'];
 	    $historicalPriceList = $this->quoteLogiCostModel->getHistoricalPriceList($condition);
 	    $this->jsonReturn($historicalPriceList);
 	}

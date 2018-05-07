@@ -255,9 +255,7 @@ class InquiryController extends PublicController {
             $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
             $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
             $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
-            $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
-            $inquiry['trans_mode_bn'] = $transMode['bn'];
-            $inquiry['trans_mode_name'] = $transMode['trans_mode'];
+            $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
             $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
         }
 
@@ -355,9 +353,7 @@ class InquiryController extends PublicController {
                 $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
                 $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
                 $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
-                $transMode = $transModeModel->field('bn, trans_mode')->where(['id' => $inquiry['trans_mode_bn'], 'deleted_flag' => 'N'])->find();
-                $inquiry['trans_mode_bn'] = $transMode['bn'];
-                $inquiry['trans_mode_name'] = $transMode['trans_mode'];
+                $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
                 $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
             }
         }

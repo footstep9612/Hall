@@ -47,9 +47,6 @@ class QuoteController extends PublicController{
         $info['exchange_rate'] = $info['exchange_rate'] ? : L('NOTHING');
 
         $info['inquiry_trans_mode_bn'] = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->getField('trans_mode_bn');
-
-        $transMode = new TransModeModel();
-        $info['inquiry_trans_mode_bn'] = $transMode->where(['id' => $info['inquiry_trans_mode_bn']])->getField('trans_mode');
         $info['inquiry_trans_mode_bn'] = $info['inquiry_trans_mode_bn'] ? : L('NOTHING');
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
