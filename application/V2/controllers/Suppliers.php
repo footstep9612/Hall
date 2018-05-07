@@ -39,7 +39,7 @@ class SuppliersController extends PublicController {
 
         $this->suppliersModel->startTrans();
 
-        $condition['status'] = 'DRAFT';
+        $condition['status'] = 'REVIEW';
         $condition['deleted_flag'] = 'Y';
         $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = $this->time;
@@ -360,7 +360,8 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function getSupplierListAction() {
-        $condition = $this->put_data;
+
+        $condition = $this->validateRequestParams();
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
         if (!$isErui) {

@@ -17,17 +17,12 @@ class TemporarySupplierModel extends PublicModel
     /**
      * @var string
      */
-    protected $tableName = 'temporary_supplier';
+    protected $tableName = 'supplier';
 
     /**
      * @var string
      */
-    protected $listFields = 'a.id,a.name,a.name_en,a.is_relation,a.relations_count,a.created_by created_by_id,e.name created_by,a.quotations_count,a.org_id,o.name org_name,a.registration_time';
-
-    /**
-     * @var string
-     */
-    protected $joinOrgTable = 'erui_sys.org o ON a.org_id=o.id';
+    protected $listFields = 'a.id,a.name,a.name_en,a.created_by created_by_id,e.name created_by,a.created_at registration_time,a.org_id,a.is_relation';
 
     /**
      * @var string
@@ -88,13 +83,12 @@ class TemporarySupplierModel extends PublicModel
         $where = $this->setCondition($condition);
 
         $data = $this->alias('a')
-                    ->join($this->joinOrgTable, 'LEFT')
                     ->join($this->joinEmployyeTable, 'LEFT')
                     ->where($where)
                     ->field($this->listFields)
                     ->page($currentPage, $pageSize)
+                    ->order('a.id DESC')
                     ->select();
-
         return $data;
     }
 
@@ -102,7 +96,6 @@ class TemporarySupplierModel extends PublicModel
     public function getCount(array $condition)
     {
         return $this->alias('a')
-            ->join($this->joinOrgTable, 'LEFT')
             ->join($this->joinEmployyeTable, 'LEFT')
             ->where($this->setCondition($condition))
             ->field($this->listFields)
@@ -133,7 +126,7 @@ class TemporarySupplierModel extends PublicModel
         //删除标识
         $where['a.deleted_flag'] = 'N';
 
-        $where['o.deleted_flag'] = 'N';
+        $where['a.status'] = 'DRAFT';
 
         $where['e.deleted_flag'] = 'N';
 
@@ -165,7 +158,6 @@ class TemporarySupplierModel extends PublicModel
         $this->where(['id' => $id])->save([
             'deleted_flag' => 'Y',
             'is_relation' => 'N',
-            'relations_count' => 0,
             'updated_by' => $user,
             'updated_at' => date('Y-m-d H:i:s')
         ]);
@@ -280,7 +272,7 @@ class TemporarySupplierModel extends PublicModel
     private function setRegularCondition(array $condition)
     {
         $where['a.deleted_flag'] = 'N';
-        $where['a.status'] = ['neq', 'OVERDUE'];
+        $where['a.status'] = ['neq', 'DRAFT'];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
