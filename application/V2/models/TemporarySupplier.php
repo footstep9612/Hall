@@ -272,7 +272,7 @@ class TemporarySupplierModel extends PublicModel
     private function setRegularCondition(array $condition)
     {
         $where['a.deleted_flag'] = 'N';
-        $where['a.status'] = ['neq', 'OVERDUE'];
+        $where['a.status'] = ['neq', 'DRAFT'];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
