@@ -19,6 +19,14 @@ class HomeFloorAdsModel extends PublicModel {
     protected $tableName = 'home_floor_ads';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+   const SHOW_TYPE_PM = 'PM';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_APM = 'APM';
+
     public function __construct() {
         parent::__construct();
     }
@@ -33,7 +41,29 @@ class HomeFloorAdsModel extends PublicModel {
 
 
         $this->_getValue($where, $condition, 'lang');
-
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_A:
+                $where['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_PM:
+                $where['show_type'] = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $where['show_type'] = self::SHOW_TYPE_APM;
+                break;
+        }
         return $where;
     }
 
@@ -44,7 +74,7 @@ class HomeFloorAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($condition, $id = null) {
+    public function getExit($condition, $id = null, $show_type = 'P') {
 
         $where['country_bn'] = trim($condition['country_bn']);
         $where['floor_id'] = trim($condition['floor_id']);
@@ -55,6 +85,19 @@ class HomeFloorAdsModel extends PublicModel {
 
         if ($id) {
             $where['id'] = ['neq', $id];
+        }
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
         }
         return $this->where($where)->getField('id');
     }
@@ -120,6 +163,39 @@ class HomeFloorAdsModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $data['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $data['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_PM:
+                $data['show_type'] = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_AP:
+                $data['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $data['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $data['show_type'] = self::SHOW_TYPE_APM;
+                break;
+            default : $data['show_type'] = self::SHOW_TYPE_P;
+                break;
+        }
         return $this->add($data);
     }
 
@@ -142,7 +218,36 @@ class HomeFloorAdsModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $home_floor_model = new HomeFloorModel ();
+            $info = $home_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
+                break;
+        }
         return $this->where(['id' => $id])->save($data);
     }
 

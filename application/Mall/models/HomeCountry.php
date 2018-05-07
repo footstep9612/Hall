@@ -30,6 +30,20 @@ class HomeCountryModel extends PublicModel {
         $this->_getValue($where, $condition, 'display_position');
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'show_flag', 'bool');
+
+        switch ($condition['show_type']) {
+            case 'P':
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+        }
         $this->_getValue($where, $condition, 'lang');
         return $where;
     }

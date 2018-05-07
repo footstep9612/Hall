@@ -31,7 +31,19 @@ class StockFloorKeywordModel extends PublicModel {
         $this->_getValue($where, $condition, 'keyword', 'like');
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'lang');
-
+        switch ($condition['show_type']) {
+            case 'P':
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+        }
         return $where;
     }
 

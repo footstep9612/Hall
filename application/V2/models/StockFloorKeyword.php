@@ -19,6 +19,14 @@ class StockFloorKeywordModel extends PublicModel {
     protected $tableName = 'stock_floor_keyword';
     protected $dbName = 'erui_stock';
 
+    const SHOW_TYPE_P = 'P';
+    const SHOW_TYPE_A = 'A';
+    const SHOW_TYPE_M = 'M';
+    const SHOW_TYPE_AP = 'AP';
+   const SHOW_TYPE_PM = 'PM';
+    const SHOW_TYPE_AM = 'AM';
+    const SHOW_TYPE_APM = 'APM';
+
     public function __construct() {
         parent::__construct();
     }
@@ -31,6 +39,29 @@ class StockFloorKeywordModel extends PublicModel {
         $this->_getValue($where, $condition, 'created_by');
         $this->_getValue($where, $condition, 'lang');
 
+        switch ($condition['show_type']) {
+            case self::SHOW_TYPE_P:
+                $where['show_type'] = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $where['show_type'] = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_A:
+                $where['show_type'] = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_AP:
+                $where['show_type'] = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $where['show_type'] = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_PM:
+                $where['show_type'] = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $where['show_type'] = self::SHOW_TYPE_APM;
+                break;
+        }
         return $where;
     }
 
@@ -49,6 +80,19 @@ class StockFloorKeywordModel extends PublicModel {
         if ($id) {
             $where['id'] = ['neq', $id];
         }
+//        switch ($show_type) {
+//            case 'P':
+//                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+//                break;
+//            case 'M':
+//                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
+//                break;
+//            case 'A':
+//                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
+//                break;
+//            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+//                break;
+//        }
         return $this->where($where)->getField('id');
     }
 
@@ -110,6 +154,38 @@ class StockFloorKeywordModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+        $info = [];
+        if (empty($condition['show_type']) && !empty($condition['floor_id'])) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($condition['floor_id']);
+        } elseif (!empty($condition['show_type'])) {
+            $info['show_type'] = $condition['show_type'];
+        }
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
         return $this->add($data);
     }
 
@@ -129,7 +205,33 @@ class StockFloorKeywordModel extends PublicModel {
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
-
+        $stock_country = new StockCountryModel();
+        $info = $stock_country->getInfo($condition['floor_id']);
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
         return $this->where(['id' => $id])->save($data);
     }
 
@@ -140,15 +242,47 @@ class StockFloorKeywordModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function addKeywords($floor_id, $country_bn, $lang, $keywords) {
+    public function addKeywords($floor_id, $country_bn, $lang, $keywords, $show_type = null) {
 
-
+        $info = [];
+        if (empty($show_type) && !empty($floor_id)) {
+            $stock_floor_model = new StockFloorModel ();
+            $info = $stock_floor_model->getInfo($floor_id);
+        } elseif (!empty($show_type)) {
+            $info['show_type'] = $show_type;
+        }
+        switch ($info['show_type']) {
+            case self::SHOW_TYPE_A:
+                $show_type = self::SHOW_TYPE_A;
+                break;
+            case self::SHOW_TYPE_P:
+                $show_type = self::SHOW_TYPE_P;
+                break;
+            case self::SHOW_TYPE_M:
+                $show_type = self::SHOW_TYPE_M;
+                break;
+            case self::SHOW_TYPE_PM:
+                $show_type = self::SHOW_TYPE_PM;
+                break;
+            case self::SHOW_TYPE_AP:
+                $show_type = self::SHOW_TYPE_AP;
+                break;
+            case self::SHOW_TYPE_AM:
+                $show_type = self::SHOW_TYPE_AM;
+                break;
+            case self::SHOW_TYPE_APM:
+                $show_type = self::SHOW_TYPE_APM;
+                break;
+            default : $show_type = self::SHOW_TYPE_P;
+                break;
+        }
         foreach ($keywords as $keyword) {
             $condition = [
                 'floor_id' => $floor_id,
                 'country_bn' => $country_bn,
                 'lang' => $lang,
-                'keyword' => $keyword
+                'keyword' => $keyword,
+                'show_type' => $show_type
             ];
             $flag = $this->createData($condition);
 

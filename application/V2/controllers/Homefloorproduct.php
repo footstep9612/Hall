@@ -134,8 +134,9 @@ class HomefloorproductController extends PublicController {
             $this->setMessage('请选择楼层!');
             $this->jsonReturn();
         }
+        $show_type = $this->getPut('show_type');
         $home_floor_product_model = new HomeFloorProductModel();
-        $flag = $home_floor_product_model->createData($country_bn, $spus, $floor_id, $lang);
+        $flag = $home_floor_product_model->createData($country_bn, $spus, $floor_id, $lang, $show_type);
 
         if ($flag) {
             $this->jsonReturn();

@@ -30,12 +30,25 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $lang = 'en') {
+    public function getExit($country_bn, $lang = 'en', $show_type = 'P') {
 
         $where['country_bn'] = trim($country_bn);
         $where['show_flag'] = 'Y';
         $where['deleted_flag'] = 'N';
         $where['lang'] = $lang;
+        switch ($show_type) {
+            case 'P':
+                $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+            case 'M':
+                $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
+                break;
+            case 'A':
+                $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
+                break;
+            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+                break;
+        }
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName();
         return $this

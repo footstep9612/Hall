@@ -114,8 +114,8 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $home_floor_model = new HomeFloorModel();
-
-        if ($home_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'])) {
+        $show_type = $this->getPut('show_type');
+        if ($home_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'], null, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('所在国家已经存在相同楼层名称,请您添加不同名称的楼层!');
             $this->jsonReturn();
@@ -166,8 +166,8 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $home_floor_model = new HomeFloorModel();
-
-        if ($home_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'], $id)) {
+        $show_type = $this->getPut('show_type');
+        if ($home_floor_model->getExit($condition['country_bn'], $condition['floor_name'], $condition['lang'], $id, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('所在国家已经存在相同楼层名称,请您添加不同名称的楼层!');
             $this->jsonReturn();
@@ -276,9 +276,9 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $stock_floor_model = new HomeFloorModel();
+        $show_type = $this->getPut('show_type');
 
-
-        $flag = $stock_floor_model->addProducts($floor_id, $country_bn, $lang, $spus);
+        $flag = $stock_floor_model->addProducts($floor_id, $country_bn, $lang, $spus, $show_type);
 
         if ($flag) {
             $message = '添加产品成功!';
@@ -337,9 +337,9 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $home_floor_keyword_model = new HomeFloorKeywordModel();
+        $show_type = $this->getPut('show_type');
 
-
-        $flag = $home_floor_keyword_model->addKeywords($floor_id, $country_bn, $lang, $keywords);
+        $flag = $home_floor_keyword_model->addKeywords($floor_id, $country_bn, $lang, $keywords, $show_type);
 
         if ($flag) {
             $message = '添加关键词成功!';
@@ -405,8 +405,8 @@ class HomefloorController extends PublicController {
         }
         $home_floor_keyword_model = new HomeFloorKeywordModel();
 
-
-        $flag = $home_floor_keyword_model->updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword, $deleted_flag);
+        $show_type = $this->getPut('show_type');
+        $flag = $home_floor_keyword_model->updateData($id, $floor_id, $country_bn, $lang, $sort_order, $keyword, $deleted_flag, $show_type);
 
         if ($flag) {
             $message = '删除关键词成功!';
@@ -465,9 +465,9 @@ class HomefloorController extends PublicController {
             $this->jsonReturn();
         }
         $home_floor_show_cat_model = new HomeFloorShowCatModel();
+        $show_type = $this->getPut('show_type');
 
-
-        $flag = $home_floor_show_cat_model->addCats($floor_id, $country_bn, $lang, $cat_nos, $deleted_flag);
+        $flag = $home_floor_show_cat_model->addCats($floor_id, $country_bn, $lang, $cat_nos, $deleted_flag, $show_type);
 
         if ($flag) {
             $message = '添加分类成功!';
@@ -502,6 +502,7 @@ class HomefloorController extends PublicController {
         }
         $condition = $this->getPut();
         $home_floor_show_cat_model = new HomeFloorShowCatModel();
+
         $flag = $home_floor_show_cat_model->updateData($id, $condition);
 
         if ($flag) {

@@ -134,7 +134,8 @@ class HomecountryController extends PublicController {
         }
         $home_country_model = new HomeCountryModel();
         $lang = $this->getPut('lang', 'en');
-        if ($home_country_model->getExit($country_bn, $lang)) {
+        $show_type = $this->getPut('show_type', 'P');
+        if ($home_country_model->getExit($country_bn, $lang, null, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -143,7 +144,7 @@ class HomecountryController extends PublicController {
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
 
-        $list = $home_country_model->createData($country_bn, $show_flag, $lang, $display_position);
+        $list = $home_country_model->createData($country_bn, $show_flag, $lang, $display_position, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -177,10 +178,10 @@ class HomecountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn();
         }
-
+        $show_type = $this->getPut('show_type');
         $home_country_model = new HomeCountryModel();
         $lang = $this->getPut('lang', 'en');
-        if ($home_country_model->getExit($country_bn, $lang, $id)) {
+        if ($home_country_model->getExit($country_bn, $lang, $id, $show_type)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择国家已经存在,请您重新选择!');
             $this->jsonReturn();
@@ -188,8 +189,7 @@ class HomecountryController extends PublicController {
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
 
-
-        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position);
+        $list = $home_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

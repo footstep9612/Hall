@@ -78,8 +78,8 @@ class StockModel extends PublicModel {
      */
     public function getList($country_bn, $lang, $floor_id) {
 
-        //$stock_cost_price_model = new StockCostPriceModel();
-
+        $price_strategy_discount_model = new PriceStrategyDiscountModel();
+        $price_strategy_discount_table = $price_strategy_discount_model->getTableName();
         $where = ['s.deleted_flag' => 'N'];
         $where['s.country_bn'] = trim($country_bn);
         $where['s.floor_id'] = trim($floor_id);
@@ -87,11 +87,17 @@ class StockModel extends PublicModel {
         $where['s.stock'] = ['gt', 0];
         /* 有问题 一个现货 有多个价格体系时 可能重复显示 */
 
-        return $this->alias('s')
-                        ->field('s.sku,s.spu,s.show_name,s.stock,s.spu,s.country_bn')
-                        ->where($where)
-                        ->order('sort_order desc')
-                        ->select();
+
+
+        $data = $this->alias('s')
+                ->field('DISTINCTROW s.sku,s.spu,s.show_name,s.stock,s.country_bn,psd.discount,psd.min_purchase_qty,psd.max_purchase_qty')
+                ->join($price_strategy_discount_table . ' as psd on psd.sku=s.sku and psd.country_bn=s.country_bn '
+                        . '  and validity_start<\'' . date('Y-m-d') . '\' and psd.deleted_at is null and (psd.validity_end is null or psd.validity_end>\'' . date('Y-m-d') . '\') ', 'left')
+                ->where($where)
+                ->order('s.sort_order desc')
+                ->select();
+
+        return $data;
     }
 
     /**
