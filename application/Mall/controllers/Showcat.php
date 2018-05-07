@@ -160,7 +160,7 @@ class ShowcatController extends PublicController {
         }
     }
 
-    public function treeeywordsAction() {
+    public function treekeywordsAction() {
         ini_set('memory_limit', '800M');
         set_time_limit(360);
         $lang = $this->getPut('lang', 'zh');
