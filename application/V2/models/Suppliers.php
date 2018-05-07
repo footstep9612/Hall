@@ -57,11 +57,8 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
-        /**
-         * 默认显示所有状态的数据，不用状态筛选
-         * 修改时间 2018-05-07 11：45：33
-         */
-        //$where['a.status'] = ['neq', 'OVERDUE'];
+
+        $where['a.status'] = ['neq', 'DRAFT'];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
