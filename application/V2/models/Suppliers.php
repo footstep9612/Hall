@@ -57,7 +57,11 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
-        $where['a.status'] = ['neq', 'OVERDUE'];
+        /**
+         * 默认显示所有状态的数据，不用状态筛选
+         * 修改时间 2018-05-07 11：45：33
+         */
+        //$where['a.status'] = ['neq', 'OVERDUE'];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
@@ -255,14 +259,10 @@ class SuppliersModel extends PublicModel {
     public function getJoinListForExport($condition = []) {
 
         $where = $this->getJoinWhere($condition);
+        //p($where);
+        //unset($where['a.status']);
 
-        unset($where['a.status']);
 
-        if (!empty($condition['erui_status'])) {
-            $where['a.erui_status'] =  $condition['erui_status'];
-        }else{
-            $where['a.erui_status'] = ['in', ['CHECKING', 'VALID'] ];
-        }
         //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         //$pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
