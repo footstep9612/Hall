@@ -22,18 +22,17 @@ class TemporarySupplierRelationModel extends PublicModel
 
     public function setRelation(array $condition, $user)
     {
-        $temporarySupplierModel = new TemporarySupplierModel();
-        $temporarySupplier = $temporarySupplierModel->byId($condition['id']);
         //一个临时供应商只能跟一个正式供应商关联
         $flag = $this->where([
             'temporary_supplier_id' => $condition['id'],
-            //'supplier_no' => $condition['supplier_no'],
         ])->delete();
 
-        $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N'])->save([
+        $temporarySupplierModel = new TemporarySupplierModel();
+        $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N', 'status' => 'DRAFT'])->save([
             'is_relation' => 'N',
-            'relations_count' => 0
         ]);
+
+        $temporarySupplier = $temporarySupplierModel->byId($condition['id']);
 
         $this->startTrans();
         $result = $this->add($this->create([
@@ -47,11 +46,10 @@ class TemporarySupplierRelationModel extends PublicModel
 
         if ($result) {
             $this->commit();
-            $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N'])->save([
+            $temporarySupplierModel->where(['id' => $condition['id'], 'deleted_flag'=> 'N', 'status' => 'DRAFT'])->save([
                 'is_relation' => 'Y',
-                'relations_count' => $temporarySupplier['relations_count'] + 1,
-                'created_at' => date('Y-m-d H:i:s'),
-                'created_by' => $user
+                'updated_at' => date('Y-m-d H:i:s'),
+                'updated_by' => $user
             ]);
         }
 
@@ -63,7 +61,6 @@ class TemporarySupplierRelationModel extends PublicModel
     {
         (new TemporarySupplierModel)->where(['id' => $id])->save([
             'is_relation' => 'N',
-            'relations_count' => 0,
             'updated_by' => $user,
             'updated_at' => date('Y-m-d H:i:s')
         ]);
@@ -78,6 +75,11 @@ class TemporarySupplierRelationModel extends PublicModel
     public function checkTemporaryRegularRelationBy($temporarySupplier, $regularSupplier)
     {
         return $this->where(['temporary_supplier_id' => $temporarySupplier, 'supplier_id' => $regularSupplier, 'deleted_flag' => 'N'])->count();
+    }
+
+    public function checkHasRelationBy($temporarySupplier)
+    {
+        return $this->where(['temporary_supplier_id' => $temporarySupplier, 'deleted_flag' => 'N'])->find();
     }
 
     public function regularSupplierWithTemporarySupplierIdsBy($regularSupplier)

@@ -200,5 +200,18 @@ class TransModeModel extends PublicModel {
             return array();
         }
     }
+    
+    /**
+     * @desc 通过运输方式简称获取名称
+     *
+     * @param string $bn 运输方式简称
+     * @param string $lang 语言
+     * @return mixed
+     * @author liujf
+     * @time 2018-05-07
+     */
+    public function getTransModeByBn($bn, $lang = 'zh') {
+        return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('trans_mode');
+    }
 
 }

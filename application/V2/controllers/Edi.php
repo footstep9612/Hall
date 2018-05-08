@@ -74,6 +74,7 @@ class EdiController extends PublicController{
         $data['status'] = $this->_checkStatus($data['status']);
         $credit_model = new BuyerCreditModel();
         $credit_log_model = new BuyerCreditLogModel();
+        $data['account_settle'] = $credit_model->getAccountSettleByNo($data['buyer_no'],'account_settle');
         if($data['status']== 'EDI_APPROVING'){
             $data['status'] = 'ERUI_APPROVING';
             $res = $credit_model->update_data($data);
@@ -146,13 +147,21 @@ class EdiController extends PublicController{
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $res_buyer = $this->BuyerApply($data['buyer_no']);
-        $res_bank = $this->BankApply($data['buyer_no']);
-        if($res_buyer['code'] == 1 && $res_bank['code'] == 1) {
-            $credit_model = new BuyerCreditModel();
-            $arr['status'] = 'EDI_APPROVING';
-            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
-            return ShopMsg::CUSTOM_SUCCESS;
-            //jsonReturn(null, ShopMsg::CREDIT_SUCCESS, '成功!');
+        if($data['account_settle'] !== "OA") {
+            $res_bank = $this->BankApply($data['buyer_no']);
+            if($res_buyer['code'] == 1 && $res_bank['code'] == 1) {
+                $credit_model = new BuyerCreditModel();
+                $arr['status'] = 'EDI_APPROVING';
+                $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
+                return ShopMsg::CUSTOM_SUCCESS;
+            }
+        } else {
+            if($res_buyer['code'] == 1) {
+                $credit_model = new BuyerCreditModel();
+                $arr['status'] = 'EDI_APPROVING';
+                $credit_model->where(['buyer_no' => $data['buyer_no']])->save($arr);
+                return ShopMsg::CUSTOM_SUCCESS;
+            }
         }
         return ShopMsg::CREDIT_FAILED;
         //jsonReturn('', ShopMsg::CREDIT_FAILED ,'正与信保调试中...!');

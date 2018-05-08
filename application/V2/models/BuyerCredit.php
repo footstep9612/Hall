@@ -89,6 +89,9 @@ class BuyerCreditModel extends PublicModel
         if (isset($condition['country_code']) && !empty($condition['country_code'])) {
             $where .= ' And `buyer_credit`.`buyer_reg_info`.`country_code` ="' . strtoupper($condition['country_code']) . '"';
         }
+        if (isset($condition['account_settle']) && !empty($condition['account_settle'])) {
+            $where .= ' And `buyer_credit`.`buyer_credit`.`account_settle` ="' . strtoupper($condition['account_settle']) . '"';
+        }
         if (isset($condition['agent_name']) && !empty($condition['agent_name'])) {
             $where .= " And `erui_sys`.`employee`.`agent_name` like '%" . $condition['agent_name'] . "%'";
         }
@@ -120,7 +123,7 @@ class BuyerCreditModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status,bank_remarks,remarks';
+        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status,bank_remarks,remarks,account_settle';
         return $this->field($field)
             //->alias('c')
             ->where($where)
@@ -175,6 +178,9 @@ class BuyerCreditModel extends PublicModel
         }
         if (isset($condition['agent_id']) && !empty($condition['agent_id'])) {
             $where['agent_id'] = $condition['agent_id'];                  //经办人
+        }
+        if (isset($condition['account_settle']) && !empty($condition['account_settle'])) {
+            $where['account_settle'] = strtoupper($condition['account_settle']);                  //结算方式
         }
         if (isset($condition['status']) && !empty($condition['status'])) {
             $where['status'] = strtoupper($condition['status']);
@@ -238,6 +244,9 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['source'] = trim($data['source']);
         } else{
             $dataInfo['source'] = 'BOSS';
+        }
+        if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
+            $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
@@ -314,6 +323,9 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['remarks'] = trim($data['remarks']);
         } else {
             $dataInfo['remarks'] = '';
+        }
+        if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
+            $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
@@ -416,4 +428,19 @@ class BuyerCreditModel extends PublicModel
             $this->where(['buyer_no' => $buyer['buyer_no']])->save($this->create($dataInfo));
         }
     }
+
+    /**
+     * 通过客户编码获取结算方式
+     * @author
+     */
+    public function getAccountSettleByNo($buyer_no,$name) {
+        if(!$buyer_no || !$name) return false;
+        $credit_model = new BuyerCreditModel();
+        $creditInfo = $credit_model->getInfo($buyer_no);
+        if($creditInfo){
+            return $creditInfo[$name];
+        }
+        return false;
+    }
+
 }

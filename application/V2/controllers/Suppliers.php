@@ -39,7 +39,7 @@ class SuppliersController extends PublicController {
 
         $this->suppliersModel->startTrans();
 
-        $condition['status'] = 'DRAFT';
+        $condition['status'] = 'REVIEW';
         $condition['deleted_flag'] = 'Y';
         $condition['created_by'] = $this->user['id'];
         $condition['created_at'] = $this->time;
@@ -360,7 +360,8 @@ class SuppliersController extends PublicController {
      * @time 2017-11-10
      */
     public function getSupplierListAction() {
-        $condition = $this->put_data;
+
+        $condition = $this->validateRequestParams();
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
         
         if (!$isErui) {
@@ -1128,5 +1129,23 @@ class SuppliersController extends PublicController {
                 return '审核通过';
                 break;
         }
+    }
+
+    /**
+     * 获取供应商数据
+     * @desc 如果还临时供应商关联了正式供应商则返回对应正式供应商的数据，反之返回自己的数据
+     * @author 买买提
+     */
+    public function regularAction()
+    {
+        $request = $this->validateRequestParams('id');
+
+        $hasRelation = (new TemporarySupplierRelationModel)->checkHasRelationBy($request['id']);
+
+        if ($hasRelation) {
+            $this->jsonReturn((new SuppliersModel)->byIdWithSku($hasRelation['supplier_id'], $request));
+        }
+
+        $this->jsonReturn((new SuppliersModel)->byIdWithSku($request['id'], $request));
     }
 }

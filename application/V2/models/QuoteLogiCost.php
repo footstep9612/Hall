@@ -120,7 +120,7 @@ class QuoteLogiCostModel extends PublicModel {
 	 * @time 2018-04-25
 	 */
 	public function getHistoricalPriceList($condition = [], $listCount = 3) {
-	    $lang = defined(LANG_SET) ? LANG_SET : 'zh';
+	    //$lang = defined(LANG_SET) ? LANG_SET : 'zh';
 	    $listCount = intval($listCount);
 	    $quoteModel = new QuoteModel();
 	    $employeeModel = new EmployeeModel();
@@ -129,7 +129,7 @@ class QuoteLogiCostModel extends PublicModel {
 	    $where = [
 	        'b.from_country' => [['neq', ''], ['eq', $condition['from_country']]],
 	        'b.trade_terms_bn' => [['neq', ''], ['eq', $condition['trade_terms_bn']]],
-	        'b.trans_mode_bn' => [['neq', ''], ['eq', $condition['trans_mode_id']]],
+	        'b.trans_mode_bn' => [['neq', ''], ['eq', $condition['trans_mode_bn']]],
 	        'a.unit' => [['neq', ''], ['eq', $condition['unit']]],
 	        'a.qty' => [['neq', ''], ['eq', $condition['qty']]],
 	        'a.type' => [['neq', ''], ['eq', $condition['type']]],
@@ -137,7 +137,8 @@ class QuoteLogiCostModel extends PublicModel {
 	    return $this->alias('a')
                     	    ->join($quoteTableName . ' b ON a.quote_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
                     	    ->join($employeeTableName . ' c ON a.created_by = c.id AND c.deleted_flag = \'N\'', 'LEFT')
-                    	    ->field('a.price, a.created_at, c.' . ($lang == 'zh' ? 'name' : 'name_en') . ' AS created_name')
+                    	    //->field('a.price, a.cur_bn, a.created_at, c.' . ($lang == 'zh' ? 'name' : 'name_en') . ' AS created_name')
+                    	    ->field('a.price, a.cur_bn, a.created_at, c.name AS created_name')
                     	    ->where($where)
                     	    ->page(1, $listCount)
                     	    ->order('a.id DESC')
