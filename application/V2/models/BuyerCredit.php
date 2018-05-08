@@ -50,6 +50,7 @@ class BuyerCreditModel extends PublicModel
                  `buyer_credit`.`buyer_credit`.`approved_date`,
                  `buyer_credit`.`buyer_credit`.`bank_remarks`,
                  `buyer_credit`.`buyer_credit`.`remarks`,
+                 `buyer_credit`.`buyer_credit`.`account_settle`,
                  `buyer_credit`.`buyer_credit`.`agent_id`,';
         $sql .= '`buyer_credit`.`buyer_reg_info`.`country_code`,';
         $sql .= '`erui_sys`.`employee`.`name` as `agent_name`,';
