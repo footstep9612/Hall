@@ -1129,4 +1129,22 @@ class SuppliersController extends PublicController {
                 break;
         }
     }
+
+    /**
+     * 获取供应商数据
+     * @desc 如果还临时供应商关联了正式供应商则返回对应正式供应商的数据，反之返回自己的数据
+     * @author 买买提
+     */
+    public function regularAction()
+    {
+        $request = $this->validateRequestParams('id');
+
+        $hasRelation = (new TemporarySupplierRelationModel)->checkHasRelationBy($request['id']);
+
+        if ($hasRelation) {
+            $this->jsonReturn((new SuppliersModel)->byId($hasRelation['supplier_id']));
+        }
+
+        $this->jsonReturn((new SuppliersModel)->byId($request['id']));
+    }
 }

@@ -466,4 +466,14 @@ class SuppliersModel extends PublicModel {
         return $today . str_pad($no, 6, '0', STR_PAD_LEFT);
     }
 
+    public function isRegular($supplier)
+    {
+        return $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find()['status'] !== 'DRAFT';
+    }
+
+    public function byId($supplier)
+    {
+       return $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find();
+    }
+
 }
