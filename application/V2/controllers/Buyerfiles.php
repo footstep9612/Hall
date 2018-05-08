@@ -583,15 +583,9 @@ class BuyerfilesController extends PublicController
                 'total_member' => $totalMember,
             ]
         ];
-        if ($customerInfo) {
-            $res['code'] = 1;
-            $res['message'] = L('SUCCESS');
-            $res['data'] = $customerInfo;
-            $this->jsonReturn($res);
-        } else {
-            $this->setCode('-101');
-            $this->setMessage(L('FAIL'));
-            $this->jsonReturn();
-        }
+        $res['code'] = 1;
+        $res['message'] = L('SUCCESS');
+        $res['data'] = $customerInfo;
+        $this->jsonReturn($res);
     }
 }
