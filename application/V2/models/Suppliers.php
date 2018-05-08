@@ -495,14 +495,16 @@ class SuppliersModel extends PublicModel {
                                             'g.deleted_flag' => 'N',
                                         ])
                                         ->find();
-        $brand = json_decode($data['brand'],true);
-        $data['brand'] = $brand['name'];
 
-        $data['package_size'] = '';
-        $data['stock_loc'] = '';
-        $data['goods_source'] = '';
-        $data['delivery_days'] = '';
-        $data['period_of_validity'] = '';
+        if ($data) {
+            $brand = json_decode($data['brand'],true);
+            $data['brand'] = $brand['name'];
+
+            $data['package_size'] = '';
+            $data['stock_loc'] = '';
+            $data['goods_source'] = '';
+            $data['delivery_days'] = '';
+        }
 
         return $data;
 
