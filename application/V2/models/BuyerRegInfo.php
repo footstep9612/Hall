@@ -172,6 +172,8 @@ class BuyerRegInfoModel extends PublicModel
             $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
             //更新授信状态--
             $credit_model = new BuyerCreditModel();
+            $credit_log_model = new BuyerCreditLogModel();
+            $bank_info_model = new BuyerBankInfoModel();
             $uparr= [
                 'status'=>'APPROVING',
                 'nolc_granted'=>'',
@@ -189,7 +191,6 @@ class BuyerRegInfoModel extends PublicModel
                 $uparr['name'] = $dataInfo['name'];
                 $credit_model->update_data($uparr);   //更新企业名称
 
-                $credit_log_model = new BuyerCreditLogModel();
                 $dataArr['buyer_no'] = $data['buyer_no'];
                 $dataArr['agent_by'] = $data['agent_by'];
                 $dataArr['agent_at'] = date('Y-m-d H:i:s',time());
@@ -197,6 +198,21 @@ class BuyerRegInfoModel extends PublicModel
                 $dataArr['address'] = $dataInfo['registered_in'];
                 $dataArr['sign'] = 1;  //企业
                 $credit_log_model->create_data($dataArr);
+            }
+            if(!empty($data['status']) && 'check' == trim($data['status'])) {   //OA提交审核
+                $uparr2['status'] = "ERUI_APPROVING";      //提交易瑞审核
+                $uparr2['buyer_no'] = $data['buyer_no'];
+                $uparr2['account_settle'] = "OA";            //结算方式
+                $credit_model->update_data($uparr2);
+
+                $bank_info_model->checkParam($data['buyer_no']);
+                //添加日志
+                $datalog['buyer_no'] = $data['buyer_no'];
+                $datalog['agent_by'] = $data['agent_by'];
+                $datalog['agent_at'] = date('Y-m-d H:i:s',time());
+                $datalog['in_status'] = "ERUI_APPROVING";
+                $datalog['sign'] = 1;
+                $credit_log_model->create_data($datalog);
             }
             if ($result !== false) {
                 return $result;

@@ -161,6 +161,9 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '此国家不符合申请条件!');
             jsonReturn(null, -110, '企业所在国家简称代码');
         }
+        if(empty($data['account_settle'])){      //结算方式
+            jsonReturn(null, -110, '请选择结算方式!');
+        }
         $company_model = new BuyerRegInfoModel();
         if($data['sign'] == 'ADD') {
             $check = $company_model->field('id')->where(['buyer_no' => $data['buyer_no'], 'deleted_flag' => 'N'])->find();
@@ -233,11 +236,13 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $company_model = new BuyerRegInfoModel();
+        $credit_model = new BuyerCreditModel();
         $comInfo = $company_model->getInfo($data['buyer_no']);
         if($comInfo) {
             $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
             $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
             $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
+            $comInfo['account_settle'] = $credit_model->getAccountSettleByNo($comInfo['buyer_no'],'account_settle');
             jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
@@ -264,7 +269,7 @@ class BuyercreditController extends PublicController {
     }
 
     /**
-     * erui易瑞审核
+     * erui易瑞审核  --暂不用此方法
      */
     public function checkCreditAction(){
         $data = $this->getPut();
@@ -536,5 +541,7 @@ class BuyercreditController extends PublicController {
             $list[$key] = $val;
         }
     }
+
+
 
 }
