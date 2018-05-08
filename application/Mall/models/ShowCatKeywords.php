@@ -2,17 +2,11 @@
 
 /**
  * 展示分类
- * User: linkai
- * Date: 2017/6/15
+ * User: jhw
+ * Date: 2018/5/08
  * Time: 15:52
  */
 class ShowCatKeywordsModel extends PublicModel {
-
-    //状态
-    const STATUS_DRAFT = 'DRAFT'; //草稿
-    const STATUS_APPROVING = 'APPROVING'; //审核；
-    const STATUS_VALID = 'VALID'; //生效；
-    const STATUS_DELETED = 'DELETED'; //DELETED-删除
 
     protected $dbName = 'erui_goods';
     protected $tableName = 'show_cat_keywords';
@@ -26,6 +20,9 @@ class ShowCatKeywordsModel extends PublicModel {
     protected function _getcondition($condition = []) {
         $where = [];
         getValue($where, $condition, 'cat_no');
+        getValue($where, $condition, 'country_bn');
+        getValue($where, $condition, 'name');
+        getValue($where, $condition, 'lang');
         $where['deleted_flag'] = 'N';
         return $where;
     }
@@ -34,7 +31,7 @@ class ShowCatKeywordsModel extends PublicModel {
      * 获取列表
      * @param mix $condition
      * @return mix
-     * @author zyg
+     * @author jhw
      */
     public function getlist($condition = [], $lang = 'en') {
         $where = $this->_getcondition($condition);
@@ -50,5 +47,18 @@ class ShowCatKeywordsModel extends PublicModel {
 
         return $data;
     }
-
+    /**
+     * 获取列表
+     * @param mix $condition
+     * @return mix
+     * @author jhw
+     */
+        public function getKeywordinfo($condition = []) {
+            $where = $this->_getcondition($condition);
+            $this->where($where);
+            $data = $this->field('id,cat_no,cat_name,content,lang,name')
+                ->order('id DESC')
+                ->find();
+            return $data;
+        }
 }

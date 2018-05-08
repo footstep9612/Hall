@@ -521,7 +521,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null) {
+    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null,$description=false) {
 
         try {
             if ($lang == 'zh') {
@@ -563,8 +563,12 @@ class EsProductModel extends Model {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
             }
             $es->setpreference('_primary_first');
-            $es->setfields(['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
-                'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit']);
+            $fidlsd =['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
+                'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit'];
+            if($description){
+                array_push($fidlsd,"description");
+            }
+            $es->setfields($fidlsd);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
 
 
