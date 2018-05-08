@@ -159,7 +159,29 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($arr);
         }
     }
-
+    public function keywordsInfoAction(){
+        set_time_limit(360);
+        $lang = $this->getPut('lang', 'zh');
+        $jsondata = ['lang' => $lang];
+        $country_bn = $this->getPut('country_bn', '');
+        $name = $this->getPut('name', '');
+        $jsondata = ['name' => $name];
+        if (empty($country_bn)) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('国家简称不能为空');
+            $this->jsonReturn();
+        }
+        $jsondata['country_bn'] = $country_bn;
+        $show_keywords_model = new ShowCatKeywordsModel();
+        $arr = $show_keywords_model->getKeywordinfo($jsondata);
+        if ($arr) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($arr);
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn($arr);
+        }
+    }
     public function treekeywordsAction() {
         ini_set('memory_limit', '800M');
         set_time_limit(360);
