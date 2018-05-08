@@ -1142,9 +1142,9 @@ class SuppliersController extends PublicController {
         $hasRelation = (new TemporarySupplierRelationModel)->checkHasRelationBy($request['id']);
 
         if ($hasRelation) {
-            $this->jsonReturn((new SuppliersModel)->byId($hasRelation['supplier_id']));
+            $this->jsonReturn((new SuppliersModel)->byIdWithSku($hasRelation['supplier_id'], $request));
         }
 
-        $this->jsonReturn((new SuppliersModel)->byId($request['id']));
+        $this->jsonReturn((new SuppliersModel)->byIdWithSku($request['id'], $request));
     }
 }

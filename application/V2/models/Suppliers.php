@@ -471,9 +471,34 @@ class SuppliersModel extends PublicModel {
         return $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find()['status'] !== 'DRAFT';
     }
 
-    public function byId($supplier)
+    public function byIdWithSku($supplier, $request)
     {
-       return $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find();
+       $data = $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find();
+
+       if ($request['sku']) {
+           $data['sku'] = $this->supplierSkuInfoBy($supplier, $request);
+       }
+
+       return $data;
+    }
+
+    public function supplierSkuInfoBy($supplier, $request)
+    {
+        $data =  (new GoodsSupplierModel)->alias('gs')
+                                        ->join('erui_goods.goods g ON gs.sku=g.sku')
+                                        ->join('erui_goods.goods_cost_price p ON gs.sku=p.sku')
+                                        ->field('gs.brand,gs.pn,p.price purchase_unit_price,p.price_cur_bn purchase_price_cur_bn,g.gross_weight_kg,g.pack_type package_mode,p.price_validity period_of_validity')
+                                        ->where([
+                                            'gs.sku' => $request['sku'],
+                                            'gs.supplier_id' => $supplier,
+                                            'gs.deleted_flag' => 'N',
+                                            'g.deleted_flag' => 'N',
+                                        ])
+                                        ->find();
+        $brand = json_decode($data['brand'],true);
+        $data['brand'] = $brand['name'];
+        return $data;
+
     }
 
 }
