@@ -77,6 +77,11 @@ class TemporarySupplierRelationModel extends PublicModel
         return $this->where(['temporary_supplier_id' => $temporarySupplier, 'supplier_id' => $regularSupplier, 'deleted_flag' => 'N'])->count();
     }
 
+    public function checkHasRelationBy($temporarySupplier)
+    {
+        return $this->where(['temporary_supplier_id' => $temporarySupplier, 'deleted_flag' => 'N'])->find();
+    }
+
     public function regularSupplierWithTemporarySupplierIdsBy($regularSupplier)
     {
         $temporarySupplierIds =  $this->where([
