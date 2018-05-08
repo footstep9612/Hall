@@ -236,4 +236,27 @@ class SupplierQualificationModel extends PublicModel {
                 ->count()
         ];
 	}
+
+    public function getExpiryQualificationsListForExport(array $condition = [], $type='LEFT')
+    {
+
+        $field = 'supplier_id,expiry_date';
+
+        if ($type=='LEFT') {
+            $where = 'to_days(expiry_date)-to_days(now()) <= 30';
+        }else {
+            $where = 'to_days(expiry_date)-to_days(now()) > 30';
+        }
+
+        return [
+            $this->field($field)
+                ->where($where)
+                ->order('id DESC')
+                ->select(),
+            $this->field($field)
+                ->where($where)
+                ->order('id DESC')
+                ->count()
+        ];
+    }
 }

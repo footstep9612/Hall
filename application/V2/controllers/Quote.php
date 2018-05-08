@@ -43,6 +43,7 @@ class QuoteController extends PublicController{
         $info = $this->quoteModel->getGeneralInfo($condition,$field);
 
         $exchangeRateModel = new ExchangeRateModel();
+        $transModeModel = new TransModeModel();
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
         $info['exchange_rate'] = $info['exchange_rate'] ? : L('NOTHING');
 
@@ -52,6 +53,7 @@ class QuoteController extends PublicController{
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
         $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : L('NOTHING');
+        $info['trans_mode_name'] = $transModeModel->getTransModeByBn($info['trans_mode_bn'], $this->lang) ? : L('NOTHING');
         $info['dispatch_place'] = $info['dispatch_place'] ? : L('NOTHING');
         $info['inquiry_dispatch_place'] = $logiInfo['dispatch_place'];
         $info['inquiry_dispatch_place'] = $info['inquiry_dispatch_place'] ? : L('NOTHING');

@@ -13,13 +13,12 @@
 class BuyerfilesController extends PublicController
 {
 
-    public function __init()
-    {
-        parent::__init();
+    public function init() {
+        parent::init();
     }
     //获取用户的角色
     public function getUserRole(){
-        $config = \Yaf_Application::app()->getConfig();
+        /*$config = \Yaf_Application::app()->getConfig();
         $ssoServer=$config['ssoServer'];
         $token=$_COOKIE['eruitoken'];
         $opt = array(
@@ -41,11 +40,16 @@ class BuyerfilesController extends PublicController
                 $countryArr[]="'".$v."'";
             }
             $countryStr=implode(',',$countryArr);
+        }*/
+        $arr['role']=$this->user['role_no'];
+        foreach($this->user['country_bn'] as $v) {
+            $countryArr[]="'".$v."'";
         }
+        $countryStr = implode(',', $countryArr);
         $buyer=new BuyerModel();
         $areas=$buyer->table('erui_operation.market_area_country')
             ->field('distinct market_area_bn as area_bn')
-            ->where("country_bn in ($countryStr)")->select();
+            ->where(['country_bn' => ['in', $this->user['country_bn'] ? : ['-1']]])->select();
         if(!empty($areas)){
             $areaArr=[];
             foreach($areas as $k => $v){
@@ -525,5 +529,63 @@ class BuyerfilesController extends PublicController
             'data'=>$info
         );
         $this->jsonReturn($dataJson);
+    }
+    
+    /**
+     * @desc BOSS首页获取客户信息
+     *
+     * @author liujf
+     * @time 2018-05-07
+     */
+    public function getCustomerInfoAction() {
+        $buyerModel = new BuyerModel();
+        $inquiryModel = new InquiryModel();
+        $orderModel = new OrderModel();
+        $condition['created_by'] = $this -> user['id'];
+        $condition['admin'] = $this->getUserRole();
+        $condition['lang'] = $this->lang;
+        // 会员总数
+        $totalMember = $buyerModel->where(['country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N'])->count('id') ? : 0;
+        // 今日
+        $today = date('Y-m-d');
+        $condition['start_time'] = $condition['end_time'] = $today;
+        $todayMemberSpeed = $buyerModel->memberSpeed($condition);
+        $todayInquirySpeed = $inquiryModel->statisCondInquiry($condition);
+        $todayOrderSpeed = $orderModel->statisCondOrder($condition);
+        // 本周
+        $condition['start_time'] = date('Y-m-d', (time() - ((date('w') ? : 7) + 1) * 24 * 3600));
+        $weekMemberSpeed = $buyerModel->memberSpeed($condition);
+        $weekInquirySpeed = $inquiryModel->statisCondInquiry($condition);
+        $weekOrderSpeed = $orderModel->statisCondOrder($condition);
+        // 本月
+        $condition['start_time'] = date('Y-m') . '-01';
+        $monthMemberSpeed = $buyerModel->memberSpeed($condition);
+        $monthInquirySpeed = $inquiryModel->statisCondInquiry($condition);
+        $monthOrderSpeed = $orderModel->statisCondOrder($condition);
+        // 客户信息
+        $customerInfo = [
+            'today' => [
+                'member_speed' => array_sum($todayMemberSpeed['count']) ? : 0,
+                'inquiry_speed' => array_sum($todayInquirySpeed['count']) ? : 0,
+                'order_speed' => array_sum($todayOrderSpeed['count']) ? : 0,
+            ],
+            'week' => [
+                'member_speed' => array_sum($weekMemberSpeed['count']) ? : 0,
+                'inquiry_speed' => array_sum($weekInquirySpeed['count']) ? : 0,
+                'order_speed' => array_sum($weekOrderSpeed['count']) ? : 0,
+            ],
+            'month' => [
+                'member_speed' => array_sum($monthMemberSpeed['count']) ? : 0,
+                'inquiry_speed' => array_sum($monthInquirySpeed['count']) ? : 0,
+                'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0,
+            ],
+            'total' => [
+                'total_member' => $totalMember,
+            ]
+        ];
+        $res['code'] = 1;
+        $res['message'] = L('SUCCESS');
+        $res['data'] = $customerInfo;
+        $this->jsonReturn($res);
     }
 }

@@ -263,6 +263,64 @@ class SuppliersModel extends PublicModel {
         //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         //$pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
+        if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30';
+            return $this->alias('a')
+                ->join($this->joinTable1, 'LEFT')
+                ->join($this->joinTable5, 'LEFT')
+                ->join($this->joinTable4, 'LEFT')
+                ->field($this->joinField)
+                ->where($where)
+                ->where('')
+                ->order('a.id DESC')
+                ->select();
+        }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30';
+            return $this->alias('a')
+                ->join($this->joinTable1, 'LEFT')
+                ->join($this->joinTable5, 'LEFT')
+                ->join($this->joinTable4, 'LEFT')
+                ->field($this->joinField)
+                ->where($where)
+                ->where('')
+                ->order('a.id DESC')
+                ->select();
+        }
+
+        if (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='Y') {
+
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListForExport($condition);
+
+            $list = [];
+            foreach ($data as $item) {
+                $list[] = (new SupplierQualificationModel)->alias('a')
+                    ->join('erui_supplier.supplier s ON a.supplier_id=s.id', 'LEFT')
+                    ->join('erui_sys.org b ON s.org_id = b.id', 'LEFT')
+                    ->join('erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ', 'LEFT')
+                    ->join('erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'', 'LEFT')
+                    ->field('s.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time,a.expiry_date')
+                    ->where(['a.supplier_id' => $item['supplier_id']])
+                    ->find();
+            }
+            return $list;
+
+        }elseif (isset($condition['expiry_of_qualification']) && $condition['expiry_of_qualification']=='N') {
+            list($data, $count) = (new SupplierQualificationModel)->getExpiryQualificationsListForExport($condition, 'RIGHT');
+
+            $list = [];
+            foreach ($data as $item) {
+                $list[] = (new SupplierQualificationModel)->alias('a')
+                    ->join('erui_supplier.supplier s ON a.supplier_id=s.id', 'LEFT')
+                    ->join('erui_sys.org b ON s.org_id = b.id', 'LEFT')
+                    ->join('erui_supplier.supplier_extra_info e ON a.id = e.supplier_id ', 'LEFT')
+                    ->join('erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'', 'LEFT')
+                    ->field('s.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time,a.expiry_date')
+                    ->where(['a.supplier_id' => $item['supplier_id']])
+                    ->find();
+            }
+            return $list;
+        }
+
         return $this->alias('a')
             ->join($this->joinTable1, 'LEFT')
             ->join($this->joinTable5, 'LEFT')
@@ -406,6 +464,50 @@ class SuppliersModel extends PublicModel {
         $serialNo = $this->where(['serial_no' => ['like', $today . '%']])->order('id DESC')->getField('serial_no');
         $no = $serialNo ? intval(substr($serialNo, 8)) + 1 : 1;
         return $today . str_pad($no, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function isRegular($supplier)
+    {
+        return $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find()['status'] !== 'DRAFT';
+    }
+
+    public function byIdWithSku($supplier, $request)
+    {
+       $data = $this->where(['id' => $supplier, 'deleted_flag' => 'N'])->find();
+
+       if ($request['sku']) {
+           $data['sku'] = $this->supplierSkuInfoBy($supplier, $request);
+       }
+
+       return $data;
+    }
+
+    public function supplierSkuInfoBy($supplier, $request)
+    {
+        $data =  (new GoodsSupplierModel)->alias('gs')
+                                        ->join('erui_goods.goods g ON gs.sku=g.sku')
+                                        ->join('erui_goods.goods_cost_price p ON gs.sku=p.sku')
+                                        ->field('gs.brand,gs.pn,p.price purchase_unit_price,p.price_cur_bn purchase_price_cur_bn,g.gross_weight_kg,g.pack_type package_mode,p.price_validity period_of_validity')
+                                        ->where([
+                                            'gs.sku' => $request['sku'],
+                                            'gs.supplier_id' => $supplier,
+                                            'gs.deleted_flag' => 'N',
+                                            'g.deleted_flag' => 'N',
+                                        ])
+                                        ->find();
+
+        if ($data) {
+            $brand = json_decode($data['brand'],true);
+            $data['brand'] = $brand['name'];
+
+            $data['package_size'] = '';
+            $data['stock_loc'] = '';
+            $data['goods_source'] = '';
+            $data['delivery_days'] = '';
+        }
+
+        return $data;
+
     }
 
 }

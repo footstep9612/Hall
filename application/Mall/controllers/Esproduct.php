@@ -47,13 +47,13 @@ class EsproductController extends PublicController {
     public function listAction() {
         $model = new EsProductModel();
         $condition = $this->getPut();
-
+        $description = $this->getPut('description')?$this->getPut('description'):false;
         $country_bn = $this->getPut('country_bn');
         $is_show_cat = false;
         $show_cat_name = null;
         $is_brand = false;
         $brand_name = null;
-        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name);
+        $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name,$description);
 
         if ($ret) {
             $data = $ret[0];
