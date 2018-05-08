@@ -250,21 +250,25 @@ class UserController extends PublicController {
      * */
 
     public function userrolelisttreeAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $limit = [];
+        $condition = json_decode(file_get_contents("php://input"), true);
         $role_user_modle = new RoleUserModel();
-        if (isset($data['user_id'])) {
-            $user_id = $data['user_id'];
+        if (isset($condition['user_id'])) {
+            $user_id = $condition['user_id'];
         } else {
             $user_id = $this->user['id'];
         }
-        $where['source'] = !empty($data['source']) ? $data['source'] : 'BOSS' ;
-        $data = $role_user_modle->userRoleList($user_id, 0, $where);
+        $where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
+        $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
+        $data = $role_user_modle->userRoleList($user_id, $parentId, $where);
         $count = count($data);
         $childrencount = 0;
         for ($i = 0; $i < $count; $i++) {
             $data[$i]['check'] = false;
             $data[$i]['lang'] = $this->lang;
+            // 是否只显示第一层级
+            if ($condition['only_one_level'] == 'Y') {
+                continue;
+            }
             $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id'], $where);
             $childrencount = count($data[$i]['children']);
             if ($childrencount > 0) {
