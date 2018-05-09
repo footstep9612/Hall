@@ -545,10 +545,10 @@ class BuyerfilesController extends PublicController
         $condition['admin'] = $this->getUserRole();
         $condition['lang'] = $this->lang;
         // 会员总数
-        $totalMember = $buyerModel->where(['country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N'])->count('id') ? : 0;
+        $cond = $buyerModel->getBuyerStatisListCond($condition);
+        $totalMember = $buyerModel->crmGetBuyerTotal($cond);
         // 今日
-        $today = date('Y-m-d');
-        $condition['start_time'] = $condition['end_time'] = $today;
+        $condition['start_time'] = $condition['end_time'] = date('Y-m-d');
         $todayMemberSpeed = $buyerModel->memberSpeed($condition);
         $todayInquirySpeed = $inquiryModel->statisCondInquiry($condition);
         $todayOrderSpeed = $orderModel->statisCondOrder($condition);
@@ -567,20 +567,20 @@ class BuyerfilesController extends PublicController
             'today' => [
                 'member_speed' => array_sum($todayMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($todayInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($todayOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($todayOrderSpeed['count']) ? : 0
             ],
             'week' => [
                 'member_speed' => array_sum($weekMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($weekInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($weekOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($weekOrderSpeed['count']) ? : 0
             ],
             'month' => [
                 'member_speed' => array_sum($monthMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($monthInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0
             ],
             'total' => [
-                'total_member' => $totalMember,
+                'total_member' => $totalMember ? : 0
             ]
         ];
         $res['code'] = 1;

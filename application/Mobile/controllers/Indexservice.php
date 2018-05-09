@@ -49,8 +49,8 @@ class IndexserviceController extends PublicController {
         $data['banner'] = $this->_getAds($country_bn, $lang, 'BANNNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
         $data['popularity_recommendation'] = $this->_getPopularity_recommendation($country_bn, $lang, $country_bn, 4);
-        $data['solution'] = $this->_getSolution($country_bn, $lang);
-        $data['stocks'] = $this->_getProducts($country_bn, $lang);
+//        $data['solution'] = $this->_getSolution($country_bn, $lang);
+        $data['products'] = $this->_getProducts($country_bn, $lang);
 
         if ($data) {
             $this->jsonReturn($data);
@@ -140,11 +140,11 @@ class IndexserviceController extends PublicController {
      * @version V2.0
      * @desc  M站首页
      */
-    private function _getSolution($country_bn = null, $lang = 'en') {
-
-
-        return [];
-    }
+//    private function _getSolutions($lang = 'en') {
+//        $solution_model = new SolutionModel();
+//
+//        return $solution_model->GetList($lang);
+//    }
 
     /**
      * Description of 获取人气推荐产品
