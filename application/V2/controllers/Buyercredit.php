@@ -439,7 +439,6 @@ class BuyercreditController extends PublicController {
                 $current_time = strtotime('now');
 //                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
 //                LOG::write($content, LOG::INFO);
-                jsonReturn($creditInfo['account_settle']);
                 if($time <= $current_time) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
