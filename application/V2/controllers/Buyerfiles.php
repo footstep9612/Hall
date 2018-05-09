@@ -545,7 +545,8 @@ class BuyerfilesController extends PublicController
         $condition['admin'] = $this->getUserRole();
         $condition['lang'] = $this->lang;
         // 会员总数
-        $totalMember = $buyerModel->where(['country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N'])->count('id') ? : 0;
+        $cond = $buyerModel->getBuyerStatisListCond($condition);
+        $totalMember = $buyerModel->crmGetBuyerTotal($cond);
         // 今日
         $today = date('Y-m-d');
         $condition['start_time'] = $condition['end_time'] = $today;
