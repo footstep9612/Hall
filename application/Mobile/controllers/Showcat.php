@@ -159,7 +159,8 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($arr);
         }
     }
-    public function keywordsInfoAction(){
+
+    public function keywordsInfoAction() {
         set_time_limit(360);
         $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
@@ -182,6 +183,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($arr);
         }
     }
+
     public function treekeywordsAction() {
         ini_set('memory_limit', '800M');
         set_time_limit(360);
@@ -214,6 +216,7 @@ class ShowcatController extends PublicController {
             $this->jsonReturn($arr);
         }
     }
+
     /**
      * 根据条件获取查询条件
      * @param string $lang 语言
@@ -243,6 +246,7 @@ class ShowcatController extends PublicController {
 
     public function listAction() {
         $lang = $this->getPut('lang', 'en');
+        $is_getproducts = $this->getPut('is_getproducts', 'N');
         $jsondata = ['lang' => $lang];
         $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
@@ -272,14 +276,10 @@ class ShowcatController extends PublicController {
                             'level_no' => 2,
                             'country_bn' => $country_bn,
                             'lang' => $lang]);
-
-                if ($arr[$key]['childs']) {
-                    foreach ($arr[$key]['childs'] as $k => $item) {
-                        $arr[$key]['childs'][$k]['childs'] = $show_model->getlist(['parent_cat_no' => $item['cat_no'],
-                            'level_no' => 3,
-                            'country_bn' => $country_bn,
-                            'lang' => $lang]);
-                    }
+                if ($is_getproducts == 'Y') {
+                    $arr[$key]['products'] = $this->_getProducts($country_bn, $lang, $val['cat_no']);
+                } else {
+                    $arr[$key]['products'] = [];
                 }
             }
 
@@ -295,6 +295,11 @@ class ShowcatController extends PublicController {
                             ['parent_cat_no' => $item['cat_no'], 'level_no' => 3,
                                 'country_bn' => $country_bn,
                                 'lang' => $lang]);
+                    if ($is_getproducts == 'Y') {
+                        $arr[$key]['products'] = $this->_getProducts($country_bn, $lang, $item['cat_no']);
+                    } else {
+                        $arr[$key]['products'] = [];
+                    }
                 }
 
                 $this->setCode(MSG::MSG_SUCCESS);
@@ -302,6 +307,14 @@ class ShowcatController extends PublicController {
             } else {
                 $condition['level_no'] = 3;
                 $arr = $show_model->getlist($condition);
+                foreach ($arr as $k => $item) {
+
+                    if ($is_getproducts == 'Y') {
+                        $arr[$key]['products'] = $this->_getProducts($country_bn, $lang, $item['cat_no']);
+                    } else {
+                        $arr[$key]['products'] = [];
+                    }
+                }
                 if ($arr) {
 
                     $this->setCode(MSG::MSG_SUCCESS);
@@ -312,6 +325,23 @@ class ShowcatController extends PublicController {
                 }
             }
         }
+    }
+
+    /**
+     * Description of 获取人气推荐产品
+     * @author  zhongyg
+     * @date    2018-05-09 16:50:09
+     * @version V2.0
+     * @desc  M站首页
+     */
+    public function _getProducts($country_bn, $lang, $show_cat_no = 0, $pagesize = 4) {
+        $condition['page_size'] = $pagesize;
+        $condition['show_cat_no'] = $show_cat_no;
+        $es_product_model = new EsProductModel();
+        $list = $es_product_model->getNewProducts($condition, $lang, $country_bn);
+        $ret = $this->_getdata($list, $lang);
+
+        return $ret;
     }
 
     public function getlistAction() {
