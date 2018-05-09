@@ -350,7 +350,8 @@ class BuyerCreditModel extends PublicModel
      */
     public function grantInfo($data) {
 
-        $dataArr = $this->_checkParam($data);
+        $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date,account_settle')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $dataArr = $this->_checkParam($data,$valid_date['account_settle']);
         $dataArr['buyer_no'] = $data['buyer_no'];
         $res = $this->update_data($dataArr);
         if($res) {
@@ -358,47 +359,50 @@ class BuyerCreditModel extends PublicModel
             $dataLog['buyer_no'] = $data['buyer_no'];
             $dataLog['credit_cur_bn'] = $dataArr['credit_cur_bn'];
             $dataLog['data_unit'] = $dataArr['deadline_cur_unit'];
-
-            $valid_date = $this->field('credit_apply_date,credit_valid_date,approved_date')->where(['buyer_no'=>$data['buyer_no']])->find();
-
-            $dataLog['credit_at'] = date('Y-m-d H:i:s',time());
-            $dataLog['credit_apply_date'] = $valid_date['credit_apply_date'];
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +".$dataArr['nolc_deadline']." day"));
-            $dataLog['granted'] = $dataArr['nolc_granted'];
-            $dataLog['validity'] = $dataArr['nolc_deadline'];
-            $dataLog['type_apply'] = 'NOLC';
-            $quota_log_model->create_data($dataLog);
-            $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +".$dataArr['lc_deadline']." day"));
-            $dataLog['granted'] = $dataArr['lc_granted'];
-            $dataLog['validity'] = $dataArr['lc_deadline'];
-            $dataLog['type_apply'] = 'LC';
-            $quota_log_model->create_data($dataLog);
+            if($valid_date['account_settle'] == "OA") {
+                $dataLog['credit_at'] = date('Y-m-d H:i:s',time());
+                $dataLog['credit_apply_date'] = $valid_date['credit_apply_date'];
+                $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +".$dataArr['nolc_deadline']." day"));
+                $dataLog['granted'] = $dataArr['nolc_granted'];
+                $dataLog['validity'] = $dataArr['nolc_deadline'];
+                $dataLog['type_apply'] = $valid_date['account_settle'];
+                $quota_log_model->create_data($dataLog);
+            } else {
+                $dataLog['credit_invalid_date'] =  date('Y-m-d H:i:s',strtotime($valid_date['approved_date']." +".$dataArr['lc_deadline']." day"));
+                $dataLog['granted'] = $dataArr['lc_granted'];
+                $dataLog['validity'] = $dataArr['lc_deadline'];
+                $dataLog['type_apply'] = 'L/C';
+                $quota_log_model->create_data($dataLog);
+            }
             return $res;
         }
         return false;
     }
-    private function _checkParam($data){
-        if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 300000) {
-            jsonReturn(null, -110, '请填写信用证额度或额度值过大!');
+    private function _checkParam($data,$account_settle){
+        if($account_settle == "OA") {
+            if (!isset($data['nolc_granted']) || empty($data['nolc_granted']) || intval($data['nolc_granted']) > 300000) {
+                jsonReturn(null, -110, '请填写信用证额度或额度值过大!');
+            } else {
+                $dataArr['nolc_granted'] = intval($data['nolc_granted']);
+            }
+            if (!isset($data['nolc_deadline']) || empty($data['nolc_deadline']) || intval($data['nolc_deadline']) > 90) {
+                jsonReturn(null, -110, '请填写信用证有效期限或期限值过大!');
+            } else {
+                $dataArr['nolc_deadline'] = intval($data['nolc_deadline']);
+            }
         } else {
-            $dataArr['nolc_granted'] = intval($data['nolc_granted']);
-        }
-        if (!isset($data['nolc_deadline']) || empty($data['nolc_deadline']) || intval($data['nolc_deadline']) > 90) {
-            jsonReturn(null, -110, '请填写信用证有效期限或期限值过大!');
-        } else {
-            $dataArr['nolc_deadline'] = intval($data['nolc_deadline']);
+            if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 1000000) {
+                jsonReturn(null, -110, '请填写非信用证额度或额度值过大!');
+            } else {
+                $dataArr['lc_granted'] = intval($data['lc_granted']);
+            }
+            if (!isset($data['lc_deadline']) || empty($data['lc_deadline']) || intval($data['lc_deadline']) > 90) {
+                jsonReturn(null, -110, '请填写非信用证有效期限或期限值过大!');
+            } else {
+                $dataArr['lc_deadline'] = intval($data['lc_deadline']);
+            }
         }
 
-        if (!isset($data['lc_granted']) || empty($data['lc_granted']) || intval($data['lc_granted']) > 1000000) {
-            jsonReturn(null, -110, '请填写非信用证额度或额度值过大!');
-        } else {
-            $dataArr['lc_granted'] = intval($data['lc_granted']);
-        }
-        if (!isset($data['lc_deadline']) || empty($data['lc_deadline']) || intval($data['lc_deadline']) > 90) {
-            jsonReturn(null, -110, '请填写非信用证有效期限或期限值过大!');
-        } else {
-            $dataArr['lc_deadline'] = intval($data['lc_deadline']);
-        }
         if (isset($data['deadline_cur_unit']) && !empty($data['deadline_cur_unit'])) {
             $dataArr['deadline_cur_unit'] = $data['deadline_cur_unit'];
         } else {

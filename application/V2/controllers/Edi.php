@@ -384,17 +384,14 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBuyerCodeApply($data);
-//            }
+
             self::saveinfo($BuyerCodeApplyInfo,'BuyerCodeApply');
             $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
             self::exception($e,$e->getMessage());
-            $results = [
-                'code' => $e->getCode(),
-                'msg'  => $e->getMessage()
-            ];
-            //jsonReturn($e->getMessage());
+
+
             return false;
         }
 
@@ -556,20 +553,13 @@ class EdiController extends PublicController{
         try{
             self::$client = new SoapClient(self::$serviceUri);
             $response = self::$client->doEdiBankCodeApply($data);
-//            if (is_object($response)) {
-//                $results['code'] = 1;
-//            } else {
-//                $results['code'] = -101;
-//            }
+
             self::saveinfo($BankCodeApplyInfo,'BankCodeApply');
             $results['code'] = 1;
             return $results;
         } catch (Exception $e) {
             self::exception($e,$e->getMessage());
-            $results = [
-                'code' => $e->getCode(),
-                'msg'  => $e->getMessage()
-            ];
+
             return false;
         }
     }

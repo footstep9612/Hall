@@ -9,7 +9,7 @@
 class BuyercreditController extends PublicController {
 
     public function init(){
-        parent::init();
+        //parent::init();
         date_default_timezone_set('PRC');
     }
 
@@ -36,7 +36,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
-                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                    if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];
                     }else {
                         $deadline = $item['lc_deadline'];
@@ -78,7 +78,7 @@ class BuyercreditController extends PublicController {
         if (!empty($res)) {
             foreach($res as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
-                    if($item['lc_deadline'] <= $item['nolc_deadline']){
+                    if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];
                     }else {
                         $deadline = $item['lc_deadline'];
@@ -260,9 +260,10 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '客户编号缺失!');
         }
         $bank_model = new BuyerBankInfoModel();
+        $credit_model = new BuyerCreditModel();
         $bankInfo = $bank_model->getInfo($data['buyer_no']);
         if($bankInfo) {
-
+            $bankInfo['account_settle'] = $credit_model->getAccountSettleByNo($bankInfo['buyer_no'],'account_settle');
             jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
             jsonReturn('', ShopMsg::CREDIT_FAILED ,'数据为空!');
@@ -428,7 +429,7 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($data['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
-                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                if($creditInfo['account_settle'] == "OA"){
                     $deadline = $creditInfo['nolc_deadline'];
                 }else {
                     $deadline = $creditInfo['lc_deadline'];
