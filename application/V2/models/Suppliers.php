@@ -58,7 +58,8 @@ class SuppliersModel extends PublicModel {
 
         $where['a.deleted_flag'] = 'N';
 
-        $where['a.status'] = ['neq', 'DRAFT'];
+        //$where['a.status'] = ['neq', 'DRAFT'];
+        $where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];
