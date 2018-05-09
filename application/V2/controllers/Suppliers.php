@@ -1016,7 +1016,6 @@ class SuppliersController extends PublicController {
         $data = $this->getExportData($this->put_data);
 
         $localFile = SupplierHelper::createSupplierExcelWithData($data);
-        p($localFile);
 
         $response = SupplierHelper::upload2FastDFS($localFile);
 
