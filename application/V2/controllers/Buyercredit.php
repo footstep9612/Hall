@@ -9,7 +9,7 @@
 class BuyercreditController extends PublicController {
 
     public function init(){
-        //parent::init();
+        parent::init();
         date_default_timezone_set('PRC');
     }
 
@@ -77,7 +77,7 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            foreach($res as $item) {
+            foreach($res['data'] as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];

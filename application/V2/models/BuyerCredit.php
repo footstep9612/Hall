@@ -50,6 +50,8 @@ class BuyerCreditModel extends PublicModel
                  `buyer_credit`.`buyer_credit`.`approved_date`,
                  `buyer_credit`.`buyer_credit`.`bank_remarks`,
                  `buyer_credit`.`buyer_credit`.`remarks`,
+                 `buyer_credit`.`buyer_credit`.`nolc_deadline`,
+                 `buyer_credit`.`buyer_credit`.`lc_deadline`,
                  `buyer_credit`.`buyer_credit`.`account_settle`,
                  `buyer_credit`.`buyer_credit`.`agent_id`,';
         $sql .= '`buyer_credit`.`buyer_reg_info`.`country_code`,';
@@ -124,7 +126,7 @@ class BuyerCreditModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,approved_date,status,bank_remarks,remarks,account_settle';
+        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,approved_date,nolc_deadline,lc_deadline,status,bank_remarks,remarks,account_settle';
         return $this->field($field)
             //->alias('c')
             ->where($where)
