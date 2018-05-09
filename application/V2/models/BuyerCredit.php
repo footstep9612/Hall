@@ -124,7 +124,7 @@ class BuyerCreditModel extends PublicModel
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,status,bank_remarks,remarks,account_settle';
+        $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,approved_date,status,bank_remarks,remarks,account_settle';
         return $this->field($field)
             //->alias('c')
             ->where($where)

@@ -185,7 +185,7 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
-                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                if($creditInfo['account_settle'] == "OA"){
                     $deadline = $creditInfo['nolc_deadline'];
                 }else {
                     $deadline = $creditInfo['lc_deadline'];

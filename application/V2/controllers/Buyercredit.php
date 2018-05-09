@@ -34,7 +34,7 @@ class BuyercreditController extends PublicController {
         $model = new BuyerCreditModel();
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
-            foreach($res as $item) {
+            foreach($res['data'] as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];
