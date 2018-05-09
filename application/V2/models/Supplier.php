@@ -197,6 +197,9 @@ class SupplierModel extends PublicModel {
         if (isset($create['created_by'])) {
             $data['created_by'] = $create['created_by'];
         }
+        if (isset($create['address'])) {
+            $data['address'] = $create['address'];
+        }
         try {
             $datajson = $this->create($data);
             $res = $this->add($datajson);

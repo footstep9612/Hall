@@ -18,6 +18,7 @@ class BuyercreditController extends PublicController {
     public function editCreditAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? $data['lang'] : 'en';
+        if(!$data['account_settle']){jsonReturn(null,-110,'Please select billing method!');}
 
         if (empty($data['name'])) {
             //jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
@@ -32,17 +33,20 @@ class BuyercreditController extends PublicController {
         /*if (empty($data['country_code'])) {
             jsonReturn(null, -110, '企业所在国家简称代码');
         }*/
-        if (empty($data['bank_country_code'])) {
-            jsonReturn(null, -110, 'Country cannot be empty!');
-        }
-        if (empty($data['bank_name'])) {
-            jsonReturn(null, -110, 'Bank name cannot be empty!');
-        }
-        if (empty($data['bank_address'])) {
-            jsonReturn(null, -110, 'Bank address cannot be empty!');
-        }
-        if (empty($data['tel_bank'])) {
-            jsonReturn(null, -110, 'Phone number cannot be empty!'); //银行
+
+        if($data['account_settle'] != "OA") {
+            if (empty($data['bank_country_code'])) {
+                jsonReturn(null, -110, 'Country cannot be empty!');
+            }
+            if (empty($data['bank_name'])) {
+                jsonReturn(null, -110, 'Bank name cannot be empty!');
+            }
+            if (empty($data['bank_address'])) {
+                jsonReturn(null, -110, 'Bank address cannot be empty!');
+            }
+            if (empty($data['tel_bank'])) {
+                jsonReturn(null, -110, 'Phone number cannot be empty!'); //银行
+            }
         }
         $data['buyer_id'] = $this->user['buyer_id'];
 
@@ -85,11 +89,13 @@ class BuyercreditController extends PublicController {
         $buyerModel = new BuyerModel();
         $buyer_no = $buyerModel->field('buyer_no')->where(['id' => $this->user['buyer_id'], 'deleted_flag' => 'N'])->find();
         $company_model = new BuyerRegInfoModel();
+        $credit_model = new BuyerCreditModel();
         $comInfo = $company_model->getInfo($buyer_no['buyer_no']);
         if($comInfo) {
             $comInfo['biz_nature'] = empty($comInfo['biz_nature'])?[]:json_decode($comInfo['biz_nature'],true);
             $comInfo['biz_scope'] = empty($comInfo['biz_scope'])?[]:json_decode($comInfo['biz_scope'],true);
             $comInfo['stock_exchange'] = empty($comInfo['stock_exchange'])?[]:json_decode($comInfo['stock_exchange'],true);
+            $comInfo['account_settle'] = $credit_model->getAccountSettleByNo($comInfo['buyer_no'],'account_settle');
             jsonReturn($comInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
@@ -106,8 +112,10 @@ class BuyercreditController extends PublicController {
         $buyerModel = new BuyerModel();
         $buyer_no = $buyerModel->field('buyer_no')->where(['id' => $this->user['buyer_id'], 'deleted_flag' => 'N'])->find();
         $bank_model = new BuyerBankInfoModel();
+        $credit_model = new BuyerCreditModel();
         $bankInfo = $bank_model->getInfo($buyer_no['buyer_no']);
         if($bankInfo) {
+            $bankInfo['account_settle'] = $credit_model->getAccountSettleByNo($bankInfo['buyer_no'],'account_settle');
             jsonReturn($bankInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
             jsonReturn('', ShopMsg::CUSTOM_FAILED ,'data is empty!');
@@ -177,15 +185,16 @@ class BuyercreditController extends PublicController {
         $creditInfo = $credit_model->getInfo($buyer_no['buyer_no']);
         if($creditInfo) {
             if(!empty($creditInfo['approved_date']) && $creditInfo['status']=='APPROVED'){
-                if($creditInfo['lc_deadline'] <= $creditInfo['nolc_deadline']){
+                if($creditInfo['account_settle'] == "OA"){
                     $deadline = $creditInfo['nolc_deadline'];
                 }else {
                     $deadline = $creditInfo['lc_deadline'];
                 }
-                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                //$time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date'])+$deadline*24*60*60));
                 $current_time = strtotime('now');
-                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
-                LOG::write($content, LOG::INFO);
+//                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+//                LOG::write($content, LOG::INFO);
                 if($time <= $current_time) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
@@ -234,4 +243,6 @@ class BuyercreditController extends PublicController {
             $list[$key] = $val;
         }
     }
+
+
 }
