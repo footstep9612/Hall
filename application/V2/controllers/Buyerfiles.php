@@ -568,20 +568,20 @@ class BuyerfilesController extends PublicController
             'today' => [
                 'member_speed' => array_sum($todayMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($todayInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($todayOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($todayOrderSpeed['count']) ? : 0
             ],
             'week' => [
                 'member_speed' => array_sum($weekMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($weekInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($weekOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($weekOrderSpeed['count']) ? : 0
             ],
             'month' => [
                 'member_speed' => array_sum($monthMemberSpeed['count']) ? : 0,
                 'inquiry_speed' => array_sum($monthInquirySpeed['count']) ? : 0,
-                'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0,
+                'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0
             ],
             'total' => [
-                'total_member' => $totalMember,
+                'total_member' => $totalMember ? : 0
             ]
         ];
         $res['code'] = 1;
