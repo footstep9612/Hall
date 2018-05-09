@@ -234,6 +234,9 @@ class SupplierController extends PublicController {
         if (!empty($data['employee_count'])) {
             $arr['employee_count'] = $data['employee_count'];
         }
+        if (!empty($data['address'])) {
+            $arr['address'] = $data['address'];
+        }
         $arr['created_by'] = $this->user['id'];
         $supplier_account_data['created_by'] = $this->user['id'];
         $supplier_account_data['created_at'] = date("Y-m-d H:i:s");
