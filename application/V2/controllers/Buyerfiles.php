@@ -548,8 +548,7 @@ class BuyerfilesController extends PublicController
         $cond = $buyerModel->getBuyerStatisListCond($condition);
         $totalMember = $buyerModel->crmGetBuyerTotal($cond);
         // 今日
-        $today = date('Y-m-d');
-        $condition['start_time'] = $condition['end_time'] = $today;
+        $condition['start_time'] = $condition['end_time'] = date('Y-m-d');
         $todayMemberSpeed = $buyerModel->memberSpeed($condition);
         $todayInquirySpeed = $inquiryModel->statisCondInquiry($condition);
         $todayOrderSpeed = $orderModel->statisCondOrder($condition);
