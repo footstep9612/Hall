@@ -107,4 +107,19 @@ class BuyerCreditModel extends PublicModel
         }
         return false;
     }
+
+    /**
+     * 通过客户编码获取结算方式等字段
+     * @author
+     */
+    public function getAccountSettleByNo($buyer_no,$name) {
+        if(!$buyer_no || !$name) return false;
+        $credit_model = new BuyerCreditModel();
+        $creditInfo = $credit_model->getInfo($buyer_no);
+        if($creditInfo){
+            return $creditInfo[$name];
+        }
+        return false;
+    }
+
 }

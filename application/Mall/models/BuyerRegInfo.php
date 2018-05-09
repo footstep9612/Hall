@@ -102,11 +102,13 @@ class BuyerRegInfoModel extends PublicModel
             $result = $this->add($this->create($dataInfo));
             if($result){
                 //添加银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->create_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, 'failed!');//添加银行信息失败
+                if($data['account_settle'] != 'OA'){
+                    $bank_model = new BuyerBankInfoModel();
+                    $bank_res = $bank_model->create_data($data);
+                    if(!$bank_res){
+                        $this->rollback();
+                        jsonReturn(null, MSG::MSG_FAILED, 'failed!');//添加银行信息失败
+                    }
                 }
                 //添加审核信息
                 $credit_model = new BuyerCreditModel();
@@ -120,9 +122,10 @@ class BuyerRegInfoModel extends PublicModel
                 $dataArr['in_status'] = 'DRAFT';
                 $dataArr['sign'] = 1;
                 $credit_log_model->create_data($dataArr);
-                $dataArr['sign'] = 2;
-                $credit_log_model->create_data($dataArr);
-
+                if($data['account_settle'] != 'OA') {
+                    $dataArr['sign'] = 2;
+                    $credit_log_model->create_data($dataArr);
+                }
                 $this->commit();
                 return $result;
             }
@@ -150,11 +153,13 @@ class BuyerRegInfoModel extends PublicModel
             $result = $this->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($dataInfo));
             if ($result !== false) {
                 //更新银行信息
-                $bank_model = new BuyerBankInfoModel();
-                $bank_res = $bank_model->update_data($data);
-                if(!$bank_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, 'failed!');//更新银行信息失败
+                if($data['account_settle'] != 'OA') {
+                    $bank_model = new BuyerBankInfoModel();
+                    $bank_res = $bank_model->update_data($data);
+                    if (!$bank_res) {
+                        $this->rollback();
+                        jsonReturn(null, MSG::MSG_FAILED, 'failed!');//更新银行信息失败
+                    }
                 }
                 //更新授信状态
                 $credit_model = new BuyerCreditModel();
@@ -176,6 +181,7 @@ class BuyerRegInfoModel extends PublicModel
                 }else{
                     $dataInfo['status'] = 'DRAFT';
                 }
+                $uparr['account_settle'] = $data['account_settle'];
                 $credit_model->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($uparr));
                 //添加日志
                 $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
@@ -190,8 +196,8 @@ class BuyerRegInfoModel extends PublicModel
                     $credit_log_model->create_data($dataArr);
                 }
                 //更新审核信息
-                $credit_model = new BuyerCreditModel();
-                $credit_res = $credit_model->update_data($data);
+               // $credit_model = new BuyerCreditModel();
+                //$credit_res = $credit_model->update_data($data);
                 /*if(!$credit_res){
                     $this->rollback();
                     jsonReturn(null, MSG::MSG_FAILED, '更新审核信息失败');

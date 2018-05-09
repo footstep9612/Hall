@@ -184,7 +184,8 @@ class BuyerRegInfoModel extends PublicModel
                 'approved_date'=>'',
                 'credit_apply_date'=>date('Y-m-d H:i:s', time())
             ];
-            //$credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
+            $uparr['account_settle'] = $data['account_settle'];
+            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
             //添加日志
             if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in']) && $dataInfo['registered_in'] !== $check['registered_in']){
                 $uparr['buyer_no'] = $data['buyer_no'];
