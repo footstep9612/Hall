@@ -190,10 +190,11 @@ class BuyercreditController extends PublicController {
                 }else {
                     $deadline = $creditInfo['lc_deadline'];
                 }
-                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                //$time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date'])+$deadline*24*60*60));
                 $current_time = strtotime('now');
-                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
-                LOG::write($content, LOG::INFO);
+//                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+//                LOG::write($content, LOG::INFO);
                 if($time <= $current_time) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';
