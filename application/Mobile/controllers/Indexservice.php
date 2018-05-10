@@ -46,9 +46,9 @@ class IndexserviceController extends PublicController {
         }
         $data = [];
 
-        $data['banner'] = $this->_getAds($country_bn, $lang, 'BANNNER');
+        $data['banners'] = $this->_getAds($country_bn, $lang, 'BANNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
-        $data['popularity_recommendation'] = $this->_getPopularity_recommendation($country_bn, $lang, $country_bn, 4);
+        $data['popularity_recommendation'] = $this->_getPopularity_recommendation([], $lang, $country_bn, 4);
 //        $data['solution'] = $this->_getSolution($country_bn, $lang);
         $data['products'] = $this->_getProducts($country_bn, $lang);
 
@@ -65,13 +65,14 @@ class IndexserviceController extends PublicController {
         }
     }
 
-    private function _getAds($country_bn, $lang, $group = 'BANNNER') {
+    private function _getAds($country_bn, $lang, $group = 'BANNER') {
         $jsondata = ['lang' => $lang];
         $jsondata['group'] = $group;
         $jsondata['show_type'] = 'M';
         $jsondata['country_bn'] = $country_bn;
         $home_country_ads_model = new HomeCountryAdsModel();
         $list = $home_country_ads_model->getList($jsondata);
+
         return $list;
     }
 
@@ -87,16 +88,13 @@ class IndexserviceController extends PublicController {
                 $floor_ids[] = $floor['id'];
             }
             $jsondata['show_type'] = 'M';
-            $jsondata['floor_id'] = $floor_ids;
-            $keywords = $this->_getFloorKeyword($jsondata);
-            $ads = $this->_getFloorads($jsondata, 'BACKGROUP');
-            $cats = $this->_getFloorcats($jsondata);
+            $jsondata['floor_ids'] = $floor_ids;
             $products = $this->_getFloorProducts($jsondata);
             foreach ($floors as $key => $floor) {
                 $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
             }
 
-            unset($jsondata['floor_id'], $products, $cats, $ads, $keywords);
+            unset($jsondata['floor_id'], $products);
         }
 
 
@@ -128,7 +126,10 @@ class IndexserviceController extends PublicController {
         $condition['recommend_flag'] = 'Y';
         $condition['page_size'] = $page_size;
         $es_product_model = new EsProductModel();
+
+
         $list = $es_product_model->getNewProducts($condition, $lang, $country_bn);
+
         $ret = $this->_getdata($list, $lang);
         return $ret;
     }
@@ -161,6 +162,7 @@ class IndexserviceController extends PublicController {
         $es_product_model = new EsProductModel();
         $list = $es_product_model->getNewProducts($condition, $lang, $country_bn);
         $ret = $this->_getdata($list, $lang);
+
 
         return $ret;
     }
@@ -216,7 +218,7 @@ class IndexserviceController extends PublicController {
         } else {
             $analyzer = 'ik';
         }
-        foreach ($data['hits']['hits'] as $key => $item) {
+        foreach ($data[0]['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
 
             $attachs = json_decode($item["_source"]['attachs'], true);
