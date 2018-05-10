@@ -1121,11 +1121,20 @@ class SuppliersController extends PublicController {
     {
         switch ($status)
         {
-            case 'CHECKING' :
+            case 'REVIEW' :
+                return '待审核';
+                break;
+            case 'APPROVING' :
                 return '审核中';
                 break;
-            case 'VALID' :
+            case 'APPROVED' :
                 return '审核通过';
+                break;
+            case 'INVALID' :
+                return '驳回';
+                break;
+            case 'OVERDUE' :
+                return '过期';
                 break;
         }
     }
