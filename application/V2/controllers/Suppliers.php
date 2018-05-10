@@ -1062,7 +1062,7 @@ class SuppliersController extends PublicController {
             $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
             $supplier['material_cat'] = $this->supplierMaterialCatModel->getMaterialCatNameBy($supplier['id']);
             $supplier['developer'] = $this->supplierAgentModel->getDeveloperNameBy($supplier['id']);
-            $supplier['status'] = $this->setStatusName($supplier['erui_status']);
+            $supplier['status'] = $this->setStatusName($supplier['status']);
 
             $supplier['en_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id']);
             $supplier['zh_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id'], 'zh');
