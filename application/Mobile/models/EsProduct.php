@@ -482,7 +482,9 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
-            unset($condition['source']);
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             } elseif (isset($condition['keyword']) && $condition['keyword']) {
@@ -553,8 +555,10 @@ class EsProductModel extends Model {
                 $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
                 $current_no = intval($ret_count['count'] / $pagesize);
             }
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
 
-            unset($condition['source']);
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
@@ -574,7 +578,7 @@ class EsProductModel extends Model {
             return $data;
         } catch (Exception $ex) {
 
-            echo $ex->getMessage();
+
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
 

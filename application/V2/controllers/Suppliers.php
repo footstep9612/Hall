@@ -1062,7 +1062,7 @@ class SuppliersController extends PublicController {
             $supplier['expiry_date'] = $count > 0 && $count <= 30 ? "剩{$count}天到期" : '';
             $supplier['material_cat'] = $this->supplierMaterialCatModel->getMaterialCatNameBy($supplier['id']);
             $supplier['developer'] = $this->supplierAgentModel->getDeveloperNameBy($supplier['id']);
-            $supplier['status'] = $this->setStatusName($supplier['erui_status']);
+            $supplier['status'] = $this->setStatusName($supplier['status']);
 
             $supplier['en_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id']);
             $supplier['zh_spu_count'] = $this->getCountBy('PRODUCT', $supplier['id'], 'zh');
@@ -1121,11 +1121,20 @@ class SuppliersController extends PublicController {
     {
         switch ($status)
         {
-            case 'CHECKING' :
+            case 'REVIEW' :
+                return '待审核';
+                break;
+            case 'APPROVING' :
                 return '审核中';
                 break;
-            case 'VALID' :
+            case 'APPROVED' :
                 return '审核通过';
+                break;
+            case 'INVALID' :
+                return '驳回';
+                break;
+            case 'OVERDUE' :
+                return '过期';
                 break;
         }
     }
