@@ -1637,7 +1637,8 @@ class SupplierInquiryModel extends PublicModel {
 
         $where = [
             'deleted_flag' => 'N',
-            'status' => ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']],
+            //'status' => ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']],
+            'status' => ['neq', 'DRAFT'],
             'name' =>['neq', '']
         ];
 
