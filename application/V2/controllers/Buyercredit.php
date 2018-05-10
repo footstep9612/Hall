@@ -9,7 +9,7 @@
 class BuyercreditController extends PublicController {
 
     public function init(){
-        //parent::init();
+        parent::init();
         date_default_timezone_set('PRC');
     }
 
@@ -34,17 +34,18 @@ class BuyercreditController extends PublicController {
         $model = new BuyerCreditModel();
         $res = $model->getCreditlist($data, $limit);
         if (!empty($res)) {
-            foreach($res as $item) {
+            foreach($res['data'] as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];
                     }else {
                         $deadline = $item['lc_deadline'];
                     }
-                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
+                   // $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date'])+$deadline*24*60*60));
                     $current_time = strtotime('now');
-                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
-                    LOG::write($content, LOG::INFO);
+//                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+//                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
@@ -76,17 +77,17 @@ class BuyercreditController extends PublicController {
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
-            foreach($res as $item) {
+            foreach($res['data'] as $item) {
                 if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
                     if($item['account_settle'] == "OA"){
                         $deadline = $item['nolc_deadline'];
                     }else {
                         $deadline = $item['lc_deadline'];
                     }
-                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date']." +".$deadline." day")));
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date'])+$deadline*24*60*60));
                     $current_time = strtotime('now');
-                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
-                    LOG::write($content, LOG::INFO);
+//                    $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+//                    LOG::write($content, LOG::INFO);
                     if($time <= $current_time) {
                         $item['status'] = 'INVALID';
                         $status['status'] = 'INVALID';
@@ -434,10 +435,10 @@ class BuyercreditController extends PublicController {
                 }else {
                     $deadline = $creditInfo['lc_deadline'];
                 }
-                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date']." +".$deadline." day")));
+                $time = strtotime(date('Y-m-d H:i:s',strtotime($creditInfo['approved_date'])+$deadline*24*60*60));
                 $current_time = strtotime('now');
-                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
-                LOG::write($content, LOG::INFO);
+//                $content = $time.'-<通过是时间-------当前时间>-'.$current_time;
+//                LOG::write($content, LOG::INFO);
                 if($time <= $current_time) {
                     $creditInfo['status'] = 'INVALID';
                     $status['status'] = 'INVALID';

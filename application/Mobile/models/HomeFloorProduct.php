@@ -58,13 +58,79 @@ class HomeFloorProductModel extends PublicModel {
         $data = $this->field('spu')
                 ->where($where)
                 ->order('sort_order desc')
-                ->limit(0, 8)
+                //->limit(0, 8)
                 ->select();
         $spus = [];
         foreach ($data as $spu) {
             $spus[] = $spu['spu'];
         }
         return $spus;
+    }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function getListByFloorids($condition) {
+
+
+        $where = ' where deleted_flag=\'N\'';
+        switch ($condition['lang']) {
+            case 'en':
+                $where .= ' and lang=\'en\'';
+                break;
+            case 'es':
+                $where .= ' and lang=\'es\'';
+                break;
+            case 'ru':
+                $where .= ' and lang=\'ru\'';
+                break;
+            case 'zh':
+                $where .= ' and lang=\'zh\'';
+                break;
+            default :
+                $where .= ' and lang=\'en\'';
+                break;
+        }
+        switch ($condition['show_type']) {
+            case 'P':
+                $where .= ' and show_type in (\'APM\', \'P\', \'PM\', \'AP\')';
+                break;
+            case 'M':
+                $where .= ' and show_type in (\'APM\', \'M\', \'PM\', \'AM\')';
+                break;
+            case 'A':
+                $where .= ' and show_type in (\'APM\', \'A\', \'AP\', \'AM\')';
+                break;
+            default :
+                $where .= ' and show_type in (\'APM\', \'M\', \'PM\', \'AM\')';
+                break;
+        }
+        $order = ' sort_order desc limit 0,8 )';
+        if (!empty($condition['floor_ids'])) {
+            $table = $this->getTableName();
+            $sql = '';
+            foreach ($condition['floor_ids'] as $key => $floor_id) {
+                if ($key === 0) {
+                    $sql = '(select spu from ' . $table . $where . ' and floor_id=' . intval($floor_id) . $order;
+                } else {
+                    $sql .= 'UNION ALL( select spu from ' . $table . $where . ' and floor_id=' . intval($floor_id) . $order;
+                }
+            }
+        }
+        if (empty($sql)) {
+            $data = $this->query($sql);
+            $spus = [];
+            foreach ($data as $spu) {
+                $spus[] = $spu['spu'];
+            }
+            return $spus;
+        } else {
+            return [];
+        }
     }
 
     /**
@@ -82,7 +148,7 @@ class HomeFloorProductModel extends PublicModel {
         $data = $this->field('spu,floor_id')
                 ->where($where)
                 ->order('sort_order desc')
-                //->limit(0, 8)
+                //->limit(0, 4)
                 ->select();
         $spus = [];
         $floors = [];
