@@ -1639,7 +1639,7 @@ class SupplierInquiryModel extends PublicModel {
             'deleted_flag' => 'N',
             //'status' => ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']],
             'status' => ['neq', 'DRAFT'],
-            'name' =>['neq', '']
+            //'name' =>['neq', '']
         ];
 
         if (!empty($condition['id'])) {
