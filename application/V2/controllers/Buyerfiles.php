@@ -611,6 +611,25 @@ class BuyerfilesController extends PublicController
         }
         $this->jsonReturn($dataJson);
     }
+    public function noticeMessageAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $data['admin']=$this->getUserRole();
+        $buyer=new BuyerModel();
+        $res=$buyer->noticeMessage($data);    //消息提醒
+        if($res===false){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '无市场区域国家负责人权限';
+        }elseif($res==0 || empty($res)){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '无消息提醒';
+        }else{
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '消息提醒';
+            $dataJson['data'] = $res;
+        }
+        $this->jsonReturn($dataJson);
+    }
     public function readMessageAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang']=$this->getLang();
@@ -630,22 +649,22 @@ class BuyerfilesController extends PublicController
         $this->jsonReturn($dataJson);
     }
     //系统提示信息
-    public function sentSystemMessageAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        $data['lang']=$this->getLang();
-        $data['admin']=$this->getUserRole();
-        $buyer=new BuyerModel();
-        $res=$buyer->sentSystemMessage($data);
-        if($res===0){   //无数据
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '无消息提醒';
-        }else{
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '24h过期消息提醒';
-            $dataJson['data'] = $res;
-        }
-        $this->jsonReturn($dataJson);
-    }
+//    public function sentSystemMessageAction(){
+//        $data = json_decode(file_get_contents("php://input"), true);
+//        $data['lang']=$this->getLang();
+//        $data['admin']=$this->getUserRole();
+//        $buyer=new BuyerModel();
+//        $res=$buyer->sentSystemMessage($data);
+//        if($res===0){   //无数据
+//            $dataJson['code'] = 1;
+//            $dataJson['message'] = '无消息提醒';
+//        }else{
+//            $dataJson['code'] = 1;
+//            $dataJson['message'] = '24h过期消息提醒';
+//            $dataJson['data'] = $res;
+//        }
+//        $this->jsonReturn($dataJson);
+//    }
     public function requestSystemAction(){
         $buyer=new BuyerModel();
         $res=$buyer->requestSystem();
@@ -660,19 +679,19 @@ class BuyerfilesController extends PublicController
         $this->jsonReturn($dataJson);
     }
     //X
-    public function sysMsgSetAction(){
-        $data['admin']=$this->getUserRole();
-        $data['lang']=$this->getLang();
-        $buyer=new BuyerModel();
-        $res=$buyer->sysMsgSet($data);
-        if($res===0){   //无数据
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '无消息提醒';
-        }else{
-            $dataJson['code'] = 1;
-            $dataJson['message'] = '24h过期消息设置OK';
-            $dataJson['data'] = $res;
-        }
-        $this->jsonReturn($dataJson);
-    }
+//    public function sysMsgSetAction(){
+//        $data['admin']=$this->getUserRole();
+//        $data['lang']=$this->getLang();
+//        $buyer=new BuyerModel();
+//        $res=$buyer->sysMsgSet($data);
+//        if($res===0){   //无数据
+//            $dataJson['code'] = 1;
+//            $dataJson['message'] = '无消息提醒';
+//        }else{
+//            $dataJson['code'] = 1;
+//            $dataJson['message'] = '24h过期消息设置OK';
+//            $dataJson['data'] = $res;
+//        }
+//        $this->jsonReturn($dataJson);
+//    }
 }

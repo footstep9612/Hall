@@ -2973,8 +2973,8 @@ EOF;
     }
     public function getBuyerInfoByCond($cond,$lang){
         $cond.=" and country.lang='$lang'";
-        $field='buyer.id,buyer.name as buyer_name,country.name as country_name,buyer.created_at,buyer.source,buyer.is_read';
-        $field.=',buyer.read_at,buyer.sent_at,mark_at';
+        $field='buyer.id,buyer.name as buyer_name,country.name as country_name,buyer.created_at,buyer.source,buyer.is_handle';
+        $field.=',buyer.is_handle,buyer.sent_at,mark_at';
         $info=$this->alias('buyer')
             ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
             ->field($field)
@@ -3010,8 +3010,26 @@ EOF;
         $sent_at=time();
         $sql = "UPDATE erui_buyer.buyer ";
         $sql .= " SET `sent_at`='$sent_at',mark_at=UNIX_TIMESTAMP(created_at)";
-        $sql .= " WHERE ( buyer.deleted_flag='N' and buyer.country_bn in ('Russia','Japan','China') and buyer.status='APPROVING' )";
+        $sql .= " WHERE ".$cond;
         $this->query($sql);
+        $arr['count']=$count;
+        $arr['info']=$this->getBuyerInfoByCond($cond,$data['lang']);;
+        return $arr;
+    }
+    //查看已办理信息
+    public function noticeMessage($data){
+        $access=$this->countryAccess($data['admin']);
+        if($access !== 1){   //无国家权限
+            return false;
+        }
+        //所负责的国家
+        $countryStr=$data['admin']['country'];
+        $cond="buyer.is_handle=1 and buyer.status='APPROVED'";
+        $cond.=" and buyer.country_bn in ($countryStr) and buyer.deleted_flag='N' ";
+        $count=$this->getBuyerCount($cond); //数据数量
+        if($count == 0){
+            return 0;
+        }
         $arr['count']=$count;
         $arr['info']=$this->getBuyerInfoByCond($cond,$data['lang']);;
         return $arr;
@@ -3027,7 +3045,6 @@ EOF;
             return 'none';
         }
         $save=array(
-            'is_read'=>1,
             'read_at'=>time()
         );
         $this->where(array('id'=>$id))->save($save);
