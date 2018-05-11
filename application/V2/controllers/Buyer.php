@@ -195,10 +195,10 @@ class BuyerController extends PublicController {
      * wangs-buyerListAction- wangs
      */
     public function buyerListAction() {
-        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['admin']=$this->getUserRole();   //=1市场专员
-        $data['created_by'] = $created_by;
+        $data['created_by'] = $this->user['id'];;
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
