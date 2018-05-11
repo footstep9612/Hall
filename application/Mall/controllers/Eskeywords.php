@@ -62,10 +62,10 @@ class EskeywordsController extends PublicController {
         }
         foreach ($data['hits']['hits'] as $key => $item) {
             $list[$key] = $item["_source"];
-            if (isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['show_name.' . $analyzer][0]) {
-                $list[$key]['highlight_name'] = $item['highlight']['show_name.' . $analyzer][0];
+            if (isset($item['highlight']['name.' . $analyzer][0]) && $item['highlight']['name.' . $analyzer][0]) {
+                $list[$key]['highlight_name'] = $item['highlight']['name.' . $analyzer][0];
             } else {
-                $list[$key]['highlight_name'] = str_ireplace($keyword, '<em>' . $keyword . '</em>', $list[$key]['name']);
+                $list[$key]['highlight_name'] = $list[$key]['name'];
             }
         }
         return $list;

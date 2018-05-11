@@ -57,14 +57,31 @@ class ESKeywordsModel extends PublicModel {
             $body['query']['bool']['must'][] = [ESClient::TERM => ['deleted_flag' => 'N']];
         }
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'cat_name', 'cat_name.' . $analyzer);
-        ESClient::getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
+        //ESClient::getQurey($condition, $body, ESClient::MATCH, 'name', 'name.' . $analyzer);
         if (!empty($condition['name'])) {
             $keyword = trim(strtolower($condition['name']));
-            $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
-                        [ESClient::WILDCARD => ['name.lower' => ['value' => '*' . strtolower($keyword), 'boost' => 99]]],
-                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'minimum_should_match' => '75%', 'operator' => 'or']]],
-            ]]];
+
+            $array = explode(' ', $keyword);
+
+            $last_keyword = $array[count($array) - 1];
+            $body['query']['bool']['must'][] = [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 1]]];
+            if (!empty($last_keyword)) {
+                $body['query']['bool']['must'][] = ['bool' => [ESClient::SHOULD => [
+                            ['bool' => [ESClient::MUST => [
+                                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 1000]]],
+                                        [ESClient::WILDCARD => ['name.lower' => ['value' => '*' . strtolower($last_keyword), 'boost' => 5000]]],
+                                        ['bool' => [ESClient::MUST_NOT => [
+                                                    [ESClient::MATCH_PHRASE => ['name.lower' => ['query' => '*' . strtolower($last_keyword) . 's']]]
+                                                ]]]
+                                    ]]],
+                            ['bool' => [ESClient::MUST => [
+                                        [ESClient::MATCH => ['name.' . $analyzer => ['query' => $keyword, 'boost' => 10]]],
+                                        [ESClient::WILDCARD => ['name.lower' => ['value' => '*' . strtolower($last_keyword) . 's']]]
+                                    ]]]
+                ]]];
+            }
         }
+
         return $body;
     }
 
@@ -115,12 +132,13 @@ class ESKeywordsModel extends PublicModel {
             } else {
                 $es->setbody($body)->setsort('created_at', 'DESC')->setsort('id', 'DESC');
             }
-
             $es->sethighlight(['name.' . $analyzer => new stdClass()]);
             $es->setfields(["id", "lang", "cat_no", "cat_name", "country_bn", "market_area_bn", "name"]);
             $data = [$es->search($this->es_index, $this->es_type_prefix . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
+
             $es->body = $body = $es = null;
             unset($es, $body);
+
             return $data;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
