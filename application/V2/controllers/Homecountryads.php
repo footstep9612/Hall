@@ -162,7 +162,7 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -236,7 +236,7 @@ class HomecountryadsController extends PublicController {
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
