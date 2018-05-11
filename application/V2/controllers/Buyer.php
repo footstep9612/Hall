@@ -858,7 +858,7 @@ EOF;
         $agent = new BuyerAgentModel();
         $res=$agent->crmUpdateAgent($data);
         $buyer=new BuyerModel();
-        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED','checked_by'=>$created_by,'checked_at'=>$time));
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED','checked_by'=>$created_by,'checked_at'=>$time,'is_handle'=>1));
         $account=new BuyerAccountModel();
         $account->where(array('buyer_id'=>$data['id']))->save(array('status'=>'VALID'));
         if($res){
