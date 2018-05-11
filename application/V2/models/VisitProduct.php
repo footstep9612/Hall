@@ -113,7 +113,6 @@ class VisitProductModel extends PublicModel {
         if($check==true){
             return $info;
         }
-        print_r($info);die;
         //获取品类名称
         foreach($info as $k => $v){
             $info[$k]['product_cate_name']=explode('/',$v['product_cate']);
