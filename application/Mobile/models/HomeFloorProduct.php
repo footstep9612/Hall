@@ -109,13 +109,15 @@ class HomeFloorProductModel extends PublicModel {
                 $where .= ' and show_type in (\'APM\', \'M\', \'PM\', \'AM\')';
                 break;
         }
-        $order = ' sort_order desc limit 0,8 )';
+        $order = ' sort_order desc limit 0,4 )';
         if (!empty($condition['floor_ids'])) {
             $table = $this->getTableName();
             $sql = '';
             foreach ($condition['floor_ids'] as $key => $floor_id) {
                 if ($key === 0) {
                     $sql = '(select spu from ' . $table . $where . ' and floor_id=' . intval($floor_id) . $order;
+                } elseif ($key == count($condition['floor_ids']) - 1) {
+                    $sql .= 'UNION ALL( select spu from ' . $table . $where . ' and floor_id=' . intval($floor_id) . ' sort_order desc limit 0,5)';
                 } else {
                     $sql .= 'UNION ALL( select spu from ' . $table . $where . ' and floor_id=' . intval($floor_id) . $order;
                 }
