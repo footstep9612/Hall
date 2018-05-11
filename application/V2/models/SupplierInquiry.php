@@ -1103,7 +1103,7 @@ class SupplierInquiryModel extends PublicModel {
             $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
             if ($referenceID) {*/
                 // 各环节的项目澄清时间列表
-                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, [/*'id' => ['gt', $referenceID],*/ 'in_node' => 'CLARIFY', 'out_node' => ['in', array_diff($clarifyNode, ['BIZ_DISPATCHING', 'CC_DISPATCHING'])]]))->order('id ASC')->select();
+                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, [/*'id' => ['gt', $referenceID],*/ 'in_node' => 'CLARIFY', 'out_node' => ['in', /*array_diff($clarifyNode, ['BIZ_DISPATCHING', 'CC_DISPATCHING'])*/ $clarifyNode]]))->order('id ASC')->select();
                 foreach ($clarifyList as $clarify) {
                     // 计算各环节的项目澄清时间
                     $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
@@ -1180,7 +1180,7 @@ class SupplierInquiryModel extends PublicModel {
                 $item[$v] = '';
             }
             // 各环节的报价用时列表
-            $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where(['action' => ['neq', 'CLARIFY'], 'inquiry_id' => $item['inquiry_id'], 'in_node' => ['in', $quoteNode]])->select();
+            $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where([/*'action' => ['neq', 'CLARIFY'],*/ 'inquiry_id' => $item['inquiry_id'], 'in_node' => ['in', $quoteNode]])->select();
             foreach ($spendList as $spend) {
                 // 计算各环节的报价用时
                 $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
