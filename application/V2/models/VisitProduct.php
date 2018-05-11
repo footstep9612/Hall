@@ -57,6 +57,7 @@ class VisitProductModel extends PublicModel {
             if(!empty($value['id'])){
                 $updateId[]=$value['id'];
                 unset($value['deleted_flag']);
+                unset($value['product_cate_name']);
                 unset($value['visit_id']);
                 if(!empty($value['product_cate'])){
                     $value['product_cate']=implode(',',$value['product_cate']);
