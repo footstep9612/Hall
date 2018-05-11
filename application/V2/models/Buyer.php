@@ -2956,4 +2956,153 @@ EOF;
         $arr['info']=$info;
         return $arr;
     }
+    //给国家负责人消息提醒
+    public function countryAccess($admin){
+        if(in_array('201711242',$admin['role'])){
+            return 1;   //国家权限
+        }else{
+            return 0;
+        }
+    }
+    public function getBuyerCount($cond){
+        return $this->where($cond)->count();
+    }
+    public function getBuyerCond($countryStr){
+        $cond="buyer.deleted_flag='N' and buyer.country_bn in ($countryStr) and buyer.status='APPROVING'";
+        return $cond;
+    }
+    public function getBuyerInfoByCond($cond,$lang){
+        $cond.=" and country.lang='$lang'";
+        $field='buyer.id,buyer.name as buyer_name,country.name as country_name,buyer.created_at,buyer.source,buyer.is_read';
+        $field.=',buyer.read_at,buyer.sent_at,mark_at';
+        $info=$this->alias('buyer')
+            ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
+            ->field($field)
+            ->where($cond)
+            ->order('id desc')
+            ->select();
+        foreach($info as $k => &$v){
+            if($v['source']==1){
+                $v['source']='boss';
+            }elseif($v['source']==2){
+                $v['source']='website';
+            }elseif($v['source']==3){
+                $v['source']='app';
+            }
+        }
+        return $info;
+    }
+    //消息提醒-wangs
+    public function MessageRemind($data){
+        $access=$this->countryAccess($data['admin']);
+        if($access !== 1){   //无国家权限
+            return false;
+        }
+        //所负责的国家
+        $countryStr=$data['admin']['country'];
+
+        $cond=$this->getBuyerCond($countryStr); //获取条件
+        $count=$this->getBuyerCount($cond); //数据数量
+        if($count == 0){
+            return 0;
+        }
+
+        $sent_at=time();
+        $sql = "UPDATE erui_buyer.buyer ";
+        $sql .= " SET `sent_at`='$sent_at',mark_at=UNIX_TIMESTAMP(created_at)";
+        $sql .= " WHERE ( buyer.deleted_flag='N' and buyer.country_bn in ('Russia','Japan','China') and buyer.status='APPROVING' )";
+        $this->query($sql);
+        $arr['count']=$count;
+        $arr['info']=$this->getBuyerInfoByCond($cond,$data['lang']);;
+        return $arr;
+    }
+    //国家负责人是否读取信息
+    public function readMessage($data){
+        $id=isset($data['id'])?$data['id']:0;
+        if(empty($id)){ //缺少参数
+            return 'param';
+        }
+        $info=$this->field('id')->where(array('id'=>$id))->find();
+        if(empty($info)){
+            return 'none';
+        }
+        $save=array(
+            'is_read'=>1,
+            'read_at'=>time()
+        );
+        $this->where(array('id'=>$id))->save($save);
+        return true;
+    }
+    //发送系统信息提醒
+    public function sentSystemMessage($data){
+        $countryStr=$data['admin']['country'];
+        $cond="buyer.deleted_flag='N' and buyer.country_bn in ($countryStr) and buyer.status='APPROVING'";
+        $count=$this->where($cond)->count();
+        if($count == 0){
+            return 0;   //暂无信息
+        }
+        $info=$this->getBuyerInfoByCond($cond,$data['lang']);
+        $prevtime=time()-86400;   //当前时间戳-24H
+        $readArr=[];
+        $str='';
+        foreach($info as $k => $v){
+            if($v['mark_at'] <= $prevtime){ //信息未处理已超过24H
+                $readArr[$k]['id']=$v['id'];
+                $readArr[$k]['buyer_name']=$v['buyer_name'];
+                $readArr[$k]['country_name']=$v['country_name'];
+                $readArr[$k]['created_at']=$v['created_at'];
+                $readArr[$k]['source']=$v['source'];
+                $readArr[$k]['is_read']=$v['is_read'];
+                $readArr[$k]['read_at']=$v['read_at'];
+                $readArr[$k]['sent_at']=$v['sent_at'];
+                $readArr[$k]['mark_at']=$v['mark_at'];
+                $str.=','.$v['id'];
+            }
+        }
+        if(!empty($readArr)){   //24H过期信息
+            $str=substr($str,1);
+            $sql = "UPDATE erui_buyer.buyer ";
+            $sql .= " SET mark_at=mark_at+86400";
+            $sql .= " WHERE id in ($str)";
+            $this->query($sql);
+            $arr['count']=count($readArr); //过期24H 个数
+            $arr['info']=$readArr; //过期24H 客户信息
+        }else{
+            $arr=0;
+        }
+        return $arr;
+    }
+    //每秒请求系统
+    public function requestSystem(){
+
+        $cond="deleted_flag='N' and buyer.status='APPROVING'";
+        $count=$this->where($cond)->count();
+        if($count==0){  //无数据
+            return 0;
+        }
+        $info=$this->field('id,buyer_code,mark_at')->where($cond)->select();
+        $setArr=[];
+        $str='';
+        $prevtime=time()-86400;   //当前时间戳-24H
+        foreach($info as $k => $v){
+            if($v['mark_at'] <= $prevtime){ //信息未处理已超过24H
+                $setArr[$k]['id']=$v['id'];
+                $setArr[$k]['buyer_code']=$v['buyer_code'];
+                $setArr[$k]['mark_at']=$v['mark_at'];
+                $str.=','.$v['id'];
+            }
+        }
+        if(!empty($setArr)){   //24H过期信息
+            $str=substr($str,1);
+            $sql = "UPDATE erui_buyer.buyer ";
+            $sql .= " SET mark_at=mark_at+86400";
+            $sql .= " WHERE id in ($str)";
+            $this->query($sql);
+            $arr['count']=count($setArr); //过期24H 个数
+            $arr['info']=$setArr; //过期24H 客户信息
+        }else{
+            $arr=0;
+        }
+        return $arr;
+    }
 }
