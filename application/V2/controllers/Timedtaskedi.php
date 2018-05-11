@@ -68,27 +68,40 @@ class TimedtaskediController extends PublicController{
                  foreach ($updata as $item) {
                      if ($item['approveFlag'] == 1) {
                          //先查看是否已经审核通过
-                         $check = $this->buyerBankInfoModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
-                         if ($check['status'] == 'EDI_APPROVED') {
-                             //授信表
+                         $check_credit = $this->buyerCreditModel->field('status,account_settle')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                         if($check_credit['account_settle'] == 'OA'){
                              $updata = [
                                  'buyer_no' => $item['buyerInfo']['corpSerialNo'],
                                  'sinosure_no' => $item['buyerInfo']['buyerNo'],
                                  'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
                                  'status' => 'EDI_APPROVED'
                              ];
-                             $check_credit = $this->buyerCreditModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
                              if($check_credit['status'] != 'APPROVED'){
                                  $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
                              }
-                         } else {
-                             $updata = [
-                                 'buyer_no' => $item['buyerInfo']['corpSerialNo'],
-                                 'sinosure_no' => $item['buyerInfo']['buyerNo'],
-                                 'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime']))
-                             ];
-                             $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                         } else{
+                             $check = $this->buyerBankInfoModel->field('status')->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->find();
+                             if ($check['status'] == 'EDI_APPROVED') {
+                                 //授信表
+                                 $updata = [
+                                     'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                     'sinosure_no' => $item['buyerInfo']['buyerNo'],
+                                     'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
+                                     'status' => 'EDI_APPROVED'
+                                 ];
+                                 if($check_credit['status'] != 'APPROVED'){
+                                     $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                                 }
+                             } else {
+                                 $updata = [
+                                     'buyer_no' => $item['buyerInfo']['corpSerialNo'],
+                                     'sinosure_no' => $item['buyerInfo']['buyerNo'],
+                                     'approved_date' => date('Y-m-d H:i:s', strtotime($item['notifyTime']))
+                                 ];
+                                 $this->buyerCreditModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($updata);
+                             }
                          }
+
                          //企业表
                          $reg['status'] = 'EDI_APPROVED';
                          $this->buyerRegInfoModel->where(['buyer_no' => $item['buyerInfo']['corpSerialNo']])->save($reg);

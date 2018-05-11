@@ -482,7 +482,9 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
-            unset($condition['source']);
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             } elseif (isset($condition['keyword']) && $condition['keyword']) {
@@ -553,8 +555,10 @@ class EsProductModel extends Model {
                 $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
                 $current_no = intval($ret_count['count'] / $pagesize);
             }
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
 
-            unset($condition['source']);
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
@@ -574,7 +578,7 @@ class EsProductModel extends Model {
             return $data;
         } catch (Exception $ex) {
 
-            echo $ex->getMessage();
+
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
 
@@ -681,6 +685,18 @@ class EsProductModel extends Model {
     }
 
     public function getBrandsList($condition, $lang = 'en') {
+
+        $pagesize = 10;
+        $current_no = 1;
+        if (isset($condition['current_no'])) {
+            $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+        }
+
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+
+        $from = ($current_no - 1) * $pagesize;
         $brand = $condition['brand'];
         unset($condition['brand']);
         $body = $this->getCondition($condition);
@@ -689,9 +705,10 @@ class EsProductModel extends Model {
         $es->setfields(['spu']);
         $brand_terms = [
             'field' => 'brand.name.all',
-            'size' => 10,
+            'size' => $pagesize,
             'order' => ['_count' => 'desc']
         ];
+
 
         $es->body['aggs']['brand_name'] = [
             'terms' => $brand_terms
@@ -700,6 +717,7 @@ class EsProductModel extends Model {
 
 
         $es->body['size'] = 0;
+        Log::write(json_encode($es->body));
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
         $brand_names = [];

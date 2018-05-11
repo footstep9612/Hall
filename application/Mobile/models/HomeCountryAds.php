@@ -51,12 +51,21 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getList($condition) {
+    public function getList($condition, $pagesize = null) {
         $where = $this->_getCondition($condition);
-        return $this->field('img_name,img_url,group,link')
-                        ->where($where)
-                        ->order('sort_order desc')
-                        ->select();
+
+        if (intval($pagesize)) {
+            return $this->field('img_name,img_url,group,link')
+                            ->where($where)
+                            ->order('sort_order desc')
+                            ->limit('0,' . intval($pagesize))
+                            ->select();
+        } else {
+            return $this->field('img_name,img_url,group,link')
+                            ->where($where)
+                            ->order('sort_order desc')
+                            ->select();
+        }
     }
 
 }

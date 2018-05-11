@@ -19,7 +19,7 @@ class SuppliersModel extends PublicModel {
     protected $joinField = 'a.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time';
     protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.sign_agreement_end_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
 
-    protected $exportFields = 'a.id,a.name,a.social_credit_code,a.created_at,a.created_by,a.checked_at,a.checked_by,a.org_id,a.erui_status, b.name AS org_name';
+    protected $exportFields = 'a.id,a.name,a.social_credit_code,a.created_at,a.created_by,a.checked_at,a.checked_by,a.org_id,a.status, b.name AS org_name';
 
     protected $listFields = '';
 
@@ -58,8 +58,8 @@ class SuppliersModel extends PublicModel {
 
         $where['a.deleted_flag'] = 'N';
 
-        //$where['a.status'] = ['neq', 'DRAFT'];
-        $where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
+        $where['a.status'] = ['neq', 'DRAFT'];
+        //$where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
 
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];

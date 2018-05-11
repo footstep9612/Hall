@@ -482,7 +482,9 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
-            unset($condition['source']);
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             } elseif (isset($condition['keyword']) && $condition['keyword']) {
@@ -521,7 +523,7 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null,$description=false) {
+    public function getNewProducts($condition, $lang = 'en', &$country_bn = null, &$is_show_cat = false, &$show_cat_name = null, &$is_brand = false, &$brand_name = null, $description = false) {
 
         try {
             if ($lang == 'zh') {
@@ -554,7 +556,9 @@ class EsProductModel extends Model {
                 $current_no = intval($ret_count['count'] / $pagesize);
             }
 
-            unset($condition['source']);
+            if (isset($condition['source'])) {
+                unset($condition['source']);
+            }
             if (!$body) {
                 $body['query']['bool']['must'][] = ['match_all' => []];
             }
@@ -563,10 +567,10 @@ class EsProductModel extends Model {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc');
             }
             $es->setpreference('_primary_first');
-            $fidlsd =['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
+            $fidlsd = ['spu', 'show_name', 'name', 'keywords', 'tech_paras', 'exe_standard', 'sku_count',
                 'brand', 'customization_flag', 'warranty', 'attachs', 'minimumorderouantity', 'min_pack_unit'];
-            if($description){
-                array_push($fidlsd,"description");
+            if ($description) {
+                array_push($fidlsd, "description");
             }
             $es->setfields($fidlsd);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
@@ -578,7 +582,6 @@ class EsProductModel extends Model {
             return $data;
         } catch (Exception $ex) {
 
-            echo $ex->getMessage();
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
 
