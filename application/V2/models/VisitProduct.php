@@ -84,29 +84,32 @@ class VisitProductModel extends PublicModel {
             'deleted_flag'=>'N',
         );
         $info=$this->field($field)->where($cond)->select();
-        if($check==true){
-            foreach($info as $k => $v){
-                $cateArr=explode(',',$v['product_cate']);
-                if(in_array(0,$cateArr)){
-                    $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
-                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
-                    if($lang=='zh'){
-                        $info[$k]['product_cate']=$material['name']."/其他";
-                    }else{
-                        $info[$k]['product_cate']=$material['name']."/Others";
-                    }
+        foreach($info as $k => $v){
+            $cateArr=explode(',',$v['product_cate']);
+            if(in_array(0,$cateArr)){
+                $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
+                if($lang=='zh'){
+                    $info[$k]['product_cate']=$material['name']."/其他";
                 }else{
-                    $a=$cateArr[0];
-                    $b=$cateArr[1];
-                    $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
-                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
-                    $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
+                    $info[$k]['product_cate']=$material['name']."/Others";
                 }
+            }else{
+                $a=$cateArr[0];
+                $b=$cateArr[1];
+                $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
+                $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
             }
+            $info[$k]['product_cate_name']=$cateArr;
+        }
+        if($check==true){
             return $info;
         }
+        //获取品类名称
         foreach($info as $k => $v){
-            $info[$k]['product_cate']=explode(',',$v['product_cate']);
+            $info[$k]['product_cate_name']=explode('/',$v['product_cate']);
+            $info[$k]['product_cate']=$v['product_cate_name'];
         }
         return $info;
     }
