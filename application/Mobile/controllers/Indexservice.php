@@ -49,7 +49,8 @@ class IndexserviceController extends PublicController {
         $data['banners'] = $this->_getAds($country_bn, $lang, 'BANNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
         $data['popularity_recommendation'] = $this->_getPopularity_recommendation([], $lang, $country_bn, 4);
-//        $data['solution'] = $this->_getSolution($country_bn, $lang);
+        $data['solution'] = $this->_getAds($country_bn, $lang, 'SOLUTION', 1);
+
         $data['products'] = $this->_getProducts($country_bn, $lang);
 
         if ($data) {
@@ -65,13 +66,13 @@ class IndexserviceController extends PublicController {
         }
     }
 
-    private function _getAds($country_bn, $lang, $group = 'BANNER') {
+    private function _getAds($country_bn, $lang, $group = 'BANNER', $pagesize = null) {
         $jsondata = ['lang' => $lang];
         $jsondata['group'] = $group;
         $jsondata['show_type'] = 'M';
         $jsondata['country_bn'] = $country_bn;
         $home_country_ads_model = new HomeCountryAdsModel();
-        $list = $home_country_ads_model->getList($jsondata);
+        $list = $home_country_ads_model->getList($jsondata, $pagesize);
 
         return $list;
     }
@@ -134,17 +135,22 @@ class IndexserviceController extends PublicController {
         return $ret;
     }
 
-    /**
-     * Description of 获取人气推荐产品
-     * @author  zhongyg
-     * @date    2018-05-09 16:50:09
-     * @version V2.0
-     * @desc  M站首页
-     */
-//    private function _getSolutions($lang = 'en') {
-//        $solution_model = new SolutionModel();
+//    /**
+//     * Description of 获取人气推荐产品
+//     * @author  zhongyg
+//     * @date    2018-05-09 16:50:09
+//     * @version V2.0
+//     * @desc  M站首页
+//     */
+//    private function _getSolutions($country_bn, $lang = 'en') {
+//        $jsondata = ['lang' => $lang];
+//        $jsondata['group'] = 'SOLUTION';
+//        $jsondata['show_type'] = 'M';
+//        $jsondata['country_bn'] = $country_bn;
+//        $home_country_ads_model = new HomeCountryAdsModel();
+//        $list = $home_country_ads_model->getList($jsondata);
 //
-//        return $solution_model->GetList($lang);
+//        return $list;
 //    }
 
     /**

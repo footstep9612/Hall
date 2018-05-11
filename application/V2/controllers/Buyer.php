@@ -736,6 +736,10 @@ EOF;
         $arr['created_by'] = $created_by; //客户信息
         $arr['buyer_no'] = $real_num;   //客户编码
 
+        if (empty($data['agent'])) { //经办人
+            $data['agent']=$created_by;
+        }
+
         $id = $model->create_data($arr);    //添加客户信息ok
         if ($id) {
             $time=date('Y-m-d H:i:s');
