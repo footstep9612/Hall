@@ -561,6 +561,7 @@ class BuyerAgentModel extends PublicModel {
         $sql.=" on agent.agent_id=employee.id and employee.deleted_flag='N'";
 
         $sql.=" WHERE agent.buyer_id=$buyer_id";
+        $sql.=" order by agent.id";
 
 
 
