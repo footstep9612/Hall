@@ -180,6 +180,9 @@ class BuyerVisitModel extends PublicModel {
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
+        if($demadCond==false){
+            return false;
+        }
         //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
