@@ -1224,11 +1224,11 @@ EOF;
             'relatives_family' => null, //家庭亲戚相关信息
             )];
         }
-        $arr['contact'] = $contactInfo;
+//        $arr['contact'] = $contactInfo;
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'data' => $arr
+            'data' => $contactInfo
         );
         $this->jsonReturn($dataJson);
     }
