@@ -1171,32 +1171,32 @@ EOF;
 //            $buerInfo['report_attach'] = array();
 //        }
 //
-        $arr['base_info'] = $buerInfo;
+//        $arr['base_info'] = $buerInfo;
         //获取客户联系人
-        $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (empty($contactInfo)) {    //联系人为空
-            $contactInfo = [array(
-            'name' => null, //联系人姓名
-            'title' => null, //联系人职位
-            'role' => null, //角色
-            'phone' => null, //联系人电话
-            'email' => null, //联系人邮箱
-            'hobby' => null, //爱好
-            'address' => null, //详细地址
-            'experience' => null, //经历
-            'social_relations' => null, //社会关系
-            'key_concern' => null, //决策主要关注点
-            'attitude_kerui' => null, //对科瑞的态度
-            'social_habits' => null, //常去社交场所
-            'relatives_family' => null, //家庭亲戚相关信息
-            )];
-        }
-        $arr['contact'] = $contactInfo;
+//        $contact = new BuyercontactModel();
+//        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
+//        if (empty($contactInfo)) {    //联系人为空
+//            $contactInfo = [array(
+//            'name' => null, //联系人姓名
+//            'title' => null, //联系人职位
+//            'role' => null, //角色
+//            'phone' => null, //联系人电话
+//            'email' => null, //联系人邮箱
+//            'hobby' => null, //爱好
+//            'address' => null, //详细地址
+//            'experience' => null, //经历
+//            'social_relations' => null, //社会关系
+//            'key_concern' => null, //决策主要关注点
+//            'attitude_kerui' => null, //对科瑞的态度
+//            'social_habits' => null, //常去社交场所
+//            'relatives_family' => null, //家庭亲戚相关信息
+//            )];
+//        }
+//        $arr['contact'] = $contactInfo;
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'data' => $arr
+            'data' => $buerInfo
         );
         $this->jsonReturn($dataJson);
     }
