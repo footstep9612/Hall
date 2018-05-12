@@ -31,12 +31,17 @@ class BuyervisitController extends PublicController {
         $visit_model = new BuyerVisitModel();
         $data['admin']=$this->getUserRole();
         $data['created_by']=$this->user['id'];
-        $arr = $visit_model->getList($data);
-        if ($arr !== false) {
-            jsonReturn($arr);
+        $res = $visit_model->getList($data);
+        if($res===false){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '无市场区域国家负责人权限';
+            $dataJson['data'] = array('total'=>0,'result'=>[]);
         }else{
-            jsonReturn('', ErrorMsg::FAILED);
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '消息提醒';
+            $dataJson['data'] = $res;
         }
+        $this->jsonReturn($dataJson);
     }
 
     /**

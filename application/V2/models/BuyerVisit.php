@@ -53,12 +53,22 @@ class BuyerVisitModel extends PublicModel {
         $total=$total[0]['total'];
         //按条件获取拜访记录数据
         $result = $this->condGetVisitData($lang,$condition,$offset,$length);
-        $arr = [
-                 'current_no' => $current_no,
-                 'pagesize' => $length,
-                 'total' => $total,
-                 'result' => $result
-             ];
+        if(empty($result)){
+            $arr = [
+                'current_no' => 1,
+                'pagesize' => 0,
+                'total' => 0,
+                'result' => []
+            ];
+        }else{
+            $arr = [
+                'current_no' => $current_no,
+                'pagesize' => $length,
+                'total' => $total,
+                'result' => $result
+            ];
+        }
+
         return $arr;
     }
     //获取客户需求反馈的条件
