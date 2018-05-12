@@ -86,16 +86,16 @@ class BuyercontactController extends PublicController {
 
 
 
-    public function createAction() {
+    public function editContactAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
         if (empty($data['buyer_id'])) {
             jsonReturn('', -101, '采购商id不可以为空!');
         }
         $model = new BuyercontactModel();
-        $id = $model->create_data($data);
-        if ($id) {
+        $res = $model->createContact($data);
+        if ($res) {
             $datajson['code'] = 1;
-            $datajson['id'] = $id;
             $datajson['message'] = '成功';
         } else {
             $datajson['code'] = -104;
