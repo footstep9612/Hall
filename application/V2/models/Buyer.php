@@ -1798,6 +1798,13 @@ EOF;
         }
         return true;
     }
+    //联系人
+    public function editContact($data){
+        //编辑联系人必填
+        $attach = new BuyercontactModel();
+        $attach -> updateBuyerContact($data['contact'],$data['contact'][0]['buyer_id'],$data['created_by']);
+        return true;
+    }
 
     /**
      * 采购商客户管理，基本信息的创建
