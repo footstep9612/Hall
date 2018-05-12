@@ -2974,7 +2974,7 @@ EOF;
     public function getBuyerInfoByCond($cond,$lang){
         $cond.=" and country.lang='$lang'";
         $field='buyer.id,buyer.name as buyer_name,country.name as country_name,buyer.created_at,buyer.source,buyer.is_handle';
-        $field.=',buyer.is_handle,buyer.sent_at,mark_at,checked_at';
+        $field.=',buyer.is_handle,buyer.read_at,buyer.sent_at,mark_at';
         $info=$this->alias('buyer')
             ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
             ->field($field)
