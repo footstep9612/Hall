@@ -237,6 +237,12 @@ class BuyerController extends PublicController {
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        if($cond==false){
+            $datajson['code'] = 1;
+            $datajson['message'] = '无权限/无数据';
+            $datajson['data'] = array('total_count'=>0);
+            $this->jsonReturn($datajson);
+        }
         $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
         $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
         $arr=array(

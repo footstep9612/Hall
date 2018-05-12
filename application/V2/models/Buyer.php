@@ -214,7 +214,6 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
-
         if(empty($data['admin']['role'])){
             return false;
         }
