@@ -86,24 +86,7 @@ class BuyercontactController extends PublicController {
 
 
 
-    public function editContactAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $this->user['id'];
-        if (empty($data['buyer_id'])) {
-            jsonReturn('', -101, '采购商id不可以为空!');
-        }
-        $model = new BuyercontactModel();
-        $res = $model->createContact($data);
-        if ($res) {
-            $datajson['code'] = 1;
-            $datajson['message'] = '成功';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
-        }
-        $this->jsonReturn($datajson);
-    }
+
 
 
     public function updateAction() {
@@ -216,5 +199,47 @@ class BuyercontactController extends PublicController {
         );
         $this -> jsonReturn($dataJson);
     }
-
+    //新建/编辑客户联系人
+    public function editContactAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        if (empty($data['buyer_id'])) {
+            jsonReturn('', -101, '采购商id不可以为空!');
+        }
+        $model = new BuyercontactModel();
+        $res = $model->createContact($data);
+        if ($res) {
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    //删除联系人
+    public function delContactAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        if (empty($data['id'])) {
+            jsonReturn('', -101, 'id不可以为空!');
+        }
+        $model = new BuyercontactModel();
+        $save=array(
+            'deleted_flag'=>'Y',
+            'created_by'=>$data['created_by'],
+            'created_at'=>date('Y-m-d H:i:s')
+        );
+        $res = $model->where(array('id'=>$data['id']))->save($save);
+        if ($res) {
+            $datajson['code'] = 1;
+            $datajson['message'] = '成功';
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据操作失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
 }
