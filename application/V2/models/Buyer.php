@@ -1802,7 +1802,7 @@ EOF;
     public function editContact($data){
         //编辑联系人必填
         $attach = new BuyercontactModel();
-        $attach -> updateBuyerContact($data['contact'],$data['contact'][0]['buyer_id'],$data['created_by']);
+        $attach -> updateBuyerContact($data['contact'],$data['buyer_id'],$data['created_by']);
         return true;
     }
 
