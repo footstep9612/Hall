@@ -1171,7 +1171,7 @@ EOF;
 //            $buerInfo['report_attach'] = array();
 //        }
 //
-//        $arr['base_info'] = $buerInfo;
+        $arr['base_info'] = $buerInfo;
         //获取客户联系人
 //        $contact = new BuyercontactModel();
 //        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
@@ -1196,7 +1196,7 @@ EOF;
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'data' => $buerInfo
+            'data' => $arr
         );
         $this->jsonReturn($dataJson);
     }
