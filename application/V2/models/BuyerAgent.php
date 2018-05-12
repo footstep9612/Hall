@@ -544,18 +544,35 @@ class BuyerAgentModel extends PublicModel {
 //                    ->field('agent.created_by,employee.name as created_name,agent.created_at')
 //                    ->where(array('buyer_id'=>$buyer_id))
 //                    ->select();
+//        $sql="SELECT agent.agent_id,";
+//        $sql.=" (select `name` from erui_sys.employee where id =agent.agent_id) as agent_name,";
+//        $sql.=" (select `name` from erui_sys.employee where id =agent.created_by) as created_name,";
+//        $sql.=" created_by,created_at,deleted_flag";
+//        $sql.=" FROM erui_buyer.buyer_agent agent";
+//        $sql.=" WHERE buyer_id=$buyer_id";
         $sql="SELECT agent.agent_id,";
-        $sql.=" (select `name` from erui_sys.employee where id =agent.agent_id) as agent_name,";
+        $sql.=" employee.user_no as user_no,";
+        $sql.=" employee.name as agent_name,";
+        $sql.=" employee.email as agent_email,employee.mobile as agent_emobile,";
         $sql.=" (select `name` from erui_sys.employee where id =agent.created_by) as created_name,";
-        $sql.=" created_by,created_at,deleted_flag";
+        $sql.=" agent.created_by,agent.created_at,agent.deleted_flag";
         $sql.=" FROM erui_buyer.buyer_agent agent";
-        $sql.=" WHERE buyer_id=$buyer_id";
+        $sql.=" left join  erui_sys.employee employee";
+        $sql.=" on agent.agent_id=employee.id and employee.deleted_flag='N'";
+
+        $sql.=" WHERE agent.buyer_id=$buyer_id";
+
+
+
         $info=$this->query($sql);
         $agentArr=[];
         foreach($info as $k => $v){
             if($v['deleted_flag']=='N'){
+                $agentArr[$k]['user_no']=$v['user_no'];
                 $agentArr[$k]['name']=$v['agent_name'];
                 $agentArr[$k]['id']=$v['agent_id'];
+                $agentArr[$k]['agent_email']=$v['agent_email'];
+                $agentArr[$k]['agent_emobile']=$v['agent_emobile'];
             }
         }
         $agent_info=array_merge($agentArr,[]);
