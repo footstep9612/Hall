@@ -1729,66 +1729,66 @@ EOF;
             'employee_count'=>L('employee_count')
         );
         //联系人【contact】
-        $contactArr = array(    //创建客户信息联系人必须数据
-            'name'=>L('contact_name'),  //联系人姓名
-            'title'=>L('contact_title'),    //联系人职位
-            'phone'=>L('contact_phone'),    //联系人电话
-        );
-        $contactExtra = array(  //创建客户信息联系人可选数据
-            'role'=>'购买角色',
-            'email'=>L('contact_email'),    //联系人邮箱
-            'hobby'=>'喜好',
-            'address'=>'详细地址',
-            'experience'=>'工作经历',
-            'social_relations'=>'社会关系',
-
-            'key_concern'=>'决策主要关注点',
-            'attitude'=>'对科瑞的态度',
-            'social_place'=>'常去社交场所',
-            'relatives_family'=>'家庭亲戚相关信息',
-        );
-        $contactEmail=array();  //crm
-        foreach($contact as $value){
-            foreach($contactArr as $k => $v){
-                if(empty($value[$k]) || strlen($value[$k]) > 50){
-                    return $v.L('not empty');
-                }
-//                if(!empty($value['phone'])){
-//                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
-//                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
-//                    }
+//        $contactArr = array(    //创建客户信息联系人必须数据
+//            'name'=>L('contact_name'),  //联系人姓名
+//            'title'=>L('contact_title'),    //联系人职位
+//            'phone'=>L('contact_phone'),    //联系人电话
+//        );
+//        $contactExtra = array(  //创建客户信息联系人可选数据
+//            'role'=>'购买角色',
+//            'email'=>L('contact_email'),    //联系人邮箱
+//            'hobby'=>'喜好',
+//            'address'=>'详细地址',
+//            'experience'=>'工作经历',
+//            'social_relations'=>'社会关系',
+//
+//            'key_concern'=>'决策主要关注点',
+//            'attitude'=>'对科瑞的态度',
+//            'social_place'=>'常去社交场所',
+//            'relatives_family'=>'家庭亲戚相关信息',
+//        );
+//        $contactEmail=array();  //crm
+//        foreach($contact as $value){
+//            foreach($contactArr as $k => $v){
+//                if(empty($value[$k]) || strlen($value[$k]) > 50){
+//                    return $v.L('not empty');
 //                }
-            }
-            if(!empty($value['email'])){
-                $value['email']=trim($value['email'],' ');
-                if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
-                    return $contactExtra['email'].L('format_error');
-                }else{
-                    $buyerContact=new BuyercontactModel();
-                    if(empty($value['id'])){
-                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
-                        if($email){
-                            return $contactExtra['email'].L('already existed');
-                        }
-                    }else{
-                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
-                        if($value['email']!=$email['email']){  //修改邮箱
-                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
-                            if($exist){
-                                return $contactExtra['email'].L('already existed');
-                            }
-                        }
-                    }
-
-                }
-                $contactEmail[]=$value['email'];
-            }
-            $emailTotal=count($contactEmail);   //联系人邮箱总数
-            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
-            if($emailTotal!=$validTotal){
-                return $contactExtra['email'].L('repeat');
-            }
-        }
+////                if(!empty($value['phone'])){
+////                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+////                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
+////                    }
+////                }
+//            }
+//            if(!empty($value['email'])){
+//                $value['email']=trim($value['email'],' ');
+//                if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
+//                    return $contactExtra['email'].L('format_error');
+//                }else{
+//                    $buyerContact=new BuyercontactModel();
+//                    if(empty($value['id'])){
+//                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                        if($email){
+//                            return $contactExtra['email'].L('already existed');
+//                        }
+//                    }else{
+//                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
+//                        if($value['email']!=$email['email']){  //修改邮箱
+//                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                            if($exist){
+//                                return $contactExtra['email'].L('already existed');
+//                            }
+//                        }
+//                    }
+//
+//                }
+//                $contactEmail[]=$value['email'];
+//            }
+//            $emailTotal=count($contactEmail);   //联系人邮箱总数
+//            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
+//            if($emailTotal!=$validTotal){
+//                return $contactExtra['email'].L('repeat');
+//            }
+//        }
         if(!empty($base['employee_count'])){
             if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
                 return true;
@@ -1821,8 +1821,8 @@ EOF;
         //公司人员组织架构
         $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
         //编辑联系人必填
-        $attach = new BuyercontactModel();
-        $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+//        $attach = new BuyercontactModel();
+//        $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
         return true;
     }
     /**
