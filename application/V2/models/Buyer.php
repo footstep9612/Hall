@@ -1804,9 +1804,6 @@ EOF;
      * wangs
      */
     public function createBuyerBaseInfo($data){
-        if(empty($data['base_info']) || empty($data['contact'])){
-            return false;
-        }
         //验证数据
         $info = $this->validBuyerBaseData($data);
         if($info !== true){
