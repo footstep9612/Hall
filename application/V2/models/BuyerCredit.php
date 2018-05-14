@@ -106,10 +106,10 @@ class BuyerCreditModel extends PublicModel
            // $sql_count .= $where;
         }
         $sql .= ' Order By ' . $order;
+        $res['count'] = count($this->query($sql));
         if (!empty($limit['num'])) {
             $sql .= ' LIMIT ' . $limit['page'] . ',' . $limit['num'];
         }
-        $res['count'] = count($this->query($sql));
         $res['data'] = $this->query($sql);
         return $res;
     }
