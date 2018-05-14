@@ -33,8 +33,8 @@ class ShoppingCarModel extends PublicModel {
                 $skus = [];
                 $spus = [];
                 foreach ($result as $index => $item) {
-                    $skus[] = $item['sku'];
-                    $spus[] = $item['spu'];
+                    $skus[] = strval($item['sku']);
+                    $spus[] = strval($item['spu']);
                     $result[$item['sku']] = $item;
                     unset($result[$index]);
                 }
