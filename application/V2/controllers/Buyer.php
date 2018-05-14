@@ -235,6 +235,7 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $created_by;
+        $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
         $model = new BuyerModel();
         $cond = $model->getBuyerStatisListCond($data);  //获取条件
         if($cond==false){
@@ -244,11 +245,17 @@ class BuyerController extends PublicController {
             $this->jsonReturn($datajson);
         }
         $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
-        $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
-        $arr=array(
-            "total_count"=>$totalCount,
-            "level_count"=>$levelCount
-        );
+        if($total_flag===true){
+            $arr=array(
+                "total_count"=>$totalCount
+            );
+        }else{
+            $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
+            $arr=array(
+                "total_count"=>$totalCount,
+                "level_count"=>$levelCount
+            );
+        }
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
