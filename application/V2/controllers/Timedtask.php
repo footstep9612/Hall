@@ -30,7 +30,7 @@ class TimedtaskController extends PublicController {
     public function updateSupplierQualificationStatusAction() {
         $supplierIds = $this->supplierQualificationModel->getOverdueSupplierIds();
         try {
-            $supplierIds && $this->suppliersModel->updateInfo(['id' => ['in', $supplierIds]], ['updated_by' => null, 'updated_at' => $this->time, 'status' => 'OVERDUE']);
+            $supplierIds && $this->suppliersModel->updateInfo(['id' => ['in', $supplierIds]], ['updated_by' => null, 'updated_at' => $this->time, 'status' => 'OVERDUE', 'expire_status' => 'Y']);
             $this->jsonReturn(true);
         } catch (Exception $e) {
             $this->jsonReturn(false);
