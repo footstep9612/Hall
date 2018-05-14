@@ -109,6 +109,18 @@ class VisitProductModel extends PublicModel {
                 $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
             }
             $info[$k]['product_cate_name']=$cateArr;
+            if(empty($info[$k]['product_desc'])){
+                $info[$k]['product_desc']='';
+            }
+            if(empty($info[$k]['purchase_amount'])){
+                $info[$k]['purchase_amount']='';
+            }
+            if(empty($info[$k]['supplier'])){
+                $info[$k]['supplier']='';
+            }
+            if(empty($info[$k]['remark'])){
+                $info[$k]['remark']='';
+            }
         }
         if($check==true){
             return $info;
