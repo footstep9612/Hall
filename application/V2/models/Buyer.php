@@ -3004,7 +3004,7 @@ EOF;
     //消息提醒-wangs
     public function MessageRemind($data){
         $access=$this->countryAccess($data['admin']);
-        $total_flag=isset($data['total_flag'])?$data['total_flag']:true;
+        $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
         if($access !== 1){   //无国家权限
             return false;
         }
@@ -3035,7 +3035,7 @@ EOF;
         if($access !== 1){   //无国家权限
             return false;
         }
-        $total_flag=isset($data['total_flag'])?$data['total_flag']:true;
+        $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
         //所负责的国家
         $countryStr=$data['admin']['country'];
         $cond="buyer.is_handle=1 and buyer.status='APPROVED'";
