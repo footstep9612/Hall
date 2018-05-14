@@ -8,6 +8,96 @@ class BuyerBusinessModel extends PublicModel
     {
         parent::__construct();
     }
+    public function editBusiness($data){
+        $optArr = array(
+            'product_type',    //产品类型-------业务基础信息
+            'Product_service_preference',    //产品服务偏好
+            'Origin_preference',    //原产地偏好
+            'Brand_preference',    //品牌偏好
+            'purchasing_model',    //采购模式
+            'purchasing_cycle',    //采购周期
+            'cycle_remarks',    //采购周期写入时间
+            'usage',  //使用情况
+            'is_warehouse',  //是否有仓库
+            'warehouse_address', //仓库地址
+        );
+        foreach($optArr as $v){
+            if(!empty($data[$v])){
+                $arr[$v] = $data[$v];
+            }else{
+                $arr[$v]=null;
+            }
+        }
+        $arr['buyer_id'] = $data['buyer_id'];
+        $arr['created_by'] = $data['created_by'];
+        $arr['created_at'] = date('Y-m-d H:i:s');
+        if(empty($data['id'])){ //新建
+            $this ->add($arr);
+        }else{
+            $this->where(array('id'=>$data['id']))->save($arr);
+        }
+        return true;
+    }
+    public function showBusiness($data){
+        $optArr = array(
+            'id',    //产品类型-------业务基础信息
+            'buyer_id',    //产品类型-------业务基础信息
+            'product_type',    //产品类型-------业务基础信息
+            'Product_service_preference',    //产品服务偏好
+            'Origin_preference',    //原产地偏好
+            'Brand_preference',    //品牌偏好
+            'purchasing_model',    //采购模式
+            'purchasing_cycle',    //采购周期
+            'cycle_remarks',    //采购周期写入时间
+            'usage',  //使用情况
+            'is_warehouse',  //是否有仓库
+            'warehouse_address' //仓库地址
+        );
+        $fieldStr=implode(',',$optArr);
+        $info=$this->field($fieldStr)->where(array('buyer_id'=>$data['buyer_id']))->find();
+        if(empty($info)){
+            $info=[];
+            foreach($optArr as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    //新建/编辑结算信息
+    public function editSettlement($data){
+        $arr=array(
+            'trade_terms'=>isset($data['trade_terms'])?$data['trade_terms']:null, //贸易术语
+            'settlement'=>isset($data['settlement'])?$data['settlement']:null, //结算方式
+            'is_local_settlement'=>isset($data['is_local_settlement'])?$data['is_local_settlement']:null, //是否本地结算
+            'is_purchasing_relationship'=>isset($data['is_purchasing_relationship'])?$data['is_purchasing_relationship']:null //是否与KERUI/ERUI有关系
+        );
+        if(empty($data['buyer_id'])){
+            $this->add($arr);
+        }else{
+            $this->where(array('buyer_id'=>$data['buyer_id']))->save($arr);
+        }
+        return true;
+    }
+    public function showSettlement($data){
+        $fieldArr=array(
+            'trade_terms', //贸易术语
+            'settlement', //结算方式
+            'is_local_settlement', //是否本地结算
+            'is_purchasing_relationship' //是否与KERUI/ERUI有关系
+        );
+        $fieldStr=implode(',',$fieldArr);
+        $info=$this->field($fieldStr)->where(array('buyer_id'=>$data['buyer_id']))->find();
+        if(empty($info)){
+            $info=array(
+                'trade_terms'=>null, //贸易术语
+                'settlement'=>null, //结算方式
+                'is_local_settlement'=>null, //是否本地结算
+                'is_purchasing_relationship'=>null //是否与KERUI/ERUI有关系
+            );
+        }
+        return $info;
+    }
+
     //业务信息详情
     public function businessList($data){
         $lang=isset($data['lang'])?$data['lang']:'zh';
@@ -238,7 +328,7 @@ class BuyerBusinessModel extends PublicModel
         return $this -> where($map) -> delete();
     }
     //查询业务信息
-    public function showBusiness($buyer_id,$created_by){
+    public function showBusiness1($buyer_id,$created_by){
         $map = array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by

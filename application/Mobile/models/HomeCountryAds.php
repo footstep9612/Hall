@@ -53,14 +53,15 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getList($condition, $pagesize = null) {
+    public function getList($condition, $pagesize = null, $current_no = 1) {
         $where = $this->_getCondition($condition);
 
         if (intval($pagesize)) {
+            $offset = ($current_no - 1) > 0 ? $current_no * $pagesize : 0;
             return $this->field('img_name,img_url,group,link')
                             ->where($where)
                             ->order('sort_order desc')
-                            ->limit('0,' . intval($pagesize))
+                            ->limit($offset . ',' . intval($pagesize))
                             ->select();
         } else {
             return $this->field('img_name,img_url,group,link')
@@ -68,6 +69,20 @@ class HomeCountryAdsModel extends PublicModel {
                             ->order('sort_order desc')
                             ->select();
         }
+    }
+
+    /**
+     * Description of 获取现货国家列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货国家
+     */
+    public function getCount($condition) {
+        $where = $this->_getCondition($condition);
+
+
+        return $this->where($where)->count('id');
     }
 
 }
