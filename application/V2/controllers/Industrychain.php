@@ -115,4 +115,29 @@ class IndustrychainController extends PublicController {
         );
         $this -> jsonReturn($valid);
     }
+    //上下游获取添加数据
+    public function delChainAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }else{
+            $model = new IndustrychainModel();
+            $save=array(
+                'created_by'=>$created_by,
+                'created_at'=>date('Y-m-d H:i:s'),
+                'deleted_flag'=>'Y'
+            );
+            $res=$model->where(array('id'=>$data['id']))->save($save);
+            if($res==1){
+                $dataJson['code'] = 1;
+                $dataJson['message'] = '成功';
+            }else{
+                $dataJson['code'] = 0;
+                $dataJson['message'] = '参数错误';
+            }
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }

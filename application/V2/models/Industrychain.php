@@ -19,6 +19,7 @@ class IndustrychainModel extends PublicModel
             $fieldArr=array(
 //                'industry_group'=>'up', //上游
                 'id', //上游客户名称
+                'buyer_id', //上游客户名称
                 'name', //上游客户名称
                 'cooperation', //客户合作情况
                 'business_type', //业务的类型
@@ -34,6 +35,7 @@ class IndustrychainModel extends PublicModel
             $fieldArr=array(
 //                'industry_group'=>'down', //下游
                 'id', //客户名称
+                'buyer_id', //客户名称
                 'name', //客户名称
                 'cooperation', //客户合作情况
                 'goods', //客户类型
@@ -48,6 +50,7 @@ class IndustrychainModel extends PublicModel
             $fieldArr=array(
 //                'industry_group'=>'competitor', //供应商信息
                 'id', //结算方式
+                'buyer_id', //结算方式
                 'competitor_name', //结算方式
                 'competitor_area', //质保条款
                 'company_compare', //供应商与客户关系如何
