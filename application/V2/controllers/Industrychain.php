@@ -116,6 +116,21 @@ class IndustrychainController extends PublicController {
         $this -> jsonReturn($valid);
     }
     //上下游获取添加数据
+    public function showChainAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }else{
+            $model = new IndustrychainModel();
+            $res = $model->shwoChain($data);
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '查看产业链信息';
+            $dataJson['data'] = $res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //上下游获取添加数据
     public function delChainAction(){
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);

@@ -73,6 +73,60 @@ class IndustrychainModel extends PublicModel
         return $info;
 
     }
+    public function shwoChain($data){
+        if($data['type']=='up'){
+            $fieldArr=array(
+//                'industry_group'=>'up', //上游
+                'id', //上游客户名称
+                'buyer_id', //上游客户名称
+                'name', //上游客户名称
+                'cooperation', //客户合作情况
+                'business_type', //业务的类型
+                'scale', //客户的规模
+                'settlement', //结算方式
+                'marketing_network', //营销网络
+//                    'buyer_type_name'=>null, //客户类型
+                'buyer_project', //客户参与的项目
+                'buyer_problem', //客户遇到的困难
+                'solve_problem' //如何解决困难
+            );
+        }elseif($data['type']=='down'){
+            $fieldArr=array(
+//                'industry_group'=>'down', //下游
+                'id', //客户名称
+                'buyer_id', //客户名称
+                'name', //客户名称
+                'cooperation', //客户合作情况
+                'goods', //客户类型
+                'profile', //供应商信息
+                'settlement', //结算方式
+                'warranty_terms', //质保条款
+                'relationship', //供应商与客户关系如何
+                'analyse', //与KERUI/ERUI的对标分析
+                'dynamic' //供应商动态
+            );
+        }elseif($data['type']=='competitor'){
+            $fieldArr=array(
+//                'industry_group'=>'competitor', //供应商信息
+                'id', //结算方式
+                'buyer_id', //结算方式
+                'competitor_name', //结算方式
+                'competitor_area', //质保条款
+                'company_compare', //供应商与客户关系如何
+                'what_plan' //与KERUI/ERUI的对标分析
+            );
+        }
+        $fieldStr=implode(',',$fieldArr);
+        $info=$this->field($fieldStr)->where(array('id'=>$data['id']))->find();
+        if(empty($info)){
+            $info=array();
+            foreach($fieldArr as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+
+    }
     public function editChain($data){
         $data['created_at']=date('Y-m-d H:i:s');
         if(!empty($data['id'])){
