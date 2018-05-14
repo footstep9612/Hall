@@ -81,8 +81,12 @@ class HomecountryController extends PublicController {
             $this->setMessage('请选择国家!');
             $this->jsonReturn();
         }
+
+
+        $pagesize = !empty($condition['pagesize']) ? intval($condition['pagesize']) : null;
         $home_country_ads_model = new HomeCountryAdsModel();
-        $list = $home_country_ads_model->getList($condition);
+        $list = $home_country_ads_model->getList($condition, $pagesize);
+
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === null) {

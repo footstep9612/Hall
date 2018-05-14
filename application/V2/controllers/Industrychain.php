@@ -88,4 +88,71 @@ class IndustrychainController extends PublicController {
         $dataJson['data'] = $res;
         $this -> jsonReturn($dataJson);
     }
+    public function industryChainListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new IndustrychainModel();
+        $res = $model->industryChainList($data);
+        if($res==false){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }else{
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '产业链数据';
+            $dataJson['data'] = $res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //上下游获取添加数据
+    public function editChainAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new IndustrychainModel();
+        $res = $model->editChain($data);
+        $valid = array(
+            'code'=>1,
+            'message'=>'成功'
+        );
+        $this -> jsonReturn($valid);
+    }
+    //上下游获取添加数据
+    public function showChainAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }else{
+            $model = new IndustrychainModel();
+            $res = $model->shwoChain($data);
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '查看产业链信息';
+            $dataJson['data'] = $res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //上下游获取添加数据
+    public function delChainAction(){
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }else{
+            $model = new IndustrychainModel();
+            $save=array(
+                'created_by'=>$created_by,
+                'created_at'=>date('Y-m-d H:i:s'),
+                'deleted_flag'=>'Y'
+            );
+            $res=$model->where(array('id'=>$data['id']))->save($save);
+            if($res==1){
+                $dataJson['code'] = 1;
+                $dataJson['message'] = '成功';
+            }else{
+                $dataJson['code'] = 0;
+                $dataJson['message'] = '参数错误';
+            }
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }

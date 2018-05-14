@@ -53,7 +53,7 @@ class BuyerCreditModel extends PublicModel
         }else{
             $dataInfo['status'] = 'DRAFT';
         }
-        $dataInfo['credit_apply_date'] = date('Y-m-d',time());
+        $dataInfo['credit_apply_date'] = date('Y-m-d H:i:s',time());
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;
@@ -95,6 +95,9 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
+        }
+        if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
+            $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
         $agent_model = new BuyerAgentModel();
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();

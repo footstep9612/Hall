@@ -30,6 +30,7 @@ class BuyerVisitModel extends PublicModel {
     public function getList($data = []){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $condition = $this->getVisitOfCond($data);
+        $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
         if($condition === false){
             return false;   //该条件下客户信息为空数据返回空
         }
@@ -51,14 +52,28 @@ class BuyerVisitModel extends PublicModel {
         $total_sql.=$condition;
         $total=$this->query($total_sql);
         $total=$total[0]['total'];
+        if($total_flag===true){
+            $arr=array('total'=>$total);
+            return $arr;
+        }
         //按条件获取拜访记录数据
         $result = $this->condGetVisitData($lang,$condition,$offset,$length);
-        $arr = [
-                 'current_no' => $current_no,
-                 'pagesize' => $length,
-                 'total' => $total,
-                 'result' => $result
-             ];
+        if(empty($result)){
+            $arr = [
+                'current_no' => 1,
+                'pagesize' => 0,
+                'total' => 0,
+                'result' => []
+            ];
+        }else{
+            $arr = [
+                'current_no' => $current_no,
+                'pagesize' => $length,
+                'total' => $total,
+                'result' => $result
+            ];
+        }
+
         return $arr;
     }
     //获取客户需求反馈的条件
@@ -168,8 +183,12 @@ class BuyerVisitModel extends PublicModel {
 //        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
         $length = 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
+        $total_flag=isset($_input['total_flag'])?$_input['total_flag']:false;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
+        if($demadCond==false){
+            return false;
+        }
         //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
@@ -181,6 +200,10 @@ class BuyerVisitModel extends PublicModel {
         $total_sql.=$demadCond;
         $total=$this->query($total_sql);
         $total=$total[0]['total'];
+        if($total_flag===true){
+            $arr=array('total'=>$total);
+            return $arr;
+        }
         //数据信息
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code,country.name as country_name,visit.id as visit_id,reply.created_at as reply_at, ';

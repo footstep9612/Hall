@@ -114,9 +114,10 @@ class SuppliersModel extends PublicModel {
         if (isset($condition['supplier_ids'])) {
             $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
         }
-        
-        if (isset($condition['qualification_status'])) {
-            $where['a.status'] = $condition['qualification_status'];
+
+        //资质过期状态
+        if (isset($condition['expire_status'])) {
+            $where['a.expire_status'] = $condition['expire_status'];
         }
 
         return $where;
@@ -135,10 +136,11 @@ class SuppliersModel extends PublicModel {
         $where = $this->getJoinWhere($condition);
 
         if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
-            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <=30';
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <=30 and a.status not in("DRAFT")';
             $count = $this->alias('a')->join($this->joinTable1, 'LEFT')->join($this->joinTable5, 'LEFT')->join($this->joinTable4, 'LEFT')->where($where)->where('')->count('a.id');
             return $count > 0 ? $count : 0;
         }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >=30 and a.status not in("DRAFT")';
             $count = $this->alias('a')->join($this->joinTable1, 'LEFT')->join($this->joinTable5, 'LEFT')->join($this->joinTable4, 'LEFT')->where($where)->where('')->count('a.id');
             return $count > 0 ? $count : 0;
         }
@@ -177,7 +179,7 @@ class SuppliersModel extends PublicModel {
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
-            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30';
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30 and a.status not in("DRAFT")';
             return $this->alias('a')
                 ->join($this->joinTable1, 'LEFT')
                 ->join($this->joinTable5, 'LEFT')
@@ -189,7 +191,7 @@ class SuppliersModel extends PublicModel {
                 ->order('a.id DESC')
                 ->select();
         }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
-            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30';
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30 and a.status not in("DRAFT")';
             return $this->alias('a')
                 ->join($this->joinTable1, 'LEFT')
                 ->join($this->joinTable5, 'LEFT')
@@ -257,15 +259,9 @@ class SuppliersModel extends PublicModel {
     public function getJoinListForExport($condition = []) {
 
         $where = $this->getJoinWhere($condition);
-        //p($where);
-        //unset($where['a.status']);
-
-
-        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        //$pageSize = empty($condition['pageSize']) ? 500 : $condition['pageSize'];
 
         if (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='Y') {
-            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30';
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) <= 30 and a.status not in("DRAFT")';
             return $this->alias('a')
                 ->join($this->joinTable1, 'LEFT')
                 ->join($this->joinTable5, 'LEFT')
@@ -276,7 +272,7 @@ class SuppliersModel extends PublicModel {
                 ->order('a.id DESC')
                 ->select();
         }elseif (isset($condition['sign_agreement_end']) && $condition['sign_agreement_end']=='N') {
-            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30';
+            $this->joinTable4 = 'erui_supplier.supplier_extra_info e ON a.id = e.supplier_id where to_days(sign_agreement_end_time)-to_days(now()) >= 30  and a.status not in("DRAFT")';
             return $this->alias('a')
                 ->join($this->joinTable1, 'LEFT')
                 ->join($this->joinTable5, 'LEFT')

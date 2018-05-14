@@ -195,10 +195,10 @@ class BuyerController extends PublicController {
      * wangs-buyerListAction- wangs
      */
     public function buyerListAction() {
-        $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['admin']=$this->getUserRole();   //=1市场专员
-        $data['created_by'] = $created_by;
+        $data['created_by'] = $this->user['id'];;
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
         $dataJson = array(
@@ -235,14 +235,27 @@ class BuyerController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $created_by;
+        $total_flag=isset($data['total_flag'])?$data['total_flag']:false;
         $model = new BuyerModel();
         $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        if($cond==false){
+            $datajson['code'] = 1;
+            $datajson['message'] = '无权限/无数据';
+            $datajson['data'] = array('total_count'=>0);
+            $this->jsonReturn($datajson);
+        }
         $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
-        $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
-        $arr=array(
-            "total_count"=>$totalCount,
-            "level_count"=>$levelCount
-        );
+        if($total_flag===true){
+            $arr=array(
+                "total_count"=>$totalCount
+            );
+        }else{
+            $levelCount=$model->crmGetBuyerLevelCount($cond);    //获取各个等级的总数
+            $arr=array(
+                "total_count"=>$totalCount,
+                "level_count"=>$levelCount
+            );
+        }
         if ($arr) {
             $datajson['code'] = 1;
             $datajson['data'] = $arr;
@@ -736,6 +749,10 @@ EOF;
         $arr['created_by'] = $created_by; //客户信息
         $arr['buyer_no'] = $real_num;   //客户编码
 
+        if (empty($data['agent'])) { //经办人
+            $data['agent']=$created_by;
+        }
+
         $id = $model->create_data($arr);    //添加客户信息ok
         if ($id) {
             $time=date('Y-m-d H:i:s');
@@ -854,7 +871,7 @@ EOF;
         $agent = new BuyerAgentModel();
         $res=$agent->crmUpdateAgent($data);
         $buyer=new BuyerModel();
-        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED','checked_by'=>$created_by,'checked_at'=>$time));
+        $buyer->where(array('id'=>$data['id']))->save(array('status'=>'APPROVED','checked_by'=>$created_by,'checked_at'=>$time,'is_handle'=>1));
         $account=new BuyerAccountModel();
         $account->where(array('buyer_id'=>$data['id']))->save(array('status'=>'VALID'));
         if($res){
@@ -1106,7 +1123,8 @@ EOF;
         }
         $valid = array(
             'code' => 1,
-            'message' => L('success')
+            'message' => L('success'),
+            'buyer_id'=>$data['base_info']['buyer_id']
         );
         $this->jsonReturn($valid);
     }
@@ -1169,6 +1187,111 @@ EOF;
 //
         $arr['base_info'] = $buerInfo;
         //获取客户联系人
+//        $contact = new BuyercontactModel();
+//        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
+//        if (empty($contactInfo)) {    //联系人为空
+//            $contactInfo = [array(
+//            'name' => null, //联系人姓名
+//            'title' => null, //联系人职位
+//            'role' => null, //角色
+//            'phone' => null, //联系人电话
+//            'email' => null, //联系人邮箱
+//            'hobby' => null, //爱好
+//            'address' => null, //详细地址
+//            'experience' => null, //经历
+//            'social_relations' => null, //社会关系
+//            'key_concern' => null, //决策主要关注点
+//            'attitude_kerui' => null, //对科瑞的态度
+//            'social_habits' => null, //常去社交场所
+//            'relatives_family' => null, //家庭亲戚相关信息
+//            )];
+//        }
+//        $arr['contact'] = $contactInfo;
+        $dataJson = array(
+            'code' => 1,
+            'message' => '返回数据',
+            'data' => $arr
+        );
+        $this->jsonReturn($dataJson);
+    }
+    public function editContactAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+//        $data['lang'] = $this->getLang();
+        $buyer = new BuyerModel();
+        $res=$buyer->editContact($data);
+        if($res){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = L('success');
+        }else{
+            $dataJson['code'] = 1;
+            $dataJson['message'] = L('error');
+        }
+        $this->jsonReturn($dataJson);
+//        if (empty($contactInfo)) {    //联系人为空
+//            $contactInfo = [array(
+//                'name' => null, //联系人姓名
+//                'title' => null, //联系人职位
+//                'role' => null, //角色
+//                'phone' => null, //联系人电话
+//                'email' => null, //联系人邮箱
+//                'hobby' => null, //爱好
+//                'address' => null, //详细地址
+//                'experience' => null, //经历
+//                'social_relations' => null, //社会关系
+//                'key_concern' => null, //决策主要关注点
+//                'attitude_kerui' => null, //对科瑞的态度
+//                'social_habits' => null, //常去社交场所
+//                'relatives_family' => null, //家庭亲戚相关信息
+//            )];
+//        }
+    }
+    public function showContactAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson = array(
+                'code' => 0,
+                'message' => '参数错误'
+            );
+        }else{
+            $contact = new BuyercontactModel();
+            $cond=array(
+                'id'=>$data['id'],
+                'deleted_flag'=>'N'
+            );
+            $field='id,name,title,role,phone,email,hobby,address,experience,social_relations,key_concern,attitude_kerui,social_habits,relatives_family';
+            $info = $contact->field($field)->where($cond)->find();
+            if(empty($info)){
+                $info = [
+                    'id' => '', //联系人姓名ID
+                    'name' => '', //联系人姓名
+                    'title' => '', //联系人职位
+                    'role' => '', //角色
+                    'phone' => '', //联系人电话
+                    'email' => '', //联系人邮箱
+                    'hobby' => '', //爱好
+                    'address' => '', //详细地址
+                    'experience' => '', //经历
+                    'social_relations' => '', //社会关系
+                    'key_concern' => '', //决策主要关注点
+                    'attitude_kerui' => '', //对科瑞的态度
+                    'social_habits' => '', //常去社交场所
+                    'relatives_family' => '', //家庭亲戚相关信息
+                ];
+            }
+            $dataJson = array(
+                'code' => 1,
+                'message' => '查看联系人数据',
+                'data' => $info
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //获取客户联系人
+    public function showContactsListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $data['lang'] = $this->getLang();
         $contact = new BuyercontactModel();
         $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
         if (empty($contactInfo)) {    //联系人为空
@@ -1188,15 +1311,14 @@ EOF;
             'relatives_family' => null, //家庭亲戚相关信息
             )];
         }
-        $arr['contact'] = $contactInfo;
+//        $arr['contact'] = $contactInfo;
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'data' => $arr
+            'data' => $contactInfo
         );
         $this->jsonReturn($dataJson);
     }
-
     /**
      * 客户管理-附件下载
      * wangs

@@ -57,6 +57,7 @@ class VisitProductModel extends PublicModel {
             if(!empty($value['id'])){
                 $updateId[]=$value['id'];
                 unset($value['deleted_flag']);
+                unset($value['product_cate_name']);
                 unset($value['visit_id']);
                 if(!empty($value['product_cate'])){
                     $value['product_cate']=implode(',',$value['product_cate']);
@@ -84,29 +85,50 @@ class VisitProductModel extends PublicModel {
             'deleted_flag'=>'N',
         );
         $info=$this->field($field)->where($cond)->select();
-        if($check==true){
-            foreach($info as $k => $v){
+        foreach($info as $k => $v){
+            if(!empty($v['product_cate'])){
                 $cateArr=explode(',',$v['product_cate']);
-                if(in_array(0,$cateArr)){
-                    $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
-                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
-                    if($lang=='zh'){
-                        $info[$k]['product_cate']=$material['name']."/其他";
-                    }else{
-                        $info[$k]['product_cate']=$material['name']."/Others";
-                    }
-                }else{
-                    $a=$cateArr[0];
-                    $b=$cateArr[1];
-                    $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
-                    $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
-                    $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
-                }
+            }else{
+                $cateArr=[];
             }
+            if(empty($cateArr)){
+                $info[$k]['product_cate']='';
+            }elseif(in_array(0,$cateArr)){
+                $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
+                if($lang=='zh'){
+                    $info[$k]['product_cate']=$material['name']."/其他";
+                }else{
+                    $info[$k]['product_cate']=$material['name']."/Others";
+                }
+            }else{
+                $a=$cateArr[0];
+                $b=$cateArr[1];
+                $cond="(cat_no='$a' or cat_no='$b') and lang='$lang'";
+                $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->select();
+                $info[$k]['product_cate']=$material[0]['name'].'/'.$material[1]['name'];
+            }
+            $info[$k]['product_cate_name']=$cateArr;
+            if(empty($info[$k]['product_desc'])){
+                $info[$k]['product_desc']='';
+            }
+            if(empty($info[$k]['purchase_amount'])){
+                $info[$k]['purchase_amount']='';
+            }
+            if(empty($info[$k]['supplier'])){
+                $info[$k]['supplier']='';
+            }
+            if(empty($info[$k]['remark'])){
+                $info[$k]['remark']='';
+            }
+        }
+        if($check==true){
             return $info;
         }
+        //获取品类名称
         foreach($info as $k => $v){
-            $info[$k]['product_cate']=explode(',',$v['product_cate']);
+            $info[$k]['product_cate_name']=explode('/',$v['product_cate']);
+            $info[$k]['product_cate']=$v['product_cate_name'];
         }
         return $info;
     }

@@ -216,7 +216,7 @@ class SupplierQualificationModel extends PublicModel {
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
-        $field = 'supplier_id,expiry_date';
+        $field = 'supplier_id,MIN(expiry_date)';
 
         if ($type=='LEFT') {
             $where = 'to_days(expiry_date)-to_days(now()) <= 30';
@@ -224,23 +224,32 @@ class SupplierQualificationModel extends PublicModel {
             $where = 'to_days(expiry_date)-to_days(now()) > 30';
         }
 
-        return [
-            $this->field($field)
-                ->where($where)
-                ->page($currentPage, $pageSize)
-                ->order('id DESC')
-                ->select(),
-            $this->field($field)
-                ->where($where)
-                ->order('id DESC')
-                ->count()
-        ];
+        $where2 = ['s.status' => ['neq', 'DRAFT']];
+
+        $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
+            ->field($field)
+            ->where($where)
+            ->where($where2)
+            ->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->group('a.supplier_id')
+            ->select();
+
+        $count = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
+            ->field($field)
+            ->where($where)
+            ->where($where2)
+            ->order('a.id DESC')
+            ->group('a.supplier_id')
+            ->select();
+
+        return [$data, count($count)];
 	}
 
     public function getExpiryQualificationsListForExport(array $condition = [], $type='LEFT')
     {
 
-        $field = 'supplier_id,expiry_date';
+        $field = 'supplier_id,MIN(expiry_date)';
 
         if ($type=='LEFT') {
             $where = 'to_days(expiry_date)-to_days(now()) <= 30';
@@ -248,15 +257,16 @@ class SupplierQualificationModel extends PublicModel {
             $where = 'to_days(expiry_date)-to_days(now()) > 30';
         }
 
-        return [
-            $this->field($field)
-                ->where($where)
-                ->order('id DESC')
-                ->select(),
-            $this->field($field)
-                ->where($where)
-                ->order('id DESC')
-                ->count()
-        ];
+        $where2 = ['s.status' => ['neq', 'DRAFT']];
+
+        $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
+            ->field($field)
+            ->where($where)
+            ->where($where2)
+            ->order('a.id DESC')
+            ->group('a.supplier_id')
+            ->select();
+
+        return [$data, count($data)];
     }
 }
