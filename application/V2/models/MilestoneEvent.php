@@ -9,7 +9,57 @@ class MilestoneEventModel extends Model {
 
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'milestone_event';
-
+    public function editMilestoneEvent($data){
+        $arr=array(
+            'event_name'=>isset($data['event_name'])?$data['event_name']:null, //事件名称project
+            'event_content'=>isset($data['event_content'])?$data['event_content']:null, //事件内容Content
+            'event_contact'=>isset($data['event_contact'])?$data['event_contact']:null, //该事件KERUI/ERUI负责人KERUI/ERUI
+            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
+        );
+        $arr['created_by']=$data['created_by'];
+        $arr['created_at']=date('Y-m-d H:i:s');
+        if(empty($data['id'])){
+            $arr['buyer_id']=$data['buyer_id'];
+            $this->add($arr);
+        }else{
+            $this->where(array('id'=>$data['id']))->save($arr);
+        }
+        return true;
+    }
+    //查看
+    public function showMilestoneEvent($data){
+        $fieldStr='id,buyer_id,event_name,event_content,event_contact,event_time';
+        $info=$this->field($fieldStr)->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        return $info;
+    }
+    public function MilestoneEventList($data){
+        $fieldArr=array(
+            'id', //事件名称project
+            'buyer_id', //事件名称project
+            'event_name', //事件名称project
+            'event_content', //事件内容Content
+            'event_contact', //该事件KERUI/ERUI负责人KERUI/ERUI
+            'event_time' //时间date
+        );
+        $fieldStr=implode(',',$fieldArr);
+        $info=$this->field($fieldStr)
+            ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
+            ->order('event_time desc')
+            ->select();
+        if(empty($info)){
+            $info=[
+                array(
+                    'id'=>null,
+                    'buyer_id'=>null,
+                    'event_name'=>null,
+                    'event_content'=>null,
+                    'event_contact'=>null,
+                    'event_time'=>null
+                )
+            ];
+        }
+        return $info;
+    }
     /**
      * @param $event 事件数据arr
      * @param $buyer_id 客户id
@@ -37,7 +87,7 @@ class MilestoneEventModel extends Model {
         }
         return $flag;
     }
-    public function showMilestoneEvent($buyer_id,$created_by){
+    public function showMilestoneEvent1($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,
