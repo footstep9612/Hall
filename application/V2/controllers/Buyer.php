@@ -1116,7 +1116,8 @@ EOF;
         }
         $valid = array(
             'code' => 1,
-            'message' => L('success')
+            'message' => L('success'),
+            'buyer_id'=>$data['base_info']['buyer_id']
         );
         $this->jsonReturn($valid);
     }

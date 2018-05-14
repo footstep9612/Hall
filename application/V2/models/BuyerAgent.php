@@ -466,6 +466,29 @@ class BuyerAgentModel extends PublicModel {
         }
         return $str;
     }
+    //buyerList 获取经办人信息
+    public function getBuyerAgentArr($buyer_id){
+        $info = $this->alias('agent')
+            ->join('erui_sys.employee employee on agent.agent_id=employee.id')
+            ->field('agent.agent_id,employee.name')
+            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N'))
+            ->select();
+        $nameStr='';
+        $idStr='';
+        $arr=[
+            'id'=>'',
+            'name'=>''
+        ];
+        if(!empty($info)){
+            foreach($info as $k=> $v){
+                $idStr.=','.$v['agent_id'];
+                $nameStr.=','.$v['name'];
+            }
+            $arr['id']=substr($idStr,1);
+            $arr['name']=substr($nameStr,1);
+        }
+        return $arr;
+    }
     //crm 更新市场经办人-wangs
     public function crmUpdateAgent($data=[]){
         if(empty($data['id']) || empty($data['user_ids'])){

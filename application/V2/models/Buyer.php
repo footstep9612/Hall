@@ -431,14 +431,14 @@ class BuyerModel extends PublicModel {
             'created_at',   //注册时间/创建时间
 //            'checked_at',   //操作
         );
-        $field = 'employee.name as employee_name,country.name as country_name,';
+        $field = 'country.name as country_name,';
 
         $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
 //        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
-        $field .= ' ,agent.agent_id';
+//        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
         //excel导出标识
@@ -450,7 +450,7 @@ class BuyerModel extends PublicModel {
             ->join("erui_buyer.buyer_account account on buyer.id=account.buyer_id and account.deleted_flag='N'",'left')
             ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
             ->join("erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag='N'",'left')
-            ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N'",'left')
+            ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N' and country.lang='$lang'",'left')
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
@@ -458,12 +458,10 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
-        $country = new CountryModel();
+//        $country = new CountryModel();
         $order = new OrderModel();
+        $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
-            if($v['status']=='APPROVED'){
-                $info[$k]['employee_name']='APPROVED';
-            }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
@@ -473,9 +471,11 @@ class BuyerModel extends PublicModel {
                 $info[$k]['percent']='--';
             }
             if(!empty($v['country_bn'])){ //国家
-                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
             }
+            $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['employee_name'] = $agentInfo['name'];
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
         }
