@@ -377,7 +377,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,qt.supplier_id,qt.purchase_price_cur_bn,';
+        $field .= 'i.quote_deadline,i.obtain_id,qt.supplier_id,qt.purchase_price_cur_bn,';
         $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
         $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
 
@@ -415,7 +415,6 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
         $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
         $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
-        $field .= $employee_sql . ' AND id=i.obtain_id)as obtain_name,'; //获取人
         $field .= $employee_sql . ' AND id=i.created_by)as created_by_name,'; //询单创建人
 
 
@@ -533,7 +532,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,obtain_id,';
+        $field .= 'i.quote_deadline,i.obtain_id,';
 
         $inquiry_item_model = new InquiryItemModel();
         $inquiry_item_table = $inquiry_item_model->getTableName();

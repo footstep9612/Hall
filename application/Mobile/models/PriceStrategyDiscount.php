@@ -65,7 +65,10 @@ class PriceStrategyDiscountModel extends PublicModel {
             $condition['min_purchase_qty'] = ['elt', $num];
             $condition['max_purchase_qty'] = [['egt', $num], ['exp', 'is null'], 'or'];
         }
-        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->find();
+        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')
+                ->where($condition)
+                ->order($order)
+                ->find();
         $priceAry = [];
         if ($discount) {
             $priceAry['price'] = ($discount['discount'] && $price) ? ($price * ($discount['discount'] * 10) / 100) : null;
@@ -97,7 +100,10 @@ class PriceStrategyDiscountModel extends PublicModel {
             'validity_end' => [['exp', 'is null'], ['gt', date('Y-m-d H:i:s', time())], 'or']
         ];
         $order = 'min_purchase_qty DESC';
-        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->select();
+        $discount = $this->field('discount,validity_start,validity_end,min_purchase_qty,max_purchase_qty')
+                ->where($condition)
+                ->order($order)
+                ->select();
         if ($discount) {
             for ($i = 0; $i < count($discount); $i++) {
                 $discount[$i]['price'] = ( $discount[$i]['discount'] && $price) ? ($price * ($discount[$i]['discount'] * 10) / 100) : null;
