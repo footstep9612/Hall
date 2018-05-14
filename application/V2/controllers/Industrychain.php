@@ -88,4 +88,32 @@ class IndustrychainController extends PublicController {
         $dataJson['data'] = $res;
         $this -> jsonReturn($dataJson);
     }
+    public function industryChainListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new IndustrychainModel();
+//        $res = $model->industryChainList($data);
+//        if($res==false){
+//            $dataJson['code'] = 0;
+//            $dataJson['message'] = '参数错误';
+//        }
+        if(empty($res['up'])){
+            $res['up']=[array(
+                'industry_group'=>'up', //上游
+                'name'=>null, //上游客户名称
+                'cooperation'=>null, //客户合作情况
+                'business_type'=>null, //业务的类型
+                'scale'=>null, //客户的规模
+                'settlement'=>null, //结算方式
+                'marketing_network'=>null, //营销网络
+//                    'buyer_type_name'=>null, //客户类型
+                'buyer_project'=>null, //客户参与的项目
+                'buyer_problem'=>null, //客户遇到的困难
+                'solve_problem'=>null, //如何解决困难
+            )];
+        }
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '返回数据';
+        $dataJson['data'] = $res;
+        $this -> jsonReturn($dataJson);
+    }
 }

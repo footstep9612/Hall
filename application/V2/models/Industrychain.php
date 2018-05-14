@@ -11,6 +11,14 @@ class IndustrychainModel extends PublicModel
     {
         parent::__construct();
     }
+//    public function industryChainList($data){
+//        if(empty($data['buyer_id'])){
+//            return false;
+//        }
+//        if($data['type']=='up'){
+//
+//        }
+//    }
     //up数据非空
     public function checkedUp($data){
         $arrUp = array('name','cooperation','business_type','scale','settlement');
