@@ -670,7 +670,7 @@ EOF;
             if (!isEmail($data['email'])) {
                 jsonReturn('', -101, L('create_email'));
             }
-            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
+            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->select();
             if($checkEmail){
                 jsonReturn('', -101, L('email_existed'));
             }

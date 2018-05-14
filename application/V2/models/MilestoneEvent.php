@@ -9,7 +9,17 @@ class MilestoneEventModel extends Model {
 
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'milestone_event';
+    public function editNetSubject($data){
 
+        $arr=array(
+            'event_name'=>isset($data['event_name'])?$data['event_name']:null, //事件名称project
+            'event_content'=>isset($data['event_content'])?$data['event_content']:null, //事件内容Content
+            'event_contact'=>isset($data['event_contact'])?$data['event_contact']:null, //该事件KERUI/ERUI负责人KERUI/ERUI
+            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
+        );
+
+//        return $flag;
+    }
     /**
      * @param $event 事件数据arr
      * @param $buyer_id 客户id

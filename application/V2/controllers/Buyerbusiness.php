@@ -15,6 +15,87 @@ class BuyerbusinessController extends PublicController
     {
         parent::init();
     }
+    //新建/编辑业务信息
+    public function editBusinessAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $business = new BuyerBusinessModel();
+        $res = $business->editBusiness($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //查看业务信息
+    public function showBusinessAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $business = new BuyerBusinessModel();
+            $res = $business->showBusiness($data);
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //新建/编辑结算基本信息
+    public function editSettlementAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $business = new BuyerBusinessModel();
+        $res = $business->editSettlement($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //查看结算基本信息
+    public function showSettlementAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $business = new BuyerBusinessModel();
+        $res = $business->showSettlement($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //里程牌事件
+    public function editMilestoneEventAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $event = new MilestoneEventModel();
+        $res = $event->editNetSubject($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
     /*
      * 创建客户---业务信息及采购计划，附件
      * wangs
