@@ -28,6 +28,8 @@ class HomeCountryAdsModel extends PublicModel {
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'group');
         $this->_getValue($where, $condition, 'lang');
+        $this->_getValue($where, $condition, 'show_cat_no');
+
         switch ($condition['show_type']) {
             case 'P':
                 $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
@@ -38,7 +40,7 @@ class HomeCountryAdsModel extends PublicModel {
             case 'A':
                 $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
                 break;
-            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+            default : $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
                 break;
         }
         return $where;
