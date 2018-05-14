@@ -114,9 +114,10 @@ class SuppliersModel extends PublicModel {
         if (isset($condition['supplier_ids'])) {
             $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
         }
-        
-        if (isset($condition['qualification_status'])) {
-            $where['a.status'] = $condition['qualification_status'];
+
+        //资质过期状态
+        if (isset($condition['expire_status'])) {
+            $where['a.expire_status'] = $condition['expire_status'];
         }
 
         return $where;
