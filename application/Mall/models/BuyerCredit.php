@@ -53,7 +53,7 @@ class BuyerCreditModel extends PublicModel
         }else{
             $dataInfo['status'] = 'DRAFT';
         }
-        $dataInfo['credit_apply_date'] = date('Y-m-d',time());
+        $dataInfo['credit_apply_date'] = date('Y-m-d H:i:s',time());
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;

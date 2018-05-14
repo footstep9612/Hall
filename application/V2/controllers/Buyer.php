@@ -1239,6 +1239,47 @@ EOF;
 //            )];
 //        }
     }
+    public function showContactAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson = array(
+                'code' => 0,
+                'message' => '参数错误'
+            );
+        }else{
+            $contact = new BuyercontactModel();
+            $cond=array(
+                'id'=>$data['id'],
+                'deleted_flag'=>'N'
+            );
+            $field='id,name,title,role,phone,email,hobby,address,experience,social_relations,key_concern,attitude_kerui,social_habits,relatives_family';
+            $info = $contact->field($field)->where($cond)->find();
+            if(empty($info)){
+                $info = [
+                    'id' => '', //联系人姓名ID
+                    'name' => '', //联系人姓名
+                    'title' => '', //联系人职位
+                    'role' => '', //角色
+                    'phone' => '', //联系人电话
+                    'email' => '', //联系人邮箱
+                    'hobby' => '', //爱好
+                    'address' => '', //详细地址
+                    'experience' => '', //经历
+                    'social_relations' => '', //社会关系
+                    'key_concern' => '', //决策主要关注点
+                    'attitude_kerui' => '', //对科瑞的态度
+                    'social_habits' => '', //常去社交场所
+                    'relatives_family' => '', //家庭亲戚相关信息
+                ];
+            }
+            $dataJson = array(
+                'code' => 1,
+                'message' => '查看联系人数据',
+                'data' => $info
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
     //获取客户联系人
     public function showContactsListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
