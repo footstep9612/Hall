@@ -601,11 +601,11 @@ class BuyerfilesController extends PublicController
         if($res===false){
             $dataJson['code'] = 1;
             $dataJson['message'] = '无市场区域国家负责人权限';
-            $dataJson['data'] = array('count'=>0,'info'=>[]);
+            $dataJson['data'] = array('count'=>0);
         }elseif($res==0 || empty($res)){
             $dataJson['code'] = 1;
             $dataJson['message'] = '无消息提醒';
-            $dataJson['data'] = array('count'=>0,'info'=>[]);
+            $dataJson['data'] = array('count'=>0);
         }else{
             $dataJson['code'] = 1;
             $dataJson['message'] = '消息提醒';
@@ -622,11 +622,11 @@ class BuyerfilesController extends PublicController
         if($res===false){
             $dataJson['code'] = 1;
             $dataJson['message'] = '无市场区域国家负责人权限';
-            $dataJson['data'] = array('count'=>0,'info'=>[]);
+            $dataJson['data'] = array('count'=>0);
         }elseif($res==0 || empty($res)){
             $dataJson['code'] = 1;
             $dataJson['message'] = '无消息提醒';
-            $dataJson['data'] = array('count'=>0,'info'=>[]);
+            $dataJson['data'] = array('count'=>0);
         }else{
             $dataJson['code'] = 1;
             $dataJson['message'] = '消息提醒';

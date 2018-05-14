@@ -116,9 +116,9 @@ class EdiController extends PublicController{
             }
         }
         if($res) {
-            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, 'success!');
+            jsonReturn($res, ShopMsg::CUSTOM_SUCCESS, '成功!');
         } else {
-            jsonReturn('', ShopMsg::CREDIT_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CREDIT_FAILED ,'失败!');
         }
     }
 

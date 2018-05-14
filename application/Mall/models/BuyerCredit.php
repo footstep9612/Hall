@@ -96,6 +96,9 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['status']) && !empty($data['status'])){
             $dataInfo['status'] = strtoupper($data['status']);
         }
+        if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
+            $dataInfo['account_settle'] = strtoupper($data['account_settle']);
+        }
         $agent_model = new BuyerAgentModel();
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$data['buyer_id']])->find();
         if($agent_id){

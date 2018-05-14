@@ -11,78 +11,128 @@ class IndustrychainModel extends PublicModel
     {
         parent::__construct();
     }
-//    public function industryChainList($data){
-//        if(empty($data['buyer_id'])){
-//            return false;
-//        }
-//        if($data['type']=='up'){
-//
-//        }
-//    }
-    //up数据非空
-    public function checkedUp($data){
-        $arrUp = array('name','cooperation','business_type','scale','settlement');
-        foreach($data as $key => $value){
-            foreach($arrUp as $k => $v){
-                if (empty($value[$v])) {
-                    return false;
-                }
-            }
+    public function industryChainList($data){
+        if(empty($data['buyer_id']) || empty($data['type'])){
+            return false;
         }
-        $res = $this -> checkedSize($data);
-        if($res){
-            return true;
+        if($data['type']=='up'){
+            $fieldArr=array(
+//                'industry_group'=>'up', //上游
+                'id', //上游客户名称
+                'buyer_id', //上游客户名称
+                'name', //上游客户名称
+                'cooperation', //客户合作情况
+                'business_type', //业务的类型
+                'scale', //客户的规模
+                'settlement', //结算方式
+                'marketing_network', //营销网络
+//                    'buyer_type_name'=>null, //客户类型
+                'buyer_project', //客户参与的项目
+                'buyer_problem', //客户遇到的困难
+                'solve_problem' //如何解决困难
+            );
+        }elseif($data['type']=='down'){
+            $fieldArr=array(
+//                'industry_group'=>'down', //下游
+                'id', //客户名称
+                'buyer_id', //客户名称
+                'name', //客户名称
+                'cooperation', //客户合作情况
+                'goods', //客户类型
+                'profile', //供应商信息
+                'settlement', //结算方式
+                'warranty_terms', //质保条款
+                'relationship', //供应商与客户关系如何
+                'analyse', //与KERUI/ERUI的对标分析
+                'dynamic' //供应商动态
+            );
+        }elseif($data['type']=='competitor'){
+            $fieldArr=array(
+//                'industry_group'=>'competitor', //供应商信息
+                'id', //结算方式
+                'buyer_id', //结算方式
+                'competitor_name', //结算方式
+                'competitor_area', //质保条款
+                'company_compare', //供应商与客户关系如何
+                'what_plan' //与KERUI/ERUI的对标分析
+            );
         }
-        return false;
-    }
-    //down数据非空
-    public function checkedDown($data){
-        $arrDown = array('name','cooperation','goods','profile','settlement','warranty_terms');
-        foreach($data as $key => $value){
-            foreach($arrDown as $k => $v){
-                if (empty($value[$v])) {
-                    return false;
-                }
-            }
-        }
-        $res = $this -> checkedSize($data);
-        if($res){
-            return true;
-        }
-        return false;
-    }
-    //验证输入字符长度
-    public function checkedSize($data){
-        $arr = array(
-            'name'=>'客户名称',
-            'cooperation'=>'合作情况',
-            'business_type'=>'业务类型',
-            'scale'=>'规模',
-            'settlement'=>'结算方式',
-            'marketing_network'=>'营销网络',
-//            'buyer_type_name'=>'客户的客户类型名称',
-            'buyer_project'=>'客户参与的项目',
-            'buyer_problem'=>'客户遇到过的困难',
-            'solve_problem'=>'客户如何解决的困难',
-            'profile'=>'简介',
-            'goods'=>'商品',
-            'warranty_terms'=>'保质条款',
-            'relationship'=>'供应商与客户关系如何',
-            'analyse'=>'与KERUI/ERUI的对标分析',
-            'dynamic'=>'供应商动态',
-            'competitor_name'=>'竞争对手名称',
-            'competitor_area'=>'竞争领域',
-            'company_compare'=>'两公司优劣势对比',
-            'what_plan'=>'KERUI/ERUI可以做什么'
+        $fieldStr=implode(',',$fieldArr);
+        $cond=array(
+            'buyer_id'=>$data['buyer_id'],
+            'industry_group'=>$data['type'],
+            'deleted_flag'=>'N'
         );
-        foreach($data as $key => $value){
-            foreach($arr as $k => $v){
-                if(!empty($value[$k])){
-                    if(strlen($value[$k]) > 1500){
-                        return $v;
-                    }
-                }
+        $info=$this->field($fieldStr)->where($cond)->select();
+        if(empty($info)){
+            $info=array();
+            foreach($fieldArr as $k => $v){
+                $info[$v]='';
             }
+        }
+        return $info;
+
+    }
+    public function shwoChain($data){
+        if($data['type']=='up'){
+            $fieldArr=array(
+//                'industry_group'=>'up', //上游
+                'id', //上游客户名称
+                'buyer_id', //上游客户名称
+                'name', //上游客户名称
+                'cooperation', //客户合作情况
+                'business_type', //业务的类型
+                'scale', //客户的规模
+                'settlement', //结算方式
+                'marketing_network', //营销网络
+//                    'buyer_type_name'=>null, //客户类型
+                'buyer_project', //客户参与的项目
+                'buyer_problem', //客户遇到的困难
+                'solve_problem' //如何解决困难
+            );
+        }elseif($data['type']=='down'){
+            $fieldArr=array(
+//                'industry_group'=>'down', //下游
+                'id', //客户名称
+                'buyer_id', //客户名称
+                'name', //客户名称
+                'cooperation', //客户合作情况
+                'goods', //客户类型
+                'profile', //供应商信息
+                'settlement', //结算方式
+                'warranty_terms', //质保条款
+                'relationship', //供应商与客户关系如何
+                'analyse', //与KERUI/ERUI的对标分析
+                'dynamic' //供应商动态
+            );
+        }elseif($data['type']=='competitor'){
+            $fieldArr=array(
+//                'industry_group'=>'competitor', //供应商信息
+                'id', //结算方式
+                'buyer_id', //结算方式
+                'competitor_name', //结算方式
+                'competitor_area', //质保条款
+                'company_compare', //供应商与客户关系如何
+                'what_plan' //与KERUI/ERUI的对标分析
+            );
+        }
+        $fieldStr=implode(',',$fieldArr);
+        $info=$this->field($fieldStr)->where(array('id'=>$data['id']))->find();
+        if(empty($info)){
+            $info=array();
+            foreach($fieldArr as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+
+    }
+    public function editChain($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        if(!empty($data['id'])){
+            $this->where(array('id'=>$data['id']))->save($data);
+        }else{
+            $this->add($data);
         }
         return true;
     }
@@ -163,6 +213,73 @@ class IndustrychainModel extends PublicModel
         );
         $res = $this->where($cond)->select();
         return $res;
+    }
+    //up数据非空
+    public function checkedUp($data){
+        $arrUp = array('name','cooperation','business_type','scale','settlement');
+        foreach($data as $key => $value){
+            foreach($arrUp as $k => $v){
+                if (empty($value[$v])) {
+                    return false;
+                }
+            }
+        }
+        $res = $this -> checkedSize($data);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+    //down数据非空
+    public function checkedDown($data){
+        $arrDown = array('name','cooperation','goods','profile','settlement','warranty_terms');
+        foreach($data as $key => $value){
+            foreach($arrDown as $k => $v){
+                if (empty($value[$v])) {
+                    return false;
+                }
+            }
+        }
+        $res = $this -> checkedSize($data);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+    //验证输入字符长度
+    public function checkedSize($data){
+        $arr = array(
+            'name'=>'客户名称',
+            'cooperation'=>'合作情况',
+            'business_type'=>'业务类型',
+            'scale'=>'规模',
+            'settlement'=>'结算方式',
+            'marketing_network'=>'营销网络',
+//            'buyer_type_name'=>'客户的客户类型名称',
+            'buyer_project'=>'客户参与的项目',
+            'buyer_problem'=>'客户遇到过的困难',
+            'solve_problem'=>'客户如何解决的困难',
+            'profile'=>'简介',
+            'goods'=>'商品',
+            'warranty_terms'=>'保质条款',
+            'relationship'=>'供应商与客户关系如何',
+            'analyse'=>'与KERUI/ERUI的对标分析',
+            'dynamic'=>'供应商动态',
+            'competitor_name'=>'竞争对手名称',
+            'competitor_area'=>'竞争领域',
+            'company_compare'=>'两公司优劣势对比',
+            'what_plan'=>'KERUI/ERUI可以做什么'
+        );
+        foreach($data as $key => $value){
+            foreach($arr as $k => $v){
+                if(!empty($value[$k])){
+                    if(strlen($value[$k]) > 1500){
+                        return $v;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**

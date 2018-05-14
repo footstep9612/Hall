@@ -185,10 +185,10 @@ class BuyerRegInfoModel extends PublicModel
                 'credit_apply_date'=>date('Y-m-d H:i:s', time())
             ];
             $uparr['account_settle'] = $data['account_settle'];
-            $credit_model->where(['buyer_no' => $data['buyer_no']])->save($this->create($uparr));
+            $uparr['buyer_no'] = $data['buyer_no'];
+
             //添加日志
             if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in']) && $dataInfo['registered_in'] !== $check['registered_in']){
-                $uparr['buyer_no'] = $data['buyer_no'];
                 $uparr['name'] = $dataInfo['name'];
                 $credit_model->update_data($uparr);   //更新企业名称
 
@@ -199,6 +199,8 @@ class BuyerRegInfoModel extends PublicModel
                 $dataArr['address'] = $dataInfo['registered_in'];
                 $dataArr['sign'] = 1;  //企业
                 $credit_log_model->create_data($dataArr);
+            } else {
+                $credit_model->update_data($uparr);
             }
             if(!empty($data['status']) && 'check' == trim($data['status'])) {   //OA提交审核
                 $uparr2['status'] = "ERUI_APPROVING";      //提交易瑞审核

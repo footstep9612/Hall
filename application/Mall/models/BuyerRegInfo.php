@@ -182,7 +182,8 @@ class BuyerRegInfoModel extends PublicModel
                     $dataInfo['status'] = 'DRAFT';
                 }
                 $uparr['account_settle'] = $data['account_settle'];
-                $credit_model->where(['buyer_no' => $dataInfo['buyer_no']])->save($this->create($uparr));
+                $uparr['buyer_no'] = $data['buyer_no'];
+                $credit_model->update_data($uparr);
                 //添加日志
                 $check = $this->field('name,registered_in')->where(['buyer_no' => $data['buyer_no']])->find();
                 if(!empty($dataInfo['name']) && $dataInfo['name'] !== $check['name'] || !empty($dataInfo['registered_in'] && $dataInfo['registered_in'] !== $check['registered_in'])){
@@ -194,14 +195,8 @@ class BuyerRegInfoModel extends PublicModel
                     $dataArr['address'] = $dataInfo['registered_in'];
                     $dataArr['sign'] = 1;  //企业
                     $credit_log_model->create_data($dataArr);
+                    $credit_model->update_data($data);
                 }
-                //更新审核信息
-               // $credit_model = new BuyerCreditModel();
-                //$credit_res = $credit_model->update_data($data);
-                /*if(!$credit_res){
-                    $this->rollback();
-                    jsonReturn(null, MSG::MSG_FAILED, '更新审核信息失败');
-                }*/
                 $this->commit();
                 return $result;
             }
