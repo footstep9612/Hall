@@ -150,19 +150,21 @@ class HomecountryadsController extends PublicController {
         }
         $link = $this->getPut('link');
         $show_type = $this->getPut('show_type');
+        $show_cat_no = $this->getPut('show_cat_no');
+
 //        if (empty($link)) {
 //            $this->setCode(MSG::MSG_EXIST);
 //            $this->setMessage('请输入广告链接地址!');
 //            $this->jsonReturn();
 //        }
         $home_country_ads_model = new HomeCountryAdsModel();
-        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, null, $show_type)) {
+        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, null, $show_type, $show_cat_no)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $home_country_ads_model->createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type, $show_cat_no);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -228,15 +230,16 @@ class HomecountryadsController extends PublicController {
 //            $this->jsonReturn();
 //        }
         $show_type = $this->getPut('show_type');
+        $show_cat_no = $this->getPut('show_cat_no');
         $home_country_ads_model = new HomeCountryAdsModel();
 
-        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id, $show_type)) {
+        if ($home_country_ads_model->getExit($country_bn, $img_name, $img_url, $group, $lang, $id, $show_type, $show_cat_no)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('您选择的国家广告名称已经存在,请您重新输入!');
             $this->jsonReturn();
         }
 
-        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang);
+        $list = $home_country_ads_model->updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type, $show_cat_no);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

@@ -28,6 +28,8 @@ class HomeCountryAdsModel extends PublicModel {
         $this->_getValue($where, $condition, 'country_bn');
         $this->_getValue($where, $condition, 'group');
         $this->_getValue($where, $condition, 'lang');
+        $this->_getValue($where, $condition, 'show_cat_no');
+
         switch ($condition['show_type']) {
             case 'P':
                 $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
@@ -38,7 +40,7 @@ class HomeCountryAdsModel extends PublicModel {
             case 'A':
                 $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
                 break;
-            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+            default : $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
                 break;
         }
         return $where;
@@ -51,12 +53,21 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getList($condition) {
+    public function getList($condition, $pagesize = null) {
         $where = $this->_getCondition($condition);
-        return $this->field('img_name,img_url,group,link')
-                        ->where($where)
-                        ->order('sort_order desc')
-                        ->select();
+
+        if (intval($pagesize)) {
+            return $this->field('img_name,img_url,group,link')
+                            ->where($where)
+                            ->order('sort_order desc')
+                            ->limit('0,' . intval($pagesize))
+                            ->select();
+        } else {
+            return $this->field('img_name,img_url,group,link')
+                            ->where($where)
+                            ->order('sort_order desc')
+                            ->select();
+        }
     }
 
 }

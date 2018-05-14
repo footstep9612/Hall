@@ -104,6 +104,16 @@ class BuyercontactModel extends PublicModel
         }
 
     }
+    //新建联系人
+    public function createContact($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        if(empty($data['id'])){
+            $this->add($data);
+        }else{
+            $this->where(array('id'=>$data['id']))->save($data);
+        }
+        return true;
+    }
     public function info($data) {
         if ($data['id']) {
             $info = $this->where(array("id" => $data['id']))

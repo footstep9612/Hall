@@ -53,12 +53,22 @@ class BuyerVisitModel extends PublicModel {
         $total=$total[0]['total'];
         //按条件获取拜访记录数据
         $result = $this->condGetVisitData($lang,$condition,$offset,$length);
-        $arr = [
-                 'current_no' => $current_no,
-                 'pagesize' => $length,
-                 'total' => $total,
-                 'result' => $result
-             ];
+        if(empty($result)){
+            $arr = [
+                'current_no' => 1,
+                'pagesize' => 0,
+                'total' => 0,
+                'result' => []
+            ];
+        }else{
+            $arr = [
+                'current_no' => $current_no,
+                'pagesize' => $length,
+                'total' => $total,
+                'result' => $result
+            ];
+        }
+
         return $arr;
     }
     //获取客户需求反馈的条件
@@ -170,6 +180,9 @@ class BuyerVisitModel extends PublicModel {
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
+        if($demadCond==false){
+            return false;
+        }
         //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';

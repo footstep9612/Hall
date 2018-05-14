@@ -685,6 +685,18 @@ class EsProductModel extends Model {
     }
 
     public function getBrandsList($condition, $lang = 'en') {
+
+        $pagesize = 10;
+        $current_no = 1;
+        if (isset($condition['current_no'])) {
+            $current_no = intval($condition['current_no']) > 0 ? intval($condition['current_no']) : 1;
+        }
+
+        if (isset($condition['pagesize'])) {
+            $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
+        }
+
+        $from = ($current_no - 1) * $pagesize;
         $brand = $condition['brand'];
         unset($condition['brand']);
         $body = $this->getCondition($condition);
@@ -693,9 +705,10 @@ class EsProductModel extends Model {
         $es->setfields(['spu']);
         $brand_terms = [
             'field' => 'brand.name.all',
-            'size' => 10,
+            'size' => $pagesize,
             'order' => ['_count' => 'desc']
         ];
+
 
         $es->body['aggs']['brand_name'] = [
             'terms' => $brand_terms
@@ -704,6 +717,7 @@ class EsProductModel extends Model {
 
 
         $es->body['size'] = 0;
+        Log::write(json_encode($es->body));
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
         $brand_names = [];
