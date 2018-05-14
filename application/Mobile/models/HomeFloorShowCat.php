@@ -38,7 +38,7 @@ class HomeFloorShowCatModel extends PublicModel {
             case 'A':
                 $where['show_type'] = ['in', ['APM', 'A', 'AP', 'AM']];
                 break;
-            default : $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
+            default : $where['show_type'] = ['in', ['APM', 'M', 'PM', 'AM']];
                 break;
         }
         return $where;

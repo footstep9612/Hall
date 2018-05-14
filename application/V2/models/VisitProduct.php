@@ -86,8 +86,14 @@ class VisitProductModel extends PublicModel {
         );
         $info=$this->field($field)->where($cond)->select();
         foreach($info as $k => $v){
-            $cateArr=explode(',',$v['product_cate']);
-            if(in_array(0,$cateArr)){
+            if(!empty($v['product_cate'])){
+                $cateArr=explode(',',$v['product_cate']);
+            }else{
+                $cateArr=[];
+            }
+            if(empty($cateArr)){
+                $info[$k]['product_cate']='';
+            }elseif(in_array(0,$cateArr)){
                 $cond=array('cat_no'=>$cateArr[0],'lang'=>$lang);
                 $material=$this->table('erui_goods.material_cat')->field('name')->where($cond)->find();
                 if($lang=='zh'){

@@ -214,7 +214,6 @@ class BuyerModel extends PublicModel {
      */
     public function getBuyerStatisListCond($data){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
-
         if(empty($data['admin']['role'])){
             return false;
         }
@@ -420,6 +419,7 @@ class BuyerModel extends PublicModel {
         $offset = ($currentPage-1)*$pageSize;
         $fieldArr = array(
             'id',
+            'is_build',
             'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
             'percent',   //信息完整度
@@ -432,14 +432,14 @@ class BuyerModel extends PublicModel {
             'created_at',   //注册时间/创建时间
 //            'checked_at',   //操作
         );
-        $field = 'employee.name as employee_name,country.name as country_name,';
+        $field = 'country.name as country_name,';
 
         $field .= '(select employee.name from erui_sys.employee employee where employee.id=buyer.created_by) as created_name';
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
 //        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
-        $field .= ' ,agent.agent_id';
+//        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
         //excel导出标识
@@ -451,7 +451,7 @@ class BuyerModel extends PublicModel {
             ->join("erui_buyer.buyer_account account on buyer.id=account.buyer_id and account.deleted_flag='N'",'left')
             ->join("erui_buyer.buyer_agent agent on buyer.id=agent.buyer_id and agent.deleted_flag='N'",'left')
             ->join("erui_sys.employee employee on agent.agent_id=employee.id and employee.deleted_flag='N'",'left')
-            ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N'",'left')
+            ->join("erui_dict.country country on buyer.country_bn=country.bn and country.deleted_flag='N' and country.lang='$lang'",'left')
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
@@ -459,12 +459,10 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
-        $country = new CountryModel();
+//        $country = new CountryModel();
         $order = new OrderModel();
+        $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
-            if($v['status']=='APPROVED'){
-                $info[$k]['employee_name']='APPROVED';
-            }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }
@@ -473,10 +471,17 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
+            if($v['is_build']==1){ //国家
+                $info[$k]['status'] = 'PASS';
+            }
+
+            unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
-                $info[$k]['country_name'] = $country->getCountryByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
             }
+            $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['employee_name'] = $agentInfo['name'];
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
         }
@@ -1729,66 +1734,66 @@ EOF;
             'employee_count'=>L('employee_count')
         );
         //联系人【contact】
-        $contactArr = array(    //创建客户信息联系人必须数据
-            'name'=>L('contact_name'),  //联系人姓名
-            'title'=>L('contact_title'),    //联系人职位
-            'phone'=>L('contact_phone'),    //联系人电话
-        );
-        $contactExtra = array(  //创建客户信息联系人可选数据
-            'role'=>'购买角色',
-            'email'=>L('contact_email'),    //联系人邮箱
-            'hobby'=>'喜好',
-            'address'=>'详细地址',
-            'experience'=>'工作经历',
-            'social_relations'=>'社会关系',
-
-            'key_concern'=>'决策主要关注点',
-            'attitude'=>'对科瑞的态度',
-            'social_place'=>'常去社交场所',
-            'relatives_family'=>'家庭亲戚相关信息',
-        );
-        $contactEmail=array();  //crm
-        foreach($contact as $value){
-            foreach($contactArr as $k => $v){
-                if(empty($value[$k]) || strlen($value[$k]) > 50){
-                    return $v.L('not empty');
-                }
-//                if(!empty($value['phone'])){
-//                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
-//                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
-//                    }
+//        $contactArr = array(    //创建客户信息联系人必须数据
+//            'name'=>L('contact_name'),  //联系人姓名
+//            'title'=>L('contact_title'),    //联系人职位
+//            'phone'=>L('contact_phone'),    //联系人电话
+//        );
+//        $contactExtra = array(  //创建客户信息联系人可选数据
+//            'role'=>'购买角色',
+//            'email'=>L('contact_email'),    //联系人邮箱
+//            'hobby'=>'喜好',
+//            'address'=>'详细地址',
+//            'experience'=>'工作经历',
+//            'social_relations'=>'社会关系',
+//
+//            'key_concern'=>'决策主要关注点',
+//            'attitude'=>'对科瑞的态度',
+//            'social_place'=>'常去社交场所',
+//            'relatives_family'=>'家庭亲戚相关信息',
+//        );
+//        $contactEmail=array();  //crm
+//        foreach($contact as $value){
+//            foreach($contactArr as $k => $v){
+//                if(empty($value[$k]) || strlen($value[$k]) > 50){
+//                    return $v.L('not empty');
 //                }
-            }
-            if(!empty($value['email'])){
-                $value['email']=trim($value['email'],' ');
-                if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
-                    return $contactExtra['email'].L('format_error');
-                }else{
-                    $buyerContact=new BuyercontactModel();
-                    if(empty($value['id'])){
-                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
-                        if($email){
-                            return $contactExtra['email'].L('already existed');
-                        }
-                    }else{
-                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
-                        if($value['email']!=$email['email']){  //修改邮箱
-                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
-                            if($exist){
-                                return $contactExtra['email'].L('already existed');
-                            }
-                        }
-                    }
-
-                }
-                $contactEmail[]=$value['email'];
-            }
-            $emailTotal=count($contactEmail);   //联系人邮箱总数
-            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
-            if($emailTotal!=$validTotal){
-                return $contactExtra['email'].L('repeat');
-            }
-        }
+////                if(!empty($value['phone'])){
+////                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+////                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
+////                    }
+////                }
+//            }
+//            if(!empty($value['email'])){
+//                $value['email']=trim($value['email'],' ');
+//                if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
+//                    return $contactExtra['email'].L('format_error');
+//                }else{
+//                    $buyerContact=new BuyercontactModel();
+//                    if(empty($value['id'])){
+//                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                        if($email){
+//                            return $contactExtra['email'].L('already existed');
+//                        }
+//                    }else{
+//                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
+//                        if($value['email']!=$email['email']){  //修改邮箱
+//                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                            if($exist){
+//                                return $contactExtra['email'].L('already existed');
+//                            }
+//                        }
+//                    }
+//
+//                }
+//                $contactEmail[]=$value['email'];
+//            }
+//            $emailTotal=count($contactEmail);   //联系人邮箱总数
+//            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
+//            if($emailTotal!=$validTotal){
+//                return $contactExtra['email'].L('repeat');
+//            }
+//        }
         if(!empty($base['employee_count'])){
             if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
                 return true;
@@ -1798,15 +1803,19 @@ EOF;
         }
         return true;
     }
+    //联系人
+    public function editContact($data){
+        //编辑联系人必填
+        $attach = new BuyercontactModel();
+        $attach -> updateBuyerContact($data['contact'],$data['buyer_id'],$data['created_by']);
+        return true;
+    }
 
     /**
      * 采购商客户管理，基本信息的创建
      * wangs
      */
     public function createBuyerBaseInfo($data){
-        if(empty($data['base_info']) || empty($data['contact'])){
-            return false;
-        }
         //验证数据
         $info = $this->validBuyerBaseData($data);
         if($info !== true){
@@ -1821,8 +1830,8 @@ EOF;
         //公司人员组织架构
         $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['base_info']['buyer_id'],$data['created_by']);
         //编辑联系人必填
-        $attach = new BuyercontactModel();
-        $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
+//        $attach = new BuyercontactModel();
+//        $attach -> updateBuyerContact($data['contact'],$data['base_info']['buyer_id'],$data['created_by']);
         return true;
     }
     /**
@@ -2973,8 +2982,8 @@ EOF;
     }
     public function getBuyerInfoByCond($cond,$lang){
         $cond.=" and country.lang='$lang'";
-        $field='buyer.id,buyer.name as buyer_name,country.name as country_name,buyer.created_at,buyer.source,buyer.is_read';
-        $field.=',buyer.read_at,buyer.sent_at,mark_at';
+        $field='buyer.id,buyer.name as buyer_name,buyer.country_bn,country.name as country_name,buyer.created_at,buyer.source,buyer.is_handle';
+        $field.=',buyer.is_handle,buyer.read_at,buyer.sent_at,mark_at,buyer.checked_at';
         $info=$this->alias('buyer')
             ->join('erui_dict.country country on buyer.country_bn=country.bn','left')
             ->field($field)
@@ -3010,8 +3019,26 @@ EOF;
         $sent_at=time();
         $sql = "UPDATE erui_buyer.buyer ";
         $sql .= " SET `sent_at`='$sent_at',mark_at=UNIX_TIMESTAMP(created_at)";
-        $sql .= " WHERE ( buyer.deleted_flag='N' and buyer.country_bn in ('Russia','Japan','China') and buyer.status='APPROVING' )";
+        $sql .= " WHERE ".$cond;
         $this->query($sql);
+        $arr['count']=$count;
+        $arr['info']=$this->getBuyerInfoByCond($cond,$data['lang']);;
+        return $arr;
+    }
+    //查看已办理信息
+    public function noticeMessage($data){
+        $access=$this->countryAccess($data['admin']);
+        if($access !== 1){   //无国家权限
+            return false;
+        }
+        //所负责的国家
+        $countryStr=$data['admin']['country'];
+        $cond="buyer.is_handle=1 and buyer.status='APPROVED'";
+        $cond.=" and buyer.country_bn in ($countryStr) and buyer.deleted_flag='N' ";
+        $count=$this->getBuyerCount($cond); //数据数量
+        if($count == 0){
+            return 0;
+        }
         $arr['count']=$count;
         $arr['info']=$this->getBuyerInfoByCond($cond,$data['lang']);;
         return $arr;
@@ -3027,7 +3054,6 @@ EOF;
             return 'none';
         }
         $save=array(
-            'is_read'=>1,
             'read_at'=>time()
         );
         $this->where(array('id'=>$id))->save($save);

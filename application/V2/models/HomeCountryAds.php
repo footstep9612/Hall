@@ -23,7 +23,7 @@ class HomeCountryAdsModel extends PublicModel {
     const SHOW_TYPE_A = 'A';
     const SHOW_TYPE_M = 'M';
     const SHOW_TYPE_AP = 'AP';
-   const SHOW_TYPE_PM = 'PM';
+    const SHOW_TYPE_PM = 'PM';
     const SHOW_TYPE_AM = 'AM';
     const SHOW_TYPE_APM = 'APM';
 
@@ -85,7 +85,7 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $img_name, $img_url, $group, $lang, $id = null, $show_type = 'P') {
+    public function getExit($country_bn, $img_name, $img_url, $group, $lang, $id = null, $show_type = 'P', $show_cat_no = null) {
 
         $where['country_bn'] = $country_bn;
         $where['img_name'] = $img_name;
@@ -95,6 +95,10 @@ class HomeCountryAdsModel extends PublicModel {
         if ($id) {
             $where['id'] = ['neq', $id];
         }
+        if ($show_cat_no) {
+            $where['show_cat_no'] = $show_cat_no;
+        }
+
         switch ($show_type) {
             case 'P':
                 $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
@@ -131,7 +135,7 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = 'P') {
+    public function createData($country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = 'P', $show_cat_no = null) {
 
         $data['country_bn'] = $country_bn;
         $data['img_name'] = $img_name;
@@ -141,6 +145,12 @@ class HomeCountryAdsModel extends PublicModel {
         $data['lang'] = $lang;
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+
+        if ($show_cat_no) {
+            $data['show_cat_no'] = $show_cat_no;
+        } else {
+            $data['show_cat_no'] = '';
+        }
         switch ($show_type) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;
@@ -176,7 +186,7 @@ class HomeCountryAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = null) {
+    public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = null, $show_cat_no = null) {
 
 
 
@@ -190,6 +200,9 @@ class HomeCountryAdsModel extends PublicModel {
         }
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
+        if ($show_cat_no) {
+            $data['show_cat_no'] = $show_cat_no;
+        }
         switch ($show_type) {
             case self::SHOW_TYPE_A:
                 $data['show_type'] = self::SHOW_TYPE_A;
