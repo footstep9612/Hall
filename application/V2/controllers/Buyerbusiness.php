@@ -85,11 +85,42 @@ class BuyerbusinessController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
         $event = new MilestoneEventModel();
-        $res = $event->editNetSubject($data);
+        $res = $event->editMilestoneEvent($data);
         if($res===false){
             $dataJson['code'] =0;
             $dataJson['message'] ='参数错误';
         }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //查看里程碑事件
+    public function showMilestoneEventAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $event = new MilestoneEventModel();
+            $res = $event->showMilestoneEvent($data);
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //查看里程碑事件
+    public function MilestoneEventListAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['buyer_id'])){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $event = new MilestoneEventModel();
+            $res = $event->MilestoneEventList($data);
             $dataJson['code'] =1;
             $dataJson['message'] ='成功';
             $dataJson['data'] =$res;
