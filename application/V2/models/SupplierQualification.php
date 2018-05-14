@@ -212,7 +212,6 @@ class SupplierQualificationModel extends PublicModel {
 
     public function getExpiryQualificationsListWithPaginationBy(array $condition = [], $type='LEFT')
     {
-
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
@@ -224,7 +223,11 @@ class SupplierQualificationModel extends PublicModel {
             $where = 'to_days(expiry_date)-to_days(now()) > 30';
         }
 
-        $where2 = ['s.status' => ['neq', 'DRAFT']];
+        if ($condition['status']) {
+            $where2 = ['s.status' => $condition['status']];
+        }else {
+            $where2 = ['s.status' => ['neq', 'DRAFT']];
+        }
 
         $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
             ->field($field)
@@ -257,7 +260,11 @@ class SupplierQualificationModel extends PublicModel {
             $where = 'to_days(expiry_date)-to_days(now()) > 30';
         }
 
-        $where2 = ['s.status' => ['neq', 'DRAFT']];
+        if ($condition['status']) {
+            $where2 = ['s.status' => $condition['status']];
+        }else {
+            $where2 = ['s.status' => ['neq', 'DRAFT']];
+        }
 
         $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
             ->field($field)
