@@ -91,11 +91,11 @@ class IndustrychainController extends PublicController {
     public function industryChainListAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new IndustrychainModel();
-//        $res = $model->industryChainList($data);
-//        if($res==false){
-//            $dataJson['code'] = 0;
-//            $dataJson['message'] = '参数错误';
-//        }
+        $res = $model->industryChainList($data);
+        if($res==false){
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '参数错误';
+        }
         if(empty($res['up'])){
             $res['up']=[array(
                 'industry_group'=>'up', //上游
