@@ -49,7 +49,7 @@ class IndexserviceController extends PublicController {
         $data['banners'] = $this->_getAds($country_bn, $lang, 'BANNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
         $data['popularity_recommendation'] = $this->_getPopularity_recommendation([], $lang, $country_bn, 4);
-        $data['solution'] = $this->_getSolutions($lang);
+        $data['solution'] = $this->_getAds($country_bn, $lang, 'SOLUTION', 1); // $this->_getSolutions($lang);
 
         $data['products'] = $this->_getProducts($country_bn, $lang);
 

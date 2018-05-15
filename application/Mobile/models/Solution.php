@@ -28,7 +28,7 @@ class SolutionModel extends PublicModel {
         if (!empty($condition['catids'])) {
             $where['catid'] = ['in', $condition['catids']];
         }
-
+        $where[] = 'thumb is not null';
         return $where;
     }
 
