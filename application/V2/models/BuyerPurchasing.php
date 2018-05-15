@@ -201,6 +201,9 @@ class BuyerPurchasingModel extends PublicModel
             ->field($field)
             ->where($map)
             ->select();
+        if(empty($info)){
+            $info=[];
+        }
         return $info;
     }
     public function editPurchase($data)
