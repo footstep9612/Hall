@@ -10,7 +10,7 @@ class ProductController extends PublicController {
 
     public function init() {
         $this->token = false;
-       // parent::init();
+        // parent::init();
         $this->input = $this->getPut();
     }
 
@@ -33,7 +33,7 @@ class ProductController extends PublicController {
         }
         $country_bn = $input['country_bn'] ? $input['country_bn'] : '';
         $productModel = new ProductModel();
-        $result = $productModel->getInfoBySpu($input['spu'], $input['lang'], $stock, $country_bn,isset($input['sku']) ? $input['sku'] : '');
+        $result = $productModel->getInfoBySpu($input['spu'], $input['lang'], $stock, $country_bn, isset($input['sku']) ? $input['sku'] : '');
         if ($result !== false) {
             jsonReturn($result);
         } else {
@@ -56,7 +56,7 @@ class ProductController extends PublicController {
         }
     }
 
-    public function getSkusAction(){
+    public function getSkusAction() {
         $input = $this->getPut();
         if (!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])) {
             jsonReturn('', ErrorMsg::NOTNULL_SKU);
@@ -108,13 +108,13 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $stockInfo = $productModel->getSkuStockBySku($input['sku'], $input['country_bn'], $input['lang']);
-        switch($stockInfo[$input['sku']]['price_strategy_type']){
+        switch ($stockInfo[$input['sku']]['price_strategy_type']) {
             case 1:
-                $priceInfo = $productModel->getSkuPriceByCount($input['sku'], $input['country_bn'], $input['count'],($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']] : []);
+                $priceInfo = $productModel->getSkuPriceByCount($input['sku'], $input['country_bn'], $input['count'], ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']] : []);
                 break;
             case 2:
                 $psdM = new PriceStrategyDiscountModel();
-                $priceInfo = $psdM->getPrice($input['sku'], $input['country_bn'],$input['count'],$stockInfo[$input['sku']]['price']);
+                $priceInfo = $psdM->getPrice($input['sku'], $input['country_bn'], $input['count'], $stockInfo[$input['sku']]['price']);
                 break;
         }
 
@@ -180,25 +180,24 @@ class ProductController extends PublicController {
     /**
      * 商品购物车结构信息
      */
-    public function shoppingcarAction(){
+    public function shoppingcarAction() {
         $input = $this->getPut();
-        if(!isset($input['skus']) || empty($input['skus'])){
+        if (!isset($input['skus']) || empty($input['skus'])) {
             jsonReturn('', ErrorMsg::NOTNULL_SKU);
         }
         if (!isset($input['lang']) || empty($input['lang'])) {
             jsonReturn('', ErrorMsg::NOTNULL_LANG);
         }
 
+
         $productModel = new ProductModel();
         $result = $productModel->myShoppingCar($input);
+
         if ($result !== false) {
             jsonReturn($result);
         } else {
             jsonReturn('', ErrorMsg::FAILED);
         }
-
-
-
     }
 
 }

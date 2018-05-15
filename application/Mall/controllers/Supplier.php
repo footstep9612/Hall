@@ -177,5 +177,11 @@ class SupplierController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    /**
+     * 瑞商信息完善
+     * */
+    public function editSupplierInfoAction(){
+
+    }
 
 }

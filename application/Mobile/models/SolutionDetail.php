@@ -7,16 +7,16 @@
  */
 
 /**
- * Description of Solution
+ * Description of SolutionDetail
  * @author  zhongyg
- * @date    2018-5-9 11:41:42
+ * @date    2018-5-15 9:37:18
  * @version V2.0
  * @desc
  */
-class SolutionModel extends PublicModel {
+class SolutionDetailModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'sol_content';
+    protected $tableName = 'sol_content_data';
     protected $dbName = 'erui_cms';
 
     public function __construct() {
@@ -24,14 +24,11 @@ class SolutionModel extends PublicModel {
     }
 
     private function _getCondition($condition) {
-        $where['status'] = 99;
-        if (!empty($condition['catids'])) {
-            $where['catid'] = ['in', $condition['catids']];
-        }
+
         if (!empty($condition['ids'])) {
             $where['id'] = ['in', $condition['ids']];
         }
-        $where[] = 'thumb is not null';
+
         return $where;
     }
 
@@ -39,23 +36,19 @@ class SolutionModel extends PublicModel {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
 
-        return $this->field('catid,thumb,title,id,description')->where($where)
+        return $this->field('id,content,readpoint,groupids_view,paginationtype,maxcharperpage,template,paytype,allow_comment,relation,goods')
+                        ->where($where)
                         ->order('listorder desc')
                         ->limit($from, $size)
                         ->select();
     }
 
-    public function getCount($condition) {
-        $where = $this->_getCondition($condition);
-
-
-        return $this->where($where)
-                        ->count();
-    }
-
     public function Info($id) {
+        $where = ['id' => intval($id)];
 
-        return $this->field('catid,thumb,title,id,description,username,inputtime')->where(['id' => $id])
+
+        return $this->field('id,content,readpoint,groupids_view,paginationtype,maxcharperpage,template,paytype,allow_comment,relation,goods')
+                        ->where($where)
                         ->find();
     }
 
