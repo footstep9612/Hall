@@ -71,7 +71,7 @@ class ExcelmanagerController extends PublicController {
             'code' => 1,
             'message' => L('EXCEL_SUCCESS'),
             'data' => [
-                'url' => 'http://file01.erui.com/group1/M00/03/F4/rBFgyFrUWdGAQyVDAAAkLI5wb2w85.xlsx'
+                'url' => 'http://file01.erui.com/group1/M00/04/40/rBFgyFr6qxiAS5E2AAAwBtKxT0s11.xlsx'
             ]
         ]);
     }
