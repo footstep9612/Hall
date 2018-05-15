@@ -49,7 +49,7 @@ class IndexserviceController extends PublicController {
         $data['banners'] = $this->_getAds($country_bn, $lang, 'BANNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
         $data['popularity_recommendation'] = $this->_getPopularity_recommendation([], $lang, $country_bn, 4);
-        $data['solution'] = $this->_getAds($country_bn, $lang, 'SOLUTION', 1);
+        $data['solution'] = $this->_getSolutions($lang);
 
         $data['products'] = $this->_getProducts($country_bn, $lang);
 
@@ -135,23 +135,35 @@ class IndexserviceController extends PublicController {
         return $ret;
     }
 
-//    /**
-//     * Description of 获取人气推荐产品
-//     * @author  zhongyg
-//     * @date    2018-05-09 16:50:09
-//     * @version V2.0
-//     * @desc  M站首页
-//     */
-//    private function _getSolutions($country_bn, $lang = 'en') {
-//        $jsondata = ['lang' => $lang];
-//        $jsondata['group'] = 'SOLUTION';
-//        $jsondata['show_type'] = 'M';
-//        $jsondata['country_bn'] = $country_bn;
-//        $home_country_ads_model = new HomeCountryAdsModel();
-//        $list = $home_country_ads_model->getList($jsondata);
-//
-//        return $list;
-//    }
+    /**
+     * Description of 获取人气推荐产品
+     * @author  zhongyg
+     * @date    2018-05-09 16:50:09
+     * @version V2.0
+     * @desc  M站首页
+     */
+    private function _getSolutions($lang = 'en') {
+
+
+        $jsondata = ['lang' => $lang];
+        $solution_cat_model = new SolutionCatModel();
+
+        $cats = $solution_cat_model->getList($jsondata);
+        $cat_ids = [];
+        foreach ($cats as $cat) {
+            $cat_ids[] = $cat['catid'];
+            if ($cat['arrchildid']) {
+                $arrchildids = explode(',', $cat['arrchildid']);
+                $cat_ids = array_merge($cat_ids, $arrchildids);
+            }
+        }
+        $jsondata['catids'] = $cat_ids;
+        $jsondata['pagesize'] = 1;
+        $solution_model = new SolutionModel();
+        $data = $solution_model->getList($jsondata);
+
+        return $data;
+    }
 
     /**
      * Description of 获取人气推荐产品
