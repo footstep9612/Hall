@@ -51,11 +51,10 @@ class ESKeywordsModel extends PublicModel {
             flush();
             $k = 1;
             for ($i = 0; $i < $count; $i += 100) {
-                $keywords = $this->field('id,lang,cat_no,cat_name,country_bn,market_area_bn,name,created_by,created_at,updated_by,updated_at,checked_by,checked_at,deleted_flag')->where($where)->limit(0, 100)
+                $keywords = $this->field('id,lang,cat_no,cat_name,country_bn,market_area_bn,name,created_by,created_at,updated_by,updated_at,checked_by,checked_at,deleted_flag')
+                                ->where($where)->limit($i, 100)
                                 ->order('id ASC')->select();
                 $time1 = microtime(true);
-
-
                 foreach ($keywords as $key => $item) {
 
                     $body = $item;

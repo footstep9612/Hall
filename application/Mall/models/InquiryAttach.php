@@ -32,6 +32,8 @@ class InquiryAttachModel extends PublicModel {
         }
         if (!empty($condition['attach_group'])) {
             $where['attach_group'] = $condition['attach_group'];
+        }else{
+            $where['attach_group'] = ['in',['INQUIRY','FINAL_EXTERNAL']];
         }
         if (!empty($condition['attach_type'])) {
             $where['attach_type'] = $condition['attach_type'];

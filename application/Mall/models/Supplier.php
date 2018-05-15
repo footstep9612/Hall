@@ -90,6 +90,14 @@ class SupplierModel extends PublicModel {
     }
 
     /**
+     * 瑞商个人信息删除(针对注册--物理删除)
+     * @author
+     */
+    public function delete_data($where){
+        return $this->where($where)->delete();
+    }
+
+    /**
      * @desc 已开发供应商数量
      *
      * @author zhongyg
@@ -218,15 +226,14 @@ class SupplierModel extends PublicModel {
      * 个人信息查询
      * @param  $data 条件
      * @return
-     * @author jhw
      */
     public function info($data) {
         if ($data['id']) {
-            $buyerInfo = $this->where(array("supplier.id" => $data['id']))->field('supplier.*,em.name as checked_name,ma.name as country_name ')
+            $supplierInfo = $this->where(array("supplier.id" => $data['supplier_id']))->field('supplier.*,em.name as checked_name,ma.name as country_name ')
                     ->join('erui_sys.employee em on em.id=supplier.checked_by', 'left')
                     ->join('erui_dict.country ma on ma.`bn`=supplier.country_bn and  ma.`lang`=supplier.lang', 'left')
                     ->find();
-            return $buyerInfo;
+            return $supplierInfo;
         } else {
             return false;
         }
