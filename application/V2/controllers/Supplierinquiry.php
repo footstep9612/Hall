@@ -139,8 +139,8 @@ class SupplierinquiryController extends PublicController {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start'])) {
-            $days = empty($condition['last_days']) ? 31 : $condition['last_days'];
+        if (empty($condition['created_at_start']) && !empty($condition['last_days']) ) {
+            $days = intval($condition['last_days']) ? : 31;
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->Inquiryexport($condition);
@@ -170,8 +170,8 @@ class SupplierinquiryController extends PublicController {
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start'])) {
-            $days = empty($condition['last_days']) ? 31 : $condition['last_days'];
+        if (empty($condition['created_at_start']) && !empty($condition['last_days']) ) {
+            $days = intval($condition['last_days']) ? : 31;
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->InquiryToatolexport($condition);
