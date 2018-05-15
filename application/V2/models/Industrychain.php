@@ -65,10 +65,10 @@ class IndustrychainModel extends PublicModel
         );
         $info=$this->field($fieldStr)->where($cond)->select();
         if(empty($info)){
-            $info=array();
-            foreach($fieldArr as $k => $v){
-                $info[$v]='';
-            }
+            $info=[];
+//            foreach($fieldArr as $k => $v){
+//                $info[$v]='';
+//            }
         }
         return $info;
 
