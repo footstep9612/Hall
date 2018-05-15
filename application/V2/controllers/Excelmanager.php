@@ -540,6 +540,19 @@ class ExcelmanagerController extends PublicController {
             'quote_status'=>'COMPLETED',
             'updated_by' => $this->user['id']
         ]);
+        
+        $inquiryAttach = new InquiryAttachModel();
+        $condition = ['inquiry_id'=>$request['inquiry_id'],'attach_group'=>'FINAL_EXTERNAL'];
+        $ret = $inquiryAttach->getList($condition);
+        if($ret['code']  == 1 && !empty($ret['data']) && !empty($ret['data'][0]['attach_url'])){
+            $this->jsonReturn([
+                'code'    => '1',
+                'message' => L('EXCEL_SUCCESS'),
+                'data'    => [
+                    'url' => $ret['data'][0]['attach_url']
+                ]
+            ]);
+        }
 
         $data = $this->getCommercialQuoteData($request['inquiry_id']);
 
@@ -569,6 +582,18 @@ class ExcelmanagerController extends PublicController {
             $this->jsonReturn(['code' => '-1', 'message' => L('EXCEL_FAILD'),]);
             return;
         }
+        
+        //保存数据库
+        $data = [
+            'inquiry_id'   => $request['inquiry_id'],
+            'attach_group' => 'FINAL_EXTERNAL',
+            'attach_type'  => 'application/zip',
+            'attach_name'  => $zipFile,
+            'attach_url'   => $fileId['url'],
+            'created_by'   => $this->user['id'],
+            'created_at'   => date('Y-m-d H:i:s')
+        ];
+        $inquiryAttach->addData($data);
 
         //删除本地的临时文件
         @unlink($excelFile);

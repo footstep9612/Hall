@@ -499,8 +499,8 @@ class ProductModel extends PublicModel {
                 $skus = [];
                 $spus = [];
                 foreach ($result as $index => $item) {
-                    $skus[] = $item['sku'];
-                    $spus[] = $item['spu'];
+                    $skus[] = strval($item['sku']);
+                    $spus[] = strval($item['spu']);
                 }
 
                 $goodsModel = new GoodsModel();
@@ -542,8 +542,10 @@ class ProductModel extends PublicModel {
 
                 //扩展属性
                 $gattrModel = new GoodsAttrModel();
+
                 $condition_attr = ['sku' => ['in', $skus], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
+
                 $attrAry = [];
                 foreach ($attrs as $attr) {
                     $attrAry[$attr['sku']] = json_decode($attr['spec_attrs'], true);

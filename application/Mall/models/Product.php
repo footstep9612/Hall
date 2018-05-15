@@ -362,7 +362,7 @@ class ProductModel extends PublicModel {
                 $dataAttach = [];
                 foreach ($attachs as $r) {
                     if (isset($dataAttach[$r['spu']])) {
-                        continue;
+
                     }
                     $dataAttach[$r['spu']] = $r['attach_url'];
                 }
@@ -487,26 +487,28 @@ class ProductModel extends PublicModel {
         }
         try {
             $goodsModel = new GoodsModel();
-            $goodsTable = $goodsModel->getTableName();
+
             $result = $input['skus'];
             if ($result) {
                 $skus = [];
                 $spus = [];
                 foreach ($result as $index => $item) {
-                    $skus[] = $item['sku'];
-                    $spus[] = $item['spu'];
+                    $skus[] = strval($item['sku']);
+                    $spus[] = strval($item['spu']);
                 }
 
-                $goodsModel = new GoodsModel();
-                $goodsTable = $goodsModel->getTableName();
-                $productModel = new ProductModel();
-                $productTable = $productModel->getTableName();
-                $goods = $goodsModel->field("$goodsTable.spu,$goodsTable.sku,$goodsTable.name,$goodsTable.show_name,$goodsTable.min_order_qty,$goodsTable.min_pack_naked_qty,$goodsTable.nude_cargo_unit,$goodsTable.min_pack_unit,$productTable.name as spu_name,$productTable.show_name as spu_show_name,$goodsTable.lang,$goodsTable.model,$goodsTable.status,$goodsTable.deleted_flag")
-                                ->join("$productTable ON $productTable.spu=$goodsTable.spu AND $productTable.lang=$goodsTable.lang")->where(["$goodsTable.sku" => ['in', $skus], "$goodsTable.lang" => $input['lang'], "$goodsTable.deleted_flag" => 'N'])->select();
+
+                $goods = $goodsModel->field('spu,sku,name,show_name,min_order_qty,min_pack_naked_qty,nude_cargo_unit,'
+                                        . 'min_pack_unit,lang,model,status,deleted_flag')
+                                ->where(['sku' => ['in', $skus],
+                                    'lang' => $input['lang'],
+                                    'deleted_flag' => 'N'])->select();
+
+                $this->_getSpuInfoByGoods($goods, $input['lang']);
                 //库存
                 $stockAry = [];
                 if ($input['type']) {
-                    $stockAry = $productModel->getSkuStockBySku($skus, $input['country_bn'], $input['lang']);
+                    $stockAry = $this->getSkuStockBySku($skus, $input['country_bn'], $input['lang']);
                 }
                 $goodsAry = [];
                 foreach ($goods as $r) {
@@ -514,8 +516,8 @@ class ProductModel extends PublicModel {
                     if ($input['type']) {
                         switch ($stockAry[$r['sku']]['price_strategy_type']) {
                             case 1:
-                                $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
-                                $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
+                                $r['priceAry'] = $this->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
+                                $r['priceList'] = $this->getSkuPriceBySku($r['sku'], $input['country_bn']);
                                 break;
                             case 2:
                                 $psdM = new PriceStrategyDiscountModel();
@@ -557,6 +559,49 @@ class ProductModel extends PublicModel {
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e, Log::ERR);
             return false;
+        }
+    }
+
+    /**
+     * 我的购物车
+     */
+    private function _getSpuInfoByGoods(&$goods, $lang = 'en') {
+
+        try {
+            $spus = [];
+            foreach ($goods as $key => $goodsinfo) {
+                $goods[$key]['spu_name'] = '';
+                $goods[$key]['spu_show_name'] = '';
+                $spus[] = $goodsinfo['spu'];
+            }
+            $where = ['deleted_flag' => 'N'];
+            $where['lang'] = $lang;
+            if ($spus) {
+                $where['spu'] = ['in', $spus];
+            } else {
+
+                return [];
+            }
+            $data = $this->field('name ,show_name,spu')->where($where)->select();
+            $ret = [];
+            if ($data) {
+                foreach ($data as $item) {
+                    $ret[$item['spu']] = $item;
+                }
+            }
+
+            foreach ($goods as $key => $goodsinfo) {
+                if (isset($ret[$goodsinfo['spu']])) {
+                    $goods[$key]['spu_name'] = $ret[$goodsinfo['spu']]['name'];
+                    $goods[$key]['spu_show_name'] = $ret[$goodsinfo['spu']]['show_name'];
+                }
+            }
+            return $ret;
+        } catch (Exception $ex) {
+            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
+            Log::write($ex->getMessage(), Log::ERR);
+
+            return [];
         }
     }
 
