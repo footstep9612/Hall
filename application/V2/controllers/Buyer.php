@@ -1186,7 +1186,7 @@ EOF;
 //        }
 //
         $arr['base_info'] = $buerInfo;
-        //获取客户联系人
+        //获取客户联系人-
 //        $contact = new BuyercontactModel();
 //        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
 //        if (empty($contactInfo)) {    //联系人为空
