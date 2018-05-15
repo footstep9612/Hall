@@ -85,8 +85,26 @@ class SolutionController extends PublicController {
                     $products = $esproduct_model->getNewProducts($condition);
 
                     $info['products'] = $this->_getdata($products[0]);
+                } else {
+                    $info['products'] = [];
                 }
+            } else {
+                $info['products'] = [];
             }
+            if ($info['relation']) {
+                $relation_ids = explode('|', $info['relation']);
+                if ($relation_ids) {
+                    $condition['ids'] = $relation_ids;
+                    $relations = $solution_model->getList($condition);
+
+                    $info['relations'] = $relations;
+                } else {
+                    $info['relations'] = [];
+                }
+            } else {
+                $info['relations'] = [];
+            }
+
             $this->jsonReturn($info);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
