@@ -469,6 +469,9 @@ class SupplierInquiryModel extends PublicModel {
             $created_at_end = trim($condition['created_at_end']);
             $where['i.created_at'] = ['elt', $created_at_end];
         }
+        if (!empty($condition['country_bn'])) {
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ? : ['-1']];
+        }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
                 ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
@@ -599,6 +602,9 @@ class SupplierInquiryModel extends PublicModel {
         } elseif (!empty($condition['created_at_end'])) {
             $created_at_end = trim($condition['created_at_end']);
             $where['i.created_at'] = ['elt', $created_at_end];
+        }
+        if (!empty($condition['country_bn'])) {
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ? : ['-1']];
         }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
