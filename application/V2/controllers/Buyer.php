@@ -1177,41 +1177,72 @@ EOF;
         } else {
             $buerInfo['org_chart'] = array();
         }
-        //分析报告
-//        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
-//        if(!empty($org_chart)){
-//            $buerInfo['report_attach'] = $org_chart;
-//        }else{
-//            $buerInfo['report_attach'] = array();
-//        }
-//
+
         $arr['base_info'] = $buerInfo;
-        //获取客户联系人-
-//        $contact = new BuyercontactModel();
-//        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-//        if (empty($contactInfo)) {    //联系人为空
-//            $contactInfo = [array(
-//            'name' => null, //联系人姓名
-//            'title' => null, //联系人职位
-//            'role' => null, //角色
-//            'phone' => null, //联系人电话
-//            'email' => null, //联系人邮箱
-//            'hobby' => null, //爱好
-//            'address' => null, //详细地址
-//            'experience' => null, //经历
-//            'social_relations' => null, //社会关系
-//            'key_concern' => null, //决策主要关注点
-//            'attitude_kerui' => null, //对科瑞的态度
-//            'social_habits' => null, //常去社交场所
-//            'relatives_family' => null, //家庭亲戚相关信息
-//            )];
-//        }
-//        $arr['contact'] = $contactInfo;
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
             'data' => $arr
         );
+        $this->jsonReturn($dataJson);
+    }
+    //客户附件管理列表
+    public function showAttachListAction() {
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
+        //获取财务报表
+        $attach = new BuyerattachModel();
+        $arr = $attach->showAttachList($data['buyer_id']);
+        $dataJson = array(
+            'code' => 1,
+            'message' => '附件数据',
+            'data' => $arr
+        );
+        $this->jsonReturn($dataJson);
+    }
+    //删除附件
+    public function editAttachAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerattachModel();
+        $attach = $model->editAttach($data);
+        if ($attach == false) {
+            $dataJson = array(
+                'code' => 0,
+                'message' => '参数数据错误'
+            );
+        } else {
+            $dataJson = array(
+                'code' => 1,
+                'message' => '成功'
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    /**
+     * 客户管理-附件下载
+     * wangs
+     */
+    public function attachDownloadAction() {
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $model = new BuyerattachModel();
+        $attach = $model->attachDownload($data);
+        if ($attach == false) {
+            $dataJson = array(
+                'code' => 0,
+                'message' => '请输入正确信息'
+            );
+        } else {
+            $dataJson = array(
+                'code' => 1,
+                'message' => '数据下载',
+                'data' => $attach
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     public function editContactAction() {
@@ -1319,30 +1350,7 @@ EOF;
         );
         $this->jsonReturn($dataJson);
     }
-    /**
-     * 客户管理-附件下载
-     * wangs
-     */
-    public function attachDownloadAction() {
-        $created_by = $this->user['id'];
-        $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $model = new BuyerattachModel();
-        $attach = $model->attachDownload($data);
-        if ($attach == false) {
-            $dataJson = array(
-                'code' => 0,
-                'message' => '请输入正确信息'
-            );
-        } else {
-            $dataJson = array(
-                'code' => 1,
-                'message' => '数据下载',
-                'data' => $attach
-            );
-        }
-        $this->jsonReturn($dataJson);
-    }
+
 
     /**
      * 客户管理-客户档案--4页签统计展示
