@@ -163,6 +163,22 @@ class BuyerattachModel extends PublicModel {
             return false;
         }
     }
+    public function attachDownload($data){
+        if(empty($data['buyer_id']) || empty($data['id'])){
+            return false;
+        }
+        $cond = array(
+            'id'=>$data['id'],
+            'buyer_id'=>$data['buyer_id'],
+            'deleted_flag'=>'N'
+        );
+        $attach = $this->field('attach_name,attach_url')->where($cond)->find();
+        if(empty($attach)){
+            $attach=[];
+        }
+        return $attach;
+
+    }
 //    public function delAttach($data){
 //        if(empty($data['id'])){
 //            return false;
@@ -381,13 +397,12 @@ class BuyerattachModel extends PublicModel {
      * @param $buyer_id 客户id
      * @param $created_by   创建人
      */
-    public function attachDownload($data){
+    public function attachDownload1($data){
         if(empty($data['buyer_id']) || empty($data['attach_url']) || empty($data['attach_group'])){
             return false;
         }
         $cond = array(
             'buyer_id'=>$data['buyer_id'],
-            'created_by'=>$data['created_by'],
             'attach_url'=>$data['attach_url'],
             'attach_group'=>$data['attach_group'],
             'deleted_flag'=>'N'
