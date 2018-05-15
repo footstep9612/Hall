@@ -80,13 +80,34 @@ class SolutionController extends PublicController {
                 $spus = explode('|', $info['goods']);
                 if ($spus) {
                     $esproduct_model = new EsProductModel();
+                    $condition = [];
                     $condition['lang'] = str_replace('show_solution_', '', $info['template']);
                     $condition['spus'] = $spus;
                     $products = $esproduct_model->getNewProducts($condition);
 
                     $info['products'] = $this->_getdata($products[0]);
+                } else {
+                    $info['products'] = [];
                 }
+            } else {
+                $info['products'] = [];
             }
+            if ($info['relation']) {
+                $relation_ids = explode('|', $info['relation']);
+                if ($relation_ids) {
+                    $condition = [];
+                    $condition['lang'] = str_replace('show_solution_', '', $info['template']);
+                    $condition['ids'] = $relation_ids;
+                    $relations = $solution_model->getList($condition);
+
+                    $info['relations'] = $relations;
+                } else {
+                    $info['relations'] = [];
+                }
+            } else {
+                $info['relations'] = [];
+            }
+
             $this->jsonReturn($info);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
