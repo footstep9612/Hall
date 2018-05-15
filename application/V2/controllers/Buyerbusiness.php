@@ -160,6 +160,22 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    //采购计划列表
+    public function showPurchaseAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new BuyerPurchasingModel();
+        $res = $model->showPurchase($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
     /*
      * 创建客户---业务信息及采购计划，附件
      * wangs

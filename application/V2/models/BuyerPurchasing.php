@@ -142,7 +142,7 @@ class BuyerPurchasingModel extends PublicModel
         return $res;
     }
     //查询采购计划 和 采购计划附件
-    public function showPurchase($buyer_id,$created_by){
+    public function showPurchase1($buyer_id,$created_by){
         $map = array(
             'purchasing.buyer_id'=>$buyer_id,
 //            'purchasing.created_by'=>$created_by,
@@ -227,5 +227,40 @@ class BuyerPurchasingModel extends PublicModel
         } else {
             return false;
         }
+    }
+    public function showPurchase($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $map = array(
+            'purchasing.id'=>$data['id'],
+            'purchasing.deleted_flag'=>'N',
+            'attach.deleted_flag'=>'N',
+        );
+        $fieldArr = array(
+            'id',   //采购计划id
+            'buyer_id',   //采购商id
+//            'purchasing_at',   //采购计划日期 DATE_FORMAT(purchasing_at,'%Y')
+            'purchasing_budget',   //采购预算
+            'purchasing_plan',   //采购计划
+//            'created_by',   //创建人
+//            'created_at',   //创建时间
+        );
+        $field='';
+        foreach($fieldArr as $v){
+            $field .= 'purchasing.'.$v.',';
+        }
+        $field .= 'DATE_FORMAT(purchasing.purchasing_at,\'%Y\') as purchasing_at,';
+        $field .= 'attach.id as attach_id,attach.attach_name,attach.attach_url';
+
+        $info = $this->alias('purchasing')
+            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->field($field)
+            ->where($map)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        return $info;
     }
 }
