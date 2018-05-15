@@ -1153,31 +1153,30 @@ EOF;
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
         $buerInfo['buyer_account'] = $accountInfo['email'];
         //客户订单分类
-        $order = new OrderModel();
-        $orderInfo = $order->statisOrder($data['buyer_id']);
-        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
+//        $order = new OrderModel();
+//        $orderInfo = $order->statisOrder($data['buyer_id']);
+//        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
-        $agent = new BuyerAgentModel();
-        $agentInfo = $agent->buyerMarketAgent($data);
-        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+//        $agent = new BuyerAgentModel();
+//        $agentInfo = $agent->buyerMarketAgent($data);
+//        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
+//        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
         //获取财务报表
-        $attach = new BuyerattachModel();
+//        $attach = new BuyerattachModel();
 
-        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id'], $data['created_by']);
-        if (!empty($finance)) {
-            $buerInfo['finance_attach'] = $finance;
-        } else {
-            $buerInfo['finance_attach'] = array();
-        }
+//        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id'], $data['created_by']);
+//        if (!empty($finance)) {
+//            $buerInfo['finance_attach'] = $finance;
+//        } else {
+//            $buerInfo['finance_attach'] = array();
+//        }
         //公司人员组织架构
-        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id'], $data['created_by']);
-        if (!empty($org_chart)) {
-            $buerInfo['org_chart'] = $org_chart;
-        } else {
-            $buerInfo['org_chart'] = array();
-        }
-
+//        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id'], $data['created_by']);
+//        if (!empty($org_chart)) {
+//            $buerInfo['org_chart'] = $org_chart;
+//        } else {
+//            $buerInfo['org_chart'] = array();
+//        }
         $arr['base_info'] = $buerInfo;
         $dataJson = array(
             'code' => 1,
@@ -1259,23 +1258,6 @@ EOF;
             $dataJson['message'] = L('error');
         }
         $this->jsonReturn($dataJson);
-//        if (empty($contactInfo)) {    //联系人为空
-//            $contactInfo = [array(
-//                'name' => null, //联系人姓名
-//                'title' => null, //联系人职位
-//                'role' => null, //角色
-//                'phone' => null, //联系人电话
-//                'email' => null, //联系人邮箱
-//                'hobby' => null, //爱好
-//                'address' => null, //详细地址
-//                'experience' => null, //经历
-//                'social_relations' => null, //社会关系
-//                'key_concern' => null, //决策主要关注点
-//                'attitude_kerui' => null, //对科瑞的态度
-//                'social_habits' => null, //常去社交场所
-//                'relatives_family' => null, //家庭亲戚相关信息
-//            )];
-//        }
     }
     public function showContactAction(){
         $data = json_decode(file_get_contents("php://input"), true);
