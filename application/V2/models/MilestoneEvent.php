@@ -61,6 +61,13 @@ class MilestoneEventModel extends Model {
         }
         return $info;
     }
+    public function delMilestoneEvent($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $this->where(array('id'=>$data['id']))->save(array('deleted_flag'=>'Y'));
+        return true;
+    }
     /**
      * @param $event 事件数据arr
      * @param $buyer_id 客户id

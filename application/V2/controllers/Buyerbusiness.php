@@ -79,13 +79,29 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //里程牌事件
+    //里程牌事件==============================================================
     public function editMilestoneEventAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
         $event = new MilestoneEventModel();
         $res = $event->editMilestoneEvent($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购计划列表
+    public function delMilestoneEventAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] =  $this->user['id'];
+        $event = new MilestoneEventModel();
+        $res = $event->delMilestoneEvent($data);
         if($res===false){
             $dataJson['code'] =0;
             $dataJson['message'] ='参数错误';
@@ -127,7 +143,7 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //采购计划列表
+    //采购计划列表===========================================================================
     public function showPurchaseListAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
