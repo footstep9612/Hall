@@ -47,7 +47,7 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //新建/编辑结算基本信息
+    //新建/编辑结算基本信息==============================================================================
     public function editSettlementAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -205,6 +205,22 @@ class BuyerbusinessController extends PublicController
         }else{
             $dataJson['code'] =1;
             $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //入网管理===================================================================================
+    public function showNetSubjectAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $net = new NetSubjectModel();
+        $res = $net->showNetSubject($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
         }
         $this -> jsonReturn($dataJson);
     }

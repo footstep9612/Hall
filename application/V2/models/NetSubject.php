@@ -100,4 +100,27 @@ class NetSubjectModel extends PublicModel {
         }
         return $arr;
     }
+    public function showNetSubject($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $cond=array(
+            'buyer_id'=>$data['buyer_id'],
+            'deleted_flag'=>'N'
+        );
+        $field=array(
+            'subject_name', //入网主题简称
+            'net_at', //入网时间
+            'net_invalid_at', //失效时间
+            'net_goods' //入网商品
+        );
+        $arr=array();
+        $info=$this->field($field)->where($cond)->select();
+        foreach($info as $k => $v){
+            $kk=$v['subject_name'];
+            unset($v['subject_name']);
+            $arr[$kk]=$v;
+        }
+        return $arr;
+    }
 }
