@@ -123,4 +123,11 @@ class NetSubjectModel extends PublicModel {
         }
         return $arr;
     }
+    public function editNetSubject($data){
+        if(empty($data['id'])){
+            
+        }else{
+
+        }
+    }
 }
