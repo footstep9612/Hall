@@ -208,13 +208,13 @@ class BuyerPurchasingModel extends PublicModel
     }
     public function editPurchase($data)
     {
-        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;   //采购时间
-        $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;   //采购时采购预算间
-        $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;   //采购时间
+        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;
+        $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;
+        $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;
         $arr['buyer_id'] = $data['buyer_id'];
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
-
+        //附件
         $attach['attach_name'] = isset($data['attach_name']) ? $data['attach_name'] : null;
         $attach['attach_url'] = isset($data['attach_url']) ? $data['attach_url'] : null;
         $attach['created_by'] = $data['created_by'];
@@ -223,14 +223,15 @@ class BuyerPurchasingModel extends PublicModel
             unset($arr['buyer_id']);
             $this->where(array('id' => $data['id']))->save($arr);
 
-
-
-//            $attachModel=new PurchasingAttachModel();
-//            $attachModel->where(array('id' => $data['id']))->save($attach);
+            $attachModel=new PurchasingAttachModel();
+            $attachModel->where(array('purchasing_id' => $data['id']))->save($attach);
             return true;
         }
         $res = $this->add($arr);
         if ($res) {
+            $attachModel=new PurchasingAttachModel();
+            $attach['purchasing_id']=$res;
+            $attachModel->add($attach);
             return true;
         } else {
             return false;
