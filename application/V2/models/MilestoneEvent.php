@@ -27,7 +27,7 @@ class MilestoneEventModel extends Model {
         return true;
     }
     //查看
-    public function showMilestoneEvent($data){
+    public function showMilestoneEvent2($data){
         $fieldStr='id,buyer_id,event_name,event_content,event_contact,event_time';
         $info=$this->field($fieldStr)->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
         return $info;
@@ -87,7 +87,7 @@ class MilestoneEventModel extends Model {
         }
         return $flag;
     }
-    public function showMilestoneEvent1($buyer_id,$created_by){
+    public function showMilestoneEvent($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,
