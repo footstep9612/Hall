@@ -80,6 +80,7 @@ class SolutionController extends PublicController {
                 $spus = explode('|', $info['goods']);
                 if ($spus) {
                     $esproduct_model = new EsProductModel();
+                    $condition = [];
                     $condition['lang'] = str_replace('show_solution_', '', $info['template']);
                     $condition['spus'] = $spus;
                     $products = $esproduct_model->getNewProducts($condition);
@@ -94,6 +95,8 @@ class SolutionController extends PublicController {
             if ($info['relation']) {
                 $relation_ids = explode('|', $info['relation']);
                 if ($relation_ids) {
+                    $condition = [];
+                    $condition['lang'] = str_replace('show_solution_', '', $info['template']);
                     $condition['ids'] = $relation_ids;
                     $relations = $solution_model->getList($condition);
 
