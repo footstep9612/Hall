@@ -133,7 +133,7 @@ class BuyerPurchasingModel extends PublicModel
         return true;
     }
     //采购计划删除
-    public function delPurchase($buyer_id,$created_by){
+    public function delPurchase1($buyer_id,$created_by){
         $map = array(
             'buyer_id'=>$buyer_id,
             'created_by'=>$created_by
@@ -259,5 +259,21 @@ class BuyerPurchasingModel extends PublicModel
             ->where($map)
             ->find();
         return $info;
+    }
+    //采购计划删除
+    public function delPurchase($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $map = array(
+            'id'=>$data['id']
+        );
+        $save=array(
+            'created_by'=>$data['created_by'],
+            'created_at'=>date('Y-m-d H:i:s'),
+            'deleted_flag'=>'Y'
+        );
+        $this -> where($map) -> save($save);
+        return true;
     }
 }
