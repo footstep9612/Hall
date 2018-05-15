@@ -171,4 +171,58 @@ class BuyerPurchasingModel extends PublicModel
             ->select();
         return $info;
     }
+    public function showPurchaseList($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $map = array(
+            'purchasing.buyer_id'=>$data['buyer_id'],
+            'purchasing.deleted_flag'=>'N',
+            'attach.deleted_flag'=>'N',
+        );
+        $fieldArr = array(
+            'id',   //采购计划id
+            'buyer_id',   //采购商id
+//            'purchasing_at',   //采购计划日期 DATE_FORMAT(purchasing_at,'%Y')
+            'purchasing_budget',   //采购预算
+            'purchasing_plan',   //采购计划
+//            'created_by',   //创建人
+//            'created_at',   //创建时间
+        );
+        $field='';
+        foreach($fieldArr as $v){
+            $field .= 'purchasing.'.$v.',';
+        }
+        $field .= 'DATE_FORMAT(purchasing.purchasing_at,\'%Y\') as purchasing_at,';
+        $field .= 'attach.id as attach_id,attach.attach_name,attach.attach_url';
+
+        $info = $this->alias('purchasing')
+            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->field($field)
+            ->where($map)
+            ->select();
+        return $info;
+    }
+    public function editPurchase($data)
+    {
+        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'] : null;   //采购时间
+        $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;   //采购时采购预算间
+        $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;   //采购时间
+
+        $arr['buyer_id'] = $data['buyer_id'];
+        $arr['created_by'] = $data['created_by'];
+        $arr['created_at'] = date('Y-m-d H:i:s');
+
+        if (!empty($data['id'])) {    //编辑
+            unset($arr['buyer_id']);
+            $this->where(array('id' => $data['id']))->save($arr);
+            return true;
+        }
+        $res = $this->add($arr);
+        if ($res) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
