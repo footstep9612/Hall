@@ -88,6 +88,8 @@ class HomecountryController extends PublicController {
         $list = $home_country_ads_model->getList($condition, $pagesize);
 
         if ($list) {
+            $count = $home_country_ads_model->getCount($condition);
+            $this->setvalue('count', $count);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
