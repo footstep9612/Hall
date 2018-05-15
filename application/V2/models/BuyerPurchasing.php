@@ -211,14 +211,22 @@ class BuyerPurchasingModel extends PublicModel
         $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;   //采购时间
         $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;   //采购时采购预算间
         $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;   //采购时间
-
         $arr['buyer_id'] = $data['buyer_id'];
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
 
+        $attach['attach_name'] = isset($data['attach_name']) ? $data['attach_name'] : null;
+        $attach['attach_url'] = isset($data['attach_url']) ? $data['attach_url'] : null;
+        $attach['created_by'] = $data['created_by'];
+        $attach['created_at'] =  date('Y-m-d H:i:s');
         if (!empty($data['id'])) {    //编辑
             unset($arr['buyer_id']);
             $this->where(array('id' => $data['id']))->save($arr);
+
+
+
+//            $attachModel=new PurchasingAttachModel();
+//            $attachModel->where(array('id' => $data['id']))->save($attach);
             return true;
         }
         $res = $this->add($arr);
