@@ -80,23 +80,38 @@ class IndexserviceController extends PublicController {
     private function _getFloors($country_bn, $lang) {
         $jsondata = ['lang' => $lang];
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['show_type'] = 'M';
-        $home_floor_model = new HomeFloorModel();
-        $floors = $home_floor_model->getList($jsondata);
-        if ($floors) {
-            $floor_ids = [];
-            foreach ($floors as $key => $floor) {
-                $floor_ids[] = $floor['id'];
-            }
-            $jsondata['show_type'] = 'M';
-            $jsondata['floor_ids'] = $floor_ids;
-            $products = $this->_getFloorProducts($jsondata);
-            foreach ($floors as $key => $floor) {
-                $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
-            }
 
-            unset($jsondata['floor_id'], $products);
+        $show_cat_model = new ShowCatModel();
+        $jsondata['level_no'] = 1;
+        $floors = $show_cat_model->getlist($jsondata, $lang);
+        if ($floors) {
+
+            $es_product_model = new EsProductModel();
+            foreach ($floors as $key => $floor) {
+
+                $jsondata['cat_no1'] = $floor['cat_no'];
+                $jsondata['page_size'] = 4;
+                $list = $es_product_model->getNewProducts($jsondata, $lang, $country_bn);
+                $floors[$key]['products'] = $this->_getdata($list, $lang);
+            }
         }
+//        $jsondata['show_type'] = 'M';
+//        $home_floor_model = new HomeFloorModel();
+//        $floors = $home_floor_model->getList($jsondata);
+//        if ($floors) {
+//            $floor_ids = [];
+//            foreach ($floors as $key => $floor) {
+//                $floor_ids[] = $floor['id'];
+//            }
+//            $jsondata['show_type'] = 'M';
+//            $jsondata['floor_ids'] = $floor_ids;
+//            $products = $this->_getFloorProducts($jsondata);
+//            foreach ($floors as $key => $floor) {
+//                $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
+//            }
+//
+//            unset($jsondata['floor_id'], $products);
+//        }
 
 
         return $floors;

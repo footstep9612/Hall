@@ -906,7 +906,7 @@ class SupplierInquiryModel extends PublicModel {
         $biz_despatchings = $inquiry_check_log_model->alias('icl')
                 ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
                 ->join($employee_table . ' e on e.id=icl.agent_id')
-                ->where(['icl.inquiry_id' => ['in', $inquiry_ids], 'out_node' => 'BIZ_DISPATCHING'])
+                ->where(['icl.inquiry_id' => ['in', $inquiry_ids ? : ['-1']], 'out_node' => 'BIZ_DISPATCHING'])
                 ->group('icl.inquiry_id')
                 ->select();
         $bizdespatchings = [];
