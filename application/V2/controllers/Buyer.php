@@ -1132,7 +1132,8 @@ EOF;
     public function showCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
 //        $data['created_by'] = $this->user['id'];
-        $model = new BuyerModel();
+//        $model = new BuyerModel();
+        $model = new CustomerCreditModel();
         $res = $model->showCredit($data);          //创建基本信息
         if ($res === false) {
             $datajson['code']=0;
@@ -1147,7 +1148,8 @@ EOF;
     public function editCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
-        $model = new BuyerModel();
+//        $model = new BuyerModel();
+        $model = new CustomerCreditModel();
         $res = $model->editCredit($data);          //创建基本信息
         if ($res === false) {
             $datajson['code']=0;
