@@ -14,6 +14,7 @@ class NetSubjectModel extends PublicModel {
     protected $tableName = 'net_subject';
 
     public function __construct() {
+        
         parent::__construct();
     }
 
