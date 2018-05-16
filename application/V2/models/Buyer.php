@@ -1804,12 +1804,12 @@ EOF;
         return true;
     }
     //联系人
-    public function editContact($data){
-        //编辑联系人必填
-        $attach = new BuyercontactModel();
-        $attach -> updateBuyerContact($data['contact'],$data['buyer_id'],$data['created_by']);
-        return true;
-    }
+//    public function editContact($data){
+//        //编辑联系人必填
+//        $attach = new BuyercontactModel();
+//        $attach -> updateBuyerContact($data['contact'],$data['buyer_id'],$data['created_by']);
+//        return true;
+//    }
 
     /**
      * 采购商客户管理，基本信息的创建
@@ -2546,72 +2546,72 @@ EOF;
     /**
      * 创建业务信息,crm-信用
      */
-    public function CrmCredite($credit,$buyer_id){
-        $arr=array(
-            'line_of_credit'=>!empty($credit['line_of_credit'])?$credit['line_of_credit']:0,    //授信额度
-            'credit_available'=>!empty($credit['credit_available'])?$credit['credit_available']:0,    //可用额度
-
-            'payment_behind'=>!empty($credit['payment_behind'])?$credit['payment_behind']:null,    //是否拖欠过货款
-            'behind_time'=>!empty($credit['behind_time'])?$credit['behind_time']:null,    //拖欠货款时间
-            'reputation'=>!empty($credit['reputation'])?$credit['reputation']:null,    //业内口碑
-            'violate_treaty'=>!empty($credit['violate_treaty'])?$credit['violate_treaty']:null,  //是否有针对KERUI/ERUI的违约
-            'treaty_content'=>!empty($credit['treaty_content'])?$credit['treaty_content']:null,    //有违约内容
-            'comments'=>!empty($credit['comments'])?$credit['comments']:null,    //KERUI/ERUI、KERUI对其评价
-
-            'credit_type'=>$credit['credit_type'],    //授信类型
-            'credit_level'=>$credit['credit_level'],    //信用等级
-        );
-        $cond=array(
-            'id'=>$buyer_id,
-            'deleted_flag'=>'N'
-        );
-        return $this->where($cond)->save($arr);
-    }
+//    public function CrmCredite($credit,$buyer_id){
+//        $arr=array(
+//            'line_of_credit'=>!empty($credit['line_of_credit'])?$credit['line_of_credit']:0,    //授信额度
+//            'credit_available'=>!empty($credit['credit_available'])?$credit['credit_available']:0,    //可用额度
+//
+//            'payment_behind'=>!empty($credit['payment_behind'])?$credit['payment_behind']:null,    //是否拖欠过货款
+//            'behind_time'=>!empty($credit['behind_time'])?$credit['behind_time']:null,    //拖欠货款时间
+//            'reputation'=>!empty($credit['reputation'])?$credit['reputation']:null,    //业内口碑
+//            'violate_treaty'=>!empty($credit['violate_treaty'])?$credit['violate_treaty']:null,  //是否有针对KERUI/ERUI的违约
+//            'treaty_content'=>!empty($credit['treaty_content'])?$credit['treaty_content']:null,    //有违约内容
+//            'comments'=>!empty($credit['comments'])?$credit['comments']:null,    //KERUI/ERUI、KERUI对其评价
+//
+//            'credit_type'=>$credit['credit_type'],    //授信类型
+//            'credit_level'=>$credit['credit_level'],    //信用等级
+//        );
+//        $cond=array(
+//            'id'=>$buyer_id,
+//            'deleted_flag'=>'N'
+//        );
+//        return $this->where($cond)->save($arr);
+//    }
 
     /**
      * @param $id crm-wangs
      */
-    public function showBuyerCredit($id){
-        $cond=array(
-            'id'=>$id,
-            'deleted_flag'=>'N'
-        );
-        return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
-    }
-    public function showCredit($data){
-        if(empty($data['buyer_id'])){
-            return false;
-        }
-        $cond=array(
-            'id'=>$data['buyer_id'],
-            'deleted_flag'=>'N'
-        );
-        return $this->field('id as buyer_id,credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
-    }
-    public function editCredit($data){
-        if(empty($data['buyer_id'])){
-            return false;
-        }
-        $arr=array(
-            'line_of_credit'=>!empty($data['line_of_credit'])?$data['line_of_credit']:0,    //授信额度
-            'credit_available'=>!empty($data['credit_available'])?$data['credit_available']:0,    //可用额度
-
-            'payment_behind'=>!empty($data['payment_behind'])?$data['payment_behind']:null,    //是否拖欠过货款
-            'behind_time'=>!empty($data['behind_time'])?$data['behind_time']:null,    //拖欠货款时间
-            'reputation'=>!empty($data['reputation'])?$data['reputation']:null,    //业内口碑
-            'violate_treaty'=>!empty($data['violate_treaty'])?$data['violate_treaty']:null,  //是否有针对KERUI/ERUI的违约
-            'treaty_content'=>!empty($data['treaty_content'])?$data['treaty_content']:null,    //有违约内容
-            'comments'=>!empty($data['comments'])?$data['comments']:null,    //KERUI/ERUI、KERUI对其评价
-
-            'credit_type'=>$data['credit_type'],    //授信类型
-            'credit_level'=>$data['credit_level'],    //信用等级
-        );
-        $cond=array(
-            'id'=>$data['buyer_id'],
-            'deleted_flag'=>'N'
-        );
-        return $this->where($cond)->save($arr);
-    }
+//    public function showBuyerCredit($id){
+//        $cond=array(
+//            'id'=>$id,
+//            'deleted_flag'=>'N'
+//        );
+//        return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
+//    }
+//    public function showCredit($data){
+//        if(empty($data['buyer_id'])){
+//            return false;
+//        }
+//        $cond=array(
+//            'id'=>$data['buyer_id'],
+//            'deleted_flag'=>'N'
+//        );
+//        return $this->field('id as buyer_id,credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
+//    }
+//    public function editCredit($data){
+//        if(empty($data['buyer_id'])){
+//            return false;
+//        }
+//        $arr=array(
+//            'line_of_credit'=>!empty($data['line_of_credit'])?$data['line_of_credit']:0,    //授信额度
+//            'credit_available'=>!empty($data['credit_available'])?$data['credit_available']:0,    //可用额度
+//
+//            'payment_behind'=>!empty($data['payment_behind'])?$data['payment_behind']:null,    //是否拖欠过货款
+//            'behind_time'=>!empty($data['behind_time'])?$data['behind_time']:null,    //拖欠货款时间
+//            'reputation'=>!empty($data['reputation'])?$data['reputation']:null,    //业内口碑
+//            'violate_treaty'=>!empty($data['violate_treaty'])?$data['violate_treaty']:null,  //是否有针对KERUI/ERUI的违约
+//            'treaty_content'=>!empty($data['treaty_content'])?$data['treaty_content']:null,    //有违约内容
+//            'comments'=>!empty($data['comments'])?$data['comments']:null,    //KERUI/ERUI、KERUI对其评价
+//
+//            'credit_type'=>$data['credit_type'],    //授信类型
+//            'credit_level'=>$data['credit_level'],    //信用等级
+//        );
+//        $cond=array(
+//            'id'=>$data['buyer_id'],
+//            'deleted_flag'=>'N'
+//        );
+//        return $this->where($cond)->save($arr);
+//    }
     /**
      * @param $buyer_id
      * 验证:邮箱,手机号,公司名称

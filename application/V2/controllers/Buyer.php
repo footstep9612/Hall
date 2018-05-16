@@ -1279,8 +1279,8 @@ EOF;
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
 //        $data['lang'] = $this->getLang();
-        $buyer = new BuyerModel();
-        $res=$buyer->editContact($data);
+        $model = new BuyerContactModel();
+        $res=$model->editContact($data);
         if($res){
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
@@ -1292,42 +1292,15 @@ EOF;
     }
     public function showContactAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data['id'])){
-            $dataJson = array(
-                'code' => 0,
-                'message' => '参数错误'
-            );
+        $model = new BuyerContactModel();
+        $res=$model->showContact($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
         }else{
-            $contact = new BuyercontactModel();
-            $cond=array(
-                'id'=>$data['id'],
-                'deleted_flag'=>'N'
-            );
-            $field='id,name,title,role,phone,email,hobby,address,experience,social_relations,key_concern,attitude_kerui,social_habits,relatives_family';
-            $info = $contact->field($field)->where($cond)->find();
-            if(empty($info)){
-                $info = [
-                    'id' => '', //联系人姓名ID
-                    'name' => '', //联系人姓名
-                    'title' => '', //联系人职位
-                    'role' => '', //角色
-                    'phone' => '', //联系人电话
-                    'email' => '', //联系人邮箱
-                    'hobby' => '', //爱好
-                    'address' => '', //详细地址
-                    'experience' => '', //经历
-                    'social_relations' => '', //社会关系
-                    'key_concern' => '', //决策主要关注点
-                    'attitude_kerui' => '', //对科瑞的态度
-                    'social_habits' => '', //常去社交场所
-                    'relatives_family' => '', //家庭亲戚相关信息
-                ];
-            }
-            $dataJson = array(
-                'code' => 1,
-                'message' => '查看联系人数据',
-                'data' => $info
-            );
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=$res;
         }
         $this->jsonReturn($dataJson);
     }
@@ -1337,30 +1310,15 @@ EOF;
         $data['created_by'] = $this->user['id'];
         $data['lang'] = $this->getLang();
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (empty($contactInfo)) {    //联系人为空
-            $contactInfo = [array(
-            'name' => null, //联系人姓名
-            'title' => null, //联系人职位
-            'role' => null, //角色
-            'phone' => null, //联系人电话
-            'email' => null, //联系人邮箱
-            'hobby' => null, //爱好
-            'address' => null, //详细地址
-            'experience' => null, //经历
-            'social_relations' => null, //社会关系
-            'key_concern' => null, //决策主要关注点
-            'attitude_kerui' => null, //对科瑞的态度
-            'social_habits' => null, //常去社交场所
-            'relatives_family' => null, //家庭亲戚相关信息
-            )];
+        $res = $contact->showContactsList($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=$res;
         }
-//        $arr['contact'] = $contactInfo;
-        $dataJson = array(
-            'code' => 1,
-            'message' => '返回数据',
-            'data' => $contactInfo
-        );
         $this->jsonReturn($dataJson);
     }
 
