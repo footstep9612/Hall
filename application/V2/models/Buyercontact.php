@@ -64,7 +64,61 @@ class BuyercontactModel extends PublicModel
         );
         return $fieldArr;
     }
+    private function verifyData($data){
+//        if(!empty($value['phone'])){
+//            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+//                return '联系人电话:(选)2~4位区号-6~11位电话号码';
+//            }
+//        }
+        $fieldArr=$this->getThisField();
+        unset($fieldArr['id']);
+        unset($fieldArr['id']);
+        print_r($fieldArr);die;
+        foreach($fieldArr as $k => $v){
+
+        }
+        if(empty($data['name'])){
+
+        }
+//        print_r($data);die;
+
+
+
+
+        if(!empty($value['email'])){
+            $value['email']=trim($value['email'],' ');
+            if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
+                return $contactExtra['email'].L('format_error');
+            }else{
+                $buyerContact=new BuyercontactModel();
+                if(empty($value['id'])){
+                    $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                    if($email){
+                        return $contactExtra['email'].L('already existed');
+                    }
+                }else{
+                    $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
+                    if($value['email']!=$email['email']){  //修改邮箱
+                        $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                        if($exist){
+                            return $contactExtra['email'].L('already existed');
+                        }
+                    }
+                }
+
+            }
+            $contactEmail[]=$value['email'];
+        }
+        $emailTotal=count($contactEmail);   //联系人邮箱总数
+        $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
+        if($emailTotal!=$validTotal){
+            return $contactExtra['email'].L('repeat');
+        }
+        $contactEmail=array();  //crm
+    }
     public function editContact($data){
+//        $res=$this->verifyData($data);
+//        var_dump($res);die;
         $fieldArr=$this->getThisField();    //获取字段
         foreach($fieldArr as $k => $v){
             if(empty($data[$v])){
