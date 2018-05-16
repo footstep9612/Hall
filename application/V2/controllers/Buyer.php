@@ -1279,7 +1279,7 @@ EOF;
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
 //        $data['lang'] = $this->getLang();
-        $model = new BuyerContactModel();
+        $model = new BuyercontactModel();
         $res=$model->editContact($data);
         if($res){
             $dataJson['code'] = 1;
@@ -1294,7 +1294,7 @@ EOF;
     public function delContactAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
-        $model = new BuyerContactModel();
+        $model = new BuyercontactModel();
         $res=$model->delContact($data);
         if($res===false){
             $dataJson['code']=0;
@@ -1307,7 +1307,7 @@ EOF;
     }
     public function showContactAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $model = new BuyerContactModel();
+        $model = new BuyercontactModel();
         $res=$model->showContact($data);
         if($res===false){
             $dataJson['code']=0;
