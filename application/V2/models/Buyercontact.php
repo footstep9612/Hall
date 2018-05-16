@@ -512,7 +512,7 @@ class BuyercontactModel extends PublicModel
         );
         $fieldArr=$this->getThisField();
         $field=implode(',',$fieldArr);
-        $info=$this->field($field)->where($cond)->select();
+        $info=$this->field($field)->where($cond)->order('id desc')->select();
         if(empty($info)){
             $info=[];
         }
