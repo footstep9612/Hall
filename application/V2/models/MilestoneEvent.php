@@ -47,18 +47,26 @@ class MilestoneEventModel extends Model {
             ->order('event_time desc')
             ->select();
         if(empty($info)){
-            $info=[
-                array(
-                    'id'=>null,
-                    'buyer_id'=>null,
-                    'event_name'=>null,
-                    'event_content'=>null,
-                    'event_contact'=>null,
-                    'event_time'=>null
-                )
-            ];
+            $info=[];
+//            $info=[
+//                array(
+//                    'id'=>null,
+//                    'buyer_id'=>null,
+//                    'event_name'=>null,
+//                    'event_content'=>null,
+//                    'event_contact'=>null,
+//                    'event_time'=>null
+//                )
+//            ];
         }
         return $info;
+    }
+    public function delMilestoneEvent($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $this->where(array('id'=>$data['id']))->save(array('deleted_flag'=>'Y'));
+        return true;
     }
     /**
      * @param $event 事件数据arr
