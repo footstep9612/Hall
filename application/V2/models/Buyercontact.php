@@ -11,7 +11,7 @@
  *
  * @author jhw
  */
-class BuyercontactModel extends PublicModel
+class BuyerContactModel extends PublicModel
 {
 
     protected $dbName = 'erui_buyer';
