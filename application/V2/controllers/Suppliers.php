@@ -153,7 +153,7 @@ class SuppliersController extends PublicController {
             if (!$hasDeveloper) 
                 jsonReturn('', -101, '开发人不能为空!');
             
-            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name']])->getField('id');
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT']])->getField('id');
             if ($hasSupplierName)
                 jsonReturn('', -101, '此公司名称已经存在!');
             
