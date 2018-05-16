@@ -1128,7 +1128,22 @@ EOF;
         );
         $this->jsonReturn($valid);
     }
-
+    //查看信用评价
+    public function showCreditAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+//        $data['created_by'] = $this->user['id'];
+        $model = new BuyerModel();
+        $res = $model->showCredit($data);          //创建基本信息
+        if ($res === false) {
+            $datajson['code']=0;
+            $datajson['message']='参数错误';
+        }else{
+            $datajson['code']=1;
+            $datajson['message']='数据信息';
+            $datajson['data']=$res;
+        }
+        $this->jsonReturn($datajson);
+    }
     /**
      * 客户管理：客户基本信息展示详情
      * wangs

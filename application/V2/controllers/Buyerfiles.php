@@ -546,7 +546,7 @@ class BuyerfilesController extends PublicController
         $condition['lang'] = $this->lang;
         // 会员总数
         $cond = $buyerModel->getBuyerStatisListCond($condition);
-        $totalMember = $buyerModel->crmGetBuyerTotal($cond);
+        $totalMember = $cond ? $buyerModel->crmGetBuyerTotal($cond) : 0;
         // 今日
         $condition['start_time'] = $condition['end_time'] = date('Y-m-d');
         $todayMemberSpeed = $buyerModel->memberSpeed($condition);
@@ -580,7 +580,7 @@ class BuyerfilesController extends PublicController
                 'order_speed' => array_sum($monthOrderSpeed['count']) ? : 0
             ],
             'total' => [
-                'total_member' => $totalMember ? : 0
+                'total_member' => $totalMember
             ]
         ];
         $res['code'] = 1;

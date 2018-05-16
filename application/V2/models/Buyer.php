@@ -2578,7 +2578,16 @@ EOF;
         );
         return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
     }
-
+    public function showCredit($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $cond=array(
+            'id'=>$data['buyer_id'],
+            'deleted_flag'=>'N'
+        );
+        return $this->field('credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
+    }
     /**
      * @param $buyer_id
      * 验证:邮箱,手机号,公司名称
