@@ -1290,6 +1290,21 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //删除联系人
+    public function delContactAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerContactModel();
+        $res=$model->delContact($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }
+        $this->jsonReturn($dataJson);
+    }
     public function showContactAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new BuyerContactModel();

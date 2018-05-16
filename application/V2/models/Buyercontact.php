@@ -464,4 +464,16 @@ class BuyercontactModel extends PublicModel
         }
         return $info;
     }
+    public function delContact($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $save=array(
+            'deleted_flag'=>'Y',
+            'created_by'=>$data['created_by'],
+            'created_at'=>date('Y-m-d H:i:s')
+        );
+        $this->where(array('id'=>$data['id']))->save($save);
+        return true;
+    }
 }
