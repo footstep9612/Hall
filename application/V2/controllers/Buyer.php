@@ -1336,8 +1336,42 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //客户与KR/ER业务量-客户
+    public function statisBusinessAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
 
-
+        $inquiry = new InquiryModel();
+        $inquiryInfo = $inquiry->statisInquiry($data['buyer_id']);
+        //整合数据
+        $arr['order']['count'] = $orderInfo['count'];
+        $arr['order']['account'] = $orderInfo['account']==0?0:$orderInfo['account'];
+        $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
+        $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
+        $arr['inquiry'] = $inquiryInfo;
+        $arr['mem_cate'] = $orderInfo['mem_cate'];
+        if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
+            $arr['order']['order_rate'] = '0%';
+        }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
+            $arr['order']['order_rate'] ='100%';
+        }else{
+            $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
+        }
+        if($orderInfo['account']==0 && $inquiryInfo['account']==0){
+            $arr['order']['account_rate'] = '0%';
+        }elseif($orderInfo['account']>=$inquiryInfo['account']){
+            $arr['order']['account_rate'] = '100%';
+        }else{
+            $arr['order']['account_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
+        }
+        $dataJson = array(
+            'code' => 1,
+            'message' => '返回数据',
+            'data' => $arr
+        );
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 客户管理-客户档案--4页签统计展示
      * wangs

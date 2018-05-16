@@ -65,20 +65,29 @@ class BuyercontactModel extends PublicModel
         return $fieldArr;
     }
     private function verifyData($data){
-//        if(!empty($value['phone'])){
-//            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
-//                return '联系人电话:(选)2~4位区号-6~11位电话号码';
-//            }
-//        }
-        $fieldArr=$this->getThisField();
-        unset($fieldArr['id']);
-        unset($fieldArr['id']);
-        print_r($fieldArr);die;
-        foreach($fieldArr as $k => $v){
-
-        }
+        $fieldArr=array(
+            'name'=>'姓名',
+            'title'=>'职位',
+            'phone'=>'电话',
+            'email'=>'邮箱',
+            'address'=>'联系人地址',
+            'hobby'=>'爱好',
+            'experience'=>'经历',
+            'role'=>'角色',
+            'social_relations'=>'社会关系',
+            'key_concern'=>'决策主要关注点',
+            'attitude_kerui'=>'对科瑞的态度',
+            'social_habits'=>'常去社交场所',
+            'relatives_family'=>'家庭亲戚相关信息'
+        );
         if(empty($data['name'])){
-
+            return 'name';
+        }
+        if(empty($data['title'])){
+            return 'title';
+        }
+        if(empty($data['phone'])){
+            return 'phone';
         }
 //        print_r($data);die;
 
