@@ -152,7 +152,15 @@ class BuyerattachModel extends PublicModel {
             $this->where(array('id'=>$data['id']))->save($arr);
             return true;
         }
-        $arr['attach_type']=isset($data['attach_type'])?$data['attach_type']:'FILE';
+        if(empty($data['attach_type'])){
+            if(!empty($data['attach_name'])){
+                $site=strstr($data['attach_name'],'.');
+                $data['attach_type']=strtoupper(substr($site,1));
+            }else{
+                $data['attach_type']='FILE';
+            }
+        }
+        $arr['attach_type']=$data['attach_type'];   //文件类型
         $arr['attach_group']=$data['attach_group'];
         $arr['attach_name']=$data['attach_name'];
         $arr['attach_url']=$data['attach_url'];
