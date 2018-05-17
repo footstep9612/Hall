@@ -1190,6 +1190,22 @@ EOF;
         $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
         $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
         $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
+        //获取财务报表
+        $attach = new BuyerattachModel();
+
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id']);
+        if (!empty($finance)) {
+            $buerInfo['finance_attach'] = $finance;
+        } else {
+            $buerInfo['finance_attach'] = array();
+        }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id']);
+        if (!empty($org_chart)) {
+            $buerInfo['org_chart'] = $org_chart;
+        } else {
+            $buerInfo['org_chart'] = array();
+        }
         $arr['base_info'] = $buerInfo;
 
         $dataJson['code']=1;
