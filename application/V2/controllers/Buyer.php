@@ -1172,11 +1172,9 @@ EOF;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
         if (empty($buerInfo)) {
-            $dataJson = array(
-                'code' => 1,
-                'message' => '返回数据',
-                'data' => $buerInfo
-            );
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=[];
             $this->jsonReturn($dataJson);
         }
         //获取客户账号
@@ -1184,22 +1182,35 @@ EOF;
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
         $buerInfo['buyer_account'] = $accountInfo['email'];
         //客户订单分类
-//        $order = new OrderModel();
-//        $orderInfo = $order->statisOrder($data['buyer_id']);
-//        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
-//        $agent = new BuyerAgentModel();
-//        $agentInfo = $agent->buyerMarketAgent($data);
-//        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-//        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
+        $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
+        //获取财务报表
+        $attach = new BuyerattachModel();
+
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id']);
+        if (!empty($finance)) {
+            $buerInfo['finance_attach'] = $finance;
+        } else {
+            $buerInfo['finance_attach'] = array();
+        }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id']);
+        if (!empty($org_chart)) {
+            $buerInfo['org_chart'] = $org_chart;
+        } else {
+            $buerInfo['org_chart'] = array();
+        }
         $arr['base_info'] = $buerInfo;
 
-
-        $dataJson = array(
-            'code' => 1,
-            'message' => '返回数据',
-            'data' => $arr
-        );
+        $dataJson['code']=1;
+        $dataJson['message']='数据信息';
+        $dataJson['data']=$arr;
         $this->jsonReturn($dataJson);
     }
     //客户附件管理列表
@@ -1264,15 +1275,18 @@ EOF;
     public function editContactAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
 //        $data['lang'] = $this->getLang();
         $model = new BuyercontactModel();
         $res=$model->editContact($data);
-        if($res){
+        if($res===true){
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
         }else{
             $dataJson['code'] = 1;
-            $dataJson['message'] = L('error');
+            $dataJson['message'] = $res;
         }
         $this->jsonReturn($dataJson);
     }
