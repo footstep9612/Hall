@@ -92,7 +92,7 @@ class IndustrychainController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new IndustrychainModel();
         $res = $model->industryChainList($data);
-        if($res==false){
+        if($res===false){
             $dataJson['code'] = 0;
             $dataJson['message'] = '参数错误';
         }else{

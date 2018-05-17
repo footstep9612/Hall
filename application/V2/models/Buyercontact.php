@@ -14,16 +14,127 @@
 class BuyercontactModel extends PublicModel
 {
 
-    //put your code here
     protected $dbName = 'erui_buyer';
     protected $tableName = 'buyer_contact';
 
-    public function __construct($str = '')
-    {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
+    public function showContact($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $cond=array(
+            'id'=>$data['id'],
+            'deleted_flag'=>'N'
+        );
+        $fieldArr=$this->getThisField();
+        $field=implode(',',$fieldArr);
+        $info = $this->field($field)->where($cond)->find();
+        if(empty($info)){
+            $info=[];
+            unset($fieldArr['id']);
+            unset($fieldArr['buyer_id']);
+            unset($fieldArr['created_by']);
+            foreach($fieldArr as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    private function getThisField(){
+        $fieldArr=array(
+            'id'=>'id',
+            'buyer_id'=>'buyer_id',
+            'is_main'=>'is_main',  //是否为主要联系人标识: 1 / 0
+            'name'=>'name',
+            'title'=>'title',    //职位及部门
+            'phone'=>'phone',
+            'email'=>'email',
+            'address'=>'address',
+            'hobby'=>'hobby',
+            'experience'=>'experience',   //工作经历
+            'role'=>'role', //购买角色
+            'social_relations'=>'social_relations', //社会关系
+            'key_concern'=>'key_concern',  //决策主要关注点
+            'attitude_kerui'=>'attitude_kerui',   //对科瑞的态度
+            'social_habits'=>'social_habits',    //常去社交场所
+            'relatives_family'=>'relatives_family',  //家庭亲戚相关信息
+            'created_by'=>'created_by'  //家庭亲戚相关信息
+        );
+        return $fieldArr;
+    }
+    private function verifyData($data){
+        $fieldArr=array(
+            'name'=>'姓名',
+            'title'=>'职位',
+            'phone'=>'电话',
+            'email'=>'邮箱',
+            'address'=>'联系人地址',
+            'hobby'=>'爱好',
+            'experience'=>'经历',
+            'role'=>'角色',
+            'social_relations'=>'社会关系',
+            'key_concern'=>'决策主要关注点',
+            'attitude_kerui'=>'对科瑞的态度',
+            'social_habits'=>'常去社交场所',
+            'relatives_family'=>'家庭亲戚相关信息'
+        );
+        if(empty($data['name'])){
+            return $fieldArr['name'].'不能为空';
+        }
+        if(empty($data['title'])){
+            return $fieldArr['title'].'不能为空';
+        }
+        if(empty($data['phone'])){
+            return $fieldArr['phone'].'不能为空';
+        }
+        if(!empty($data['email'])){
+            if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$data['email'])){
+                return $fieldArr['email'].'格式错误';
+            }else{
+                $buyerContact=new BuyercontactModel();
+                if(empty($data['id'])){
+                    $email=$buyerContact->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
+                    if($email){
+                        return $fieldArr['email'].'已存在';
+                    }
+                }else{
+                    $email=$buyerContact->field('email')->where(array('id'=>$data['id']))->find();//默认邮箱
+                    if($data['email']!=$email['email']){  //修改邮箱
+                        $exist=$buyerContact->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
+                        if($exist){
+                            return $fieldArr['email'].'已存在';
+                        }
+                    }
+                }
 
-
+            }
+        }
+        return true;
+    }
+    public function editContact($data){
+        $res=$this->verifyData($data);
+        if($res!==true){
+            return $res;
+        }
+        $fieldArr=$this->getThisField();    //获取字段
+        foreach($fieldArr as $k => $v){
+            if(empty($data[$v])){
+                $data[$v]='';
+            }
+            $arr[$v]=$data[$v];
+        }
+        $arr['created_at']=date('Y-m-d H:i:s');
+        if(!empty($arr['id'])){
+            unset($arr['buyer_id']);
+            $this->where(array('id'=>$arr['id']))->save($arr);
+        }else{
+            unset($arr['id']);
+            $this->add($arr);
+        }
+        return true;
+    }
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件
@@ -389,5 +500,33 @@ class BuyercontactModel extends PublicModel
         }
         $field = substr($field,1);
         return $this->field($field)->where($cond)->select();
+    }
+    public function showContactsList($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $cond = array(
+            'buyer_id'=>$data['buyer_id'],
+            'deleted_flag'=>'N'
+        );
+        $fieldArr=$this->getThisField();
+        $field=implode(',',$fieldArr);
+        $info=$this->field($field)->where($cond)->order('id desc')->select();
+        if(empty($info)){
+            $info=[];
+        }
+        return $info;
+    }
+    public function delContact($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $save=array(
+            'deleted_flag'=>'Y',
+            'created_by'=>$data['created_by'],
+            'created_at'=>date('Y-m-d H:i:s')
+        );
+        $this->where(array('id'=>$data['id']))->save($save);
+        return true;
     }
 }
