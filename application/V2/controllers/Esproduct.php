@@ -1081,6 +1081,7 @@ class EsproductController extends PublicController {
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
             'specials' => [
+                'include_in_parent' => true,
                 'type' => 'nested',
                 'properties' => [
                     'special_id' => $not_analyzed,
