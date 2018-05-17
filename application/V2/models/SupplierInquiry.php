@@ -493,6 +493,7 @@ class SupplierInquiryModel extends PublicModel {
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
         $this->_setQuoteSpendTime($list);
+        $this->_resetListData($list);
         return $this->_createXls($list);
     }
 
