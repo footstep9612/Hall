@@ -291,10 +291,10 @@ class EsProductModel extends Model {
         $specials_nested = [];
 
         isset($condition['special_id']) && $condition['special_id'] ? $specials_nested[] = [ESClient::TERM => ['specials.special_id' => trim($condition['special_id'])]] : '';
-        !empty($country_bn) ? $specials_nested[] = [ESClient::TERM => ['specials.country_bn' => trim($country_bn)]] : '';
+        //  !empty($country_bn) ? $specials_nested[] = [ESClient::TERM => ['specials.country_bn' => trim($country_bn)]] : '';
         isset($condition['keyword_id']) && $condition['keyword_id'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword_id' => trim($condition['keyword_id'])]] : '';
-        isset($condition['special_keyword']) && $condition['special_keyword'] ? $specials_nested[] = [ESClient::MATCH_PHRASE => ['specials.keyword.' . $analyzer => trim($condition['special_keyword'])]] : '';
-        isset($condition['special_name']) && $condition['special_name'] ? $specials_nested[] = [ESClient::MATCH_PHRASE => ['specials.special_name.' . $analyzer => trim($condition['special_name'])]] : '';
+        isset($condition['special_keyword']) && $condition['special_keyword'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword.all' => trim($condition['special_keyword'])]] : '';
+        isset($condition['special_name']) && $condition['special_name'] ? $specials_nested[] = [ESClient::TERM => ['specials.special_name.all' => trim($condition['special_name'])]] : '';
         $body['query']['bool']['must'][] = [ESClient::NESTED =>
             [
                 'path' => "specials",
