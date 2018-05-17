@@ -153,11 +153,14 @@ class BuyerattachModel extends PublicModel {
             return true;
         }
         $arr['attach_type']=isset($data['attach_type'])?$data['attach_type']:'FILE';
-        $arr['attach_group']=$data['attach_name'];
+        $arr['attach_group']=$data['attach_group'];
         $arr['attach_name']=$data['attach_name'];
         $arr['attach_url']=$data['attach_url'];
         $arr['attach_size']=$data['attach_size'];
+        $arr['attach_define_name']=$data['attach_define_name'];
+        $arr['attach_desc']=$data['attach_desc'];
         $arr['buyer_id']=$data['buyer_id'];
+//        print_r($arr);die;
         $res=$this->add($arr);
         if($res){
             return true;
