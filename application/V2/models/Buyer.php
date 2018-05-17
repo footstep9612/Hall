@@ -1916,6 +1916,7 @@ EOF;
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
             'is_oilgas', //是否油气
+            'buyer_no', //客户编码
             'buyer_code', //客户crm编码
             'name as buyer_name', //客户名称
             'profile', //公司介绍
@@ -1952,13 +1953,15 @@ EOF;
             $level = new BuyerLevelModel();
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
         }
-        if($data['is_check'] == true){
+
+
+//        if($data['is_check'] == true){
             if(!empty($info['buyer_type'])){
                 $type = new BuyerTypeModel();
                 $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
                 $info['buyer_type'] = $buyerType['type_name'];
             }
-        }
+//        }
         if(!empty($info['country_bn'])){
             $country = new CountryModel();
             $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);

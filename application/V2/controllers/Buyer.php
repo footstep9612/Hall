@@ -1186,18 +1186,15 @@ EOF;
 //        $orderInfo = $order->statisOrder($data['buyer_id']);
 //        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
-//        $agent = new BuyerAgentModel();
-//        $agentInfo = $agent->buyerAgentInfo($data);
-//        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-//        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
+        $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
         $arr['base_info'] = $buerInfo;
 
-
-        $dataJson = array(
-            'code' => 1,
-            'message' => '返回数据',
-            'data' => $arr
-        );
+        $dataJson['code']=1;
+        $dataJson['message']='数据信息';
+        $dataJson['data']=$arr;
         $this->jsonReturn($dataJson);
     }
     //客户附件管理列表
