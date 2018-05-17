@@ -81,53 +81,43 @@ class BuyercontactModel extends PublicModel
             'relatives_family'=>'家庭亲戚相关信息'
         );
         if(empty($data['name'])){
-            return 'name';
+            return $fieldArr['name'].'不能为空';
         }
         if(empty($data['title'])){
-            return 'title';
+            return $fieldArr['title'].'不能为空';
         }
         if(empty($data['phone'])){
-            return 'phone';
+            return $fieldArr['phone'].'不能为空';
         }
-//        print_r($data);die;
-
-
-
-
-        if(!empty($value['email'])){
-            $value['email']=trim($value['email'],' ');
-            if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
-                return $contactExtra['email'].L('format_error');
+        if(!empty($data['email'])){
+            if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$data['email'])){
+                return $fieldArr['email'].'格式错误';
             }else{
                 $buyerContact=new BuyercontactModel();
-                if(empty($value['id'])){
-                    $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                if(empty($data['id'])){
+                    $email=$buyerContact->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
                     if($email){
-                        return $contactExtra['email'].L('already existed');
+                        return $fieldArr['email'].'已存在';
                     }
                 }else{
-                    $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
-                    if($value['email']!=$email['email']){  //修改邮箱
-                        $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+                    $email=$buyerContact->field('email')->where(array('id'=>$data['id']))->find();//默认邮箱
+                    if($data['email']!=$email['email']){  //修改邮箱
+                        $exist=$buyerContact->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->find();
                         if($exist){
-                            return $contactExtra['email'].L('already existed');
+                            return $fieldArr['email'].'已存在';
                         }
                     }
                 }
 
             }
-            $contactEmail[]=$value['email'];
         }
-        $emailTotal=count($contactEmail);   //联系人邮箱总数
-        $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
-        if($emailTotal!=$validTotal){
-            return $contactExtra['email'].L('repeat');
-        }
-        $contactEmail=array();  //crm
+        return true;
     }
     public function editContact($data){
-//        $res=$this->verifyData($data);
-//        var_dump($res);die;
+        $res=$this->verifyData($data);
+        if($res!==true){
+            return $res;
+        }
         $fieldArr=$this->getThisField();    //获取字段
         foreach($fieldArr as $k => $v){
             if(empty($data[$v])){

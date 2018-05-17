@@ -1264,15 +1264,18 @@ EOF;
     public function editContactAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
 //        $data['lang'] = $this->getLang();
         $model = new BuyercontactModel();
         $res=$model->editContact($data);
-        if($res){
+        if($res===true){
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
         }else{
             $dataJson['code'] = 1;
-            $dataJson['message'] = L('error');
+            $dataJson['message'] = $res;
         }
         $this->jsonReturn($dataJson);
     }
