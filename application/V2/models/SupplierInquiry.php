@@ -694,10 +694,10 @@ class SupplierInquiryModel extends PublicModel {
             'BH' => ['total', '厂家总价（元）'],
             'BI' => ['purchase_price_cur_bn', '币种'],
             'BJ' => ['gross_profit_rate', '利润率'],
-            'BK' => ['quote_price_cur_bn', '报价单价（元）'],
-            'BL' => ['purchase_price_cur_bn', '币种'],
-            'BM' => ['quote_price_cur_bn', '报价总价（元）'],
-            'BN' => ['purchase_price_cur_bn', '币种'],
+            'BK' => ['quote_unit_price', '报价单价（元）'],
+            'BL' => ['quote_price_cur_bn', '币种'],
+            'BM' => ['total_quote_price', '报价总价（元）'],
+            'BN' => ['quote_price_cur_bn', '币种'],
             'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
             'BP' => ['gross_weight_kg', '单重(kg)'],
             'BQ' => ['total_kg', '总重(kg)'],
@@ -1242,7 +1242,7 @@ class SupplierInquiryModel extends PublicModel {
             $tmpList[$serialNo]['total'] = '';
             $tmpList[$serialNo]['quote_unit_price'] = '';
             $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
-            $tmpList[$serialNo]['total_quote_price'] += round($tmpData['total_quote_price'] / $this->_getRateUSD($item['purchase_unit_price']), 2);
+            $tmpList[$serialNo]['total_quote_price'] = $tmpData['total_quote_price'] + round($item['total_quote_price'] / $this->_getRateUSD($item['purchase_unit_price']), 2);
             $tmpList[$serialNo]['total_quoted_price_usd'] += $tmpData['total_quoted_price_usd'];
             $tmpList[$serialNo]['gross_weight_kg'] = '';
             $tmpList[$serialNo]['total_kg'] += $tmpData['total_kg'];
