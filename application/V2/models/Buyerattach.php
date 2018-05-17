@@ -154,8 +154,8 @@ class BuyerattachModel extends PublicModel {
         }
 //        if(empty($data['attach_type'])){
             if(!empty($data['attach_name'])){
-                $site=strstr($data['attach_name'],'.');
-                $data['attach_type']=strtoupper(substr($site,1));
+                $site=strripos($data['attach_name'],'.');
+                $data['attach_type']=strtoupper(substr($data['attach_name'],$site+1));
             }else{
                 $data['attach_type']='FILE';
             }
@@ -279,6 +279,12 @@ class BuyerattachModel extends PublicModel {
         $flag=true;
         foreach($attach as $key => $value){
             if(empty($value['id'])){
+                if(!empty($value['attach_name'])){
+                    $site=strripos($value['attach_name'],'.');
+                    $value['attach_type']=strtoupper(substr($value['attach_name'],$site+1));
+                }else{
+                    $value['attach_type']='FILE';
+                }
                 $value['buyer_id']=$buyer_id;
                 $value['created_by']=$created_by;
                 $value['attach_group']=$type;
