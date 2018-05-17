@@ -31,4 +31,36 @@ class BuyertestController extends PublicController
             echo 0;
         }
     }
+    //客户附件类型
+    public function fileTypeAction(){
+        set_time_limit(0);
+        $attach=new BuyerattachModel();
+        $info=$attach->field('id,attach_name')->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            $site=strripos($v['attach_name'],'.');
+            if($site>=0){
+                $name=strtoupper(substr($v['attach_name'],$site+1));
+                $arr[]=$attach->where(array('id'=>$v['id']))->save(array('attach_type'=>$name));
+            }
+        }
+        echo count($arr);
+    }
+    //客户附件类型
+    public function fileSizeAction(){
+        set_time_limit(0);
+        $attach=new BuyerattachModel();
+        $info=$attach->field('id,attach_url')->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            $url='http://file01.eruidev.com/'.$v['attach_url'];
+            $size=filesize($url);
+            print_r($size);die;
+            if($site>=0){
+                $name=strtoupper(substr($v['attach_name'],$site+1));
+                $arr[]=$attach->where(array('id'=>$v['id']))->save(array('attach_type'=>$name));
+            }
+        }
+        echo count($arr);
+    }
 }

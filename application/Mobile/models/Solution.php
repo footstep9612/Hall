@@ -31,6 +31,7 @@ class SolutionModel extends PublicModel {
         if (!empty($condition['ids'])) {
             $where['id'] = ['in', $condition['ids']];
         }
+
         $where[] = 'thumb is not null';
         return $where;
     }
@@ -43,6 +44,41 @@ class SolutionModel extends PublicModel {
                         ->order('listorder desc')
                         ->limit($from, $size)
                         ->select();
+    }
+
+    /**
+     * 获取列表 区分大小写
+     * @param mix $condition 搜索条件
+     * @return mix
+     * @author zyg
+     */
+    public function getListBySpu($condition) {
+
+
+        try {
+            $spu = str_replace('%', '\%', $condition['spu']);
+            $spu = str_replace('_', '\_', $spu);
+            $bind = [];
+            $where['status'] = 99;
+            $data_table = (new SolutionDetailModel)->getTableName();
+            $where[] = 'thumb is not null';
+            $sql = 'SELECT s.thumb,s.title,s.id FROM ' . $this->getTableName() . ' s '
+                    . ' LEFT JOIN ' . $data_table . ' sd on sd.id=s.id '
+                    . 'WHERE  `status`=\'99\' ';
+            if (!empty($condition['catids']) && is_array($condition['catids'])) {
+                $sql .= ' and s.catid in  (' . implode(',', $condition['catids']) . ')';
+            }
+            if ($spu) {
+                $sql .= ' and goods like :spu';
+                $bind[':spu'] = '%' . $spu . '%';
+            }
+
+            $brand = $this->db()->query($sql, $bind);
+            return $brand;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
     }
 
     public function getCount($condition) {

@@ -152,12 +152,23 @@ class BuyerattachModel extends PublicModel {
             $this->where(array('id'=>$data['id']))->save($arr);
             return true;
         }
-        $arr['attach_type']=isset($data['attach_type'])?$data['attach_type']:'FILE';
-        $arr['attach_group']=$data['attach_name'];
+//        if(empty($data['attach_type'])){
+            if(!empty($data['attach_name'])){
+                $site=strripos($data['attach_name'],'.');
+                $data['attach_type']=strtoupper(substr($data['attach_name'],$site+1));
+            }else{
+                $data['attach_type']='FILE';
+            }
+//        }
+        $arr['attach_type']=$data['attach_type'];   //文件类型
+        $arr['attach_group']=$data['attach_group'];
         $arr['attach_name']=$data['attach_name'];
         $arr['attach_url']=$data['attach_url'];
         $arr['attach_size']=$data['attach_size'];
+        $arr['attach_define_name']=$data['attach_define_name'];
+        $arr['attach_desc']=$data['attach_desc'];
         $arr['buyer_id']=$data['buyer_id'];
+//        print_r($arr);die;
         $res=$this->add($arr);
         if($res){
             return true;
@@ -268,6 +279,12 @@ class BuyerattachModel extends PublicModel {
         $flag=true;
         foreach($attach as $key => $value){
             if(empty($value['id'])){
+                if(!empty($value['attach_name'])){
+                    $site=strripos($value['attach_name'],'.');
+                    $value['attach_type']=strtoupper(substr($value['attach_name'],$site+1));
+                }else{
+                    $value['attach_type']='FILE';
+                }
                 $value['buyer_id']=$buyer_id;
                 $value['created_by']=$created_by;
                 $value['attach_group']=$type;

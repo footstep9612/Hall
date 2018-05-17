@@ -298,12 +298,14 @@ class EsProductModel extends Model {
         isset($condition['keyword_id']) && $condition['keyword_id'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword_id' => trim($condition['keyword_id'])]] : '';
         isset($condition['special_keyword']) && $condition['special_keyword'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword.all' => trim($condition['special_keyword'])]] : '';
         isset($condition['special_name']) && $condition['special_name'] ? $specials_nested[] = [ESClient::TERM => ['specials.special_name.all' => trim($condition['special_name'])]] : '';
-        $body['query']['bool']['must'][] = [ESClient::NESTED =>
-            [
-                'path' => "specials",
-                'query' => ['bool' => [ESClient::MUST =>
-                        $specials_nested]]
-        ]];
+        if (!empty($specials_nested)) {
+            $body['query']['bool']['must'][] = [ESClient::NESTED =>
+                [
+                    'path' => "specials",
+                    'query' => ['bool' => [ESClient::MUST =>
+                            $specials_nested]]
+            ]];
+        }
     }
 
     private function _setshow_cats_nested($condition, $country_bn, $onshelf_flag, &$body) {
@@ -569,12 +571,12 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
-            $ret_count = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang, '');
-            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
-
-                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
-                $current_no = intval($ret_count['count'] / $pagesize);
-            }
+//            $ret_count = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang, '');
+//            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
+//
+//                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
+//                $current_no = intval($ret_count['count'] / $pagesize);
+//            }
 
             if (isset($condition['source'])) {
                 unset($condition['source']);

@@ -224,11 +224,10 @@ class SupplierQualificationModel extends PublicModel {
         }
 
         if ($condition['status']) {
-            $where2 = ['s.status' => $condition['status']];
+            $where2 = ['s.status' => $condition['status'], 's.deleted_flag' => 'N'];
         }else {
-            $where2 = ['s.status' => ['neq', 'DRAFT']];
+            $where2 = ['s.status' => ['neq', 'DRAFT'], 's.deleted_flag' => 'N'];
         }
-
         $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')
             ->field($field)
             ->where($where)
@@ -261,9 +260,9 @@ class SupplierQualificationModel extends PublicModel {
         }
 
         if ($condition['status']) {
-            $where2 = ['s.status' => $condition['status']];
+            $where2 = ['s.status' => $condition['status'], 's.deleted_flag' => 'N'];
         }else {
-            $where2 = ['s.status' => ['neq', 'DRAFT']];
+            $where2 = ['s.status' => ['neq', 'DRAFT'], 's.deleted_flag' => 'N'];
         }
 
         $data = $this->alias('a')->join('erui_supplier.supplier s ON a.supplier_id=s.id')

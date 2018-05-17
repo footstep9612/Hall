@@ -27,7 +27,7 @@ class SolutionController extends PublicController {
 
     public function listAction() {
         $condition = $this->getPut();
-        $condition['lang'] = 'en';
+
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
@@ -48,6 +48,33 @@ class SolutionController extends PublicController {
         if ($data) {
             $this->setvalue('cats', $cats);
             $this->setvalue('count', $solution_model->getCount($condition));
+            $this->jsonReturn($data);
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据!');
+            $this->jsonReturn();
+        }
+    }
+
+    /*
+     * 获取解决方案列表
+     */
+
+    public function listByspuAction() {
+        $condition = $this->getPut();
+
+        if (empty($condition['spu'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('spu 不能为空!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('lang 不能为空!');
+            $this->jsonReturn();
+        }
+        $data = (new SolutionModel)->getListBySpu($condition);
+        if ($data) {
             $this->jsonReturn($data);
         } else {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -81,7 +108,8 @@ class SolutionController extends PublicController {
                 if ($spus) {
                     $esproduct_model = new EsProductModel();
                     $condition = [];
-                    $condition['lang'] = str_replace('show_solution_', '', $info['template']);
+                    $condition['lang'] = $this->getPut('lang');
+                    $condition['country_bn'] = $this->getPut('country_bn');
                     $condition['spus'] = $spus;
                     $products = $esproduct_model->getNewProducts($condition);
 
@@ -99,7 +127,6 @@ class SolutionController extends PublicController {
                     $condition['lang'] = str_replace('show_solution_', '', $info['template']);
                     $condition['ids'] = $relation_ids;
                     $relations = $solution_model->getList($condition);
-
                     $info['relations'] = $relations;
                 } else {
                     $info['relations'] = [];
