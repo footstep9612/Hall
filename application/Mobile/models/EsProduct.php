@@ -283,7 +283,24 @@ class EsProductModel extends Model {
                             ]],
                     ]]
         ]];
+        $this->_setspecials($condition, $country_bn, $body, $analyzer);
         return $body;
+    }
+
+    private function _setspecials($condition, $country_bn, &$body, $analyzer = null) {
+        $specials_nested = [];
+
+        isset($condition['special_id']) && $condition['special_id'] ? $specials_nested[] = [ESClient::TERM => ['specials.special_id' => trim($condition['special_id'])]] : '';
+        //  !empty($country_bn) ? $specials_nested[] = [ESClient::TERM => ['specials.country_bn' => trim($country_bn)]] : '';
+        isset($condition['keyword_id']) && $condition['keyword_id'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword_id' => trim($condition['keyword_id'])]] : '';
+        isset($condition['special_keyword']) && $condition['special_keyword'] ? $specials_nested[] = [ESClient::TERM => ['specials.keyword.all' => trim($condition['special_keyword'])]] : '';
+        isset($condition['special_name']) && $condition['special_name'] ? $specials_nested[] = [ESClient::TERM => ['specials.special_name.all' => trim($condition['special_name'])]] : '';
+        $body['query']['bool']['must'][] = [ESClient::NESTED =>
+            [
+                'path' => "specials",
+                'query' => ['bool' => [ESClient::MUST =>
+                        $specials_nested]]
+        ]];
     }
 
     private function _setshow_cats_nested($condition, $country_bn, $onshelf_flag, &$body) {

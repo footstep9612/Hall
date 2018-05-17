@@ -43,12 +43,12 @@ class UploadfileController extends PublicController {
         //上传到fastDFS
         $fastdfs = new FastDFSclient();
         $ret = $fastdfs->uploadAttach($file['upFile'], $group_name);
-
         if (!empty($ret['fileId'])) {
             $result = array(
                 "code" => '1',
                 "url" => $ret['fileId'],
                 "name" => $ret['file']['name'],
+                "size" => $file['upFile']['size']
             );
         } else {
             $result = array(
