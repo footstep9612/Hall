@@ -126,6 +126,7 @@ class BuyerattachModel extends PublicModel {
             'attach_type',  //文件类型
             'attach_group', //附件分组'',CERT 证件,LICENSE 营业执照，财务报表 FINANCE，ORGCHART 公司人员组织架构
             'attach_name',  //文件名称
+            'attach_size',  //文件名称
             'attach_url',   //文件地址
             'status',       //状态
             'created_by',   //创建人
