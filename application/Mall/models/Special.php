@@ -7,7 +7,7 @@
  */
 class SpecialModel extends Model {
     protected $tableName = 'special';
-    protected $dbName = 'erui_stock'; //数据库名称
+    protected $dbName = 'erui_mall'; //数据库名称
 
     public function __construct() {
         parent::__construct();
@@ -25,5 +25,7 @@ class SpecialModel extends Model {
             return false;
         }
     }
+
+    public function goods(){}
 
 }
