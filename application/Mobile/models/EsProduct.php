@@ -65,7 +65,7 @@ class EsProductModel extends Model {
         } else {
             $country_bn = $condition['country_bn'] = 'Argentina';
         }
-
+        ESClient::getQurey($condition, $body, ESClient::TERM, 'cat_no1', 'show_cats.cat_no1');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'mcat_no1', 'material_cat.cat_no1');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'mcat_no2', 'material_cat.cat_no2');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'mcat_no3', 'material_cat.cat_no3');
@@ -589,8 +589,8 @@ class EsProductModel extends Model {
     public function getCatList($condition, $lang) {
         $show_cat_model = new ShowCatModel();
         if (isset($condition['show_cat_no']) && $condition['show_cat_no']) {
-            $show_cat = $show_cat_model->field('level_no')->where(['cat_no' => $condition['show_cat_no'], 'lang' => $lang])->find();
-            $show_cat['level_no'] > 1 ? $condition['show_cat_no'] = null : '';
+            $show_cat = $show_cat_model->field('level_no,parent_cat_no')->where(['cat_no' => $condition['show_cat_no'], 'lang' => $lang])->find();
+            $show_cat['level_no'] == 3 ? $condition['show_cat_no'] = $show_cat['parent_cat_no'] : '';
         }
         $country_bn = null;
         $body = $this->getCondition($condition, $lang, $country_bn);

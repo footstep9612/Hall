@@ -138,6 +138,35 @@ class SearchserviceController extends PublicController {
     }
 
     /*
+     * 获取分类列表
+     */
+
+    public function getCatNameAction() {
+        $model = new ShowCatModel();
+        $condition = $this->getPut();
+        $where = ['deleted_flag' => 'N'];
+        if (empty($condition['cat_no'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->jsonReturn();
+        } else {
+            $where['cat_no'] = trim($condition['cat_no']);
+        }
+        unset($condition['token']);
+        $where['country_bn'] = isset($condition['country_bn']) ? $condition['country_bn'] : 'Argentina';
+        $where['lang'] = isset($condition['lang']) ? $condition['lang'] : 'en';
+
+
+        $data = $model->field('name')->where($where)->find();
+        if (!empty($data['name'])) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($data['name']);
+        } else {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn();
+        }
+    }
+
+    /*
      * 获取规格列表
      */
 
