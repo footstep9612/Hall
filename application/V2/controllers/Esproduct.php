@@ -1080,6 +1080,17 @@ class EsproductController extends PublicController {
                     'country_bn' => $not_analyzed,
                     'onshelf_flag' => $not_analyzed,
                 ]], //展示分类数组 json
+            'specials' => [
+                'include_in_parent' => true,
+                'type' => 'nested',
+                'properties' => [
+                    'special_id' => $not_analyzed,
+                    'keyword_id' => $not_analyzed,
+                    'country_bn' => $not_analyzed,
+                    'special_name' => $ik_analyzed,
+                    'keyword' => $ik_analyzed,
+                    'keyword_id' => $not_analyzed
+                ]], //展示分类数组 json
             'show_cats_nested' => [
                 'type' => 'nested',
                 'include_in_parent' => true,

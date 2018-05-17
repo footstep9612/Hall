@@ -27,9 +27,12 @@ class MilestoneEventModel extends Model {
         return true;
     }
     //查看
-    public function showMilestoneEvent2($data){
+    public function showMilestoneEvent($data){
         $fieldStr='id,buyer_id,event_name,event_content,event_contact,event_time';
         $info=$this->field($fieldStr)->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        if(!empty($info)){
+            $info['event_time']=substr($info['event_time'],0,10);
+        }
         return $info;
     }
     public function MilestoneEventList($data){
@@ -47,18 +50,26 @@ class MilestoneEventModel extends Model {
             ->order('event_time desc')
             ->select();
         if(empty($info)){
-            $info=[
-                array(
-                    'id'=>null,
-                    'buyer_id'=>null,
-                    'event_name'=>null,
-                    'event_content'=>null,
-                    'event_contact'=>null,
-                    'event_time'=>null
-                )
-            ];
+            $info=[];
+//            $info=[
+//                array(
+//                    'id'=>null,
+//                    'buyer_id'=>null,
+//                    'event_name'=>null,
+//                    'event_content'=>null,
+//                    'event_contact'=>null,
+//                    'event_time'=>null
+//                )
+//            ];
         }
         return $info;
+    }
+    public function delMilestoneEvent($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $this->where(array('id'=>$data['id']))->save(array('deleted_flag'=>'Y'));
+        return true;
     }
     /**
      * @param $event 事件数据arr
@@ -87,7 +98,7 @@ class MilestoneEventModel extends Model {
         }
         return $flag;
     }
-    public function showMilestoneEvent($buyer_id,$created_by){
+    public function showMilestoneEvent2($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,
