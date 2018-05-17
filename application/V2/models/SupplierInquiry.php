@@ -373,7 +373,7 @@ class SupplierInquiryModel extends PublicModel {
                 . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
         $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
         $field .= 'if((select id from ' . $org_table . ' where i.org_id=id and org_node = \'erui\' and deleted_flag = \'N\') > 0, \'Y\', \'N\') as org_is_erui,'; //事业部是否易瑞
-        $field .= 'i.proxy_no,i.buyer_code,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
+        $field .= 'i.proxy_no,i.buyer_code,i.project_name,i.project_basic_info,it.name_zh,it.name,it.model,it.qty,it.unit,';
         $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
         $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
         $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
@@ -693,9 +693,9 @@ class SupplierInquiryModel extends PublicModel {
             'BH' => ['total', '厂家总价（元）'],
             'BI' => ['purchase_price_cur_bn', '币种'],
             'BJ' => ['gross_profit_rate', '利润率'],
-            'BK' => ['quote_unit_price', '报价单价（元）'],
+            'BK' => ['quote_price_cur_bn', '报价单价（元）'],
             'BL' => ['purchase_price_cur_bn', '币种'],
-            'BM' => ['total_quote_price', '报价总价（元）'],
+            'BM' => ['quote_price_cur_bn', '报价总价（元）'],
             'BN' => ['purchase_price_cur_bn', '币种'],
             'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
             'BP' => ['gross_weight_kg', '单重(kg)'],
@@ -787,9 +787,9 @@ class SupplierInquiryModel extends PublicModel {
             'BI' => ['purchase_price_cur_bn', '币种'],
             'BJ' => ['gross_profit_rate', '利润率'],
             'BK' => ['quote_unit_price', '报价单价（元）'],
-            'BL' => ['purchase_price_cur_bn', '币种'],
+            'BL' => ['quote_price_cur_bn', '币种'],
             'BM' => ['total_quote_price', '报价总价（元）'],
-            'BN' => ['purchase_price_cur_bn', '币种'],
+            'BN' => ['quote_price_cur_bn', '币种'],
             'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
             'BP' => ['gross_weight_kg', '单重(kg)'],
             'BQ' => ['total_kg', '总重(kg)'],
@@ -1215,6 +1215,87 @@ class SupplierInquiryModel extends PublicModel {
             $item['whole_quoted_time'] = number_format($wholeSpend / 3600, 2);
         }
     }
+    
+    /**
+     * @desc 数据汇总并重新组织数据
+     *
+     * @param array $list  询单列表信息
+     * @author liujf
+     * @time 2018-05-16
+     */
+    private function _resetListData(&$list) {
+        $tmpList = $newList = $serialNoList = [];
+        foreach ($list as $item) {
+            $serialNo = $item['serial_no'];
+            $tmpData = $tmpList[$serialNo];
+            $tmpList[$serialNo] = $item;
+            $tmpList[$serialNo]['name_zh'] = $item['project_name'];
+            $tmpList[$serialNo]['name'] = '';
+            $tmpList[$serialNo]['supplier_name'] = '';
+            $tmpList[$serialNo]['model'] = '';
+            $tmpList[$serialNo]['qty'] = '';
+            $tmpList[$serialNo]['unit'] = '';
+            $tmpList[$serialNo]['category'] = '';
+            $tmpList[$serialNo]['brand'] = '';
+            $tmpList[$serialNo]['purchase_unit_price'] = '';
+            $tmpList[$serialNo]['total'] = '';
+            $tmpList[$serialNo]['quote_unit_price'] = '';
+            $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+            $tmpList[$serialNo]['total_quote_price'] += round($tmpData['total_quote_price'] / $this->_getRateUSD($item['purchase_unit_price']), 2);
+            $tmpList[$serialNo]['total_quoted_price_usd'] += $tmpData['total_quoted_price_usd'];
+            $tmpList[$serialNo]['gross_weight_kg'] = '';
+            $tmpList[$serialNo]['total_kg'] += $tmpData['total_kg'];
+            $tmpList[$serialNo]['package_size'] += $tmpData['package_size'];
+            $tmpList[$serialNo]['package_mode'] = '';
+        }
+        foreach ($list as $item) {
+            $serialNo = $item['serial_no'];
+            if (!in_array($serialNo, $serialNoList)) {
+                $newList[] = $tmpList[$serialNo];
+                $serialNoList[] = $serialNo;
+            }
+            $newList[] = $item;
+        }
+        $list = $newList;
+    }
+    
+    /**
+     * @desc 获取美元兑换汇率
+     *
+     * @param string $cur 币种
+     * @return float
+     * @author liujf
+     * @time 2018-05-16
+     */
+    private function _getRateUSD($cur) {
+        if (empty($cur)) {
+            return 1;
+        } else {
+            return $this->_getRate('USD', $cur);
+        }
+    }
+    
+    /**
+     * @desc 获取币种兑换汇率
+     *
+     * @param string $holdCur 持有币种
+     * @param string $exchangeCur 兑换币种
+     * @return float
+     * @author liujf
+     * @time 2018-05-16
+     */
+    private function _getRate($holdCur, $exchangeCur = 'CNY') {
+        if (!empty($holdCur)) {
+            if ($holdCur == $exchangeCur) return 1;
+             
+            $exchangeRateModel = new ExchangeRateModel();
+            $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
+             
+            return $exchangeRate['rate'];
+        } else {
+            return false;
+        }
+    }
 
     /*
      * Description of 获取价格属性
@@ -1292,6 +1373,7 @@ class SupplierInquiryModel extends PublicModel {
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
+                $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                 $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
                 $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
                 $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
@@ -1337,6 +1419,7 @@ class SupplierInquiryModel extends PublicModel {
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
+                $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                 if ($item['purchase_price_cur_bn'] && $item['total_quote_price']) {
     
                     if ($item['purchase_price_cur_bn'] == 'USD') {
