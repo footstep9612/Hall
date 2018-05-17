@@ -27,9 +27,12 @@ class MilestoneEventModel extends Model {
         return true;
     }
     //查看
-    public function showMilestoneEvent2($data){
+    public function showMilestoneEvent($data){
         $fieldStr='id,buyer_id,event_name,event_content,event_contact,event_time';
         $info=$this->field($fieldStr)->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        if(!empty($info)){
+            $info['event_time']=substr($info['event_time'],0,10);
+        }
         return $info;
     }
     public function MilestoneEventList($data){
@@ -44,7 +47,7 @@ class MilestoneEventModel extends Model {
         $fieldStr=implode(',',$fieldArr);
         $info=$this->field($fieldStr)
             ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
-            ->order('id desc')
+            ->order('event_time desc')
             ->select();
         if(empty($info)){
             $info=[];
@@ -95,7 +98,7 @@ class MilestoneEventModel extends Model {
         }
         return $flag;
     }
-    public function showMilestoneEvent($buyer_id,$created_by){
+    public function showMilestoneEvent2($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,
