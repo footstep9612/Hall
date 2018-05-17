@@ -156,6 +156,7 @@ class BuyerattachModel extends PublicModel {
         $arr['attach_group']=$data['attach_name'];
         $arr['attach_name']=$data['attach_name'];
         $arr['attach_url']=$data['attach_url'];
+        $arr['attach_size']=$data['attach_size'];
         $arr['buyer_id']=$data['buyer_id'];
         $res=$this->add($arr);
         if($res){
