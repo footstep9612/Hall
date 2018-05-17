@@ -1172,11 +1172,9 @@ EOF;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
         if (empty($buerInfo)) {
-            $dataJson = array(
-                'code' => 1,
-                'message' => '返回数据',
-                'data' => $buerInfo
-            );
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=[];
             $this->jsonReturn($dataJson);
         }
         //获取客户账号
@@ -1189,7 +1187,7 @@ EOF;
 //        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
 //        $agent = new BuyerAgentModel();
-//        $agentInfo = $agent->buyerMarketAgent($data);
+//        $agentInfo = $agent->buyerAgentInfo($data);
 //        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
 //        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
         $arr['base_info'] = $buerInfo;

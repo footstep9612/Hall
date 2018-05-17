@@ -209,7 +209,10 @@ class BuyerPurchasingModel extends PublicModel
     }
     public function editPurchase($data)
     {
-        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;
+        if(!empty($data['purchasing_at'])){
+            $data['purchasing_at']=substr($data['purchasing_at'],0,10);
+        }
+        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'] : null;
         $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;
         $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;
         $arr['buyer_id'] = $data['buyer_id'];

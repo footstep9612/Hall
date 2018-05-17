@@ -1948,9 +1948,6 @@ EOF;
         $info = $this->field($field)
             ->where($cond)
             ->find();
-        if(empty($info['official_phone'])){
-            $info['official_phone'] = '';
-        }
         if(!empty($info['buyer_level'])){
             $level = new BuyerLevelModel();
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
