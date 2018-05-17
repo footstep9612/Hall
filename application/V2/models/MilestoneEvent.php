@@ -44,7 +44,7 @@ class MilestoneEventModel extends Model {
         $fieldStr=implode(',',$fieldArr);
         $info=$this->field($fieldStr)
             ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
-            ->order('event_time desc')
+            ->order('id desc')
             ->select();
         if(empty($info)){
             $info=[];

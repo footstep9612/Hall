@@ -63,7 +63,7 @@ class IndustrychainModel extends PublicModel
             'industry_group'=>$data['type'],
             'deleted_flag'=>'N'
         );
-        $info=$this->field($fieldStr)->where($cond)->select();
+        $info=$this->field($fieldStr)->where($cond)->order('id desc')->select();
         if(empty($info)){
             $info=[];
 //            foreach($fieldArr as $k => $v){

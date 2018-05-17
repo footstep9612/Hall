@@ -200,6 +200,7 @@ class BuyerPurchasingModel extends PublicModel
             ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
             ->field($field)
             ->where($map)
+            ->order('id desc')
             ->select();
         if(empty($info)){
             $info=[];
