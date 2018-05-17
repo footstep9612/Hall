@@ -714,9 +714,9 @@ function trace($value = '[yaf]', $label = '', $level = 'DEBUG', $record = false)
         if ($record) {
             Log::write($info, $level);
         }
-        if ('ERR' == $level) {// 抛出异常
-            throw new Exception($info);
-        }
+//        if ('ERR' == $level) {// 抛出异常
+//            throw new Exception($info);
+//        }
         $level = strtoupper($level);
         if (!isset($_trace[$level])) {
             $_trace[$level] = array();
