@@ -567,11 +567,11 @@ class EsProductModel extends Model {
 
             $es = new ESClient();
             $ret_count = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang, '');
-            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
-
-                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
-                $current_no = intval($ret_count['count'] / $pagesize);
-            }
+//            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
+//
+//                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
+//                $current_no = intval($ret_count['count'] / $pagesize);
+//            }
             if (isset($condition['source'])) {
                 unset($condition['source']);
             }
