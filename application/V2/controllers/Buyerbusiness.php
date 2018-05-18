@@ -95,7 +95,7 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //采购计划列表
+    //采购里程碑事件
     public function delMilestoneEventAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);

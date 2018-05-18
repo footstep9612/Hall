@@ -53,17 +53,14 @@ class MilestoneEventModel extends Model {
             ->order('event_time desc')
             ->select();
         if(empty($info)){
-            $info=[];
-//            $info=[
-//                array(
-//                    'id'=>null,
-//                    'buyer_id'=>null,
-//                    'event_name'=>null,
-//                    'event_content'=>null,
-//                    'event_contact'=>null,
-//                    'event_time'=>null
-//                )
-//            ];
+            return [];
+        }
+        foreach($info as $k => &$v){
+            if(!empty($v['event_time'])){
+                $v['event_time']=substr($v['event_time'],0,10);
+            }else{
+                $v['event_time']='';
+            }
         }
         return $info;
     }
