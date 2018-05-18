@@ -20,10 +20,13 @@ class CustomerCreditModel extends PublicModel{
             'deleted_flag'=>'N'
         );
         $info=$this->field('buyer_id,credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
-        if(!empty($info)){
-            $info['behind_time']=date('Y-m-d',$info['behind_time']);
-        }else{
+        if(empty($info)){
+            return [];
+        }
+        if($info['behind_time']==0){
             $info['behind_time']='';
+        }else{
+            $info['behind_time']=date('Y-m-d',$info['behind_time']);
         }
         return $info;
     }
