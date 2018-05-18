@@ -31,6 +31,9 @@ class BuyerBusinessModel extends PublicModel
         $arr['buyer_id'] = $data['buyer_id'];
         $arr['created_by'] = $data['created_by'];
         $arr['created_at'] = date('Y-m-d H:i:s');
+        if($arr['is_warehouse']=='N'){
+            $arr['warehouse_address']='';
+        }
         if(empty($data['id'])){ //新建
             $this ->add($arr);
         }else{

@@ -632,6 +632,7 @@ class SupplierInquiryModel extends PublicModel {
 
     private function _getKeys() {
         return [
+            'A' => ['sequence_no', '序号'],
             'B' => ['serial_no', '报价单号'],
             'C' => ['country_name', '询价单位'],
             'D' => ['market_area_name', '所属地区部'],
@@ -827,12 +828,12 @@ class SupplierInquiryModel extends PublicModel {
         } else {
             $keys = $this->_getKeys();
         }
-        $objSheet->setCellValue('A1', '序号');
+        //$objSheet->setCellValue('A1', '序号');
         foreach ($keys as $rowname => $key) {
             $objSheet->setCellValue($rowname . '1', $key[1]);
         }
         foreach ($list as $j => $item) {
-            $objSheet->setCellValue('A' . ($j + 2), ($j + 1));
+            //$objSheet->setCellValue('A' . ($j + 2), ($j + 1));
             foreach ($keys as $rowname => $key) {
 
                 if ($key && isset($item)) {
@@ -1226,6 +1227,7 @@ class SupplierInquiryModel extends PublicModel {
      */
     private function _resetListData(&$list) {
         $tmpList = $newList = $serialNoList = [];
+        $i = 0;
         foreach ($list as $item) {
             $serialNo = $item['serial_no'];
             $tmpData = $tmpList[$serialNo];
@@ -1252,6 +1254,7 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($list as $item) {
             $serialNo = $item['serial_no'];
             if (!in_array($serialNo, $serialNoList)) {
+                $tmpList[$serialNo]['sequence_no'] = ++$i;
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
