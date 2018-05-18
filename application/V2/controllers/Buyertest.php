@@ -48,18 +48,17 @@ class BuyertestController extends PublicController
     }
     //客户附件类型
     public function fileSizeAction(){
+        $config = \Yaf_Application::app()->getConfig();
+        $host=$config['fastDFSUrl'];
         set_time_limit(0);
         $attach=new BuyerattachModel();
         $info=$attach->field('id,attach_url')->select();
         $arr=[];
         foreach($info as $k => $v){
-            $url='http://file01.eruidev.com/'.$v['attach_url'];
-            $size=filesize($url);
-            print_r($size);die;
-            if($site>=0){
-                $name=strtoupper(substr($v['attach_name'],$site+1));
-                $arr[]=$attach->where(array('id'=>$v['id']))->save(array('attach_type'=>$name));
-            }
+            $url=$host.$v['attach_url'];
+            $file = file_get_contents($url);
+            $size=strlen($file);
+            $arr[]=$attach->where(array('id'=>$v['id']))->save(array('attach_size'=>$size));
         }
         echo count($arr);
     }
