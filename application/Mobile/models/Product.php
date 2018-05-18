@@ -554,7 +554,7 @@ class ProductModel extends PublicModel {
                 //图
                 $attachModel = new ProductAttachModel();
                 $attachs = $attachModel->getAttachBySpu($spus);
-                $dataAttach = [''];
+                $dataAttach = [];
                 foreach ($attachs as $r) {
                     if (isset($dataAttach[$r['spu']])) {
                         if ($r['default_flag'] == 'Y') {
