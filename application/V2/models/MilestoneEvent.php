@@ -10,11 +10,14 @@ class MilestoneEventModel extends Model {
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'milestone_event';
     public function editMilestoneEvent($data){
+        if(!empty($data['event_time'])){
+            $data['event_time']=substr($data['event_time'],0,10);
+        }
         $arr=array(
+            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
             'event_name'=>isset($data['event_name'])?$data['event_name']:null, //事件名称project
             'event_content'=>isset($data['event_content'])?$data['event_content']:null, //事件内容Content
             'event_contact'=>isset($data['event_contact'])?$data['event_contact']:null, //该事件KERUI/ERUI负责人KERUI/ERUI
-            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
         );
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
