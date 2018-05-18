@@ -1615,9 +1615,9 @@ EOF;
         $pageSize = 10;
         $offset = ($page-1)*$pageSize;
         $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
-        $totalCount = $arr['totalCount'];
+        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
         $totalPage = ceil($totalCount/$pageSize);
-        $info = $arr['info'];
+        $info = $arr['info']?$arr['info']:[];
         $res = array(
             'page'=>$page,
             'totalCount'=>$totalCount,
@@ -2295,6 +2295,9 @@ EOF;
                 $cond .= " and buyer.buyer_level='wangs'";
             }
 //            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+        }
+        if(!empty($data['buyer_no'])){
+            $cond .= " and buyer.buyer_no like '%$data[buyer_no]%'";
         }
         if(!empty($data['buyer_code'])){
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
