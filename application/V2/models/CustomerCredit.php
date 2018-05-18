@@ -49,6 +49,12 @@ class CustomerCreditModel extends PublicModel{
         );
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=time();
+        if($arr['payment_behind']=='N'){
+            $arr['behind_time']=0;
+        }
+        if($arr['violate_treaty']=='N'){
+            $arr['treaty_content']='';
+        }
         $cond=array(
             'buyer_id'=>$data['buyer_id'],
             'deleted_flag'=>'N'
