@@ -817,7 +817,7 @@ class db_Db {
     public function select($options = array()) {
         $this->model = $options['model'];
         $sql = $this->buildSelectSql($options);
-        logs($sql);
+        // logs($sql);
         $result = $this->query($sql, $this->parseBind(!empty($options['bind']) ? $options['bind'] : array()));
         return $result;
     }
