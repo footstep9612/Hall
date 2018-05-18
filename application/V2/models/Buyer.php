@@ -430,7 +430,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
-//            'checked_at',   //操作
+            'checked_at',   //操作
         );
         $field = 'country.name as country_name,';
 
