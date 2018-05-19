@@ -106,15 +106,23 @@ class BuyerfilesController extends PublicController
      */
     public function percentInfoAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $buyer_id=$data['buyer_id'];
-        $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
-        $cond=array(
-            'buyer_id'=>$buyer_id,
-            'deleted_flag'=>'N'
-        );
+        if(empty($data['buyer_id'])){
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'参数错误'
+            );
+            return $this->jsonReturn($dataJson);
+        }
         //客户基本信息
         $base = new BuyerModel();
         $baseInfo=$base->percentBuyer($data);
+        if(empty($baseInfo['buyer_no'])){
+            $dataJson=array(
+                'code'=>0,
+                'message'=>'暂无信息'
+            );
+            return $this->jsonReturn($dataJson);
+        }
         //信用评价信息
         $credit=new CustomerCreditModel();
         $creditInfo=$credit->percentCredit($data);
