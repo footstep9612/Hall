@@ -162,6 +162,7 @@ class NetSubjectModel extends PublicModel {
             'deleted_flag'=>'N'
         );
         $field=array(
+            'id', //入网主题简称
             'subject_name', //入网主题简称
             'net_at', //入网时间
             'net_invalid_at', //失效时间
