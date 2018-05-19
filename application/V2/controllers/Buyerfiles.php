@@ -294,37 +294,36 @@ class BuyerfilesController extends PublicController
         $eventArr=$milestone_event->field($eventField)->where($cond)->find();
         $eventInfo=$eventArr?$eventArr:[];
 
-        $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainInfo,$businessInfo,$netInfo,$purchasingInfo,$eventInfo);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
         $attachArr=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
-        $attachInfo=$attachArr?$attachArr:[];
         //汇总
-        $info=array_merge($infoArr,$attachInfo);
-        $infoCount=count($info)+3;  //总数
+        $attachInfo=$attachArr?$attachArr:[];   //附件
+        $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainInfo,$businessInfo,$netInfo,$purchasingInfo,$eventInfo);  //信息
+        $infoCount=count($infoArr)+3;  //总数
         //统计数据
-        $infoExist=count(array_filter($info))+count($attachInfo);
+        $infoExist=count(array_filter($infoArr))+count($attachInfo);
         //判断
-        if(!empty($info['is_warehouse'])){  //仓库
-            if($info['is_warehouse']=='N'){
-                $infoExist += 1;
-            }
-        }
-        if($info['is_net']){    //入网
-            if($info['is_net']=='N'){
-                $infoExist += 6;
-            }
-        }
-        if($info['payment_behind']){    //拖欠货款
-            if($info['payment_behind']=='N'){
-                $infoExist += 1;
-            }
-        }
-        if($info['violate_treaty']){    //是否违约
-            if($info['violate_treaty']=='N'){
-                $infoExist += 1;
-            }
-        }
+//        if(!empty($info['is_warehouse'])){  //仓库
+//            if($info['is_warehouse']=='N'){
+//                $infoExist += 1;
+//            }
+//        }
+//        if($info['is_net']){    //入网
+//            if($info['is_net']=='N'){
+//                $infoExist += 6;
+//            }
+//        }
+//        if($info['payment_behind']){    //拖欠货款
+//            if($info['payment_behind']=='N'){
+//                $infoExist += 1;
+//            }
+//        }
+//        if($info['violate_treaty']){    //是否违约
+//            if($info['violate_treaty']=='N'){
+//                $infoExist += 1;
+//            }
+//        }
         //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
