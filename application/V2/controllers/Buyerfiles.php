@@ -142,7 +142,20 @@ class BuyerfilesController extends PublicController
 
         //信用评价信息
         $credit=new CustomerCreditModel();
-        $creditInfo=$credit->showCredit($data);
+        $creditField=array(
+            'line_of_credit', //授信额度
+            'credit_available', //可用额度
+            'credit_type', //授信类型
+            'credit_level', //信用等级
+            'payment_behind', //是否拖欠过货款:Y/N
+            'behind_time', //拖欠货款时间
+            'reputation', //业内口碑
+            'violate_treaty', //有违约内容
+            'treaty_content', //是否有针对KERUI/ERUI的违约
+            'comments', //KERUI/ERUI、KERUI对其评价
+        );
+        $creditArr=$credit->field($creditField)->where($cond)->find();
+        $creditInfo=$creditArr?$creditArr:[];
         //联系人
         $contact = new BuyercontactModel();
         $contactField=array(
