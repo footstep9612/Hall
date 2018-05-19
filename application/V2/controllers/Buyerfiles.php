@@ -146,7 +146,7 @@ class BuyerfilesController extends PublicController
         $eventInfo=$milestone_event->percentMilestoneEvent($data);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
-        $cond=array('id'=>$data['buyer_id'],'deleted_flag'=>'N');
+        $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
         $attachArr=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
 
         //汇总
