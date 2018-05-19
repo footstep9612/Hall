@@ -3197,13 +3197,13 @@ EOF;
     public function percentBuyer($data){
         $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
         $baseField=array(
-            'buyer_code', //客户代码
+//            'buyer_code', //客户代码
             'buyer_no', //客户编码
-            'buyer_level', //客户等级
-            'country_bn', //国家
+//            'buyer_level', //客户等级
+//            'country_bn', //国家
             'buyer_type', //客户类型
             'is_oilgas', //是否油气
-            'name as company_name', //公司名称
+//            'name as company_name', //公司名称
             'official_phone', //公司电话
             'official_email', //公司邮箱
             'official_website', //公司网址

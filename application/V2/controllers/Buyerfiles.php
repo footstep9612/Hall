@@ -123,6 +123,7 @@ class BuyerfilesController extends PublicController
             );
             return $this->jsonReturn($dataJson);
         }
+        unset($baseInfo['buyer_no']);
         //信用评价信息
         $credit=new CustomerCreditModel();
         $creditInfo=$credit->percentCredit($data);
