@@ -1913,6 +1913,7 @@ EOF;
         }
         $buyerArr = array(
             'id as buyer_id', //客户id
+            'percent', //客户id
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
             'is_oilgas', //是否油气
