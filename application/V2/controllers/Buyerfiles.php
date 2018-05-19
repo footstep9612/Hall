@@ -146,6 +146,7 @@ class BuyerfilesController extends PublicController
         $eventInfo=$milestone_event->percentMilestoneEvent($data);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
+        $cond=array('id'=>$data['buyer_id'],'deleted_flag'=>'N');
         $attachArr=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
 
         //汇总
@@ -173,7 +174,7 @@ class BuyerfilesController extends PublicController
         //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
-        $base->where(array('id'=>$buyer_id))->save(array('percent'=>$percent));
+        $base->where(array('id'=>$data['buyer_id']))->save(array('percent'=>$percent));
         $dataJson=array(
             'code'=>1,
             'message'=>'档案信息完整度',

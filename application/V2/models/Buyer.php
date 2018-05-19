@@ -3221,10 +3221,11 @@ EOF;
         );
         $info=$this->field($baseField)->where($cond)->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
+            if($info['reg_capital']==0){
+                $info['reg_capital']='';
+            }
+            if($info['employee_count']==0){
+                $info['employee_count']='';
             }
         }else{
             $info=[];
