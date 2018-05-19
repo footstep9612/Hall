@@ -2754,8 +2754,14 @@ EOF;
         if(!empty($data['source'])){    //来源
             $cond.=' and buyer.source='.$data['source'];
         }
-        if(!empty($data['buyer_level'])){   //等级
-            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        if(!empty($data['buyer_level'])){
+            if($data['buyer_level']=='52'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " and buyer.buyer_level=53";
+            }else{
+                $cond .= " and buyer.buyer_level='wangs'";
+            }
         }
 
         if(!empty($data['start_time'])){   //等级
