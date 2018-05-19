@@ -154,11 +154,11 @@ class BuyercontactModel extends PublicModel
         );
         $info=$this->field($contactField)->where($cond)->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($contactField as $k => $v){

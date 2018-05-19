@@ -27,11 +27,11 @@ class BuyerBusinessModel extends PublicModel
         $businessCond=array('buyer_id'=>$data['buyer_id']);
         $info=$this->field($field)->where($businessCond)->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($field as $k => $v){

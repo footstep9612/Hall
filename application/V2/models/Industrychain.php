@@ -25,11 +25,11 @@ class IndustrychainModel extends PublicModel
         );
         $info=$this->field($field)->where($upCond)->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($field as $k => $v){
@@ -52,11 +52,11 @@ class IndustrychainModel extends PublicModel
         );
         $info=$this->field($field)->where($downCond)->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($field as $k => $v){
@@ -75,11 +75,11 @@ class IndustrychainModel extends PublicModel
         $info=$this->field($field)->where($competitorCond)->find();
 
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($field as $k => $v){

@@ -302,11 +302,11 @@ class BuyerPurchasingModel extends PublicModel
             ->where(array('purchasing.buyer_id'=>$data['buyer_id'],'purchasing.deleted_flag'=>'N'))
             ->find();
         if(!empty($info)){
-            foreach($info as $k => &$v){
-                if(empty($v) || $v==0){
-                    $v='';
-                }
-            }
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
         }else{
             $info=[];
             foreach($field as $k => $v){
