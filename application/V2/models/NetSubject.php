@@ -41,7 +41,7 @@ class NetSubjectModel extends PublicModel {
         }
         return $info;
     }
-    private function eruiNetSubject($competitorCond){
+    private function eruiNetSubject($data){
         $field=array(
             'subject_name as erui_subject_name', //入网主题简称
             'net_at as erui_net_at', //入网时间
