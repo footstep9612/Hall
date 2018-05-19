@@ -3193,4 +3193,45 @@ EOF;
         }
         return $arr;
     }
+    //信息完整度统计客户基本信息
+    public function percentBuyer($data){
+        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $baseField=array(
+            'buyer_code', //客户代码
+            'buyer_no', //客户编码
+            'buyer_level', //客户等级
+            'country_bn', //国家
+            'buyer_type', //客户类型
+            'is_oilgas', //是否油气
+            'name as company_name', //公司名称
+            'official_phone', //公司电话
+            'official_email', //公司邮箱
+            'official_website', //公司网址
+            'company_reg_date', //公司注册日期
+            'reg_capital', //注册金额
+            'reg_capital_cur', //注册币种
+            'employee_count', //公司员工数量
+            'company_model', //公司性质
+            'sub_company_name', //子公司名称
+            'company_address', //公司地址
+            'profile as company_profile', //公司其他信息
+//            'biz_scope', //公司名称
+//            'intent_product', //公司名称
+//            'purchase_amount', //公司名称
+        );
+        $info=$this->field($baseField)->where($cond)->find();
+        if(!empty($info)){
+            foreach($info as $k => &$v){
+                if(empty($v) || $v==0){
+                    $v='';
+                }
+            }
+        }else{
+            $info=[];
+            foreach($baseField as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
 }

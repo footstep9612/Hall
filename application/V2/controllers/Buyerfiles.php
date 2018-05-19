@@ -114,209 +114,38 @@ class BuyerfilesController extends PublicController
         );
         //客户基本信息
         $base = new BuyerModel();
-        $baseField=array(
-            'buyer_code', //客户代码
-            'buyer_no', //客户编码
-            'buyer_level', //客户等级
-            'country_bn', //国家
-            'buyer_type', //客户类型
-            'is_oilgas', //是否油气
-            'name as company_name', //公司名称
-            'official_phone', //公司电话
-            'official_email', //公司邮箱
-            'official_website', //公司网址
-            'company_reg_date', //公司注册日期
-            'reg_capital', //注册金额
-            'reg_capital_cur', //注册币种
-            'employee_count', //公司员工数量
-            'company_model', //公司性质
-            'sub_company_name', //子公司名称
-            'company_address', //公司地址
-            'profile as company_profile', //公司其他信息
-//            'biz_scope', //公司名称
-//            'intent_product', //公司名称
-//            'purchase_amount', //公司名称
-        );
-        $baseArr=$base->field($baseField)->where($baseCond)->find();
-        $baseInfo=$baseArr?$baseArr:[];
-
+        $baseInfo=$base->percentBuyer($data);
         //信用评价信息
         $credit=new CustomerCreditModel();
-        $creditField=array(
-            'line_of_credit', //授信额度
-            'credit_available', //可用额度
-            'credit_type', //授信类型
-            'credit_level', //信用等级
-            'payment_behind', //是否拖欠过货款:Y/N
-            'behind_time', //拖欠货款时间
-            'reputation', //业内口碑
-            'violate_treaty', //有违约内容
-            'treaty_content', //是否有针对KERUI/ERUI的违约
-            'comments', //KERUI/ERUI、KERUI对其评价
-        );
-        $creditArr=$credit->field($creditField)->where($cond)->find();
-        $creditInfo=$creditArr?$creditArr:[];
+        $creditInfo=$credit->percentCredit($data);
         //联系人
         $contact = new BuyercontactModel();
-        $contactField=array(
-            'name as contact_name', //联系人姓名
-            'title as contact_title', //联系人职位
-            'role as contact_role', //角色
-            'phone as contact_phone', //联系人电话
-            'email as contact_email', //联系人邮箱
-            'hobby as contact_hobby', //爱好
-            'address as contact_address', //地址
-            'experience', //经历
-            'social_relations', //社会关系
-            'key_concern', //决策主要关注点
-            'attitude_kerui', //对科瑞的态度
-            'social_habits', //常去社交场所
-            'relatives_family' //家庭亲戚相关信息
-        );
-        $contactInfo=$contact->field($contactField)->where($cond)->find();
-        $contactInfo=$contactInfo?$contactInfo:[];
-
-
+        $contactInfo=$contact->percentContact($data);
         //上下游-竞争对手
         $chain=new IndustrychainModel();
-        $upField=array(
-            'name as up_name', //客户名称
-            'cooperation as up_cooperation', //合作情况
-            'business_type as up_business_type', //业务类型
-            'scale as up_scale', //规模
-            'settlement as up_settlement', //结算方式
-            'marketing_network as up_marketing_network', //营销网络
-//            'buyer_type_name as up_buyer_type_name', //客户的客户类型名称
-            'buyer_project as up_buyer_project', //客户参与的项目
-            'buyer_problem as up_buyer_problem', //客户遇到过的困难
-            'solve_problem as up_solve_problem' //客户如何解决的困难
-        );
-        $downField=array(
-            'name as down_name', //客户名称
-            'cooperation as down_cooperation', //合作情况
-            'goods as down_goods', //商品
-            'profile as down_profile', //简介
-            'settlement as down_settlement', //结算方式
-            'warranty_terms as down_warranty_terms', //保质条款
-            'relationship as down_relationship', //供应商与客户关系如何
-            'analyse as down_analyse', //与KERUI/ERUI的对标分析
-            'dynamic as down_dynamic' //供应商动态
-        );
-        $competitorField=array(
-            'competitor_name', //竞争对手名称
-            'competitor_area', //竞争领域
-            'company_compare', //两公司优劣势对比
-            'what_plan' //KERUI/ERUI可以做什么
-        );
-        $upCond=array('buyer_id'=>$buyer_id,'deleted_flag'=>'N','industry_group'=>'up');
-        $downCond=array('buyer_id'=>$buyer_id,'deleted_flag'=>'N','industry_group'=>'down');
-        $competitorCond=array('buyer_id'=>$buyer_id,'deleted_flag'=>'N','industry_group'=>'competitor');
-        $upInfo=$chain->field($upField)->where($upCond)->find();
-        $downInfo=$chain->field($downField)->where($downCond)->find();
-        $competitorInfo=$chain->field($competitorField)->where($competitorCond)->find();
-
-        $upInfo=$upInfo?$upInfo:[];
-        $downInfo=$downInfo?$downInfo:[];
-        $competitorInfo=$competitorInfo?$competitorInfo:[];
-        $chainInfo=array_merge($upInfo,$downInfo,$competitorInfo);
-
-
+        $chainInfo=$chain->percentChain($data);
         //业务信息
         $business=new BuyerBusinessModel();
-        $businessField=array(
-            'product_type', //产品类型
-            'purchasing_model', //采购模式
-            'purchasing_cycle', //采购周期
-            'usage', //设备以及使用情况
-            'is_warehouse', //是否有仓库
-            'warehouse_address', //仓库所在地
-            'Product_service_preference', //产品服务偏好
-            'Origin_preference', //原产地偏好
-            'Brand_preference', //品牌偏好
-            'trade_terms', //贸易术语
-            'settlement', //结算方式
-            'is_local_settlement', //是否支持本地结算
-            'is_purchasing_relationship', //是否有采购关系
-//            'is_net', //是否入网
-//            'net_subject', //入网主题
-//            'net_at', //是否有采购关系
-//            'net_invalid_at', //是否有采购关系
-//            'net_goods' //是否有采购关系
-        );
-        $businessCond=array('buyer_id'=>$buyer_id);
-        $businessArr=$business->field($businessField)->where($businessCond)->find();
-        $businessInfo=$businessArr?$businessArr:[];
+        $businessInfo=$business->percentBusiness($data);
         //入网主题内容
         $subject=new NetSubjectModel();
-        $equipmentField=array(
-            'subject_name as equipment_subject_name', //入网主题简称
-            'net_at as equipment_net_at', //入网时间
-            'net_invalid_at as equipment_net_invalid_at', //失效时间
-            'net_goods as equipment_net_goods' //入网商品
-        );
-        $eruiField=array(
-            'subject_name as erui_subject_name', //入网主题简称
-            'net_at as erui_net_at', //入网时间
-            'net_invalid_at as erui_net_invalid_at', //失效时间
-            'net_goods as erui_net_goods' //入网商品
-        );
-        $equipmentArr=$subject->field($equipmentField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'equipment','deleted_flag'=>'N'))->find();
-        $eruiArr=$subject->field($eruiField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'erui','deleted_flag'=>'N'))->find();
-        $equipmentInfo=$equipmentArr?$equipmentArr:[];
-        $eruiInfo=$eruiArr?$eruiArr:[];
-        $netInfo=array_merge($equipmentInfo,$eruiInfo);
-
-
-
+        $netInfo=$subject->percentNetSubject($data);
         //采购计划
         $purchasing=new BuyerPurchasingModel();
-        $purchasingField=array(
-            'purchasing.purchasing_at', //采购时间
-            'purchasing.purchasing_budget', //采购预算
-            'purchasing.purchasing_plan', //采购计划
-            'attach.attach_name', //采购计划
-            'attach.attach_url', //采购计划
-        );
-        $purchasingArr=$purchasing->alias('purchasing')
-            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
-            ->field($purchasingField)
-            ->where(array('purchasing.buyer_id'=>$buyer_id,'purchasing.deleted_flag'=>'N'))
-            ->find();
-        $purchasingInfo=$purchasingArr?$purchasingArr:[];
+        $purchasingInfo=$purchasing->percentPurchase($data);
         //里程碑事件
         $milestone_event=new MilestoneEventModel();
-        $eventField=array(
-            'event_time', //里程碑时间
-            'event_name', //里程碑名称
-            'event_content', //里程碑事件内容
-            'event_contact' //里程碑负责人
-        );
-        $eventArr=$milestone_event->field($eventField)->where($cond)->find();
-        $eventInfo=$eventArr?$eventArr:[];
-
+        $eventInfo=$milestone_event->percentMilestoneEvent($data);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
         $attachArr=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
+
         //汇总
         $attachInfo=$attachArr?$attachArr:[];   //附件
         $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainInfo,$businessInfo,$netInfo,$purchasingInfo,$eventInfo);  //信息
-//        print_r($baseInfo);
-//        print_r($creditInfo);
-//        print_r($contactInfo);
-//        print_r($chainInfo);
-//        print_r($businessInfo);
-//        print_r($netInfo);
-//        print_r($purchasingInfo);
-//        print_r($eventInfo);
-
-//        $infoCount=count($infoArr)+3;  //总数
-        $infoCount=96;  //总数
+        $infoCount=count($infoArr)+3;  //总数
         //统计数据
         $infoExist=count(array_filter($infoArr))+count($attachInfo);
-
-//        print_r($infoCount);
-//        echo '---';
-//        print_r($infoExist);die;
         //判断
         if(!empty($infoArr['is_warehouse'])){  //仓库
             if($infoArr['is_warehouse']=='N'){
@@ -333,9 +162,6 @@ class BuyerfilesController extends PublicController
                 $infoExist += 1;
             }
         }
-//        print_r($infoCount);
-//        echo '---';
-//        print_r($infoExist);die;
         //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比

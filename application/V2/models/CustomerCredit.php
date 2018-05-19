@@ -72,5 +72,34 @@ class CustomerCreditModel extends PublicModel{
         }
         return true;
     }
-
+    //信用评价完整度
+    public function percentCredit($data){
+        $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+        $creditField=array(
+            'line_of_credit', //授信额度
+            'credit_available', //可用额度
+            'credit_type', //授信类型
+            'credit_level', //信用等级
+            'payment_behind', //是否拖欠过货款:Y/N
+            'behind_time', //拖欠货款时间
+            'reputation', //业内口碑
+            'violate_treaty', //有违约内容
+            'treaty_content', //是否有针对KERUI/ERUI的违约
+            'comments', //KERUI/ERUI、KERUI对其评价
+        );
+        $info=$this->field($creditField)->where($cond)->find();
+        if(!empty($info)){
+            foreach($info as $k => &$v){
+                if(empty($v) || $v==0){
+                    $v='';
+                }
+            }
+        }else{
+            $info=[];
+            foreach($creditField as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
 }

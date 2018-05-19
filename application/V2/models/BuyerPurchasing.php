@@ -288,4 +288,31 @@ class BuyerPurchasingModel extends PublicModel
         $this -> where($map) -> save($save);
         return true;
     }
+    public function percentPurchase($data){
+        $field=array(
+            'purchasing.purchasing_at', //采购时间
+            'purchasing.purchasing_budget', //采购预算
+            'purchasing.purchasing_plan', //采购计划
+            'attach.attach_name', //采购计划
+            'attach.attach_url', //采购计划
+        );
+        $info=$this->alias('purchasing')
+            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->field($field)
+            ->where(array('purchasing.buyer_id'=>$data['buyer_id'],'purchasing.deleted_flag'=>'N'))
+            ->find();
+        if(!empty($info)){
+            foreach($info as $k => &$v){
+                if(empty($v) || $v==0){
+                    $v='';
+                }
+            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
 }
