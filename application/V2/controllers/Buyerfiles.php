@@ -152,7 +152,7 @@ class BuyerfilesController extends PublicController
             'treaty_content', //违约的内容
             'comments' //ERUI对其评价
         );
-        $creditInfo=$credit->field($creditField)->where(array('buyer_id'=>$data['buyer_id']))->find();
+        $creditInfo=$credit->field($creditField)->where($cond)->find();
         //联系人
         $contact = new BuyercontactModel();
         $contactField=array(
