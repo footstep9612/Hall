@@ -300,30 +300,41 @@ class BuyerfilesController extends PublicController
         //汇总
         $attachInfo=$attachArr?$attachArr:[];   //附件
         $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainInfo,$businessInfo,$netInfo,$purchasingInfo,$eventInfo);  //信息
+//        print_r($baseInfo);
+//        print_r($creditInfo);
+//        print_r($contactInfo);
+//        print_r($chainInfo);
+//        print_r($businessInfo);
+//        print_r($netInfo);
+//        print_r($purchasingInfo);
+//        print_r($eventInfo);
+
         $infoCount=count($infoArr)+3;  //总数
         //统计数据
         $infoExist=count(array_filter($infoArr))+count($attachInfo);
+
+//        print_r($infoCount);
+//        echo '---';
+//        print_r($infoExist);die;
         //判断
-//        if(!empty($info['is_warehouse'])){  //仓库
-//            if($info['is_warehouse']=='N'){
-//                $infoExist += 1;
-//            }
-//        }
-//        if($info['is_net']){    //入网
-//            if($info['is_net']=='N'){
-//                $infoExist += 6;
-//            }
-//        }
-//        if($info['payment_behind']){    //拖欠货款
-//            if($info['payment_behind']=='N'){
-//                $infoExist += 1;
-//            }
-//        }
-//        if($info['violate_treaty']){    //是否违约
-//            if($info['violate_treaty']=='N'){
-//                $infoExist += 1;
-//            }
-//        }
+        if(!empty($infoArr['is_warehouse'])){  //仓库
+            if($infoArr['is_warehouse']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($infoArr['payment_behind']){    //拖欠货款
+            if($infoArr['payment_behind']=='N'){
+                $infoExist += 1;
+            }
+        }
+        if($infoArr['violate_treaty']){    //是否违约
+            if($infoArr['violate_treaty']=='N'){
+                $infoExist += 1;
+            }
+        }
+//        print_r($infoCount);
+//        echo '---';
+//        print_r($infoExist);die;
         //判断end
         $percent=floor(($infoExist / $infoCount)*100);
         //更新百分比
