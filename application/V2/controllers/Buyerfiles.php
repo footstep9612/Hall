@@ -309,7 +309,8 @@ class BuyerfilesController extends PublicController
 //        print_r($purchasingInfo);
 //        print_r($eventInfo);
 
-        $infoCount=count($infoArr)+3;  //总数
+//        $infoCount=count($infoArr)+3;  //总数
+        $infoCount=96;  //总数
         //统计数据
         $infoExist=count(array_filter($infoArr))+count($attachInfo);
 
