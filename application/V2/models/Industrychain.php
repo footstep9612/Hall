@@ -11,6 +11,92 @@ class IndustrychainModel extends PublicModel
     {
         parent::__construct();
     }
+    private function upChain($upCond){
+        $field=array(
+            'name as up_name', //客户名称
+            'cooperation as up_cooperation', //合作情况
+            'business_type as up_business_type', //业务类型
+            'scale as up_scale', //规模
+            'settlement as up_settlement', //结算方式
+            'marketing_network as up_marketing_network', //营销网络
+            'buyer_project as up_buyer_project', //客户参与的项目
+            'buyer_problem as up_buyer_problem', //客户遇到过的困难
+            'solve_problem as up_solve_problem' //客户如何解决的困难
+        );
+        $info=$this->field($field)->where($upCond)->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    private function downChain($downCond){
+        $field=array(
+            'name as down_name', //客户名称
+            'cooperation as down_cooperation', //合作情况
+            'goods as down_goods', //商品
+            'profile as down_profile', //简介
+            'settlement as down_settlement', //结算方式
+            'warranty_terms as down_warranty_terms', //保质条款
+            'relationship as down_relationship', //供应商与客户关系如何
+            'analyse as down_analyse', //与KERUI/ERUI的对标分析
+            'dynamic as down_dynamic' //供应商动态
+        );
+        $info=$this->field($field)->where($downCond)->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    private function competitorChain($competitorCond){
+        $field=array(
+            'competitor_name', //竞争对手名称
+            'competitor_area', //竞争领域
+            'company_compare', //两公司优劣势对比
+            'what_plan' //KERUI/ERUI可以做什么
+        );
+        $info=$this->field($field)->where($competitorCond)->find();
+
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    public function percentChain($data){
+        $upCond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N','industry_group'=>'up');
+        $downCond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N','industry_group'=>'down');
+        $competitorCond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N','industry_group'=>'competitor');
+        $up=$this->upChain($upCond);
+        $down=$this->downChain($downCond);
+        $competitor=$this->competitorChain($competitorCond);
+        return array_merge($up,$down,$competitor);
+    }
     public function industryChainList($data){
         if(empty($data['buyer_id']) || empty($data['type'])){
             return false;

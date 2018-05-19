@@ -430,7 +430,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
-//            'checked_at',   //操作
+            'checked_at',   //操作
         );
         $field = 'country.name as country_name,';
 
@@ -1615,9 +1615,9 @@ EOF;
         $pageSize = 10;
         $offset = ($page-1)*$pageSize;
         $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
-        $totalCount = $arr['totalCount'];
+        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
         $totalPage = ceil($totalCount/$pageSize);
-        $info = $arr['info'];
+        $info = $arr['info']?$arr['info']:[];
         $res = array(
             'page'=>$page,
             'totalCount'=>$totalCount,
@@ -1913,6 +1913,7 @@ EOF;
         }
         $buyerArr = array(
             'id as buyer_id', //客户id
+            'percent', //客户id
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
             'is_oilgas', //是否油气
@@ -2295,6 +2296,9 @@ EOF;
                 $cond .= " and buyer.buyer_level='wangs'";
             }
 //            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+        }
+        if(!empty($data['buyer_no'])){
+            $cond .= " and buyer.buyer_no like '%$data[buyer_no]%'";
         }
         if(!empty($data['buyer_code'])){
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
@@ -2750,8 +2754,14 @@ EOF;
         if(!empty($data['source'])){    //来源
             $cond.=' and buyer.source='.$data['source'];
         }
-        if(!empty($data['buyer_level'])){   //等级
-            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        if(!empty($data['buyer_level'])){
+            if($data['buyer_level']=='52'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " and buyer.buyer_level=53";
+            }else{
+                $cond .= " and buyer.buyer_level='wangs'";
+            }
         }
 
         if(!empty($data['start_time'])){   //等级
@@ -3182,5 +3192,47 @@ EOF;
             $arr=0;
         }
         return $arr;
+    }
+    //信息完整度统计客户基本信息
+    public function percentBuyer($data){
+        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $baseField=array(
+            'buyer_code', //客户代码
+            'buyer_no', //客户编码
+            'buyer_level', //客户等级
+            'country_bn', //国家
+            'buyer_type', //客户类型
+            'is_oilgas', //是否油气
+            'name as company_name', //公司名称
+            'official_phone', //公司电话
+            'official_email', //公司邮箱
+            'official_website', //公司网址
+            'company_reg_date', //公司注册日期
+            'reg_capital', //注册金额
+            'reg_capital_cur', //注册币种
+            'employee_count', //公司员工数量
+            'company_model', //公司性质
+            'sub_company_name', //子公司名称
+            'company_address', //公司地址
+            'profile as company_profile', //公司其他信息
+//            'biz_scope', //公司名称
+//            'intent_product', //公司名称
+//            'purchase_amount', //公司名称
+        );
+        $info=$this->field($baseField)->where($cond)->find();
+        if(!empty($info)){
+            if($info['reg_capital']==0){
+                $info['reg_capital']='';
+            }
+            if($info['employee_count']==0){
+                $info['employee_count']='';
+            }
+        }else{
+            $info=[];
+            foreach($baseField as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
     }
 }
