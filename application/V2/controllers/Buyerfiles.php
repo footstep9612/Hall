@@ -105,13 +105,11 @@ class BuyerfilesController extends PublicController
      * 客户档案信息管理计算信息完整度-王帅
      */
     public function percentInfoAction(){
-        $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $buyer_id=$data['buyer_id'];
         $baseCond=array('id'=>$buyer_id,'is_build'=>1,'deleted_flag'=>'N');
         $cond=array(
             'buyer_id'=>$buyer_id,
-//            'created_by'=>$created_by,
             'deleted_flag'=>'N'
         );
         //客户基本信息
@@ -119,7 +117,7 @@ class BuyerfilesController extends PublicController
         $baseField=array(
             'buyer_code', //客户代码
             'buyer_no', //客户编码
-//            'buyer_level', //客户等级
+            'buyer_level', //客户等级
             'country_bn', //国家
             'buyer_type', //客户类型
             'is_oilgas', //是否油气
@@ -150,6 +148,8 @@ class BuyerfilesController extends PublicController
             'comments' //ERUI对其评价
         );
         $baseInfo=$base->field($baseField)->where($baseCond)->find();
+        //信用评价信息
+
         //联系人
         $contact = new BuyercontactModel();
         $contactField=array(
@@ -308,7 +308,7 @@ class BuyerfilesController extends PublicController
         $dataJson=array(
             'code'=>1,
             'message'=>'档案信息完整度',
-            'data'=>$percent.'%'
+            'data'=>$percent
         );
         return $this->jsonReturn($dataJson);
     }
