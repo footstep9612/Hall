@@ -209,10 +209,10 @@ class BuyerPurchasingModel extends PublicModel
     }
     public function editPurchase($data)
     {
-        if(!empty($data['purchasing_at'])){
-            $data['purchasing_at']=substr($data['purchasing_at'],0,10);
-        }
-        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'] : null;
+//        if(!empty($data['purchasing_at'])){
+//            $data['purchasing_at']=substr($data['purchasing_at'],0,10);
+//        }
+        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;
         $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;
         $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;
         $arr['buyer_id'] = $data['buyer_id'];
@@ -226,7 +226,6 @@ class BuyerPurchasingModel extends PublicModel
         if (!empty($data['id'])) {    //编辑
             unset($arr['buyer_id']);
             $this->where(array('id' => $data['id']))->save($arr);
-
             $attachModel=new PurchasingAttachModel();
             $attachModel->where(array('purchasing_id' => $data['id']))->save($attach);
             return true;
