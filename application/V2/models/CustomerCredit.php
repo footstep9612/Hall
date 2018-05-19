@@ -21,7 +21,7 @@ class CustomerCreditModel extends PublicModel{
         );
         $info=$this->field('buyer_id,credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
         if(empty($info)){
-            return [];
+            return new $this;
         }
         if($info['behind_time']==0){
             $info['behind_time']='';

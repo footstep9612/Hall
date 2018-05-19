@@ -137,22 +137,12 @@ class BuyerfilesController extends PublicController
 //            'intent_product', //公司名称
 //            'purchase_amount', //公司名称
         );
-        $baseInfo=$base->field($baseField)->where($baseCond)->find();
+        $baseArr=$base->field($baseField)->where($baseCond)->find();
+        $baseInfo=$baseArr?$baseArr:[];
+
         //信用评价信息
         $credit=new CustomerCreditModel();
-        $creditField=array(
-            'line_of_credit', //授信额度
-            'credit_available', //可用额度
-            'credit_type', //授信类型
-            'credit_level', //信用等级
-            'payment_behind', //是否拖欠过货款
-            'behind_time', //拖欠货款时间
-            'reputation', //业内口碑
-            'violate_treaty', //是否有针对ERUI的违约
-            'treaty_content', //违约的内容
-            'comments' //ERUI对其评价
-        );
-        $creditInfo=$credit->field($creditField)->where($cond)->find();
+        $creditInfo=$credit->showCredit($data);
         //联系人
         $contact = new BuyercontactModel();
         $contactField=array(
@@ -171,7 +161,9 @@ class BuyerfilesController extends PublicController
             'relatives_family' //家庭亲戚相关信息
         );
         $contactInfo=$contact->field($contactField)->where($cond)->find();
-//        $baseArr=array_merge($baseInfo,$contactInfo);
+        $contactInfo=$contactInfo?$contactInfo:[];
+
+
         //上下游-竞争对手
         $chain=new IndustrychainModel();
         $upField=array(
@@ -209,7 +201,13 @@ class BuyerfilesController extends PublicController
         $upInfo=$chain->field($upField)->where($upCond)->find();
         $downInfo=$chain->field($downField)->where($downCond)->find();
         $competitorInfo=$chain->field($competitorField)->where($competitorCond)->find();
-        $chainArr=array_merge($upInfo,$downInfo,$competitorInfo);
+
+        $upInfo=$upInfo?$upInfo:[];
+        $downInfo=$downInfo?$downInfo:[];
+        $competitorInfo=$competitorInfo?$competitorInfo:[];
+        $chainInfo=array_merge($upInfo,$downInfo,$competitorInfo);
+
+
         //业务信息
         $business=new BuyerBusinessModel();
         $businessField=array(
@@ -233,7 +231,8 @@ class BuyerfilesController extends PublicController
 //            'net_goods' //是否有采购关系
         );
         $businessCond=array('buyer_id'=>$buyer_id);
-        $businessInfo=$business->field($businessField)->where($businessCond)->find();
+        $businessArr=$business->field($businessField)->where($businessCond)->find();
+        $businessInfo=$businessArr?$businessArr:[];
         //入网主题内容
         $subject=new NetSubjectModel();
         $equipmentField=array(
@@ -248,9 +247,11 @@ class BuyerfilesController extends PublicController
             'net_invalid_at as erui_net_invalid_at', //失效时间
             'net_goods as erui_net_goods' //入网商品
         );
-        $equipmentInfo=$subject->field($equipmentField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'equipment','deleted_flag'=>'N'))->find();
-        $eruiInfo=$subject->field($eruiField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'erui','deleted_flag'=>'N'))->find();
-        $net=array_merge($equipmentInfo,$eruiInfo);
+        $equipmentArr=$subject->field($equipmentField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'equipment','deleted_flag'=>'N'))->find();
+        $eruiArr=$subject->field($eruiField)->where(array('buyer_id'=>$buyer_id,'subject_name'=>'erui','deleted_flag'=>'N'))->find();
+        $equipmentInfo=$equipmentArr?$equipmentArr:[];
+        $eruiInfo=$eruiArr?$eruiArr:[];
+        $netInfo=array_merge($equipmentInfo,$eruiInfo);
 
 
 
@@ -263,11 +264,12 @@ class BuyerfilesController extends PublicController
             'attach.attach_name', //采购计划
             'attach.attach_url', //采购计划
         );
-        $purchasingInfo=$purchasing->alias('purchasing')
+        $purchasingArr=$purchasing->alias('purchasing')
             ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
             ->field($purchasingField)
             ->where(array('purchasing.buyer_id'=>$buyer_id,'purchasing.deleted_flag'=>'N'))
             ->find();
+        $purchasingInfo=$purchasingArr?$purchasingArr:[];
         //里程碑事件
         $milestone_event=new MilestoneEventModel();
         $eventField=array(
@@ -276,14 +278,14 @@ class BuyerfilesController extends PublicController
             'event_content', //里程碑事件内容
             'event_contact' //里程碑负责人
         );
-        $eventInfo=$milestone_event->field($eventField)->where($cond)->find();
-//        $businessArr=array_merge($businessInfo,$equipmentInfo,$eruiInfo,$purchasingInfo,$eventInfo);
-        $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainArr,$businessInfo,$net,$purchasingInfo,$eventInfo);
+        $eventArr=$milestone_event->field($eventField)->where($cond)->find();
+        $eventInfo=$eventArr?$eventArr:[];
 
+        $infoArr=array_merge($baseInfo,$creditInfo,$contactInfo,$chainInfo,$businessInfo,$netInfo,$purchasingInfo,$eventInfo);
         //附件=财务报表-公司人员组织架构-分析报告
         $attach=new BuyerattachModel();
-        $attachInfo=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
-
+        $attachArr=$attach->field('attach_group,attach_name,attach_url')->where($cond)->group('attach_group')->select();
+        $attachInfo=$attachArr?$attachArr:[];
         //汇总
         $info=array_merge($infoArr,$attachInfo);
         $infoCount=count($info)+3;  //总数
