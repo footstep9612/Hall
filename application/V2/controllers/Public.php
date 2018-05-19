@@ -25,25 +25,25 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         $this->headers = getHeaders();
         $this->put_data = $this->getPut();
 
-//        if ($this->getRequest()->getModuleName() == 'V1' &&
-//                $this->getRequest()->getControllerName() == 'User' &&
-//                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-//            $this->setLang($this->getPut('lang', 'en'));
-//        } else {
-//            $this->user = $GLOBALS['SSO_USER'];
-//            $this->_setUid($this->user);
-//            if (isset($this->user['id']) && $this->user['id'] > 0) {
-//                // 加载php公共配置文件
-//                $this->loadCommonConfig();
-//                // 语言检查
-//                $this->checkLanguage();
-//                // 设置语言
-//                $this->setLang(LANG_SET);
-//            } else {
-//                header("Content-Type: application/json");
-//                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
-//            }
-//        }
+        if ($this->getRequest()->getModuleName() == 'V1' &&
+                $this->getRequest()->getControllerName() == 'User' &&
+                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
+            $this->setLang($this->getPut('lang', 'en'));
+        } else {
+            $this->user = $GLOBALS['SSO_USER'];
+            $this->_setUid($this->user);
+            if (isset($this->user['id']) && $this->user['id'] > 0) {
+                // 加载php公共配置文件
+                $this->loadCommonConfig();
+                // 语言检查
+                $this->checkLanguage();
+                // 设置语言
+                $this->setLang(LANG_SET);
+            } else {
+                header("Content-Type: application/json");
+                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
+            }
+        }
         $esoplog = new ESOpLogModel();
         $esoplog->Created($this->getRequest(), $this->put_data, $this->getLang(), $this->user);
     }
