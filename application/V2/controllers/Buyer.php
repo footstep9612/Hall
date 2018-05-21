@@ -220,7 +220,7 @@ class BuyerController extends PublicController {
         $info = $model->buyerStatisList($data,true);
         $arr=array(
             'code'=>1,
-            'message'=>'success',
+            'message'=>L('success'),
             'data'=>$info
         );
         $this->jsonReturn($arr);

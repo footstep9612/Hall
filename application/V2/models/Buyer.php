@@ -263,12 +263,12 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
-            $cond .= " and buyer.source=1 ";
-        }
-        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
-            $cond .= " and (buyer.source=2 or buyer.source=3) ";
-        }
+//        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
+//            $cond .= " and buyer.source=1 ";
+//        }
+//        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
+//            $cond .= " and (buyer.source=2 or buyer.source=3) ";
+//        }
 //        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
 //            $cond .= " and buyer.country_bn='$data[country_bn]'";
 //        }
@@ -430,7 +430,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
-            'checked_at',   //操作
+//            'checked_at',   //操作
         );
         $field = 'country.name as country_name,';
 
@@ -438,7 +438,7 @@ class BuyerModel extends PublicModel {
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
-//        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        $field .= ' ,agent.created_at as checked_at';
 //        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
