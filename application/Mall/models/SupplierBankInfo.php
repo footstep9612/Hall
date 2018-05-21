@@ -64,6 +64,10 @@ class SupplierBankInfoModel extends PublicModel {
         if (isset($create['bank_account'])) {
             $arr['bank_account'] = $create['bank_account'];
         }
+        if (isset($create['updated_by'])) {
+            $arr['updated_by'] = $create['updated_by'];
+        }
+        $arr['updated_at']= date("Y-m-d H:i:s");
         if (!empty($where)&&isset($arr)) {
             $info = $this->where($where)->find();
             if(!$info){

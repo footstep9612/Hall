@@ -220,7 +220,7 @@ class BuyerController extends PublicController {
         $info = $model->buyerStatisList($data,true);
         $arr=array(
             'code'=>1,
-            'message'=>'success',
+            'message'=>L('success'),
             'data'=>$info
         );
         $this->jsonReturn($arr);
@@ -1151,9 +1151,12 @@ EOF;
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
-        }else{
+        }elseif($res===true){
             $datajson['code']=1;
             $datajson['message']=L('success');
+        }else{
+            $datajson['code']=1;
+            $datajson['message']=$res;
         }
         $this->jsonReturn($datajson);
     }

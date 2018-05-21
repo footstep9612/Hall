@@ -170,7 +170,7 @@ class NetSubjectModel extends PublicModel {
         );
         $arr=array();
         $info=$this->field($field)->where($cond)->select();
-        foreach($info as $k => $v){
+        foreach($info as $k => &$v){
             $kk=$v['subject_name'];
             unset($v['subject_name']);
             $arr[$kk]=$v;

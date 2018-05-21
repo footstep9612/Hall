@@ -263,12 +263,12 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
-            $cond .= " and buyer.source=1 ";
-        }
-        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
-            $cond .= " and (buyer.source=2 or buyer.source=3) ";
-        }
+//        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
+//            $cond .= " and buyer.source=1 ";
+//        }
+//        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
+//            $cond .= " and (buyer.source=2 or buyer.source=3) ";
+//        }
 //        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
 //            $cond .= " and buyer.country_bn='$data[country_bn]'";
 //        }
@@ -430,7 +430,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
-            'checked_at',   //操作
+//            'checked_at',   //操作
         );
         $field = 'country.name as country_name,';
 
@@ -438,7 +438,7 @@ class BuyerModel extends PublicModel {
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
-//        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        $field .= ' ,agent.created_at as checked_at';
 //        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
@@ -2309,9 +2309,6 @@ EOF;
         if(!empty($data['reg_capital'])){
             $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
         }
-        if(!empty($data['line_of_credit'])){
-            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
-        }
         if(!empty($data['min_percent'])){    //信息完整度min
             $cond .= " and buyer.percent >=".$data['min_percent'];
         }
@@ -2362,17 +2359,17 @@ EOF;
                 'level_at',   //等级设置时间
                 'reg_capital',   //注册资金
                 'reg_capital_cur',   //货币
-                'credit_level',   //采购商信用等级
-                'credit_type',   //授信类型
-                'line_of_credit',   //授信额度
+//                'credit_level',   //采购商信用等级   X
+//                'credit_type',   //授信类型   X
+//                'line_of_credit',   //授信额度    X
             );
             foreach($fieldBuyerArr as $v){
                 $field .= ',buyer.'.$v;
             }
             $fieldBusiness = array(
-                'is_net', //是否入网
-                'net_at', //入网时间
-                'net_invalid_at', //失效时间
+//                'is_net', //是否入网
+//                'net_at', //入网时间
+//                'net_invalid_at', //失效时间
                 'product_type', //产品类型
                 'is_local_settlement', //本地结算
                 'is_purchasing_relationship', //采购关系
@@ -2381,14 +2378,19 @@ EOF;
                 $field .= ',business.'.$v;
             }
             $field .= ',employee.name as created_name';
+            $field .= ',credit.credit_level'; //采购商信用等级
+            $field .= ',credit.credit_type';  //授信类型
+            $field .= ',credit.line_of_credit';   //授信额度
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+                ->join('erui_buyer.customer_credit credit on buyer.id=credit.buyer_id and credit.deleted_flag=\'N\'','left')
                 ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
+//            print_r($info);die;
             if(!empty($info)){
                 $country = new CountryModel();
                 $level = new BuyerLevelModel();
@@ -2410,6 +2412,23 @@ EOF;
                     if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
                         $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
                     }
+                    //获取入网管理
+                    $net=new NetSubjectModel();
+                    $netInfo=$net->showNetSubject(array('buyer_id'=>$v['id']));
+                    if(empty($netInfo)){    //arr
+                        $info[$k]['is_net']='N'; //是否入网
+                        $info[$k]['net_at']=''; //入网时间
+                        $info[$k]['net_invalid_at']=''; //失效时间
+                    }elseif(!empty($netInfo['erui']['net_at'])){
+                        $info[$k]['is_net']='Y'; //是否入网
+                        $info[$k]['net_at']=$netInfo['erui']['net_at']; //入网时间
+                        $info[$k]['net_invalid_at']=$netInfo['erui']['net_invalid_at']; //失效时间
+                    }else{
+                        $info[$k]['is_net']='Y'; //是否入网
+                        $info[$k]['net_at']=$netInfo['equipment']['net_at']; //入网时间
+                        $info[$k]['net_invalid_at']=$netInfo['equipment']['net_invalid_at']; //失效时间
+                    }
+
                 }
             }
             $ids = array();
