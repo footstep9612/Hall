@@ -8,7 +8,7 @@
 
 /**
  * Description of UserController
- *
+ *  瑞商联盟三种语言的
  * @author jhw
  */
 class SupplierController extends PublicController {
@@ -177,11 +177,5 @@ class SupplierController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
-    /**
-     * 瑞商信息完善
-     * */
-    public function editSupplierInfoAction(){
-
-    }
 
 }

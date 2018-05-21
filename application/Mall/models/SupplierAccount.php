@@ -172,6 +172,42 @@ class SupplierAccountModel extends PublicModel
             return false;
         }
     }
+
+    /**
+     * 密码校验
+     * @author klp
+     */
+    public function checkPassword($data,$lang) {
+        if (!empty($data['oldpassword'])) {
+            $password = $data['oldpassword'];
+        }
+        $pwd = $this->where(['supplier_id' => $data['supplier_id']])->field('password_hash')->find();
+
+        if ($pwd['password_hash'] == $password) {
+            return true;
+        } else {
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
+        }
+    }
+
+    /**
+     * 密码修改
+     * @author klp
+     * return bool
+     */
+    public function update_pwd($data,$lang) {
+
+        if (!empty($data['password'])) {
+            $new['password_hash'] = $data['password'];
+        } else {
+            jsonReturn('', '-110', ShopMsg::getMessage('-110',$lang));
+        }
+        $res = $this->where(['supplier_id' => $data['supplier_id']])->save($new);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
+    }
 }
 
 

@@ -120,7 +120,11 @@ class SupplierQualificationModel extends PublicModel {
 
 		$data = $this->create($condition);
 
-		return $this->where($where)->save($data);
+		$res = $this->where($where)->save($data);
+		if ($res !== false) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
