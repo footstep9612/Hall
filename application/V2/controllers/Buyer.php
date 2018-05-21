@@ -1151,9 +1151,12 @@ EOF;
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
-        }else{
+        }elseif($res===true){
             $datajson['code']=1;
             $datajson['message']=L('success');
+        }else{
+            $datajson['code']=1;
+            $datajson['message']=$res;
         }
         $this->jsonReturn($datajson);
     }
