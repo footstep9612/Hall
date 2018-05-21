@@ -9,12 +9,38 @@ class MilestoneEventModel extends Model {
 
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'milestone_event';
+    public function percentMilestoneEvent($data){
+        $field=array(
+            'event_time', //里程碑时间
+            'event_name', //里程碑名称
+            'event_content', //里程碑事件内容
+            'event_contact' //里程碑负责人
+        );
+        $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+        $info=$this->field($field)->where($cond)->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
     public function editMilestoneEvent($data){
+        if(!empty($data['event_time'])){
+            $data['event_time']=substr($data['event_time'],0,10);
+        }
         $arr=array(
+            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
             'event_name'=>isset($data['event_name'])?$data['event_name']:null, //事件名称project
             'event_content'=>isset($data['event_content'])?$data['event_content']:null, //事件内容Content
             'event_contact'=>isset($data['event_contact'])?$data['event_contact']:null, //该事件KERUI/ERUI负责人KERUI/ERUI
-            'event_time'=>isset($data['event_time'])?$data['event_time']:null, //时间date
         );
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
@@ -27,9 +53,12 @@ class MilestoneEventModel extends Model {
         return true;
     }
     //查看
-    public function showMilestoneEvent2($data){
+    public function showMilestoneEvent($data){
         $fieldStr='id,buyer_id,event_name,event_content,event_contact,event_time';
         $info=$this->field($fieldStr)->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        if(!empty($info)){
+            $info['event_time']=substr($info['event_time'],0,10);
+        }
         return $info;
     }
     public function MilestoneEventList($data){
@@ -47,18 +76,23 @@ class MilestoneEventModel extends Model {
             ->order('event_time desc')
             ->select();
         if(empty($info)){
-            $info=[
-                array(
-                    'id'=>null,
-                    'buyer_id'=>null,
-                    'event_name'=>null,
-                    'event_content'=>null,
-                    'event_contact'=>null,
-                    'event_time'=>null
-                )
-            ];
+            return [];
+        }
+        foreach($info as $k => &$v){
+            if(!empty($v['event_time'])){
+                $v['event_time']=substr($v['event_time'],0,10);
+            }else{
+                $v['event_time']='';
+            }
         }
         return $info;
+    }
+    public function delMilestoneEvent($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $this->where(array('id'=>$data['id']))->save(array('deleted_flag'=>'Y'));
+        return true;
     }
     /**
      * @param $event 事件数据arr
@@ -87,7 +121,7 @@ class MilestoneEventModel extends Model {
         }
         return $flag;
     }
-    public function showMilestoneEvent($buyer_id,$created_by){
+    public function showMilestoneEvent2($buyer_id,$created_by){
         $cond=array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,

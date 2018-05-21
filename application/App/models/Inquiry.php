@@ -56,14 +56,14 @@ class InquiryModel extends PublicModel
         switch ($type)
         {
             case 'TODAY' :
-                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d') AND updated_by is NOT NULL";
-                $data = count($this->getList($auth,$this->listFields,$where));
+                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
+                $data = $this->getListCount($auth,$this->listFields,$where);
                 break;
             case 'TOTAL' :
-                $data = count($this->getList($auth,$this->listFields));
+                $data = $this->getListCount($auth,$this->listFields);
                 break;
             case 'QUOTED' :
-                $data = $data = count($this->getList($auth,$this->listFields,['quote_status'=>'QUOTED']));
+                $data = $data = $this->getListCount($auth,$this->listFields,['quote_status'=>'QUOTED']);
                 break;
         }
         return $data;
@@ -250,7 +250,7 @@ class InquiryModel extends PublicModel
     public function getList($condition = [], $field = '*',$where1=[]) {
 
         $where = $this->getWhere($condition);
-        $where[]="updated_by is NOT NULL";
+        //$where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
@@ -263,11 +263,21 @@ class InquiryModel extends PublicModel
             ->select();
     }
 
+    public function getListCount($condition = [], $field = '*',$where1=[]) {
+
+        $where = $this->getWhere($condition);
+
+        $count =  $this->where($where)->where($where1)->count('id');
+
+        return $count > 0 ? $count : 0;
+
+    }
+
     public function getList_($condition = [], $field = '*') {
 
         $where = $this->getWhere($condition);
 
-        $where[]="updated_by is NOT NULL";
+        //$where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
@@ -282,7 +292,7 @@ class InquiryModel extends PublicModel
     public function getCount_($condition = []) {
 
         $where = $this->getWhere($condition);
-        $where[]="updated_by is NOT NULL";
+        //$where[]="updated_by is NOT NULL";
 
         $count = $this->where($where)->count('id');
 

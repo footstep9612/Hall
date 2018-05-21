@@ -16,20 +16,83 @@
 class SolutionModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'sol_content_data';
+    protected $tableName = 'sol_content';
     protected $dbName = 'erui_cms';
 
     public function __construct() {
         parent::__construct();
     }
 
-    public function GetList($lang = 'en') {
-        $where = [];
-        if ($lang) {
-            $where['template'] = 'show_solution_' . $lang;
+    private function _getCondition($condition) {
+        $where['status'] = 99;
+        if (!empty($condition['catids'])) {
+            $where['catid'] = ['in', $condition['catids']];
+        }
+        if (!empty($condition['ids'])) {
+            $where['id'] = ['in', $condition['ids']];
         }
 
-        return $this->field('content,goods')->where($where)->select();
+        $where[] = 'thumb is not null';
+        return $where;
+    }
+
+    public function getList($condition) {
+        $where = $this->_getCondition($condition);
+        list($from, $size) = $this->_getPage($condition);
+
+        return $this->field('catid,thumb,title,id,description')->where($where)
+                        ->order('listorder desc')
+                        ->limit($from, $size)
+                        ->select();
+    }
+
+    /**
+     * 获取列表 区分大小写
+     * @param mix $condition 搜索条件
+     * @return mix
+     * @author zyg
+     */
+    public function getListBySpu($condition) {
+
+
+        try {
+            $spu = str_replace('%', '\%', $condition['spu']);
+            $spu = str_replace('_', '\_', $spu);
+            $bind = [];
+            $where['status'] = 99;
+            $data_table = (new SolutionDetailModel)->getTableName();
+            $where[] = 'thumb is not null';
+            $sql = 'SELECT s.thumb,s.title,s.id FROM ' . $this->getTableName() . ' s '
+                    . ' LEFT JOIN ' . $data_table . ' sd on sd.id=s.id '
+                    . 'WHERE  `status`=\'99\' ';
+            if (!empty($condition['catids']) && is_array($condition['catids'])) {
+                $sql .= ' and s.catid in  (' . implode(',', $condition['catids']) . ')';
+            }
+            if ($spu) {
+                $sql .= ' and goods like :spu';
+                $bind[':spu'] = '%' . $spu . '%';
+            }
+
+            $brand = $this->db()->query($sql, $bind);
+            return $brand;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
+    public function getCount($condition) {
+        $where = $this->_getCondition($condition);
+
+
+        return $this->where($where)
+                        ->count();
+    }
+
+    public function Info($id) {
+
+        return $this->field('catid,thumb,title,id,description,username,inputtime')->where(['id' => $id])
+                        ->find();
     }
 
 }

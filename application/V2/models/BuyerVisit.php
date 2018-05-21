@@ -219,7 +219,6 @@ class BuyerVisitModel extends PublicModel {
         $sql.=' order by reply.created_at desc ';
         $sql.=' limit '.$offset.','.$length;
         $info=$this->query($sql);
-
 //        echo $this->getLastSql();die;
         $visit_product=new VisitProductModel();
         $visit_demand_type=new VisitDemadTypeModel();
@@ -231,10 +230,12 @@ class BuyerVisitModel extends PublicModel {
             if(!empty($demand_type_str)){
                 $demand_type=$visit_demand_type->getInfoByIds($demand_type_str,$lang);
             }else{
-                $demand_type=null;
+                $demand_type='';
             }
             $info[$key]['demand_type']=$demand_type;
-
+            if(empty($info[$key]['reply_at'])){
+                $info[$key]['reply_at']='';
+            }
             if($lang=='zh'){  //是否反馈
                 $info[$key]['reply']=!empty($value['reply_at'])?'是':'否';
             }else{

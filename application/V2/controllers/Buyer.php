@@ -220,7 +220,7 @@ class BuyerController extends PublicController {
         $info = $model->buyerStatisList($data,true);
         $arr=array(
             'code'=>1,
-            'message'=>'success',
+            'message'=>L('success'),
             'data'=>$info
         );
         $this->jsonReturn($arr);
@@ -1128,7 +1128,35 @@ EOF;
         );
         $this->jsonReturn($valid);
     }
-
+    //查看信用评价
+    public function showCreditAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerCreditModel();
+        $res = $model->showCredit($data);
+        if ($res === false) {
+            $datajson['code']=0;
+            $datajson['message']='参数错误';
+        }else{
+            $datajson['code']=1;
+            $datajson['message']='数据信息';
+            $datajson['data']=$res;
+        }
+        $this->jsonReturn($datajson);
+    }
+    public function editCreditAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new CustomerCreditModel();
+        $res = $model->editCredit($data);
+        if ($res === false) {
+            $datajson['code']=0;
+            $datajson['message']='参数错误';
+        }else{
+            $datajson['code']=1;
+            $datajson['message']=L('success');
+        }
+        $this->jsonReturn($datajson);
+    }
     /**
      * 客户管理：客户基本信息展示详情
      * wangs
@@ -1141,11 +1169,9 @@ EOF;
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerBaseInfo($data);
         if (empty($buerInfo)) {
-            $dataJson = array(
-                'code' => 1,
-                'message' => '返回数据',
-                'data' => $buerInfo
-            );
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=[];
             $this->jsonReturn($dataJson);
         }
         //获取客户账号
@@ -1158,132 +1184,135 @@ EOF;
         $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
-        $agentInfo = $agent->buyerMarketAgent($data);
-        $buerInfo['market_agent_name'] = $agentInfo['info'][0]['name']; //没有数据则为空
-        $buerInfo['market_agent_mobile'] = $agentInfo['info'][0]['mobile'];
+        $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
+        $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
         //获取财务报表
         $attach = new BuyerattachModel();
 
-        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id'], $data['created_by']);
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id']);
         if (!empty($finance)) {
             $buerInfo['finance_attach'] = $finance;
         } else {
             $buerInfo['finance_attach'] = array();
         }
         //公司人员组织架构
-        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id'], $data['created_by']);
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id']);
         if (!empty($org_chart)) {
             $buerInfo['org_chart'] = $org_chart;
         } else {
             $buerInfo['org_chart'] = array();
         }
-        //分析报告
-//        $org_chart = $attach->showBuyerExistAttach('REPORT',$data['buyer_id'],$data['created_by']);
-//        if(!empty($org_chart)){
-//            $buerInfo['report_attach'] = $org_chart;
-//        }else{
-//            $buerInfo['report_attach'] = array();
-//        }
-//
         $arr['base_info'] = $buerInfo;
-        //获取客户联系人
-        $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (empty($contactInfo)) {    //联系人为空
-            $contactInfo = [array(
-            'name' => null, //联系人姓名
-            'title' => null, //联系人职位
-            'role' => null, //角色
-            'phone' => null, //联系人电话
-            'email' => null, //联系人邮箱
-            'hobby' => null, //爱好
-            'address' => null, //详细地址
-            'experience' => null, //经历
-            'social_relations' => null, //社会关系
-            'key_concern' => null, //决策主要关注点
-            'attitude_kerui' => null, //对科瑞的态度
-            'social_habits' => null, //常去社交场所
-            'relatives_family' => null, //家庭亲戚相关信息
-            )];
-        }
-        $arr['contact'] = $contactInfo;
+
+        $dataJson['code']=1;
+        $dataJson['message']='数据信息';
+        $dataJson['data']=$arr;
+        $this->jsonReturn($dataJson);
+    }
+    //客户附件管理列表
+    public function showAttachListAction() {
+        $created_by = $this->user['id'];
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
+        //获取财务报表
+        $attach = new BuyerattachModel();
+        $arr = $attach->showAttachList($data['buyer_id']);
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '附件数据',
             'data' => $arr
         );
+        $this->jsonReturn($dataJson);
+    }
+    //删除附件
+    public function editAttachAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerattachModel();
+        $attach = $model->editAttach($data);
+        if ($attach == false) {
+            $dataJson = array(
+                'code' => 0,
+                'message' => '参数数据错误'
+            );
+        } else {
+            $dataJson = array(
+                'code' => 1,
+                'message' => L('success')
+            );
+        }
+        $this->jsonReturn($dataJson);
+    }
+    /**
+     * 客户管理-附件下载
+     * buyer_id,id
+     * wangs
+     */
+    public function attachDownloadAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerattachModel();
+        $attach = $model->attachDownload($data);
+        if ($attach == false) {
+            $dataJson = array(
+                'code' => 0,
+                'message' => '参数错误'
+            );
+        } else {
+            $dataJson = array(
+                'code' => 1,
+                'message' => '下载附件',
+                'data' => $attach
+            );
+        }
         $this->jsonReturn($dataJson);
     }
     public function editContactAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
 //        $data['lang'] = $this->getLang();
-        $buyer = new BuyerModel();
-        $res=$buyer->editContact($data);
-        if($res){
+        $model = new BuyercontactModel();
+        $res=$model->editContact($data);
+        if($res===true){
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
         }else{
             $dataJson['code'] = 1;
-            $dataJson['message'] = L('error');
+            $dataJson['message'] = $res;
         }
         $this->jsonReturn($dataJson);
-//        if (empty($contactInfo)) {    //联系人为空
-//            $contactInfo = [array(
-//                'name' => null, //联系人姓名
-//                'title' => null, //联系人职位
-//                'role' => null, //角色
-//                'phone' => null, //联系人电话
-//                'email' => null, //联系人邮箱
-//                'hobby' => null, //爱好
-//                'address' => null, //详细地址
-//                'experience' => null, //经历
-//                'social_relations' => null, //社会关系
-//                'key_concern' => null, //决策主要关注点
-//                'attitude_kerui' => null, //对科瑞的态度
-//                'social_habits' => null, //常去社交场所
-//                'relatives_family' => null, //家庭亲戚相关信息
-//            )];
-//        }
+    }
+    //删除联系人
+    public function delContactAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyercontactModel();
+        $res=$model->delContact($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']=L('success');
+        }
+        $this->jsonReturn($dataJson);
     }
     public function showContactAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        if(empty($data['id'])){
-            $dataJson = array(
-                'code' => 0,
-                'message' => '参数错误'
-            );
+        $model = new BuyercontactModel();
+        $res=$model->showContact($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
         }else{
-            $contact = new BuyercontactModel();
-            $cond=array(
-                'id'=>$data['id'],
-                'deleted_flag'=>'N'
-            );
-            $field='id,name,title,role,phone,email,hobby,address,experience,social_relations,key_concern,attitude_kerui,social_habits,relatives_family';
-            $info = $contact->field($field)->where($cond)->find();
-            if(empty($info)){
-                $info = [
-                    'id' => '', //联系人姓名ID
-                    'name' => '', //联系人姓名
-                    'title' => '', //联系人职位
-                    'role' => '', //角色
-                    'phone' => '', //联系人电话
-                    'email' => '', //联系人邮箱
-                    'hobby' => '', //爱好
-                    'address' => '', //详细地址
-                    'experience' => '', //经历
-                    'social_relations' => '', //社会关系
-                    'key_concern' => '', //决策主要关注点
-                    'attitude_kerui' => '', //对科瑞的态度
-                    'social_habits' => '', //常去社交场所
-                    'relatives_family' => '', //家庭亲戚相关信息
-                ];
-            }
-            $dataJson = array(
-                'code' => 1,
-                'message' => '查看联系人数据',
-                'data' => $info
-            );
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=$res;
         }
         $this->jsonReturn($dataJson);
     }
@@ -1293,57 +1322,53 @@ EOF;
         $data['created_by'] = $this->user['id'];
         $data['lang'] = $this->getLang();
         $contact = new BuyercontactModel();
-        $contactInfo = $contact->showBuyerExistContact($data['buyer_id'], $data['created_by']);
-        if (empty($contactInfo)) {    //联系人为空
-            $contactInfo = [array(
-            'name' => null, //联系人姓名
-            'title' => null, //联系人职位
-            'role' => null, //角色
-            'phone' => null, //联系人电话
-            'email' => null, //联系人邮箱
-            'hobby' => null, //爱好
-            'address' => null, //详细地址
-            'experience' => null, //经历
-            'social_relations' => null, //社会关系
-            'key_concern' => null, //决策主要关注点
-            'attitude_kerui' => null, //对科瑞的态度
-            'social_habits' => null, //常去社交场所
-            'relatives_family' => null, //家庭亲戚相关信息
-            )];
+        $res = $contact->showContactsList($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='数据信息';
+            $dataJson['data']=$res;
         }
-//        $arr['contact'] = $contactInfo;
+        $this->jsonReturn($dataJson);
+    }
+    //客户与KR/ER业务量-客户
+    public function statisBusinessAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+
+        $inquiry = new InquiryModel();
+        $inquiryInfo = $inquiry->statisInquiry($data['buyer_id']);
+        //整合数据
+        $arr['order']['count'] = $orderInfo['count'];
+        $arr['order']['account'] = $orderInfo['account']==0?0:$orderInfo['account'];
+        $arr['order']['range'] = array('min'=>$orderInfo['min'],'max'=>$orderInfo['max']);
+        $arr['order']['year'] = $orderInfo['year']==false?0:$orderInfo['year'];
+        $arr['inquiry'] = $inquiryInfo;
+        $arr['mem_cate'] = $orderInfo['mem_cate'];
+        if($orderInfo['count']==0 && $inquiryInfo['quote_count']==0){
+            $arr['order']['order_rate'] = '0%';
+        }elseif($orderInfo['count']>=$inquiryInfo['quote_count']){
+            $arr['order']['order_rate'] ='100%';
+        }else{
+            $arr['order']['order_rate'] = (sprintf("%.4f",$orderInfo['count']/$inquiryInfo['quote_count'])*100).'%';
+        }
+        if($orderInfo['account']==0 && $inquiryInfo['account']==0){
+            $arr['order']['account_rate'] = '0%';
+        }elseif($orderInfo['account']>=$inquiryInfo['account']){
+            $arr['order']['account_rate'] = '100%';
+        }else{
+            $arr['order']['account_rate'] = (sprintf("%.4f",$orderInfo['account']/$inquiryInfo['account'])*100).'%';
+        }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
-            'data' => $contactInfo
+            'message' => '数据信息',
+            'data' => $arr
         );
         $this->jsonReturn($dataJson);
     }
-    /**
-     * 客户管理-附件下载
-     * wangs
-     */
-    public function attachDownloadAction() {
-        $created_by = $this->user['id'];
-        $data = json_decode(file_get_contents("php://input"), true);
-        $data['created_by'] = $created_by;
-        $model = new BuyerattachModel();
-        $attach = $model->attachDownload($data);
-        if ($attach == false) {
-            $dataJson = array(
-                'code' => 0,
-                'message' => '请输入正确信息'
-            );
-        } else {
-            $dataJson = array(
-                'code' => 1,
-                'message' => '数据下载',
-                'data' => $attach
-            );
-        }
-        $this->jsonReturn($dataJson);
-    }
-
     /**
      * 客户管理-客户档案--4页签统计展示
      * wangs
@@ -1399,7 +1424,7 @@ EOF;
         }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '数据信息',
             'data' => $arr
         );
         $this->jsonReturn($dataJson);

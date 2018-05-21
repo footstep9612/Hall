@@ -16,7 +16,6 @@ class BuyerattachModel extends PublicModel {
     //put your code here
     protected $tableName = 'buyer_attach';
     protected $dbName = 'erui_buyer';
-    Protected $autoCheckFields = false;
 
     const STATUS_NORMAL = 'NORMAL'; //NORMAL-正常；
     const STATUS_DISABLED = 'DISABLED'; //DISABLED-禁止；
@@ -114,7 +113,97 @@ class BuyerattachModel extends PublicModel {
             $data = $this->create($createcondition);
             return $this->add($data);
     }
+//====================================================================================================
+    //客户附件列表-wangs
+    public function showAttachList($buyer_id){
+        $cond = array(
+            'buyer_id'=>$buyer_id,
+            'deleted_flag'=>'N'
+        );
+        $fieldArr=array(
+            'id',   //
+            'buyer_id',     //客户ID
+            'attach_type',  //文件类型
+            'attach_group', //附件分组'',CERT 证件,LICENSE 营业执照，财务报表 FINANCE，ORGCHART 公司人员组织架构
+            'attach_name',  //文件名称
+            'attach_size',  //文件名称
+            'attach_url',   //文件地址
+            'status',       //状态
+            'created_by',   //创建人
+            'created_at',   //创建时间
+        );
+        $fieldStr=implode(',',$fieldArr);
+        $fieldStr.=',(select name from erui_sys.employee employee where attach.created_by=id) as created_name';
+        $arr=$this->alias('attach')
+            ->field($fieldStr)
+            ->where($cond)
+            ->order('id desc')
+            ->select();
+        if(empty($arr)){
+            $arr=[];
+        }
+        return $arr;
+    }
+    public function editAttach($data){
+        $arr['created_by']=$data['created_by'];
+        $arr['created_at']=date('Y-m-d H:i:s');
+        if(!empty($data['id'])){ //删除附件
+            $arr['deleted_flag']='Y';
+            $this->where(array('id'=>$data['id']))->save($arr);
+            return true;
+        }
+//        if(empty($data['attach_type'])){
+            if(!empty($data['attach_name'])){
+                $site=strripos($data['attach_name'],'.');
+                $data['attach_type']=strtoupper(substr($data['attach_name'],$site+1));
+            }else{
+                $data['attach_type']='FILE';
+            }
+//        }
+        $arr['attach_type']=$data['attach_type'];   //文件类型
+        $arr['attach_group']=$data['attach_group'];
+        $arr['attach_name']=$data['attach_name'];
+        $arr['attach_url']=$data['attach_url'];
+        $arr['attach_size']=$data['attach_size'];
+        $arr['attach_define_name']=$data['attach_define_name'];
+        $arr['attach_desc']=$data['attach_desc'];
+        $arr['buyer_id']=$data['buyer_id'];
+//        print_r($arr);die;
+        $res=$this->add($arr);
+        if($res){
+            return true;
+        }else{
+            return false;
+        }
+    }
+    public function attachDownload($data){
+        if(empty($data['buyer_id']) || empty($data['id'])){
+            return false;
+        }
+        $cond = array(
+            'id'=>$data['id'],
+            'buyer_id'=>$data['buyer_id'],
+            'deleted_flag'=>'N'
+        );
+        $attach = $this->field('attach_name,attach_url')->where($cond)->find();
+        if(empty($attach)){
+            $attach=[];
+        }
+        return $attach;
 
+    }
+//    public function delAttach($data){
+//        if(empty($data['id'])){
+//            return false;
+//        }
+//        $save=array(
+//            'created_by'=>$data['created_by'],
+//            'created_at'=>date('Y-m-d H:i:s'),
+//            'deleted_flag'=>'Y'
+//        );
+//        $this->where(array('id'=>$data['id']))->save($save);
+//        return true;
+//    }
     /**
      * @param $data
      * 编辑基本信息,删除财务报表
@@ -190,6 +279,12 @@ class BuyerattachModel extends PublicModel {
         $flag=true;
         foreach($attach as $key => $value){
             if(empty($value['id'])){
+                if(!empty($value['attach_name'])){
+                    $site=strripos($value['attach_name'],'.');
+                    $value['attach_type']=strtoupper(substr($value['attach_name'],$site+1));
+                }else{
+                    $value['attach_type']='FILE';
+                }
                 $value['buyer_id']=$buyer_id;
                 $value['created_by']=$created_by;
                 $value['attach_group']=$type;
@@ -303,7 +398,7 @@ class BuyerattachModel extends PublicModel {
         return $this->where(array('buyer_id'=>$buyer_id,'created_by'=>$created_by))->select();
     }
     //按条件客户id，创建人,删除表示，查询附件
-    public function showBuyerExistAttach($type,$buyer_id,$created_by,$deleted_flag='N'){
+    public function showBuyerExistAttach($type,$buyer_id,$deleted_flag='N'){
         $cond = array(
             'buyer_id'=>$buyer_id,
 //            'created_by'=>$created_by,
@@ -321,13 +416,12 @@ class BuyerattachModel extends PublicModel {
      * @param $buyer_id 客户id
      * @param $created_by   创建人
      */
-    public function attachDownload($data){
+    public function attachDownload1($data){
         if(empty($data['buyer_id']) || empty($data['attach_url']) || empty($data['attach_group'])){
             return false;
         }
         $cond = array(
             'buyer_id'=>$data['buyer_id'],
-            'created_by'=>$data['created_by'],
             'attach_url'=>$data['attach_url'],
             'attach_group'=>$data['attach_group'],
             'deleted_flag'=>'N'

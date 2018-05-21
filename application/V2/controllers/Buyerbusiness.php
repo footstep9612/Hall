@@ -47,7 +47,7 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //新建/编辑结算基本信息
+    //新建/编辑结算基本信息==============================================================================
     public function editSettlementAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
@@ -79,13 +79,29 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //里程牌事件
+    //里程牌事件==============================================================
     public function editMilestoneEventAction()
     {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
         $event = new MilestoneEventModel();
         $res = $event->editMilestoneEvent($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购里程碑事件
+    public function delMilestoneEventAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] =  $this->user['id'];
+        $event = new MilestoneEventModel();
+        $res = $event->delMilestoneEvent($data);
         if($res===false){
             $dataJson['code'] =0;
             $dataJson['message'] ='参数错误';
@@ -124,6 +140,102 @@ class BuyerbusinessController extends PublicController
             $dataJson['code'] =1;
             $dataJson['message'] ='成功';
             $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购计划列表===========================================================================
+    public function showPurchaseListAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerPurchasingModel();
+        $res = $model->showPurchaseList($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='数据信息';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购计划列表
+    public function editPurchaseAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerPurchasingModel();
+        $res = $model->editPurchase($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购计划列表
+    public function showPurchaseAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new BuyerPurchasingModel();
+        $res = $model->showPurchase($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //采购计划列表
+    public function delPurchaseAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] =  $this->user['id'];
+        $model = new BuyerPurchasingModel();
+        $res = $model->delPurchase($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //入网管理===================================================================================
+    public function showNetSubjectAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $net = new NetSubjectModel();
+        $res = $net->showNetSubject($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
+            $dataJson['data'] =$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    public function editNetSubjectAction()
+    {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] =  $this->user['id'];
+        $net = new NetSubjectModel();
+        $res = $net->editNetSubject($data);
+        if($res===false){
+            $dataJson['code'] =0;
+            $dataJson['message'] ='参数错误';
+        }else{
+            $dataJson['code'] =1;
+            $dataJson['message'] ='成功';
         }
         $this -> jsonReturn($dataJson);
     }

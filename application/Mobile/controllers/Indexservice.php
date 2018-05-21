@@ -49,9 +49,8 @@ class IndexserviceController extends PublicController {
         $data['banners'] = $this->_getAds($country_bn, $lang, 'BANNER');
         $data['floors'] = $this->_getFloors($country_bn, $lang);
         $data['popularity_recommendation'] = $this->_getPopularity_recommendation([], $lang, $country_bn, 4);
-        $data['solution'] = $this->_getAds($country_bn, $lang, 'SOLUTION', 1);
-
-        $data['products'] = $this->_getProducts($country_bn, $lang);
+        //  $data['solution'] = $this->_getAds($country_bn, $lang, 'SOLUTION', 1); // $this->_getSolutions($lang);
+        //$data['products'] = $this->_getProducts($country_bn, $lang);
 
         if ($data) {
             $this->jsonReturn($data);
@@ -80,23 +79,38 @@ class IndexserviceController extends PublicController {
     private function _getFloors($country_bn, $lang) {
         $jsondata = ['lang' => $lang];
         $jsondata['country_bn'] = $country_bn;
-        $jsondata['show_type'] = 'M';
-        $home_floor_model = new HomeFloorModel();
-        $floors = $home_floor_model->getList($jsondata);
-        if ($floors) {
-            $floor_ids = [];
-            foreach ($floors as $key => $floor) {
-                $floor_ids[] = $floor['id'];
-            }
-            $jsondata['show_type'] = 'M';
-            $jsondata['floor_ids'] = $floor_ids;
-            $products = $this->_getFloorProducts($jsondata);
-            foreach ($floors as $key => $floor) {
-                $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
-            }
 
-            unset($jsondata['floor_id'], $products);
+        $show_cat_model = new ShowCatModel();
+        $jsondata['level_no'] = 1;
+        $floors = $show_cat_model->getlist($jsondata, $lang);
+        if ($floors) {
+
+            $es_product_model = new EsProductModel();
+            foreach ($floors as $key => $floor) {
+
+                $jsondata['cat_no1'] = $floor['cat_no'];
+                $jsondata['page_size'] = 4;
+                $list = $es_product_model->getNewProducts($jsondata, $lang, $country_bn);
+                $floors[$key]['products'] = $this->_getdata($list, $lang);
+            }
         }
+//        $jsondata['show_type'] = 'M';
+//        $home_floor_model = new HomeFloorModel();
+//        $floors = $home_floor_model->getList($jsondata);
+//        if ($floors) {
+//            $floor_ids = [];
+//            foreach ($floors as $key => $floor) {
+//                $floor_ids[] = $floor['id'];
+//            }
+//            $jsondata['show_type'] = 'M';
+//            $jsondata['floor_ids'] = $floor_ids;
+//            $products = $this->_getFloorProducts($jsondata);
+//            foreach ($floors as $key => $floor) {
+//                $floors[$key]['products'] = isset($products[$floor['id']]) ? $products[$floor['id']] : [];
+//            }
+//
+//            unset($jsondata['floor_id'], $products);
+//        }
 
 
         return $floors;
@@ -135,23 +149,35 @@ class IndexserviceController extends PublicController {
         return $ret;
     }
 
-//    /**
-//     * Description of 获取人气推荐产品
-//     * @author  zhongyg
-//     * @date    2018-05-09 16:50:09
-//     * @version V2.0
-//     * @desc  M站首页
-//     */
-//    private function _getSolutions($country_bn, $lang = 'en') {
-//        $jsondata = ['lang' => $lang];
-//        $jsondata['group'] = 'SOLUTION';
-//        $jsondata['show_type'] = 'M';
-//        $jsondata['country_bn'] = $country_bn;
-//        $home_country_ads_model = new HomeCountryAdsModel();
-//        $list = $home_country_ads_model->getList($jsondata);
-//
-//        return $list;
-//    }
+    /**
+     * Description of 获取人气推荐产品
+     * @author  zhongyg
+     * @date    2018-05-09 16:50:09
+     * @version V2.0
+     * @desc  M站首页
+     */
+    private function _getSolutions($lang = 'en') {
+
+
+        $jsondata = ['lang' => $lang];
+        $solution_cat_model = new SolutionCatModel();
+
+        $cats = $solution_cat_model->getList($jsondata);
+        $cat_ids = [];
+        foreach ($cats as $cat) {
+            $cat_ids[] = $cat['catid'];
+            if ($cat['arrchildid']) {
+                $arrchildids = explode(',', $cat['arrchildid']);
+                $cat_ids = array_merge($cat_ids, $arrchildids);
+            }
+        }
+        $jsondata['catids'] = $cat_ids;
+        $jsondata['pagesize'] = 1;
+        $solution_model = new SolutionModel();
+        $data = $solution_model->getList($jsondata);
+
+        return $data;
+    }
 
     /**
      * Description of 获取人气推荐产品
