@@ -2100,9 +2100,9 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册会员';
+                $arr[$k]['buyer_level']='注册客户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
-                $arr[$k]['buyer_level']='Registered member';
+                $arr[$k]['buyer_level']='Registered customer';
             }
 
             $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
