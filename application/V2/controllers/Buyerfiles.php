@@ -100,7 +100,6 @@ class BuyerfilesController extends PublicController
             $this->jsonReturn($dataJson);
         }
     }
-
     /**
      * 客户档案信息管理计算信息完整度-王帅
      */
