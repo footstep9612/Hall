@@ -170,7 +170,7 @@ class SupplierContactModel extends PublicModel
         return $this->field($field)
                             ->where($where)
                             //->page($currentPage, $pageSize)
-                            ->order('id DESC')
+                            ->order('id ASC')
                             ->select();
     }
     
@@ -238,5 +238,23 @@ class SupplierContactModel extends PublicModel
     
         return $this->where($where)->delete();
     }
-    
+
+    /**
+     * 判断是否存在
+     * @param  mix $where 搜索条件
+     * @return mix
+     * @author zyg
+     */
+    public function Exist($where) {
+        try {
+            $row = $this->where($where)
+                ->field('id')
+                ->find();
+            return empty($row) ? false : (isset($row['id']) ? $row['id'] : true);
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return false;
+        }
+    }
 }
