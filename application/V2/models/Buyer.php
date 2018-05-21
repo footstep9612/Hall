@@ -2309,9 +2309,6 @@ EOF;
         if(!empty($data['reg_capital'])){
             $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
         }
-        if(!empty($data['line_of_credit'])){
-            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
-        }
         if(!empty($data['min_percent'])){    //信息完整度min
             $cond .= " and buyer.percent >=".$data['min_percent'];
         }
