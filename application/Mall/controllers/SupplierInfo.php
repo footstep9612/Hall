@@ -293,11 +293,11 @@ class SupplierInfoController extends SupplierpublicController {
      */
     public function delSupplierSupplyRecordAction() {
         $condition = $this->getPut();
-        if ($condition['id'] == ''){
+        if ($condition['cat_id'] == ''){
             jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
         }
         $supplierMaterialCatModel = new SupplierMaterialCatModel();
-        $res = $supplierMaterialCatModel->delRecord(['id' => $condition['id']]);
+        $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
         $this->jsonReturn($res);
     }
 
@@ -347,63 +347,79 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function editSupplierQualificationAction(){
         $condition = $this->getPut();
-
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplier_id = '229';
+        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierQualificationModel = new SupplierQualificationModel();
-        if ($condition['items'] == ''){
-            jsonReturn('', -101, '没有上传信息!');
+        if (empty($condition['baseInfo'])){
+            jsonReturn('', -101, '没有上传营业执照或开户许可证!');
+        }
+        if (empty($condition['otherInfo'])){
+            jsonReturn('', -101, '没有上传生产/检测设备清单!');
         }
         $supplierQualificationModel->startTrans();
-        foreach ($condition['items'] as $item) {
-            if (!isset($item['type']) || $item['type'] == ''){
-                jsonReturn('', -101, '资质类型不能为空!');
-            }
-            if($item['type'] == 1){
-                if (!isset($item['name']) || $item['name'] == ''){
-                    jsonReturn('', -101, '资质名称不能为空!');
-                }
-                if (strlenUtf8($item['name']) > 100){
-                    jsonReturn('', -101, '您输入的资质名称长度超过限制!');
-                }
-//                if (!isset($item['code']) || $item['code'] == ''){
-//                    jsonReturn('', -101, '资质编码不能为空!');
-//                }
-//                if (strlenUtf8($item['code']) > 50){
-//                    jsonReturn('', -101, '您输入的资质编码长度超过限制!');
-//                }
-            }
-            $qualificatiotData = [
-                'type' => $item['type'],
-                'attach_url' => $item['attach_url'],
-                'name' => isset($item['name']) ? $item['name'] : '',
-                'code' => isset($item['code']) ? $item['code'] : '',
-                'issue_date' => isset($item['issue_date']) ? $item['issue_date'] : '',
-                'expiry_date' => isset($item['expiry_date']) ? $item['expiry_date'] : '',
-                'issuing_authority' => isset($item['issuing_authority']) ? $item['issuing_authority'] : '',
-                'remarks' => isset($item['remarks']) ? $item['remarks'] : ''
-            ];
-
-            if (!isset($item['id']) || $item['id'] == '') {
-                $qualificatiotData['supplier_id'] = $supplier_id;
-                $qualificatiotData['created_at'] = $this->getTime();
-
-                $res = $supplierQualificationModel->addRecord($item);
-            } else {
-                $where['id'] = $item['id'];
-                $qualificatiotData['updated_at'] = $this->getTime();
-
-                $res = $supplierQualificationModel->updateInfo($where, $qualificatiotData);
-            }
-
-            if (!$res) {
+        if(isset($condition['baseInfo']) && !empty($condition['baseInfo'])){
+            $res1 = $this->upattachs($condition['baseInfo'], 1, $supplier_id);
+            if(!$res1){
                 $supplierQualificationModel->rollback();
-                jsonReturn('', '-1', ShopMsg::getMessage('-1',$lang));
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['qualityInfo']) && !empty($condition['qualityInfo'])){
+            $res2 = $this->upattachs($condition['qualityInfo'], 2, $supplier_id);
+            if(!$res2){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['productInfo']) && !empty($condition['productInfo'])){
+            $res3 = $this->upattachs($condition['productInfo'], 3, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['otherInfo']) && !empty($condition['otherInfo'])){
+            $res4 = $this->upattachs($condition['otherInfo'], 4, $supplier_id);
+            if(!$res4){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
             }
         }
         $supplierQualificationModel->commit();
         jsonReturn('', '1', ShopMsg::getMessage('1',$lang));
+    }
 
+    public function upattachs($array,$type,$id){
+        $supplierQualificationModel = new SupplierQualificationModel();
+        foreach ($array as $item) {
+            if(isset($item['attach_url']) && !empty($item['attach_url'])){
+                $qualificatiotData = [
+                    'type' => $type,
+                    'attach_url' => $item['attach_url'],
+                    'name' => isset($item['name']) ? trim($item['name']) : '',
+                    'code' => isset($item['code']) ? $item['code'] : '',
+                    'issue_date' => !empty($item['issue_date']) ? $item['issue_date'] : null,
+                    'expiry_date' => !empty($item['expiry_date']) ? $item['expiry_date'] : null,
+                    'issuing_authority' => isset($item['issuing_authority']) ? $item['issuing_authority'] : '',
+                    'remarks' => isset($item['remarks']) ? $item['remarks'] : ''
+                ];
+
+                if (!isset($item['attach_id']) || empty($item['attach_id'])) {
+                    $qualificatiotData['supplier_id'] = $id;
+                    $qualificatiotData['created_at'] = $this->getTime();
+                    $res = $supplierQualificationModel->addRecord($qualificatiotData);
+                } else {
+                    $where['id'] = $item['attach_id'];
+                    $qualificatiotData['updated_at'] = $this->getTime();
+                    $res = $supplierQualificationModel->updateInfo($where, $qualificatiotData);
+                }
+                if (!$res) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
@@ -425,21 +441,27 @@ class SupplierInfoController extends SupplierpublicController {
     public function addSupplierContactsAction(){
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplier_id = '229'; //测试使用
+        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
         $this->checkContactParams($condition['contacts']);  //验证联系人
         if(isset($condition['contacts']) && !empty($condition['contacts'])){
             // 供应商联系人信息 --只有完善信息时且只有一条信息
             $contactData = [
                 'contact_name' => $condition['contacts']['contact_name'],
                 'phone' => $condition['contacts']['phone'],
-                'email' => $condition['contacts']['email']
+                'email' => $condition['contacts']['email'],
+                'title' => $condition['contacts']['title'],
+                'station' => $condition['contacts']['station']
             ];
         }
         $supplierContactModel = new SupplierContactModel();
         $contactData['supplier_id'] = $supplier_id;
-        if(isset($condition['id']) && !empty($condition['id'])){
-            $contactWhere['id'] = $condition['id'];
+        if(isset($condition['contacts']['id']) && !empty($condition['contacts']['id'])){
+            $contactWhere['id'] = $condition['contacts']['id'];
             $res = $supplierContactModel->updateInfo($contactWhere, $contactData);
+            if($res){
+                $this->jsonReturn($contactData);
+            }
             $this->jsonReturn($res);
         }else{
             $exist = $supplierContactModel->Exist($contactData);
@@ -458,12 +480,17 @@ class SupplierInfoController extends SupplierpublicController {
      */
     public function delSupplierContactsAction() {
         $condition = $this->getPut();
-        if ($condition['id'] == ''){
+        if ($condition['contact_id'] == ''){
             jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
         }
         $supplierContactModel = new SupplierContactModel();
-        $res = $supplierContactModel->delRecord(['id' => $condition['id']]);
-        $this->jsonReturn($res);
+        $res = $supplierContactModel->delRecord(['id' => $condition['contact_id']]);
+        if($res){
+            $this->jsonReturn($res);
+        } else {
+            jsonReturn('', -1, '请稍后再试!');
+        }
+
     }
 
     /**
@@ -473,7 +500,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function upSupplierPasswordAction() {
         $data = $this->getPut();
         $lang = $this->getLang($data['lang']);
-        $data['supplier_id'] = $this->getSupplierId($data['supplier_id']);
+        $data['supplier_id'] = '229'; //测试使用
+        //$data['supplier_id'] = $this->getSupplierId($data['supplier_id']);
         $supplierAccount = new SupplierAccountModel();
         $result = $supplierAccount->checkPassword($data,$lang);
         if ($result) {
