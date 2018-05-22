@@ -163,7 +163,7 @@ class SupplierContactModel extends PublicModel
     public function getList($condition = [], $field = '*') {
     
         $where = $this->getWhere($condition);
-         
+
         //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         //$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
          
@@ -216,8 +216,12 @@ class SupplierContactModel extends PublicModel
     public function updateInfo($where = [], $condition = []) {
     
         $data = $this->create($condition);
-    
-        return $this->where($where)->save($data);
+
+        $res = $this->where($where)->save($data);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
     
     /**

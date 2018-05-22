@@ -105,6 +105,22 @@ class BuyerCreditModel extends PublicModel
             $sql .= $where;
            // $sql_count .= $where;
         }
+        
+        // 权限控制，只获取客户经办人是自己的数据
+        $buyerAgentModel = new BuyerAgentModel();
+        $buyerModel = new BuyerModel();
+        $buyerTableName = $buyerModel->getTableName();
+        $buyerAgentList = $buyerAgentModel->alias('a')
+                                                                           ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+                                                                           ->field('DISTINCT b.buyer_no')
+                                                                           ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
+                                                                           ->select();
+        $buyerNoList = [];
+        foreach ($buyerAgentList as $buyerAgent) {
+            $buyerNoList[] = "'{$buyerAgent['buyer_no']}'";
+        }
+        $sql .= ' AND `buyer_credit`.`buyer_credit`.`buyer_no` IN (' . implode(',', $buyerNoList ? : ['-1']) . ')';
+        
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if (!empty($limit['num'])) {
@@ -330,15 +346,15 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
             $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
-        $buyer_model = new BuyerModel();
+        /*$buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
         $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
         if($agent_id){
             $dataInfo['agent_id'] = $agent_id['agent_id'];
-        } else {
+        } else {*/
             $dataInfo['agent_id'] = UID;
-        }
+        //}
 
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {

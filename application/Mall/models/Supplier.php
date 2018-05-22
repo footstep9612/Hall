@@ -481,11 +481,12 @@ class SupplierModel extends PublicModel {
     public function getJoinDetail($supplier_id) {
         $where['a.deleted_flag'] = 'N';
         $where['a.id'] = $supplier_id;
-        $bankinfo_model = new SupplierBankInfoModel();
-        $bankinfo_table = $bankinfo_model->getTableName();
-        return $this->field('a.*,b.bank_name,b.bank_account')
+        $joinTable2 = 'erui_dict.country c ON a.country_bn = c.bn ';
+        $joinTable1 = 'erui_supplier.supplier_bank_info b ON a.id = b.supplier_id ';
+        return $this->field('a.*,b.bank_name,b.bank_account,c.name as country_name')
                      ->alias('a')
-                     ->join($bankinfo_table . ' as b ON a.id = b.supplier_id', 'left')
+                     ->join($joinTable1)
+                     ->join($joinTable2)
                      ->where($where)
                      ->find();
     }
