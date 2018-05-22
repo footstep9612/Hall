@@ -569,14 +569,14 @@ class SuppliersModel extends PublicModel {
         }
 
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
-            $where['a.created_at'] = [
+            $where['created_at'] = [
                 ['egt', $condition['create_start_time']],
                 ['elt', $condition['create_end_time'] . ' 23:59:59']
             ];
         }
 
         if (!empty($condition['check_start_time']) && !empty($condition['check_end_time'])) {
-            $where['a.checked_at'] = [
+            $where['checked_at'] = [
                 ['egt', $condition['check_start_time']],
                 ['elt', $condition['check_end_time'] . ' 23:59:59']
             ];
