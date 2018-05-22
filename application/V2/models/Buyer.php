@@ -473,10 +473,9 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1){ //国家
+            if($v['is_build']==1 && $v['status']='APPROVED'){ //国家
                 $info[$k]['status'] = 'PASS';
             }
-
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);

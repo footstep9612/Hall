@@ -56,9 +56,9 @@ class ShowCatModel extends PublicModel {
                 return [];
             }
         } catch (Exception $ex) {
-
-            Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
-            Log::write($ex->getMessage());
+//
+//            Log::write(__CLASS__ . PHP_EOL . __FUNCTION__, Log::INFO);
+//            Log::write($ex->getMessage());
             return [];
         }
     }
@@ -83,8 +83,8 @@ class ShowCatModel extends PublicModel {
 
             return $result;
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+//            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+//            LOG::write($ex->getMessage(), LOG::ERR);
             return false;
         }
     }
@@ -147,7 +147,7 @@ class ShowCatModel extends PublicModel {
         }
         $result = $this->where($where)
                 ->order('sort_order DESC')
-                ->field('cat_no,name ,parent_cat_no')
+                ->field('cat_no,name ,parent_cat_no,level_no')
                 ->find();
         return $result;
     }
@@ -228,7 +228,7 @@ class ShowCatModel extends PublicModel {
 
             return $count;
         } catch (Exception $ex) {
-            Log::write($ex->getMessage(), Log::ERR);
+//            Log::write($ex->getMessage(), Log::ERR);
             return 0;
         }
     }
