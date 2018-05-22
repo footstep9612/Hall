@@ -147,7 +147,7 @@ class ShowCatModel extends PublicModel {
         }
         $result = $this->where($where)
                 ->order('sort_order DESC')
-                ->field('cat_no,name ,parent_cat_no')
+                ->field('cat_no,name ,parent_cat_no,level_no')
                 ->find();
         return $result;
     }
