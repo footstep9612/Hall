@@ -2100,7 +2100,7 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册客户';
+                $arr[$k]['buyer_level']='注册用户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
                 $arr[$k]['buyer_level']='Registered customer';
             }
