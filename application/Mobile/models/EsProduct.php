@@ -521,8 +521,8 @@ class EsProductModel extends Model {
             unset($es, $body);
             return $data;
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+//            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+//            LOG::write($ex->getMessage(), LOG::ERR);
 
             return [];
         }
@@ -595,8 +595,8 @@ class EsProductModel extends Model {
         } catch (Exception $ex) {
 
 
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+//            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+//            LOG::write($ex->getMessage(), LOG::ERR);
 
             return [];
         }
@@ -733,7 +733,7 @@ class EsProductModel extends Model {
 
 
         $es->body['size'] = 0;
-        Log::write(json_encode($es->body));
+//        Log::write(json_encode($es->body));
         $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 0);
 
         $brand_names = [];
@@ -901,8 +901,8 @@ class EsProductModel extends Model {
                 return 0;
             }
         } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
+//            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+//            LOG::write($ex->getMessage(), LOG::ERR);
             return 0;
         }
     }

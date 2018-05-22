@@ -10,7 +10,7 @@ class ProductController extends PublicController {
 
     public function init() {
         $this->token = false;
-        // parent::init();
+        parent::init();
         $this->input = $this->getPut();
     }
 
