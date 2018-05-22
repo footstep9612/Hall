@@ -10,7 +10,7 @@ class InquiryController extends PublicController {
 
     public function init() {
         $this->token = false;
-        //  parent::init();
+        parent::init();
     }
 
     //返回询价单流水号

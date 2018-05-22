@@ -38,26 +38,22 @@ class ShowcatController extends PublicController {
 
 
         $show_model = new ShowCatModel();
-        $data = [];
+
         $arr = $show_model->info($cat_no, $country_bn, $lang);
-        if ($arr) {
-            $data[] = $arr;
-        }
+
+
+
         if (!empty($arr['parent_cat_no'])) {
             $arr_top = $show_model->info($arr['parent_cat_no'], $country_bn, $lang);
-            if ($arr_top) {
-                array_unshift($data, $arr_top);
-            }
+            $this->setvalue('arr_top', $arr_top);
         }
         if (!empty($arr_top['parent_cat_no'])) {
             $arr_top_top = $show_model->info($arr_top['parent_cat_no'], $country_bn, $lang);
-            if ($arr_top_top) {
-                array_unshift($data, $arr_top_top);
-            }
+            $this->setvalue('arr_top_top', $arr_top_top);
         }
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($data);
+            $this->jsonReturn($arr);
         } else {
 
             $this->setCode(MSG::ERROR_EMPTY);
