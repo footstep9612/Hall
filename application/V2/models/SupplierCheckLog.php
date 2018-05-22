@@ -144,4 +144,18 @@ class SupplierCheckLogModel extends PublicModel {
         }
     }
 
+    public function getInvalidListBy($supplier)
+    {
+        $data =  $this->where([
+            'supplier_id' => $supplier,
+            'status' => 'INVALID'
+        ])->field('created_by,created_at,note')->select();
+
+        foreach ($data as &$datum) {
+            $datum['created_by'] = (new EmployeeModel)->getNameByid($datum['created_by'])['name'];
+        }
+
+        return $data;
+    }
+
 }
