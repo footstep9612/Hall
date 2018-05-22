@@ -476,7 +476,7 @@ class BuyerModel extends PublicModel {
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }else{
-                $info[$k]['buyer_level']=$lang=='zh'?'注册用户':'Registered user';
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
             if(!empty($v['percent'])){  //信息完整度
                 $info[$k]['percent']=$v['percent'].'%';
@@ -2111,9 +2111,9 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册用户';
+                $arr[$k]['buyer_level']='注册客户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
-                $arr[$k]['buyer_level']='Registered user';
+                $arr[$k]['buyer_level']='Registered customer';
             }
 
             $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
