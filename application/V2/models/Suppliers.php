@@ -535,4 +535,54 @@ class SuppliersModel extends PublicModel {
 
     }
 
+    public function ruishangList(array $condition = [])
+    {
+
+        list($currentPage, $pageSize) = $this->_setPage($condition);
+
+        $condition  = $this->setRuiShangCondition($condition);
+
+        $fields = 'id,name,first_name,last_name,official_phone,official_email,created_at';
+        $data = $this->where($condition)->field($fields)->page($currentPage, $pageSize)->select();
+
+        $total = $this->where($condition)->count();
+
+        return [$data, $total];
+
+    }
+
+    protected function _setPage($condition)
+    {
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        return [$currentPage, $pageSize];
+    }
+
+    protected function setRuiShangCondition($condition)
+    {
+
+        $where['deleted_flag'] = 'N';
+        $where['source'] = 'Portal';
+
+        if (!empty($condition['name'])) {
+            $where['name'] = ['like', '%' . $condition['name'] . '%'];
+        }
+
+        if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
+            $where['a.created_at'] = [
+                ['egt', $condition['create_start_time']],
+                ['elt', $condition['create_end_time'] . ' 23:59:59']
+            ];
+        }
+
+        if (!empty($condition['check_start_time']) && !empty($condition['check_end_time'])) {
+            $where['a.checked_at'] = [
+                ['egt', $condition['check_start_time']],
+                ['elt', $condition['check_end_time'] . ' 23:59:59']
+            ];
+        }
+
+        return $where;
+    }
+
 }

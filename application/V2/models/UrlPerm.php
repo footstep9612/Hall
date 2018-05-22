@@ -28,7 +28,7 @@ class UrlPermModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='sort desc') {
+    public function getlist($data,$limit,$order='sort') {
         if(!empty($limit)){
             //,'false' as check
             return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")

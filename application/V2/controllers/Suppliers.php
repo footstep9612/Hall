@@ -1271,4 +1271,26 @@ class SuppliersController extends PublicController {
 
         return $fileId;
     }
+
+    /**
+     * 瑞商联盟列表
+     * @author 买买提
+     */
+    public function ruishangAction()
+    {
+        $request = $this->validateRequestParams();
+
+        list($data, $total) = (new SuppliersModel)->ruishangList($request);
+
+        foreach ($data as &$datum){
+            $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'total' => $total,
+            'data' => $data
+        ]);
+    }
 }
