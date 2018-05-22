@@ -407,31 +407,20 @@ class BuyerfilesController extends PublicController
         $lang=$this->getLang();
         $country=new CountryModel();
         $role=$this->getUserRole();
+//        print_r($role);die;
         if(in_array('CRM客户管理',$role['role'])){  //所有权限
-//            echo 1;die;
-//            $info=$country->field('country_bn.country_bn,country.name as country_name')
-//                ->where(array('country.lang'=>$lang,'country.deleted_flag'=>'N'))
-//                ->select();
-//            print_r($info);die;
-        }elseif(in_array('201711242',$role['role'])){   //所属地区国家权限
-//            if(!empty($data['area_bn'])){
-//                $info=$area->table('erui_operation.market_area_country country_bn')
-//                    ->join('erui_dict.country country on country_bn.country_bn=country.bn')
-//                    ->field('country_bn.country_bn,country.name as country_name')
-//                    ->where("country_bn.market_area_bn='$data[area_bn]' and country.lang='$lang' and country.deleted_flag='N' and country_bn.country_bn in ($role[country])")
-//                    ->select();
-//            }else{
-//                $info=$area->table('erui_operation.market_area')
-//                    ->field('bn as area_bn,name as area_name')
-//                    ->where("bn in ($role[area]) and deleted_flag='N' and lang='$lang'")
-//                    ->select();
-//            }
-        }else{
-            $info=[];
+            $info=$country->table('erui_dict.country')->field('bn,name')
+                ->where(array('lang'=>$lang,'deleted_flag'=>'N'))
+                ->select();
+        }
+        else{
+            $info=$country->table('erui_dict.country')->field('bn,name')
+                ->where("bn in ($role[country]) and lang='$lang' and deleted_flag='N'")
+                ->select();
         }
         $dataJson = array(
             'code'=>1,
-            'message'=>'地区国家权限列表',
+            'message'=>'国家权限列表',
             'data'=>$info
         );
         $this->jsonReturn($dataJson);
