@@ -220,7 +220,7 @@ class BuyerController extends PublicController {
         $info = $model->buyerStatisList($data,true);
         $arr=array(
             'code'=>1,
-            'message'=>'success',
+            'message'=>L('success'),
             'data'=>$info
         );
         $this->jsonReturn($arr);
@@ -1131,10 +1131,8 @@ EOF;
     //查看信用评价
     public function showCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['created_by'] = $this->user['id'];
-//        $model = new BuyerModel();
         $model = new CustomerCreditModel();
-        $res = $model->showCredit($data);          //创建基本信息
+        $res = $model->showCredit($data);
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
@@ -1148,15 +1146,17 @@ EOF;
     public function editCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
-//        $model = new BuyerModel();
         $model = new CustomerCreditModel();
-        $res = $model->editCredit($data);          //创建基本信息
+        $res = $model->editCredit($data);
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
+        }elseif($res===true){
+            $datajson['code']=1;
+            $datajson['message']=L('success');
         }else{
             $datajson['code']=1;
-            $datajson['message']='成功';
+            $datajson['message']=$res;
         }
         $this->jsonReturn($datajson);
     }
@@ -1243,7 +1243,7 @@ EOF;
         } else {
             $dataJson = array(
                 'code' => 1,
-                'message' => '成功'
+                'message' => L('success')
             );
         }
         $this->jsonReturn($dataJson);
@@ -1301,7 +1301,7 @@ EOF;
             $dataJson['message']='参数错误';
         }else{
             $dataJson['code']=1;
-            $dataJson['message']='成功';
+            $dataJson['message']=L('success');
         }
         $this->jsonReturn($dataJson);
     }
@@ -1367,7 +1367,7 @@ EOF;
         }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '数据信息',
             'data' => $arr
         );
         $this->jsonReturn($dataJson);
@@ -1427,7 +1427,7 @@ EOF;
         }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '数据信息',
             'data' => $arr
         );
         $this->jsonReturn($dataJson);

@@ -135,6 +135,38 @@ class BuyercontactModel extends PublicModel
         }
         return true;
     }
+    public function percentContact($data){
+        $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+        $contactField=array(
+            'name as contact_name', //联系人姓名
+            'title as contact_title', //联系人职位
+            'role as contact_role', //角色
+            'phone as contact_phone', //联系人电话
+            'email as contact_email', //联系人邮箱
+            'hobby as contact_hobby', //爱好
+            'address as contact_address', //地址
+            'experience', //经历
+            'social_relations', //社会关系
+            'key_concern', //决策主要关注点
+            'attitude_kerui', //对科瑞的态度
+            'social_habits', //常去社交场所
+            'relatives_family' //家庭亲戚相关信息
+        );
+        $info=$this->field($contactField)->where($cond)->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($contactField as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
     /**
      * 新增数据
      * @param  mix $createcondition 新增条件

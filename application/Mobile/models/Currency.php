@@ -22,10 +22,16 @@ class CurrencyModel extends PublicModel {
             //return json_decode(redisHashGet('Currency', 'currency'), true);
         }
         try {
-            $field = 'bn,symbol,name';
-            $result = $this->field($field)->order('bn')->where(['status'=>'VALID','deleted_flag'=>'N'])->group('bn')->select();
+            $where = ['status' => 'VALID', 'deleted_flag' => 'N'];
+
+            $field = 'bn,symbol,name,en_name';
+            $result = $this->field($field)
+                    ->order('bn')
+                    ->where(['status' => 'VALID', 'deleted_flag' => 'N'])
+                    ->group('bn')
+                    ->select();
             if ($result) {
-               // redisHashSet('Currency', 'currency', json_encode($result));
+                // redisHashSet('Currency', 'currency', json_encode($result));
                 return $result;
             }
         } catch (Exception $e) {

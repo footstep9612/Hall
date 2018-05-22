@@ -263,12 +263,12 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
-            $cond .= " and buyer.source=1 ";
-        }
-        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
-            $cond .= " and (buyer.source=2 or buyer.source=3) ";
-        }
+//        if(!empty($data['customer_management']) && $data['customer_management']==true){  //点击客户管理菜单-后台新增客户
+//            $cond .= " and buyer.source=1 ";
+//        }
+//        if(!empty($data['registered_customer']) && $data['registered_customer']==true){  //点击注册客户菜单-门户APP新增客户
+//            $cond .= " and (buyer.source=2 or buyer.source=3) ";
+//        }
 //        if(!empty($data['country_bn'])){    //国家搜索---档案信息管理
 //            $cond .= " and buyer.country_bn='$data[country_bn]'";
 //        }
@@ -438,7 +438,7 @@ class BuyerModel extends PublicModel {
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
         }
-//        $field .= ' ,agent.agent_id,agent.created_at as checked_at';
+        $field .= ' ,agent.created_at as checked_at';
 //        $field .= ' ,agent.agent_id';
         $field .= ' ,account.sent_email';
         $field .= ' ,account.email as account_email';
@@ -465,16 +465,17 @@ class BuyerModel extends PublicModel {
         foreach($info as $k => $v){
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册用户':'Registered user';
             }
             if(!empty($v['percent'])){  //信息完整度
                 $info[$k]['percent']=$v['percent'].'%';
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1){ //国家
+            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
                 $info[$k]['status'] = 'PASS';
             }
-
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
@@ -595,7 +596,7 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='customer';
-            $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '客户分类','用户来源','定级日期');
+            $tableheader = array('客户信息完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '会员级别', '客户分类','用户来源','定级日期');
         }else{
             $sheetName='Customer list';
             $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Customer cate','Registration source of customer','Verification date');
@@ -1615,9 +1616,9 @@ EOF;
         $pageSize = 10;
         $offset = ($page-1)*$pageSize;
         $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
-        $totalCount = $arr['totalCount'];
+        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
         $totalPage = ceil($totalCount/$pageSize);
-        $info = $arr['info'];
+        $info = $arr['info']?$arr['info']:[];
         $res = array(
             'page'=>$page,
             'totalCount'=>$totalCount,
@@ -1913,6 +1914,7 @@ EOF;
         }
         $buyerArr = array(
             'id as buyer_id', //客户id
+            'percent', //客户id
             'buyer_type', //客户类型
             'type_remarks', //客户类型备注
             'is_oilgas', //是否油气
@@ -2099,9 +2101,9 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册会员';
+                $arr[$k]['buyer_level']='注册用户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
-                $arr[$k]['buyer_level']='Registered member';
+                $arr[$k]['buyer_level']='Registered user';
             }
 
             $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
@@ -2274,17 +2276,30 @@ EOF;
 //            $str = implode(',',$data['all_id']);
 //            $cond .= " and buyer.id in ($str)";
 //        }
+//        if(!empty($data['buyer_level'])){
+//            if($data['buyer_level']=='普通会员' || $data['buyer_level']=='Member'){
+//                $cond .= " and buyer.buyer_level=52";
+//            }elseif($data['buyer_level']=='高级会员' || $data['buyer_level']=='Senior member'){
+//                $cond .= " and buyer.buyer_level=53";
+//            }elseif($data['buyer_level']=='注册会员' || $data['buyer_level']=='Registered member'){
+//                $cond .= " and buyer.buyer_level is null";
+//            }else{
+//                $cond .= " and buyer.buyer_level='wangs'";
+//            }
+////            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+//        }
         if(!empty($data['buyer_level'])){
-            if($data['buyer_level']=='普通会员' || $data['buyer_level']=='Member'){
+            if($data['buyer_level']=='52'){
                 $cond .= " and buyer.buyer_level=52";
-            }elseif($data['buyer_level']=='高级会员' || $data['buyer_level']=='Senior member'){
+            }elseif($data['buyer_level']=='53'){
                 $cond .= " and buyer.buyer_level=53";
-            }elseif($data['buyer_level']=='注册会员' || $data['buyer_level']=='Registered member'){
-                $cond .= " and buyer.buyer_level is null";
             }else{
                 $cond .= " and buyer.buyer_level='wangs'";
             }
 //            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+        }
+        if(!empty($data['buyer_no'])){
+            $cond .= " and buyer.buyer_no like '%$data[buyer_no]%'";
         }
         if(!empty($data['buyer_code'])){
             $cond .= " and buyer.buyer_code like '%$data[buyer_code]%'";
@@ -2294,9 +2309,6 @@ EOF;
         }
         if(!empty($data['reg_capital'])){
             $cond .= " and buyer.reg_capital like '%$data[reg_capital]%'";
-        }
-        if(!empty($data['line_of_credit'])){
-            $cond .= " and buyer.line_of_credit like '%$data[line_of_credit]%'";
         }
         if(!empty($data['min_percent'])){    //信息完整度min
             $cond .= " and buyer.percent >=".$data['min_percent'];
@@ -2348,17 +2360,17 @@ EOF;
                 'level_at',   //等级设置时间
                 'reg_capital',   //注册资金
                 'reg_capital_cur',   //货币
-                'credit_level',   //采购商信用等级
-                'credit_type',   //授信类型
-                'line_of_credit',   //授信额度
+//                'credit_level',   //采购商信用等级   X
+//                'credit_type',   //授信类型   X
+//                'line_of_credit',   //授信额度    X
             );
             foreach($fieldBuyerArr as $v){
                 $field .= ',buyer.'.$v;
             }
             $fieldBusiness = array(
-                'is_net', //是否入网
-                'net_at', //入网时间
-                'net_invalid_at', //失效时间
+//                'is_net', //是否入网
+//                'net_at', //入网时间
+//                'net_invalid_at', //失效时间
                 'product_type', //产品类型
                 'is_local_settlement', //本地结算
                 'is_purchasing_relationship', //采购关系
@@ -2367,14 +2379,19 @@ EOF;
                 $field .= ',business.'.$v;
             }
             $field .= ',employee.name as created_name';
+            $field .= ',credit.credit_level'; //采购商信用等级
+            $field .= ',credit.credit_type';  //授信类型
+            $field .= ',credit.line_of_credit';   //授信额度
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+                ->join('erui_buyer.customer_credit credit on buyer.id=credit.buyer_id and credit.deleted_flag=\'N\'','left')
                 ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
+//            print_r($info);die;
             if(!empty($info)){
                 $country = new CountryModel();
                 $level = new BuyerLevelModel();
@@ -2396,6 +2413,23 @@ EOF;
                     if(!empty($info[$k]['credit_type']) && is_numeric($info[$k]['credit_type'])){
                         $info[$k]['credit_type'] = $credit->getCreditNameById($v['credit_type'],$lang);
                     }
+                    //获取入网管理
+                    $net=new NetSubjectModel();
+                    $netInfo=$net->showNetSubject(array('buyer_id'=>$v['id']));
+                    if(empty($netInfo)){    //arr
+                        $info[$k]['is_net']='N'; //是否入网
+                        $info[$k]['net_at']=''; //入网时间
+                        $info[$k]['net_invalid_at']=''; //失效时间
+                    }elseif(!empty($netInfo['erui']['net_at'])){
+                        $info[$k]['is_net']='Y'; //是否入网
+                        $info[$k]['net_at']=$netInfo['erui']['net_at']; //入网时间
+                        $info[$k]['net_invalid_at']=$netInfo['erui']['net_invalid_at']; //失效时间
+                    }else{
+                        $info[$k]['is_net']='Y'; //是否入网
+                        $info[$k]['net_at']=$netInfo['equipment']['net_at']; //入网时间
+                        $info[$k]['net_invalid_at']=$netInfo['equipment']['net_invalid_at']; //失效时间
+                    }
+
                 }
             }
             $ids = array();
@@ -2436,7 +2470,7 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别','客户分类', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','客户信息完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '会员级别','客户分类', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
             $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level','Customer cate', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
@@ -2740,8 +2774,14 @@ EOF;
         if(!empty($data['source'])){    //来源
             $cond.=' and buyer.source='.$data['source'];
         }
-        if(!empty($data['buyer_level'])){   //等级
-            $cond.=' and buyer.buyer_level='.$data['buyer_level'];
+        if(!empty($data['buyer_level'])){
+            if($data['buyer_level']=='52'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " and buyer.buyer_level=53";
+            }else{
+                $cond .= " and buyer.buyer_level='wangs'";
+            }
         }
 
         if(!empty($data['start_time'])){   //等级
@@ -3172,5 +3212,47 @@ EOF;
             $arr=0;
         }
         return $arr;
+    }
+    //信息完整度统计客户基本信息
+    public function percentBuyer($data){
+        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $baseField=array(
+//            'buyer_code', //客户代码
+            'buyer_no', //客户编码
+//            'buyer_level', //客户等级
+//            'country_bn', //国家
+            'buyer_type', //客户类型
+            'is_oilgas', //是否油气
+//            'name as company_name', //公司名称
+            'official_phone', //公司电话
+            'official_email', //公司邮箱
+            'official_website', //公司网址
+            'company_reg_date', //公司注册日期
+            'reg_capital', //注册金额
+            'reg_capital_cur', //注册币种
+            'employee_count', //公司员工数量
+            'company_model', //公司性质
+            'sub_company_name', //子公司名称
+            'company_address', //公司地址
+            'profile as company_profile', //公司其他信息
+//            'biz_scope', //公司名称
+//            'intent_product', //公司名称
+//            'purchase_amount', //公司名称
+        );
+        $info=$this->field($baseField)->where($cond)->find();
+        if(!empty($info)){
+            if($info['reg_capital']==0){
+                $info['reg_capital']='';
+            }
+            if($info['employee_count']==0){
+                $info['employee_count']='';
+            }
+        }else{
+            $info=[];
+            foreach($baseField as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
     }
 }

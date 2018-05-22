@@ -134,21 +134,19 @@ class SupplierMaterialCatModel extends PublicModel {
      * @author liujf
      * @time 2017-11-14
      */
-    public function getJoinList($condition = []) {
-
-        $where = $this->getJoinWhere($condition);
-
-        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        //$pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-
+    public function getJoinList($supplier_id) {
+        $joinTable1 = 'erui_goods.material_cat b ON a.material_cat_no1 = b.cat_no AND b.lang = \'zh\' and b.deleted_flag=\'N\'';
+        $joinTable2 = 'erui_goods.material_cat c ON a.material_cat_no2 = c.cat_no AND c.lang = \'zh\'  and c.deleted_flag=\'N\'';
+        $joinField = 'a.*, b.name AS material_cat_name1, c.name AS material_cat_name2';
+        $where['supplier_id'] = $supplier_id;
         return $this->alias('a')
-                        ->join($this->joinTable1, 'LEFT')
-                        ->join($this->joinTable2, 'LEFT')
-                        ->field($this->joinField)
-                        ->where($where)
-                        //->page($currentPage, $pageSize)
-                        ->order('a.id DESC')
-                        ->select();
+            ->join($joinTable1, 'LEFT')
+            ->join($joinTable2, 'LEFT')
+            ->field($joinField)
+            ->where($where)
+            //->page($currentPage, $pageSize)
+            ->order('a.id DESC')
+            ->select();
     }
 
     /**
@@ -217,8 +215,11 @@ class SupplierMaterialCatModel extends PublicModel {
     public function saveRecord($condition = [], $where = []) {
 
         $data = $this->create($condition);
-
-        return $this->where($where)->save($data);
+        $res = $this->where($where)->save($data);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
     }
 
     /**

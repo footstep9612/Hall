@@ -75,7 +75,7 @@ class ProductModel extends PublicModel {
             }
             return $spuInfo ? $spuInfo : false;
         } catch (Exception $e) {
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getInfoBySpu:' . $e, Log::ERR);
+//            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getInfoBySpu:' . $e, Log::ERR);
             return false;
         }
     }
@@ -554,10 +554,10 @@ class ProductModel extends PublicModel {
                 //图
                 $attachModel = new ProductAttachModel();
                 $attachs = $attachModel->getAttachBySpu($spus);
-                $dataAttach = [''];
+                $dataAttach = [];
                 foreach ($attachs as $r) {
                     if (isset($dataAttach[$r['spu']])) {
-                        if ($r['default_flag'] == 'Y') {
+                        if ($r['default_flag'] === 'Y') {
                             $dataAttach[$r['spu']] = $r['attach_url'];
                         }
                         continue;
@@ -567,7 +567,7 @@ class ProductModel extends PublicModel {
             }
             return $result ? ['skuAry' => $result, 'infoAry' => $goodsAry, 'thumbs' => $dataAttach, 'attrAry' => $attrAry, 'stockAry' => $stockAry] : [];
         } catch (Exception $e) {
-            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e, Log::ERR);
+//            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【ShoppingCar】 myShoppingCar:' . $e, Log::ERR);
             return false;
         }
     }
@@ -608,8 +608,8 @@ class ProductModel extends PublicModel {
             }
             return $ret;
         } catch (Exception $ex) {
-            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
-            Log::write($ex->getMessage(), Log::ERR);
+//            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
+//            Log::write($ex->getMessage(), Log::ERR);
 
             return [];
         }
@@ -633,8 +633,8 @@ class ProductModel extends PublicModel {
             }
             return $ret;
         } catch (Exception $ex) {
-            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
-            Log::write($ex->getMessage(), Log::ERR);
+//            Log::write(__FILE__ . PHP_EOL . __CLASS__ . PHP_EOL . __LINE__, Log::ERR);
+//            Log::write($ex->getMessage(), Log::ERR);
 
             return [];
         }

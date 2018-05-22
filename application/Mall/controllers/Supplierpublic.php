@@ -1,10 +1,16 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: klp
+ * Date: 2018/5/15
+ * Time: 10:48
+ */
 
 /**
  * Class PublicController
  * 全局方法
  */
-abstract class PublicController extends Yaf_Controller_Abstract {
+abstract class SupplierpublicController extends Yaf_Controller_Abstract {
 
     protected $user;
     protected $put_data = [];
@@ -22,7 +28,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function init() {
         ini_set("display_errors", "On");
         error_reporting(E_ERROR | E_STRICT);
-        $lang = $this->header('lang', 'en');
+        $lang = $this->header('lang', 'zh');
         $this->setLang($lang);
         if ($this->token) {
             $this->_token();
@@ -33,44 +39,44 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     protected function _getUser() {
-        $token = $this->header('token');
+        $token = $this->header('supplier_token');
         if (!$token) {
-            $token = $this->getPut('token');
+            $token = $this->getPut('supplier_token');
         }
         if (!$token) {
-            $token = $this->getPost('token');
+            $token = $this->getPost('supplier_token');
         }
 
         if (!empty($token)) {
+            $tks = explode('.', $token);
             $tokeninfo = JwtInfo($token); //解析token
-            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+            $userinfo = json_decode(redisGet('supplier_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
                 $this->user = array(
-                    "buyer_id" => $userinfo["buyer_id"],
-                    "user_name" => $tokeninfo["user_name"],
-                    "email" => $userinfo["email"],
+                    "supplier_id" => $userinfo["supplier_id"],
+                    "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
-                    "token" => $token, //token
+                    "supplier_token" => $token,
                 );
                 $this->_setUid($userinfo);
-                redisSet('shopmall_user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
+                redisSet('supplier_user_info_' . $tokeninfo['id'], json_encode($userinfo), 18000);
             }
         }
     }
 
     protected function _token() {
         $this->put_data = $this->getPut();
-        $token = $this->header('token');
+        $token = $this->header('supplier_token');
         if (!$token) {
-            $token = $this->getPut('token');
+            $token = $this->getPut('supplier_token');
         }
         if (!$token) {
-            $token = $this->getPost('token');
+            $token = $this->getPost('supplier_token');
         }
 
         if (!empty($token)) {
-
+            $tks = explode('.', $token);
             $tokeninfo = JwtInfo($token); //解析token
 
             $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
@@ -80,11 +86,10 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 exit;
             } else {
                 $this->user = array(
-                    "buyer_id" => $userinfo["buyer_id"],
-                    "user_name" => $tokeninfo["user_name"],
-                    "email" => $userinfo["email"],
+                    "supplier_id" => $userinfo["supplier_id"],
+                    "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
-                    "token" => $token, //token
+                    "supplier_token" => $token, //token
                 );
                 $this->_setUid($userinfo);
             }
@@ -140,8 +145,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     protected function _setUid($userinfo) {
-        if (!defined('UID') && $userinfo) {
-            define('UID', $userinfo["buyer_id"]);
+        if (!defined('SUID') && $userinfo) {
+            define('SUID', $userinfo["supplier_id"]);
         }
     }
 
@@ -155,7 +160,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * 设置语言
      */
 
-    public function setLang($lang = 'en') {
+    public function setLang($lang = 'zh') {
         $this->lang = $lang;
     }
 
@@ -168,7 +173,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      */
 
     public function getLang() {
-        return $this->lang ? $this->lang : $this->getPut('lang', 'en');
+        return $this->lang ? $this->lang : $this->getPut('lang', 'zh');
     }
 
     /*
@@ -398,144 +403,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         return $result;
     }
 
-    /**
-     * 获取列表
-     * @param mix $condition
-     * @return mix
-     * @author zyg
-     */
-//    public function getlist($condition = []) {
-//
-//    }
 
-    /**
-     * 获取列表
-     * @param  string $code 编码
-     * @param  int $id id
-     * @param  string $lang 语言
-     * @return mix
-     * @author zyg
-     */
-//    public function info($code = '', $id = '', $lang = '') {
-//
-//    }
-
-    /**
-     * 删除数据
-     * @param  string $code 编码
-     * @param  int $id id
-     * @param  string $lang 语言
-     * @return bool
-     * @author zyg
-     */
-//    public function delete($code = '', $id = '', $lang = '') {
-//
-//    }
-
-    /**
-     * 更新数据
-     * @param  mix $upcondition 更新条件
-     * @return bool
-     * @author zyg
-     */
-//    public function update($upcondition = []) {
-//
-//    }
-
-    /**
-     * 新增数据
-     * @param  mix $createcondition 新增条件
-     * @return bool
-     * @author zyg
-     */
-//    public function create($createcondition = []) {
-//
-//    }
-
-    /**
-     * 获取采购商流水号
-     * @author liujf 2017-06-20
-     * @return string $buyerSerialNo 采购商流水号
-     */
-    public function getBuyerSerialNo() {
-
-        $buyerSerialNo = $this->getSerialNo('buyerSerialNo', 'E-B-S-');
-
-        return $buyerSerialNo;
-    }
-
-    /**
-     * 获取供应商流水号
-     * @author liujf 2017-06-20
-     * @return string $supplierSerialNo 供应商流水号
-     */
-    public function getSupplierSerialNo() {
-
-        $supplierSerialNo = $this->getSerialNo('supplierSerialNo', 'E-S-');
-
-        return $supplierSerialNo;
-    }
-
-    /**
-     * 获取生成的询价单流水号
-     * @author liujf 2017-06-20
-     * @return string $inquirySerialNo 询价单流水号
-     */
-    public function getInquirySerialNo() {
-
-        $inquirySerialNo = $this->getSerialNo('inquirySerialNo', 'INQ_');
-
-        return $inquirySerialNo;
-    }
-
-    /**
-     * 获取生成的报价单流水号
-     * @author liujf 2017-06-20
-     * @return string $quoteSerialNo 报价单流水号
-     */
-    public function getQuoteSerialNo() {
-
-        $quoteSerialNo = $this->getSerialNo('quoteSerialNo', 'QUO_');
-
-        return $quoteSerialNo;
-    }
-
-    /**
-     * 获取生成的报价单号
-     * @author liujf 2017-06-24
-     * @return string $quoteNo 报价单号
-     */
-    public function getQuoteNo() {
-
-        $quoteNo = $this->getSerialNo('quoteNo', 'Q_');
-
-        return $quoteNo;
-    }
-
-    /**
-     * 根据流水号名称获取流水号
-     * @param string $name 流水号名称
-     * @param string $prefix 前缀
-     * @author liujf 2017-06-20
-     * @return string $code
-     */
-    private function getSerialNo($name, $prefix = '') {
-        $time = date('Ymd');
-        $duration = 3600 * 48;
-        $createTimeName = $name . 'CreateTime';
-        $stepName = $name . 'Step';
-        $createTime = redisGet($createTimeName) ?: '19700101';
-        if ($time > $createTime) {
-            redisSet($stepName, 0, $duration);
-            redisSet($createTimeName, $time, $duration);
-        }
-        $step = redisGet($stepName) ?: 0;
-        $step ++;
-        redisSet($stepName, $step, $duration);
-        $code = $this->createSerialNo($step, $prefix);
-
-        return $code;
-    }
 
     /**
      * 生成流水号
@@ -562,39 +430,23 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     /**
-     * @desc 记录审核日志
-     *
-     * @param array $condition
-     * @param object $model
-     * @return array
-     * @author liujf
-     * @time 2017-08-10
+     * 验证指定参数是否存在
+     * @param string $params 初始的请求字段
+     * @return array 验证后的请求字段
      */
-    public function addCheckLog($condition, &$model) {
-        if (is_object($model)) {
-            $inquiryCheckLogModel = &$model;
-        } else {
-            $inquiryCheckLogModel = new InquiryCheckLogModel();
+    public function validateRequestParams($params = '') {
+        $request = $this->getPut();
+        unset($request['token']);
+
+        if ($params) {
+            $params = explode(',', $params);
+            foreach ($params as $param) {
+                if (empty($request[$param])) {
+                    $this->jsonReturn(['code' => '-104', 'message' => '缺少[' . $param . ']参数']);
+                }
+            }
         }
-        $time = date('Y-m-d H:i:s');
-
-        $inquiryIdArr = explode(',', $condition['inquiry_id']);
-
-        $checkLogList = $checkLog = array();
-
-        foreach ($inquiryIdArr as $inquiryId) {
-            $data = $condition;
-            $data['op_id'] = $this->user['id'];
-            $data['inquiry_id'] = $inquiryId;
-            $data['created_by'] = $this->user['id'];
-            $data['created_at'] = $time;
-
-            $checkLog = $inquiryCheckLogModel->create($data);
-
-            $checkLogList[] = $checkLog;
-        }
-
-        return $inquiryCheckLogModel->addAll($checkLogList);
+        return $request;
     }
 
 }

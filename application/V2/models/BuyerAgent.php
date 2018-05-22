@@ -471,7 +471,7 @@ class BuyerAgentModel extends PublicModel {
         $info = $this->alias('agent')
             ->join('erui_sys.employee employee on agent.agent_id=employee.id')
             ->field('agent.agent_id,employee.name')
-            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N'))
+            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N','employee.deleted_flag'=>'N'))
             ->select();
         $nameStr='';
         $idStr='';

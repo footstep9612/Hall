@@ -209,10 +209,10 @@ class BuyerPurchasingModel extends PublicModel
     }
     public function editPurchase($data)
     {
-        if(!empty($data['purchasing_at'])){
-            $data['purchasing_at']=substr($data['purchasing_at'],0,10);
-        }
-        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'] : null;
+//        if(!empty($data['purchasing_at'])){
+//            $data['purchasing_at']=substr($data['purchasing_at'],0,10);
+//        }
+        $arr['purchasing_at'] = isset($data['purchasing_at']) ? $data['purchasing_at'].'-00-00' : null;
         $arr['purchasing_budget'] = isset($data['purchasing_budget']) ? $data['purchasing_budget'] : null;
         $arr['purchasing_plan'] = isset($data['purchasing_plan']) ? $data['purchasing_plan'] : null;
         $arr['buyer_id'] = $data['buyer_id'];
@@ -226,7 +226,6 @@ class BuyerPurchasingModel extends PublicModel
         if (!empty($data['id'])) {    //编辑
             unset($arr['buyer_id']);
             $this->where(array('id' => $data['id']))->save($arr);
-
             $attachModel=new PurchasingAttachModel();
             $attachModel->where(array('purchasing_id' => $data['id']))->save($attach);
             return true;
@@ -288,5 +287,32 @@ class BuyerPurchasingModel extends PublicModel
         );
         $this -> where($map) -> save($save);
         return true;
+    }
+    public function percentPurchase($data){
+        $field=array(
+            'purchasing.purchasing_at', //采购时间
+            'purchasing.purchasing_budget', //采购预算
+            'purchasing.purchasing_plan', //采购计划
+            'attach.attach_name', //采购计划
+            'attach.attach_url', //采购计划
+        );
+        $info=$this->alias('purchasing')
+            ->join('erui_buyer.purchasing_attach attach on purchasing.id=attach.purchasing_id','left')
+            ->field($field)
+            ->where(array('purchasing.buyer_id'=>$data['buyer_id'],'purchasing.deleted_flag'=>'N'))
+            ->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
     }
 }

@@ -9,7 +9,7 @@
 class InquiryController extends PublicController {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
     }
 
@@ -32,10 +32,11 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = $this->getPut();
         if ($inquiry->checkSerialNo($data['serial_no'])) {
-            $data['buyer_id'] = $this->user['buyer_id'];
-            $data['inquirer'] = $this->user['user_name'];
-            $data['inquirer_email'] = $this->user['email'];
+            $data['buyer_id'] = !empty($this->user['buyer_id']) ? $this->user['buyer_id'] : 0;
+            $data['inquirer'] = !empty($this->user['user_name']) ? $this->user['user_name'] : '';
+            $data['inquirer_email'] = !empty($this->user['user_name']) ? $this->user['email'] : '';
             $results = $inquiry->addInquiry($data);
+
             if (!$results) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
@@ -44,7 +45,7 @@ class InquiryController extends PublicController {
                 $this->jsonReturn();
             }
         } else {
-           jsonReturn('', MSG::MSG_FAILED, '已存在');
+            jsonReturn('', MSG::MSG_FAILED, '已存在');
         }
     }
 
@@ -92,7 +93,7 @@ class InquiryController extends PublicController {
             $buyer_account_model = new BuyerAccountModel();
             $data['buyer_id'] = $this->user['buyer_id'];
             $account_info = $buyer_account_model->getinfo($data);
-            if($account_info) {
+            if ($account_info) {
                 $arr['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
                 $arr['phone'] = $account_info['official_phone'];
                 $arr['email'] = $account_info['email'] ? $account_info['email'] : $account_info['official_email'];
@@ -111,7 +112,6 @@ class InquiryController extends PublicController {
             $this->jsonReturn($results);
         }
     }
-
 
     //附件列表
     public function getListAttachAction() {
@@ -134,8 +134,8 @@ class InquiryController extends PublicController {
     }
 
     /* id转换为姓名
-         * @author  zhongyg
-         */
+     * @author  zhongyg
+     */
 
     private function _setAgent(&$arr) {
 
