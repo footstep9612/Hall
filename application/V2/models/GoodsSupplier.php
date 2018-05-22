@@ -245,4 +245,12 @@ class GoodsSupplierModel extends PublicModel {
         return $data;
     }
 
+    public function getSuppliersGoodsCountBy($supplier)
+    {
+        return $this->where([
+            'supplier_id' => $supplier,
+            'deleted_flag' => 'N',
+        ])->count('id');
+    }
+
 }
