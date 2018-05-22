@@ -290,7 +290,7 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['status'])){    //审核状态
             if($data['status']=='PASS'){
-                $cond .= " and buyer.is_build=1";
+                $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
             }else{
                 $cond .= " and buyer.status='".$data['status']."'";
             }
@@ -304,6 +304,16 @@ class BuyerModel extends PublicModel {
 //        if(!empty($data['buyer_level'])){  //客户等级===buy
 //            $cond .= " and buyer.buyer_level='".$data['buyer_level']."'";
 //        }
+        if(!empty($data['buyer_level'])){
+            if($data['buyer_level']=='52'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " and buyer.buyer_level=53";
+            }else{
+                $cond .= " and buyer.buyer_level is null";
+            }
+//            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+        }
         if(!empty($data['employee_name'])){  //经办人名称
             $data['employee_name']=trim($data['employee_name']," ");
             $cond .= " and employee.name like '%".$data['employee_name']."%'";
@@ -465,16 +475,17 @@ class BuyerModel extends PublicModel {
         foreach($info as $k => $v){
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册用户':'Registered user';
             }
             if(!empty($v['percent'])){  //信息完整度
                 $info[$k]['percent']=$v['percent'].'%';
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1){ //国家
+            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
                 $info[$k]['status'] = 'PASS';
             }
-
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
@@ -595,7 +606,7 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='customer';
-            $tableheader = array('完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '客户级别', '客户分类','用户来源','定级日期');
+            $tableheader = array('客户信息完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '会员级别', '客户分类','用户来源','定级日期');
         }else{
             $sheetName='Customer list';
             $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Customer cate','Registration source of customer','Verification date');
@@ -2100,9 +2111,9 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册客户';
+                $arr[$k]['buyer_level']='注册用户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
-                $arr[$k]['buyer_level']='Registered customer';
+                $arr[$k]['buyer_level']='Registered user';
             }
 
             $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
@@ -2215,7 +2226,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2260,7 +2271,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
@@ -2293,7 +2304,7 @@ EOF;
             }elseif($data['buyer_level']=='53'){
                 $cond .= " and buyer.buyer_level=53";
             }else{
-                $cond .= " and buyer.buyer_level='wangs'";
+                $cond .= " and buyer.buyer_level is null";
             }
 //            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
@@ -2469,7 +2480,7 @@ EOF;
             mkdir($excelDir, 0777, true);
         }
         if($lang=='zh'){
-            $tableheader = array('序号','完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '客户级别','客户分类', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
+            $tableheader = array('序号','客户信息完整度','国家', '客户代码（CRM）', '客户名称', '档案创建日期','创建人', '是否油气', '会员级别','客户分类', '定级日期', '注册资金', '货币', '是否已入网', '入网时间', '入网失效时间', '客户产品类型', '客户信用等级', '授信类型', '授信额度', '是否本地币结算', '是否与KERUI有采购关系', 'KERUI/ERUI客户服务经理', '拜访总次数', '询价数量','报价数量', '报价金额（美元）', '订单数量', '订单金额（美元）', '单笔金额偏重区间');
         }else{
             $tableheader = array('Serial', 'Integrity','Country', 'Customer code', 'Customer name', 'File creation date','created name', 'oil and gas industry or not', 'Customer level','Customer cate', 'Verification date', 'Registration capital', 'Currency', 'Net', 'Net time', 'Period of Validity', 'Customer product type', 'Credit level', 'Credit Type', 'Credit amount', 'Local currency settlement', 'Ever purchased from kerui', 'KERUI/ERUI CS Manager', 'Sub total', 'Qty of inquiries', 'Qty of quote', 'Total amount of quotation（USD）', 'Qty of orders', 'Order value（USD）', 'Ordered items(product type)');
         }
@@ -2779,8 +2790,9 @@ EOF;
             }elseif($data['buyer_level']=='53'){
                 $cond .= " and buyer.buyer_level=53";
             }else{
-                $cond .= " and buyer.buyer_level='wangs'";
+                $cond .= " and buyer.buyer_level is null";
             }
+//            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
 
         if(!empty($data['start_time'])){   //等级
