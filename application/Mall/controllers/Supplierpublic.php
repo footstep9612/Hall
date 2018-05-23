@@ -53,7 +53,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
             $userinfo = json_decode(redisGet('supplier_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
@@ -86,7 +86,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
