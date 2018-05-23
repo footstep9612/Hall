@@ -12,7 +12,7 @@
 class SupplierInfoController extends SupplierpublicController {
 
     public function init() {
-        $this->token = false;
+        $this->supplier_token = false;
         parent::init();
     }
 
@@ -228,12 +228,12 @@ class SupplierInfoController extends SupplierpublicController {
         $lang = $this->getPut('lang', 'zh');
         $cat_no = $this->getPut('cat_no', '');
         $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
-        $data = json_decode(redisGet($key), true);
-        if (!$data) {
+        //$data = json_decode(redisGet($key), true);
+        if (true) {
             $materialcat_model = new MaterialCatModel();
             $arr = $materialcat_model->get_list($cat_no, $lang);
 
-            redisSet($key, json_encode($arr), 86400);
+            //redisSet($key, json_encode($arr), 86400);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
@@ -242,7 +242,7 @@ class SupplierInfoController extends SupplierpublicController {
                 $this->jsonReturn();
             }
         }
-        $this->jsonReturn($data);
+        //$this->jsonReturn($data);
     }
 
     /**
@@ -295,12 +295,22 @@ class SupplierInfoController extends SupplierpublicController {
      */
     public function delSupplierSupplyRecordAction() {
         $condition = $this->getPut();
-        if ($condition['cat_id'] == ''){
-            jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
-        }
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierMaterialCatModel = new SupplierMaterialCatModel();
-        $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
-        $this->jsonReturn($res);
+        if (!isset($condition['cat_id']) || $condition['cat_id'] == ''){
+            $where['supplier_id'] = $supplier_id;
+            $where['material_cat_no1'] = $condition['material_cat_no1'];
+            $where['material_cat_no2'] = $condition['material_cat_no2'];
+            $where['material_cat_name3'] = $condition['material_cat_name3'];
+            $exist = $supplierMaterialCatModel->Exist($where);
+            if($exist){
+                $res = $supplierMaterialCatModel->delRecord(['id' => $exist]);
+                $this->jsonReturn($res);
+            }
+        }else {
+            $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
+            $this->jsonReturn($res);
+        }
     }
 
     /*
