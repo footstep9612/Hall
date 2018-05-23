@@ -105,22 +105,6 @@ class BuyerCreditModel extends PublicModel
             $sql .= $where;
            // $sql_count .= $where;
         }
-        
-        // 权限控制，只获取客户经办人是自己的数据
-        /*$buyerAgentModel = new BuyerAgentModel();
-        $buyerModel = new BuyerModel();
-        $buyerTableName = $buyerModel->getTableName();
-        $buyerAgentList = $buyerAgentModel->alias('a')
-                                                                           ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
-                                                                           ->field('DISTINCT b.buyer_no')
-                                                                           ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
-                                                                           ->select();
-        $buyerNoList = [];
-        foreach ($buyerAgentList as $buyerAgent) {
-            $buyerNoList[] = "'{$buyerAgent['buyer_no']}'";
-        }
-        $sql .= ' AND `buyer_credit`.`buyer_credit`.`buyer_no` IN (' . implode(',', $buyerNoList ? : ['-1']) . ')';*/
-        
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
         if (!empty($limit['num'])) {
@@ -137,7 +121,6 @@ class BuyerCreditModel extends PublicModel
      * @author klp
      */
     public function getList($condition = []) {
-
         $where = $this->_getCondition($condition);
         $condition['current_no'] = $condition['currentPage'];
 
@@ -186,8 +169,13 @@ class BuyerCreditModel extends PublicModel
                     break;
             }
         }*/
-        if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
-            $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
+        if (!empty($condition['buyer_no_arr'])) {
+            $where['buyer_no'] = ['in', $condition['buyer_no_arr']];
+            if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
+                $where['buyer_no'] = [$where['buyer_no'], ['eq', $condition['buyer_no']]];                  //客户编号
+            }
+        } else {
+            $where['id'] = '-1';
         }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //名称

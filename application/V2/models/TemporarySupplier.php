@@ -143,7 +143,7 @@ class TemporarySupplierModel extends PublicModel
     public function relationSupplierById($id)
     {
         $temporarySupplier = (new TemporarySupplierRelationModel)->where(['temporary_supplier_id' => $id, 'deleted_flag' => 'N'])->find();
-        return (new SupplierModel)->where(['supplier_no' => $temporarySupplier['supplier_no'], 'deleted_flag' => 'N'])->getField('name');
+        return (new SupplierModel)->where(['id' => $temporarySupplier['supplier_id'], 'deleted_flag' => 'N'])->getField('name');
     }
 
     /**
