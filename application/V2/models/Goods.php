@@ -797,7 +797,7 @@ class GoodsModel extends PublicModel {
                     $this->rollback();
                     flock($fp, LOCK_UN);
                     fclose($fp);
-                    jsonReturn('', ErrorMsg::FAILED, '亲，不留下点东西？');
+                    jsonReturn('', ErrorMsg::FAILED, '请填写至少一条扩展属性');
                 }
             } catch (Exception $ex) {
                 Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . $ex->getMessage(), Log::ERR);
