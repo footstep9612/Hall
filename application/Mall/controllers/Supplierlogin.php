@@ -184,7 +184,7 @@ class SupplierloginController extends SupplierpublicController {
 
     function retrievalEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang = $data['lang'] ? $data['lang'] : 'zh';$data['email'] = '531499132@qq.com';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';   $data['email'] = '531499132@qq.com';//测试
         if (!empty($data['email'])) {
             $retrieval_arr['email'] = trim($data['email']);
             if (!isEmail($retrieval_arr['email'])) {

@@ -392,7 +392,7 @@ class BuyerfilesController extends PublicController
                     ->select();
             }
         }else{
-            $info=null;
+            $info=[];
         }
         $dataJson = array(
             'code'=>1,
@@ -401,7 +401,30 @@ class BuyerfilesController extends PublicController
         );
         $this->jsonReturn($dataJson);
     }
-    
+    //客户管理国家权限列表
+    public function accessCountryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $country=new CountryModel();
+        $role=$this->getUserRole();
+//        print_r($role);die;
+        if(in_array('CRM客户管理',$role['role'])){  //所有权限
+            $info=$country->table('erui_dict.country')->field('bn,name')
+                ->where(array('lang'=>$lang,'deleted_flag'=>'N'))
+                ->select();
+        }
+        else{
+            $info=$country->table('erui_dict.country')->field('bn,name')
+                ->where("bn in ($role[country]) and lang='$lang' and deleted_flag='N'")
+                ->select();
+        }
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'国家权限列表',
+            'data'=>$info
+        );
+        $this->jsonReturn($dataJson);
+    }
     /**
      * @desc BOSS首页获取客户信息
      *

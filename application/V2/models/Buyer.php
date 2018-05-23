@@ -290,7 +290,7 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['status'])){    //审核状态
             if($data['status']=='PASS'){
-                $cond .= " and buyer.is_build=1";
+                $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
             }else{
                 $cond .= " and buyer.status='".$data['status']."'";
             }
@@ -304,6 +304,16 @@ class BuyerModel extends PublicModel {
 //        if(!empty($data['buyer_level'])){  //客户等级===buy
 //            $cond .= " and buyer.buyer_level='".$data['buyer_level']."'";
 //        }
+        if(!empty($data['buyer_level'])){
+            if($data['buyer_level']=='52'){
+                $cond .= " and buyer.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " and buyer.buyer_level=53";
+            }else{
+                $cond .= " and buyer.buyer_level is null";
+            }
+//            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
+        }
         if(!empty($data['employee_name'])){  //经办人名称
             $data['employee_name']=trim($data['employee_name']," ");
             $cond .= " and employee.name like '%".$data['employee_name']."%'";
@@ -466,17 +476,16 @@ class BuyerModel extends PublicModel {
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }else{
-                $info[$k]['buyer_level']=$lang=='zh'?'注册用户':'Registered user';
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
             if(!empty($v['percent'])){  //信息完整度
                 $info[$k]['percent']=$v['percent'].'%';
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1){ //国家
+            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
                 $info[$k]['status'] = 'PASS';
             }
-
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
@@ -2102,9 +2111,9 @@ EOF;
 
             $arr[$k]['buyer_level'] = $v['buyer_level'];    //客户等级
             if(empty($v['buyer_level']) && $lang=='zh'){
-                $arr[$k]['buyer_level']='注册用户';
+                $arr[$k]['buyer_level']='注册客户';
             }elseif(empty($v['buyer_level']) && $lang=='en'){
-                $arr[$k]['buyer_level']='Registered user';
+                $arr[$k]['buyer_level']='Registered customer';
             }
 
             $arr[$k]['mem_cate'] = $v['mem_cate'];  // 客户订单分类
@@ -2217,7 +2226,7 @@ EOF;
      */
     public function getBuyerManageCond($data){
         //条件
-        $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
+        $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
 
         if(empty($data['admin']['role'])){
             return false;
@@ -2262,7 +2271,7 @@ EOF;
                 }
             }
         }else{
-            $cond=" 1=1 and buyer.is_build=1 and buyer.deleted_flag='N'";
+            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
@@ -2295,7 +2304,7 @@ EOF;
             }elseif($data['buyer_level']=='53'){
                 $cond .= " and buyer.buyer_level=53";
             }else{
-                $cond .= " and buyer.buyer_level='wangs'";
+                $cond .= " and buyer.buyer_level is null";
             }
 //            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
@@ -2781,8 +2790,9 @@ EOF;
             }elseif($data['buyer_level']=='53'){
                 $cond .= " and buyer.buyer_level=53";
             }else{
-                $cond .= " and buyer.buyer_level='wangs'";
+                $cond .= " and buyer.buyer_level is null";
             }
+//            $cond .= " and buyer.buyer_level='$data[buyer_level]'";
         }
 
         if(!empty($data['start_time'])){   //等级

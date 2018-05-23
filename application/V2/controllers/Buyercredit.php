@@ -29,7 +29,7 @@ class BuyercreditController extends PublicController {
         } else {
             $limit['page'] = 1;
         }
-        $data['agent_id'] = UID;
+        //$data['agent_id'] = UID;
         //$data['agent_id'] = '37934';
         $model = new BuyerCreditModel();
         $res = $model->getCreditlist($data, $limit);
@@ -73,7 +73,7 @@ class BuyercreditController extends PublicController {
     public function getListAction() {
         $data = $this->getPut();
         $model = new BuyerCreditModel();
-        $data['agent_id'] = UID;      //待确定查看权限
+        //$data['agent_id'] = UID;      //待确定查看权限
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
