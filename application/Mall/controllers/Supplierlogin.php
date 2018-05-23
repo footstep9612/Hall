@@ -8,7 +8,7 @@
 class SupplierloginController extends SupplierpublicController {
 
     public function init() {
-        $this->token = false;
+        $this->supplier_token = false;
         parent::init();
     }
 
