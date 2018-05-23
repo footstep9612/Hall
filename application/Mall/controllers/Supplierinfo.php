@@ -554,7 +554,7 @@ class SupplierInfoController extends SupplierpublicController {
     }
 
     public function getSupplierId($id) {
-        return $id ? $id : $this->user['supplier_id'];
+        return $id ? $id : ($this->user['supplier_id']?$this->user['supplier_id']:SUID);
     }
 
     public function checkRegParams($condition) {
