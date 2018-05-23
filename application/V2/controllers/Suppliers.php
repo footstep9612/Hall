@@ -1280,10 +1280,25 @@ class SuppliersController extends PublicController {
     {
         $request = $this->validateRequestParams();
 
+        // 审核人
+        if ($request['checked_name'] != '') {
+            $request['checked_ids'] = (new EmployeeModel)->getUserIdByName($request['checked_name']) ? : [];
+        }
+
+        // 供货范围
+        if ($request['cat_name'] != '') {
+            $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ? : [];
+        }
+
         list($data, $total) = (new SuppliersModel)->ruishangList($request);
 
         foreach ($data as &$datum){
+            $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
             $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
+            $datum['contact'] = (new SupplierAccountModel)->where([
+                'supplier_id' => $datum['id'],
+                'deleted_flag' => 'N',
+            ])->field('email,mobile,user_name')->order('id desc')->find();
         }
 
         $this->jsonReturn([

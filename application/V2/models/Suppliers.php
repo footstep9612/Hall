@@ -549,7 +549,7 @@ class SuppliersModel extends PublicModel {
 
         $condition  = $this->setRuiShangCondition($condition);
 
-        $fields = 'id,name,first_name,last_name,official_phone,official_email,created_at';
+        $fields = 'id,name,created_at,status';
         $data = $this->alias('a')->where($condition)->field($fields)->page($currentPage, $pageSize)->select();
 
         $total = $this->alias('a')->where($condition)->count();
@@ -601,6 +601,14 @@ class SuppliersModel extends PublicModel {
                 ['egt', $condition['check_start_time']],
                 ['elt', $condition['check_end_time'] . ' 23:59:59']
             ];
+        }
+
+        if (isset($condition['checked_ids'])) {
+            $where['a.checked_by'] = ['in', $condition['checked_ids'] ? : ['-1']];
+        }
+
+        if (isset($condition['supplier_ids'])) {
+            $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
         }
 
         return $where;
