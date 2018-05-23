@@ -10,7 +10,7 @@
  * Class PublicController
  * 全局方法
  */
-abstract class SupplierpublicController extends Yaf_Controller_Abstract {
+ class SupplierpublicController extends Yaf_Controller_Abstract {
 
     protected $supplier_user;
     protected $put_data = [];
@@ -39,12 +39,12 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
     }
 
     protected function _getUser() {
-        $token = $this->header('supplier_token');
+        $token = $this->header('supplier-token');
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
@@ -65,15 +65,14 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
         }
     }
 
-    protected function _supplier_token() {
+     protected function _supplier_token() {
+        $token = $this->header('supplier-token');
         $this->put_data = $this->getPut();
-        $header= $this->header();
-        $token = $header['supplier_token'];
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
@@ -135,7 +134,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
         if ('' === $name) {
             return $this->header;
         }
-        $name = str_replace('_', '-', strtolower($name));
+        $name = str_replace('_', '-', strtolower($name)); var_dump($name);
         return isset($this->header[$name]) ? $this->header[$name] : $default;
     }
 
