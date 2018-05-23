@@ -24,12 +24,21 @@ class CountryMemberModel extends PublicModel {
      */
     public function getAgentIdByCountryBn($country_bn) {
         try {
+            $org_table = (new OrgModel)->getTableName();
+            $org_member_table = (new OrgMemberModel)->getTableName();
             $condition = [
-                'country_bn' => $country_bn,
+                'cm.country_bn' => $country_bn,
+                'o.org_node' => ['in', ['ub', 'lg', 'erui']],
+                'o.deleted_flag' => 'N',
+                'om.leader_flag' => 'Y'
             ];
-            $agentIds = $this->field('employee_id')
+            $agentIds = $this->alias('cm')
+                    ->join($org_member_table . ' as om on om.employee_id=cm.employee_id')
+                    ->join($org_table . ' as o on o.id=om.org_id')
+                    ->field('employee_id')
                     ->where($condition)
                     ->limit(0, 1)
+                    ->order('cm.created_at desc')
                     ->select();
             return $agentIds ? $agentIds : [];
         } catch (Exception $e) {
