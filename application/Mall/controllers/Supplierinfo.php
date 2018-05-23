@@ -21,8 +21,8 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierRegInfoAction(){
         $condition = $this->getPut();
-        $supplier_id = '229'; //测试使用
-        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierModel = new SupplierModel();
         $res = $supplierModel->getJoinDetail($supplier_id);
         if ($res) {
@@ -43,8 +43,8 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierSupplyInfoAction(){
         $condition = $this->getPut();
-        $supplier_id = '229'; //测试使用
-        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierMaterialCatModel = new SupplierMaterialCatModel();
         $res = $supplierMaterialCatModel->getJoinList($supplier_id);
         if ($res) {
@@ -64,8 +64,8 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierContactInfoAction(){
         $condition = $this->getPut();
-        $condition['supplier_id'] = '229'; //测试使用
-        //$condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
+        //$condition['supplier_id'] = '229'; //测试使用
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
         $supplierContactModel = new SupplierContactModel();
         $res = $supplierContactModel->getList($condition);
         if ($res) {
@@ -89,8 +89,8 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierQualificationListAction(){
         $condition = $this->getPut();
-        $condition['supplier_id'] = '229'; //测试使用
-        //$condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
+        //$condition['supplier_id'] = '229'; //测试使用
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
         $supplierQualificationModel = new SupplierQualificationModel();
         $res = $supplierQualificationModel->getList($condition);
         if ($res) {
@@ -111,8 +111,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function editSupplierRegInfoAction(){
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = '229'; //测试使用
-        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $this->checkRegParams($condition);  //验证企业信息
         $this->checkBankParams($condition);  //验证开户行信息
         $this->checkContactParams($condition['contacts']);  //验证联系人
@@ -132,8 +132,8 @@ class SupplierInfoController extends SupplierpublicController {
         try {
             // 供应商基本信息
             $supplierData = [
-                'status' => 'APPROVING',//待审核   资质材料提交后为审核中--APPROVING
-                'erui_status' => 'CHECKING',
+                //'status' => 'APPROVING',//待审核   资质材料提交后为审核中--APPROVING
+               // 'erui_status' => 'CHECKING',
                 'supplier_type' => $condition['supplier_type'],
                 'name' => $condition['name'],
                 'official_phone' => $condition['official_phone'],
@@ -142,12 +142,12 @@ class SupplierInfoController extends SupplierpublicController {
                 'social_credit_code' => $condition['social_credit_code'],
                 'reg_capital' => $condition['reg_capital'],
                 'logo' => isset($condition['logo']) ? $condition['logo'] : '',
-                //'org_id' => $condition['org_id'] == '' ? null : $condition['org_id'],
+                'profile' => isset($condition['profile']) ? $condition['profile'] : '',
                 'deleted_flag' => 'N', // 非删除
                 'updated_at' => $this->getTime()
             ];
             $supplierWhere['id'] = $supplier_id;
-            if ($condition['status'] == 'APPROVED') {
+            if ($condition['status'] == 'APPROVED' || $condition['status'] == 'INVALID') {
                 // 校验字段
                 $checkFields = ['supplier_type', 'name', 'country_bn', 'address', 'social_credit_code', 'reg_capital'];
 
@@ -155,10 +155,12 @@ class SupplierInfoController extends SupplierpublicController {
                 $change = $this->_checkFieldsChange($supplier, $checkFields, $condition);
             }
             if ($change) {
-                $supplierData['status'] = 'APPROVING';
-                $supplierData['erui_status'] = 'CHECKING';
+                //$supplierData['status'] = 'APPROVING';
+                //添加日志
+                //$this->setchecklog($supplier_id);
             }
             $res1 = $suppliersModel->updateInfo($supplierWhere, $supplierData);
+
 
             // 供应商银行账户信息
             $brandData = [
@@ -250,8 +252,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function addSupplierSupplyRecordAction() {
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = '229'; //测试使用
-       // $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierMaterialCatModel = new SupplierMaterialCatModel();
         $supplierMaterialCatModel->startTrans();
         if(isset($condition['material_cat']) && $condition['material_cat']) {
@@ -348,8 +350,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function editSupplierQualificationAction(){
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = '229';
-        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229';
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierQualificationModel = new SupplierQualificationModel();
         if (empty($condition['baseInfo'])){
             jsonReturn('', -101, '没有上传营业执照或开户许可证!');
@@ -386,8 +388,38 @@ class SupplierInfoController extends SupplierpublicController {
                 jsonReturn('', -101, '提交失败,请稍后再试!');
             }
         }
+        if(isset($condition['status']) && !empty($condition['status'])){
+            $supplier_model = new SupplierModel();
+            $check['status'] = "APPROVING";
+            $result = $supplier_model->updateInfo(['id' => $supplier_id],$check);
+            if($result){
+                //添加日志
+                $this->setchecklog($supplier_id);
+            }else{
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '请稍后再试!');
+            }
+        }
         $supplierQualificationModel->commit();
         jsonReturn('', '1', ShopMsg::getMessage('1',$lang));
+    }
+    //企业注册-REGISTER  资料变更-CHANGE   日志审核类型添加
+    public function setchecklog($supplier_id) {
+        $supplier_checklog_model = new SupplierCheckLogsModel();
+        $checklog_arr['supplier_id'] = $supplier_id;
+        $id = $supplier_checklog_model->getDetail($checklog_arr,'id');
+        if($id){
+            $log_arr['check_type'] = 'CHANGE';
+            $res = $supplier_checklog_model->updateInfo(['supplier_id' => $supplier_id],$log_arr);
+        }else {
+            $log_arr['check_type'] = 'REGISTER';
+            $log_arr['supplier_id'] = $supplier_id;
+            $res = $supplier_checklog_model->addRecord($log_arr);
+        }
+        if(!$res){
+            return false;
+        }
+        return true;
     }
 
     public function upattachs($array,$type,$id){
@@ -441,8 +473,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function addSupplierContactsAction(){
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
-        $supplier_id = '229'; //测试使用
-        //$supplier_id = $this->getSupplierId($condition['supplier_id']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $this->checkContactParams($condition['contacts']);  //验证联系人
         if(isset($condition['contacts']) && !empty($condition['contacts'])){
             // 供应商联系人信息 --只有完善信息时且只有一条信息
@@ -451,7 +483,7 @@ class SupplierInfoController extends SupplierpublicController {
                 'phone' => $condition['contacts']['phone'],
                 'email' => $condition['contacts']['email'],
                 'title' => $condition['contacts']['title'],
-                'station' => $condition['contacts']['station']
+                'remarks' => $condition['contacts']['remarks']
             ];
         }
         $supplierContactModel = new SupplierContactModel();
@@ -500,8 +532,8 @@ class SupplierInfoController extends SupplierpublicController {
     public function upSupplierPasswordAction() {
         $data = $this->getPut();
         $lang = $this->getLang($data['lang']);
-        $data['supplier_id'] = '229'; //测试使用
-        //$data['supplier_id'] = $this->getSupplierId($data['supplier_id']);
+        //$data['supplier_id'] = '229'; //测试使用
+        $data['supplier_id'] = $this->getSupplierId($data['supplier_id']);
         $supplierAccount = new SupplierAccountModel();
         $result = $supplierAccount->checkPassword($data,$lang);
         if ($result) {
@@ -522,7 +554,7 @@ class SupplierInfoController extends SupplierpublicController {
     }
 
     public function getSupplierId($id) {
-        return $id ? $id : $this->user['supplier_id'];
+        return $id ? $id : ($this->user['supplier_id']?$this->user['supplier_id']:SUID);
     }
 
     public function checkRegParams($condition) {
@@ -559,10 +591,6 @@ class SupplierInfoController extends SupplierpublicController {
         if (strlenUtf8($condition['profile']) > 500){
             jsonReturn('', -101, '您输入的企业简介大于500字!');
         }
-
-//        if ($condition['org_id'] == ''){
-//            jsonReturn('', -101, '所属事业部不能为空!');
-//        }
     }
 
     public function checkBankParams($condition) {

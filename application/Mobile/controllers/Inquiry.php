@@ -37,6 +37,7 @@ class InquiryController extends PublicController {
             $data['inquirer_email'] = !empty($this->user['user_name']) ? $this->user['email'] : '';
             $results = $inquiry->addInquiry($data);
 
+
             if (!$results) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
