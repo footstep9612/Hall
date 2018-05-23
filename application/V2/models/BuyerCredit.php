@@ -107,7 +107,7 @@ class BuyerCreditModel extends PublicModel
         }
         
         // 权限控制，只获取客户经办人是自己的数据
-        $buyerAgentModel = new BuyerAgentModel();
+        /*$buyerAgentModel = new BuyerAgentModel();
         $buyerModel = new BuyerModel();
         $buyerTableName = $buyerModel->getTableName();
         $buyerAgentList = $buyerAgentModel->alias('a')
@@ -119,7 +119,7 @@ class BuyerCreditModel extends PublicModel
         foreach ($buyerAgentList as $buyerAgent) {
             $buyerNoList[] = "'{$buyerAgent['buyer_no']}'";
         }
-        $sql .= ' AND `buyer_credit`.`buyer_credit`.`buyer_no` IN (' . implode(',', $buyerNoList ? : ['-1']) . ')';
+        $sql .= ' AND `buyer_credit`.`buyer_credit`.`buyer_no` IN (' . implode(',', $buyerNoList ? : ['-1']) . ')';*/
         
         $sql .= ' Order By ' . $order;
         $res['count'] = count($this->query($sql));
