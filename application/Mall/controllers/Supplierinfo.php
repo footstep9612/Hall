@@ -142,12 +142,12 @@ class SupplierInfoController extends SupplierpublicController {
                 'social_credit_code' => $condition['social_credit_code'],
                 'reg_capital' => $condition['reg_capital'],
                 'logo' => isset($condition['logo']) ? $condition['logo'] : '',
-                //'org_id' => $condition['org_id'] == '' ? null : $condition['org_id'],
+                'profile' => isset($condition['profile']) ? $condition['profile'] : '',
                 'deleted_flag' => 'N', // 非删除
                 'updated_at' => $this->getTime()
             ];
             $supplierWhere['id'] = $supplier_id;
-            if ($condition['status'] == 'APPROVED') {
+            if ($condition['status'] == 'APPROVED' || $condition['status'] == 'INVALID') {
                 // 校验字段
                 $checkFields = ['supplier_type', 'name', 'country_bn', 'address', 'social_credit_code', 'reg_capital'];
 
@@ -157,8 +157,11 @@ class SupplierInfoController extends SupplierpublicController {
             if ($change) {
                 $supplierData['status'] = 'APPROVING';
                 $supplierData['erui_status'] = 'CHECKING';
+                //添加日志
+                $this->setchecklog($supplier_id);
             }
             $res1 = $suppliersModel->updateInfo($supplierWhere, $supplierData);
+
 
             // 供应商银行账户信息
             $brandData = [
@@ -386,8 +389,38 @@ class SupplierInfoController extends SupplierpublicController {
                 jsonReturn('', -101, '提交失败,请稍后再试!');
             }
         }
+        if(isset($condition['status']) && !empty($condition['status'])){
+            $supplier_model = new SupplierModel();
+            $check['status'] = "APPROVING";
+            $result = $supplier_model->updateInfo(['id' => $supplier_id],$check);
+            if($result){
+                //添加日志
+                $this->setchecklog($supplier_id);
+            }else{
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '请稍后再试!');
+            }
+        }
         $supplierQualificationModel->commit();
         jsonReturn('', '1', ShopMsg::getMessage('1',$lang));
+    }
+    //企业注册-REGISTER  资料变更-CHANGE   日志审核类型添加
+    public function setchecklog($supplier_id) {
+        $supplier_checklog_model = new SupplierCheckLogsModel();
+        $checklog_arr['supplier_id'] = $supplier_id;
+        $id = $supplier_checklog_model->getDetail($checklog_arr,'id');
+        if($id){
+            $log_arr['check_type'] = 'CHANGE';
+            $res = $supplier_checklog_model->updateInfo(['supplier_id' => $supplier_id],$log_arr);
+        }else {
+            $log_arr['check_type'] = 'REGISTER';
+            $log_arr['supplier_id'] = $supplier_id;
+            $res = $supplier_checklog_model->addRecord($log_arr);
+        }
+        if(!$res){
+            return false;
+        }
+        return true;
     }
 
     public function upattachs($array,$type,$id){
@@ -559,10 +592,6 @@ class SupplierInfoController extends SupplierpublicController {
         if (strlenUtf8($condition['profile']) > 500){
             jsonReturn('', -101, '您输入的企业简介大于500字!');
         }
-
-//        if ($condition['org_id'] == ''){
-//            jsonReturn('', -101, '所属事业部不能为空!');
-//        }
     }
 
     public function checkBankParams($condition) {
