@@ -57,6 +57,7 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
+        $where['a.source'] = 'BOSS';
 
         $where['a.status'] = ['neq', 'DRAFT'];
         //$where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
