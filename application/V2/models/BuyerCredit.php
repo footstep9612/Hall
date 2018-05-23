@@ -121,22 +121,11 @@ class BuyerCreditModel extends PublicModel
      * @author klp
      */
     public function getList($condition = []) {
-        // 权限控制，只获取客户经办人是自己的数据
-        $buyerAgentModel = new BuyerAgentModel();
-        $buyerModel = new BuyerModel();
-        $buyerTableName = $buyerModel->getTableName();
-        $buyerNoArr = $buyerAgentModel->alias('a')
-                                                                       ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
-                                                                       ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
-                                                                       ->getField('buyer_no', true) ? : [];
-        $condition['buyer_no_arr'] = array_unique($buyerNoArr);
-
         $where = $this->_getCondition($condition);
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
         $field = 'id,agent_id,name,buyer_no,sinosure_no,credit_apply_date,approved_date,nolc_deadline,lc_deadline,status,bank_remarks,remarks,account_settle';
-        
         return $this->field($field)
             //->alias('c')
             ->where($where)
