@@ -30,6 +30,7 @@ class CountryMemberModel extends PublicModel {
             $agentIds = $this->field('employee_id')
                     ->where($condition)
                     ->limit(0, 1)
+                    ->order('created_at desc')
                     ->select();
             return $agentIds ? $agentIds : [];
         } catch (Exception $e) {
