@@ -134,7 +134,7 @@
         if ('' === $name) {
             return $this->header;
         }
-        $name = str_replace('_', '-', strtolower($name)); var_dump($name);
+        $name = str_replace('_', '-', strtolower($name));
         return isset($this->header[$name]) ? $this->header[$name] : $default;
     }
 
