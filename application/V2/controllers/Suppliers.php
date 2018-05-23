@@ -1298,7 +1298,7 @@ class SuppliersController extends PublicController {
             $datum['contact'] = (new SupplierAccountModel)->where([
                 'supplier_id' => $datum['id'],
                 'deleted_flag' => 'N',
-            ])->field('email,mobile,user_name')->order('id desc')->find();
+            ])->field('email,mobile,user_name')->find();
         }
 
         $this->jsonReturn([
