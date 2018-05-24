@@ -115,10 +115,12 @@ class UserModel extends PublicModel {
         return $this->query($sql);
     }
     public function crmlist($data){
+        $lang=$data['lang'];
         $cond=$this->crmCond($data);
         $info=$this->alias('employee')
             ->join("erui_sys.country_member member on employee.id=member.employee_id",'left')
-            ->field('employee.id,employee.name,employee.user_no,member.country_bn')
+            ->join("erui_dict.country country on member.country_bn=country.bn and country.lang='$lang' and country.deleted_flag='N'",'left')
+            ->field('employee.id,employee.name,employee.user_no,member.country_bn,employee.mobile,country.name as country_name')
             ->where($cond)
             ->group('employee.id')
             ->select();
