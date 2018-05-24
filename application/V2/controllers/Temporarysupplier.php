@@ -74,7 +74,7 @@ class TemporarySupplierController extends PublicController
      */
     public function relationAction()
     {
-        $request = $this->validateRequestParams('id,supplier_id,supplier_no');
+        $request = $this->validateRequestParams('id,supplier_id');
         $response = (new TemporarySupplierRelationModel)->setRelation($request, $this->user['id']);
         $this->jsonReturn($response);
     }
