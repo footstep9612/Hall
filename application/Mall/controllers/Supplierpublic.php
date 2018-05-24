@@ -10,7 +10,7 @@
  * Class PublicController
  * 全局方法
  */
-abstract class SupplierpublicController extends Yaf_Controller_Abstract {
+ class SupplierpublicController extends Yaf_Controller_Abstract {
 
     protected $supplier_user;
     protected $put_data = [];
@@ -39,12 +39,12 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
     }
 
     protected function _getUser() {
-        $token = $this->header('supplier_token');
+        $token = $this->header('supplier-token');
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
@@ -53,7 +53,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
             $userinfo = json_decode(redisGet('supplier_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
@@ -65,15 +65,14 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
         }
     }
 
-    protected function _supplier_token() {
+     protected function _supplier_token() {
+        $token = $this->header('supplier-token');
         $this->put_data = $this->getPut();
-        $header= $this->header();
-        $token = $header['supplier_token'];
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
@@ -86,7 +85,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],

@@ -12,7 +12,7 @@
 class SupplierInfoController extends SupplierpublicController {
 
     public function init() {
-        $this->supplier_token = false;
+        //$this->supplier_token = false;
         parent::init();
     }
 
@@ -191,7 +191,13 @@ class SupplierInfoController extends SupplierpublicController {
                     $res3 = $supplierContactModel->updateInfo($contactWhere, $contactData);
                 }else{
                     $contactData['supplier_id'] = $supplier_id;
-                    $res3 = $supplierContactModel->create_data($contactData);
+                    $exist = $supplierContactModel->Exist(['supplier_id'=>$supplier_id]);
+                    if(!$exist){
+                        $res3 = $supplierContactModel->create_data($contactData);
+                    }else{
+                        $createWhere['supplier_id'] = $supplier_id;
+                        $res3 = $supplierContactModel->updateInfo($createWhere, $contactData);
+                    }
                 }
 
             }
@@ -564,7 +570,7 @@ class SupplierInfoController extends SupplierpublicController {
     }
 
     public function getSupplierId($id) {
-        return $id ? $id : ($this->user['supplier_id']?$this->user['supplier_id']:SUID);
+        return $id ? $id : ($this->supplier_user['supplier_id']?$this->supplier_user['supplier_id']:SUID);
     }
 
     public function checkRegParams($condition) {

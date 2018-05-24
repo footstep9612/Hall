@@ -159,7 +159,7 @@ class SupplierloginController extends SupplierpublicController {
     // 验证邮件
     public function checkEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang = $data['lang'] ? $data['lang'] : 'en';
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         if (empty($data['key'])) {
             jsonReturn('', -134, ShopMsg::getMessage('-134', $lang));
         }
@@ -184,7 +184,7 @@ class SupplierloginController extends SupplierpublicController {
 
     function retrievalEmailAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang = $data['lang'] ? $data['lang'] : 'zh';   $data['email'] = '531499132@qq.com';//测试
+        $lang = $data['lang'] ? $data['lang'] : 'zh';
         if (!empty($data['email'])) {
             $retrieval_arr['email'] = trim($data['email']);
             if (!isEmail($retrieval_arr['email'])) {
