@@ -132,11 +132,15 @@ class UserModel extends PublicModel {
         if (!empty($data['username'])) {    //名称
             $userStr='';
             $users=explode(',',$data['username']);
-            foreach($users as $k => $v){
-                $userStr.=",'".trim($v)."'";
+            if(count($users)==1){
+                $cond.=" and employee.name like '%".trim($data['username'])."%'";
+            }else{
+                foreach($users as $k => $v){
+                    $userStr.=",'".trim($v)."'";
+                }
+                $userStr=substr($userStr,1);
+                $cond.=" and employee.name in ($userStr)";
             }
-            $userStr=substr($userStr,1);
-            $cond.=" and employee.name in ($userStr)";
         }
         if (!empty($data['user_no'])) { //工号
             $cond.=" and employee.user_no in ($data[user_no])";
