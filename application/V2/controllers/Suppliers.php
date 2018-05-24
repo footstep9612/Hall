@@ -1339,7 +1339,7 @@ class SuppliersController extends PublicController {
      * @author liujf
      * @time 2017-11-11
      */
-    public function ruishangetailAction()
+    public function ruishangDetailAction()
     {
         $condition = $this->validateRequestParams('id');
 
