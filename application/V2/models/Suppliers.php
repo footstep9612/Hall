@@ -550,7 +550,7 @@ class SuppliersModel extends PublicModel {
         $condition  = $this->setRuiShangCondition($condition);
 
         $fields = 'id,name,created_at,status';
-        $data = $this->alias('a')->where($condition)->field($fields)->page($currentPage, $pageSize)->select();
+        $data = $this->alias('a')->where($condition)->field($fields)->page($currentPage, $pageSize)->order('a.id desc')->select();
 
         $total = $this->alias('a')->where($condition)->count();
 
