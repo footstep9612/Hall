@@ -11,6 +11,29 @@ class SpecialController extends PublicController{
     }
 
     /**
+     * 专题商品
+     */
+    public function goodsAction(){
+        $input = $this->getPut();
+        if (!isset($input['special_id']) || empty($input['special_id'])) {
+            jsonReturn('', 'special_id不能为空');
+        }
+
+        $model = new SpecialGoodsModel();
+        if(!isset($input['sku']) || empty($input['sku'])){    //列表
+            $result = $model->getList($input);
+        }else{    //详情
+            $result = $model->getInfo($input);
+        }
+
+        if($result!==false){
+            jsonReturn($result);
+        }else{
+            jsonReturn('', ErrorMsg::FAILED);
+        }
+    }
+
+    /**
      * 专题详情
      */
     public function infoAction(){

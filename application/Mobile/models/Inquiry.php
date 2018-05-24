@@ -47,7 +47,6 @@ class InquiryModel extends PublicModel {
         $this->startTrans();
         try {
             $res = $this->addData($data);
-
             if (!$res || $res['code'] != 1) {
                 $this->rollback();
                 return false;

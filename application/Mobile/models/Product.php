@@ -96,10 +96,10 @@ class ProductModel extends PublicModel {
 
         try {
             $goodsModel = new GoodsModel();
-            $gtable = $goodsModel->getTableName();
+
             $gattrModel = new GoodsAttrModel();
             $gatable = $gattrModel->getTableName();
-            $condition = ["$gtable.spu" => $input['spu'], "$gtable.lang" => $input['lang']];
+            $condition = ["g.spu" => $input['spu'], "g.lang" => $input['lang'], 'g.deleted_flag' => 'N'];
             //现货处理
             $stock = false;
             $skus = [];
@@ -113,16 +113,16 @@ class ProductModel extends PublicModel {
                     $skuStock[$item['sku']] = $item['stock'];
                     $stockAry[$item['sku']] = $item;
                 }
-                $condition["$gtable.sku"] = ['in', $skus];
+                $condition["g.sku"] = ['in', $skus];
             }
 
             //订货号
             if (isset($input['sku']) && !empty($input['sku'])) {
                 //$condition["$gtable.sku"] = $input['sku'];
                 if (!empty($skus)) {
-                    $condition["$gtable.sku"] = [['exp', 'regexp \'' . $input['sku'] . '\''], ['in', $skus]];
+                    $condition["g.sku"] = [['exp', 'regexp \'' . $input['sku'] . '\''], ['in', $skus]];
                 } else {
-                    $condition["$gtable.sku"] = ['exp', 'regexp \'' . $input['sku'] . '\''];
+                    $condition["g.sku"] = ['exp', 'regexp \'' . $input['sku'] . '\''];
                 }
             }
 
@@ -133,21 +133,21 @@ class ProductModel extends PublicModel {
                 $find = array('(', ')', " ", '\\', '/');
                 $replace = array('.{1}', '.{1}', " *", '.{1,2}', '.{1,2}');
                 $input['model'] = str_replace($find, $replace, $input['model']);
-                $condition["$gtable.model"] = ['exp', 'regexp \'' . $input['model'] . '\''];
+                $condition["g.model"] = ['exp', 'regexp \'' . $input['model'] . '\''];
             }
 
             //包装数量
             if (isset($input['min_pack_naked_qty']) && !empty($input['min_pack_naked_qty'])) {
-                $condition["$gtable.min_pack_naked_qty"] = $input['min_pack_naked_qty'];
+                $condition["g.min_pack_naked_qty"] = $input['min_pack_naked_qty'];
             }
 
             //出货周期
             if (isset($input['exw_days']) && !empty($input['exw_days'])) {
-                $condition["$gtable.exw_days"] = $input['exw_days'];
+                $condition["g.exw_days"] = $input['exw_days'];
             }
 
-            $condition["$gtable.status"] = 'VALID';
-            $condition["$gtable.deleted_flag"] = 'N';
+            $condition["g.status"] = 'VALID';
+            $condition["g.deleted_flag"] = 'N';
 
             $current_no = (isset($input['current_no']) && is_numeric($input['current_no'])) ? $input['current_no'] : 1;
             $pageSize = (isset($input['pageSize']) && is_numeric($input['pageSize'])) ? $input['pageSize'] : 10;
@@ -166,10 +166,15 @@ class ProductModel extends PublicModel {
                     $value = str_replace('"', '.{1,2}', $value);
                     $spec[] = ['exp', 'regexp \'"' . $key . '":"[^"]*' . $value . '[^"]*"\''];    //模糊查
                 }
-                $condition["$gatable.spec_attrs"] = $spec;
+                $condition["ga.spec_attrs"] = $spec;
             }
 
-            $idAry = $goodsModel->field("$gtable.id")->join($gatable . " ON $gtable.sku=$gatable.sku AND $gtable.lang=$gatable.lang", 'LEFT')->where($condition)->select();
+            $idAry = $goodsModel
+                    ->alias('g')
+                    ->field("g.id")
+                    ->join($gatable . " ga ON g.sku=ga.sku AND g.lang=ga.lang", 'LEFT')
+                    ->where($condition)
+                    ->select();
             //Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $goodsModel->getLastSql(), Log::ERR);
             $ids = [];
             if ($idAry) {
@@ -180,24 +185,26 @@ class ProductModel extends PublicModel {
                 return [];
             }
 
-            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)->select();
+            $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')
+                    ->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)
+                    ->select();
+
+            $count = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')
+                    ->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)
+                    ->count();
             if ($result) {
-                /*  $skuAry = [];
-                  foreach ($result as $r) {
-                  $skuAry[] = $r['sku'];
-                  } */
-                //扩展属性
-                //$condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
-                $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
+                $skus = [];
+                foreach ($result as $goods) {
+                    $skus[] = $goods['sku'];
+                }
+
+                $condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skus], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
                 $attr_key = $attr_value = [];
                 foreach ($attrs as $index => $attr) {
                     $attrInfo = json_decode($attr['spec_attrs'], true);
                     foreach ($attrInfo as $key => $value) {
-                        if (!isset($attr_key[$key])) {
-                            $attr_key[$key] = $key;
-                        }
                         $attr_value[$attr['sku']][$key] = $value;
                     }
                 }
@@ -225,7 +232,10 @@ class ProductModel extends PublicModel {
                     }
                 }
             }
-            return $result ? ['skuAry' => $result, 'stockAry' => $skuStock ? $skuStock : [], 'attr_key' => $attr_key, 'attr_value' => $attr_value] : [];
+            return $result ? ['skuAry' => $result,
+                'count' => $count,
+                'stockAry' => $skuStock ? $skuStock : [],
+                'attr_value' => $attr_value] : [];
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $e, Log::ERR);
             return false;

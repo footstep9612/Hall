@@ -1280,10 +1280,24 @@ class SuppliersController extends PublicController {
     {
         $request = $this->validateRequestParams();
 
+        // 审核人
+        if ($request['checked_name'] != '') {
+            $request['checked_ids'] = (new EmployeeModel)->getUserIdByName($request['checked_name']) ? : [];
+        }
+
+        // 供货范围
+        if ($request['cat_name'] != '') {
+            $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ? : [];
+        }
+
         list($data, $total) = (new SuppliersModel)->ruishangList($request);
 
         foreach ($data as &$datum){
+            $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
             $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
+            $datum['contact'] = (new SupplierContactModel)->where([
+                'supplier_id' => $datum['id']
+            ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
         }
 
         $this->jsonReturn([
@@ -1292,5 +1306,51 @@ class SuppliersController extends PublicController {
             'total' => $total,
             'data' => $data
         ]);
+    }
+
+    /**
+     * 瑞商审核列表
+     * @author 买买提
+     */
+    public function ruishangCheckListAction()
+    {
+        $request = $this->validateRequestParams();
+
+        list($data, $total) = (new SuppliersModel)->ruishangCheckList($request);
+
+        foreach ($data as &$datum){
+            if ($datum['check_status'] === 'INVALID') {
+                $datum['invalid_list'] = (new SupplierCheckLogModel)->getInvalidListBy($datum['id']);
+            }
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功',
+            'total' => $total,
+            'data' => $data
+        ]);
+
+    }
+
+    /**
+     * @desc 获取瑞商详情接口
+     *
+     * @author liujf
+     * @time 2017-11-11
+     */
+    public function ruishangDetailAction()
+    {
+        $condition = $this->validateRequestParams('id');
+
+        $res = $this->suppliersModel->getRuishangJoinDetail($condition);
+
+        //国家
+        $res['country_bn'] = (new CountryModel)->getCountryNameByBn($res['country_bn']);
+
+        //供应商的品牌(对象)
+        $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
+
+        $this->jsonReturn($res);
     }
 }

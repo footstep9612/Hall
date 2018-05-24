@@ -267,7 +267,8 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
+        //$where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
+        $where['source'] = $condition['source'];
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
         $data = $role_user_modle->userRoleList($user_id, $parentId, $where);
         $count = count($data);
@@ -284,12 +285,10 @@ class UserController extends PublicController {
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     $data[$i]['children'][$j]['lang'] = $this->lang;
-                    if (isset($data[$i]['children'][$j]['id'])) {
-                        $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id'], $where);
-                        if (!$data[$i]['children'][$j]['children']) {
-                            unset($data[$i]['children'][$j]['children']);
-                        }
+                    $data[$i]['children'][$j]['check'] = false;
+                    $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['children'][$j]['func_perm_id'], $where);
+                    if (!$data[$i]['children'][$j]['children']) {
+                        unset($data[$i]['children'][$j]['children']);
                     }
                 }
             } else {

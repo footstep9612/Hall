@@ -74,6 +74,15 @@ class BuyercreditController extends PublicController {
         $data = $this->getPut();
         $model = new BuyerCreditModel();
         //$data['agent_id'] = UID;      //待确定查看权限
+        // 权限控制，只获取客户经办人是自己的数据
+        $buyerAgentModel = new BuyerAgentModel();
+        $buyerModel = new BuyerModel();
+        $buyerTableName = $buyerModel->getTableName();
+        $buyerNoArr = $buyerAgentModel->alias('a')
+                                                                       ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+                                                                       ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
+                                                                       ->getField('buyer_no', true) ? : [];
+        $data['buyer_no_arr'] = array_unique($buyerNoArr);
         $res = $model->getlist($data);
         $count = $model->getCount($data);
         if (!empty($res)) {
