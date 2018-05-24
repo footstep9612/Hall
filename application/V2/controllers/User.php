@@ -103,6 +103,7 @@ class UserController extends PublicController {
     public function crmlistAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang'] = $this->lang;
+//        $data['created_by'] = $this->user['id'];
 
         $user = new UserModel();
         $res = $user->crmlist($data);
