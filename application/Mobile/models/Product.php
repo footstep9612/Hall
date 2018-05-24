@@ -193,17 +193,18 @@ class ProductModel extends PublicModel {
                     ->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)
                     ->count();
             if ($result) {
+                $skus = [];
+                foreach ($result as $goods) {
+                    $skus[] = $goods['sku'];
+                }
 
-                $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
+                $condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skus], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
                 $attr_key = $attr_value = [];
                 foreach ($attrs as $index => $attr) {
                     $attrInfo = json_decode($attr['spec_attrs'], true);
                     foreach ($attrInfo as $key => $value) {
-                        if (!isset($attr_key[$key])) {
-                            $attr_key[$key] = $key;
-                        }
                         $attr_value[$attr['sku']][$key] = $value;
                     }
                 }
@@ -234,7 +235,6 @@ class ProductModel extends PublicModel {
             return $result ? ['skuAry' => $result,
                 'count' => $count,
                 'stockAry' => $skuStock ? $skuStock : [],
-                'attr_key' => $attr_key,
                 'attr_value' => $attr_value] : [];
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . '【Product】getSkuList:' . $e, Log::ERR);
