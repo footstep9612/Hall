@@ -114,6 +114,39 @@ class UserModel extends PublicModel {
         $sql .= $where;
         return $this->query($sql);
     }
+    public function crmlist($data){
+        $cond=$this->crmCond($data);
+        $info=$this->alias('employee')
+            ->join("erui_sys.country_member member on employee.id=member.employee_id",'left')
+            ->field('employee.id,employee.name,employee.user_no,member.country_bn')
+            ->where($cond)
+            ->group('employee.id')
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        return $info;
+    }
+    public function crmCond($data){
+        $cond="employee.deleted_flag='N'";
+        if (!empty($data['username'])) {    //名称
+            $userStr='';
+            $users=explode(',',$data['username']);
+            foreach($users as $k => $v){
+                $userStr.=",'".trim($v)."'";
+            }
+            $userStr=substr($userStr,1);
+            $cond.=" and employee.name in ($userStr)";
+        }
+        if (!empty($data['user_no'])) { //工号
+            $cond.=" and employee.user_no in ($data[user_no])";
+        }
+        if (!empty($data['bn'])) {  //国家
+            $bn = trim($data['bn']);
+            $cond.=" and member.country_bn='$bn' ";
+        }
+        return $cond;
+    }
 
     /**
      * 获取列表

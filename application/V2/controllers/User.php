@@ -100,7 +100,17 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    public function crmlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->lang;
 
+        $user = new UserModel();
+        $res = $user->crmlist($data);
+        $datajson['code'] = 1;
+        $datajson['message'] = '数据信息';
+        $datajson['data'] = $res;
+        $this->jsonReturn($datajson);
+    }
     public function userredislistAction() {
         if(!redisExist(user_redis_list)){
             $user_modle = new UserModel();
