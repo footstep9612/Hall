@@ -7,7 +7,7 @@
  */
 class SpecialModel extends Model {
     protected $tableName = 'special';
-    protected $dbName = 'erui_stock'; //数据库名称
+    protected $dbName = 'erui_mall'; //数据库名称
 
     public function __construct() {
         parent::__construct();
@@ -17,13 +17,16 @@ class SpecialModel extends Model {
         try{
             $condition = [
                 'id' => $id,
-                'deleted_flag' => 'N'
+                'status' => 'VALID',
+                'deleted_at' => ['exp', 'is null']
             ];
-            $result = $this->field('id,title,keyword,description,banner,url,country_bn')->where($condition)->find();
+            $result = $this->field('id,country_bn,name,lang,remark,type')->where($condition)->find();
             return $result;
         }catch (Exception $e){
             return false;
         }
     }
+
+    public function goods(){}
 
 }
