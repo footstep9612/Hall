@@ -10,16 +10,16 @@
  * Class PublicController
  * 全局方法
  */
-abstract class SupplierpublicController extends Yaf_Controller_Abstract {
+ class SupplierpublicController extends Yaf_Controller_Abstract {
 
-    protected $user;
+    protected $supplier_user;
     protected $put_data = [];
     protected $headers = [];
     protected $code = "1";
     protected $send = [];
     protected $message = '';
     protected $lang = '';
-    protected $token = true;
+    protected $supplier_token = true;
 
     /*
      * 初始化
@@ -30,8 +30,8 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
         error_reporting(E_ERROR | E_STRICT);
         $lang = $this->header('lang', 'zh');
         $this->setLang($lang);
-        if ($this->token) {
-            $this->_token();
+        if ($this->supplier_token) {
+            $this->_supplier_token();
         }
         Log::write($this->getRequest()->getControllerName(), Log::INFO);
         Log::write($this->getRequest()->getActionName(), Log::INFO);
@@ -39,12 +39,12 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
     }
 
     protected function _getUser() {
-        $token = $this->header('supplier_token');
+        $token = $this->header('supplier-token');
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
@@ -53,7 +53,7 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
             $userinfo = json_decode(redisGet('supplier_user_info_' . $tokeninfo['id']), true);
 
             if (!empty($userinfo)) {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],
@@ -65,27 +65,27 @@ abstract class SupplierpublicController extends Yaf_Controller_Abstract {
         }
     }
 
-    protected function _token() {
+     protected function _supplier_token() {
+        $token = $this->header('supplier-token');
         $this->put_data = $this->getPut();
-        $token = $this->header('supplier_token');
         if (!$token) {
-            $token = $this->getPut('supplier_token');
+            $token = $this->getPut('supplier-token');
         }
         if (!$token) {
-            $token = $this->getPost('supplier_token');
+            $token = $this->getPost('supplier-token');
         }
 
         if (!empty($token)) {
             $tks = explode('.', $token);
             $tokeninfo = JwtInfo($token); //解析token
 
-            $userinfo = json_decode(redisGet('shopmall_user_info_' . $tokeninfo['id']), true);
+            $userinfo = json_decode(redisGet('supplier_user_info_' . $tokeninfo['id']), true);
 
             if (empty($userinfo)) {
                 echo json_encode(array("code" => "-104", "message" => "用户不存在"));
                 exit;
             } else {
-                $this->user = array(
+                $this->supplier_user = array(
                     "supplier_id" => $userinfo["supplier_id"],
                     "supplier_email" => $userinfo["supplier_email"],
                     "id" => $userinfo["id"],

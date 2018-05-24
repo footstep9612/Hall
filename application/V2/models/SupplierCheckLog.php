@@ -144,4 +144,17 @@ class SupplierCheckLogModel extends PublicModel {
         }
     }
 
+    public function getCheckListBy($supplier)
+    {
+        $data =  $this->where([
+            'supplier_id' => $supplier,
+        ])->field('status,created_by,created_at,note,check_type')->select();
+
+        foreach ($data as &$datum) {
+            $datum['created_by'] = (new EmployeeModel)->getNameByid($datum['created_by'])['name'];
+        }
+
+        return $data;
+    }
+
 }
