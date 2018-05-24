@@ -36,6 +36,17 @@ class SupplierCheckLogModel extends PublicModel {
         $data = $this->create($condition);
         $data['created_by'] = defined('UID') ? UID : 0;
         $data['created_at'] = date('Y-m-d H:i:s');
+
+        /*
+         * 是否已存在审核记录，主要是针对门户过来的瑞商数据
+         * @author 买买提
+         * @time 2018-05-24
+         */
+        $hasCheckLog = $this->where(['supplier_id' => $condition['supplier_id'], 'status' => 'DRAFT'])->find();
+        if ($hasCheckLog) {
+            return $this->where(['supplier_id' => $condition['supplier_id'], 'status' => 'DRAFT'])->save($data);
+        }
+
         return $this->add($data);
     }
 
