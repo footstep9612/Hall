@@ -191,7 +191,13 @@ class SupplierInfoController extends SupplierpublicController {
                     $res3 = $supplierContactModel->updateInfo($contactWhere, $contactData);
                 }else{
                     $contactData['supplier_id'] = $supplier_id;
-                    $res3 = $supplierContactModel->create_data($contactData);
+                    $exist = $supplierContactModel->Exist(['supplier_id'=>$supplier_id]);
+                    if(!$exist){
+                        $res3 = $supplierContactModel->create_data($contactData);
+                    }else{
+                        $createWhere['supplier_id'] = $supplier_id;
+                        $res3 = $supplierContactModel->updateInfo($createWhere, $contactData);
+                    }
                 }
 
             }
