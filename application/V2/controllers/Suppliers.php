@@ -1295,10 +1295,9 @@ class SuppliersController extends PublicController {
         foreach ($data as &$datum){
             $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
             $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
-            $datum['contact'] = (new SupplierAccountModel)->where([
-                'supplier_id' => $datum['id'],
-                'deleted_flag' => 'N',
-            ])->field('email,mobile,user_name')->find();
+            $datum['contact'] = (new SupplierContactModel)->where([
+                'supplier_id' => $datum['id']
+            ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
         }
 
         $this->jsonReturn([
@@ -1332,5 +1331,26 @@ class SuppliersController extends PublicController {
             'data' => $data
         ]);
 
+    }
+
+    /**
+     * @desc 获取瑞商详情接口
+     *
+     * @author liujf
+     * @time 2017-11-11
+     */
+    public function ruishangDetailAction()
+    {
+        $condition = $this->validateRequestParams('id');
+
+        $res = $this->suppliersModel->getRuishangJoinDetail($condition);
+
+        //国家
+        $res['country_bn'] = (new CountryModel)->getCountryNameByBn($res['country_bn']);
+
+        //供应商的品牌(对象)
+        $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
+
+        $this->jsonReturn($res);
     }
 }
