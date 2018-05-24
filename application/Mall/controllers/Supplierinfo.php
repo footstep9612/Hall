@@ -397,6 +397,13 @@ class SupplierInfoController extends SupplierpublicController {
                 jsonReturn('', -101, '提交失败,请稍后再试!');
             }
         }
+        if(isset($condition['proxyInfo']) && !empty($condition['proxyInfo'])){
+            $res3 = $this->upattachs($condition['proxyInfo'], 5, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
         if(isset($condition['otherInfo']) && !empty($condition['otherInfo'])){
             $res4 = $this->upattachs($condition['otherInfo'], 4, $supplier_id);
             if(!$res4){
