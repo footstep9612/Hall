@@ -1295,10 +1295,9 @@ class SuppliersController extends PublicController {
         foreach ($data as &$datum){
             $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
             $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
-            $datum['contact'] = (new SupplierAccountModel)->where([
-                'supplier_id' => $datum['id'],
-                'deleted_flag' => 'N',
-            ])->field('email,mobile,user_name')->find();
+            $datum['contact'] = (new SupplierContactModel)->where([
+                'supplier_id' => $datum['id']
+            ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
         }
 
         $this->jsonReturn([
