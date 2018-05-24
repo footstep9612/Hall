@@ -426,7 +426,8 @@ class SupplierInfoController extends SupplierpublicController {
         $id = $supplier_checklog_model->getDetail($checklog_arr,'id');
         if($id){
             $log_arr['check_type'] = 'CHANGE';
-            $res = $supplier_checklog_model->updateInfo(['supplier_id' => $supplier_id],$log_arr);
+            $log_arr['supplier_id'] = $supplier_id;
+            $res = $supplier_checklog_model->addRecord($log_arr);
         }else {
             $log_arr['check_type'] = 'REGISTER';
             $log_arr['supplier_id'] = $supplier_id;
