@@ -17,9 +17,10 @@ class SpecialModel extends Model {
         try{
             $condition = [
                 'id' => $id,
-                'deleted_flag' => 'N'
+                'status' => 'VALID',
+                'deleted_at' => ['exp', 'is null']
             ];
-            $result = $this->field('id,title,keyword,description,banner,url,country_bn')->where($condition)->find();
+            $result = $this->field('id,country_bn,name,lang,remark,type')->where($condition)->find();
             return $result;
         }catch (Exception $e){
             return false;
