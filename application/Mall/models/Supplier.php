@@ -481,7 +481,7 @@ class SupplierModel extends PublicModel {
     public function getJoinDetail($supplier_id, $lang='zh') {
         $where['a.deleted_flag'] = 'N';
         $where['a.id'] = $supplier_id;
-        $joinTable2 = 'erui_dict.country c ON a.country_bn = c.bn AND lang='.$lang;
+        $joinTable2 = "erui_dict.country c ON a.country_bn = c.bn AND c.lang= '$lang'";
         $joinTable1 = 'erui_supplier.supplier_bank_info b ON a.id = b.supplier_id ';
         return $this->field('a.*,b.bank_name,b.bank_account,c.name as country_name')
                      ->alias('a')
