@@ -245,7 +245,7 @@ class SupplierloginController extends SupplierpublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? $data['lang'] : 'zh';
         if (!empty($data['password'])) {
-            $user_arr['password_hash'] = trim($data['password']);
+            $user_arr['password_hash'] = md5(trim($data['password']));
         } else {
             jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
