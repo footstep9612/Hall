@@ -45,9 +45,10 @@ class InquiryController extends PublicController {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             } else {
+
                 $this->_sendEmail($data['country_bn'], $data);
                 $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn();
+                $this->jsonReturn($data['serial_no']);
             }
         } else {
             jsonReturn('', MSG::MSG_FAILED, '已存在');
