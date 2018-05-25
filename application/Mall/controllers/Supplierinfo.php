@@ -21,10 +21,11 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierRegInfoAction(){
         $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
         //$supplier_id = '229'; //测试使用
         $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierModel = new SupplierModel();
-        $res = $supplierModel->getJoinDetail($supplier_id);
+        $res = $supplierModel->getJoinDetail($supplier_id, $lang);
         if ($res) {
             $datajson['code'] = MSG::MSG_SUCCESS;
             $datajson['data'] = $res;
@@ -392,6 +393,13 @@ class SupplierInfoController extends SupplierpublicController {
         }
         if(isset($condition['productInfo']) && !empty($condition['productInfo'])){
             $res3 = $this->upattachs($condition['productInfo'], 3, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['proxyInfo']) && !empty($condition['proxyInfo'])){
+            $res3 = $this->upattachs($condition['proxyInfo'], 5, $supplier_id);
             if(!$res3){
                 $supplierQualificationModel->rollback();
                 jsonReturn('', -101, '提交失败,请稍后再试!');

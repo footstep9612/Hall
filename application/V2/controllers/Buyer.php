@@ -308,15 +308,15 @@ class BuyerController extends PublicController {
         }
         $agent=new BuyerAgentModel();
         $agentRes=$agent->getBuyerAgentList($data['id']);
-        $countryModel = new CountryModel();
-        $marketAreaModel = new MarketAreaModel();
-        $res_arr = [$res];
-        $this->_setArea($res_arr, 'area');
-        $this->_setCountry($res_arr, 'country',$lang);
-        if (!empty($res_arr[0])) {
-            $res_arr[0]['agent']=$agentRes;
+//        $countryModel = new CountryModel();
+//        $marketAreaModel = new MarketAreaModel();
+//        $res_arr = [$res];
+//        $this->_setArea($res_arr, 'area');
+//        $this->_setCountry($res_arr, 'country',$lang);
+        if (!empty($res)) {
+            $res['agent']=$agentRes;
             $datajson['code'] = 1;
-            $datajson['data'] = $res_arr[0];
+            $datajson['data'] = $res;
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
