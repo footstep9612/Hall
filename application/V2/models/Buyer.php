@@ -874,7 +874,7 @@ EOF;
      * @author jhw
      */
     public function info($data) {
-$lang='zh';
+        $lang=$data['lang'];
         if ($data['id']) {
 //            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
             $field='buyer.*';

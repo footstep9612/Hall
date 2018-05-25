@@ -29,8 +29,11 @@ class InquiryController extends PublicController {
 
 //添加询价单
     public function addAction() {
-        $inquiry = new InquiryModel();
         $data = $this->getPut();
+
+
+        $inquiry = new InquiryModel();
+
         if ($inquiry->checkSerialNo($data['serial_no'])) {
             $data['buyer_id'] = !empty($this->user['buyer_id']) ? $this->user['buyer_id'] : 0;
             $data['inquirer'] = !empty($this->user['user_name']) ? $this->user['user_name'] : '';
@@ -106,7 +109,7 @@ class InquiryController extends PublicController {
         $config_shop = $config_obj->shop->toArray();
         $email_arr['url'] = $config_shop['url'];
         $email_arr['name'] = $arr['name'];
-
+        $email_arr['inquiry_time'] = date('Y-m-d');
         $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
 
         $res = send_Mail($arr['email'], 'Activation email for your registration on ERUI platform', $body, $email_arr['name']);

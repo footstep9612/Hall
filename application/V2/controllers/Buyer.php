@@ -300,7 +300,7 @@ class BuyerController extends PublicController {
 
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $res = $model->info($data);
         if($res['status'] != 'REJECTED'){
