@@ -43,13 +43,15 @@ class SupplierChainModel extends PublicModel {
         if ($is_Chain) {
             $where = [
                 'deleted_flag' => 'N',
-                'status' => 'APPROVED'
+                'status' => 'APPROVED',
+                'source' => 'BOSS'
             ];
         } else {
             $where = [
                 'deleted_flag' => 'N',
                 //'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING']]
-                'status' => 'APPROVING'
+                'status' => 'APPROVING',
+                'source' => 'BOSS'
             ];
         }
         $this->_getValue($where, $condition, 'id');
