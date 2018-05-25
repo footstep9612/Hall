@@ -94,7 +94,7 @@
                 $this->_setUid($userinfo);
             }
         } else {
-            echo json_encode(array("code" => "-104", "message" => "token不存在"));
+            echo json_encode(array("code" => "-104", "message" => "登陆时间过期,请重新登陆"));
             exit;
         }
     }

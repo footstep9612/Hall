@@ -135,7 +135,7 @@ class SupplierInfoController extends SupplierpublicController {
             $supplierData = [
                 //'status' => 'APPROVING',//待审核   资质材料提交后为审核中--APPROVING
                // 'erui_status' => 'CHECKING',
-                'supplier_type' => $condition['supplier_type'],
+                'supplier_type' => strtoupper($condition['supplier_type']),
                 'name' => $condition['name'],
                 'official_phone' => $condition['official_phone'],
                 'country_bn' => $condition['country_bn'],
