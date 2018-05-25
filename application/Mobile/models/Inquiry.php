@@ -228,9 +228,11 @@ class InquiryModel extends PublicModel {
     public function getInfo($condition = []) {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
+        } elseif (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         } else {
             $results['code'] = '-103';
-            $results['message'] = '没有id!';
+            $results['message'] = '没有id或 serial_no!';
             return $results;
         }
 
