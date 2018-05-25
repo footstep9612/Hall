@@ -874,7 +874,7 @@ EOF;
      * @author jhw
      */
     public function info($data) {
-
+        $lang=$data['lang'];
         if ($data['id']) {
 //            $field='buyer.id,buyer.name,buyer.buyer_code,buyer.biz_scope,buyer.intent_product,buyer.purchase_amount,buyer.country_bn,buyer.id,buyer.id,buyer.id';
             $field='buyer.*';
@@ -885,6 +885,23 @@ EOF;
                     ->join('erui_buyer.buyer_account account on buyer.id=account.buyer_id and account.deleted_flag=\'N\'', 'left')
                     ->join('erui_sys.employee em on em.id=buyer.checked_by and em.deleted_flag=\'N\'', 'left')
                     ->find();
+            if(!empty($buyerInfo['country_bn'])){
+                $buyerInfo['country_bn']=trim($buyerInfo['country_bn']);
+                $area=$this->table('erui_operation.market_area_country')->alias('country')
+                    ->join("erui_operation.market_area area on country.market_area_bn=area.bn and area.deleted_flag='N' and area.lang='$lang'",'left')
+                    ->field('area.name as area_name')
+                    ->where("country.country_bn='$buyerInfo[country_bn]'")
+                    ->find();
+                $country=$this->table('erui_dict.country')
+                    ->field('name as country_name')
+                    ->where("bn='$buyerInfo[country_bn]' and lang='$lang'")
+                    ->find();
+                $buyerInfo['area_name']=$area['area_name'];
+                $buyerInfo['country_name']=$country['country_name'];
+            }else{
+                $buyerInfo['area_name']='';
+                $buyerInfo['country_name']='';
+            }
             if(!empty($buyerInfo['official_phone'])){
                 if(preg_match('/ /',$buyerInfo['official_phone'])){ //匹配空格
                     $buyerInfo['official_phone']=str_replace(' ','-',$buyerInfo['official_phone']);
@@ -892,14 +909,7 @@ EOF;
                     $buyerInfo['official_phone']='-'.$buyerInfo['official_phone'];
                 }
             }
-//            $sql = "SELECT  `id`,  `buyer_id`,  `attach_type`,  `attach_name`,  `attach_code`,  `attach_url`,  `status`,  `created_by`,  `created_at` FROM  `erui_buyer`.`buyer_attach` where deleted_flag ='N' and buyer_id = " . $data['id'];
-//            $row = $this->query($sql);
-//            if ($row) {
-//                $buyerInfo['attach'] = $row[0];
-//            }
-//            $account=new BuyerAccountModel();
-//            $show_name=$account->field('show_name')->where(array('buyer_id'=>$data['id'],'deleted_flag'=>'N'))->find();
-//            $buyerInfo['first_name'] = $show_name['show_name'];
+
             return $buyerInfo;
         } else {
             return false;
