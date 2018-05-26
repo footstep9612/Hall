@@ -23,7 +23,7 @@ class SupplierInfoController extends SupplierpublicController {
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
         //$supplier_id = '229'; //测试使用
-        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);jsonReturn($supplier_id);
         $supplierModel = new SupplierModel();
         $res = $supplierModel->getJoinDetail($supplier_id, $lang);
         if ($res) {
