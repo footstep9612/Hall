@@ -314,7 +314,9 @@ class SupplierInfoController extends SupplierpublicController {
                 $res = $supplierMaterialCatModel->delRecord(['id' => $exist]);
                 $this->jsonReturn($res);
             }else{
-                jsonReturn(null,102,'不存在此条数据!');
+                $this->setCode(102);
+                $this->setMessage('此条数据不存在!');
+                parent::jsonReturn();
             }
         }else {
             $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
@@ -1568,7 +1570,7 @@ class SupplierInfoController extends SupplierpublicController {
      * @author liujf
      * @time 2017-11-10
      */
-    public function jsonReturn($data = [], $type = 'JSON') {
+    public function jsonReturn($data = [], $code, $type = 'JSON') {
         if ($data) {
             $this->setCode('1');
             $this->setMessage('成功!');
