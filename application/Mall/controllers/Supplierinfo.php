@@ -23,7 +23,7 @@ class SupplierInfoController extends SupplierpublicController {
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
         //$supplier_id = '229'; //测试使用
-        $supplier_id = $this->getSupplierId($condition['supplier_id']);jsonReturn($supplier_id);
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierModel = new SupplierModel();
         $res = $supplierModel->getJoinDetail($supplier_id, $lang);
         if ($res) {
@@ -1570,7 +1570,7 @@ class SupplierInfoController extends SupplierpublicController {
      * @author liujf
      * @time 2017-11-10
      */
-    public function jsonReturn($data = [], $code, $type = 'JSON') {
+    public function jsonReturn($data = [], $type = 'JSON') {
         if ($data) {
             $this->setCode('1');
             $this->setMessage('成功!');
