@@ -313,6 +313,8 @@ class SupplierInfoController extends SupplierpublicController {
             if($exist){
                 $res = $supplierMaterialCatModel->delRecord(['id' => $exist]);
                 $this->jsonReturn($res);
+            }else{
+                jsonReturn(null,102,'不存在此条数据!');
             }
         }else {
             $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
