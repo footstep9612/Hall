@@ -1,160 +1,48 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport"
-              content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Email</title>
-        <style>
-            .container {
-                width: 680px;
-                margin: 20px auto;
-                -webkit-box-shadow: 0 5px 2px rgba(0, 0, 0, 0.1);
-                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-            }
-            .email-top {
-                width: 100%;
-                height: 50px;
-                background: #325588;
-                border-top-left-radius: 12px;
-                border-top-right-radius: 12px;
-            }
-            .email-top img{
-                margin-top: 10px;
-                margin-left: 15px;
-            }
-            .top-shadow {
-                width: 100%;
-                height: 4px;
-                background-color: #dbe4ec;
-            }
-
-            .mail-content {
-                width: 100%;
-                height: auto;
-                padding: 47px 47px 0 47px;
-                -webkit-box-sizing: border-box;
-                -moz-box-sizing: border-box;
-                box-sizing: border-box;
-            }
-
-            .mail-content h2 {
-                font-size: 18px;
-                color: #325588;
-                line-height: normal;
-                margin: 0;
-                padding: 0;
-            }
-            .dl-horizontal {
-                font-size: 14px;
-                clear:left;
-                margin: 0 auto;
-            }
-            .dl-horizontal dt {
-                color: #a6b4ca;
-                font-weight: normal;
-                line-height: 28px;
-                text-align: right;
-                width: 200px;
-                display: inline-block;
-                float: left;
-            }
-            .dl-horizontal dd {
-                color: #000;
-                line-height: 28px;
-                display: inline-block;
-                margin-left: 10px;
-                width: 375px;
-                /*float: left;*/
-            }
-
-            .viewBtn {
-                display: block;
-                width: 190px;
-                height: 50px;
-                background-color: #325588;
-                color: #fff;
-                text-align: center;
-                border-radius: 5px;
-                line-height: 50px;
-                font-size: 18px;
-                margin: 30px auto;
-                margin-bottom: 0;
-                text-decoration: none;
-            }
-            .viewBtn:hover {
-                color: #fff;
-            }
-            .mail-bottom {
-                width: 100%;
-                height: 208px;
-                padding: 20px 47px;
-                -webkit-box-sizing: border-box;
-                -moz-box-sizing: border-box;
-                box-sizing: border-box;
-                font-size: 14px;
-
-            }
-            .mail-bottom p {
-                color: #666;
-                line-height: 24px;
-                margin: 0;
-            }
-        </style>
+        <title>email</title>
+        <style>html,body,div,span,h1,h2,p,ul,li{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent;-webkit-box-sizing:border-box;box-sizing:border-box;}ul,ol{list-style:none;}p,h2{line-height:40px;}h1{line-height:50px;font-size:25px;}.container{width:1200px;height:900px;margin:0 auto;font-size:20px;}.product-detail-item{width:902px;height:50px;line-height:50px;border-top:1px solid #000;border-left:1px solid #000;font-size:16px;box-sizing:border-box;}.product-detail-item li.double{line-height:25px;}.product-detail-item li{width:150px;height:50px;float:left;text-align:center;border-right:1px solid #000;border-bottom:1px solid #000;box-sizing:border-box;word-wrap:break-word;overflow:hidden;}p span{margin-left:10px;}.customer-detail{margin-top:10px;}</style>
     </head>
     <body>
         <div class="container">
-            <div class="email-top">
-                <img src="<?php echo $url;?>static/en/image/logo.png" alt="ERUI">
-            </div>
-            <div class="top-shadow"></div>
-            <div class="mail-content">
-                <h2>Dear you ：</h2>
-                <p style="text-indent: 20px; margin: 30px;font-size: 16px; color: #3c3c3c;"><?php echo $name;?> .</p>
-                <h2 style="margin-bottom: 20px;">Inquiry information</h2>
-                <dl class="dl-horizontal">
-                    <dt>Serial No：</dt>
-                    <dd><?php echo $serial_no;?></dd>
-                </dl>
-             
-                <dl class="dl-horizontal">
-                    <dt>Country：</dt>
-                    <dd><?php echo $country_bn;?></dd>
-                </dl>
-                <dl class="dl-horizontal">
-                    <dt>Inquiry Source：</dt>
-                    <dd><?php echo $inquiry_source;?></dd>
-                </dl>
-
-                <dl class="dl-horizontal">
-                    <dt>Inquiry Source：</dt>
-                    <dd><?php echo $cur_bn;?></dd>
-                </dl>
-
-                <dl class="dl-horizontal">
-                    <dt>Destination：</dt>
-                    <dd><?php echo $destination;?></dd>
-                </dl>
-
-                <h2 style="margin: 20px auto;">Consignee information</h2>
-                <dl class="dl-horizontal">
-                    <dt>Consignee：</dt>
-                    <dd><?php echo $arr_contact['name'];?></dd>
-                </dl>
-
-                <dl class="dl-horizontal">
-                    <dt>Email：</dt>
-                      <dd><?php echo $arr_contact['email'];?></dd>
-                </dl>
-                <a href="<?php echo $url;?>" class="viewBtn">View inquiry details</a>
-                <div class="dashed-line" style="width: 100%;border-bottom: 1px dashed #a8a7a7;margin-top: 47px;"></div>
-            </div>
-            <div class="mail-bottom">
-                <p>If you have any questions or need help, please contact us</p>
-                <p>ERUI INTERNATION <a href="http://www.erui.com" style="color: #3e91f9;margin: 10px;">http://www.erui.com</a></p>
-                <p style="float: right; text-align: right;margin: 70px 0 30px 0;"><?php echo $time;?><br>
-                    This is an automatic response, please do not reply.</p>
+            <h1 class="email-title">You have new inquiry information from the Erui M station</h1>
+            <div class="email-content">
+                <p>Inquiry time:<span><?=$inquiry_time?></span></p>
+                <p>Inquiry details:</p>
+                <ul class="product-detail">
+                    <li>
+                        <ul class="product-detail-item product-detail-title">
+                            <li>Item</li>
+                            <li>Name</li>
+                            <li>Model</li>
+                            <li>Description</li>
+                            <li>Package Qty</li>
+                            <li>Quantity(unit)</li>
+                        </ul>
+                    </li>
+                    <?php
+                    foreach($arr_sku as $sku){
+                    ?>
+                    <li>
+                        <ul class="product-detail-item">
+                            <li ><?=$sku['sku']?></li>
+                            <li class="double"><?=$sku['name']?></li>
+                            <li><?=$sku['model']?></li>
+                            <li title="<?=htmlspecialchars($sku['remarks'])?>"><?=$sku['remarks']?></li>
+                            <li><?=$sku['qty']?></li>
+                            <li><?=$sku['unit']?></li>
+                        </ul>
+                    </li>
+                   <?php } ?>
+                </ul>
+                <div class="customer-detail">
+                    <h2>Customer Information</h2>
+                    <p>Customer Name:<span><?=$arr_contact['name']?></span></p>
+                    <p>Telephone:<span></span></p>
+                    <p>Email:<span><?=$arr_contact['email']?></span></p>
+                </div>
             </div>
         </div>
     </body>

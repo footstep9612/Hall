@@ -21,10 +21,11 @@ class SupplierInfoController extends SupplierpublicController {
      * */
     public function getSupplierRegInfoAction(){
         $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
         //$supplier_id = '229'; //测试使用
         $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierModel = new SupplierModel();
-        $res = $supplierModel->getJoinDetail($supplier_id);
+        $res = $supplierModel->getJoinDetail($supplier_id, $lang);
         if ($res) {
             $datajson['code'] = MSG::MSG_SUCCESS;
             $datajson['data'] = $res;
@@ -134,7 +135,7 @@ class SupplierInfoController extends SupplierpublicController {
             $supplierData = [
                 //'status' => 'APPROVING',//待审核   资质材料提交后为审核中--APPROVING
                // 'erui_status' => 'CHECKING',
-                'supplier_type' => $condition['supplier_type'],
+                'supplier_type' => strtoupper($condition['supplier_type']),
                 'name' => $condition['name'],
                 'official_phone' => $condition['official_phone'],
                 'country_bn' => $condition['country_bn'],
@@ -312,6 +313,10 @@ class SupplierInfoController extends SupplierpublicController {
             if($exist){
                 $res = $supplierMaterialCatModel->delRecord(['id' => $exist]);
                 $this->jsonReturn($res);
+            }else{
+                $this->setCode(102);
+                $this->setMessage('此条数据不存在!');
+                parent::jsonReturn();
             }
         }else {
             $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
@@ -397,6 +402,13 @@ class SupplierInfoController extends SupplierpublicController {
                 jsonReturn('', -101, '提交失败,请稍后再试!');
             }
         }
+        if(isset($condition['proxyInfo']) && !empty($condition['proxyInfo'])){
+            $res3 = $this->upattachs($condition['proxyInfo'], 5, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
         if(isset($condition['otherInfo']) && !empty($condition['otherInfo'])){
             $res4 = $this->upattachs($condition['otherInfo'], 4, $supplier_id);
             if(!$res4){
@@ -426,10 +438,12 @@ class SupplierInfoController extends SupplierpublicController {
         $id = $supplier_checklog_model->getDetail($checklog_arr,'id');
         if($id){
             $log_arr['check_type'] = 'CHANGE';
+            $log_arr['status'] = 'DRAFT';
             $log_arr['supplier_id'] = $supplier_id;
             $res = $supplier_checklog_model->addRecord($log_arr);
         }else {
             $log_arr['check_type'] = 'REGISTER';
+            $log_arr['status'] = 'DRAFT';
             $log_arr['supplier_id'] = $supplier_id;
             $res = $supplier_checklog_model->addRecord($log_arr);
         }
