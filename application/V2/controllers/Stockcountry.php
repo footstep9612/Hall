@@ -144,9 +144,10 @@ class StockcountryController extends PublicController {
 
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $setting = $this->getPut('settings', '{}');
+        $settings = $this->getPut('settings', '');
+        $settings = $settings ? json_encode($settings,JSON_UNESCAPED_UNICODE):'{}';
 
-        $list = $stock_country_model->createData($country_bn, $show_flag, $lang, $display_position, $show_type,$setting);
+        $list = $stock_country_model->createData($country_bn, $show_flag, $lang, $display_position, $show_type,$settings);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
@@ -190,9 +191,10 @@ class StockcountryController extends PublicController {
         }
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
-        $setting = $this->getPut('settings', '');
+        $settings = $this->getPut('settings', '');
+        $settings = $settings ? json_encode($settings,JSON_UNESCAPED_UNICODE):'';
 
-        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type,$setting);
+        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type,$settings);
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {
