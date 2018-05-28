@@ -72,6 +72,7 @@ class DictController extends PublicController {
         } else {
             if (!empty($data['lang'])) {
                 $where['lang'] = $data['lang'];
+                $where['deleted_flag'] = 'N';
             }
             $arr = $model_group->getlist($where, $limit, 'bn asc');
         }
