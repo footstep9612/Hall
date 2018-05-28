@@ -155,13 +155,14 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function createData($country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = 'P') {
+    public function createData($country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = 'P',$settings = '{}') {
 
         $data['country_bn'] = $country_bn;
         $data['lang'] = $lang;
         $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
         $data['created_at'] = date('Y-m-d H:i:s');
         $data['created_by'] = defined('UID') ? UID : 0;
+        $data['settings'] = $settings;
         if ($display_position) {
             $data['display_position'] = $display_position;
         }
@@ -200,15 +201,15 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = null) {
-
-
-
+    public function updateData($id, $country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = null,$settings= '') {
         $data['country_bn'] = $country_bn;
         $data['lang'] = $lang;
         $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
+        if(!empty($settings)){
+            $data['settings'] = $settings;
+        }
         if ($display_position) {
             $data['display_position'] = $display_position;
         }
