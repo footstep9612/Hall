@@ -32,6 +32,9 @@ class SupplierCheckLogsModel extends PublicModel {
          if (!empty($condition['id'])) {
              $where['id'] = $condition['id'];
          }
+         if (!empty($condition['status'])) {
+             $where['status'] = strtoupper($condition['status']);
+         }
          
          if (!empty($condition['supplier_id'])) {
              $where['supplier_id'] = $condition['supplier_id'];

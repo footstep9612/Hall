@@ -15,6 +15,10 @@ class SupplierInfoController extends SupplierpublicController {
         //$this->supplier_token = false;
         parent::init();
     }
+    //状态
+    const STATUS_APPROVING = 'APPROVING'; //审核中；
+    const STATUS_APPROVED = 'APPROVED'; //审核；
+    const STATUS_REJECTED = 'INVALID'; //驳回；
 
     /**
      * 瑞商企业信息--获取
@@ -27,6 +31,13 @@ class SupplierInfoController extends SupplierpublicController {
         $supplierModel = new SupplierModel();
         $res = $supplierModel->getJoinDetail($supplier_id, $lang);
         if ($res) {
+            if($res['status']==self::STATUS_REJECTED){
+                $supplier_checklog_model = new SupplierCheckLogsModel();
+                $checklog_where['supplier_id'] = $supplier_id;
+                $checklog_where['status'] = self::STATUS_REJECTED;
+                $note = $supplier_checklog_model->getDetail($checklog_where,'note');
+                $res['note'] = $note?$note['note']:'';
+            }
             $datajson['code'] = MSG::MSG_SUCCESS;
             $datajson['data'] = $res;
             $datajson['message'] = 'success!';
