@@ -27,10 +27,10 @@
                     ?>
                     <li>
                         <ul class="product-detail-item">
-                            <li><?=$sku['sku']?></li>
+                            <li ><?=$sku['sku']?></li>
                             <li class="double"><?=$sku['name']?></li>
                             <li><?=$sku['model']?></li>
-                            <li><?=$sku['remarks']?></li>
+                            <li title="<?=htmlspecialchars($sku['remarks'])?>"><?=$sku['remarks']?></li>
                             <li><?=$sku['qty']?></li>
                             <li><?=$sku['unit']?></li>
                         </ul>
