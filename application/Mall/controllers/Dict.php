@@ -60,6 +60,7 @@ class DictController extends PublicController {
                 $lang = 'en';
             }
             $where['lang'] = $lang;
+            $where['deleted_flag'] = 'N';
             if (redisHashExist('CountryList', $lang)) {
                 $arr = json_decode(redisHashGet('CountryList', $lang), true);
             } else {
