@@ -361,7 +361,7 @@ class QuoteController extends PublicController{
     }
     
     /**
-     * @desc 事业部核算退回事业部报价
+     * @desc 事业部审核退回事业部报价
      *
      * @author liujf
      * @time 2018-05-29
