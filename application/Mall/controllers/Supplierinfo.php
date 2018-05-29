@@ -385,6 +385,8 @@ class SupplierInfoController extends SupplierpublicController {
         //$supplier_id = '229';
         $supplier_id = $this->getSupplierId($condition['supplier_id']);
         $supplierQualificationModel = new SupplierQualificationModel();
+        $del_where['supplier_id'] = $supplier_id;
+        $supplierQualificationModel->delRecord($del_where);
         if (empty($condition['baseInfo'])){
             jsonReturn('', -101, '没有上传营业执照或开户许可证!');
         }
