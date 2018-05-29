@@ -46,6 +46,7 @@ class InquiryModel extends PublicModel {
             'BIZ_DISPATCHING' => L('INQUIRY_BIZ_DISPATCHING'),
             'CC_DISPATCHING' => L('INQUIRY_CC_DISPATCHING'),
             'BIZ_QUOTING' => L('INQUIRY_BIZ_QUOTING'),
+            'REJECT_QUOTING' => L('INQUIRY_REJECT_QUOTING'),
             'LOGI_DISPATCHING' => L('INQUIRY_LOGI_DISPATCHING'),
             'LOGI_QUOTING' => L('INQUIRY_LOGI_QUOTING'),
             'LOGI_APPROVING' => L('INQUIRY_LOGI_APPROVING'),
