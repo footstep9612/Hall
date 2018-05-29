@@ -14,6 +14,7 @@ class ExcelimportandexportController extends PublicController {
         $this->inquiryModel = new InquiryModel();
         $this->inquiryCheckLogModel = new InquiryCheckLogModel();
         $this->inquiryItemModel = new InquiryItemModel();
+        $this->quoteItemModel = new QuoteItemModel();
         $this->buyerModel = new BuyerModel();
         $this->employeeModel = new EmployeeModel();
         $this->orderBuyerContactModel = new OrderBuyerContactModel();
@@ -32,6 +33,7 @@ class ExcelimportandexportController extends PublicController {
         $this->time = date('Y-m-d H:i:s');
         
         $this->_getRequestUrl();
+        $this->_getFastDFSUrl();
         $this->_getExcelDir();
     }
     
@@ -42,7 +44,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-22
      */
     public function importOrderBaseInfoAction() {
-        $condition = $this->_trim($this->getPut());
+        $condition = $this->_trim($this->_getPut());
         
         if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
         
@@ -288,7 +290,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-26
      */
     public function importOrderLogInfoAction() {
-        $condition = $this->_trim($this->getPut());
+        $condition = $this->_trim($this->_getPut());
     
         if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
     
@@ -389,7 +391,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-03-26
      */
     public function importSinosurePolicyInfoAction() {
-        $condition = $this->_trim($this->getPut());
+        $condition = $this->_trim($this->_getPut());
         
         if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
         
@@ -703,6 +705,17 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc 获取FastDFS地址
+     *
+     * @return string
+     * @author liujf
+     * @time 2018-05-28
+     */
+    private function _getFastDFSUrl() {
+        return $this->fastDFSUrl = Yaf_Application::app()->getConfig()->fastDFSUrl;
+    }
+    
+    /**
      * @desc 设置订单状态
      *
      * @param string $where 条件参数
@@ -780,6 +793,169 @@ class ExcelimportandexportController extends PublicController {
     /*----------------------------------------------------------------------导入和导出及文件生成代码界线----------------------------------------------------------------------*/
     
     /**
+     * @desc 导出询单sku数据
+     *
+     * @author liujf
+     * @time 2018-05-28
+     */
+    public function exportInquirySkuDataAction() {
+        $condition = $this->_init();
+        $where = [
+            'deleted_flag' => 'N',
+            'inquiry_id' => $condition['inquiry_id']
+        ];
+        $inquiryItemList = $this->inquiryItemModel
+                                                 ->field('sku, buyer_goods_no, name, name_zh, qty, unit, brand, model, remarks')
+                                                 ->where($where)
+                                                 ->order('id')
+                                                 ->select();
+        $date = date('YmdHi');
+        $fileName = "inquiry_sku-$date.xlsx";
+        $sheetTitle = '询单sku数据';
+        $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
+        $this->_createDir($outPath);
+        $titleList = [
+            '序号',
+            '平台sku',
+            '客户商品号',
+            '外文品名（必填）',
+            '中文品名（必填）',
+            '数量（必填）',
+            '单位（必填）',
+            '品牌',
+            '型号',
+            '客户需求描述',
+        ];
+        $i = 1;
+        $outData = [];
+        foreach ($inquiryItemList as $inquiryItem) {
+            $outData[] = [
+                ['value' => $i],
+                ['value' => $inquiryItem['sku']],
+                ['value' => $inquiryItem['buyer_goods_no']],
+                ['value' => $inquiryItem['name']],
+                ['value' => $inquiryItem['name_zh']],
+                ['value' => $inquiryItem['qty']],
+                ['value' => $inquiryItem['unit']],
+                ['value' => $inquiryItem['brand']],
+                ['value' => $inquiryItem['model']],
+                ['value' => $inquiryItem['remarks']],
+            ];
+            $i++;
+        }
+        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
+        if (file_exists($file)) {
+            $fileInfo = $this->_uploadToFastDFS($file);
+            if ($fileInfo['code'] == '1') {
+                unlink($file);
+                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
+            } else {
+                $this->jsonReturn(false);
+            }
+        }
+        $this->jsonReturn(false);
+    }
+    
+    /**
+     * @desc 导出报价sku数据
+     *
+     * @author liujf
+     * @time 2018-05-28
+     */
+    public function exportQuoteSkuDataAction() {
+        $condition = $this->_init();
+        $where = [
+            'a.deleted_flag' => 'N',
+            'a.inquiry_id' => $condition['inquiry_id']
+        ];
+        $inquiryItemTableName = $this->inquiryItemModel->getTableName();
+        $supplierTableName = $this->supplierModel->getTableName();
+        $quoteItemList = $this->quoteItemModel
+                                                 ->alias('a')
+                                                 ->field('a.brand AS quote_brand, a.pn, a.purchase_unit_price, a.purchase_price_cur_bn, a.gross_weight_kg, a.package_mode, a.package_size, a.stock_loc, a.goods_source, a.delivery_days, a.period_of_validity, a.reason_for_no_quote,
+                                                               b.sku, b.buyer_goods_no, b.category, b.name, b.name_zh, b.qty, b.unit, b.brand, b.model, b.remarks,
+                                                               c.name AS supplier_name')
+                                                 ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+                                                 ->join($supplierTableName . ' c ON a.supplier_id = c.id AND c.deleted_flag = \'N\'', 'LEFT')
+                                                 ->where($where)
+                                                 ->order('a.id')
+                                                 ->select();
+        $date = date('YmdHi');
+        $fileName = "quote_sku-$date.xlsx";
+        $sheetTitle = '报价sku数据';
+        $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
+        $this->_createDir($outPath);
+        $titleList = [
+            '序号',
+            '平台sku',
+            '客户商品号',
+            '产品分类（必填）',
+            '外文品名（必填）',
+            '中文品名（必填）',
+            '数量（必填）',
+            '单位（必填）',
+            '品牌',
+            '型号',
+            '客户需求描述',
+            '供应商名称',
+            '品牌（必填）',
+            'PN码',
+            '采购单价（必填）',
+            '采购币种（必填）',
+            '单件毛重（kg）（必填）',
+            '包装方式（必填）',
+            '包装体积（m³）（必填）',
+            '存放地（必填）',
+            '产品来源（必填）',
+            '交货期（必填）',
+            '报价有效期（必填）',
+            '未报价分析',
+        ];
+        $i = 1;
+        $outData = [];
+        foreach ($quoteItemList as $quoteItem) {
+            $outData[] = [
+                ['value' => $i],
+                ['value' => $quoteItem['sku']],
+                ['value' => $quoteItem['buyer_goods_no']],
+                ['value' => $quoteItem['category']],
+                ['value' => $quoteItem['name']],
+                ['value' => $quoteItem['name_zh']],
+                ['value' => $quoteItem['qty']],
+                ['value' => $quoteItem['unit']],
+                ['value' => $quoteItem['brand']],
+                ['value' => $quoteItem['model']],
+                ['value' => $quoteItem['remarks']],
+                ['value' => $quoteItem['supplier_name']],
+                ['value' => $quoteItem['quote_brand']],
+                ['value' => $quoteItem['pn']],
+                ['value' => $quoteItem['purchase_unit_price']],
+                ['value' => $quoteItem['purchase_price_cur_bn']],
+                ['value' => $quoteItem['gross_weight_kg']],
+                ['value' => $quoteItem['package_mode']],
+                ['value' => $quoteItem['package_size']],
+                ['value' => $quoteItem['stock_loc']],
+                ['value' => $quoteItem['goods_source']],
+                ['value' => $quoteItem['delivery_days']],
+                ['value' => $quoteItem['period_of_validity']],
+                ['value' => $quoteItem['reason_for_no_quote']],
+            ];
+            $i++;
+        }
+        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
+        if (file_exists($file)) {
+            $fileInfo = $this->_uploadToFastDFS($file);
+            if ($fileInfo['code'] == '1') {
+                unlink($file);
+                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
+            } else {
+                $this->jsonReturn(false);
+            }
+        }
+        $this->jsonReturn(false);
+    }
+    
+    /**
      * @desc 生成或导出数据文件页面
      *
      * @author liujf
@@ -797,7 +973,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-21
      */
     public function exportQuoteAnalysisDataAction() {
-        $this->getPut();
+        $this->_getPut();
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = ['neq', 'DRAFT'];
         $lang = 'zh';
@@ -876,7 +1052,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-02-26
      */
     public function exportSupplierDataAction() {
-        $this->getPut();
+        $this->_getPut();
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = 'APPROVED';
         $supplierList = $this->supplierModel->alias('a')
@@ -978,7 +1154,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     public function createToolMallFilesAction() {
-        $this->getPut();
+        $this->_getPut();
         $date = date('YmdHis');
         // 土猫商品文件夹名称
         $toolMallFolder = $this->_utf8ToGbk('土猫商品');
@@ -1091,7 +1267,7 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-08
      */
     public function createYunFangBaoFilesAction() {
-        $this->getPut();
+        $this->_getPut();
         $date = date('YmdHis');
         // 云防爆商品文件夹名称
         $yunFangBaoFolder = $this->_utf8ToGbk('云防爆商品');
@@ -1396,10 +1572,14 @@ class ExcelimportandexportController extends PublicController {
      * @param string $fileName 文件名
      * @param array $titleList 表格标题
      * @param array $dataList 表格数据
+     * @param string $sheetTitle sheet标题
+     * @param string $outPath 输出的文件路径
+     * @param string $outType 输出方式（浏览器输出、文件输出）
+     * @return mixed
      * @author liujf
      * @time 2017-12-19
      */
-    private function _exportExcel($fileName, $titleList, $dataList) {
+    private function _exportExcel($fileName, $titleList, $dataList, $sheetTitle = 'Worksheet', $outPath = '', $outType = 'browser') {
         $objPHPExcel = new PHPExcel();
         // Set document properties
         $objPHPExcel->getProperties()
@@ -1417,13 +1597,33 @@ class ExcelimportandexportController extends PublicController {
         // 填充excel表格的数据
         $this->_setExcelData($objPHPExcel, $dataList, $wordArr);
         // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-        $objPHPExcel->setActiveSheetIndex(0);
-        header('Content-Type: application/vnd.ms-excel; charset="UTF-8"');
-        header('Content-Disposition: attachment; filename=' . urlencode($fileName));
-        header('Content-Transfer-Encoding: binary');
-        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        $objSheet = $objPHPExcel->setActiveSheetIndex(0);
+        // 设置sheet标题
+        $objSheet->setTitle($sheetTitle);
+        // 设置字体
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        // 设置 固定行列
+        //$objSheet->freezePaneByColumnAndRow(2, 2);
+        // 设置边框线颜色
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => ['argb' => '00000000']]]];
+        $tableNo = "A1:{$wordArr[$titleCount - 1]}" . (count($dataList) + 1);
+        $objSheet->getStyle($tableNo)->applyFromArray($styleArray);
+        // 设置字体变小以适应宽
+        $objSheet->getStyle($tableNo)->getAlignment()->setShrinkToFit(true); 
+        // 设置自动换行
+        $objSheet->getStyle($tableNo)->getAlignment()->setWrapText(true); 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-        $objWriter->save('php://output');
+        if (strtolower(trim($outType)) == 'file') {
+            $file = $this->_addSlash($outPath) . $fileName;
+            $objWriter->save($file);
+            return $file;
+        } else {
+            header('Content-Type: application/vnd.ms-excel; charset="UTF-8"');
+            header('Content-Disposition: attachment; filename=' . urlencode($fileName));
+            header('Content-Transfer-Encoding: binary');
+            header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+            $objWriter->save('php://output');
+        }
     }
     
     /**
@@ -1666,12 +1866,24 @@ class ExcelimportandexportController extends PublicController {
     }
     
     /**
+     * @desc 调用父类init方法
+     *
+     * @return array
+     * @author liujf
+     * @time 2018-05-28
+     */
+    private function _init() {
+        parent::init();
+        return $this->put_data;
+    }
+    
+    /**
      * @desc 安全验证
      *
      * @author liujf
      * @time 2018-01-07
      */
-    public function getPut() {
+    private function _getPut() {
         $key = '9b2a37b7b606c14d43db538487a148c7';
         $input = json_decode(file_get_contents("php://input"), true);
         $post = $this->getPost();
