@@ -30,10 +30,6 @@ class InquiryController extends PublicController {
 //添加询价单
     public function addAction() {
         $data = $this->getPut();
-        $this->_sendEmail($data['country_bn'], $data);
-
-        $this->setCode(MSG::MSG_SUCCESS);
-        $this->jsonReturn($data['serial_no']);
         $inquiry = new InquiryModel();
 
         if ($inquiry->checkSerialNo($data['serial_no'])) {
