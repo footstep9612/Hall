@@ -131,22 +131,31 @@ class InquiryModel extends PublicModel {
     public function getWhere($condition = []) {
          
         $where['a.deleted_flag'] = 'N';
-        
+        $quotingStatusList = ['REJECT_QUOTING', 'BIZ_QUOTING'];
         if ($condition['list_type'] != 'inquiry') {
             $where['a.status'] = ['neq', 'DRAFT'];
             if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
-                $where['a.status'] = $condition['status'];    //项目状态
+                if ($condition['status'] == 'BIZ_QUOTING') {
+                    $where['a.status'] = ['in', $quotingStatusList];
+                } else {
+                    $where['a.status'] = $condition['status'];    //项目状态
+                }
             }
         } else {
             if (!empty($condition['status'])) {
-                $where['a.status'] = $condition['status'];
+                if ($condition['status'] == 'BIZ_QUOTING') {
+                    $where['a.status'] = ['in', $quotingStatusList];
+                } else {
+                    $where['a.status'] = $condition['status'];
+                }
             }
             // 询单管理操作状态的筛选
             $inquiryStatusList = ['DRAFT', 'REJECT_MARKET', 'MARKET_APPROVING', 'MARKET_CONFIRMING'];
             $inStatus = ['in', $inquiryStatusList];
             $notInStatus = ['not in', $inquiryStatusList];
-            $inResult = empty($condition['status']) ? $inStatus : [$inStatus, ['eq', $condition['status']]];
-            $notInResult = empty($condition['status']) ? $notInStatus : [$notInStatus, ['eq', $condition['status']]];
+            $transmitStatus = is_array($where['a.status']) ? $where['a.status'] : ['eq', $condition['status']];
+            $inResult = empty($condition['status']) ? $inStatus : [$inStatus, $transmitStatus];
+            $notInResult = empty($condition['status']) ? $notInStatus : [$notInStatus, $transmitStatus];
             switch ($condition['operating_state']) {
                 case 'VIEW' :
                     $where['a.status'] = $notInResult;
@@ -296,7 +305,11 @@ class InquiryModel extends PublicModel {
         $where['deleted_flag'] = 'N';
     
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
-            $where['status'] = $condition['status'];    //项目状态
+            if ($condition['status'] == 'BIZ_QUOTING') {
+                $where['status'] = ['in', ['REJECT_QUOTING', 'BIZ_QUOTING']];
+            } else {
+                $where['status'] = $condition['status'];    //项目状态
+            }
         }
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];    //报价状态
