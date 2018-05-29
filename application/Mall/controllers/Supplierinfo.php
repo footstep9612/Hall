@@ -486,9 +486,12 @@ class SupplierInfoController extends SupplierpublicController {
                     $qualificatiotData['created_at'] = $this->getTime();
                     $res = $supplierQualificationModel->addRecord($qualificatiotData);
                 } else {
-                    $where['id'] = $item['attach_id'];
+//                    $where['id'] = $item['attach_id'];
+//                    $qualificatiotData['updated_at'] = $this->getTime();
+//                    $res = $supplierQualificationModel->updateInfo($where, $qualificatiotData);
+                    $qualificatiotData['supplier_id'] = $id;
                     $qualificatiotData['updated_at'] = $this->getTime();
-                    $res = $supplierQualificationModel->updateInfo($where, $qualificatiotData);
+                    $res = $supplierQualificationModel->addRecord($qualificatiotData);
                 }
                 if (!$res) {
                     return false;
