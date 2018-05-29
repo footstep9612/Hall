@@ -30,8 +30,6 @@ class InquiryController extends PublicController {
 //添加询价单
     public function addAction() {
         $data = $this->getPut();
-
-
         $inquiry = new InquiryModel();
 
         if ($inquiry->checkSerialNo($data['serial_no'])) {
@@ -109,16 +107,83 @@ class InquiryController extends PublicController {
         $config_obj = Yaf_Registry::get("config");
         $config_shop = $config_obj->shop->toArray();
         $email_arr['url'] = $config_shop['url'];
+        $email_arr['fastDFSUrl'] = $config_obj->fastDFSUrl;
         $email_arr['name'] = $arr['name'];
         $email_arr['inquiry_time'] = date('Y-m-d');
-        $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
-
-        $res = send_Mail($arr['email'], 'Activation email for your registration on ERUI platform', $body, $email_arr['name']);
+        if ($email_arr['inquiry_type'] == 2) {
+            /* 快速找货 */
+            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'find_email_en.html', $email_arr);
+            if (!empty($email_arr['files_attach'])) {
+                $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
+            }
+            $res = $this->send_Mail($arr['email'], 'You have search information from station M', $body, $email_arr['name'], $Attachment);
+            unlink($Attachment);
+        } else {
+            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
+            $res = $this->send_Mail($arr['email'], 'You have new inquiry information from the Erui M station', $body, $email_arr['name']);
+        }
         if ($res['code'] == 1) {
             return true;
         } else {
 
             return false;
+        }
+    }
+
+    function zipAttachment($attachs, $fastDFSUrl) {
+        $date = uniqid('Attachment', true);
+        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+        rmdir($tmpDir);
+        $dirName = $tmpDir . $date;
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+                jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
+            }
+        }
+
+        foreach ($attachs as $attach) {
+            $data = file_get_contents($fastDFSUrl . '/' . $attach['attach_url']);
+            $attach_name = pathinfo($attach['attach_name'], PATHINFO_FILENAME);
+            $attach_extension = pathinfo($attach['attach_url'], PATHINFO_EXTENSION);
+            file_put_contents($dirName . DS . $attach_name . '.' . $attach_extension, $data);
+        }
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);
+        return $dirName . '.zip';
+    }
+
+    function send_Mail($to, $title, $body, $name = null, $Attachment = null) {
+        $mail = new PHPMailer(true);
+        $mail->IsSMTP(); // 使用SMTP
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->mail->toArray();
+        try {
+            $mail->CharSet = "UTF-8"; //设定邮件编码
+            $mail->Host = $config_db['host']; // SMTP server
+            $mail->SMTPDebug = 1;                     // 启用SMTP调试 1 = errors  2 =  messages
+            $mail->SMTPAuth = true;                  // 服务器需要验证
+            $mail->Port = $config_db['port'];    //默认端口
+            $mail->Username = $config_db['username']; //SMTP服务器的用户帐号
+            $mail->Password = $config_db['password'];        //SMTP服务器的用户密码
+            $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
+            $mail->SetFrom($config_db['setfrom'], 'ERUI'); //发件人的邮箱
+            if (!empty($Attachment)) {
+                $mail->AddAttachment($Attachment);      // 添加附件,如果有多个附件则重复执行该方法
+            }
+            $mail->Subject = $title;
+            //以下是邮件内容
+            $mail->Body = $body;
+            $mail->IsHTML(true);
+
+            //$body = file_get_contents('tpl.html'); //获取html网页内容
+            //$mail->MsgHTML(str_replace('\\','',$body));
+            $mail->Send();
+            return ['code' => 1];
+        } catch (phpmailerException $e) {
+            return ['code' => -1, 'msg' => $e->errorMessage()];
+        } catch (Exception $e) {
+            return ['code' => -1, 'msg' => $e->errorMessage()];
         }
     }
 
