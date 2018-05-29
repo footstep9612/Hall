@@ -811,6 +811,7 @@ class ExcelimportandexportController extends PublicController {
                                                  ->select();
         $date = date('YmdHi');
         $fileName = "inquiry_sku-$date.xlsx";
+        $sheetTitle = '询单sku';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
         $titleList = [
@@ -842,7 +843,7 @@ class ExcelimportandexportController extends PublicController {
             ];
             $i++;
         }
-        $file = $this->_exportExcel($fileName, $titleList, $outData, $outPath, 'file');
+        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
         if (file_exists($file)) {
             $fileInfo = $this->_uploadToFastDFS($file);
             if ($fileInfo['code'] == '1') {
@@ -881,6 +882,7 @@ class ExcelimportandexportController extends PublicController {
                                                  ->select();
         $date = date('YmdHi');
         $fileName = "quote_sku-$date.xlsx";
+        $sheetTitle = '报价sku';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
         $titleList = [
@@ -940,7 +942,7 @@ class ExcelimportandexportController extends PublicController {
             ];
             $i++;
         }
-        $file = $this->_exportExcel($fileName, $titleList, $outData, $outPath, 'file');
+        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
         if (file_exists($file)) {
             $fileInfo = $this->_uploadToFastDFS($file);
             if ($fileInfo['code'] == '1') {
@@ -1570,13 +1572,14 @@ class ExcelimportandexportController extends PublicController {
      * @param string $fileName 文件名
      * @param array $titleList 表格标题
      * @param array $dataList 表格数据
+     * @param string $sheetTitle sheet标题
      * @param string $outPath 输出的文件路径
      * @param string $outType 输出方式（浏览器输出、文件输出）
      * @return mixed
      * @author liujf
      * @time 2017-12-19
      */
-    private function _exportExcel($fileName, $titleList, $dataList, $outPath = '', $outType = 'browser') {
+    private function _exportExcel($fileName, $titleList, $dataList, $sheetTitle = 'Worksheet', $outPath = '', $outType = 'browser') {
         $objPHPExcel = new PHPExcel();
         // Set document properties
         $objPHPExcel->getProperties()
@@ -1594,7 +1597,21 @@ class ExcelimportandexportController extends PublicController {
         // 填充excel表格的数据
         $this->_setExcelData($objPHPExcel, $dataList, $wordArr);
         // Set active sheet index to the first sheet, so Excel opens this as the first sheet
-        $objPHPExcel->setActiveSheetIndex(0);
+        $objSheet = $objPHPExcel->setActiveSheetIndex(0);
+        // 设置sheet标题
+        $objSheet->setTitle($sheetTitle);
+        // 设置字体
+        $objSheet->getDefaultStyle()->getFont()->setName("宋体")->setSize(11);
+        // 设置 固定行列
+        //$objSheet->freezePaneByColumnAndRow(2, 2);
+        // 设置边框线颜色
+        $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => ['argb' => '00000000']]]];
+        $tableNo = "A1:{$wordArr[$titleCount - 1]}" . (count($dataList) + 1);
+        $objSheet->getStyle($tableNo)->applyFromArray($styleArray);
+        // 设置字体变小以适应宽
+        $objSheet->getStyle($tableNo)->getAlignment()->setShrinkToFit(true); 
+        // 设置自动换行
+        $objSheet->getStyle($tableNo)->getAlignment()->setWrapText(true); 
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         if (strtolower(trim($outType)) == 'file') {
             $file = $this->_addSlash($outPath) . $fileName;
