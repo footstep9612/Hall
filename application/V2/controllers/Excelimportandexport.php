@@ -811,7 +811,7 @@ class ExcelimportandexportController extends PublicController {
                                                  ->select();
         $date = date('YmdHi');
         $fileName = "inquiry_sku-$date.xlsx";
-        $sheetTitle = '询单sku';
+        $sheetTitle = '询单sku数据';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
         $titleList = [
@@ -882,7 +882,7 @@ class ExcelimportandexportController extends PublicController {
                                                  ->select();
         $date = date('YmdHi');
         $fileName = "quote_sku-$date.xlsx";
-        $sheetTitle = '报价sku';
+        $sheetTitle = '报价sku数据';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
         $titleList = [
