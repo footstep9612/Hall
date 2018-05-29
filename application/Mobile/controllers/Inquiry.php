@@ -68,7 +68,7 @@ class InquiryController extends PublicController {
                 case 'Myanmar':
                     return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
                 default :
-                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '李树林', 'key' => ''];
+                    return ['email' => 'lijiaxin@keruigroup.com', 'name' => '李佳欣', 'key' => ''];
             }
         } else {
             switch ($country_bn) {
@@ -116,7 +116,7 @@ class InquiryController extends PublicController {
             if (!empty($email_arr['files_attach'])) {
                 $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
             }
-            $res = $this->send_Mail($arr['email'], 'You have search information from station M', $body, $email_arr['name'], $Attachment);
+            $res = $this->send_Mail($arr['email'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
             unlink($Attachment);
         } else {
             $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
