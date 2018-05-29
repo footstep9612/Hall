@@ -38,7 +38,7 @@ class EdiController extends PublicController{
 
     private $mode = 'wsdl';
 
-    static private $policyNo = 'SCH043954-181800';
+    static private $policyNo = '';
 
     static private $client;
 
@@ -50,16 +50,13 @@ class EdiController extends PublicController{
 
         $config_obj = Yaf_Registry::get("config");
         $serverIP = $config_obj->ediserver->toArray();
+        self::$policyNo = $serverIP['policyno'];
         if (self::$serviceUri == '') {
-//            $this->serverDir = '/' . pathinfo(dirname($_SERVER['SCRIPT_NAME']), PATHINFO_FILENAME) . '/';
             self::$serviceUri = 'http://'.$serverIP['host'].':'.$serverIP['port'].'/'.$this->serverDir.'/'.$this->serverDirSec.'/'.$this->serviceInterface;
         }
         if ($this->mode == 'wsdl') {
             self::$serviceUri .= '?wsdl';
         }
-
-        //self::$client = new SoapClient($this->serviceUri);
-
     }
 
     /**

@@ -888,12 +888,12 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
-	 * @desc 从事业部核算退回事业部报价回到事业部核算接口
+	 * @desc 从事业部审核退回事业部报价回到事业部审核接口
 	 *
 	 * @author liujf
 	 * @time 2018-05-29
 	 */
-	public function rejectQuotingToBizAppovingAction() {
+	public function rejectQuotingToMarketAppovingAction() {
 	    $condition = $this->put_data;
 	     
 	    if (!empty($condition['inquiry_id'])) {
@@ -919,7 +919,7 @@ class LogisticsController extends PublicController {
 	        $inquiryData = [
 	            'id' => $condition['inquiry_id'],
 	            'now_agent_id' => $inquiry['check_org_id'],
-	            'status' => 'BIZ_APPROVING',
+	            'status' => 'MARKET_APPROVING',
 	            'updated_by' => $this->user['id']
 	        ];
 	        $res1 = $this->inquiryModel->updateData($inquiryData);
