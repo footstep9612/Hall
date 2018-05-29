@@ -300,7 +300,7 @@ class LogisticsController extends PublicController {
 	        $data['bank_interest'] = $quote['bank_interest'];
 	        $data['total_exw_price'] = $quote['total_exw_price'];
 	        $data['certification_fee'] = $quote['certification_fee'];
-	        $data['certification_fee_cur'] = 'CNY';
+	        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
 	        $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
 	        
 	        //计算并保存港杂费和国际运费数据
@@ -387,19 +387,9 @@ class LogisticsController extends PublicController {
 	        $quoteData['updated_at'] = $this->time;
 	        $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        
-	        $quoteItemList = $this->quoteItemModel->where($where)->select();
+	        $res3 = $this->_updateQuoteUnitPrice($condition['inquiry_id'], $data);
 	        
-	        $res3 = $res4 = true;
-	        foreach ($quoteItemList as $quoteItem) {
-	            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
-	            
-	            $tmpRes = $this->quoteItemModel->where(['id' => $quoteItem['id']])->save(['quote_unit_price' => $quoteUnitPrice, 'updated_by' => $this->user['id'], 'updated_at' => $this->time]);
-                if (!$tmpRes) {
-                    $res3 = false;
-                    break;
-                }
-	        }
-	        
+	        $res4 = true;
 	        if (isset($logiCostList)) {
 	            $this->quoteLogiCostModel->delRecord($where);
 	            $res4 = $this->quoteLogiCostModel->addAll($logiCostList);
@@ -898,6 +888,69 @@ class LogisticsController extends PublicController {
 	}
 	
 	/**
+	 * @desc 从事业部核算退回事业部报价回到事业部核算接口
+	 *
+	 * @author liujf
+	 * @time 2018-05-29
+	 */
+	public function rejectQuotingToBizAppovingAction() {
+	    $condition = $this->put_data;
+	     
+	    if (!empty($condition['inquiry_id'])) {
+	        $inquiry = $this->inquiryModel->where(['id'=>$condition['inquiry_id']])->find();
+	        if ($inquiry['status'] != 'REJECT_QUOTING') {
+	            jsonReturn('', -101, L('INQUIRY_STATUS_ERROR'));
+	        }
+	        
+	        $this->inquiryModel->startTrans();
+	        
+	        $where['inquiry_id'] = $condition['inquiry_id'];
+	        $quote = $this->quoteModel->where($where)->find();
+	        $data['premium_rate'] = $quote['premium_rate'];
+	        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
+	        $data['payment_period'] = $quote['payment_period'];
+	        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
+	        $data['bank_interest'] = $quote['bank_interest'];
+	        $data['total_exw_price'] = $quote['total_exw_price'];
+	        $data['certification_fee'] = $quote['certification_fee'];
+	        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
+	        $data = $this->calcuTotalLogiFee($data);
+	        
+	        $inquiryData = [
+	            'id' => $condition['inquiry_id'],
+	            'now_agent_id' => $inquiry['check_org_id'],
+	            'status' => 'BIZ_APPROVING',
+	            'updated_by' => $this->user['id']
+	        ];
+	        $res1 = $this->inquiryModel->updateData($inquiryData);
+	        
+	        $quoteData = [
+	            'total_logi_fee' => $data['total_logi_fee'],
+	            'total_quote_price' => $data['total_quote_price'],
+	            'total_bank_fee' => $data['total_logi_fee'],
+	            'total_insu_fee' => $data['total_insu_fee'],
+	            'updated_by' => $this->user['id'],
+	            'updated_at' => $this->time
+	        ];
+	        $res2 = $this->quoteModel->where($where)->save($quoteData);
+	        
+	        $res3 = $this->_updateQuoteUnitPrice($condition['inquiry_id'], $data);
+	
+	        if ($res1['code'] == 1 && $res2 && $res3) {
+	            $this->inquiryModel->commit();
+	            $res = true;
+	        } else {
+	            $this->inquiryModel->rollback();
+	            $res = false;
+	        }
+	         
+	        $this->jsonReturn($res);
+	    } else {
+	        $this->jsonReturn(false);
+	    }
+	}
+	
+	/**
 	 * @desc 获取陆运险费用接口
 	 *
 	 * @author liujf
@@ -1241,6 +1294,27 @@ class LogisticsController extends PublicController {
 	    } else {
 	        return false;
 	    }
+	}
+	
+	/**
+	 * @desc 更新商务报出贸易单价
+	 *
+	 * @param int $inquiryId 询单ID
+	 * @param array $data
+	 * @return bool
+	 * @author liujf
+	 * @time 2018-05-29
+	 */
+	private function _updateQuoteUnitPrice($inquiryId, $data) {
+	   $quoteItemList = $this->quoteItemModel->where(['inquiry_id' => $inquiryId])->select();
+        foreach ($quoteItemList as $quoteItem) {
+            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
+            $res = $this->quoteItemModel->where(['id' => $quoteItem['id']])->save(['quote_unit_price' => $quoteUnitPrice, 'updated_by' => $this->user['id'], 'updated_at' => $this->time]);
+            if (!$res) {
+                return false;
+            }
+        }
+        return true;
 	}
 	
 	/**

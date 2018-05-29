@@ -10,4 +10,5 @@ return array(
     'MISSING_PARAMETER_INTER_SHIPPING_QTY' => 'Lack of inter shipping qty parameters or incorrect format',
     'MISSING_PARAMETER_INTER_SHIPPING_PRICE' => 'Lack of inter shipping price parameters or incorrect format',
     'MISSING_PARAMETER_INTER_SHIPPING_CUR' => 'Lack of inter shipping currency parameters',
+    'INQUIRY_STATUS_ERROR' => 'The status of the current inquiry is not correct',
 );
