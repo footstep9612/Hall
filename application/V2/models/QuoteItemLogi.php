@@ -80,8 +80,8 @@ class QuoteItemLogiModel extends PublicModel {
          
         $where = $this->getJoinWhere($condition);
     
-        //$currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        //$pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
+        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
     
         return $this->alias('a')
                             ->join($this->joinTable1, 'LEFT')
@@ -90,7 +90,7 @@ class QuoteItemLogiModel extends PublicModel {
                             ->join($this->joinTable4, 'LEFT')
                             ->field($this->joinField)
                             ->where($where)
-                            //->page($currentPage, $pageSize)
+                            ->page($currentPage, $pageSize)
                             ->order('a.id')
                             ->select();
     }
