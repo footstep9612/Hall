@@ -296,5 +296,31 @@ class PortModel extends PublicModel {
             return false;
         }
     }
-
+    public function portList($data){
+        $page=isset($data['current_page'])?$data['current_page']:1;
+        $offsize=($page-1)*10;
+        $field='port.id,port.country_bn,port.bn as port_bn,port.name port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode,';
+        $field.=" (select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='zh' and country.deleted_flag='N') as country_name";
+        $count=$this->alias('port')
+            ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))->count();
+        $info=$this->alias('port')
+            ->field($field)
+            ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))
+            ->order('port.id desc')
+            ->limit($offsize,10)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        $arr['total_count']=$count;
+        $arr['info']=$info;
+        return $arr;
+    }
+    public function portTest(){
+        $info=$this->field('bn,name')->where(array('lang'=>'en'))->select();
+        foreach($info as $k => $v){
+            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save(array('name_en'=>$v['name']));
+        }
+        print_r(1);die;
+    }
 }

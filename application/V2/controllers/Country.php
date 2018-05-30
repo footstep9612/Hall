@@ -425,14 +425,7 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result;
         $this->jsonReturn($dataJson);
     }
-    public function countryTestAction() {
-        $model = new CountryModel();
-        $result = $model->countryTest();
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '国家管理列表';
-        $dataJson['data'] = $result;
-        $this->jsonReturn($dataJson);
-    }
+
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new CountryModel();
@@ -559,6 +552,34 @@ class CountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
+    }
+    public function countryTestAction() {
+        $model = new CountryModel();
+        $result = $model->countryTest();
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '国家管理列表';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    public function portTestAction() {
+        $model = new PortModel();
+        $result = $model->portTest();
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '国家管理列表';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    //口岸-港口
+    public function portListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new PortModel();
+        $result = $model->portList($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '港口列表';
+        $dataJson['current_page '] = $result['current_page'];
+        $dataJson['total_count'] = $result['total_count'];
+        $dataJson['data'] = $result['info'];
+        $this->jsonReturn($dataJson);
     }
     /*
      * 更新能力值
