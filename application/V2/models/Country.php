@@ -290,6 +290,10 @@ class CountryModel extends PublicModel {
         }
         return true;
     }
+    public function updateCountryBn($country){
+        $country=$this->field('id,bn')->where(array('deleted_flag'=>'N','bn'=>$country,'lang'=>'zh'))->find();
+        return $country;
+    }
     public function updateCountryName($countryStr){
         $country=$this->field('lang,bn,name')
             ->where("deleted_flag='N' and name in ($countryStr)")
@@ -306,14 +310,14 @@ class CountryModel extends PublicModel {
         if(empty($data['id'])){
             $info=new stdClass();
         }else{
-            $info=$this->field('id,bn as country_bn,name,name_en,name_ru,name_es')
+            $info=$this->field('id,bn as country_bn,name as country_name_zh,name_en as country_name_en,name_ru as country_name_ru,name_es as country_name_es,int_tel_code as tel_code')
                 ->where(array('lang'=>'zh','deleted_flag'=>'N','id'=>$data['id']))
                 ->find();
             $area=$this->table('erui_operation.market_area_country')->alias('country')
                 ->join("erui_operation.market_area area on country.market_area_bn=area.bn and area.lang='zh'",'left')
-                ->field('area.name')
+                ->field('area.bn')
                 ->where(array('country.country_bn'=>$info['country_bn']))->find();
-            $info['area_name']=$area['name'];
+            $info['area_bn']=$area['bn'];
         }
 
         return $info;
@@ -399,7 +403,7 @@ class CountryModel extends PublicModel {
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
-            ->field('country.id,country.bn as country_bn,country.name,country.name_en,country.name_ru,country.name_es,area.name as area_name')
+            ->field('country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name')
             ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
             ->order('country.id desc')
             ->limit($offsize,10)
