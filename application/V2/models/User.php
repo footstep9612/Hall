@@ -114,6 +114,45 @@ class UserModel extends PublicModel {
         $sql .= $where;
         return $this->query($sql);
     }
+    public function crmlist($data){
+        $lang=$data['lang'];
+        $cond=$this->crmCond($data);
+        $info=$this->alias('employee')
+            ->join("erui_sys.country_member member on employee.id=member.employee_id",'left')
+            ->join("erui_dict.country country on member.country_bn=country.bn and country.lang='$lang' and country.deleted_flag='N'",'left')
+            ->field('employee.id,employee.name,employee.user_no,member.country_bn,employee.mobile,country.name as country_name')
+            ->where($cond)
+            ->group('employee.id')
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        return $info;
+    }
+    public function crmCond($data){
+        $cond="employee.deleted_flag='N'";
+        if (!empty($data['username'])) {    //名称
+            $userStr='';
+            $users=explode(',',$data['username']);
+            if(count($users)==1){
+                $cond.=" and employee.name like '%".trim($data['username'])."%'";
+            }else{
+                foreach($users as $k => $v){
+                    $userStr.=",'".trim($v)."'";
+                }
+                $userStr=substr($userStr,1);
+                $cond.=" and employee.name in ($userStr)";
+            }
+        }
+        if (!empty($data['user_no'])) { //工号
+            $cond.=" and employee.user_no in ($data[user_no])";
+        }
+        if (!empty($data['bn'])) {  //国家
+            $bn = trim($data['bn']);
+            $cond.=" and member.country_bn='$bn' ";
+        }
+        return $cond;
+    }
 
     /**
      * 获取列表

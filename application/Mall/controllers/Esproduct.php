@@ -54,11 +54,22 @@ class EsproductController extends PublicController {
         $is_brand = false;
         $brand_name = null;
         $ret = $model->getNewProducts($condition, $this->getLang(), $country_bn, $is_show_cat, $show_cat_name, $is_brand, $brand_name,$description);
-
+        $keyword = '';
+        if( isset($condition['special_id'])){
+            $special = new SpecialModel();
+            $specialInfo = $special->getInfo(intval($condition['special_id']));
+            $keyword = $specialInfo ? $specialInfo['name'] : '';
+        }
+        if(isset($condition['keyword_id'])){
+            $skeyModel = new SpecialKeywordModel();
+            $keywordInfo = $skeyModel->getInfo(intval($condition['keyword_id']));
+            $keyword = $keywordInfo ? $keywordInfo['keyword'] : '';
+        }
         if ($ret) {
             $data = $ret[0];
             $list = $this->getdata($data, $this->getLang());
             $this->setvalue('count', intval($data['hits']['total']));
+            $this->setvalue('keyword', $keyword);
             $this->setvalue('current_no', intval($ret[1]));
             $this->setvalue('pagesize', intval($ret[2]));
             $sku_count = $model->getSkuCountByCondition($condition, $this->getLang());

@@ -8,6 +8,38 @@ class BuyerBusinessModel extends PublicModel
     {
         parent::__construct();
     }
+    public function percentBusiness($data){
+        $field=array(
+            'product_type', //产品类型
+            'purchasing_model', //采购模式
+            'purchasing_cycle', //采购周期
+            'usage', //设备以及使用情况
+            'is_warehouse', //是否有仓库
+            'warehouse_address', //仓库所在地
+            'Product_service_preference', //产品服务偏好
+            'Origin_preference', //原产地偏好
+            'Brand_preference', //品牌偏好
+            'trade_terms', //贸易术语
+            'settlement', //结算方式
+            'is_local_settlement', //是否支持本地结算
+            'is_purchasing_relationship', //是否有采购关系
+        );
+        $businessCond=array('buyer_id'=>$data['buyer_id']);
+        $info=$this->field($field)->where($businessCond)->find();
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
     public function editBusiness($data){
         $optArr = array(
             'product_type',    //产品类型-------业务基础信息

@@ -121,7 +121,6 @@ class BuyerCreditModel extends PublicModel
      * @author klp
      */
     public function getList($condition = []) {
-
         $where = $this->_getCondition($condition);
         $condition['current_no'] = $condition['currentPage'];
 
@@ -170,8 +169,13 @@ class BuyerCreditModel extends PublicModel
                     break;
             }
         }*/
-        if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
-            $where['buyer_no'] = $condition['buyer_no'];                  //客户编号
+        if (!empty($condition['buyer_no_arr'])) {
+            $where['buyer_no'] = ['in', $condition['buyer_no_arr']];
+            if (isset($condition['buyer_no']) && !empty($condition['buyer_no'])) {
+                $where['buyer_no'] = [$where['buyer_no'], ['eq', $condition['buyer_no']]];                  //客户编号
+            }
+        } else {
+            $where['id'] = '-1';
         }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //名称
@@ -330,15 +334,15 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
             $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
-        $buyer_model = new BuyerModel();
+        /*$buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
         $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
         if($agent_id){
             $dataInfo['agent_id'] = $agent_id['agent_id'];
-        } else {
+        } else {*/
             $dataInfo['agent_id'] = UID;
-        }
+        //}
 
         $result = $this->where(['buyer_no' => $data['buyer_no']])->save($this->create($dataInfo));
         if ($result !== false) {

@@ -220,7 +220,7 @@ class BuyerController extends PublicController {
         $info = $model->buyerStatisList($data,true);
         $arr=array(
             'code'=>1,
-            'message'=>'success',
+            'message'=>L('success'),
             'data'=>$info
         );
         $this->jsonReturn($arr);
@@ -300,7 +300,7 @@ class BuyerController extends PublicController {
 
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $res = $model->info($data);
         if($res['status'] != 'REJECTED'){
@@ -308,15 +308,15 @@ class BuyerController extends PublicController {
         }
         $agent=new BuyerAgentModel();
         $agentRes=$agent->getBuyerAgentList($data['id']);
-        $countryModel = new CountryModel();
-        $marketAreaModel = new MarketAreaModel();
-        $res_arr = [$res];
-        $this->_setArea($res_arr, 'area');
-        $this->_setCountry($res_arr, 'country',$lang);
-        if (!empty($res_arr[0])) {
-            $res_arr[0]['agent']=$agentRes;
+//        $countryModel = new CountryModel();
+//        $marketAreaModel = new MarketAreaModel();
+//        $res_arr = [$res];
+//        $this->_setArea($res_arr, 'area');
+//        $this->_setCountry($res_arr, 'country',$lang);
+        if (!empty($res)) {
+            $res['agent']=$agentRes;
             $datajson['code'] = 1;
-            $datajson['data'] = $res_arr[0];
+            $datajson['data'] = $res;
         } else {
             $datajson['code'] = -104;
             $datajson['data'] = "";
@@ -600,7 +600,6 @@ EOF;
         return $info['code'];
     }
     public function noticeEmailAction(){
-        return null;
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
         if(empty($data['buyer_id'])){
@@ -1131,10 +1130,8 @@ EOF;
     //查看信用评价
     public function showCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-//        $data['created_by'] = $this->user['id'];
-//        $model = new BuyerModel();
         $model = new CustomerCreditModel();
-        $res = $model->showCredit($data);          //创建基本信息
+        $res = $model->showCredit($data);
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
@@ -1148,15 +1145,17 @@ EOF;
     public function editCreditAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
-//        $model = new BuyerModel();
         $model = new CustomerCreditModel();
-        $res = $model->editCredit($data);          //创建基本信息
+        $res = $model->editCredit($data);
         if ($res === false) {
             $datajson['code']=0;
             $datajson['message']='参数错误';
+        }elseif($res===true){
+            $datajson['code']=1;
+            $datajson['message']=L('success');
         }else{
             $datajson['code']=1;
-            $datajson['message']='成功';
+            $datajson['message']=$res;
         }
         $this->jsonReturn($datajson);
     }
@@ -1243,7 +1242,7 @@ EOF;
         } else {
             $dataJson = array(
                 'code' => 1,
-                'message' => '成功'
+                'message' => L('success')
             );
         }
         $this->jsonReturn($dataJson);
@@ -1301,7 +1300,7 @@ EOF;
             $dataJson['message']='参数错误';
         }else{
             $dataJson['code']=1;
-            $dataJson['message']='成功';
+            $dataJson['message']=L('success');
         }
         $this->jsonReturn($dataJson);
     }
@@ -1367,7 +1366,7 @@ EOF;
         }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '数据信息',
             'data' => $arr
         );
         $this->jsonReturn($dataJson);
@@ -1427,7 +1426,7 @@ EOF;
         }
         $dataJson = array(
             'code' => 1,
-            'message' => '返回数据',
+            'message' => '数据信息',
             'data' => $arr
         );
         $this->jsonReturn($dataJson);
@@ -1461,30 +1460,30 @@ EOF;
             $this->jsonReturn($dataJson);
         }
         //test-start
-        else{
-            $dataJson = array(
-                'code'=>2,
-                'message'=>L('Normal_customer') //正常录入客户信息流程
-            );
-            $this->jsonReturn($dataJson);
-        }
+//        else{
+//            $dataJson = array(
+//                'code'=>2,
+//                'message'=>L('Normal_customer') //正常录入客户信息流程
+//            );
+//            $this->jsonReturn($dataJson);
+//        }
         //test-end
 
         //验证集团CRM存在,则展示数据 生产-start
-//        $group = $this->groupCrmCode($data['buyer_code']);
-//        if (!empty($group)) {
-//            $dataJson = array(
-//                'code' => 1,
-//                'message' => L('Group_crm'), //集团CRM客户信息
-//                'data' => $group
-//            );
-//        } else {
-//            $dataJson = array(
-//                'code' => 2,
-//                'message' => L('Normal_customer') //正常录入客户信息流程
-//            );
-//        }
-//        $this->jsonReturn($dataJson); //生产-end
+        $group = $this->groupCrmCode($data['buyer_code']);
+        if (!empty($group)) {
+            $dataJson = array(
+                'code' => 1,
+                'message' => L('Group_crm'), //集团CRM客户信息
+                'data' => $group
+            );
+        } else {
+            $dataJson = array(
+                'code' => 2,
+                'message' => L('Normal_customer') //正常录入客户信息流程
+            );
+        }
+        $this->jsonReturn($dataJson); //生产-end
     }
 
     /**

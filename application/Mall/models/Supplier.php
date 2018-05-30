@@ -418,4 +418,76 @@ class SupplierModel extends PublicModel {
         }
     }
 
+    /**
+     * @desc 获取详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-10
+     */
+    public function getDetail($condition = []) {
+
+        $where = $this->getWhere($condition);
+
+        return $this->where($where)->find();
+    }
+
+    /**
+     * @desc 修改信息
+     *
+     * @param array $where , $condition
+     * @return bool
+     * @author liujf
+     * @time 2017-11-10
+     */
+    public function updateInfo($where = [], $condition = []) {
+
+        $data = $this->create($condition);
+        $res = $this->where($where)->save($data);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @desc 获取查询条件
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-10
+     */
+    public function getWhere($condition = []) {
+
+        $where['deleted_flag'] = 'N';
+
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];
+        }
+
+        return $where;
+    }
+
+    /**
+     * @desc 获取关联详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-11-10
+     */
+    public function getJoinDetail($supplier_id, $lang='zh') {
+        $where['a.deleted_flag'] = 'N';
+        $where['a.id'] = $supplier_id;
+        $joinTable2 = "erui_dict.country c ON a.country_bn = c.bn AND c.lang= '$lang'";
+        $joinTable1 = 'erui_supplier.supplier_bank_info b ON a.id = b.supplier_id ';
+        return $this->field('a.*,b.bank_name,b.bank_account,c.name as country_name')
+                     ->alias('a')
+                     ->join($joinTable1)
+                     ->join($joinTable2)
+                     ->where($where)
+                     ->find();
+    }
 }

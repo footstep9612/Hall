@@ -17,7 +17,59 @@ class NetSubjectModel extends PublicModel {
         
         parent::__construct();
     }
+    private function equipmentNetSubject($data){
+        $field=array(
+            'subject_name as equipment_subject_name', //入网主题简称
+            'net_at as equipment_net_at', //入网时间
+            'net_invalid_at as equipment_net_invalid_at', //失效时间
+            'net_goods as equipment_net_goods' //入网商品
+        );
+        $cond=array('buyer_id'=>$data['buyer_id'],'subject_name'=>'equipment','deleted_flag'=>'N');
+        $info=$this->field($field)->where($cond)->find();
 
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    private function eruiNetSubject($data){
+        $field=array(
+            'subject_name as erui_subject_name', //入网主题简称
+            'net_at as erui_net_at', //入网时间
+            'net_invalid_at as erui_net_invalid_at', //失效时间
+            'net_goods as erui_net_goods' //入网商品
+        );
+        $cond=array('buyer_id'=>$data['buyer_id'],'subject_name'=>'erui','deleted_flag'=>'N');
+        $info=$this->field($field)->where($cond)->find();
+
+        if(!empty($info)){
+//            foreach($info as $k => &$v){
+//                if(empty($v) || $v==0){
+//                    $v='';
+//                }
+//            }
+        }else{
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
+        }
+        return $info;
+    }
+    public function percentNetSubject($data){
+        $equipment=$this->equipmentNetSubject($data);
+        $erui=$this->eruiNetSubject($data);
+        return array_merge($equipment,$erui);
+    }
     /**
      * @param string $lang
      * 采购模式名称列表-王帅
@@ -110,6 +162,7 @@ class NetSubjectModel extends PublicModel {
             'deleted_flag'=>'N'
         );
         $field=array(
+            'id', //入网主题简称
             'subject_name', //入网主题简称
             'net_at', //入网时间
             'net_invalid_at', //失效时间
@@ -117,7 +170,7 @@ class NetSubjectModel extends PublicModel {
         );
         $arr=array();
         $info=$this->field($field)->where($cond)->select();
-        foreach($info as $k => $v){
+        foreach($info as $k => &$v){
             $kk=$v['subject_name'];
             unset($v['subject_name']);
             $arr[$kk]=$v;

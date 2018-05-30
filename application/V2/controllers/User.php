@@ -100,7 +100,18 @@ class UserController extends PublicController {
         $this->jsonReturn($datajson);
     }
 
+    public function crmlistAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->lang;
+//        $data['created_by'] = $this->user['id'];
 
+        $user = new UserModel();
+        $res = $user->crmlist($data);
+        $datajson['code'] = 1;
+        $datajson['message'] = '数据信息';
+        $datajson['data'] = $res;
+        $this->jsonReturn($datajson);
+    }
     public function userredislistAction() {
         if(!redisExist(user_redis_list)){
             $user_modle = new UserModel();
@@ -257,7 +268,8 @@ class UserController extends PublicController {
         } else {
             $user_id = $this->user['id'];
         }
-        $where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
+        //$where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
+        $where['source'] = $condition['source'];
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
         $data = $role_user_modle->userRoleList($user_id, $parentId, $where);
         $count = count($data);
@@ -274,12 +286,10 @@ class UserController extends PublicController {
             if ($childrencount > 0) {
                 for ($j = 0; $j < $childrencount; $j++) {
                     $data[$i]['children'][$j]['lang'] = $this->lang;
-                    if (isset($data[$i]['children'][$j]['id'])) {
-                        $data[$i]['children'][$j]['check'] = false;
-                        $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($data['user_id'], $data[$i]['children'][$j]['func_perm_id'], $where);
-                        if (!$data[$i]['children'][$j]['children']) {
-                            unset($data[$i]['children'][$j]['children']);
-                        }
+                    $data[$i]['children'][$j]['check'] = false;
+                    $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['children'][$j]['func_perm_id'], $where);
+                    if (!$data[$i]['children'][$j]['children']) {
+                        unset($data[$i]['children'][$j]['children']);
                     }
                 }
             } else {

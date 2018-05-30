@@ -1,34 +1,693 @@
 <?php
 
 /*
- * @desc 供应商控制器
- *
- * @author liujf
- * @time 2017-11-10
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
  */
 
-class SuppliersController extends PublicController {
+/**
+ * Description of UserController
+ */
+class SupplierInfoController extends SupplierpublicController {
 
     public function init() {
+        //$this->supplier_token = false;
         parent::init();
-        $this->put_data = dataTrim($this->put_data);
+    }
+    //状态
+    const STATUS_APPROVING = 'APPROVING'; //审核中；
+    const STATUS_APPROVED = 'APPROVED'; //审核；
+    const STATUS_REJECTED = 'INVALID'; //驳回；
 
-        $this->suppliersModel = new SuppliersModel();
-        $this->supplierBankInfoModel = new SupplierBankInfoModel();
-        $this->supplierExtraInfoModel = new SupplierExtraInfoModel();
-        $this->supplierContactModel = new SupplierContactModel();
-        $this->supplierMaterialCatModel = new SupplierMaterialCatModel();
-        $this->supplierAgentModel = new SupplierAgentModel();
-        $this->supplierQualificationModel = new SupplierQualificationModel();
-        $this->supplierCheckLogsModel = new SupplierCheckLogsModel();
-        $this->supplierAgentModel = new SupplierAgentModel();
-        $this->inquiryModel = new InquiryModel();
-        $this->employeeModel = new EmployeeModel();
-        $this->orgModel = new OrgModel();
+    /**
+     * 瑞商企业信息--获取
+     * */
+    public function getSupplierRegInfoAction(){
+        $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplierModel = new SupplierModel();
+        $res = $supplierModel->getJoinDetail($supplier_id, $lang);
+        if ($res) {
+            if($res['status']==self::STATUS_REJECTED){
+                $supplier_checklog_model = new SupplierCheckLogsModel();
+                $checklog_where['supplier_id'] = $supplier_id;
+                $checklog_where['status'] = self::STATUS_REJECTED;
+                $note = $supplier_checklog_model->getDetail($checklog_where,'note');
+                $res['note'] = $note?$note['note']:'';
+            }
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $res;
+            $datajson['message'] = 'success!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
 
-        $this->time = date('Y-m-d H:i:s');
     }
 
+    /**
+     * 瑞商供货范围信息--获取
+     * */
+    public function getSupplierSupplyInfoAction(){
+        $condition = $this->getPut();
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplierMaterialCatModel = new SupplierMaterialCatModel();
+        $res = $supplierMaterialCatModel->getJoinList($supplier_id);
+        if ($res) {
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $res;
+            $datajson['message'] = 'success!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 瑞商联系人信息--获取
+     * */
+    public function getSupplierContactInfoAction(){
+        $condition = $this->getPut();
+        //$condition['supplier_id'] = '229'; //测试使用
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
+        $supplierContactModel = new SupplierContactModel();
+        $res = $supplierContactModel->getList($condition);
+        if ($res) {
+            if($condition['sign']){
+                $datajson['data'] = $res[0];
+            } else {
+                $datajson['data'] = $res;
+            }
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['message'] = 'success!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 瑞商资质信息--获取
+     * */
+    public function getSupplierQualificationListAction(){
+        $condition = $this->getPut();
+        //$condition['supplier_id'] = '229'; //测试使用
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
+        $supplierQualificationModel = new SupplierQualificationModel();
+        $res = $supplierQualificationModel->getList($condition);
+        if ($res) {
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $res;
+            $datajson['message'] = 'success!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 瑞商信息完善--企业信息
+     * */
+    public function editSupplierRegInfoAction(){
+        $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $this->checkRegParams($condition);  //验证企业信息
+        $this->checkBankParams($condition);  //验证开户行信息
+        $this->checkContactParams($condition['contacts']);  //验证联系人
+
+//        if ($condition['status'] != 'DRAFT') {
+//            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $supplier_id], 'name' => $condition['name']])->getField('id');
+//            if ($hasSupplierName)
+//                jsonReturn('', -101, '此公司名称已经存在!');
+//
+//            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $supplier_id], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
+//            if ($hasCreditCode)
+//                jsonReturn('', -101, '此营业执照编码已经存在!');
+//        }
+        $suppliersModel = new SupplierModel();
+
+        $suppliersModel->startTrans();
+        try {
+            // 供应商基本信息
+            $supplierData = [
+                //'status' => 'APPROVING',//待审核   资质材料提交后为审核中--APPROVING
+               // 'erui_status' => 'CHECKING',
+                'supplier_type' => strtoupper($condition['supplier_type']),
+                'name' => $condition['name'],
+                'official_phone' => $condition['official_phone'],
+                'country_bn' => $condition['country_bn'],
+                'address' => $condition['address'],
+                'social_credit_code' => $condition['social_credit_code'],
+                'reg_capital' => $condition['reg_capital'],
+                'logo' => isset($condition['logo']) ? $condition['logo'] : '',
+                'profile' => isset($condition['profile']) ? $condition['profile'] : '',
+                'deleted_flag' => 'N', // 非删除
+                'updated_at' => $this->getTime()
+            ];
+            $supplierWhere['id'] = $supplier_id;
+            if ($condition['status'] == 'APPROVED' || $condition['status'] == 'INVALID') {
+                // 校验字段
+                $checkFields = ['supplier_type', 'name', 'country_bn', 'address', 'social_credit_code', 'reg_capital'];
+
+                $supplier = $suppliersModel->getDetail($supplierWhere);
+                $change = $this->_checkFieldsChange($supplier, $checkFields, $condition);
+            }
+            if ($change) {
+                //$supplierData['status'] = 'APPROVING';
+                //添加日志
+                //$this->setchecklog($supplier_id);
+            }
+            $res1 = $suppliersModel->updateInfo($supplierWhere, $supplierData);
+
+
+            // 供应商银行账户信息
+            $brandData = [
+                'bank_name' => $condition['bank_name'],
+                'bank_account' => $condition['bank_account'],
+                'address' => $condition['bank_address']
+            ];
+            $supplierBankInfoModel = new SupplierBankInfoModel();
+            $where['supplier_id'] = $supplier_id;
+            $hasBank = $supplierBankInfoModel->field('id')->where($where)->find();
+            if ($hasBank) {
+                $res2 = $supplierBankInfoModel->update_data($brandData, $where);
+            } else {
+                $brandData['supplier_id'] = $supplier_id;
+                $res2 = $supplierBankInfoModel->create_data($brandData);
+            }
+
+            if (isset($condition['contacts']) && !empty($condition['contacts'])) {
+                // 供应商联系人信息 --只有完善信息时且只有一条信息
+                $contactData = [
+                    'contact_name' => $condition['contacts']['contact_name'],
+                    'phone' => $condition['contacts']['phone'],
+                    'email' => $condition['contacts']['email']
+                ];
+                $supplierContactModel = new SupplierContactModel();
+                if(isset($condition['contacts']['id']) && !empty($condition['contacts']['id'])){
+                    $contactWhere['id'] = $condition['contacts']['id'];
+                    $res3 = $supplierContactModel->updateInfo($contactWhere, $contactData);
+                }else{
+                    $contactData['supplier_id'] = $supplier_id;
+                    $exist = $supplierContactModel->Exist(['supplier_id'=>$supplier_id]);
+                    if(!$exist){
+                        $res3 = $supplierContactModel->create_data($contactData);
+                    }else{
+                        $createWhere['supplier_id'] = $supplier_id;
+                        $res3 = $supplierContactModel->updateInfo($createWhere, $contactData);
+                    }
+                }
+
+            }
+
+            if ($res1 && $res2) {
+                if (isset($condition['contacts'])) {
+                    if ($res3) {
+                        $suppliersModel->commit();
+                        $res = true;
+                    } else {
+                        $suppliersModel->rollback();
+                        $res = false;
+                    }
+                } else {
+                    $suppliersModel->commit();
+                    $res = true;
+                }
+            } else {
+                $suppliersModel->rollback();
+                $res = false;
+            }
+            $this->jsonReturn($res);
+        }catch (Exception $e) {
+            $suppliersModel->rollback();
+            $res = false;
+            $this->jsonReturn($res);
+        }
+    }
+
+    /**
+     * @desc 获取供货范围分类联动
+     */
+    public function getSupplierSupplylistAction() {
+        $lang = $this->getPut('lang', 'zh');
+        $cat_no = $this->getPut('cat_no', '');
+        $key = 'Material_cat_getlist_' . $lang . '_' . $cat_no;
+        //$data = json_decode(redisGet($key), true);
+        if (true) {
+            $materialcat_model = new MaterialCatModel();
+            $arr = $materialcat_model->get_list($cat_no, $lang);
+
+            //redisSet($key, json_encode($arr), 86400);
+            if ($arr) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->jsonReturn();
+            }
+        }
+        //$this->jsonReturn($data);
+    }
+
+    /**
+     * @desc 新增供应商供货范围记录接口
+     * 瑞商信息完善--供货范围
+     */
+    public function addSupplierSupplyRecordAction() {
+        $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplierMaterialCatModel = new SupplierMaterialCatModel();
+        $supplierMaterialCatModel->startTrans();
+        if(isset($condition['material_cat']) && $condition['material_cat']) {
+            foreach($condition['material_cat'] as $item){
+                if ($item['material_cat_no1'] == ''){
+                    jsonReturn('', -101, '一级分类不能为空!');
+                }
+                if ($item['material_cat_no2'] == ''){
+                    jsonReturn('', -101, '二级分类不能为空!');
+                }
+                if ($item['material_cat_name3'] == '' || strlenUtf8($item['material_cat_name3']) > 100){
+                    jsonReturn('', -101, '三级分类不能为空且不能超出100个字符!');
+                }
+
+                $item['supplier_id'] = $supplier_id;
+                $exist = $supplierMaterialCatModel->Exist($item);
+                if (!$exist) {
+                    $item['created_at'] = $this->getTime();
+                    $res = $supplierMaterialCatModel->addRecord($item);
+                    if(!$res){
+                        $supplierMaterialCatModel->rollback();
+                        $res = false;
+                        $this->jsonReturn($res);
+                    }
+                }
+            }
+            $supplierMaterialCatModel->commit();
+            $res = true;
+            $this->jsonReturn($res);
+        } else{
+            $res = false;
+            $this->jsonReturn($res);
+        }
+    }
+
+    /**
+     * @desc 删除供应商供货范围记录接口
+     * 瑞商信息删除--供货范围
+     */
+    public function delSupplierSupplyRecordAction() {
+        $condition = $this->getPut();
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplierMaterialCatModel = new SupplierMaterialCatModel();
+        if (!isset($condition['cat_id']) || $condition['cat_id'] == ''){
+            $where['supplier_id'] = $supplier_id;
+            $where['material_cat_no1'] = $condition['material_cat_no1'];
+            $where['material_cat_no2'] = $condition['material_cat_no2'];
+            $where['material_cat_name3'] = $condition['material_cat_name3'];
+            $exist = $supplierMaterialCatModel->Exist($where);
+            if($exist){
+                $res = $supplierMaterialCatModel->delRecord(['id' => $exist]);
+                $this->jsonReturn($res);
+            }else{
+                $this->setCode(102);
+                $this->setMessage('此条数据不存在!');
+                parent::jsonReturn();
+            }
+        }else {
+            $res = $supplierMaterialCatModel->delRecord(['id' => $condition['cat_id']]);
+            $this->jsonReturn($res);
+        }
+    }
+
+    /*
+     * 获取供货范围分类树形数据
+     */
+    public function treeAction() {
+        $lang = $this->getPut('lang', 'zh');
+
+        $jsondata = ['lang' => $lang];
+        $jsondata['level_no'] = 1;
+        $condition = $jsondata;
+        $redis_key = 'Material_cat_tree_' . $lang;
+        $data = json_decode(redisGet($redis_key), true);
+        if (!$data) {
+            $materialcat_model = new MaterialCatModel();
+            $arr = $materialcat_model->tree($jsondata);
+            if ($arr) {
+                $this->setCode(MSG::MSG_SUCCESS);
+                foreach ($arr as $key => $val) {
+                    $arr[$key]['children'] = $materialcat_model->tree(['parent_cat_no' => $val['value'], 'level_no' => 2, 'lang' => $lang]);
+
+                    if ($arr[$key]['children']) {
+                        foreach ($arr[$key]['children'] as $k => $item) {
+                            $arr[$key]['children'][$k]['children'] = $materialcat_model->tree(['parent_cat_no' => $item['value'],
+                                'level_no' => 3,
+                                'lang' => $lang]);
+                        }
+                    }
+                }
+                redisSet($redis_key, json_encode($arr), 86400);
+                $this->setCode(MSG::MSG_SUCCESS);
+                $this->_setCount($lang);
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->_setCount($lang);
+        $this->jsonReturn($data);
+    }
+
+    /**
+     * 瑞商信息完善--资质材料-新增/更新
+     * */
+    public function editSupplierQualificationAction(){
+        $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
+        //$supplier_id = '229';
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $supplierQualificationModel = new SupplierQualificationModel();
+        $del_where['supplier_id'] = $supplier_id;
+        $supplierQualificationModel->delRecord($del_where);
+        if (empty($condition['baseInfo'])){
+            jsonReturn('', -101, '没有上传营业执照或开户许可证!');
+        }
+        if (empty($condition['otherInfo'])){
+            jsonReturn('', -101, '没有上传生产/检测设备清单!');
+        }
+        $supplierQualificationModel->startTrans();
+        if(isset($condition['baseInfo']) && !empty($condition['baseInfo'])){
+            $res1 = $this->upattachs($condition['baseInfo'], 1, $supplier_id);
+            if(!$res1){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['qualityInfo']) && !empty($condition['qualityInfo'])){
+            $res2 = $this->upattachs($condition['qualityInfo'], 2, $supplier_id);
+            if(!$res2){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['productInfo']) && !empty($condition['productInfo'])){
+            $res3 = $this->upattachs($condition['productInfo'], 3, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['proxyInfo']) && !empty($condition['proxyInfo'])){
+            $res3 = $this->upattachs($condition['proxyInfo'], 5, $supplier_id);
+            if(!$res3){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['otherInfo']) && !empty($condition['otherInfo'])){
+            $res4 = $this->upattachs($condition['otherInfo'], 4, $supplier_id);
+            if(!$res4){
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '提交失败,请稍后再试!');
+            }
+        }
+        if(isset($condition['status']) && !empty($condition['status'])){
+            $supplier_model = new SupplierModel();
+            $check['status'] = "APPROVING";
+            $result = $supplier_model->updateInfo(['id' => $supplier_id],$check);
+            if($result){
+                //添加日志
+                $this->setchecklog($supplier_id);
+            }else{
+                $supplierQualificationModel->rollback();
+                jsonReturn('', -101, '请稍后再试!');
+            }
+        }
+        $supplierQualificationModel->commit();
+        jsonReturn('', '1', ShopMsg::getMessage('1',$lang));
+    }
+    //企业注册-REGISTER  资料变更-CHANGE   日志审核类型添加
+    public function setchecklog($supplier_id) {
+        $supplier_checklog_model = new SupplierCheckLogsModel();
+        $checklog_arr['supplier_id'] = $supplier_id;
+        $id = $supplier_checklog_model->getDetail($checklog_arr,'id');
+        if($id){
+            $log_arr['check_type'] = 'CHANGE';
+            $log_arr['status'] = 'DRAFT';
+            $log_arr['supplier_id'] = $supplier_id;
+            $res = $supplier_checklog_model->addRecord($log_arr);
+        }else {
+            $log_arr['check_type'] = 'REGISTER';
+            $log_arr['status'] = 'DRAFT';
+            $log_arr['supplier_id'] = $supplier_id;
+            $res = $supplier_checklog_model->addRecord($log_arr);
+        }
+        if(!$res){
+            return false;
+        }
+        return true;
+    }
+
+    public function upattachs($array,$type,$id){
+        $supplierQualificationModel = new SupplierQualificationModel();
+        foreach ($array as $item) {
+            if(isset($item['attach_url']) && !empty($item['attach_url'])){
+                $qualificatiotData = [
+                    'type' => $type,
+                    'attach_url' => $item['attach_url'],
+                    'name' => isset($item['name']) ? trim($item['name']) : '',
+                    'code' => isset($item['code']) ? $item['code'] : '',
+                    'issue_date' => !empty($item['issue_date']) ? $item['issue_date'] : null,
+                    'expiry_date' => !empty($item['expiry_date']) ? $item['expiry_date'] : null,
+                    'issuing_authority' => isset($item['issuing_authority']) ? $item['issuing_authority'] : '',
+                    'remarks' => isset($item['remarks']) ? $item['remarks'] : ''
+                ];
+
+                if (!isset($item['attach_id']) || empty($item['attach_id'])) {
+                    $qualificatiotData['supplier_id'] = $id;
+                    $qualificatiotData['created_at'] = $this->getTime();
+                    $res = $supplierQualificationModel->addRecord($qualificatiotData);
+                } else {
+//                    $where['id'] = $item['attach_id'];
+//                    $qualificatiotData['updated_at'] = $this->getTime();
+//                    $res = $supplierQualificationModel->updateInfo($where, $qualificatiotData);
+                    $qualificatiotData['supplier_id'] = $id;
+                    $qualificatiotData['updated_at'] = $this->getTime();
+                    $res = $supplierQualificationModel->addRecord($qualificatiotData);
+                }
+                if (!$res) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 瑞商信息删除--资质材料--删除(物理)
+     */
+    public function delSupplierQualificationAction() {
+        $condition = $this->getPut();
+        if ($condition['id'] == ''){
+            jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
+        }
+        $supplierQualificationModel = new SupplierQualificationModel();
+        $res = $supplierQualificationModel->delRecord(['id' => $condition['id']]);
+        $this->jsonReturn($res);
+    }
+
+    /**
+     * 瑞商信息修改--企业联系人--新增
+     * */
+    public function addSupplierContactsAction(){
+        $condition = $this->getPut();
+        $lang = $this->getLang($condition['lang']);
+        //$supplier_id = '229'; //测试使用
+        $supplier_id = $this->getSupplierId($condition['supplier_id']);
+        $this->checkContactParams($condition['contacts']);  //验证联系人
+        if(isset($condition['contacts']) && !empty($condition['contacts'])){
+            // 供应商联系人信息 --只有完善信息时且只有一条信息
+            $contactData = [
+                'contact_name' => $condition['contacts']['contact_name'],
+                'phone' => $condition['contacts']['phone'],
+                'email' => $condition['contacts']['email'],
+                'title' => $condition['contacts']['title'],
+                'remarks' => $condition['contacts']['remarks']
+            ];
+        }
+        $supplierContactModel = new SupplierContactModel();
+        $contactData['supplier_id'] = $supplier_id;
+        if(isset($condition['contacts']['id']) && !empty($condition['contacts']['id'])){
+            $contactWhere['id'] = $condition['contacts']['id'];
+            $res = $supplierContactModel->updateInfo($contactWhere, $contactData);
+            if($res){
+                $this->jsonReturn($contactData);
+            }
+            $this->jsonReturn($res);
+        }else{
+            $exist = $supplierContactModel->Exist($contactData);
+            if (!$exist) {
+                $contactData['created_at'] = $this->getTime();
+                $res = $supplierContactModel->addRecord($contactData);
+                $this->jsonReturn($res);
+            } else {
+                jsonReturn('', -101, '联系人已经存在!');
+            }
+        }
+    }
+
+    /**
+     * 瑞商信息修改--企业联系人--删除
+     */
+    public function delSupplierContactsAction() {
+        $condition = $this->getPut();
+        if ($condition['contact_id'] == ''){
+            jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
+        }
+        $supplierContactModel = new SupplierContactModel();
+        $res = $supplierContactModel->delRecord(['id' => $condition['contact_id']]);
+        if($res){
+            $this->jsonReturn($res);
+        } else {
+            jsonReturn('', -1, '请稍后再试!');
+        }
+
+    }
+
+    /**
+     * 修改密码
+     * @author klp
+     */
+    public function upSupplierPasswordAction() {
+        $data = $this->getPut();
+        $lang = $this->getLang($data['lang']);
+        //$data['supplier_id'] = '229'; //测试使用
+        $data['supplier_id'] = $this->getSupplierId($data['supplier_id']);
+        $supplierAccount = new SupplierAccountModel();
+        $result = $supplierAccount->checkPassword($data,$lang);
+        if ($result) {
+            $res = $supplierAccount->update_pwd($data,$lang);
+            if ($res) {
+                jsonReturn('', 1, ShopMsg::getMessage('142',$lang));
+            } else {
+                jsonReturn('', '-135', ShopMsg::getMessage('-135',$lang));
+            }
+        } else {
+            jsonReturn('', '-136', ShopMsg::getMessage('-136',$lang));
+        }
+    }
+
+    public function getLang($lang) {
+        $lang = $lang ? $lang : 'zh';
+        return $lang;
+    }
+
+    public function getSupplierId($id) {
+        return $id ? $id : ($this->supplier_user['supplier_id']?$this->supplier_user['supplier_id']:SUID);
+    }
+
+    public function checkRegParams($condition) {
+        if ($condition['status'] != 'DRAFT' && $condition['supplier_type'] == ''){
+            jsonReturn('', -101, '企业类型不能为空!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['name'] == ''){
+            jsonReturn('', -101, '公司名称不能为空!');
+        }
+        if (strlenUtf8($condition['name']) > 100){
+            jsonReturn('', -101, '您输入的公司名称超出长度!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['country_bn'] == ''){
+            jsonReturn('', -101, '国家不能为空!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['address'] == ''){
+            jsonReturn('', -101, '公司地址不能为空!');
+        }
+        if (strlenUtf8($condition['address']) > 100){
+            jsonReturn('', -101, '您输入的公司地址大于100字!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['social_credit_code'] == ''){
+            jsonReturn('', -101, '营业执照（统一社会信用代码）编码不能为空!');
+        }
+        if (strlenUtf8($condition['social_credit_code']) > 20){
+            jsonReturn('', -101, '您输入的营业执照（统一社会信用代码）编码有误!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['reg_capital'] == ''){
+            jsonReturn('', -101, '注册资本不能为空!');
+        }
+        if (strlenUtf8($condition['reg_capital']) > 20){
+            jsonReturn('', -101, '请输入正确的注册资本!');
+        }
+        if (strlenUtf8($condition['profile']) > 500){
+            jsonReturn('', -101, '您输入的企业简介大于500字!');
+        }
+    }
+
+    public function checkBankParams($condition) {
+        if ($condition['status'] != 'DRAFT' && $condition['bank_name'] == ''){
+            jsonReturn('', -101, '开户行名称不能为空!');
+        }
+        if (strlenUtf8($condition['bank_name']) > 60){
+            jsonReturn('', -101, '您输入的开户行名称大于60字!');
+        }
+        if ($condition['status'] != 'DRAFT' && $condition['bank_account'] == ''){
+            jsonReturn('', -101, '开户账号不能为空!');
+        }
+        if ($condition['bank_account'] != '' && !is_numeric($condition['bank_account'])){
+            jsonReturn('', -101, '开户账号只能输入数字!');
+        }
+        //if (strlenUtf8($condition['bank_account']) > 20)
+        //jsonReturn('', -101, '您输入的开户账号超过20位!');
+    }
+
+    public function checkContactParams($condition) {
+        foreach ($condition as $item) {
+            if (isset($item['contact_name']) && $item['contact_name'] == '')
+                jsonReturn('', -101, '联系人姓名不能为空!');
+
+            if (isset($item['contact_name']) && strlenUtf8($item['contact_name']) > 40)
+                jsonReturn('', -101, '您输入的联系人姓名过长!');
+
+            if (isset($item['phone']) && $item['phone'] == '')
+                jsonReturn('', -101, '联系方式不能为空!');
+
+            if (isset($item['phone']) && strlenUtf8($item['phone']) > 20)
+                jsonReturn('', -101, '您输入的联系方式不正确!');
+
+            if (isset($item['email']) && $item['email'] == '')
+                jsonReturn('', -101, '邮箱不能为空!');
+
+            if (isset($item['email']) && $item['email'] != '' && !preg_match('/^[a-zA-Z0-9_\-.]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/', $item['email']))
+                jsonReturn('', -101, '您输入的邮箱格式不正确!');
+
+            if (isset($item['email']) && strlenUtf8($item['email']) > 50)
+                jsonReturn('', -101, '您输入的邮箱大于50字!');
+        }
+    }
+
+    public function getTime() {
+        return $time = date('Y-m-d H:i:s',time());
+    }
+
+
+//==================================== 以上为新增 =============================================================//
     /**
      * @desc 新增供应商记录接口
      *
@@ -122,7 +781,7 @@ class SuppliersController extends PublicController {
             jsonReturn('', -101, '开户账号只能输入数字!');
 
         //if (strlenUtf8($condition['bank_account']) > 20)
-            //jsonReturn('', -101, '您输入的开户账号超过20位!');
+        //jsonReturn('', -101, '您输入的开户账号超过20位!');
 
         if (strlenUtf8($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');
@@ -147,16 +806,16 @@ class SuppliersController extends PublicController {
 
         if (strlenUtf8($condition['stocking_place']) > 40)
             jsonReturn('', -101, '备货地点长度不超过40个字!');
-        
+
         if ($condition['status'] != 'DRAFT') {
             $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
-            if (!$hasDeveloper) 
+            if (!$hasDeveloper)
                 jsonReturn('', -101, '开发人不能为空!');
-            
-            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT']])->getField('id');
+
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name']])->getField('id');
             if ($hasSupplierName)
                 jsonReturn('', -101, '此公司名称已经存在!');
-            
+
             $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
             if ($hasCreditCode)
                 jsonReturn('', -101, '此营业执照编码已经存在!');
@@ -201,29 +860,29 @@ class SuppliersController extends PublicController {
 
             if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
-            
+
             if ($count == 1 && !isset($item['id'])) {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-            
+
                 $resContact = $this->supplierContactModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-            
+
                 $contactWhere['id'] = $item['id'];
-                
+
                 // 审核通过状态下校验必填字段是否修改
                 if ($condition['status'] == 'APPROVED' && !$change) {
                     $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
-                
+
                     $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
                 }
-        
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-        
+
                 $resContact = $this->supplierContactModel->updateInfo($contactWhere, $item);
             }
 
@@ -363,18 +1022,18 @@ class SuppliersController extends PublicController {
 
         $condition = $this->validateRequestParams();
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
-        
+
         if (!$isErui) {
             // 非易瑞事业部门的看他所在事业部和易瑞的
             $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
             $condition['org_id'] = $orgUb ? array_merge($this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
         }
-        
+
         // 开发人
         if ($condition['developer'] != '') {
             $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
         }
-        
+
         // 创建人
         if ($condition['created_name'] != '') {
             $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
@@ -384,7 +1043,7 @@ class SuppliersController extends PublicController {
         if ($condition['checked_name'] != '') {
             $condition['checked_ids'] = $this->employeeModel->getUserIdByName($condition['checked_name']) ? : [];
         }
-        
+
         // 供货范围
         if ($condition['cat_name'] != '') {
             $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
@@ -492,7 +1151,7 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierContactInfoAction() {
         $condition = $this->put_data;
-        
+
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
@@ -538,17 +1197,17 @@ class SuppliersController extends PublicController {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-                
+
                 $res = $this->supplierContactModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-                
+
                 $where['id'] = $item['id'];
-                
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-                
+
                 $res = $this->supplierContactModel->updateInfo($where, $item);
             }
 
@@ -585,57 +1244,7 @@ class SuppliersController extends PublicController {
         $this->_handleList($this->supplierContactModel, $data, $condition);
     }
 
-    /**
-     * @desc 新增供应商供货范围记录接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    public function addSupplierSupplyRecordAction() {
-        $condition = $this->put_data;
 
-        if ($condition['supplier_id'] == '')
-            jsonReturn('', -101, '缺少供应商id参数!');
-
-        if ($condition['material_cat_no1'] == '')
-            jsonReturn('', -101, '一级物料分类编码不能为空!');
-        
-        if ($condition['material_cat_no2'] == '')
-            jsonReturn('', -101, '二级物料分类编码不能为空!');
-        
-        if ($condition['material_cat_name3'] == '')
-            jsonReturn('', -101, '请输入三级物料分类名称!');
-        
-        $exist = $this->supplierMaterialCatModel->Exist($condition);
-
-        if (!$exist) {
-            $condition['created_by'] = $this->user['id'];
-            $condition['created_at'] = $this->time;
-            
-            $res = $this->supplierMaterialCatModel->addRecord($condition);
-
-            $this->jsonReturn($res);
-        } else {
-            jsonReturn('', -101, '已经选择输入过相同的供货范围!');
-        }
-    }
-
-    /**
-     * @desc 删除供应商供货范围记录接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    public function delSupplierSupplyRecordAction() {
-        $condition = $this->put_data;
-
-        if ($condition['id'] == '')
-            jsonReturn('', -101, '缺少供应商供货范围主键id参数!');
-
-        $res = $this->supplierMaterialCatModel->delRecord(['id' => $condition['id']]);
-
-        $this->jsonReturn($res);
-    }
 
     /**
      * @desc 获取供应商供货范围列表接口
@@ -643,13 +1252,13 @@ class SuppliersController extends PublicController {
      * @author liujf
      * @time 2017-11-14
      */
-    public function getSupplierSupplyListAction() {
+    public function getSupplierSupplyListInfoAction() {
         $condition = $this->put_data;
 
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
-
-        $data = $this->supplierMaterialCatModel->getJoinList($condition);
+        $suppliermaterialcat_model = new SupplierMaterialCatModel();
+        $data = $suppliermaterialcat_model->getJoinList($condition);
 
         $this->_handleList($this->supplierMaterialCatModel, $data, $condition, true);
     }
@@ -796,7 +1405,7 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierQualificationInfoAction() {
         $condition = $this->put_data;
-        
+
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
@@ -825,7 +1434,7 @@ class SuppliersController extends PublicController {
 
             if ($item['issue_date'] == '')
                 $item['issue_date'] = null;
-            
+
             if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
                 jsonReturn('', -101, '到期时间不能为空!');
 
@@ -834,22 +1443,22 @@ class SuppliersController extends PublicController {
 
             if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的认证产品长度超过限制!');
-            
+
             if ($count == 1 && !isset($item['id'])) {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-            
+
                 $res = $this->supplierQualificationModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商资质主键id参数!');
-                
+
                 $where['id'] = $item['id'];
-            
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-            
+
                 $res = $this->supplierQualificationModel->updateInfo($where, $item);
             }
 
@@ -859,7 +1468,7 @@ class SuppliersController extends PublicController {
                     $flag = false;
             }
         }
-        
+
         if ($condition['status'] != 'DRAFT') {
             // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
             $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
@@ -877,22 +1486,6 @@ class SuppliersController extends PublicController {
         }
     }
 
-    /**
-     * @desc 获取供应商资质列表接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    public function getSupplierQualificationListAction() {
-        $condition = $this->put_data;
-
-        if ($condition['supplier_id'] == '')
-            jsonReturn('', -101, '缺少供应商id参数!');
-
-        $data = $this->supplierQualificationModel->getList($condition);
-
-        $this->_handleList($this->supplierQualificationModel, $data, $condition);
-    }
 
     /**
      * @desc 获取供应商审核日志列表接口
@@ -910,7 +1503,7 @@ class SuppliersController extends PublicController {
 
         $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
     }
-    
+
     /**
      * @desc 获取供应商资质过期列表接口
      *
@@ -919,28 +1512,28 @@ class SuppliersController extends PublicController {
      */
     public function getSupplierQualificationOverdueListAction() {
         $condition = $this->put_data;
-    
+
         $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
-    
+
         if (!$isErui) {
             // 事业部门的看他所在事业部的
             $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
             $condition['org_id'] = $orgUb ? : [];
         }
-        
+
         if ($condition['expiry_start_date'] != '' && $condition['expiry_end_date'] != '') {
             $condition['supplier_ids'] = $this->supplierQualificationModel->getOverduePeriodSupplierIds($condition['expiry_start_date'], $condition['expiry_end_date']);
         }
-        
+
         // 供应商状态为资质过期
         $condition['expire_status'] = 'Y';
-    
+
         $supplierList = $this->suppliersModel->getJoinList($condition);
-    
+
         foreach ($supplierList as &$supplier) {
             $supplier['expiry_date'] = $this->supplierQualificationModel->getExpiryDate($supplier['id']);
         }
-    
+
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
@@ -1272,85 +1865,5 @@ class SuppliersController extends PublicController {
         return $fileId;
     }
 
-    /**
-     * 瑞商联盟列表
-     * @author 买买提
-     */
-    public function ruishangAction()
-    {
-        $request = $this->validateRequestParams();
 
-        // 审核人
-        if ($request['checked_name'] != '') {
-            $request['checked_ids'] = (new EmployeeModel)->getUserIdByName($request['checked_name']) ? : [];
-        }
-
-        // 供货范围
-        if ($request['cat_name'] != '') {
-            $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ? : [];
-        }
-
-        list($data, $total) = (new SuppliersModel)->ruishangList($request);
-
-        foreach ($data as &$datum){
-            $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
-            $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
-            $datum['contact'] = (new SupplierContactModel)->where([
-                'supplier_id' => $datum['id']
-            ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
-        }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'total' => $total,
-            'data' => $data
-        ]);
-    }
-
-    /**
-     * 瑞商审核列表
-     * @author 买买提
-     */
-    public function ruishangCheckListAction()
-    {
-        $request = $this->validateRequestParams();
-
-        list($data, $total) = (new SuppliersModel)->ruishangCheckList($request);
-
-        foreach ($data as &$datum){
-            if ($datum['check_status'] === 'INVALID') {
-                $datum['invalid_list'] = (new SupplierCheckLogModel)->getInvalidListBy($datum['id']);
-            }
-        }
-
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'total' => $total,
-            'data' => $data
-        ]);
-
-    }
-
-    /**
-     * @desc 获取瑞商详情接口
-     *
-     * @author liujf
-     * @time 2017-11-11
-     */
-    public function ruishangDetailAction()
-    {
-        $condition = $this->validateRequestParams('id');
-
-        $res = $this->suppliersModel->getRuishangJoinDetail($condition);
-
-        //国家
-        $res['country_bn'] = (new CountryModel)->getCountryNameByBn($res['country_bn']);
-
-        //供应商的品牌(对象)
-        $res['brand'] = (new SupplierBrandModel)->brandsObjectBy($condition['id']);
-
-        $this->jsonReturn($res);
-    }
 }

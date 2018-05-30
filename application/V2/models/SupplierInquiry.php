@@ -1226,6 +1226,7 @@ class SupplierInquiryModel extends PublicModel {
      * @time 2018-05-16
      */
     private function _resetListData(&$list) {
+        $inquiryItemModel = new InquiryItemModel();
         $tmpList = $newList = $serialNoList = [];
         $i = 0;
         foreach ($list as $item) {
@@ -1236,9 +1237,9 @@ class SupplierInquiryModel extends PublicModel {
             $tmpList[$serialNo]['name'] = '';
             $tmpList[$serialNo]['supplier_name'] = '';
             $tmpList[$serialNo]['model'] = '';
-            $tmpList[$serialNo]['qty'] = '';
-            $tmpList[$serialNo]['unit'] = '';
-            $tmpList[$serialNo]['category'] = '';
+            $tmpList[$serialNo]['qty'] = '1';
+            $tmpList[$serialNo]['unit'] = '批';
+            $tmpList[$serialNo]['category'] = $inquiryItemModel->field('COUNT(id) AS count, category')->where(['inquiry_id' => $item['inquiry_id'], 'category' => ['neq', ''], 'deleted_flag' => 'N'])->group('category')->order('count DESC')->find()['category'];
             $tmpList[$serialNo]['brand'] = '';
             $tmpList[$serialNo]['purchase_unit_price'] = '';
             $tmpList[$serialNo]['total'] = '';

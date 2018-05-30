@@ -60,6 +60,7 @@ class DictController extends PublicController {
                 $lang = 'en';
             }
             $where['lang'] = $lang;
+            $where['deleted_flag'] = 'N';
             if (redisHashExist('CountryList', $lang)) {
                 $arr = json_decode(redisHashGet('CountryList', $lang), true);
             } else {
@@ -71,6 +72,7 @@ class DictController extends PublicController {
         } else {
             if (!empty($data['lang'])) {
                 $where['lang'] = $data['lang'];
+                $where['deleted_flag'] = 'N';
             }
             $arr = $model_group->getlist($where, $limit, 'bn asc');
         }

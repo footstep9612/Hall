@@ -73,7 +73,7 @@ class SupplierQualificationModel extends PublicModel {
     	return $this->field($field)
     	                   ->where($where)
     	                   //->page($currentPage, $pageSize)
-    	                   ->order('id DESC')
+    	                   ->order('id ASC')
     	                   ->select();
     }   
     
@@ -120,7 +120,11 @@ class SupplierQualificationModel extends PublicModel {
 
 		$data = $this->create($condition);
 
-		return $this->where($where)->save($data);
+		$res = $this->where($where)->save($data);
+		if ($res !== false) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -135,10 +139,10 @@ class SupplierQualificationModel extends PublicModel {
 
 		if (!empty($condition['id'])) {
 			$where['id'] = ['in', explode(',', $condition['id'])];
-		} else {
-			return false;
 		}
-
+		if (!empty($condition['supplier_id'])) {
+			$where['supplier_id'] =  $condition['supplier_id'];
+		}
 		return $this->where($where)->delete();
 	}
 	

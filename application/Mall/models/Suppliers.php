@@ -18,7 +18,6 @@ class SuppliersModel extends PublicModel {
     protected $joinTable5 = 'erui_supplier.supplier_agent f ON a.id = f.supplier_id AND f.agent_type = \'DEVELOPER\'';
     protected $joinField = 'a.*, b.name AS org_name, f.agent_id, e.sign_agreement_end_time';
     protected $joinField_ = 'a.*, b.name AS org_name, c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address, e.sign_agreement_flag, e.sign_agreement_time, e.sign_agreement_end_time, e.providing_sample_flag, e.distribution_products, e.est_time_arrival, e.distribution_amount, e.stocking_place, e.info_upload_flag, e.photo_upload_flag';
-    protected $joinField_ruishang = 'a.*,c.name AS country_name, d.bank_name, d.bank_account, d.address AS bank_address';
 
     protected $exportFields = 'a.id,a.name,a.social_credit_code,a.created_at,a.created_by,a.checked_at,a.checked_by,a.org_id,a.status, b.name AS org_name';
 
@@ -58,7 +57,6 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
-        $where['a.source'] = 'BOSS';
 
         $where['a.status'] = ['neq', 'DRAFT'];
         //$where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
@@ -537,125 +535,5 @@ class SuppliersModel extends PublicModel {
 
     }
 
-    /**
-     * 获取瑞商列表
-     * @param array $condition
-     * @return array
-     * @throws Exception
-     */
-    public function ruishangList(array $condition = [])
-    {
-
-        list($currentPage, $pageSize) = $this->_setPage($condition);
-
-        $condition  = $this->setRuiShangCondition($condition);
-
-        $fields = 'id,name,created_at,status';
-        $data = $this->alias('a')->where($condition)->field($fields)->page($currentPage, $pageSize)->order('a.id desc')->select();
-
-        $total = $this->alias('a')->where($condition)->count();
-
-        return [$data, $total];
-
-    }
-
-    /**
-     * 设置分页
-     * @param $condition
-     * @return array
-     */
-    protected function _setPage($condition)
-    {
-        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-        return [$currentPage, $pageSize];
-    }
-
-    /**
-     * 获取瑞商数据条件
-     * @param $condition
-     * @return mixed
-     */
-    protected function setRuiShangCondition($condition)
-    {
-
-        $where['a.deleted_flag'] = 'N';
-        $where['a.source'] = 'Portal';
-
-        if (!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
-        }
-
-        if (!empty($condition['status'])) {
-            $where['a.status'] = ['eq', $condition['status']];
-        }
-
-        if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
-            $where['a.created_at'] = [
-                ['egt', $condition['create_start_time']],
-                ['elt', $condition['create_end_time'] . ' 23:59:59']
-            ];
-        }
-
-        if (!empty($condition['check_start_time']) && !empty($condition['check_end_time'])) {
-            $where['a.checked_at'] = [
-                ['egt', $condition['check_start_time']],
-                ['elt', $condition['check_end_time'] . ' 23:59:59']
-            ];
-        }
-
-        if (isset($condition['checked_ids'])) {
-            $where['a.checked_by'] = ['in', $condition['checked_ids'] ? : ['-1']];
-        }
-
-        if (isset($condition['supplier_ids'])) {
-            $where['a.id'] = ['in', $condition['supplier_ids'] ? : ['-1']];
-        }
-
-        return $where;
-    }
-
-    public function ruishangCheckList(array $condition)
-    {
-        list($currentPage, $pageSize) = $this->_setPage($condition);
-        $condition  = $this->setRuiShangCondition($condition);
-        $fields = 'a.id,a.name,scl.created_at,a.status,scl.check_type,scl.status check_status';
-
-        $supplierCheckLogModel = new SupplierCheckLogModel();
-
-        $data = $supplierCheckLogModel->alias('scl')
-                                        ->join('erui_supplier.supplier a ON scl.supplier_id = a.id', 'LEFT')
-                                        ->where($condition)
-                                        ->field($fields)
-                                        ->page($currentPage, $pageSize)
-                                        ->order('a.id desc')
-                                        ->select();
-
-        $total = $supplierCheckLogModel->alias('scl')
-                                        ->join('erui_supplier.supplier a ON scl.supplier_id = a.id', 'LEFT')
-                                        ->where($condition)
-                                        ->count('a.id');
-        return [$data, $total];
-    }
-
-    /**
-     * @desc 获取关联详情
-     *
-     * @param array $condition
-     * @return array
-     * @author liujf
-     * @time 2017-11-10
-     */
-    public function getRuishangJoinDetail($condition = []) {
-
-        $where = ['a.id' => $condition['id']];
-
-        return $this->alias('a')
-            ->join($this->joinTable2, 'LEFT')
-            ->join($this->joinTable3, 'LEFT')
-            ->field($this->joinField_ruishang)
-            ->where($where)
-            ->find();
-    }
 
 }

@@ -666,11 +666,13 @@ class SupplierController extends PublicController {
             $this->setMessage('供应商不存在!');
             $this->jsonReturn();
         }
+        /*
         if (empty($supplier['org_id'])) {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage('请先在编辑管理编辑页面选择事业部,再对供应商进行审核!');
             $this->jsonReturn();
         }
+        /*
 
         /*
          * 去掉事业部限制 2018-04-26 买买提

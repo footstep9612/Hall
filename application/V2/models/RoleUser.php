@@ -41,7 +41,7 @@ class RoleUserModel extends PublicModel {
                 $sql .= " and `func_perm`.`source` = '"  . $where['source']."'";
             }
             $sql .= ' group by func_perm_id';
-            $sql .= ' order by `func_perm`.`sort` desc';
+            $sql .= ' order by `func_perm`.`sort`';
             return $this->query($sql);
         }
     }
