@@ -61,14 +61,13 @@ class InquiryController extends PublicController {
                 case 'Singapore':
                     return ['email' => 'lvxiao@keruigroup.com', 'name' => '吕潇', 'key' => ''];
                 case 'Indonesia':
-                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
-
+                    return ['email' => 'liujunfei@keruigroup.com', 'name' => '刘俊飞', 'key' => ''];
                 case 'India':
                     return ['email' => 'jianghongwei@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
                 case 'Myanmar':
                     return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
                 default :
-                    return ['email' => 'lijiaxin@keruigroup.com', 'name' => '李佳欣', 'key' => ''];
+                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
             }
         } else {
             switch ($country_bn) {
