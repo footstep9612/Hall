@@ -47,82 +47,8 @@ class InquiryController extends PublicController {
                 $this->_sendEmail($data['country_bn'], $data);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($data['serial_no']);
-<<<<<<< HEAD
-=======
             }
         } else {
-            jsonReturn('', MSG::MSG_FAILED, '已存在');
-        }
-    }
-
-    private function _getemail($country_bn) {
-        if (CONFBDP === 'local' || CONFBDP === 'dev' || CONFBDP === 'beta') {
-            switch ($country_bn) {
-                case 'Thailand':
-                    ['email' => 'zhangren@keruigroup.com', 'name' => '张仁', 'key' => ''];
-                case 'Singapore':
-                    return ['email' => 'lvxiao@keruigroup.com', 'name' => '吕潇', 'key' => ''];
-                case 'Indonesia':
-                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
-
-                case 'India':
-                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
-                case 'Myanmar':
-                    return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
-                default :
-                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '李树林', 'key' => ''];
-            }
-        } else {
-            switch ($country_bn) {
-                case 'Thailand':
-                    ['email' => 'thailand@erui.com', 'name' => 'thailand@erui.com', 'key' => ''];
-                case 'Singapore':
-                    return ['email' => 'singappre@erui.com', 'name' => 'singappre@erui.com', 'key' => ''];
-                case 'Indonesia':
-                    return ['email' => 'hulz@erui.com', 'name' => '胡立忠', 'key' => ''];
-
-                case 'India':
-                    return ['email' => 'yicl@keruigroup.com', 'name' => '衣春霖', 'key' => ''];
-                case 'Myanmar':
-                    return ['email' => 'zhangwei07@keruigroup.com', 'name' => '张伟', 'key' => ''];
-                default :
-                    return ['email' => 'sales@erui.com', 'name' => 'sales@erui.com', 'key' => ''];
-            }
-        }
-    }
-
-// 发送邮件
-    private function _sendEmail($country_bn, $email_arr) {
-
-        $data = $this->_getemail($country_bn);
-        if (!empty($data['email'])) {
-            $arr['email'] = $data['email'];
-        } else {
-            return false;
-        }
-
-        if (!empty($data['name'])) {
-            $arr['name'] = $data['name'];
-        } else {
-            return false;
-        }
-        $config_obj = Yaf_Registry::get("config");
-        $config_shop = $config_obj->shop->toArray();
-        $email_arr['url'] = $config_shop['url'];
-        $email_arr['fastDFSUrl'] = $config_obj->fastDFSUrl;
-        $email_arr['name'] = $arr['name'];
-        $email_arr['inquiry_time'] = date('Y-m-d');
-        if ($email_arr['inquiry_type'] == 2) {
-            /* 快速找货 */
-            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'find_email_en.html', $email_arr);
-            if (!empty($email_arr['files_attach'])) {
-                $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
->>>>>>> 04a275ffeb1c567aa55e557d2566425b8a52a59a
-            }
-            $res = $this->send_Mail($arr['email'], 'You have search information from station M', $body, $email_arr['name'], $Attachment);
-            unlink($Attachment);
-        } else {
-<<<<<<< HEAD
             jsonReturn('', MSG::MSG_FAILED, '已存在');
         }
     }
@@ -203,19 +129,6 @@ class InquiryController extends PublicController {
         }
     }
 
-=======
-            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
-            $res = $this->send_Mail($arr['email'], 'You have new inquiry information from the Erui M station', $body, $email_arr['name']);
-        }
-        if ($res['code'] == 1) {
-            return true;
-        } else {
-
-            return false;
-        }
-    }
-
->>>>>>> 04a275ffeb1c567aa55e557d2566425b8a52a59a
     function zipAttachment($attachs, $fastDFSUrl) {
         $date = uniqid('Attachment', true);
         $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
