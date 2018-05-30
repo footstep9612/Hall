@@ -11,38 +11,39 @@
             <div class="email-content">
                 <p>Inquiry time:<span><?=$inquiry_time?></span></p>
                 <p>Inquiry details:</p>
-                <ul class="product-detail">
-                    <li>
-                        <ul class="product-detail-item product-detail-title">
-                            <li>Item</li>
-                            <li>Name</li>
-                            <li>Model</li>
-                            <li>Description</li>
-                            <li>Package Qty</li>
-                            <li>Quantity(unit)</li>
-                        </ul>
-                    </li>
+                <table border="1"  class="gridtable">
+                    <tr>
+
+                        <th>Item</th>
+                        <th>Name</th>
+                        <th>Model</th>
+                        <th>Description</th>
+                        <th>Quantity & Package</th>
+
+                    </tr>
                     <?php
                     foreach($arr_sku as $sku){
                     ?>
-                    <li>
-                        <ul class="product-detail-item">
-                            <li ><?=$sku['sku']?></li>
-                            <li class="double"><?=$sku['name']?></li>
-                            <li><?=$sku['model']?></li>
-                            <li title="<?=htmlspecialchars($sku['remarks'])?>"><?=$sku['remarks']?></li>
-                            <li><?=$sku['qty']?></li>
-                            <li><?=$sku['unit']?></li>
-                        </ul>
-                    </li>
-                   <?php } ?>
-                </ul>
+
+                    <tr>
+                        <td><?=$sku['sku']?></td>
+                        <td><?=$sku['name']?></td>
+                        <td><?=$sku['model']?></td>
+                        <td><?=$sku['remarks']?></td>
+                        <td><?=$sku['qty']?> <?=$sku['unit']?></td>
+                    </tr>
+                    <?php } ?>
+                </table>
+
                 <div class="customer-detail">
-                    <h2>Customer Information</h2>
-                    <p>Customer Name:<span><?=$arr_contact['name']?></span></p>
-                    <p>Telephone:<span></span></p>
-                    <p>Email:<span><?=$arr_contact['email']?></span></p>
+                    <h2>Customer Information:</h2>
+                    <p>Name:<span><?=$arr_contact['name']?></span></p>
+                    <p>Contacting information:<span><?=$arr_contact['email']?></span></p>
+                    <p>Company name:<span><?=$arr_contact['company']?></span></p>
+                    <p>Currency:<span><?=$cur_bn?></span></p>
+                    <p>Country:<span><?=$arr_contact['country_bn']?></span></p>
                 </div>
+
             </div>
         </div>
     </body>

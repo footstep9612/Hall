@@ -24,7 +24,7 @@ class SolutionCatModel extends PublicModel {
     }
 
     private function _getCondition($condition) {
-        $where = ['catdir' => 'solutions'];
+        $where = ['catdir' => 'solutions', 'ismenu' => 1];
         $where['language'] = $condition['lang'];
         if ($condition['catid']) {
             $where['catid'] = trim($condition['catid']);
