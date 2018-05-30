@@ -327,10 +327,25 @@ class CountryController extends PublicController {
                 jsonReturn('', 0, '该国家简称已存在');
             }
         }
-        if (empty($data['country_name'])) { //国家名称
+        if (empty($data['country_name_zh'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
         }else{
-            $countryArr = $data['country_name'];
+            $arr['country_name']['zh']=$data['country_name_zh'];
+        }
+        if (!empty($data['country_name_en'])) { //国家名称
+            $arr['country_name']['en']=$data['country_name_en'];
+        }
+        if (!empty($data['country_name_ru'])) { //国家名称
+            $arr['country_name']['ru']=$data['country_name_ru'];
+        }
+        if (!empty($data['country_name_es'])) { //国家名称
+            $arr['country_name']['es']=$data['country_name_es'];
+        }
+
+        if (empty($arr['country_name'])) { //国家名称
+            jsonReturn('', 0,'国家名称不可为空');
+        }else{
+            $countryArr = $arr['country_name'];
             $countryArr['zh']=$countryArr['zh']??'';
             $countryArr['en']=$countryArr['en']??'';
             $countryArr['ru']=$countryArr['ru']??'';
@@ -392,6 +407,24 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result['info'];
         $this->jsonReturn($dataJson);
     }
+    public function showCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->showCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '查看国家信息';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    public function delCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->delCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '成功';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
     public function countryTestAction() {
         $model = new CountryModel();
         $result = $model->countryTest();
@@ -403,6 +436,11 @@ class CountryController extends PublicController {
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new CountryModel();
+        if (empty($data['id'])) { //区域简称
+            jsonReturn('', 0,'缺少参数');
+        }else{
+            $arr['id']=$data['id'];
+        }
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
         }else{
@@ -416,35 +454,14 @@ class CountryController extends PublicController {
             jsonReturn('', 0,'国家简称不可为空');
         }else{
             $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if($countryBn===false){
-                jsonReturn('', 0, '该国家简称已存在');
-            }
-        }
-        if (empty($data['country_name'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
-        }else{
-            $countryArr = $data['country_name'];
-            $countryArr['zh']=$countryArr['zh']??'';
-            $countryArr['en']=$countryArr['en']??'';
-            $countryArr['ru']=$countryArr['ru']??'';
-            $countryArr['es']=$countryArr['es']??'';
-            $str='';
-            foreach($countryArr as $k => &$v){
-                $v=trim($v,' ');
-                if(empty($countryArr['zh'])){
-                    jsonReturn('', 0,'国家中文名称不可为空');
-                }
-                if(!empty($v)){
-                    $str.=",'".$v."'";
+            $countryBn=$model->updateCountryBn($arr['country_bn']);
+            if($countryBn['id']!=$data['id']){
+                $bn=$model->checkCountryBn($arr['country_bn']);
+                if($bn===false){
+                    jsonReturn('', 0, '该国家简称已存在');
                 }
             }
-            $str=substr($str,1);
-            $countryName=$model->checkCountryName($str);
-            if($countryName===false){
-                jsonReturn('', 0, '该国家名称已存在');
-            }
-            $arr['country_name']=$countryArr;
+
         }
         if (!empty($data['tel_code'])) { //电话区号
             $tel = trim($data['tel_code'],' ');
@@ -465,8 +482,49 @@ class CountryController extends PublicController {
         if(!empty($data['code'])){
             $arr['code']=strtoupper(trim($data['code'],' '));
         }
-        $result=$model->updateCountry($arr);
-        print_r($result);die;
+        if (empty($data['country_name_zh'])) { //国家名称
+            jsonReturn('', 0,'国家名称不可为空');
+        }else{
+            $arr['country_name']['zh']=$data['country_name_zh'];
+        }
+        if (!empty($data['country_name_en'])) { //国家名称
+            $arr['country_name']['en']=$data['country_name_en'];
+        }
+        if (!empty($data['country_name_ru'])) { //国家名称
+            $arr['country_name']['ru']=$data['country_name_ru'];
+        }
+        if (!empty($data['country_name_es'])) { //国家名称
+            $arr['country_name']['es']=$data['country_name_es'];
+        }
+        if (empty($arr['country_name'])) { //国家名称
+            jsonReturn('', 0,'国家名称不可为空');
+        }else{
+            print_r($arr);die;
+            $countryArr = $arr['country_name'];
+            $countryArr['zh']=$countryArr['zh']??'';
+            $countryArr['en']=$countryArr['en']??'';
+            $countryArr['ru']=$countryArr['ru']??'';
+            $countryArr['es']=$countryArr['es']??'';
+            $str='';
+            foreach($countryArr as $k => &$v){
+                $v=trim($v,' ');
+                if(empty($countryArr['zh'])){
+                    jsonReturn('', 0,'国家中文名称不可为空');
+                }
+                if(!empty($v)){
+                    $str.=",'".$v."'";
+                }
+            }
+            $str=substr($str,1);
+            $countryName=$model->updateCountryName($str);
+            print_r($countryName);die;
+            if($countryName===false){
+                jsonReturn('', 0, '该国家名称已存在');
+            }
+            $arr['country_name']=$countryArr;
+        }
+die;
+        $result=$model->insertCountry($arr);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
