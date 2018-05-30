@@ -302,6 +302,38 @@ class CountryModel extends PublicModel {
             ->select();
         return $country;
     }
+    public function showCountry($data){
+        if(empty($data['id'])){
+            $info=new stdClass();
+        }else{
+            $info=$this->field('id,bn as country_bn,name,name_en,name_ru,name_es')
+                ->where(array('lang'=>'zh','deleted_flag'=>'N','id'=>$data['id']))
+                ->find();
+            $area=$this->table('erui_operation.market_area_country')->alias('country')
+                ->join("erui_operation.market_area area on country.market_area_bn=area.bn and area.lang='zh'",'left')
+                ->field('area.name')
+                ->where(array('country.country_bn'=>$info['country_bn']))->find();
+            $info['area_name']=$area['name'];
+        }
+
+        return $info;
+    }
+    public function delCountry($data){
+        if(empty($data['id'])){
+            $info=0;
+        }else{
+            $info=$this->field('id,bn as country_bn,name,name_en,name_ru,name_es')
+                ->where(array('lang'=>'zh','deleted_flag'=>'N','id'=>$data['id']))
+                ->find();
+            $this->where(array('bn'=>$info['country_bn']))->save(array('deleted_flag'=>'Y'));
+
+            $area=$this->table('erui_operation.market_area_country')
+                ->where(array('country_bn'=>$info['country_bn']))
+                ->delete();
+            $info=1;
+        }
+        return $info;
+    }
     public function insertCountry($data) {
         $arr=[];
         foreach($data['country_name'] as $k =>$v){

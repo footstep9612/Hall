@@ -392,6 +392,24 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result['info'];
         $this->jsonReturn($dataJson);
     }
+    public function showCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->showCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '查看国家信息';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    public function delCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->delCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '成功';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
     public function countryTestAction() {
         $model = new CountryModel();
         $result = $model->countryTest();
