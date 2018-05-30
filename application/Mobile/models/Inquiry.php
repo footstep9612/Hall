@@ -32,7 +32,7 @@ class InquiryModel extends PublicModel {
 
         try {
             $id = $this->field('id')->where($where)->find();
-            return $id ? false : true ;
+            return $id ? false : true;
         } catch (Exception $e) {
             return false;
         }
@@ -67,7 +67,7 @@ class InquiryModel extends PublicModel {
                         return false;
                     }
                     //清询单车
-                    $scModel->clear($item['sku'],$data['buyer_id'],0);
+                    $scModel->clear($item['sku'], $data['buyer_id'], 0);
                 }
             }
             //添加附件询单
@@ -151,7 +151,7 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_id'])) {
             $where['buyer_id'] = $condition['buyer_id'];  //客户名称
         } else {
-            jsonReturn('',-104,'用户ID不能为空!');
+            jsonReturn('', -104, '用户ID不能为空!');
         }
 
         if (!empty($condition['agent_id'])) {
@@ -162,8 +162,8 @@ class InquiryModel extends PublicModel {
         }
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
-                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
-                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
+                array('egt', date('Y-m-d 0:0:0', strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59', strtotime($condition['end_time'])))
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
@@ -228,9 +228,11 @@ class InquiryModel extends PublicModel {
     public function getInfo($condition = []) {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
+        } elseif (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         } else {
             $results['code'] = '-103';
-            $results['message'] = '没有id!';
+            $results['message'] = '没有id或 serial_no!';
             return $results;
         }
 
@@ -283,13 +285,15 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['buyer_id'])) {
             $data['buyer_id'] = $condition['buyer_id'];
         } else {
-            $results['code'] = '-103';
-            $results['message'] = '没有客户ID!';
-            return $results;
+            $data['buyer_id'] = 0;
+//            $results['code'] = '-103';
+//            $results['message'] = '没有客户ID!';
+//            return $results;
         }
         if (!empty($condition['country_bn'])) {
             $data['country_bn'] = $condition['country_bn'];
         } else {
+
             $results['code'] = '-103';
             $results['message'] = '没有国家简称!';
             return $results;
@@ -297,7 +301,13 @@ class InquiryModel extends PublicModel {
         //根据客户查询市场负责人
         $bagentModel = new BuyerAgentModel();
         $agentIds = $bagentModel->getAgentIdByBuyerId($condition['buyer_id']);
-        if($agentIds){
+
+        if ($agentIds) {
+            $data['agent_id'] = $agentIds[0]['agent_id'];
+            $data['now_agent_id'] = $agentIds[0]['agent_id'];
+        } elseif ($data['country_bn']) {
+            $agentIds = (new CountryMemberModel())->getAgentIdByCountryBn($data['country_bn']);
+
             $data['agent_id'] = $agentIds[0]['agent_id'];
             $data['now_agent_id'] = $agentIds[0]['agent_id'];
         }
@@ -307,16 +317,23 @@ class InquiryModel extends PublicModel {
         $data['updated_at'] = $this->getTime();
 
         try {
-            $id = $this->add($data);
+
+            $insert_data = $this->create($data);
+            $id = $this->add($insert_data);
+
             $data['id'] = $id;
             if ($id) {
+
                 $results['code'] = '1';
                 $results['message'] = '成功！';
                 $results['data'] = $data;
             } else {
+
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
+
+
             return $results;
         } catch (Exception $e) {
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL);
@@ -326,7 +343,6 @@ class InquiryModel extends PublicModel {
             return $results;
         }
     }
-
 
     /**
      * 返回格式化时间

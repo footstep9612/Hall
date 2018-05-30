@@ -9,11 +9,11 @@
 class InquiryController extends PublicController {
 
     public function init() {
-        //$this->token = false;
+        $this->token = false;
         parent::init();
     }
 
-    //返回询价单流水号
+//返回询价单流水号
     public function getInquiryNoAction() {
         $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
         if (!empty($data)) {
@@ -27,28 +27,166 @@ class InquiryController extends PublicController {
         }
     }
 
-    //添加询价单
+//添加询价单
     public function addAction() {
-        $inquiry = new InquiryModel();
         $data = $this->getPut();
+        $inquiry = new InquiryModel();
+
         if ($inquiry->checkSerialNo($data['serial_no'])) {
-            $data['buyer_id'] = $this->user['buyer_id'];
-            $data['inquirer'] = $this->user['user_name'];
-            $data['inquirer_email'] = $this->user['email'];
+            $data['buyer_id'] = !empty($this->user['buyer_id']) ? $this->user['buyer_id'] : 0;
+            $data['inquirer'] = !empty($this->user['user_name']) ? $this->user['user_name'] : '';
+            $data['inquirer_email'] = !empty($this->user['user_name']) ? $this->user['email'] : '';
             $results = $inquiry->addInquiry($data);
+
+
             if (!$results) {
                 $this->setCode(MSG::MSG_FAILED);
                 $this->jsonReturn();
             } else {
+
+                $this->_sendEmail($data['country_bn'], $data);
                 $this->setCode(MSG::MSG_SUCCESS);
-                $this->jsonReturn();
+                $this->jsonReturn($data['serial_no']);
             }
         } else {
-           jsonReturn('', MSG::MSG_FAILED, '已存在');
+            jsonReturn('', MSG::MSG_FAILED, '已存在');
         }
     }
 
-    //询价单列表
+    private function _getemail($country_bn) {
+        if (CONFBDP === 'local' || CONFBDP === 'dev' || CONFBDP === 'beta') {
+            switch ($country_bn) {
+                case 'Thailand':
+                    ['email' => 'zhangren@keruigroup.com', 'name' => '张仁', 'key' => ''];
+                case 'Singapore':
+                    return ['email' => 'lvxiao@keruigroup.com', 'name' => '吕潇', 'key' => ''];
+                case 'Indonesia':
+                    return ['email' => 'liujunfei@keruigroup.com', 'name' => '刘俊飞', 'key' => ''];
+                case 'India':
+                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
+                case 'Myanmar':
+                    return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
+                default :
+                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
+            }
+        } else {
+            switch ($country_bn) {
+                case 'Thailand':
+                    ['email' => 'thailand@erui.com', 'name' => 'thailand@erui.com', 'key' => ''];
+                case 'Singapore':
+                    return ['email' => 'singappre@erui.com', 'name' => 'singappre@erui.com', 'key' => ''];
+                case 'Indonesia':
+                    return ['email' => 'hulz@erui.com', 'name' => '胡立忠', 'key' => ''];
+
+                case 'India':
+                    return ['email' => 'yicl@keruigroup.com', 'name' => '衣春霖', 'key' => ''];
+                case 'Myanmar':
+                    return ['email' => 'zhangwei07@keruigroup.com', 'name' => '张伟', 'key' => ''];
+                default :
+                    return ['email' => 'sales@erui.com', 'name' => 'sales@erui.com', 'key' => ''];
+            }
+        }
+    }
+
+// 发送邮件
+    private function _sendEmail($country_bn, $email_arr) {
+
+        $data = $this->_getemail($country_bn);
+        if (!empty($data['email'])) {
+            $arr['email'] = $data['email'];
+        } else {
+            return false;
+        }
+
+        if (!empty($data['name'])) {
+            $arr['name'] = $data['name'];
+        } else {
+            return false;
+        }
+        $config_obj = Yaf_Registry::get("config");
+        $config_shop = $config_obj->shop->toArray();
+        $email_arr['url'] = $config_shop['url'];
+        $email_arr['fastDFSUrl'] = $config_obj->fastDFSUrl;
+        $email_arr['name'] = $arr['name'];
+        $email_arr['inquiry_time'] = date('Y-m-d');
+        if ($email_arr['inquiry_type'] == 2) {
+            /* 快速找货 */
+            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'find_email_en.html', $email_arr);
+            if (!empty($email_arr['files_attach'])) {
+                $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
+            }
+            $res = $this->send_Mail($arr['email'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
+            unlink($Attachment);
+        } else {
+            $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
+            $res = $this->send_Mail($arr['email'], 'You have new inquiry information from the Erui M station', $body, $email_arr['name']);
+        }
+        if ($res['code'] == 1) {
+            return true;
+        } else {
+
+            return false;
+        }
+    }
+
+    function zipAttachment($attachs, $fastDFSUrl) {
+        $date = uniqid('Attachment', true);
+        $tmpDir = MYPATH . DS . 'public' . DS . 'tmp' . DS;
+        rmdir($tmpDir);
+        $dirName = $tmpDir . $date;
+        if (!is_dir($dirName)) {
+            if (!mkdir($dirName, 0777, true)) {
+                Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
+                jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
+            }
+        }
+
+        foreach ($attachs as $attach) {
+            $data = file_get_contents($fastDFSUrl . '/' . $attach['attach_url']);
+            $attach_name = pathinfo($attach['attach_name'], PATHINFO_FILENAME);
+            $attach_extension = pathinfo($attach['attach_url'], PATHINFO_EXTENSION);
+            file_put_contents($dirName . DS . $attach_name . '.' . $attach_extension, $data);
+        }
+        ZipHelper::zipDir($dirName, $dirName . '.zip');
+        ZipHelper::removeDir($dirName);
+        return $dirName . '.zip';
+    }
+
+    function send_Mail($to, $title, $body, $name = null, $Attachment = null) {
+        $mail = new PHPMailer(true);
+        $mail->IsSMTP(); // 使用SMTP
+        $config_obj = Yaf_Registry::get("config");
+        $config_db = $config_obj->mail->toArray();
+        try {
+            $mail->CharSet = "UTF-8"; //设定邮件编码
+            $mail->Host = $config_db['host']; // SMTP server
+            $mail->SMTPDebug = 1;                     // 启用SMTP调试 1 = errors  2 =  messages
+            $mail->SMTPAuth = true;                  // 服务器需要验证
+            $mail->Port = $config_db['port'];    //默认端口
+            $mail->Username = $config_db['username']; //SMTP服务器的用户帐号
+            $mail->Password = $config_db['password'];        //SMTP服务器的用户密码
+            $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
+            $mail->SetFrom($config_db['setfrom'], 'ERUI'); //发件人的邮箱
+            if (!empty($Attachment)) {
+                $mail->AddAttachment($Attachment);      // 添加附件,如果有多个附件则重复执行该方法
+            }
+            $mail->Subject = $title;
+            //以下是邮件内容
+            $mail->Body = $body;
+            $mail->IsHTML(true);
+
+            //$body = file_get_contents('tpl.html'); //获取html网页内容
+            //$mail->MsgHTML(str_replace('\\','',$body));
+            $mail->Send();
+            return ['code' => 1];
+        } catch (phpmailerException $e) {
+            return ['code' => -1, 'msg' => $e->errorMessage()];
+        } catch (Exception $e) {
+            return ['code' => -1, 'msg' => $e->errorMessage()];
+        }
+    }
+
+//询价单列表
     public function getListAction() {
         $inquiry = new InquiryModel();
         $item = new InquiryItemModel();
@@ -59,13 +197,13 @@ class InquiryController extends PublicController {
         foreach ($results['data'] as $key => $val) {
             $test['inquiry_id'] = $val['id'];
             $results['data'][$key]['quantity'] = $item->getSkusCount($test);    //sku数量总和
-            //$results['data'][$key]['quantity'] = $item->getCount($test);      //sku下商品件数数量总和
+//$results['data'][$key]['quantity'] = $item->getCount($test);      //sku下商品件数数量总和
         }
 
         $this->jsonReturn($results);
     }
 
-    //询价单详情
+//询价单详情
     public function getInfoAction() {
         $inquiry = new InquiryModel();
         $where = $this->getPut();
@@ -81,7 +219,7 @@ class InquiryController extends PublicController {
         $this->jsonReturn($results);
     }
 
-    //询单联系人信息
+//询单联系人信息
     public function getContactInfoAction() {
         $inquiry = new InquiryContactModel();
         $where = $this->getPut();
@@ -92,7 +230,7 @@ class InquiryController extends PublicController {
             $buyer_account_model = new BuyerAccountModel();
             $data['buyer_id'] = $this->user['buyer_id'];
             $account_info = $buyer_account_model->getinfo($data);
-            if($account_info) {
+            if ($account_info) {
                 $arr['name'] = $account_info['show_name'] ? $account_info['show_name'] : $account_info['user_name'];
                 $arr['phone'] = $account_info['official_phone'];
                 $arr['email'] = $account_info['email'] ? $account_info['email'] : $account_info['official_email'];
@@ -112,18 +250,17 @@ class InquiryController extends PublicController {
         }
     }
 
-
-    //附件列表
+//附件列表
     public function getListAttachAction() {
         $attach = new InquiryAttachModel();
         $where = $this->getPut();
 
         $results = $attach->getlist($where);
-        //var_dump($data);die;
+//var_dump($data);die;
         $this->jsonReturn($results);
     }
 
-    //明细列表
+//明细列表
     public function getListItemAction() {
         $Item = new InquiryItemModel();
 
@@ -134,8 +271,8 @@ class InquiryController extends PublicController {
     }
 
     /* id转换为姓名
-         * @author  zhongyg
-         */
+     * @author  zhongyg
+     */
 
     private function _setAgent(&$arr) {
 
