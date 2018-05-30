@@ -594,6 +594,20 @@ class CountryController extends PublicController {
         }
         $this->jsonReturn($dataJson);
     }
+    public function showPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new PortModel();
+        $result=$model->showPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
+            $dataJson['data'] = $result;
+        }else{
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
+        }
+        $this->jsonReturn($dataJson);
+    }
     public function addPortAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         if(empty($data['country_bn'])){

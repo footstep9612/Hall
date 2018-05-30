@@ -299,7 +299,7 @@ class PortModel extends PublicModel {
     public function portList($data){
         $page=isset($data['current_page'])?$data['current_page']:1;
         $offsize=($page-1)*10;
-        $field='port.id,port.country_bn,port.bn as port_bn,port.name port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode,';
+        $field='port.id,port.country_bn,port.bn as port_bn,port.name as port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode,';
         $field.=" (select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='zh' and country.deleted_flag='N') as country_name";
         $count=$this->alias('port')
             ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))->count();
@@ -332,6 +332,7 @@ class PortModel extends PublicModel {
                 'country_bn'=>$data['country_bn'],
                 'bn'=>$data['port_bn'],
                 'name'=>$data['port_name_zh'],
+                'name_en'=>$data['port_name_en'],
                 'port_type'=>$data['port_type'],
                 'trans_mode'=>$data['trans_mode'],
                 'created_at'=>$data['created_at']
@@ -341,6 +342,7 @@ class PortModel extends PublicModel {
                 'country_bn'=>$data['country_bn'],
                 'bn'=>$data['port_bn'],
                 'name'=>$data['port_name_en'],
+                'name_en'=>$data['port_name_en'],
                 'port_type'=>$data['port_type'],
                 'trans_mode'=>$data['trans_mode'],
                 'created_at'=>$data['created_at']
@@ -359,5 +361,16 @@ class PortModel extends PublicModel {
         $info=$this->field('bn')->where(array('id'=>$data['id']))->find();
         $this->where(array('bn'=>$info['bn']))->save(array('deleted_flag'=>'Y'));
         return true;
+    }
+    public function showPort($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $field='id,country_bn,bn as port_bn,name as port_name_zh,name_en as port_name_en,port_type,trans_mode';
+        $info=$this
+            ->field($field)
+            ->where(array('id'=>$data['id'],'port.lang'=>'zh','port.deleted_flag'=>'N'))
+            ->find();
+        return $info;
     }
 }
