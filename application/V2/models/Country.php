@@ -313,6 +313,19 @@ class CountryModel extends PublicModel {
         $area=$model->add($areaInfo);
         return true;
     }
+    public function countryAdmin($data=[]){
+        $page=isset($data['page'])?$data['page']:1;
+        $offsize=($page-1)*10;
+        $info=$this->field('id,lang,bn,name,name_en,name_ru,name_es')
+            ->where(array('lang'=>'zh','deleted_flag'=>'N'))
+            ->order('id desc')
+            ->limit($offsize,10)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        return $info;
+    }
     /**
      * 判断是否存在
      * @param  mix $where 搜索条件

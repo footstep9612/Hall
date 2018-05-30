@@ -381,6 +381,15 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
+    public function countryAdminAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->countryAdmin($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '国家管理列表';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
     /*
      * 更新能力值
      */
