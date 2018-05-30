@@ -387,7 +387,9 @@ class CountryController extends PublicController {
         $result = $model->countryAdmin($data);
         $dataJson['code'] = 1;
         $dataJson['message'] = '国家管理列表';
-        $dataJson['data'] = $result;
+        $dataJson['current_page '] = $result['current_page'];
+        $dataJson['total_count'] = $result['total_count'];
+        $dataJson['data'] = $result['info'];
         $this->jsonReturn($dataJson);
     }
     public function countryTestAction() {
@@ -398,20 +400,73 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result;
         $this->jsonReturn($dataJson);
     }
-    /*
-     * 更新能力值
-     */
-
     public function updateAction() {
-        $this->_init();
-
-        $bn = $this->getPut('bn');
-        $market_area_bn = $this->getPut('market_area_bn');
-        if (!$bn || !$market_area_bn) {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
-        } $country_model = new CountryModel();
-        $result = $country_model->update_data($this->getPut());
+        $data = json_decode(file_get_contents("php://input"), true);
+        die;
+        $model = new CountryModel();
+        if (empty($data['area_bn'])) { //区域简称
+            jsonReturn('', 0,'地区不可为空');
+        }else{
+            $arr['area_bn'] = trim($data['area_bn'],' ');
+            $area=$model->checkArea($arr['area_bn']);
+            if($area===false){
+                jsonReturn('', 0, '暂无该地区');  //暂无该地区
+            }
+        }
+        if (empty($data['country_bn'])) { //国家简称
+            jsonReturn('', 0,'国家简称不可为空');
+        }else{
+            $arr['country_bn'] = trim($data['country_bn'],' ');
+            $countryBn=$model->checkCountryBn($arr['country_bn']);
+            if($countryBn===false){
+                jsonReturn('', 0, '该国家简称已存在');
+            }
+        }
+        if (empty($data['country_name'])) { //国家名称
+            jsonReturn('', 0,'国家名称不可为空');
+        }else{
+            $countryArr = $data['country_name'];
+            $countryArr['zh']=$countryArr['zh']??'';
+            $countryArr['en']=$countryArr['en']??'';
+            $countryArr['ru']=$countryArr['ru']??'';
+            $countryArr['es']=$countryArr['es']??'';
+            $str='';
+            foreach($countryArr as $k => &$v){
+                $v=trim($v,' ');
+                if(empty($countryArr['zh'])){
+                    jsonReturn('', 0,'国家中文名称不可为空');
+                }
+                if(!empty($v)){
+                    $str.=",'".$v."'";
+                }
+            }
+            $str=substr($str,1);
+            $countryName=$model->checkCountryName($str);
+            if($countryName===false){
+                jsonReturn('', 0, '该国家名称已存在');
+            }
+            $arr['country_name']=$countryArr;
+        }
+        if (!empty($data['tel_code'])) { //电话区号
+            $tel = trim($data['tel_code'],' ');
+            $telArr=str_split($tel);
+            foreach($telArr as $k =>&$v){
+                if(!is_numeric($v)){
+                    unset($telArr[$k]);
+                }
+            }
+            $telStr=implode($telArr);
+            if(empty($telStr)){
+                jsonReturn('', 0, '国家区号格式错误');
+            }
+            $arr['tel_code']=$telStr;
+        }else{
+            jsonReturn('', 0, '国家区号不可为空');
+        }
+        if(!empty($data['code'])){
+            $arr['code']=strtoupper(trim($data['code'],' '));
+        }
+        $result=$model->insertCountry($arr);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
@@ -421,6 +476,29 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
+    /*
+     * 更新能力值
+     */
+
+//    public function updateAction() {
+//        $this->_init();
+//
+//        $bn = $this->getPut('bn');
+//        $market_area_bn = $this->getPut('market_area_bn');
+//        if (!$bn || !$market_area_bn) {
+//            $this->setCode(MSG::MSG_FAILED);
+//            $this->jsonReturn();
+//        } $country_model = new CountryModel();
+//        $result = $country_model->update_data($this->getPut());
+//        if ($result) {
+//            $this->delcache();
+//            $this->setCode(MSG::MSG_SUCCESS);
+//            $this->jsonReturn();
+//        } else {
+//            $this->setCode(MSG::MSG_FAILED);
+//            $this->jsonReturn();
+//        }
+//    }
 
     /*
      * 更新能力值

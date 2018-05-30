@@ -319,6 +319,12 @@ class CountryModel extends PublicModel {
     public function countryAdmin($data=[]){
         $page=isset($data['page'])?$data['page']:1;
         $offsize=($page-1)*10;
+        $count=$this->alias('country')
+            ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
+            ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
+            ->field('country.id,country.bn as country_bn,country.name,country.name_en,country.name_ru,country.name_es,area.name as area_name')
+            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
+            ->count();
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
@@ -333,7 +339,10 @@ class CountryModel extends PublicModel {
         if(empty($info)){
             $info=[];
         }
-        return $info;
+        $arr['current_page']=$page;
+        $arr['total_count']=$count;
+        $arr['info']=$info;
+        return $arr;
     }
     public function countryTest(){
         $bn=$this->field('lang,bn,name')->select();
