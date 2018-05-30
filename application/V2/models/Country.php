@@ -316,8 +316,35 @@ class CountryModel extends PublicModel {
         $area=$model->add($areaInfo);
         return true;
     }
+    public function updateCountry($data){
+        $arr=[];
+        foreach($data['country_name'] as $k =>$v){
+            $arr[$k]['lang']=$k;
+            $arr[$k]['code']=$data['code'];
+            $arr[$k]['name']=$data['country_name'][$k];
+            $arr[$k]['name_en']=$data['country_name']['en'];
+            $arr[$k]['name_ru']=$data['country_name']['ru'];
+            $arr[$k]['name_es']=$data['country_name']['es'];
+            $arr[$k]['bn']=$data['country_bn'];
+            $arr[$k]['int_tel_code']=$data['tel_code'];
+            $arr[$k]['region_bn']=$data['area_bn'];
+        }
+        $this->where(array('bn'=>$data['country_bn']))->save(array('deleted_flag'=>'Y'));
+        $info[]=$arr['zh'];
+        $info[]=$arr['en'];
+        $info[]=$arr['ru'];
+        $info[]=$arr['es'];
+        $res=$this->addAll($info);
+
+        $areaInfo['market_area_bn']=$data['area_bn'];
+        $areaInfo['country_bn']=$data['country_bn'];
+        $areaInfo['created_at']=date('Y-m-d H:i:s');
+        $model=new MarketAreaCountryModel();
+        $area=$model->where(array())->save();
+        return true;
+    }
     public function countryAdmin($data=[]){
-        $page=isset($data['page'])?$data['page']:1;
+        $page=isset($data['current_page'])?$data['current_page']:1;
         $offsize=($page-1)*10;
         $count=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
