@@ -394,20 +394,32 @@ class CountryModel extends PublicModel {
         $model->add($areaInfo);
         return true;
     }
+    public function getCountryCond($data){
+        $cond=" country.lang='zh' and country.deleted_flag='N'";
+        if(!empty($data['area_bn'])){
+            $cond.=" and area.bn='".trim($data['area_bn'])."'";
+        }
+        if(!empty($data['country_name'])){
+            $cond.=" and country.name like '%$data[country_name]%'";
+        }
+        return $cond;
+    }
     public function countryAdmin($data=[]){
+        $cond=$this->getCountryCond($data);
         $page=isset($data['current_page'])?$data['current_page']:1;
         $offsize=($page-1)*10;
         $count=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
             ->field('country.id,country.bn as country_bn,country.name,country.name_en,country.name_ru,country.name_es,area.name as area_name')
-            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
+            ->where($cond)
+//            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
             ->count();
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
             ->field('country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name')
-            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
+            ->where($cond)
             ->order('country.id desc')
             ->limit($offsize,10)
             ->select();
