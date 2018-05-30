@@ -417,8 +417,8 @@ class CountryController extends PublicController {
         }else{
             $arr['country_bn'] = trim($data['country_bn'],' ');
             $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if($countryBn===false){
-                jsonReturn('', 0, '该国家简称已存在');
+            if($countryBn===true){
+                jsonReturn('', 0, '该国家简称不存在');
             }
         }
         if (empty($data['country_name'])) { //国家名称
@@ -429,6 +429,7 @@ class CountryController extends PublicController {
             $countryArr['en']=$countryArr['en']??'';
             $countryArr['ru']=$countryArr['ru']??'';
             $countryArr['es']=$countryArr['es']??'';
+            $hehe0=$countryArr;
             $str='';
             foreach($countryArr as $k => &$v){
                 $v=trim($v,' ');
@@ -440,7 +441,17 @@ class CountryController extends PublicController {
                 }
             }
             $str=substr($str,1);
-            $countryName=$model->checkCountryName($str);
+            $countryName=$model->updateCountryName($str);
+            $hehe=[];
+            foreach($countryName as $K =>$v){
+                $hehe[$v['lang']]=$v['name'];
+            }
+            if($countryArr!==$hehe){    //原始数据
+                $countryName1=$model->nameBybn($data['country_bn']);
+                print_r($countryName1);die;
+            }
+            die;
+            print_r($hehe);die;
             if($countryName===false){
                 jsonReturn('', 0, '该国家名称已存在');
             }

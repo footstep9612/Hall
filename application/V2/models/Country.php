@@ -290,6 +290,18 @@ class CountryModel extends PublicModel {
         }
         return true;
     }
+    public function updateCountryName($countryStr){
+        $country=$this->field('lang,bn,name')
+            ->where("deleted_flag='N' and name in ($countryStr)")
+            ->select();
+        return $country;
+    }
+    public function nameByBn($bn){
+        $country=$this->field('lang,bn,name')
+            ->where("deleted_flag='N' and bn='$bn'")
+            ->select();
+        return $country;
+    }
     public function insertCountry($data) {
         $arr=[];
         foreach($data['country_name'] as $k =>$v){
@@ -340,7 +352,7 @@ class CountryModel extends PublicModel {
         $areaInfo['country_bn']=$data['country_bn'];
         $areaInfo['created_at']=date('Y-m-d H:i:s');
         $model=new MarketAreaCountryModel();
-        $area=$model->where(array())->save();
+        $area=$model->where(array('country_bn'=>$data['country_bn']))->save($areaInfo);
         return true;
     }
     public function countryAdmin($data=[]){
