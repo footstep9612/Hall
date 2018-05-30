@@ -295,7 +295,10 @@ class CountryModel extends PublicModel {
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
             $arr[$k]['code']=$data['code'];
-            $arr[$k]['name']=$v;
+            $arr[$k]['name']=$data['country_name'][$k];
+            $arr[$k]['name_en']=$data['country_name']['en'];
+            $arr[$k]['name_ru']=$data['country_name']['ru'];
+            $arr[$k]['name_es']=$data['country_name']['es'];
             $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
@@ -328,6 +331,19 @@ class CountryModel extends PublicModel {
             $info=[];
         }
         return $info;
+    }
+    public function countryTest(){
+        $bn=$this->field('lang,bn,name')->select();
+        foreach($bn as $k => $v){
+            if($v['lang']=='en'){
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_en'=>$v['name']));
+            }elseif($v['lang']=='ru'){
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_ru'=>$v['name']));
+            }elseif($v['lang']=='es'){
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_es'=>$v['name']));
+            }
+        }
+        echo 1;die;
     }
     /**
      * 判断是否存在

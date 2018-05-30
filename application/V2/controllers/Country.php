@@ -390,6 +390,14 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result;
         $this->jsonReturn($dataJson);
     }
+    public function countryTestAction() {
+        $model = new CountryModel();
+        $result = $model->countryTest();
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '国家管理列表';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
     /*
      * 更新能力值
      */
