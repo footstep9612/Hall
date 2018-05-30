@@ -312,6 +312,7 @@ class PortModel extends PublicModel {
         if(empty($info)){
             $info=[];
         }
+        $arr['current_page']=$page;
         $arr['total_count']=$count;
         $arr['info']=$info;
         return $arr;
