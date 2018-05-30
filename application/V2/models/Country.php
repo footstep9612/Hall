@@ -321,6 +321,9 @@ class CountryModel extends PublicModel {
             ->order('id desc')
             ->limit($offsize,10)
             ->select();
+        foreach($info as $k => &$v){
+            $v['port_count']=0;
+        }
         if(empty($info)){
             $info=[];
         }
