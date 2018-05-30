@@ -366,6 +366,7 @@ class CountryModel extends PublicModel {
     }
     public function updateCountry($data){
         $arr=[];
+
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
             $arr[$k]['code']=$data['code'];
@@ -377,8 +378,9 @@ class CountryModel extends PublicModel {
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
         }
-        $this->where(array('bn'=>$data['country_bn']))->save(array('deleted_flag'=>'Y'));
-        $info[]=$arr['zh'];
+        $hehe=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $this->where(array('id'=>$data['id']))->save($arr['zh']);
+        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
         $info[]=$arr['en'];
         $info[]=$arr['ru'];
         $info[]=$arr['es'];
@@ -388,7 +390,8 @@ class CountryModel extends PublicModel {
         $areaInfo['country_bn']=$data['country_bn'];
         $areaInfo['created_at']=date('Y-m-d H:i:s');
         $model=new MarketAreaCountryModel();
-        $area=$model->where(array('country_bn'=>$data['country_bn']))->save($areaInfo);
+        $model->where(array('country_bn'=>$hehe['bn']))->delete();
+        $model->add($areaInfo);
         return true;
     }
     public function countryAdmin($data=[]){

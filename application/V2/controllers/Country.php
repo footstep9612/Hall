@@ -499,32 +499,58 @@ class CountryController extends PublicController {
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
         }else{
-            print_r($arr);die;
+            $info=$model->field('id,name as zh,name_en as en,name_ru as ru,name_es as es')->where(array('id'=>$arr['id']))->find();
+            unset($info['id']);
             $countryArr = $arr['country_name'];
             $countryArr['zh']=$countryArr['zh']??'';
             $countryArr['en']=$countryArr['en']??'';
             $countryArr['ru']=$countryArr['ru']??'';
             $countryArr['es']=$countryArr['es']??'';
-            $str='';
-            foreach($countryArr as $k => &$v){
-                $v=trim($v,' ');
-                if(empty($countryArr['zh'])){
-                    jsonReturn('', 0,'国家中文名称不可为空');
+            $aa=$countryArr;
+            if($info!=$countryArr){
+                $str='';
+                foreach($countryArr as $k => &$v){
+                    $v=trim($v,' ');
+                    if(empty($countryArr['zh'])){
+                        jsonReturn('', 0,'国家中文名称不可为空');
+                    }
+                    if(!empty($v)){
+                        $str.=",'".$v."'";
+                    }
                 }
-                if(!empty($v)){
-                    $str.=",'".$v."'";
+                $str=substr($str,1);
+                $countryName=$model->updateCountryName($str);
+                $zz=[];
+                foreach($countryName as $k => $v){
+                    $countryName[$v['lang']]=$v;
+                    unset($countryName[$k]);
                 }
+                foreach($countryName as $k => $v){
+                    if($v['bn']==$arr['country_bn']){
+                        $zz[$k]=$v['name'];
+                    }
+                }
+//                if(array_diff($countryName,$zz)){
+//
+//                }
+                $ee=array_diff($aa,$zz);
+                if(!empty($ee)){
+                    $str1='';
+                    foreach($ee as $k => &$v){
+                        if(!empty($v)){
+                            $str1.=",'".$v."'";
+                        }
+                    }
+                    $str1=substr($str1,1);
+                    $end=$model->checkCountryName($str1);
+                    if($end===false){
+                        jsonReturn('', 0, '该国家名称已存在');
+                    }
+                }
+                $arr['country_name']=$aa;
             }
-            $str=substr($str,1);
-            $countryName=$model->updateCountryName($str);
-            print_r($countryName);die;
-            if($countryName===false){
-                jsonReturn('', 0, '该国家名称已存在');
-            }
-            $arr['country_name']=$countryArr;
         }
-die;
-        $result=$model->insertCountry($arr);
+        $result=$model->updateCountry($arr);
         if ($result) {
             $this->delcache();
             $this->setCode(MSG::MSG_SUCCESS);
