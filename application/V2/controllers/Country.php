@@ -581,6 +581,74 @@ class CountryController extends PublicController {
         $dataJson['data'] = $result['info'];
         $this->jsonReturn($dataJson);
     }
+    public function delPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new PortModel();
+        $result=$model->delPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
+        }else{
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
+        }
+        $this->jsonReturn($dataJson);
+    }
+    public function addPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['country_bn'])){
+            jsonReturn('', 0, '国家不可为空');
+        }
+        if(empty($data['port_bn'])){
+            jsonReturn('', 0, '港口简称不可为空');
+        }
+        if(empty($data['port_name_zh'])){
+            jsonReturn('', 0, '中文名称不可为空');
+        }
+        if(empty($data['port_name_en'])){
+            jsonReturn('', 0, '英文名称不可为空');
+        }
+        if(empty($data['port_type'])){
+            jsonReturn('', 0, '港口类型不可为空');
+        }
+        if(empty($data['trans_mode'])){
+            jsonReturn('', 0, '运输方式不可为空');
+        }
+//        $field=array(
+//            'country_bn'=>'国家',
+//            'port_bn'=>'港口简称',
+//            'port_name_zh'=>'中文名称',
+//            'port_name_en'=>'英文名称',
+//            'port_type'=>'港口类型',
+//            'trans_mode'=>'运输方式'
+//        );
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
+        $data['port_bn']=strtoupper($data['port_bn']);
+        $model = new PortModel();
+        $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
+        if(!empty($bn)){
+            jsonReturn('', 0, '港口简称已存在');
+        }
+        $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
+        if(!empty($zh)){
+            jsonReturn('', 0, '中文名称已存在');
+        }
+        $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
+        if(!empty($en)){
+            jsonReturn('', 0, '英文名称已存在');
+        }
+        $result = $model->addPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
+        }else{
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
+        }
+        $this->jsonReturn($dataJson);
+    }
     /*
      * 更新能力值
      */

@@ -324,4 +324,40 @@ class PortModel extends PublicModel {
         }
         print_r(1);die;
     }
+    public function addPort($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        $arr=[
+            [
+                'lang'=>'zh',
+                'country_bn'=>$data['country_bn'],
+                'bn'=>$data['port_bn'],
+                'name'=>$data['port_name_zh'],
+                'port_type'=>$data['port_type'],
+                'trans_mode'=>$data['trans_mode'],
+                'created_at'=>$data['created_at']
+            ],
+            [
+                'lang'=>'en',
+                'country_bn'=>$data['country_bn'],
+                'bn'=>$data['port_bn'],
+                'name'=>$data['port_name_en'],
+                'port_type'=>$data['port_type'],
+                'trans_mode'=>$data['trans_mode'],
+                'created_at'=>$data['created_at']
+            ]
+        ];
+        $res=$this->addAll($arr);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+    public function delPort($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $info=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $this->where(array('bn'=>$info['bn']))->save(array('deleted_flag'=>'Y'));
+        return true;
+    }
 }
