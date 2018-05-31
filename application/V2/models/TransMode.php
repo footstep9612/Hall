@@ -213,5 +213,13 @@ class TransModeModel extends PublicModel {
     public function getTransModeByBn($bn, $lang = 'zh') {
         return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('trans_mode');
     }
-
+    public function transModeList($data){
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        return $this->field('bn as trans_bn,trans_mode')->where(array('lang'=>$lang,'deleted_flag'=>'N'))->select();
+    }
+    public function portTypeModeList($data){
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        return $this->table('erui_dict.port_type')
+            ->field('port_bn,port_type')->where(array('lang'=>$lang,'deleted_flag'=>'N'))->select();
+    }
 }
