@@ -29,7 +29,14 @@ class RoleController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $model=new RoleModel();
         $res=$model->moveRole($data);
-        print_r($res);die;
+        if($res){
+            $dataJson['code '] = 1;
+            $dataJson['message'] = '成功';
+        }else{
+            $dataJson['code '] = 0;
+            $dataJson['message'] = '失败';
+        }
+        $this->jsonReturn($dataJson);
     }
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
