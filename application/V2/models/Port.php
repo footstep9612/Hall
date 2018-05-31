@@ -298,9 +298,23 @@ class PortModel extends PublicModel {
     }
     //////////////////////////////////////////////////////////////////////
     public function getPortCond($data){
-        print_r($data);die;
+        $cond="port.lang='zh' and port.deleted_flag='N'";
+        if(!empty($data['country_name'])){
+            $cond.=" and port.country_bn='$data[country_name]'";
+        }
+        if(!empty($data['port_name'])){
+            $cond.=" and port.name like '%$data[port_name]%'";
+        }
+        if(!empty($data['port_type'])){
+            $cond.=" and port.port_type='$data[port_type]'";
+        }
+        if(!empty($data['trans_mode'])){
+            $cond.=" and port.trans_mode='$data[trans_mode]'";
+        }
+        return $cond;
     }
     public function portList($data){
+        $cond=$this->getPortCond($data);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $page=isset($data['current_page'])?$data['current_page']:1;
         $offsize=($page-1)*10;
@@ -312,10 +326,10 @@ class PortModel extends PublicModel {
 
         $field.=" ,(select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='$lang' and country.deleted_flag='N') as country_name";
         $count=$this->alias('port')
-            ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))->count();
+            ->where($cond)->count();
         $info=$this->alias('port')
             ->field($field)
-            ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))
+            ->where($cond)
             ->order('port.id desc')
             ->limit($offsize,10)
             ->select();
