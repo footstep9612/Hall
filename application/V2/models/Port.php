@@ -299,11 +299,11 @@ class PortModel extends PublicModel {
     //////////////////////////////////////////////////////////////////////
     public function getPortCond($data){
         $cond="port.lang='zh' and port.deleted_flag='N'";
-        if(!empty($data['country_name'])){
-            $cond.=" and port.country_bn='$data[country_name]'";
+        if(!empty($data['country_bn'])){
+            $cond.=" and port.country_bn='$data[country_bn]'";
         }
         if(!empty($data['port_name'])){
-            $cond.=" and port.name like '%$data[port_name]%'";
+            $cond.=" and ( port.name like '%$data[port_name]%' or port.name_en like '%$data[port_name]%' )";
         }
         if(!empty($data['port_type'])){
             $cond.=" and port.port_type='$data[port_type]'";
