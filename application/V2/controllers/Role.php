@@ -16,7 +16,21 @@ class RoleController extends PublicController {
     public function __init() {
         //   parent::__init();
     }
-
+    public function roleListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model=new RoleModel();
+        $res=$model->getRoleList($data);
+        $dataJson['code '] = 1;
+        $dataJson['message'] = '角色数据';
+        $dataJson['data'] = $res;
+        $this->jsonReturn($dataJson);
+    }
+    public function moveRoleAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model=new RoleModel();
+        $res=$model->moveRole($data);
+        print_r($res);die;
+    }
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
