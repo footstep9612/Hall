@@ -354,6 +354,32 @@ class PortModel extends PublicModel {
         }
         return false;
     }
+    public function updatePort($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        $bn=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $zh=[
+            'country_bn'=>$data['country_bn'],
+            'bn'=>$data['port_bn'],
+            'name'=>$data['port_name_zh'],
+            'name_en'=>$data['port_name_en'],
+            'port_type'=>$data['port_type'],
+            'trans_mode'=>$data['trans_mode'],
+            'created_at'=>$data['created_at']
+        ];
+        $res=$this->where(array('lang'=>'zh','id'=>$data['id']))->save($zh);
+
+        $en=[
+            'country_bn'=>$data['country_bn'],
+            'bn'=>$data['port_bn'],
+            'name'=>$data['port_name_en'],
+            'name_en'=>$data['port_name_en'],
+            'port_type'=>$data['port_type'],
+            'trans_mode'=>$data['trans_mode'],
+            'created_at'=>$data['created_at']
+        ];
+        $this->where(array('lang'=>'en','bn'=>$bn['bn']))->save($en);
+        return true;
+    }
     public function delPort($data){
         if(empty($data['id'])){
             return false;

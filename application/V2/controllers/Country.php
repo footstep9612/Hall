@@ -693,21 +693,32 @@ class CountryController extends PublicController {
 
         $model = new PortModel();
         $arr=$model->field('bn as port_bn,name as port_name_zh,name_en as port_name_en')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
-        print_r($arr);die;
+        $zz['port_bn']=$data['port_bn'];
+        $zz['port_name_zh']=$data['port_name_zh'];
+        $zz['port_name_en']=$data['port_name_en'];
 
-        $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
-        if(!empty($bn)){
-            jsonReturn('', 0, '港口简称已存在');
+
+
+        if($zz!=$arr){
+            if($data['port_bn']!=$arr['port_bn']){
+                $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
+                if(!empty($bn)){
+                    jsonReturn('', 0, '港口简称已存在');
+                }
+            }elseif($data['port_name_zh']!=$arr['port_name_zh']){
+                $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
+                if(!empty($zh)){
+                    jsonReturn('', 0, '中文名称已存在');
+                }
+
+            }elseif($data['port_name_en']!=$arr['port_name_en']){
+                $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
+                if(!empty($en)){
+                    jsonReturn('', 0, '英文名称已存在');
+                }
+            }
         }
-        $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
-        if(!empty($zh)){
-            jsonReturn('', 0, '中文名称已存在');
-        }
-        $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
-        if(!empty($en)){
-            jsonReturn('', 0, '英文名称已存在');
-        }
-        $result = $model->addPort($data);
+        $result = $model->updatePort($data);
         if($result){
             $dataJson['code'] = 1;
             $dataJson['message'] = '成功';
