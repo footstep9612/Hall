@@ -415,17 +415,16 @@ class CountryModel extends PublicModel {
             ->where($cond)
 //            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
             ->count();
+        $field='country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name';
+        $field.=",(select count(*) from erui_dict.port port where port.country_bn=country.bn and port.deleted_flag='N' and port.lang='zh') as port_count";
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
-            ->field('country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name')
+            ->field($field)
             ->where($cond)
             ->order('country.id desc')
             ->limit($offsize,10)
             ->select();
-        foreach($info as $k => &$v){
-            $v['port_count']=0;
-        }
         if(empty($info)){
             $info=[];
         }
