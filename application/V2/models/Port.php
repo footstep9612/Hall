@@ -296,11 +296,21 @@ class PortModel extends PublicModel {
             return false;
         }
     }
+    //////////////////////////////////////////////////////////////////////
+    public function getPortCond($data){
+        print_r($data);die;
+    }
     public function portList($data){
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
         $page=isset($data['current_page'])?$data['current_page']:1;
         $offsize=($page-1)*10;
-        $field='port.id,port.country_bn,port.bn as port_bn,port.name as port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode,';
-        $field.=" (select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='zh' and country.deleted_flag='N') as country_name";
+        $field='port.id,port.country_bn,port.bn as port_bn,port.name as port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode';
+//        $field.=',port.port_type';
+        $field.=",(select port_type from erui_dict.port_type port_type where port_type.port_bn=port.port_type and  port_type.lang='$lang' and port_type.deleted_flag='N') as port_type";
+//        $field.=',port.trans_mode';
+        $field.=",(select trans_mode from erui_dict.trans_mode trans_mode where trans_mode.bn=port.trans_mode and  trans_mode.lang='$lang' and trans_mode.deleted_flag='N') as trans_mode";
+
+        $field.=" ,(select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='$lang' and country.deleted_flag='N') as country_name";
         $count=$this->alias('port')
             ->where(array('port.lang'=>'zh','port.deleted_flag'=>'N'))->count();
         $info=$this->alias('port')
@@ -357,6 +367,7 @@ class PortModel extends PublicModel {
     public function updatePort($data){
         $data['created_at']=date('Y-m-d H:i:s');
         $bn=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $cc=$this->field('bn')->where(array('bn'=>$bn['bn'],'deleted_flag'=>'N'))->select();
         $zh=[
             'country_bn'=>$data['country_bn'],
             'bn'=>$data['port_bn'],
@@ -377,7 +388,12 @@ class PortModel extends PublicModel {
             'trans_mode'=>$data['trans_mode'],
             'created_at'=>$data['created_at']
         ];
-        $this->where(array('lang'=>'en','bn'=>$bn['bn']))->save($en);
+        if(count($cc)==2){
+            $this->where(array('lang'=>'en','bn'=>$bn['bn']))->save($en);
+        }else{
+            $en['lang']='en';
+            $this->add($en);
+        }
         return true;
     }
     public function delPort($data){
