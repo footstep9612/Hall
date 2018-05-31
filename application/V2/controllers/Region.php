@@ -41,18 +41,5 @@ class RegionController extends PublicController {
         }
         $this->jsonReturn($arr);
     }
-    //营销区域列表
-    public function areaListAction(){
-        $data['lang'] = $this->getLang();
-        $lang=!empty($data['lang'])?$data['lang']:'zh';
-        $area=new CountryModel();
-        $info=$area->table('erui_operation.market_area')
-            ->field('bn as area_bn,name as area_name')
-            ->where(array('lang'=>$lang,'deleted_flag'=>'N'))->select();
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '营销区域地区数据';
-        $dataJson['data'] = $info;
-        $this->jsonReturn($dataJson);
-    }
 
 }

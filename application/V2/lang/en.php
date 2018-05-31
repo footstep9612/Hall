@@ -13,7 +13,6 @@ return array(
     'INQUIRY_BIZ_DISPATCHING' => 'Business division distributes',
     'INQUIRY_CC_DISPATCHING' => 'Erui customer center',
     'INQUIRY_BIZ_QUOTING' => 'Business division quote',
-    'INQUIRY_REJECT_QUOTING' => 'Business division check back to business division quote',
     'INQUIRY_LOGI_DISPATCHING' => 'Logistics distributes',
     'INQUIRY_LOGI_QUOTING' => 'Logistics quote',
     'INQUIRY_LOGI_APPROVING' => 'Logistics check',

@@ -139,10 +139,10 @@ class SupplierQualificationModel extends PublicModel {
 
 		if (!empty($condition['id'])) {
 			$where['id'] = ['in', explode(',', $condition['id'])];
+		} else {
+			return false;
 		}
-		if (!empty($condition['supplier_id'])) {
-			$where['supplier_id'] =  $condition['supplier_id'];
-		}
+
 		return $this->where($where)->delete();
 	}
 	

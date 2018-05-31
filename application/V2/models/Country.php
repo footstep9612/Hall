@@ -20,16 +20,13 @@ class CountryModel extends PublicModel {
     protected $dbName = 'erui_dict';
     protected $tableName = 'country';
 
-    /*public function __construct($str = '') {
+    public function __construct($str = '') {
         parent::__construct($str = '');
-    }*/
+    }
 
     /*
      * 条件id,lang,bn,name,time_zone,region,pinyin
      */
-    public function __construct() {
-        parent::__construct();
-    }
 
     private function _getCondition(&$condition) {
         $data = ['c.deleted_flag' => 'N'];
@@ -227,66 +224,16 @@ class CountryModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-//    public function create_data($create = []) {
-//        if (isset($create['lang'])) {
-//            $arr['lang'] = $create['lang'];
-//        }
-//        if (isset($create['bn'])) {
-//            $arr['bn'] = $create['bn'];
-//        }
-//        if (isset($create['name'])) {
-//            $arr['name'] = $create['name'];
-//            $arr['pinyin'] = Pinyin($create['name']);
-//        }
-//        if (isset($create['time_zone'])) {
-//            $arr['time_zone'] = $create['time_zone'];
-//        }
-//        if (isset($create['region'])) {
-//            $arr['region'] = $create['region'];
-//        }
-//        $arr['deleted_flag'] = 'N';
-//
-//        $data = $this->create($arr);
-//        if ($data && $create['market_area_bn']) {
-//            $update = ['market_area_bn' => $create['market_area_bn'],
-//                'country_bn' => $arr['bn']];
-//            $this->table('erui_operation.market_area_country')
-//                    ->add($update);
-//        }
-//        $flag = $this->add($data);
-//        if ($flag && $create['market_area_bn']) {
-//            $update = ['market_area_bn' => $create['market_area_bn'],
-//                'country_bn' => $arr['bn']];
-//            if ($this->getmarket_area_countryexit($update)) {
-//                $this->table('erui_operation.market_area_country')
-//                        ->save($update);
-//            }
-//        }
-//        return $flag;
-//    }
-    public function checkArea($area){
-        $area=$this->table('erui_operation.market_area')
-            ->field('bn as area_bn')
-            ->where(array('deleted_flag'=>'N','bn'=>$area))
-            ->select();
-        if(empty($area)){
-            return false;  //暂无该地区
+    public function create_data($create = []) {
+        if (isset($create['lang'])) {
+            $arr['lang'] = $create['lang'];
         }
-        return true;
-    }
-    public function checkCountryBn($country){
-        $country=$this->field('bn')->where(array('deleted_flag'=>'N','bn'=>$country))->select();
-        if(!empty($country)){
-            return false;
+        if (isset($create['bn'])) {
+            $arr['bn'] = $create['bn'];
         }
-        return true;
-    }
-    public function checkCountryName($countryStr){
-        $country=$this->field('lang,name')
-            ->where("deleted_flag='N' and name in ($countryStr)")
-            ->select();
-        if(!empty($country)){
-            return false;
+        if (isset($create['name'])) {
+            $arr['name'] = $create['name'];
+            $arr['pinyin'] = Pinyin($create['name']);
         }
         return true;
     }
@@ -444,8 +391,9 @@ class CountryModel extends PublicModel {
                 $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_es'=>$v['name']));
             }
         }
-        echo 1;die;
+        return $flag;
     }
+
     /**
      * 判断是否存在
      * @param  mix $where 搜索条件
