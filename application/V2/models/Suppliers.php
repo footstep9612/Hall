@@ -588,6 +588,8 @@ class SuppliersModel extends PublicModel {
 
         if (!empty($condition['status'])) {
             $where['a.status'] = ['eq', $condition['status']];
+        }else{
+            $where['a.status'] = ['neq', 'REVIEW'];
         }
 
         if (!empty($condition['create_start_time']) && !empty($condition['create_end_time'])) {
