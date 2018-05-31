@@ -10,5 +10,4 @@ return array(
     'MISSING_PARAMETER_INTER_SHIPPING_QTY' => '缺少国际运费数量参数或格式不对',
     'MISSING_PARAMETER_INTER_SHIPPING_PRICE' => '缺少国际运费单价参数或格式不对',
     'MISSING_PARAMETER_INTER_SHIPPING_CUR' => '缺少国际运费币种参数',
-    'INQUIRY_STATUS_ERROR' => '当前询单状态不正确',
 );
