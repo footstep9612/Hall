@@ -305,6 +305,7 @@ class CountryController extends PublicController {
 //    }
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
         $model = new CountryModel();
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
@@ -396,6 +397,7 @@ class CountryController extends PublicController {
         if(!empty($data['code'])){
             $arr['code']=strtoupper(trim($data['code'],' '));
         }
+        $arr['source']=$data['source'];
         $result=$model->insertCountry($arr);
         if ($result) {
             $this->delcache();
@@ -408,6 +410,7 @@ class CountryController extends PublicController {
     }
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
         $model = new CountryModel();
         if (empty($data['id'])) { //区域简称
             jsonReturn('', 0,'缺少参数');
@@ -539,6 +542,7 @@ class CountryController extends PublicController {
                 $arr['country_name']=$aa;
             }
         }
+        $arr['source']=$data['source'];
         $result=$model->updateCountry($arr);
         if ($result) {
             $this->delcache();
@@ -575,6 +579,7 @@ class CountryController extends PublicController {
     }
     public function delCountryAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
         $model = new CountryModel();
         $result = $model->delCountry($data);
         $dataJson['code'] = 1;

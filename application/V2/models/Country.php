@@ -294,7 +294,7 @@ class CountryModel extends PublicModel {
             $info=$this->field('id,bn as country_bn,name,name_en,name_ru,name_es')
                 ->where(array('lang'=>'zh','deleted_flag'=>'N','id'=>$data['id']))
                 ->find();
-            $this->where(array('bn'=>$info['country_bn']))->save(array('deleted_flag'=>'Y'));
+            $this->where(array('bn'=>$info['country_bn']))->save(array('deleted_flag'=>'Y','source'=>$data['source']));
 
             $area=$this->table('erui_operation.market_area_country')
                 ->where(array('country_bn'=>$info['country_bn']))
@@ -315,6 +315,7 @@ class CountryModel extends PublicModel {
             $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
+            $arr[$k]['source']=$data['source'];
         }
         $info[]=$arr['zh'];
         $info[]=$arr['en'];
@@ -341,11 +342,12 @@ class CountryModel extends PublicModel {
             $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
+            $arr[$k]['source']=$data['source'];
         }
         $hehe=$this->field('id,bn')->where(array('id'=>$data['id']))->find();
 //        $this->where(array('id'=>$data['id']))->save($arr['zh']);
 //        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
-        $this->where("bn='$hehe[bn]'")->delete();
+        $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
         $info[]=$arr['zh'];
         $info[]=$arr['en'];
         $info[]=$arr['ru'];
