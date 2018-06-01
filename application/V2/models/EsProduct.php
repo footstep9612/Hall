@@ -1059,6 +1059,11 @@ class EsProductModel extends Model {
      */
 
     private function _formatattr($attrs_json) {
+
+        $attrs_json = htmlspecialchars_decode($attrs_json);
+        $attrs_json = str_replace("\r", '', $attrs_json);
+        $attrs_json = str_replace("\n", '', $attrs_json);
+        $attrs_json = str_replace("\t", '', $attrs_json);
         $attrs_arr = json_decode($attrs_json, true);
         $ret = [];
         if ($attrs_arr) {
