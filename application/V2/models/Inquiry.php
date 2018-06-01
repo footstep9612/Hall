@@ -46,6 +46,7 @@ class InquiryModel extends PublicModel {
             'BIZ_DISPATCHING' => L('INQUIRY_BIZ_DISPATCHING'),
             'CC_DISPATCHING' => L('INQUIRY_CC_DISPATCHING'),
             'BIZ_QUOTING' => L('INQUIRY_BIZ_QUOTING'),
+            'REJECT_QUOTING' => L('INQUIRY_REJECT_QUOTING'),
             'LOGI_DISPATCHING' => L('INQUIRY_LOGI_DISPATCHING'),
             'LOGI_QUOTING' => L('INQUIRY_LOGI_QUOTING'),
             'LOGI_APPROVING' => L('INQUIRY_LOGI_APPROVING'),
@@ -129,61 +130,87 @@ class InquiryModel extends PublicModel {
      */
     public function getWhere($condition = []) {
          
-        $where['deleted_flag'] = 'N';
-        
+        $where['a.deleted_flag'] = 'N';
+        $quotingStatusList = ['REJECT_QUOTING', 'BIZ_QUOTING'];
         if ($condition['list_type'] != 'inquiry') {
-            $where['status'] = ['neq', 'DRAFT'];
+            $where['a.status'] = ['neq', 'DRAFT'];
             if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
-                $where['status'] = $condition['status'];    //项目状态
+                if ($condition['status'] == 'BIZ_QUOTING') {
+                    $where['a.status'] = ['in', $quotingStatusList];
+                } else {
+                    $where['a.status'] = $condition['status'];    //项目状态
+                }
             }
         } else {
             if (!empty($condition['status'])) {
-                $where['status'] = $condition['status'];
+                if ($condition['status'] == 'BIZ_QUOTING') {
+                    $where['a.status'] = ['in', $quotingStatusList];
+                } else {
+                    $where['a.status'] = $condition['status'];
+                }
+            }
+            // 询单管理操作状态的筛选
+            $inquiryStatusList = ['DRAFT', 'REJECT_MARKET', 'MARKET_APPROVING', 'MARKET_CONFIRMING'];
+            $inStatus = ['in', $inquiryStatusList];
+            $notInStatus = ['not in', $inquiryStatusList];
+            $transmitStatus = is_array($where['a.status']) ? $where['a.status'] : ['eq', $condition['status']];
+            $inResult = empty($condition['status']) ? $inStatus : [$inStatus, $transmitStatus];
+            $notInResult = empty($condition['status']) ? $notInStatus : [$notInStatus, $transmitStatus];
+            switch ($condition['operating_state']) {
+                case 'VIEW' :
+                    $where['a.status'] = $notInResult;
+                    break;
+                case 'HANDLE' :
+                    $where['a.status'] = $inResult;
+                    break;
+                case 'URGE' :
+                    $where['a.status'] = $inResult;
+                    $where['b.id'] = ['gt', 0];
             }
         }
         
         if (!empty($condition['buyer_code'])) {
-            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+            $where['a.buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
         
         if (!empty($condition['country_bn'])) {
-            $where['country_bn'] = $condition['country_bn'];    //国家
+            $where['a.country_bn'] = $condition['country_bn'];    //国家
         }
 
         if (!empty($condition['serial_no'])) {
-            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
+            $where['a.serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
         }
         
         if (!empty($condition['buyer_name'])) {
-            $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
+            $where['a.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
         }
         
         if (!empty($condition['buyer_code'])) {
-            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+            $where['a.buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
 
         if (!empty($condition['buyer_inquiry_no'])) {
-            $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
+            $where['a.buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
         if (isset($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
+            $where['a.agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
         if (isset($condition['quote_id'])) {
-            $where['quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
+            $where['a.quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
         
         if (isset($condition['contract_inquiry_id'])) {
             if($condition['contract_no'] == 'Y'){
-                $where['id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
+                $where['a.id'] = ['in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号存在
             } else {
-                $where['id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
+                $where['a.id'] = ['not in', $condition['contract_inquiry_id'] ? : ['-1']]; //销售合同号不存在
             }
         }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
-            $where['created_at'] = [
+            $where['a.created_at'] = [
                 ['egt', date('Y-m-d H:i:s', $condition['start_time'])],
                 ['elt', date('Y-m-d H:i:s', $condition['end_time'] + 24 * 3600 - 1)]
             ];
@@ -194,11 +221,11 @@ class InquiryModel extends PublicModel {
             
             switch ($condition['list_type']) {
                 case 'inquiry' :
-                    $map[] = ['created_by' => $condition['user_id']];
+                    $map[] = ['a.created_by' => $condition['user_id']];
                     
                     //foreach ($condition['role_no'] as $roleNo) {
                         //if ($roleNo == self::marketAgentRole) {
-                            $map[] = ['agent_id' => $condition['user_id']];
+                            $map[] = ['a.agent_id' => $condition['user_id']];
                         //}
                     //}
                     break;
@@ -207,7 +234,7 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
                             
-                            if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
+                            if ($orgId) $map[] = ['a.erui_id' => ['in', $orgId]];
                         }
                     }
                     break;
@@ -216,20 +243,20 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
                 
-                            if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
+                            if ($orgId) $map[] = ['a.org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
+                            $where[] = ['a.country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                     }
                     break;
                 case 'quote' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
-                            $map[] = ['quote_id' => $condition['user_id']];
+                            $map[] = ['a.quote_id' => $condition['user_id']];
                         }
                         if ($roleNo == self::quoteCheckRole) {
-                            $map[] = ['check_org_id' => $condition['user_id']];
+                            $map[] = ['a.check_org_id' => $condition['user_id']];
                         }
                     }
                     break;
@@ -238,16 +265,16 @@ class InquiryModel extends PublicModel {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                             
-                            if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
+                            if ($orgId) $map[] = ['a.logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiIssueAuxiliaryRole) {
-                            $where[] = ['country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
+                            $where[] = ['a.country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                         if ($roleNo == self::logiQuoterRole) {
-                            $map[] = ['logi_agent_id' => $condition['user_id']];
+                            $map[] = ['a.logi_agent_id' => $condition['user_id']];
                         }
                         if ($roleNo == self::logiCheckRole) {
-                            $map[] = ['logi_check_id' => $condition['user_id']];
+                            $map[] = ['a.logi_check_id' => $condition['user_id']];
                         }
                     }
             }
@@ -255,7 +282,7 @@ class InquiryModel extends PublicModel {
             if ($map) {
                 $map['_logic'] = 'or';
             } else {
-                $map['id'] = '-1';
+                $map['a.id'] = '-1';
             }
             
             $where[] = $map;
@@ -278,7 +305,11 @@ class InquiryModel extends PublicModel {
         $where['deleted_flag'] = 'N';
     
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
-            $where['status'] = $condition['status'];    //项目状态
+            if ($condition['status'] == 'BIZ_QUOTING') {
+                $where['status'] = ['in', ['REJECT_QUOTING', 'BIZ_QUOTING']];
+            } else {
+                $where['status'] = $condition['status'];    //项目状态
+            }
         }
         if (!empty($condition['quote_status'])) {
             $where['quote_status'] = $condition['quote_status'];    //报价状态
@@ -363,11 +394,7 @@ class InquiryModel extends PublicModel {
      * @time 2017-10-19
      */
     public function getCount_($condition = []) {
-         
-        $where = $this->getWhere($condition);
-         
-        $count = $this->where($where)->count('id');
-         
+        $count = $this->getSqlJoint($condition)->count('a.id');
         return $count > 0 ? $count : 0;
     }
     
@@ -464,23 +491,36 @@ class InquiryModel extends PublicModel {
      * @desc 获取列表
      *
      * @param array $condition
-     * @param string $field
      * @return array
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList_($condition = [], $field = '*') {
-    
-        $where = $this->getWhere($condition);
-         
+    public function getList_($condition = []) {
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-         
-        return $this->field($field)
-                            ->where($where)
+        return $this->getSqlJoint($condition)
+                            ->field('a.*')
                             ->page($currentPage, $pageSize)
-                            ->order('updated_at DESC')
+                            ->order('a.updated_at DESC')
                             ->select();
+    }
+    
+    /**
+     * @desc 获取组装sql后的对象
+     *
+     * @param array $condition
+     * @return object
+     * @author liujf
+     * @time 2018-05-28
+     */
+    public function getSqlJoint($condition = []) {
+        $inquiryRemindModel = new InquiryRemindModel();
+        // 获取表名
+        $inquiryRemindTableName = $inquiryRemindModel->getTableName();
+        $where = $this->getWhere($condition);
+        return $this->alias('a')
+                            ->join($inquiryRemindTableName . ' b ON a.id = b.inquiry_id', 'LEFT') // 关联催办表
+                            ->where($where);
     }
     
     /**

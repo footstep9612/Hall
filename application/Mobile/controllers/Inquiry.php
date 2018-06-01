@@ -61,14 +61,13 @@ class InquiryController extends PublicController {
                 case 'Singapore':
                     return ['email' => 'lvxiao@keruigroup.com', 'name' => '吕潇', 'key' => ''];
                 case 'Indonesia':
-                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
-
+                    return ['email' => 'liujunfei@keruigroup.com', 'name' => '刘俊飞', 'key' => ''];
                 case 'India':
                     return ['email' => 'jianghongwei@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
                 case 'Myanmar':
                     return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
                 default :
-                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '李树林', 'key' => ''];
+                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
             }
         } else {
             switch ($country_bn) {
@@ -116,7 +115,7 @@ class InquiryController extends PublicController {
             if (!empty($email_arr['files_attach'])) {
                 $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
             }
-            $res = $this->send_Mail($arr['email'], 'You have search information from station M', $body, $email_arr['name'], $Attachment);
+            $res = $this->send_Mail($arr['email'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
             unlink($Attachment);
         } else {
             $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
