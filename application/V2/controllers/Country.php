@@ -362,7 +362,16 @@ class CountryController extends PublicController {
             if(!empty($countryName)){
                 $msg='';
                 foreach($countryName as $k => $v){
-                    $msg.=',该国家名称('.$v['lang'].')已存在';
+                    if($v['lang']=='zh'){
+                        $lang='中';
+                    }elseif($v['lang']=='en'){
+                        $lang='英';
+                    }elseif($v['lang']=='ru'){
+                        $lang='俄';
+                    }elseif($v['lang']=='es'){
+                        $lang='西';
+                    }
+                    $msg.=',该国家名称('.$lang.')已存在';
                 }
                 jsonReturn('', 0, substr($msg,1));
             }
@@ -512,7 +521,16 @@ class CountryController extends PublicController {
                     $end=$model->checkCountryName($str1);
                     $msg='';
                     foreach($end as $k => $v){
-                        $msg.=',该国家名称('.$v['lang'].')已存在';
+                        if($v['lang']=='zh'){
+                            $lang='中';
+                        }elseif($v['lang']=='en'){
+                            $lang='英';
+                        }elseif($v['lang']=='ru'){
+                            $lang='俄';
+                        }elseif($v['lang']=='es'){
+                            $lang='西';
+                        }
+                        $msg.=',该国家名称('.$lang.')已存在';
                     }
                     if(!empty($end)){
                         jsonReturn('', 0, substr($msg,1));

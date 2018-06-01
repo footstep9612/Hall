@@ -331,7 +331,6 @@ class CountryModel extends PublicModel {
     }
     public function updateCountry($data){
         $arr=[];
-
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
             $arr[$k]['code']=$data['code'];
@@ -343,10 +342,11 @@ class CountryModel extends PublicModel {
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
         }
-        $hehe=$this->field('bn')->where(array('id'=>$data['id']))->find();
-        $this->where(array('id'=>$data['id']))->save($arr['zh']);
+        $hehe=$this->field('id,bn')->where(array('id'=>$data['id']))->find();
+//        $this->where(array('id'=>$data['id']))->save($arr['zh']);
 //        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
-        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->delete();
+        $this->where("bn='$hehe[bn]'")->delete();
+        $info[]=$arr['zh'];
         $info[]=$arr['en'];
         $info[]=$arr['ru'];
         $info[]=$arr['es'];
