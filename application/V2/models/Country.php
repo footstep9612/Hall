@@ -237,6 +237,32 @@ class CountryModel extends PublicModel {
         }
         return true;
     }
+    public function checkArea($area_bn){
+        $cond=array('bn'=>$area_bn,'deleted_flag'=>'N');
+        $info=$this->table('erui_operation.market_area')->field('bn')->where($cond)->select();
+        if(empty($info)){
+            return false;
+        }
+        return true;
+    }
+    public function checkCountryBn($country_bn){
+        $cond=array('bn'=>$country_bn,'deleted_flag'=>'N');
+        $country=$this->field('bn')->where($cond)->select();
+        if(empty($country)){
+            return true;
+        }
+        return false;
+    }
+    public function checkCountryName($str){
+        $cond="deleted_flag='N' and name in ($str)";
+        $country=$this->field('name')
+            ->where($cond)
+            ->select();
+        if(empty($country)){
+            return true;
+        }
+        return false;
+    }
     public function updateCountryBn($country){
         $country=$this->field('id,bn')->where(array('deleted_flag'=>'N','bn'=>$country,'lang'=>'zh'))->find();
         return $country;
@@ -391,7 +417,7 @@ class CountryModel extends PublicModel {
                 $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_es'=>$v['name']));
             }
         }
-        return $flag;
+        return true;
     }
 
     /**

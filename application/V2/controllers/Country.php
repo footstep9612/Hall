@@ -9,15 +9,12 @@ class CountryController extends PublicController {
     protected $index = 'erui_dict';
     protected $es = '';
 
-    public function init() {
+    public function __init() {
+        parent::init();
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
 
         $this->es = new ESClient();
-    }
-
-    private function _init() {
-        parent::init();
     }
 
     /*
@@ -572,6 +569,7 @@ class CountryController extends PublicController {
     //口岸-港口
     public function portListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
         $model = new PortModel();
         $result = $model->portList($data);
         $dataJson['code'] = 1;
