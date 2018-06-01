@@ -250,7 +250,7 @@ class CountryModel extends PublicModel {
     }
     public function checkCountryName($str){
         $cond="deleted_flag='N' and name in ($str)";
-        $info=$this->field('name as country_name')
+        $info=$this->field('lang,name as country_name')
             ->where($cond)
             ->select();
         return $info;

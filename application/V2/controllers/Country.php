@@ -360,7 +360,11 @@ class CountryController extends PublicController {
             $str=substr($str,1);
             $countryName=$model->checkCountryName($str);
             if(!empty($countryName)){
-                jsonReturn('', 0, '该国家名称已存在');
+                $msg='';
+                foreach($countryName as $k => $v){
+                    $msg.=',该国家名称('.$v['lang'].')已存在';
+                }
+                jsonReturn('', 0, substr($msg,1));
             }
             $arr['country_name']=$countryArr;
         }
@@ -506,8 +510,12 @@ class CountryController extends PublicController {
                     $str1=substr($str1,1);
                 if(!empty($str1)){
                     $end=$model->checkCountryName($str1);
+                    $msg='';
+                    foreach($end as $k => $v){
+                        $msg.=',该国家名称('.$v['lang'].')已存在';
+                    }
                     if(!empty($end)){
-                        jsonReturn('', 0, '该国家名称已存在');
+                        jsonReturn('', 0, substr($msg,1));
                     }
                 }
                 $arr['country_name']=$aa;
