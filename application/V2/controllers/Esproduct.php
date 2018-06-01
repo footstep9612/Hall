@@ -577,9 +577,10 @@ class EsproductController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $spus = $this->getPut('spus');
+            $deleted_flag = $this->getPut('deleted_flag');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsProductModel();
-                $espoductmodel->importproducts($lang, $spus);
+                $espoductmodel->importproducts($lang, $spus, $deleted_flag);
             }
             $es = new ESClient();
             $es->refresh($this->index);

@@ -265,9 +265,10 @@ class EsgoodsController extends PublicController {
             set_time_limit(0);
             ini_set('memory_limi', '1G');
             $skus = $this->getPut('skus');
+            $deleted_flag = $this->getPut('deleted_flag');
             foreach ($this->langs as $lang) {
                 $espoductmodel = new EsGoodsModel();
-                $espoductmodel->importgoodss($lang, $skus);
+                $espoductmodel->importgoodss($lang, $skus, $deleted_flag);
             }
             $es = new ESClient();
             $es->refresh($this->index);
