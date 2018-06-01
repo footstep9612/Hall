@@ -359,6 +359,25 @@ class QuoteController extends PublicController{
         }
 
     }
+    
+    /**
+     * @desc 事业部审核退回事业部报价
+     *
+     * @author liujf
+     * @time 2018-05-29
+     */
+    public function rejectQuotingAction() {
+        $request = $this->validateRequests('inquiry_id');
+        $quoteId = $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('quote_id');
+        $data = [
+            'id' => $request['inquiry_id'],
+            'now_agent_id' => $quoteId,
+            'status' => 'REJECT_QUOTING',
+            'updated_by' => $this->user['id']
+        ];
+        $res = $this->inquiryModel->updateData($data);
+        $this->jsonReturn($res);
+    }
 
     /**
      * SKU列表

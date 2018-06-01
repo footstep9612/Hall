@@ -797,10 +797,10 @@ class BuyerModel extends PublicModel {
         $data['status'] = 'APPROVED';  //APPROVING
 //        $datajson = $this->create($data);
         $datajson = $data;
-//        if($create['is_group_crm'] == true){
-//            $group_status = $this->addGroupCrm($datajson);
-//            $datajson['group_status'] = $group_status;
-//        }
+        if($create['is_group_crm'] == true){
+            $group_status = $this->addGroupCrm($datajson);
+            $datajson['group_status'] = $group_status;
+        }
         $datajson['source']=1;
         try {
             $res = $this->add($datajson);
@@ -2921,7 +2921,7 @@ EOF;
         $sql='select ';
         $sql.=' buyer.id as buyer_id,buyer.buyer_no,buyer.name as buyer_name,buyer.buyer_code, ';
         $sql.='(select name from erui_operation.market_area where bn=country.market_area_bn  and lang=\'zh\') as area_name ,';
-        $sql.=' (select name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\' AND deleted_flag=\'N\') as country_name ,';
+        $sql.=' (select DISTINCT name from erui_dict.country where bn=buyer.country_bn and lang=\'zh\' AND deleted_flag=\'N\') as country_name ,';
         $sql.=' buyer.source,buyer.is_build,buyer.status,buyer.created_at,buyer.checked_at, ';
         $sql.=' (select buyer_level from erui_config.buyer_level where deleted_flag=\'N\' and id=buyer.buyer_level) as buyer_level, ';
         $sql.=' buyer.intent_product ';
