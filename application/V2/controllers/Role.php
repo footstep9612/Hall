@@ -45,7 +45,8 @@ class RoleController extends PublicController {
         $dataJson['code '] = 1;
         $dataJson['message'] = '角色配置列表';
         $dataJson['data'] = $res;
-        $this->jsonReturn($dataJson);
+        exit(json_encode($dataJson));
+//        $this->jsonReturn($dataJson);
     }
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
