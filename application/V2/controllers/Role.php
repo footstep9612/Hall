@@ -317,6 +317,13 @@ class RoleController extends PublicController {
             $where['id'] = $data['id'];
             $role_arr['role_id'] = $data['id'];
         }
+        if (empty($data['attr_id'])) {  //属性id
+            $datajson['code'] =0;
+            $datajson['message'] = '请选择角色的归属分类';
+            $this->jsonReturn($datajson);
+        }else{
+            $role_arr['attr_id'] = $data['attr_id'];
+        }
         $model_rolo = new RoleModel();
         if (!empty($data['role_no'])) {
             $roleinfo = $model_rolo->where(['role_no' => $data['role_no'], 'id' => ['neq', $data['id']], 'deleted_flag' => 'N'])->find();
