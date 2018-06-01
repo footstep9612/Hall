@@ -80,6 +80,7 @@ class RoleController extends PublicController {
             }
         }
         $where['role.deleted_flag'] = "N";
+        $where['role.attr_id'] = ['neq',0];
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
 
