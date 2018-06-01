@@ -815,13 +815,17 @@ class EsProductModel extends Model {
      * @desc   ES 产品
      */
 
-    public function importproducts($lang = 'en', $product_spus = []) {
+    public function importproducts($lang = 'en', $product_spus = [], $deleted_flag = null) {
         try {
             $max_id = 0;
             $where_count = ['lang' => $lang, 'id' => ['gt', 0]];
             if ($product_spus) {
                 $where_count['spu'] = ['in', $product_spus];
             }
+            if ($deleted_flag) {
+                $where_count['deleted_flag'] = $deleted_flag == 'Y' ? 'Y' : 'N';
+            }
+
             $count = $this->where($where_count)->count('id');
 
 
@@ -845,6 +849,9 @@ class EsProductModel extends Model {
                 }
                 if ($product_spus) {
                     $where['spu'] = ['in', $product_spus];
+                }
+                if ($deleted_flag) {
+                    $where['deleted_flag'] = $deleted_flag == 'Y' ? 'Y' : 'N';
                 }
                 $products = $this->where($where)->limit(0, 100)
                                 ->order('id ASC')->select();
@@ -1065,19 +1072,26 @@ class EsProductModel extends Model {
             foreach ($attrs_arr as $key => $items) {
                 if (is_array($items)) {
                     foreach ($items as $name => $value) {
-                        if (!in_array(['name' => strtolower(trim($name)),
-                                    'value' => strtolower(trim($value))], $ret) && !empty($name) && !empty($value) && $value != '/') {
-                            $ret[] = ['name' => strtolower(trim($name)),
-                                'value' => strtolower(trim($value))];
-                        }
+                        !in_array(['name' => $this->_filter($name),
+                                    'value' => $this->_filter($value)], $ret) && !empty($name) && !empty($value) && $value != '/' ? $ret[] = ['name' => $this->_filter($name),
+                                    'value' => $this->_filter($value)] : '';
                     }
                 } elseif (is_string($items) && !empty($key) && !empty($items)) {
-                    $ret[] = ['name' => strtolower(trim($key)),
-                        'value' => strtolower(trim($items))];
+                    $ret[] = ['name' => $this->_filter($key),
+                        'value' => $this->_filter($items)];
                 }
             }
         }
         return $ret;
+    }
+
+    private function _filter($htmlval) {
+
+        $val = htmlspecialchars_decode($htmlval);
+        $rval = str_replace("\r", '', $val);
+        $nval = str_replace("\n", '', $rval);
+        $tval = str_replace("\t", '', $nval);
+        return strtolower(trim($tval));
     }
 
     /*

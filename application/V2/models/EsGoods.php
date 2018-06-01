@@ -510,13 +510,16 @@ class EsGoodsModel extends Model {
      * @desc   ES 商品
      */
 
-    public function importgoodss($lang = 'en', $goods_skus = []) {
+    public function importgoodss($lang = 'en', $goods_skus = [], $deleted_flag = null) {
         try {
             ob_clean();
             $max_id = 0;
             $where_count = ['lang' => $lang, 'deleted_flag' => 'N', 'id' => ['gt', 0]];
             if ($goods_skus) {
                 $where_count['sku'] = ['in', $goods_skus];
+            }
+            if ($deleted_flag) {
+                $where_count['deleted_flag'] = $deleted_flag == 'Y' ? 'Y' : 'N';
             }
             $count = $this->where($where_count)->count('id');
             $espoducmodel = new EsProductModel();
@@ -540,7 +543,7 @@ class EsGoodsModel extends Model {
                 flush();
 
                 $time1 = microtime(true);
-                $where = ['deleted_flag' => 'N', 'lang' => $lang];
+                $where = ['lang' => $lang];
 
                 if ($max_id === 0) {
                     $where['id'] = ['gt', 0];
@@ -549,6 +552,9 @@ class EsGoodsModel extends Model {
                 }
                 if ($goods_skus) {
                     $where['sku'] = ['in', $goods_skus];
+                }
+                if ($deleted_flag) {
+                    $where['deleted_flag'] = $deleted_flag == 'Y' ? 'Y' : 'N';
                 }
                 $goods = $this->where($where)->limit(0, 100)->order('id ASC')->select();
                 $nonamespus = $spus = $skus = [];
@@ -834,11 +840,20 @@ class EsGoodsModel extends Model {
         $ret = [];
         if ($attrs_arr) {
             foreach ($attrs_arr as $name => $value) {
-                $ret[] = ['name' => strtolower(trim($name)),
-                    'value' => strtolower(trim($value))];
+                $ret[] = ['name' => $this->_filter($name),
+                    'value' => $this->_filter($value)];
             }
         }
         return $ret;
+    }
+
+    private function _filter($htmlval) {
+
+        $val = htmlspecialchars_decode($htmlval);
+        $rval = str_replace("\r", '', $val);
+        $nval = str_replace("\n", '', $rval);
+        $tval = str_replace("\t", '', $nval);
+        return strtolower(trim($tval));
     }
 
     /*
