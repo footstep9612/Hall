@@ -42,11 +42,10 @@ class RoleController extends PublicController {
 //        $data = json_decode(file_get_contents("php://input"), true);
         $model=new RoleModel();
         $res=$model->sortRole();
-        $dataJson['code '] = 1;
+        $dataJson['code'] = 1;
         $dataJson['message'] = '角色配置列表';
         $dataJson['data'] = $res;
-        exit(json_encode($dataJson));
-//        $this->jsonReturn($dataJson);
+        $this->jsonReturn($dataJson);
     }
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
