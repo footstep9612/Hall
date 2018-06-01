@@ -311,7 +311,7 @@ class CountryController extends PublicController {
         }else{
             $arr['area_bn'] = trim($data['area_bn'],' ');
             $area=$model->checkArea($arr['area_bn']);
-            if($area===false){
+            if(empty($area)){
                 jsonReturn('', 0, '暂无该地区');  //暂无该地区
             }
         }
@@ -320,7 +320,7 @@ class CountryController extends PublicController {
         }else{
             $arr['country_bn'] = trim($data['country_bn'],' ');
             $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if($countryBn===false){
+            if(!empty($countryBn)){
                 jsonReturn('', 0, '该国家简称已存在');
             }
         }
@@ -359,7 +359,7 @@ class CountryController extends PublicController {
             }
             $str=substr($str,1);
             $countryName=$model->checkCountryName($str);
-            if($countryName===false){
+            if(!empty($countryName)){
                 jsonReturn('', 0, '该国家名称已存在');
             }
             $arr['country_name']=$countryArr;
@@ -393,36 +393,6 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    public function countryAdminAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $model = new CountryModel();
-        $result = $model->countryAdmin($data);
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '国家管理列表';
-        $dataJson['current_page '] = $result['current_page'];
-        $dataJson['total_count'] = $result['total_count'];
-        $dataJson['data'] = $result['info'];
-        $this->jsonReturn($dataJson);
-    }
-    public function showCountryAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $model = new CountryModel();
-        $result = $model->showCountry($data);
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '查看国家信息';
-        $dataJson['data'] = $result;
-        $this->jsonReturn($dataJson);
-    }
-    public function delCountryAction() {
-        $data = json_decode(file_get_contents("php://input"), true);
-        $model = new CountryModel();
-        $result = $model->delCountry($data);
-        $dataJson['code'] = 1;
-        $dataJson['message'] = '成功';
-        $dataJson['data'] = $result;
-        $this->jsonReturn($dataJson);
-    }
-
     public function updateAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new CountryModel();
@@ -447,7 +417,7 @@ class CountryController extends PublicController {
             $countryBn=$model->updateCountryBn($arr['country_bn']);
             if($countryBn['id']!=$data['id']){
                 $bn=$model->checkCountryBn($arr['country_bn']);
-                if($bn===false){
+                if(!empty($bn)){
                     jsonReturn('', 0, '该国家简称已存在');
                 }
             }
@@ -486,6 +456,8 @@ class CountryController extends PublicController {
         if (!empty($data['country_name_es'])) { //国家名称
             $arr['country_name']['es']=$data['country_name_es'];
         }
+
+
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
         }else{
@@ -524,16 +496,17 @@ class CountryController extends PublicController {
 //
 //                }
                 $ee=array_diff($aa,$zz);
-                if(!empty($ee)){
+
                     $str1='';
-                    foreach($ee as $k => &$v){
+                    foreach($ee as $k => $v){
                         if(!empty($v)){
                             $str1.=",'".$v."'";
                         }
                     }
                     $str1=substr($str1,1);
+                if(!empty($str1)){
                     $end=$model->checkCountryName($str1);
-                    if($end===false){
+                    if(!empty($end)){
                         jsonReturn('', 0, '该国家名称已存在');
                     }
                 }
@@ -549,6 +522,39 @@ class CountryController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->jsonReturn();
         }
+    }
+
+
+
+    public function countryAdminAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $model = new CountryModel();
+        $result = $model->countryAdmin($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '国家管理列表';
+        $dataJson['current_page '] = $result['current_page'];
+        $dataJson['total_count'] = $result['total_count'];
+        $dataJson['data'] = $result['info'];
+        $this->jsonReturn($dataJson);
+    }
+    public function showCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->showCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '查看国家信息';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    public function delCountryAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CountryModel();
+        $result = $model->delCountry($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '成功';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
     }
     public function countryTestAction() {
         $model = new CountryModel();
