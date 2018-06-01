@@ -209,8 +209,10 @@ class SupplierloginController extends SupplierpublicController {
             $account_id = $check[0]['id'];
             redisHashSet('reset_supplier_password_key', $data_key['key'], $account_id, 86400);
             $config_obj = Yaf_Registry::get("config");
-            $config_alliance = $config_obj->alliance->toArray();
-            $email_arr['url'] = $config_alliance['url'];  //添加供应商域名
+
+            $config_alliance = $config_obj->alliance->toArray();  //添加供应商域名
+
+            $email_arr['url'] = $config_alliance['url'];
             $email_arr['key'] = $data_key['key'];
             $email_arr['user_name'] = $check[0]['user_name'];
             $title = 'Erui.com';
