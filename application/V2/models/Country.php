@@ -335,11 +335,11 @@ class CountryModel extends PublicModel {
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
             $arr[$k]['code']=$data['code'];
-            $arr[$k]['name']=$data['country_name'][$k];
-            $arr[$k]['name_en']=$data['country_name']['en'];
-            $arr[$k]['name_ru']=$data['country_name']['ru'];
-            $arr[$k]['name_es']=$data['country_name']['es'];
-            $arr[$k]['bn']=$data['country_bn'];
+            $arr[$k]['name']=$data['country_name'][$k]?$data['country_name'][$k]:null;
+            $arr[$k]['name_en']=$data['country_name']['en']?$data['country_name']['en']:null;
+            $arr[$k]['name_ru']=$data['country_name']['ru']?$data['country_name']['ru']:null;
+            $arr[$k]['name_es']=$data['country_name']['es']?$data['country_name']['es']:null;
+//            $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
             $arr[$k]['source']=$data['source'];
