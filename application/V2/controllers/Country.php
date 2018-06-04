@@ -317,29 +317,33 @@ class CountryController extends PublicController {
                 jsonReturn('', 0, '暂无该地区');  //暂无该地区
             }
         }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家名称(英)不可为空');
-        }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if(!empty($countryBn)){
-                jsonReturn('', 0, '该国家名称(英)');
-            }
-        }
         if (empty($data['country_name_zh'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+            jsonReturn('', 0,'国家名称(中)不可为空');
         }else{
             $arr['country_name']['zh']=$data['country_name_zh'];
         }
-        if (!empty($data['country_name_en'])) { //国家名称
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
             $arr['country_name']['en']=$data['country_name_en'];
         }
+         
         if (!empty($data['country_name_ru'])) { //国家名称
             $arr['country_name']['ru']=$data['country_name_ru'];
         }
         if (!empty($data['country_name_es'])) { //国家名称
             $arr['country_name']['es']=$data['country_name_es'];
         }
+        if (empty($data['country_bn'])) { //国家简称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
+            $arr['country_bn'] = trim($data['country_bn'],' ');
+            $countryBn=$model->checkCountryBn($arr['country_bn']);
+            if(!empty($countryBn)){
+                jsonReturn('', 0, '该国家名称(英)已存在');
+            }
+        }
+
 
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
