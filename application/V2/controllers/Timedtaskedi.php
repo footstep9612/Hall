@@ -115,6 +115,7 @@ class TimedtaskediController extends PublicController{
                              'sign' => 1,
                              'checked_by' => '1001',
                              'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
+                             'credit_at' => date('Y-m-d H:i:s',time()),
                              'out_status' => 'EDI_APPROVED'
                          ];
                          $this->buyerCreditLogModel->create_data($log_arr);
@@ -138,6 +139,7 @@ class TimedtaskediController extends PublicController{
                                  'sign' => 1,
                                  'checked_by' => '1001',
                                  'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
+                                 'credit_at' => date('Y-m-d H:i:s',time()),
                                  'out_remarks' => $item['unAcceptReason'],
                                  'out_status' => 'EDI_REJECTED'
                              ];
@@ -209,6 +211,7 @@ class TimedtaskediController extends PublicController{
                             'sign' => 2,
                             'checked_by' => '1001',
                             'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
+                            'credit_at' => date('Y-m-d H:i:s',time()),
                             'out_status' => 'EDI_APPROVED'
                         ];
                         $a =$this->buyerCreditLogModel->create_data($log_arr);
@@ -232,6 +235,7 @@ class TimedtaskediController extends PublicController{
                                 'sign' => 2,
                                 'checked_by' => '1001',
                                 'checked_at' => date('Y-m-d H:i:s', strtotime($item['notifyTime'])),
+                                'credit_at' => date('Y-m-d H:i:s',time()),
                                 'out_remarks' => $item['unAcceptReason'],
                                 'out_status' => 'EDI_REJECTED'
                             ];
