@@ -306,7 +306,6 @@ class CountryController extends PublicController {
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['source']=$this->user['id'].':'.date('YmdHis');
-        $arr['country_bn']=$data['country_name_en'];
         $model = new CountryModel();
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
@@ -325,23 +324,18 @@ class CountryController extends PublicController {
         if (empty($data['country_name_en'])) { //国家名称
             jsonReturn('', 0,'国家名称(英)不可为空');
         }else{
+            $arr['country_bn']=$data['country_name_en'];
             $arr['country_name']['en']=$data['country_name_en'];
+            $countryBn=$model->checkCountryBn($arr['country_bn']);
+            if(!empty($countryBn)){
+                jsonReturn('', 0, '该国家名称(英)已存在');
+            }
         }
-         
         if (!empty($data['country_name_ru'])) { //国家名称
             $arr['country_name']['ru']=$data['country_name_ru'];
         }
         if (!empty($data['country_name_es'])) { //国家名称
             $arr['country_name']['es']=$data['country_name_es'];
-        }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家名称(英)不可为空');
-        }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if(!empty($countryBn)){
-                jsonReturn('', 0, '该国家名称(英)已存在');
-            }
         }
 
 
@@ -463,12 +457,15 @@ class CountryController extends PublicController {
         if(!empty($data['code'])){
             $arr['code']=strtoupper(trim($data['code'],' '));
         }
+
         if (empty($data['country_name_zh'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+            jsonReturn('', 0,'国家名称(中)不可为空');
         }else{
             $arr['country_name']['zh']=$data['country_name_zh'];
         }
-        if (!empty($data['country_name_en'])) { //国家名称
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
             $arr['country_name']['en']=$data['country_name_en'];
         }
         if (!empty($data['country_name_ru'])) { //国家名称

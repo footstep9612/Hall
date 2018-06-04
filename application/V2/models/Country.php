@@ -245,7 +245,7 @@ class CountryModel extends PublicModel {
     }
     public function checkCountryBn($country_bn){
         $cond=array('bn'=>$country_bn,'deleted_flag'=>'N');
-        $info=$this->field('bn as country_bn')->where($cond)->select();
+        $info=$this->field('id,lang,bn as country_bn')->where($cond)->select();
         return $info;
     }
     public function checkCountryName($str){
