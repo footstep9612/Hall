@@ -306,6 +306,7 @@ class CountryController extends PublicController {
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['source']=$this->user['id'].':'.date('YmdHis');
+        $arr['country_bn']=$data['country_name_en'];
         $model = new CountryModel();
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
@@ -317,12 +318,12 @@ class CountryController extends PublicController {
             }
         }
         if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家简称不可为空');
+            jsonReturn('', 0,'国家名称(英)不可为空');
         }else{
             $arr['country_bn'] = trim($data['country_bn'],' ');
             $countryBn=$model->checkCountryBn($arr['country_bn']);
             if(!empty($countryBn)){
-                jsonReturn('', 0, '该国家简称已存在');
+                jsonReturn('', 0, '该国家名称(英)');
             }
         }
         if (empty($data['country_name_zh'])) { //国家名称
@@ -426,19 +427,19 @@ class CountryController extends PublicController {
                 jsonReturn('', 0, '暂无该地区');  //暂无该地区
             }
         }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家简称不可为空');
-        }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->updateCountryBn($arr['country_bn']);
-            if($countryBn['id']!=$data['id']){
-                $bn=$model->checkCountryBn($arr['country_bn']);
-                if(!empty($bn)){
-                    jsonReturn('', 0, '该国家简称已存在');
-                }
-            }
-
-        }
+//        if (empty($data['country_bn'])) { //国家简称
+//            jsonReturn('', 0,'国家简称不可为空');
+//        }else{
+//            $arr['country_bn'] = trim($data['country_bn'],' ');
+//            $countryBn=$model->updateCountryBn($arr['country_bn']);
+//            if($countryBn['id']!=$data['id']){
+//                $bn=$model->checkCountryBn($arr['country_bn']);
+//                if(!empty($bn)){
+//                    jsonReturn('', 0, '该国家简称已存在');
+//                }
+//            }
+//
+//        }
         if (!empty($data['tel_code'])) { //电话区号
             $tel = trim($data['tel_code'],' ');
             $telArr=str_split($tel);

@@ -345,14 +345,20 @@ class CountryModel extends PublicModel {
             $arr[$k]['source']=$data['source'];
         }
         $hehe=$this->field('id,bn')->where(array('id'=>$data['id']))->find();
+        foreach($arr as $k => $v){
+            $this->where(array('lang'=>$k,'bn'=>$hehe['bn']))->save($v);
+        }
 //        $this->where(array('id'=>$data['id']))->save($arr['zh']);
 //        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
-        $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
-        $info[]=$arr['zh'];
-        $info[]=$arr['en'];
-        $info[]=$arr['ru'];
-        $info[]=$arr['es'];
-        $res=$this->addAll($info);
+//        $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
+//        $info[]=$arr['zh'];
+//        $info[]=$arr['en'];
+//        $info[]=$arr['ru'];
+//        $info[]=$arr['es'];
+//        foreach($info as $k => $v){
+//            $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
+//        }
+//        $res=$this->addAll($info);
 
         $areaInfo['market_area_bn']=$data['area_bn'];
         $areaInfo['country_bn']=$data['country_bn'];
