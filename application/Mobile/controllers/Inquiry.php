@@ -57,33 +57,33 @@ class InquiryController extends PublicController {
         if (CONFBDP === 'local' || CONFBDP === 'dev' || CONFBDP === 'beta') {
             switch ($country_bn) {
                 case 'Thailand':
-                    ['email' => 'zhangren@keruigroup.com', 'name' => '张仁', 'key' => ''];
+                    ['email' => 'zhangren@keruigroup.com', 'email1' => 'wangjibin@keruigroup.com', 'name' => '张仁', 'key' => ''];
                 case 'Singapore':
-                    return ['email' => 'lvxiao@keruigroup.com', 'name' => '吕潇', 'key' => ''];
+                    return ['email' => 'lvxiao@keruigroup.com', 'email1' => 'wangjibin@keruigroup.com', 'name' => '吕潇', 'key' => ''];
                 case 'Indonesia':
-                    return ['email' => 'liujunfei@keruigroup.com', 'name' => '刘俊飞', 'key' => ''];
+                    return ['email' => 'liujunfei@keruigroup.com', 'email1' => 'wangjibin@keruigroup.com', 'name' => '刘俊飞', 'key' => ''];
                 case 'India':
-                    return ['email' => 'jianghongwei@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
+                    return ['email' => 'jianghongwei@keruigroup.com', 'email1' => 'wangjibin@keruigroup.com', 'name' => '姜红伟', 'key' => ''];
                 case 'Myanmar':
-                    return ['email' => 'zhongyg@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
+                    return ['email' => 'zhongyg@keruigroup.com', 'email1' => 'wangjibin@keruigroup.com', 'name' => '钟银桂', 'key' => ''];
                 default :
-                    return ['email' => 'wangjibin@keruigroup.com', 'name' => '王继宾', 'key' => ''];
+                    return ['email' => 'wangjibin@keruigroup.com', 'email1' => '', 'name' => '王继宾', 'key' => ''];
             }
         } else {
             switch ($country_bn) {
                 case 'Thailand':
-                    ['email' => 'thailand@erui.com', 'name' => 'thailand@erui.com', 'key' => ''];
+                    ['email' => 'thailand@erui.com', 'email1' => 'sales@erui.com', 'name' => 'thailand@erui.com', 'key' => ''];
                 case 'Singapore':
-                    return ['email' => 'singappre@erui.com', 'name' => 'singappre@erui.com', 'key' => ''];
+                    return ['email' => 'singappre@erui.com', 'email1' => 'sales@erui.com', 'name' => 'singappre@erui.com', 'key' => ''];
                 case 'Indonesia':
-                    return ['email' => 'hulz@erui.com', 'name' => '胡立忠', 'key' => ''];
+                    return ['email' => 'hulz@erui.com', 'email1' => 'sales@erui.com', 'name' => '胡立忠', 'key' => ''];
 
                 case 'India':
-                    return ['email' => 'yicl@keruigroup.com', 'name' => '衣春霖', 'key' => ''];
+                    return ['email' => 'yicl@keruigroup.com', 'email1' => 'sales@erui.com', 'name' => '衣春霖', 'key' => ''];
                 case 'Myanmar':
-                    return ['email' => 'zhangwei07@keruigroup.com', 'name' => '张伟', 'key' => ''];
+                    return ['email' => 'zhangwei07@keruigroup.com', 'email1' => 'sales@erui.com', 'name' => '张伟', 'key' => ''];
                 default :
-                    return ['email' => 'sales@erui.com', 'name' => 'sales@erui.com', 'key' => ''];
+                    return ['email' => 'sales@erui.com', 'email1' => '', 'name' => 'sales@erui.com', 'key' => ''];
             }
         }
     }
@@ -115,11 +115,11 @@ class InquiryController extends PublicController {
             if (!empty($email_arr['files_attach'])) {
                 $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
             }
-            $res = $this->send_Mail($arr['email'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
+            $res = $this->send_Mail($arr['email'], $arr['email1'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
             unlink($Attachment);
         } else {
             $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
-            $res = $this->send_Mail($arr['email'], 'You have new inquiry information from the Erui M station', $body, $email_arr['name']);
+            $res = $this->send_Mail($arr['email'], $arr['email1'], 'You have new inquiry information from the Erui M station', $body, $email_arr['name']);
         }
         if ($res['code'] == 1) {
             return true;
@@ -152,7 +152,7 @@ class InquiryController extends PublicController {
         return $dirName . '.zip';
     }
 
-    function send_Mail($to, $title, $body, $name = null, $Attachment = null) {
+    function send_Mail($to, $cc, $title, $body, $name = null, $Attachment = null) {
         $mail = new PHPMailer(true);
         $mail->IsSMTP(); // 使用SMTP
         $config_obj = Yaf_Registry::get("config");
@@ -166,6 +166,10 @@ class InquiryController extends PublicController {
             $mail->Username = $config_db['username']; //SMTP服务器的用户帐号
             $mail->Password = $config_db['password'];        //SMTP服务器的用户密码
             $mail->AddAddress($to, $name); //收件人如果多人发送循环执行AddAddress()方法即可 还有一个方法时清除收件人邮箱ClearAddresses()
+
+            if (!empty($cc)) {
+                $mail->AddCC($cc);
+            }
             $mail->SetFrom($config_db['setfrom'], 'ERUI'); //发件人的邮箱
             if (!empty($Attachment)) {
                 $mail->AddAttachment($Attachment);      // 添加附件,如果有多个附件则重复执行该方法
