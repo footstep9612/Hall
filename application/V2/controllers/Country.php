@@ -590,10 +590,10 @@ class CountryController extends PublicController {
         $model = new CountryModel();
         $result = $model->countryTest();
         $dataJson['code'] = 1;
-        $dataJson['message'] = '国家管理列表';
-        $dataJson['data'] = $result;
+        $dataJson['message'] = 'ok';
         $this->jsonReturn($dataJson);
     }
+
     public function portTestAction() {
         $model = new PortModel();
         $result = $model->portTest();
@@ -677,7 +677,7 @@ class CountryController extends PublicController {
         $model = new PortModel();
         $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
         if(!empty($bn)){
-            jsonReturn('', 0, '港口简称已存在');
+            jsonReturn('', 0, '英文名称已存在');
         }
         $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
         if(!empty($zh)){
@@ -724,31 +724,25 @@ class CountryController extends PublicController {
 
         $model = new PortModel();
         $arr=$model->field('bn as port_bn,name as port_name_zh,name_en as port_name_en')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
-//        $zz['port_bn']=$data['port_bn'];
+        $port_bn=$arr['port_bn'];
+        unset($arr['port_bn']);
         $zz['port_name_zh']=$data['port_name_zh'];
         $zz['port_name_en']=$data['port_name_en'];
+        if($zz!=$arr){
+            if($data['port_name_zh']!=$arr['port_name_zh']){
+                $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
+                if(!empty($zh)){
+                    jsonReturn('', 0, '中文名称已存在');
+                }
 
-
-
-//        if($zz!=$arr){
-//            if($data['port_bn']!=$arr['port_bn']){
-//                $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
-//                if(!empty($bn)){
-//                    jsonReturn('', 0, '港口简称已存在');
-//                }
-//            }elseif($data['port_name_zh']!=$arr['port_name_zh']){
-//                $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
-//                if(!empty($zh)){
-//                    jsonReturn('', 0, '中文名称已存在');
-//                }
-//
-//            }elseif($data['port_name_en']!=$arr['port_name_en']){
-//                $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
-//                if(!empty($en)){
-//                    jsonReturn('', 0, '英文名称已存在');
-//                }
-//            }
-//        }
+            }
+            if($data['port_name_en']!=$arr['port_name_en']){
+                $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
+                if(!empty($en)){
+                    jsonReturn('', 0, '英文名称已存在');
+                }
+            }
+        }
         $result = $model->updatePort($data);
         if($result){
             $dataJson['code'] = 1;

@@ -384,7 +384,7 @@ class PortModel extends PublicModel {
         $cc=$this->field('bn')->where(array('bn'=>$bn['bn'],'deleted_flag'=>'N'))->select();
         $zh=[
             'country_bn'=>$data['country_bn'],
-            'bn'=>$data['port_bn'],
+//            'bn'=>$data['port_bn'],
             'name'=>$data['port_name_zh'],
             'name_en'=>$data['port_name_en'],
             'port_type'=>$data['port_type'],
@@ -395,7 +395,7 @@ class PortModel extends PublicModel {
 
         $en=[
             'country_bn'=>$data['country_bn'],
-            'bn'=>$data['port_bn'],
+//            'bn'=>$data['port_bn'],
             'name'=>$data['port_name_en'],
             'name_en'=>$data['port_name_en'],
             'port_type'=>$data['port_type'],
