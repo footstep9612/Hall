@@ -181,7 +181,25 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
-
+    public function getUserRoleAction() {       //ww
+        $data = json_decode(file_get_contents("php://input"), true);
+        if ($data['user_id']) {
+            $user_id = $data['user_id'];
+        } else {
+            $user_id = $this->user['id'];
+        }
+        $role_user_modle = new RoleUserModel();
+        $data = $role_user_modle->getUserRole($user_id);
+        if (!empty($data)) {
+            $datajson['code'] = 1;
+            $datajson['message'] = '用户角色列表';
+            $datajson['data'] = $data;
+        } else {
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
     /*
      * 用户国家列表
      *

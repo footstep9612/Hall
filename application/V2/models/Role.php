@@ -120,7 +120,7 @@ class RoleModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             $row = $this->where($where)
-                    ->field('id,role_no,admin_show,role_group,name,name_en,remarks,created_by,created_at,status')
+                    ->field('id,attr_id,role_no,admin_show,role_group,name,name_en,remarks,created_by,created_at,status')
                     ->find();
             return $row;
         } else {

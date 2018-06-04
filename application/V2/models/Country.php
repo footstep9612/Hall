@@ -237,6 +237,24 @@ class CountryModel extends PublicModel {
         }
         return true;
     }
+    ////////////////////////////////////////////////////////////////////////////////
+    public function checkArea($area_bn){
+        $cond=array('bn'=>$area_bn,'deleted_flag'=>'N');
+        $info=$this->table('erui_operation.market_area')->field('bn as area_bn')->where($cond)->select();
+        return $info;
+    }
+    public function checkCountryBn($country_bn){
+        $cond=array('bn'=>$country_bn,'deleted_flag'=>'N');
+        $info=$this->field('bn as country_bn')->where($cond)->select();
+        return $info;
+    }
+    public function checkCountryName($str){
+        $cond="deleted_flag='N' and name in ($str)";
+        $info=$this->field('lang,name as country_name')
+            ->where($cond)
+            ->select();
+        return $info;
+    }
     public function updateCountryBn($country){
         $country=$this->field('id,bn')->where(array('deleted_flag'=>'N','bn'=>$country,'lang'=>'zh'))->find();
         return $country;
@@ -313,7 +331,6 @@ class CountryModel extends PublicModel {
     }
     public function updateCountry($data){
         $arr=[];
-
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
             $arr[$k]['code']=$data['code'];
@@ -325,9 +342,11 @@ class CountryModel extends PublicModel {
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
         }
-        $hehe=$this->field('bn')->where(array('id'=>$data['id']))->find();
-        $this->where(array('id'=>$data['id']))->save($arr['zh']);
-        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
+        $hehe=$this->field('id,bn')->where(array('id'=>$data['id']))->find();
+//        $this->where(array('id'=>$data['id']))->save($arr['zh']);
+//        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
+        $this->where("bn='$hehe[bn]'")->delete();
+        $info[]=$arr['zh'];
         $info[]=$arr['en'];
         $info[]=$arr['ru'];
         $info[]=$arr['es'];
@@ -354,19 +373,22 @@ class CountryModel extends PublicModel {
     public function countryAdmin($data=[]){
         $cond=$this->getCountryCond($data);
         $page=isset($data['current_page'])?$data['current_page']:1;
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $offsize=($page-1)*10;
         $count=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
             ->field('country.id,country.bn as country_bn,country.name,country.name_en,country.name_ru,country.name_es,area.name as area_name')
             ->where($cond)
+
+
 //            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
             ->count();
         $field='country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name';
         $field.=",(select count(*) from erui_dict.port port where port.country_bn=country.bn and port.deleted_flag='N' and port.lang='zh') as port_count";
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
-            ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
+            ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='$lang'",'left')
             ->field($field)
             ->where($cond)
             ->order('country.id desc')
@@ -391,7 +413,7 @@ class CountryModel extends PublicModel {
                 $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_es'=>$v['name']));
             }
         }
-        return $flag;
+        return true;
     }
 
     /**
