@@ -36,8 +36,8 @@ class SupplierloginController extends SupplierpublicController {
             jsonReturn(null, -110, ShopMsg::getMessage('-110', $lang));
         }
         if(isset($data['source']) && !empty($data['source'])){
-            $arr['source']="Association";
-        } else {
+            $arr['source_key'] = $data['source'];
+        }  else {
             $arr['source']="Portal";
         }
 
