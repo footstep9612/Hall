@@ -11,6 +11,7 @@ class InquiryController extends PublicController {
     public function init() {
         $this->token = false;
         parent::init();
+        error_reporting(E_ALL);
     }
 
 //返回询价单流水号
@@ -31,7 +32,9 @@ class InquiryController extends PublicController {
     public function addAction() {
         $data = $this->getPut();
         $inquiry = new InquiryModel();
-
+//        $flag = $this->_sendEmail($data['country_bn'], $data);
+//        var_dump($flag);
+//        die;
         if ($inquiry->checkSerialNo($data['serial_no'])) {
             $data['buyer_id'] = !empty($this->user['buyer_id']) ? $this->user['buyer_id'] : 0;
             $data['inquirer'] = !empty($this->user['user_name']) ? $this->user['user_name'] : '';
@@ -98,6 +101,11 @@ class InquiryController extends PublicController {
             return false;
         }
 
+        if (!empty($data['email1'])) {
+            $arr['email1'] = $data['email1'];
+        } else {
+            $arr['email1'] = '';
+        }
         if (!empty($data['name'])) {
             $arr['name'] = $data['name'];
         } else {
@@ -116,6 +124,7 @@ class InquiryController extends PublicController {
                 $Attachment = $this->zipAttachment($email_arr['files_attach'], $config_obj->fastDFSUrl);
             }
             $res = $this->send_Mail($arr['email'], $arr['email1'], 'You have search information from the Erui M station', $body, $email_arr['name'], $Attachment);
+
             unlink($Attachment);
         } else {
             $body = $this->getView()->render('inquiry' . DIRECTORY_SEPARATOR . 'inquiry_email_en.html', $email_arr);
