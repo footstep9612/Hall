@@ -361,7 +361,7 @@ class CountryModel extends PublicModel {
 //        $res=$this->addAll($info);
 
         $areaInfo['market_area_bn']=$data['area_bn'];
-        $areaInfo['country_bn']=$data['country_bn'];
+        $areaInfo['country_bn']=$hehe['bn'];
         $areaInfo['created_at']=date('Y-m-d H:i:s');
         $model=new MarketAreaCountryModel();
         $model->where(array('country_bn'=>$hehe['bn']))->delete();
