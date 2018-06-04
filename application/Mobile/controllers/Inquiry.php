@@ -11,7 +11,7 @@ class InquiryController extends PublicController {
     public function init() {
         $this->token = false;
         parent::init();
-        error_reporting(E_ALL);
+        // error_reporting(E_ALL);
     }
 
 //返回询价单流水号
