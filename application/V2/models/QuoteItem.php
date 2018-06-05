@@ -203,7 +203,7 @@ class QuoteItemModel extends PublicModel {
         $i = 0;
         $currentPage = intval($currentPage) ? : 1;
         $pageSize = intval($pageSize) ? : 10;
-        $row = ($currentPage - 1 ) * $pageSize;
+        $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
         foreach ($data as $key=>$value){
             $row++;
@@ -222,7 +222,7 @@ class QuoteItemModel extends PublicModel {
             } else {
                 $supplierId = $suppliersModel->where(['name' => $value['supplier_name'], 'deleted_flag' => 'N'])->getField('id');
                 if (!is_numeric($value['supplier_id']) && !is_numeric($supplierId)) {
-                    // 供应商失败列表
+                    // 匹配供应商失败列表
                     $supplierFailList[] = $row;
                     continue;
                 } else {
