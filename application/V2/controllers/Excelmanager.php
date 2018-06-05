@@ -330,6 +330,8 @@ class ExcelmanagerController extends PublicController {
                 $failData['reason'] = L('EXCEL_SKU_DELIVERY_DAYS_REQUIRED');
             } elseif ($value['period_of_validity'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_VALIDITY_PERIOD_REQUIRED');
+            } elseif (!is_numeric($value['supplier_id'])) {
+                $failData['reason'] = L('EXCEL_SKU_SUPPLIER_NAME_REQUIRED');
             } else {
                 $inquiryItemModel->startTrans();
                 try {

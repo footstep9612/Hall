@@ -335,7 +335,7 @@ class CountryModel extends PublicModel {
         $arr=[];
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
-            $arr[$k]['code']=$data['code'];
+//            $arr[$k]['code']=$data['code'];
             $arr[$k]['name']=$data['country_name'][$k]?$data['country_name'][$k]:null;
             $arr[$k]['name_en']=$data['country_name']['en']?$data['country_name']['en']:null;
             $arr[$k]['name_ru']=$data['country_name']['ru']?$data['country_name']['ru']:null;
@@ -345,9 +345,26 @@ class CountryModel extends PublicModel {
             $arr[$k]['region_bn']=$data['area_bn'];
             $arr[$k]['source']=$data['source'];
         }
-        $hehe=$this->field('id,bn')->where(array('id'=>$data['id']))->find();
-        foreach($arr as $k => $v){
-            $this->where(array('lang'=>$k,'bn'=>$hehe['bn']))->save($v);
+        $hehe=$this->field('id,code,bn')->where(array('id'=>$data['id']))->find();
+        $info=$this->field('lang')->where(array('bn'=>$hehe['bn']))->select();
+        $a=array_keys($arr);
+        $z=[];
+        foreach($info as $k => $v){
+            $z[]=$v['lang'];
+        }
+        $d=array_diff($a,$z);
+        $i=array_intersect($a,$z);
+        if(!empty($d)){
+            foreach($d as $k => $v){
+                $arr[$v]['bn']=$hehe['bn'];
+                $arr[$v]['code']=$hehe['code'];
+                $res=$this->add($arr[$v]);
+            }
+        }
+        if(!empty($i)){
+            foreach($i as $k => $v){
+                $this->where(array('lang'=>$v,'bn'=>$hehe['bn']))->save($arr[$v]);
+            }
         }
 //        $this->where(array('id'=>$data['id']))->save($arr['zh']);
 //        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
