@@ -439,7 +439,7 @@ class QuoteController extends PublicController{
     public function updateSkuBatchAction(){
         $request = $this->validateRequests();
 
-        $response = $this->quoteItemModel->updateItemBatch($request['data'],$this->user['id']);
+        $response = $this->quoteItemModel->updateItemBatch($request['data'],$this->user['id'],$request['currentPage'],$request['pageSize']);
         $this->jsonReturn($response);
     }
 
