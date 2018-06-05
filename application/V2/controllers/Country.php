@@ -108,8 +108,10 @@ class CountryController extends PublicController {
      */
     public function CountryListAction() {
         $data = $this->getPut();
+        $data['lang']=$this->getLang();
         $limit = [];
         $where = [];
+        $where['deleted_flag'] = 'N';
         if (!empty($data['bn'])) {
             $where['bn'] = $data['bn'];
         }
@@ -306,7 +308,6 @@ class CountryController extends PublicController {
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['source']=$this->user['id'].':'.date('YmdHis');
-        $arr['country_bn']=$data['country_name_en'];
         $model = new CountryModel();
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
@@ -317,22 +318,20 @@ class CountryController extends PublicController {
                 jsonReturn('', 0, '暂无该地区');  //暂无该地区
             }
         }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家名称(英)不可为空');
-        }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if(!empty($countryBn)){
-                jsonReturn('', 0, '该国家名称(英)');
-            }
-        }
         if (empty($data['country_name_zh'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+            jsonReturn('', 0,'国家名称(中)不可为空');
         }else{
             $arr['country_name']['zh']=$data['country_name_zh'];
         }
-        if (!empty($data['country_name_en'])) { //国家名称
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
+            $arr['country_bn']=$data['country_name_en'];
             $arr['country_name']['en']=$data['country_name_en'];
+            $countryBn=$model->checkCountryBn($arr['country_bn']);
+            if(!empty($countryBn)){
+                jsonReturn('', 0, '该国家名称(英)已存在');
+            }
         }
         if (!empty($data['country_name_ru'])) { //国家名称
             $arr['country_name']['ru']=$data['country_name_ru'];
@@ -340,6 +339,7 @@ class CountryController extends PublicController {
         if (!empty($data['country_name_es'])) { //国家名称
             $arr['country_name']['es']=$data['country_name_es'];
         }
+
 
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
@@ -459,12 +459,15 @@ class CountryController extends PublicController {
         if(!empty($data['code'])){
             $arr['code']=strtoupper(trim($data['code'],' '));
         }
+
         if (empty($data['country_name_zh'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+            jsonReturn('', 0,'国家名称(中)不可为空');
         }else{
             $arr['country_name']['zh']=$data['country_name_zh'];
         }
-        if (!empty($data['country_name_en'])) { //国家名称
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
             $arr['country_name']['en']=$data['country_name_en'];
         }
         if (!empty($data['country_name_ru'])) { //国家名称
@@ -478,8 +481,10 @@ class CountryController extends PublicController {
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
         }else{
-            $info=$model->field('id,name as zh,name_en as en,name_ru as ru,name_es as es')->where(array('id'=>$arr['id']))->find();
+            $info=$model->field('id,bn,name as zh,name_en as en,name_ru as ru,name_es as es')->where(array('id'=>$arr['id']))->find();
+            $bn=$info['bn'];
             unset($info['id']);
+            unset($info['bn']);
             $countryArr = $arr['country_name'];
             $countryArr['zh']=$countryArr['zh']??'';
             $countryArr['en']=$countryArr['en']??'';
@@ -490,9 +495,6 @@ class CountryController extends PublicController {
                 $str='';
                 foreach($countryArr as $k => &$v){
                     $v=trim($v,' ');
-                    if(empty($countryArr['zh'])){
-                        jsonReturn('', 0,'国家中文名称不可为空');
-                    }
                     if(!empty($v)){
                         $str.=",'".$v."'";
                     }
@@ -505,14 +507,12 @@ class CountryController extends PublicController {
                     unset($countryName[$k]);
                 }
                 foreach($countryName as $k => $v){
-                    if($v['bn']==$arr['country_bn']){
+                    if($v['bn']==$bn){
                         $zz[$k]=$v['name'];
                     }
                 }
-//                if(array_diff($countryName,$zz)){
-//
-//                }
                 $ee=array_diff($aa,$zz);
+
 
                     $str1='';
                     foreach($ee as $k => $v){
@@ -540,9 +540,9 @@ class CountryController extends PublicController {
                         jsonReturn('', 0, substr($msg,1));
                     }
                 }
-                $arr['country_name']=$aa;
             }
         }
+        $arr['country_name']=$aa;
         $arr['source']=$data['source'];
         $result=$model->updateCountry($arr);
         if ($result) {
@@ -592,10 +592,10 @@ class CountryController extends PublicController {
         $model = new CountryModel();
         $result = $model->countryTest();
         $dataJson['code'] = 1;
-        $dataJson['message'] = '国家管理列表';
-        $dataJson['data'] = $result;
+        $dataJson['message'] = 'ok';
         $this->jsonReturn($dataJson);
     }
+
     public function portTestAction() {
         $model = new PortModel();
         $result = $model->portTest();
@@ -649,9 +649,9 @@ class CountryController extends PublicController {
         if(empty($data['country_bn'])){
             jsonReturn('', 0, '国家不可为空');
         }
-        if(empty($data['port_bn'])){
-            jsonReturn('', 0, '港口简称不可为空');
-        }
+//        if(empty($data['port_bn'])){
+//            jsonReturn('', 0, '港口简称不可为空');
+//        }
         if(empty($data['port_name_zh'])){
             jsonReturn('', 0, '中文名称不可为空');
         }
@@ -675,11 +675,11 @@ class CountryController extends PublicController {
         foreach($data as $k => &$v){
             $v=trim($v,' ');
         }
-        $data['port_bn']=strtoupper($data['port_bn']);
+        $data['port_bn']=strtoupper($data['port_name_en']);
         $model = new PortModel();
         $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
         if(!empty($bn)){
-            jsonReturn('', 0, '港口简称已存在');
+            jsonReturn('', 0, '英文名称已存在');
         }
         $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
         if(!empty($zh)){
@@ -707,9 +707,6 @@ class CountryController extends PublicController {
         if(empty($data['country_bn'])){
             jsonReturn('', 0, '国家不可为空');
         }
-        if(empty($data['port_bn'])){
-            jsonReturn('', 0, '港口简称不可为空');
-        }
         if(empty($data['port_name_zh'])){
             jsonReturn('', 0, '中文名称不可为空');
         }
@@ -725,29 +722,23 @@ class CountryController extends PublicController {
         foreach($data as $k => &$v){
             $v=trim($v,' ');
         }
-        $data['port_bn']=strtoupper($data['port_bn']);
+        $data['port_bn']=strtoupper($data['port_name_en']);
 
         $model = new PortModel();
         $arr=$model->field('bn as port_bn,name as port_name_zh,name_en as port_name_en')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
-        $zz['port_bn']=$data['port_bn'];
+        $port_bn=$arr['port_bn'];
+        unset($arr['port_bn']);
         $zz['port_name_zh']=$data['port_name_zh'];
         $zz['port_name_en']=$data['port_name_en'];
-
-
-
         if($zz!=$arr){
-            if($data['port_bn']!=$arr['port_bn']){
-                $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
-                if(!empty($bn)){
-                    jsonReturn('', 0, '港口简称已存在');
-                }
-            }elseif($data['port_name_zh']!=$arr['port_name_zh']){
+            if($data['port_name_zh']!=$arr['port_name_zh']){
                 $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
                 if(!empty($zh)){
                     jsonReturn('', 0, '中文名称已存在');
                 }
 
-            }elseif($data['port_name_en']!=$arr['port_name_en']){
+            }
+            if($data['port_name_en']!=$arr['port_name_en']){
                 $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
                 if(!empty($en)){
                     jsonReturn('', 0, '英文名称已存在');
