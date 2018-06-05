@@ -9,15 +9,12 @@ class CountryController extends PublicController {
     protected $index = 'erui_dict';
     protected $es = '';
 
-    public function init() {
+    public function __init() {
+        parent::init();
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
 
         $this->es = new ESClient();
-    }
-
-    private function _init() {
-        parent::init();
     }
 
     /*
@@ -111,8 +108,10 @@ class CountryController extends PublicController {
      */
     public function CountryListAction() {
         $data = $this->getPut();
+        $data['lang']=$this->getLang();
         $limit = [];
         $where = [];
+        $where['deleted_flag'] = 'N';
         if (!empty($data['bn'])) {
             $where['bn'] = $data['bn'];
         }
@@ -308,32 +307,31 @@ class CountryController extends PublicController {
 //    }
     public function createAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
         $model = new CountryModel();
         if (empty($data['area_bn'])) { //区域简称
             jsonReturn('', 0,'地区不可为空');
         }else{
             $arr['area_bn'] = trim($data['area_bn'],' ');
             $area=$model->checkArea($arr['area_bn']);
-            if($area===false){
+            if(empty($area)){
                 jsonReturn('', 0, '暂无该地区');  //暂无该地区
             }
         }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家简称不可为空');
-        }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if($countryBn===false){
-                jsonReturn('', 0, '该国家简称已存在');
-            }
-        }
         if (empty($data['country_name_zh'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+            jsonReturn('', 0,'国家名称(中)不可为空');
         }else{
             $arr['country_name']['zh']=$data['country_name_zh'];
         }
-        if (!empty($data['country_name_en'])) { //国家名称
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
+            $arr['country_bn']=$data['country_name_en'];
             $arr['country_name']['en']=$data['country_name_en'];
+            $countryBn=$model->checkCountryBn($arr['country_bn']);
+            if(!empty($countryBn)){
+                jsonReturn('', 0, '该国家名称(英)已存在');
+            }
         }
         if (!empty($data['country_name_ru'])) { //国家名称
             $arr['country_name']['ru']=$data['country_name_ru'];
@@ -341,6 +339,7 @@ class CountryController extends PublicController {
         if (!empty($data['country_name_es'])) { //国家名称
             $arr['country_name']['es']=$data['country_name_es'];
         }
+
 
         if (empty($arr['country_name'])) { //国家名称
             jsonReturn('', 0,'国家名称不可为空');
@@ -362,8 +361,21 @@ class CountryController extends PublicController {
             }
             $str=substr($str,1);
             $countryName=$model->checkCountryName($str);
-            if($countryName===false){
-                jsonReturn('', 0, '该国家名称已存在');
+            if(!empty($countryName)){
+                $msg='';
+                foreach($countryName as $k => $v){
+                    if($v['lang']=='zh'){
+                        $lang='中';
+                    }elseif($v['lang']=='en'){
+                        $lang='英';
+                    }elseif($v['lang']=='ru'){
+                        $lang='俄';
+                    }elseif($v['lang']=='es'){
+                        $lang='西';
+                    }
+                    $msg.=',该国家名称('.$lang.')已存在';
+                }
+                jsonReturn('', 0, substr($msg,1));
             }
             $arr['country_name']=$countryArr;
         }
@@ -386,6 +398,7 @@ class CountryController extends PublicController {
         if(!empty($data['code'])){
             $arr['code']=strtoupper(trim($data['code'],' '));
         }
+        $arr['source']=$data['source'];
         $result=$model->insertCountry($arr);
         if ($result) {
             $this->delcache();
@@ -396,8 +409,157 @@ class CountryController extends PublicController {
             $this->jsonReturn();
         }
     }
+    public function updateAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
+        $model = new CountryModel();
+        if (empty($data['id'])) { //区域简称
+            jsonReturn('', 0,'缺少参数');
+        }else{
+            $arr['id']=$data['id'];
+        }
+        if (empty($data['area_bn'])) { //区域简称
+            jsonReturn('', 0,'地区不可为空');
+        }else{
+            $arr['area_bn'] = trim($data['area_bn'],' ');
+            $area=$model->checkArea($arr['area_bn']);
+            if($area===false){
+                jsonReturn('', 0, '暂无该地区');  //暂无该地区
+            }
+        }
+//        if (empty($data['country_bn'])) { //国家简称
+//            jsonReturn('', 0,'国家简称不可为空');
+//        }else{
+//            $arr['country_bn'] = trim($data['country_bn'],' ');
+//            $countryBn=$model->updateCountryBn($arr['country_bn']);
+//            if($countryBn['id']!=$data['id']){
+//                $bn=$model->checkCountryBn($arr['country_bn']);
+//                if(!empty($bn)){
+//                    jsonReturn('', 0, '该国家简称已存在');
+//                }
+//            }
+//
+//        }
+        if (!empty($data['tel_code'])) { //电话区号
+            $tel = trim($data['tel_code'],' ');
+            $telArr=str_split($tel);
+            foreach($telArr as $k =>&$v){
+                if(!is_numeric($v)){
+                    unset($telArr[$k]);
+                }
+            }
+            $telStr=implode($telArr);
+            if(empty($telStr)){
+                jsonReturn('', 0, '国家区号格式错误');
+            }
+            $arr['tel_code']=$telStr;
+        }else{
+            jsonReturn('', 0, '国家区号不可为空');
+        }
+        if(!empty($data['code'])){
+            $arr['code']=strtoupper(trim($data['code'],' '));
+        }
+
+        if (empty($data['country_name_zh'])) { //国家名称
+            jsonReturn('', 0,'国家名称(中)不可为空');
+        }else{
+            $arr['country_name']['zh']=$data['country_name_zh'];
+        }
+        if (empty($data['country_name_en'])) { //国家名称
+            jsonReturn('', 0,'国家名称(英)不可为空');
+        }else{
+            $arr['country_name']['en']=$data['country_name_en'];
+        }
+        if (!empty($data['country_name_ru'])) { //国家名称
+            $arr['country_name']['ru']=$data['country_name_ru'];
+        }
+        if (!empty($data['country_name_es'])) { //国家名称
+            $arr['country_name']['es']=$data['country_name_es'];
+        }
+
+
+        if (empty($arr['country_name'])) { //国家名称
+            jsonReturn('', 0,'国家名称不可为空');
+        }else{
+            $info=$model->field('id,bn,name as zh,name_en as en,name_ru as ru,name_es as es')->where(array('id'=>$arr['id']))->find();
+            $bn=$info['bn'];
+            unset($info['id']);
+            unset($info['bn']);
+            $countryArr = $arr['country_name'];
+            $countryArr['zh']=$countryArr['zh']??'';
+            $countryArr['en']=$countryArr['en']??'';
+            $countryArr['ru']=$countryArr['ru']??'';
+            $countryArr['es']=$countryArr['es']??'';
+            $aa=$countryArr;
+            if($info!=$countryArr){
+                $str='';
+                foreach($countryArr as $k => &$v){
+                    $v=trim($v,' ');
+                    if(!empty($v)){
+                        $str.=",'".$v."'";
+                    }
+                }
+                $str=substr($str,1);
+                $countryName=$model->updateCountryName($str);
+                $zz=[];
+                foreach($countryName as $k => $v){
+                    $countryName[$v['lang']]=$v;
+                    unset($countryName[$k]);
+                }
+                foreach($countryName as $k => $v){
+                    if($v['bn']==$bn){
+                        $zz[$k]=$v['name'];
+                    }
+                }
+                $ee=array_diff($aa,$zz);
+
+
+                    $str1='';
+                    foreach($ee as $k => $v){
+                        if(!empty($v)){
+                            $str1.=",'".$v."'";
+                        }
+                    }
+                    $str1=substr($str1,1);
+                if(!empty($str1)){
+                    $end=$model->checkCountryName($str1);
+                    $msg='';
+                    foreach($end as $k => $v){
+                        if($v['lang']=='zh'){
+                            $lang='中';
+                        }elseif($v['lang']=='en'){
+                            $lang='英';
+                        }elseif($v['lang']=='ru'){
+                            $lang='俄';
+                        }elseif($v['lang']=='es'){
+                            $lang='西';
+                        }
+                        $msg.=',该国家名称('.$lang.')已存在';
+                    }
+                    if(!empty($end)){
+                        jsonReturn('', 0, substr($msg,1));
+                    }
+                }
+            }
+        }
+        $arr['country_name']=$aa;
+        $arr['source']=$data['source'];
+        $result=$model->updateCountry($arr);
+        if ($result) {
+            $this->delcache();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+
+
     public function countryAdminAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
         $model = new CountryModel();
         $result = $model->countryAdmin($data);
         $dataJson['code'] = 1;
@@ -418,6 +580,7 @@ class CountryController extends PublicController {
     }
     public function delCountryAction() {
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['source']=$this->user['id'].':'.date('YmdHis');
         $model = new CountryModel();
         $result = $model->delCountry($data);
         $dataJson['code'] = 1;
@@ -429,96 +592,188 @@ class CountryController extends PublicController {
         $model = new CountryModel();
         $result = $model->countryTest();
         $dataJson['code'] = 1;
+        $dataJson['message'] = 'ok';
+        $this->jsonReturn($dataJson);
+    }
+
+    public function portTestAction() {
+        $model = new PortModel();
+        $result = $model->portTest();
+        $dataJson['code'] = 1;
         $dataJson['message'] = '国家管理列表';
         $dataJson['data'] = $result;
         $this->jsonReturn($dataJson);
     }
-    public function updateAction() {
+    //口岸-港口
+    public function portListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $model = new CountryModel();
-        if (empty($data['area_bn'])) { //区域简称
-            jsonReturn('', 0,'地区不可为空');
+        $data['lang']=$this->getLang();
+        $model = new PortModel();
+        $result = $model->portList($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '港口列表';
+        $dataJson['current_page '] = $result['current_page'];
+        $dataJson['total_count'] = $result['total_count'];
+        $dataJson['data'] = $result['info'];
+        $this->jsonReturn($dataJson);
+    }
+    public function delPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new PortModel();
+        $result=$model->delPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
         }else{
-            $arr['area_bn'] = trim($data['area_bn'],' ');
-            $area=$model->checkArea($arr['area_bn']);
-            if($area===false){
-                jsonReturn('', 0, '暂无该地区');  //暂无该地区
-            }
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
         }
-        if (empty($data['country_bn'])) { //国家简称
-            jsonReturn('', 0,'国家简称不可为空');
+        $this->jsonReturn($dataJson);
+    }
+    public function showPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new PortModel();
+        $result=$model->showPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
+            $dataJson['data'] = $result;
         }else{
-            $arr['country_bn'] = trim($data['country_bn'],' ');
-            $countryBn=$model->checkCountryBn($arr['country_bn']);
-            if($countryBn===true){
-                jsonReturn('', 0, '该国家简称不存在');
-            }
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
         }
-        if (empty($data['country_name'])) { //国家名称
-            jsonReturn('', 0,'国家名称不可为空');
+        $this->jsonReturn($dataJson);
+    }
+    public function addPortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['country_bn'])){
+            jsonReturn('', 0, '国家不可为空');
+        }
+//        if(empty($data['port_bn'])){
+//            jsonReturn('', 0, '港口简称不可为空');
+//        }
+        if(empty($data['port_name_zh'])){
+            jsonReturn('', 0, '中文名称不可为空');
+        }
+        if(empty($data['port_name_en'])){
+            jsonReturn('', 0, '英文名称不可为空');
+        }
+        if(empty($data['port_type'])){
+            jsonReturn('', 0, '港口类型不可为空');
+        }
+        if(empty($data['trans_mode'])){
+            jsonReturn('', 0, '运输方式不可为空');
+        }
+//        $field=array(
+//            'country_bn'=>'国家',
+//            'port_bn'=>'港口简称',
+//            'port_name_zh'=>'中文名称',
+//            'port_name_en'=>'英文名称',
+//            'port_type'=>'港口类型',
+//            'trans_mode'=>'运输方式'
+//        );
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
+        $data['port_bn']=strtoupper($data['port_name_en']);
+        $model = new PortModel();
+        $bn=$model->field('bn')->where(array('deleted_flag'=>'N','bn'=>$data['port_bn']))->select();
+        if(!empty($bn)){
+            jsonReturn('', 0, '英文名称已存在');
+        }
+        $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
+        if(!empty($zh)){
+            jsonReturn('', 0, '中文名称已存在');
+        }
+        $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
+        if(!empty($en)){
+            jsonReturn('', 0, '英文名称已存在');
+        }
+        $result = $model->addPort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
         }else{
-            $countryArr = $data['country_name'];
-            $countryArr['zh']=$countryArr['zh']??'';
-            $countryArr['en']=$countryArr['en']??'';
-            $countryArr['ru']=$countryArr['ru']??'';
-            $countryArr['es']=$countryArr['es']??'';
-            $hehe0=$countryArr;
-            $str='';
-            foreach($countryArr as $k => &$v){
-                $v=trim($v,' ');
-                if(empty($countryArr['zh'])){
-                    jsonReturn('', 0,'国家中文名称不可为空');
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
+        }
+        $this->jsonReturn($dataJson);
+    }
+    public function updatePortAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        if(empty($data['id'])){
+            jsonReturn('', 0, 'id不可为空');
+        }
+        if(empty($data['country_bn'])){
+            jsonReturn('', 0, '国家不可为空');
+        }
+        if(empty($data['port_name_zh'])){
+            jsonReturn('', 0, '中文名称不可为空');
+        }
+        if(empty($data['port_name_en'])){
+            jsonReturn('', 0, '英文名称不可为空');
+        }
+        if(empty($data['port_type'])){
+            jsonReturn('', 0, '港口类型不可为空');
+        }
+        if(empty($data['trans_mode'])){
+            jsonReturn('', 0, '运输方式不可为空');
+        }
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
+        $data['port_bn']=strtoupper($data['port_name_en']);
+
+        $model = new PortModel();
+        $arr=$model->field('bn as port_bn,name as port_name_zh,name_en as port_name_en')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        $port_bn=$arr['port_bn'];
+        unset($arr['port_bn']);
+        $zz['port_name_zh']=$data['port_name_zh'];
+        $zz['port_name_en']=$data['port_name_en'];
+        if($zz!=$arr){
+            if($data['port_name_zh']!=$arr['port_name_zh']){
+                $zh=$model->field('name')->where(array('deleted_flag'=>'N','name'=>$data['port_name_zh']))->select();
+                if(!empty($zh)){
+                    jsonReturn('', 0, '中文名称已存在');
                 }
-                if(!empty($v)){
-                    $str.=",'".$v."'";
+
+            }
+            if($data['port_name_en']!=$arr['port_name_en']){
+                $en=$model->field('name_en')->where(array('deleted_flag'=>'N','name_en'=>$data['port_name_en']))->select();
+                if(!empty($en)){
+                    jsonReturn('', 0, '英文名称已存在');
                 }
             }
-            $str=substr($str,1);
-            $countryName=$model->updateCountryName($str);
-            $hehe=[];
-            foreach($countryName as $K =>$v){
-                $hehe[$v['lang']]=$v['name'];
-            }
-            if($countryArr!==$hehe){    //原始数据
-                $countryName1=$model->nameBybn($data['country_bn']);
-                print_r($countryName1);die;
-            }
-            die;
-            print_r($hehe);die;
-            if($countryName===false){
-                jsonReturn('', 0, '该国家名称已存在');
-            }
-            $arr['country_name']=$countryArr;
         }
-        if (!empty($data['tel_code'])) { //电话区号
-            $tel = trim($data['tel_code'],' ');
-            $telArr=str_split($tel);
-            foreach($telArr as $k =>&$v){
-                if(!is_numeric($v)){
-                    unset($telArr[$k]);
-                }
-            }
-            $telStr=implode($telArr);
-            if(empty($telStr)){
-                jsonReturn('', 0, '国家区号格式错误');
-            }
-            $arr['tel_code']=$telStr;
+        $result = $model->updatePort($data);
+        if($result){
+            $dataJson['code'] = 1;
+            $dataJson['message'] = '成功';
         }else{
-            jsonReturn('', 0, '国家区号不可为空');
+            $dataJson['code'] = 0;
+            $dataJson['message'] = '失败';
         }
-        if(!empty($data['code'])){
-            $arr['code']=strtoupper(trim($data['code'],' '));
-        }
-        $result=$model->updateCountry($arr);
-        print_r($result);die;
-        if ($result) {
-            $this->delcache();
-            $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn();
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->jsonReturn();
-        }
+        $this->jsonReturn($dataJson);
+    }
+    public function transModeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $model = new TransModeModel();
+        $result=$model->transModeList($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '成功';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
+    }
+    public function portTypeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $model = new TransModeModel();
+        $result=$model->portTypeModeList($data);
+        $dataJson['code'] = 1;
+        $dataJson['message'] = '成功';
+        $dataJson['data'] = $result;
+        $this->jsonReturn($dataJson);
     }
     /*
      * 更新能力值

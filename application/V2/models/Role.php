@@ -28,7 +28,28 @@ class RoleModel extends PublicModel {
         $count = $this->where($data)->count('id');
         return $count;
     }
-
+    public function moveRole($data){
+        if(empty($data['attr_id']) || empty($data['role_ids'])){
+            return false;
+        }
+        $this->where("id in ($data[role_ids])")->save(array('attr_id'=>$data['attr_id']));
+        return true;
+    }
+    public function sortRole($attr_id=0){
+        $info=$this->field('id,name')->where(array('attr_id'=>$attr_id))->select();
+        return $info;
+    }
+    public function getRoleList($data){
+        $info=$this->sortRole();
+        foreach($info as $k => $v){
+            $list=$this->sortRole($v['id']);
+            if(empty($list)){
+                $list=[];
+            }
+            $info[$k]['child']=$list;
+        }
+        return $info;
+    }
     /**
      * 获取列表
      * @param data $data;
@@ -99,7 +120,7 @@ class RoleModel extends PublicModel {
         $where['id'] = $id;
         if (!empty($where['id'])) {
             $row = $this->where($where)
-                    ->field('id,role_no,admin_show,role_group,name,name_en,remarks,created_by,created_at,status')
+                    ->field('id,attr_id,role_no,admin_show,role_group,name,name_en,remarks,created_by,created_at,status')
                     ->find();
             return $row;
         } else {

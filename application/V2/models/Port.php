@@ -296,5 +296,137 @@ class PortModel extends PublicModel {
             return false;
         }
     }
+    //////////////////////////////////////////////////////////////////////
+    public function getPortCond($data){
+        $cond="port.lang='zh' and port.deleted_flag='N'";
+        if(!empty($data['country_bn'])){
+            $cond.=" and port.country_bn='$data[country_bn]'";
+        }
+        if(!empty($data['port_name'])){
+            $cond.=" and ( port.name like '%$data[port_name]%' or port.name_en like '%$data[port_name]%' )";
+        }
+        if(!empty($data['port_type'])){
+            $cond.=" and port.port_type='$data[port_type]'";
+        }
+        if(!empty($data['trans_mode'])){
+            $cond.=" and port.trans_mode='$data[trans_mode]'";
+        }
+        return $cond;
+    }
+    public function portList($data){
+        $cond=$this->getPortCond($data);
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        $page=isset($data['current_page'])?$data['current_page']:1;
+        $offsize=($page-1)*10;
+        $field='port.id,port.country_bn,port.bn as port_bn,port.name as port_name_zh,port.name_en as port_name_en,port.port_type,port.trans_mode';
+//        $field.=',port.port_type';
+        $field.=",(select port_type from erui_dict.port_type port_type where port_type.port_bn=port.port_type and  port_type.lang='$lang' and port_type.deleted_flag='N') as port_type";
+//        $field.=',port.trans_mode';
+        $field.=",(select trans_mode from erui_dict.trans_mode trans_mode where trans_mode.bn=port.trans_mode and  trans_mode.lang='$lang' and trans_mode.deleted_flag='N') as trans_mode";
 
+        $field.=" ,(select DISTINCT name from erui_dict.country country where bn=port.country_bn and country.lang='$lang' and country.deleted_flag='N') as country_name";
+        $count=$this->alias('port')
+            ->where($cond)->count();
+        $info=$this->alias('port')
+            ->field($field)
+            ->where($cond)
+            ->order('port.id desc')
+            ->limit($offsize,10)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        $arr['current_page']=$page;
+        $arr['total_count']=$count;
+        $arr['info']=$info;
+        return $arr;
+    }
+    public function portTest(){
+        $info=$this->field('bn,name')->where(array('lang'=>'en'))->select();
+        foreach($info as $k => $v){
+            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save(array('name_en'=>$v['name']));
+        }
+        print_r(1);die;
+    }
+    public function addPort($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        $arr=[
+            [
+                'lang'=>'zh',
+                'country_bn'=>$data['country_bn'],
+                'bn'=>$data['port_bn'],
+                'name'=>$data['port_name_zh'],
+                'name_en'=>$data['port_name_en'],
+                'port_type'=>$data['port_type'],
+                'trans_mode'=>$data['trans_mode'],
+                'created_at'=>$data['created_at']
+            ],
+            [
+                'lang'=>'en',
+                'country_bn'=>$data['country_bn'],
+                'bn'=>$data['port_bn'],
+                'name'=>$data['port_name_en'],
+                'name_en'=>$data['port_name_en'],
+                'port_type'=>$data['port_type'],
+                'trans_mode'=>$data['trans_mode'],
+                'created_at'=>$data['created_at']
+            ]
+        ];
+        $res=$this->addAll($arr);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+    public function updatePort($data){
+        $data['created_at']=date('Y-m-d H:i:s');
+        $bn=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $cc=$this->field('bn')->where(array('bn'=>$bn['bn'],'deleted_flag'=>'N'))->select();
+        $zh=[
+            'country_bn'=>$data['country_bn'],
+//            'bn'=>$data['port_bn'],
+            'name'=>$data['port_name_zh'],
+            'name_en'=>$data['port_name_en'],
+            'port_type'=>$data['port_type'],
+            'trans_mode'=>$data['trans_mode'],
+            'created_at'=>$data['created_at']
+        ];
+        $res=$this->where(array('lang'=>'zh','id'=>$data['id']))->save($zh);
+
+        $en=[
+            'country_bn'=>$data['country_bn'],
+//            'bn'=>$data['port_bn'],
+            'name'=>$data['port_name_en'],
+            'name_en'=>$data['port_name_en'],
+            'port_type'=>$data['port_type'],
+            'trans_mode'=>$data['trans_mode'],
+            'created_at'=>$data['created_at']
+        ];
+        if(count($cc)==2){
+            $this->where(array('lang'=>'en','bn'=>$bn['bn']))->save($en);
+        }else{
+            $en['lang']='en';
+            $this->add($en);
+        }
+        return true;
+    }
+    public function delPort($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $info=$this->field('bn')->where(array('id'=>$data['id']))->find();
+        $this->where(array('bn'=>$info['bn']))->save(array('deleted_flag'=>'Y'));
+        return true;
+    }
+    public function showPort($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $field='id,country_bn,bn as port_bn,name as port_name_zh,name_en as port_name_en,port_type,trans_mode';
+        $info=$this
+            ->field($field)
+            ->where(array('id'=>$data['id'],'port.lang'=>'zh','port.deleted_flag'=>'N'))
+            ->find();
+        return $info;
+    }
 }
