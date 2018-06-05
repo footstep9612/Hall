@@ -3,12 +3,12 @@
  * Created by PhpStorm.
  * User: klp
  * Date: 2018/6/4
- * Time: 14:54
+ * Time: 14:36
  */
-class SupplierGoodsModel extends PublicModel{
+class SupplierProductAttachModel extends PublicModel{
 
     protected $dbName = 'erui_supplier';
-    protected $tableName = 'supplier_goods';
+    protected $tableName = 'supplier_product_attach';
 
     public function __construct($str = ''){
         parent::__construct($str = '');
@@ -23,13 +23,10 @@ class SupplierGoodsModel extends PublicModel{
      */
     public function getList($condition = []) {
         $where = $this->_getCondition($condition);
-        //$condition['current_no'] = $condition['currentPage'];
 
-        //list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,lang,spu,sku,name,show_name,model,description,exw_days,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,price,price_cur_bn,status,source,created_at';
+        $field = 'id,spu,attach_type,attach_name,attach_url,default_flag,sort_order,status,created_at';
         return $this->field($field)
             ->where($where)
-            //->limit($start_no, $pagesize)
             ->order('id desc')
             ->select();
     }
@@ -125,12 +122,8 @@ class SupplierGoodsModel extends PublicModel{
                 $where['spu'] = $condition['spu'];
             }
         }
-        if (isset($condition['sku']) && !empty($condition['sku'])) {
-            if(is_array($condition['sku'])){
-                $where['sku'] = ['in',$condition['sku']];
-            }else{
-                $where['sku'] = $condition['sku'];
-            }
+        if (isset($condition['attach_type']) && !empty($condition['attach_type'])) {
+            $where['attach_type'] = $condition['attach_type'];
         }
         if (isset($condition['id']) && !empty($condition['id'])) {
             $where['id'] = $condition['id'];                  //id
@@ -146,56 +139,34 @@ class SupplierGoodsModel extends PublicModel{
         return $where;
     }
 
-    /**
-     * 生成sku编码 - NEW
-     * @time 2017-09-26(经史总,平总确认新规则)
-     * 规则:SPU的编码规则为：6位物料分类编码 + 00 + 4位产品编码 + 0000
-    SKU的编码规则为: 产品的12位编码 + 4位商品编码
-     */
-    public function setRealSku($spu, $sku = '') {
-        if (empty($sku)) {
-            if (empty($spu)) {
-                return false;
-            }
-            $temp_num = substr($spu, 0, 12);
-            $data = $this->getSkus($spu);
-            if ($data && substr($data, 0, 12) == $temp_num) {
-                $num = substr($data, 12, 4);
-                $num++;
-                $num = str_pad($num, 4, "0", STR_PAD_LEFT);
-            } else {
-                $num = str_pad('1', 4, "0", STR_PAD_LEFT);
-            }
-            $real_num = $temp_num . $num;
-            return $this->setRealSku($spu, $real_num);
-        } else {
-            $lockFile = MYPATH . '/public/tmp/' . $sku . '.lock';
-            if (file_exists($lockFile)) {
-                $spu = substr($sku, 0, 12);
-                $num = substr($sku, 12, 4);
-                $num++;
-                $sku = $spu . str_pad($num, 4, '0', STR_PAD_LEFT);
-                return $this->setRealSku($spu, $sku);
-            } else {
-                //目录
-                $dirName = MYPATH . '/public/tmp';
-                if (!is_dir($dirName)) {
-                    if (!mkdir($dirName, 0777, true)) {
-                        Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建失败，如影响后面流程，请尝试手动创建', Log::NOTICE);
-                    }
-                }
+    //附件上传
+    public function uploadattachs($array_attachs,$spu){
 
-                //上锁
-                $handle = fopen($lockFile, "w");
-                if (!$handle) {
-                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . MYPATH . '/public/tmp/' . $sku . '.lock' . '] create faild.', Log::ERR);
+        foreach ($array_attachs as $item) {
+            if(isset($item['attach_url']) && !empty($item['attach_url'])){
+                $attachsData = [
+                    'spu' => $spu,
+                    'attach_url' => $item['attach_url'],
+                    'attach_name' => isset($item['attach_name']) ? trim($item['attach_name']) : '',
+                    'attach_type' => isset($item['attach_type']) ? $item['attach_type'] : 'BIG_IMAGE',
+                    'default_flag' => !empty($item['default_flag']) ? $item['default_flag'] : ''
+                ];
+
+                if (!isset($item['attach_id']) || empty($item['attach_id'])) {
+                    $attachsData['created_at'] = $this->getTime();
+                    $res = $this->addRecord($attachsData);
                 } else {
-                    fclose($handle);
-                    return $sku;
+                    $where['id'] = $item['attach_id'];
+                    $attachsData['updated_at'] = $this->getTime();
+                    $res = $this->updateInfo($where, $attachsData);
+
                 }
-                return false;
+                if (!$res) {
+                    return false;
+                }
             }
         }
+        return true;
     }
 
 }
