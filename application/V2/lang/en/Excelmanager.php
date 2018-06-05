@@ -21,5 +21,6 @@ return [
     'EXCEL_SKU_GOODS_SOURCE_REQUIRED'  =>   'Required goods source is not filled',
     'EXCEL_SKU_DELIVERY_DAYS_REQUIRED'  =>   'The required delivery days is not filled or not in the correct format',
     'EXCEL_SKU_VALIDITY_PERIOD_REQUIRED'  =>   'Required period of validity is not filled',
+    'EXCEL_SKU_SUPPLIER_NAME_REQUIRED'  =>   'The required supplier name does not exist or not filled',
 ];
 
