@@ -14,6 +14,11 @@ class SupplierProductModel extends PublicModel
         parent::__construct();
     }
 
+    /**
+     * 获取供应商产品列表
+     * @param array $condition 筛选条件
+     * @return mixed
+     */
     public function getList(array $condition = [])
     {
         list($currentPage, $pageSize) = $this->setPage($condition);
@@ -33,6 +38,11 @@ class SupplierProductModel extends PublicModel
                     ->select();
     }
 
+    /**
+     * 获取数据总条数
+     * @param array $condition
+     * @return mixed
+     */
     public function getCount(array $condition = [])
     {
 
@@ -41,6 +51,18 @@ class SupplierProductModel extends PublicModel
 
     }
 
+    public function getDetail($id)
+    {
+        $field = ['spu', 'name', 'material_cat_no', 'brand', 'warranty', 'tech_paras', 'description', 'status'];
+
+        return $this->alias('a')->where(array_merge($this->defaultConditions(), ['id' => $id]))->field($field)->find();
+    }
+
+    /**
+     * 设置筛选条件
+     * @param array $condition
+     * @return array
+     */
     public function setConditions(array $condition = [])
     {
         $conditions = [];
@@ -76,18 +98,31 @@ class SupplierProductModel extends PublicModel
         return $conditions;
     }
 
-    public function defaultConditions()
+    /**
+     * 模型默认调操作条件
+     * @return array
+     */
+    protected function defaultConditions()
     {
         return [
             'a.deleted_flag' => 'N'
         ];
     }
 
+    /**
+     * 模型默认查询字段
+     * @return array
+     */
     protected function defaultFields()
     {
         return ['a.id', 'a.supplier_id', 'a.lang', 'a.name', 'a.material_cat_no', 'a.spu', 'a.brand', 'a.status', 'a.checked_at'];
     }
 
+    /**
+     * 设置分页
+     * @param array $condition
+     * @return array
+     */
     protected function setPage(array $condition = [])
     {
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
