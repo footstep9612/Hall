@@ -43,6 +43,19 @@ class SupplierGoodsAttrModel extends PublicModel{
         return $this->where($where)->count();
     }
 
+    /**
+     * 获取商品其他属性
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getDetail($condition = []) {
+        $where = $this->_getCondition($condition);
+        $field = 'id,spu,sku,ex_goods_attrs,other_attrs,status,created_at';
+        return $this->field($field)
+                     ->where($where)
+                     ->select();
+    }
 
     /**
      * @desc 添加记录

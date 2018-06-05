@@ -43,6 +43,19 @@ class SupplierProductAttachModel extends PublicModel{
         return $this->where($where)->count();
     }
 
+    /**
+     * 获取产品附件详情
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getDetail($condition = []) {
+        $where = $this->_getCondition($condition);
+        $field = 'id,spu,attach_type,attach_name,attach_url,default_flag,sort_order,status,created_at';
+        return $this->field($field)
+                     ->where($where)
+                     ->select();
+    }
 
     /**
      * @desc 添加记录
@@ -100,10 +113,13 @@ class SupplierProductAttachModel extends PublicModel{
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
-        } else {
+        }
+        if(!empty($condition['spu'])){
+            $where['spu'] = $condition['spu'];
+        }
+        if(empty($where)){
             return false;
         }
-
         return $this->where($where)->delete();
     }
 
@@ -140,7 +156,7 @@ class SupplierProductAttachModel extends PublicModel{
     }
 
     //附件上传
-    public function uploadattachs($array_attachs,$spu){
+    public function uploadattachs($array_attachs, $spu){
 
         foreach ($array_attachs as $item) {
             if(isset($item['attach_url']) && !empty($item['attach_url'])){
@@ -156,10 +172,11 @@ class SupplierProductAttachModel extends PublicModel{
                     $attachsData['created_at'] = $this->getTime();
                     $res = $this->addRecord($attachsData);
                 } else {
-                    $where['id'] = $item['attach_id'];
+//                    $where['id'] = $item['attach_id'];
+//                    $attachsData['updated_at'] = $this->getTime();
+//                    $res = $this->updateInfo($where, $attachsData);
                     $attachsData['updated_at'] = $this->getTime();
-                    $res = $this->updateInfo($where, $attachsData);
-
+                    $res = $this->addRecord($attachsData);
                 }
                 if (!$res) {
                     return false;
@@ -167,6 +184,10 @@ class SupplierProductAttachModel extends PublicModel{
             }
         }
         return true;
+    }
+
+    public function getTime() {
+        return $time = date('Y-m-d H:i:s',time());
     }
 
 }

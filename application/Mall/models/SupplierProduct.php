@@ -26,7 +26,7 @@ class SupplierProductModel extends PublicModel{
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,lang,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
+        $field = 'id,lang,spu,supplier_id,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
         return $this->field($field)
                      ->where($where)
                      ->limit($start_no, $pagesize)
@@ -46,6 +46,19 @@ class SupplierProductModel extends PublicModel{
         return $this->where($where)->count();
     }
 
+    /**
+     * 获取产品详情
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getDetail($condition = []) {
+        $where = $this->_getCondition($condition);
+        $field = 'id,lang,spu,supplier_id,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
+        return $this->field($field)
+                     ->where($where)
+                     ->find();
+    }
 
     /**
      * @desc 添加记录
@@ -118,6 +131,16 @@ class SupplierProductModel extends PublicModel{
      */
     protected function _getCondition($condition = []) {
         $where = [];
+        if (isset($condition['supplier_id']) && !empty($condition['supplier_id'])) {
+            $where['supplier_id'] = $condition['supplier_id'];                  //瑞商id
+        }
+        if (isset($condition['spu']) && !empty($condition['spu'])) {
+            if(is_array($condition['spu'])){
+                $where['spu'] = ['in',$condition['spu']];
+            }else {
+                $where['spu'] = $condition['spu'];                  //产品编号
+            }
+        }
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //产品名称
         }
@@ -155,10 +178,9 @@ class SupplierProductModel extends PublicModel{
         if (empty($material_cat_no)) {
             return false;
         }
-        $supplier_product_model = new SupplierProductModel();
         if (!empty($spu)) {
             $condition = array('spu' => $spu);
-            $result2 = $supplier_product_model->field('spu')->where($condition)->find();
+            $result2 = $this->field('spu')->where($condition)->find();
             $lockFile = MYPATH . '/public/tmp/' . $spu . '.lock';
             if ($result2 || file_exists($lockFile)) {
                 $code = substr($spu, (strlen($material_cat_no) + 2), 4);
@@ -188,7 +210,7 @@ class SupplierProductModel extends PublicModel{
             $condition = array(
                 'material_cat_no' => $material_cat_no
             );
-            $result = $supplier_product_model->field('spu')->where($condition)->order('spu DESC')->find();
+            $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
             if ($result) {
                 $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
                 $code = intval($code) + 1;
