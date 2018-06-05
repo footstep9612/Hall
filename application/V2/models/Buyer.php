@@ -470,7 +470,7 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
-//        $country = new CountryModel();
+        $country = new CountryModel();
         $order = new OrderModel();
         $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
@@ -489,7 +489,10 @@ class BuyerModel extends PublicModel {
             }
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
-                $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['country'];
+                $info[$k]['area_name'] = $area['area'];
+//                $info[$k]['country_name'] = $area['country'];
             }
             $agentInfo=$agent->getBuyerAgentArr($v['id']);
             $info[$k]['agent_id'] = $agentInfo['id'];
