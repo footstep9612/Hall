@@ -316,6 +316,7 @@ class CountryModel extends PublicModel {
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
             $arr[$k]['source']=$data['source'];
+            $arr[$k]['code']=$data['country_name']['en'];
         }
         $info[]=$arr['zh'];
         $info[]=$arr['en'];

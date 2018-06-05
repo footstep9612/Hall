@@ -21,5 +21,6 @@ return [
     'EXCEL_SKU_GOODS_SOURCE_REQUIRED'  =>   '必填项产品来源未填写',
     'EXCEL_SKU_DELIVERY_DAYS_REQUIRED'  =>   '必填项交货周期未填写或格式不正确',
     'EXCEL_SKU_VALIDITY_PERIOD_REQUIRED'  =>   '必填项报价有效期未填写',
+    'EXCEL_SKU_SUPPLIER_NAME_REQUIRED'  =>   '必填项供应商名称未填写或不存在',
 ];
 

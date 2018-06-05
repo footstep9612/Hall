@@ -108,8 +108,10 @@ class CountryController extends PublicController {
      */
     public function CountryListAction() {
         $data = $this->getPut();
+        $data['lang']=$this->getLang();
         $limit = [];
         $where = [];
+        $where['deleted_flag'] = 'N';
         if (!empty($data['bn'])) {
             $where['bn'] = $data['bn'];
         }
