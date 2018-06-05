@@ -46,6 +46,66 @@ class SupplierGoodsModel extends PublicModel{
         return $this->where($where)->count();
     }
 
+    /**
+     * 获取商品详情
+     * @param mix $condition
+     * @return mix
+     * @author klp
+     */
+    public function getDetail($condition = []) {
+        $where = $this->_getWhere($condition);
+        $supplier_goods_attr_model = new SupplierGoodsAttrModel();
+        $attr_table = $supplier_goods_attr_model->getTableName();
+        return $this->field('g.*, a.ex_goods_attrs, a.other_attrs')
+                     ->alias('g')
+                     ->join($attr_table.' as a ON a.sku = g.sku AND a.deleted_flag = \'N\'', 'left')
+                     ->where($where)
+                     ->select();
+    }
+
+    /**
+     * 根据条件获取查询条件.
+     * @param Array $condition
+     * @return mix
+     * @author klp
+     */
+    protected function _getWhere($condition = []) {
+        $where = [];
+        if (isset($condition['spu']) && !empty($condition['spu'])) {
+            if(is_array($condition['spu'])){
+                $where['g.spu'] = ['in',$condition['spu']];
+            }else{
+                $where['g.spu'] = $condition['spu'];
+            }
+        }
+        if (isset($condition['sku']) && !empty($condition['sku'])) {
+            if(is_array($condition['sku'])){
+                $where['g.sku'] = ['in',$condition['sku']];
+            }else{
+                $where['g.sku'] = $condition['sku'];
+            }
+        }
+        if (isset($condition['supplier_id']) && !empty($condition['supplier_id'])) {
+            $where['g.supplier_id'] = $condition['supplier_id'];                  //瑞商id
+        }
+        if (isset($condition['lang']) && !empty($condition['lang'])) {
+            $where['g.lang'] = $condition['lang'];                  //语言
+        }else {
+            $where['g.lang'] = 'zh';
+        }
+        if (isset($condition['id']) && !empty($condition['id'])) {
+            $where['g.id'] = $condition['id'];                  //id
+        }
+        if (isset($condition['status']) && !empty($condition['status'])) {
+            $where['g.status'] = strtoupper($condition['status']);                  //状态
+        }
+        if (isset($condition['deleted_flag']) && !empty($condition['deleted_flag'])) {
+            $where['g.deleted_flag'] = strtoupper($condition['deleted_flag']);                  //是否删除状态
+        }else {
+            $where['g.deleted_flag'] = 'N';
+        }
+        return $where;
+    }
 
     /**
      * @desc 添加记录
@@ -132,6 +192,14 @@ class SupplierGoodsModel extends PublicModel{
                 $where['sku'] = $condition['sku'];
             }
         }
+        if (isset($condition['supplier_id']) && !empty($condition['supplier_id'])) {
+            $where['supplier_id'] = $condition['supplier_id'];                  //瑞商id
+        }
+        if (isset($condition['lang']) && !empty($condition['lang'])) {
+            $where['lang'] = $condition['lang'];                  //语言
+        }else {
+            $where['lang'] = 'zh';
+        }
         if (isset($condition['id']) && !empty($condition['id'])) {
             $where['id'] = $condition['id'];                  //id
         }
@@ -196,6 +264,15 @@ class SupplierGoodsModel extends PublicModel{
                 return false;
             }
         }
+    }
+
+    /**
+     * 获取sku 获取列表
+     * @author
+     */
+    public function getSkus($spu) {
+        $result = $this->field('sku')->where(array('spu' => $spu))->order('sku DESC')->find();
+        return $result ? $result['sku'] : false;
     }
 
 }
