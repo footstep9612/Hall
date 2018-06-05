@@ -26,9 +26,9 @@ class SupplierProductAttachModel extends PublicModel{
 
         $field = 'id,spu,attach_type,attach_name,attach_url,default_flag,sort_order,status,created_at';
         return $this->field($field)
-            ->where($where)
-            ->order('id desc')
-            ->select();
+                     ->where($where)
+                     ->order('id desc')
+                     ->select();
     }
 
     /**
@@ -165,7 +165,7 @@ class SupplierProductAttachModel extends PublicModel{
                     'attach_url' => $item['attach_url'],
                     'attach_name' => isset($item['attach_name']) ? trim($item['attach_name']) : '',
                     'attach_type' => isset($item['attach_type']) ? $item['attach_type'] : 'BIG_IMAGE',
-                    'default_flag' => !empty($item['default_flag']) ? $item['default_flag'] : ''
+                    'default_flag' => !empty($item['default_flag']) ? $item['default_flag'] : 'N'
                 ];
 
                 if (!isset($item['attach_id']) || empty($item['attach_id'])) {
@@ -175,7 +175,7 @@ class SupplierProductAttachModel extends PublicModel{
 //                    $where['id'] = $item['attach_id'];
 //                    $attachsData['updated_at'] = $this->getTime();
 //                    $res = $this->updateInfo($where, $attachsData);
-                    $attachsData['updated_at'] = $this->getTime();
+                    $attachsData['created_at'] = $this->getTime();
                     $res = $this->addRecord($attachsData);
                 }
                 if (!$res) {
