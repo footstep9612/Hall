@@ -26,7 +26,7 @@ class SupplierProductModel extends PublicModel{
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,lang,spu,supplier_id,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
+        $field = 'id,lang,spu,supplier_id,material_cat_no,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
         return $this->field($field)
                      ->where($where)
                      ->limit($start_no, $pagesize)
@@ -97,7 +97,11 @@ class SupplierProductModel extends PublicModel{
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
-        } else {
+        }
+        if (!empty($condition['spu'])) {
+            $where['spu'] = ['in', explode(',', $condition['spu'])];
+        }
+        if(empty($where)){
             return false;
         }
         $res = $this->where($where)->save(['deleted_flag'=>'Y']);

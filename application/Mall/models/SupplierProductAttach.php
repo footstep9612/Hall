@@ -94,7 +94,11 @@ class SupplierProductAttachModel extends PublicModel{
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
-        } else {
+        }
+        if (!empty($condition['spu'])) {
+            $where['spu'] = ['in', explode(',', $condition['spu'])];
+        }
+        if(empty($where)){
             return false;
         }
         $res = $this->where($where)->save(['deleted_flag'=>'Y']);
@@ -183,7 +187,7 @@ class SupplierProductAttachModel extends PublicModel{
                 }
             }
         }
-        return true;
+        return $res;
     }
 
     public function getTime() {
