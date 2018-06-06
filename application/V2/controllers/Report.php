@@ -135,6 +135,36 @@ class ReportController extends PublicController {
         return intval($valid_count);
     }
 
+    private function _getSkuCount($condition, $lang, $spustatus, $logstatus) {
+        $validcondition['pcl.status'] = $logstatus;
+        $validcondition['p.deleted_flag'] = 'N';
+        $validcondition['p.status'] = $spustatus;
+        if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['between', $created_at_start . ', ' . $created_at_end,];
+        } elseif (isset($condition['created_at_start']) && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+
+            $validcondition['pcl.approved_at'] = ['egt', $created_at_start];
+        } elseif (isset($condition['created_at_end']) && $condition['created_at_end']) {
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['elt', $created_at_end,];
+        }
+        $validcondition['p.lang'] = $lang;
+
+
+        $produtc_check_log_table = (new ProductCheckLogModel())->getTableName();
+        $goods_model = new GoodsModel();
+        $valid_count = $goods_model
+                ->alias('p')
+                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.spu')
+                ->where($validcondition)
+                ->count('DISTINCT p.spu');
+
+        return intval($valid_count);
+    }
+
     /**
      * 已开发SKU数量
      * @param mix $condition
@@ -154,26 +184,34 @@ class ReportController extends PublicController {
         $condition['status'] = 'DRAFT';
         $DraftCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
         $this->setvalue('draft_count', $DraftCount); //$InvalidCount
-        //  $this->setvalue('draft_rate', $this->_number_format($DraftCount, $total));
 
-        $condition['status'] = 'CHECKING';
-        $CheckingCount = $esproduct_model->getCount($condition, $lang); //待审核供应商数量
+
+        $CheckingCount = $this->_getSkuCount($condition, $lang, 'CHECKING', 'TO_BE_CHANGED'); //待审核供应商数量
 
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
         $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
 
 
 
-        $condition['status'] = 'VALID';
-        $ValidCount = $esproduct_model->getCount($condition, $lang); //已通过供应商数量
+
+        $ValidCount = $this->_getSkuCount($condition, $lang, 'VALID', 'PASS'); //已通过供应商数量
         $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
-        //$this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
 
-        $condition['status'] = 'INVALID';
-        $InvalidCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $InvalidCount = $this->_getSkuCount($condition, $lang, 'INVALID', 'REJECTED'); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
-        //$this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
 
+        $onshelfcondition['status'] = 'VALID';
+        $onshelfcondition['onshelf_flag'] = 'Y';
+        $onshelfcondition['lang'] = $lang;
+
+        if (!empty($condition['created_at_start'])) {
+            $onshelfcondition['onshelf_at_start'] = $condition['created_at_start'];
+        }
+        if (!empty($condition['created_at_end'])) {
+            $onshelfcondition['onshelf_at_end'] = $condition['created_at_end'];
+        }
+        $onshelfCount = $esproduct_model->getCount($onshelfcondition, $lang); //已通过供应商数量
+        $this->setvalue('onshelf_count', $onshelfCount);
 
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
