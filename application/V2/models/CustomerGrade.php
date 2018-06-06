@@ -97,6 +97,20 @@ class CustomerGradeModel extends PublicModel {
         }
         return false;
     }
+    public function saveGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        if($data['type']==1){
+            $arr=$this->oldBuyer($data);    //老客户
+        }else{
+            $arr=$this->newBuyer($data);    //潜在客户
+        }
+        unset($arr['type']);
+        unset($arr['buyer_id']);
+        $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
+        return true;
+    }
     public function delGrade($data){
         if(empty($data['id'])){
             return false;
