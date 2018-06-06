@@ -35,6 +35,9 @@ class SupplierproductController extends PublicController
         ]);
     }
 
+    /**
+     * 供应商(瑞商)产品详情
+     */
     public function detailAction()
     {
         $request = $this->validateRequestParams('id');
@@ -54,6 +57,76 @@ class SupplierproductController extends PublicController
             'data' => $detail
         ]);
 
+    }
+
+    /**
+     * 供应商(瑞商)产品审核
+     */
+    public function reviewAction()
+    {
+        $request = $this->validateRequestParams('id');
+
+
+        $reviewList = explode(',' ,$request['id']);
+
+        foreach ($reviewList as $item) {
+
+            $isApproving = (new SupplierProductModel)->checkIsApproving($item);
+
+            if ($isApproving !== 'APPROVING') {
+                $this->jsonReturn([
+                    'code' => 0,
+                    'message' => '只可以批量通过审核中状态的产品'
+                ]);
+            }
+
+            //TODO 这里可以用事务来优化当前逻辑
+
+            (new SupplierProductModel)->updateStatusFor($item, 'APPROVED', $this->user['id']);
+
+            //记录审核日志
+            (new SupplierProductCheckLogModel)->createReviewLogFor($item, $this->user['id']);
+
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功'
+        ]);
+
+    }
+
+    /**
+     * 供应商(瑞商)产品驳回
+     */
+    public function rejectAction()
+    {
+        $request = $this->validateRequestParams('id,remarks');
+
+
+        $reviewList = explode(',' ,$request['id']);
+
+        foreach ($reviewList as $item) {
+
+            $isApproving = (new SupplierProductModel)->checkIsApproving($item);
+
+            if ($isApproving !== 'APPROVING') {
+                $this->jsonReturn([
+                    'code' => 0,
+                    'message' => '只可以批量驳回审核中状态的产品'
+                ]);
+            }
+
+            (new SupplierProductModel)->updateStatusFor($item, 'INVALID', $this->user['id']);
+
+            (new SupplierProductCheckLogModel)->createReviewLogFor($item, $this->user['id'], $request);
+
+        }
+
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => '成功'
+        ]);
     }
 
     /**
