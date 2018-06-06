@@ -398,7 +398,6 @@ class BuyerbusinessController extends PublicController
         $data['lang']=$this->getLang();
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->buyerGradeList($data);
-//        $res=$model->addBuyerGrade($data);
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
