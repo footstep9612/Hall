@@ -411,8 +411,4 @@ class BuyerBusinessModel extends PublicModel
         $info = $this ->field($field)-> where($map) -> find();
         return $info;
     }
-    public function addBuyerGrade($data){
-        print_r($data);die;
-        $this->table($this->grade)->add();
-    }
 }
