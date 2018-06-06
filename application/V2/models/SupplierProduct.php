@@ -112,6 +112,8 @@ class SupplierProductModel extends PublicModel
         //状态
         if (!empty($condition['status'])) {
             $conditions['a.status'] = $condition['status'];
+        }else {
+            $conditions['a.status'] = 'APPROVING';
         }
 
         //提交时间
