@@ -342,9 +342,14 @@ class PortModel extends PublicModel {
         return $arr;
     }
     public function portTest(){
-        $info=$this->field('bn,name')->where(array('lang'=>'en'))->select();
+        $info=$this->field('bn,name,port_type,trans_mode')->where(array('lang'=>'en'))->select();
         foreach($info as $k => $v){
-            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save(array('name_en'=>$v['name']));
+            $save=array(
+                'name_en'=>$v['name'],
+                'port_type'=>$v['port_type'],
+                'trans_mode'=>$v['trans_mode']
+            );
+            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save($save);
         }
         print_r(1);die;
     }
