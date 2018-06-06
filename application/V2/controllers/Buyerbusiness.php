@@ -422,4 +422,17 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    public function delGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->delGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }

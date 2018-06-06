@@ -95,4 +95,15 @@ class CustomerGradeModel extends PublicModel {
         }
         return false;
     }
+    public function delGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $cond=array('id'=>$data['id']);
+        $res=$this->where($cond)->save(array('deleted_flag'=>'Y'));
+        if($res){
+            return true;
+        }
+        return false;
+    }
 }
