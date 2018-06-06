@@ -28,6 +28,8 @@ class ReportController extends PublicController {
         if (!$this->put_data) {
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
+
+
             $sign = md5($key . $input['input']);
 //            echo $sign;
             if ($input['sign'] != $sign) {
@@ -54,10 +56,15 @@ class ReportController extends PublicController {
      */
     public function getProductCountAction() {
         $condition = $this->getPut();
+
+
+
+
         $lang = $this->getPut('lang', 'zh');
         $condition['status'] = 'ALL';
         $condition['onshelf_flag'] = 'A';
         $esproduct_model = new EsProductModel();
+
         $total = $esproduct_model->getCount($condition, $lang); //已开发SPU数量
         $this->setvalue('count', $total); //已开发供应商数量
 
@@ -66,27 +73,96 @@ class ReportController extends PublicController {
         $this->setvalue('draft_count', $DraftCount); //$InvalidCount
         // $this->setvalue('draft_rate', $this->_number_format($DraftCount, $total));
 
-        $condition['status'] = 'CHECKING';
-        $CheckingCount = $esproduct_model->getCount($condition, $lang); //待审核供应商数量
-        $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
+        $this->setvalue('checking_count', $this->_getSpuCount($condition, $lang, 'CHECKING', 'TO_BE_CHANGED')); //待审核供应商数量
         // $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
-
-
-        $condition['status'] = 'VALID';
-        $ValidCount = $esproduct_model->getCount($condition, $lang); //已通过供应商数量
-        $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
+        //        $condition['status'] = 'VALID';
+        //        $ValidCount = $esproduct_model->getCount($condition, $lang); //已通过供应商数量
+        //        $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
         // $this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
 
 
-        $condition['status'] = 'INVALID';
-        $InvalidCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
-        $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
+        $this->setvalue('invalid_count', $this->_getSpuCount($condition, $lang, 'INVALID', 'REJECTED')); //$InvalidCount
         //   $this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
 
 
+
+        $this->setvalue('valid_count', $this->_getSpuCount($condition, $lang, 'VALID', 'PASS'));
+
+        $onshelfcondition['status'] = 'VALID';
+        $onshelfcondition['onshelf_flag'] = 'Y';
+        $onshelfcondition['lang'] = $lang;
+
+        if (!empty($condition['created_at_start'])) {
+            $onshelfcondition['onshelf_at_start'] = $condition['created_at_start'];
+        }
+        if (!empty($condition['created_at_end'])) {
+            $onshelfcondition['onshelf_at_end'] = $condition['created_at_end'];
+        }
+        $onshelfCount = $esproduct_model->getCount($onshelfcondition, $lang); //已通过供应商数量
+        $this->setvalue('onshelf_count', $onshelfCount);
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
         $this->jsonReturn();
+    }
+
+    private function _getSpuCount($condition, $lang, $spustatus, $logstatus) {
+        $validcondition['pcl.status'] = $logstatus;
+        $validcondition['p.deleted_flag'] = 'N';
+        $validcondition['p.status'] = $spustatus;
+        if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['between', $created_at_start . ', ' . $created_at_end,];
+        } elseif (isset($condition['created_at_start']) && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+
+            $validcondition['pcl.approved_at'] = ['egt', $created_at_start];
+        } elseif (isset($condition['created_at_end']) && $condition['created_at_end']) {
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['elt', $created_at_end,];
+        }
+        $validcondition['p.lang'] = $lang;
+
+
+        $produtc_check_log_table = (new ProductCheckLogModel())->getTableName();
+        $product_model = new ProductModel();
+        $valid_count = $product_model
+                ->alias('p')
+                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.spu = p.spu')
+                ->where($validcondition)
+                ->count('DISTINCT p.spu');
+
+        return intval($valid_count);
+    }
+
+    private function _getSkuCount($condition, $lang, $spustatus, $logstatus) {
+        $validcondition['pcl.status'] = $logstatus;
+        $validcondition['p.deleted_flag'] = 'N';
+        $validcondition['p.status'] = $spustatus;
+        if (isset($condition['created_at_start']) && isset($condition['created_at_end']) && $condition['created_at_end'] && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['between', $created_at_start . ', ' . $created_at_end,];
+        } elseif (isset($condition['created_at_start']) && $condition['created_at_start']) {
+            $created_at_start = trim($condition['created_at_start']);
+
+            $validcondition['pcl.approved_at'] = ['egt', $created_at_start];
+        } elseif (isset($condition['created_at_end']) && $condition['created_at_end']) {
+            $created_at_end = trim($condition['created_at_end']);
+            $validcondition['pcl.approved_at'] = ['elt', $created_at_end,];
+        }
+        $validcondition['p.lang'] = $lang;
+
+
+        $produtc_check_log_table = (new ProductCheckLogModel())->getTableName();
+        $goods_model = new GoodsModel();
+        $valid_count = $goods_model
+                ->alias('p')
+                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.spu')
+                ->where($validcondition)
+                ->count('DISTINCT p.spu');
+
+        return intval($valid_count);
     }
 
     /**
@@ -108,26 +184,34 @@ class ReportController extends PublicController {
         $condition['status'] = 'DRAFT';
         $DraftCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
         $this->setvalue('draft_count', $DraftCount); //$InvalidCount
-        //  $this->setvalue('draft_rate', $this->_number_format($DraftCount, $total));
 
-        $condition['status'] = 'CHECKING';
-        $CheckingCount = $esproduct_model->getCount($condition, $lang); //待审核供应商数量
+
+        $CheckingCount = $this->_getSkuCount($condition, $lang, 'CHECKING', 'TO_BE_CHANGED'); //待审核供应商数量
 
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
         $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
 
 
 
-        $condition['status'] = 'VALID';
-        $ValidCount = $esproduct_model->getCount($condition, $lang); //已通过供应商数量
+
+        $ValidCount = $this->_getSkuCount($condition, $lang, 'VALID', 'PASS'); //已通过供应商数量
         $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
-        //$this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
 
-        $condition['status'] = 'INVALID';
-        $InvalidCount = $esproduct_model->getCount($condition, $lang); //已驳回供应商数量
+        $InvalidCount = $this->_getSkuCount($condition, $lang, 'INVALID', 'REJECTED'); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
-        //$this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
 
+        $onshelfcondition['status'] = 'VALID';
+        $onshelfcondition['onshelf_flag'] = 'Y';
+        $onshelfcondition['lang'] = $lang;
+
+        if (!empty($condition['created_at_start'])) {
+            $onshelfcondition['onshelf_at_start'] = $condition['created_at_start'];
+        }
+        if (!empty($condition['created_at_end'])) {
+            $onshelfcondition['onshelf_at_end'] = $condition['created_at_end'];
+        }
+        $onshelfCount = $esproduct_model->getCount($onshelfcondition, $lang); //已通过供应商数量
+        $this->setvalue('onshelf_count', $onshelfCount);
 
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
@@ -277,8 +361,8 @@ class ReportController extends PublicController {
                 $rejectReasonList = $inquiryCheckLogModel->where($rejectWhere)->order('id DESC')->getField('op_note', true);
                 $inquiry['reject_reason'] = [];
                 foreach ($rejectReasonList as $rejectReason) {
-                     $tmpArr = explode(',', $rejectReason);
-                     $inquiry['reject_reason'][] = $tmpArr[0];
+                    $tmpArr = explode(', ', $rejectReason);
+                    $inquiry['reject_reason'][] = $tmpArr[0];
                 }
                 $inquiryItemList = $inquiryItemModel->getJoinList($where);
                 foreach ($inquiryItemList as &$inquiryItem) {
@@ -302,7 +386,7 @@ class ReportController extends PublicController {
 
     private function _number_format($value, $total) {
         if ($total) {
-            return number_format($value / $total * 100, 2, '.', ',');
+            return number_format($value / $total * 100, 2, '.', ', ');
         } else {
             return 100;
         }
