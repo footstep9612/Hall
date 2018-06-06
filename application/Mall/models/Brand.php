@@ -53,6 +53,18 @@ class BrandModel extends PublicModel {
     }
 
     /**
+     * @desc 添加记录
+     * @param array $condition
+     */
+    public function addRecord($condition = []) {
+
+
+        $data = $this->create($condition);
+
+        return $this->add($data);
+    }
+
+    /**
      * 条件解析
      * @param mix $condition 搜索条件
      * @param string $lang 语言
