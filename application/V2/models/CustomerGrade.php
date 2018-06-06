@@ -44,7 +44,7 @@ class CustomerGradeModel extends PublicModel {
             'created_by',   //创建人
             'created_at',   //创建时间
             'updated_at',   //更新时间
-//            'customer_',   //客户管理员
+            'checked_by',   //客户管理员
             'checked_at',   //审核时间
             'status',   //状态
         );
@@ -52,13 +52,14 @@ class CustomerGradeModel extends PublicModel {
             $field.='grade.'.$v.',';
         }
         $field.="(select name from erui_sys.employee where id=grade.created_by and deleted_flag='N') as  created_name";
+        $field.=",(select name from erui_sys.employee where id=grade.checked_by and deleted_flag='N') as customer_admin";
         $info=$this->alias('grade')
             ->field($field)
             ->where(array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N'))
             ->select();
         foreach($info as $k => &$v){
             unset($v['created_by']);
-            $info[$k]['customer_admin']='刘仲梅';    //1客户管理员
+//            $info[$k]['customer_admin']='刘仲梅';    //1客户管理员
             if($v['status']==0){
                 $v['status']='新建';
             }else if($v['status']==1){
