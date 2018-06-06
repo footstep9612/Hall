@@ -15,11 +15,12 @@ class CustomerGradeModel extends PublicModel {
             return false;
         }
             $info=$this
-            ->field('amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
+            ->field('type,amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
             ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
             ->select();
             $arr=[];
             foreach($info as $k => $v){
+                $arr[$k]['type']=$v['type'];  //
                 $arr[$k]['customer_grade']=$v['amount'];  //客户等级
                 $arr[$k]['created_name']=$v['position'];    //创建人
                 $arr[$k]['created_at']=$v['year_keep'];   //创建时间
