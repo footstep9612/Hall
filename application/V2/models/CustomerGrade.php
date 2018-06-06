@@ -36,23 +36,38 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['buyer_id'])){
             return false;
         }
-        $info=$this
-            ->field('id,type,amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
-            ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
-            ->select();
-        $arr=[];
-        foreach($info as $k => $v){
-            $arr[$k]['id']=$v['id'];  //
-            $arr[$k]['type']=$v['type'];  //
-            $arr[$k]['customer_grade']=$v['amount'];  //客户等级
-            $arr[$k]['created_name']=$v['position'];    //创建人
-            $arr[$k]['created_at']=$v['year_keep'];   //创建时间
-            $arr[$k]['updated_at']=$v['re_purchase']; //更新时间
-            $arr[$k]['customer_admin']=$v['credit_grade'];    //1客户管理员
-            $arr[$k]['checked_at']=$v['purchase'];    //1审核时间
-            $arr[$k]['status']=$v['enterprise'];  //1状态
+        $field='';
+        $fieldArr=array(
+            'id',   //
+            'type',   //
+            'customer_grade',   //客户等级
+            'created_by',   //创建人
+            'created_at',   //创建时间
+            'updated_at',   //更新时间
+//            'customer_',   //客户管理员
+            'checked_at',   //审核时间
+            'status',   //状态
+        );
+        foreach($fieldArr as $k => $v){
+            $field.='grade.'.$v.',';
         }
-        return $arr;
+        $field.="(select name from erui_sys.employee where id=grade.created_by and deleted_flag='N') as  created_name";
+        $info=$this->alias('grade')
+            ->field($field)
+            ->where(array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N'))
+            ->select();
+        foreach($info as $k => &$v){
+            unset($v['created_by']);
+            $info[$k]['customer_admin']='刘仲梅';    //1客户管理员
+            if($v['status']==0){
+                $v['status']='新建';
+            }else if($v['status']==1){
+                $v['status']='待审核';
+            }else if($v['status']==2){
+                $v['status']='已通过';
+            }
+        }
+        return $info;
     }
     private function oldBuyer($data){
         $field=array(
