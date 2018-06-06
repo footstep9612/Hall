@@ -25,6 +25,7 @@ class SupplierproductController extends PublicController
 
         foreach ($data as &$datum) {
             $datum['material_cat_name'] = $this->setMaterialCatFor($datum['material_cat_no']);
+            $datum['brand'] = $this->setBrand($datum['brand']);
         }
 
         $this->jsonReturn([
@@ -44,6 +45,7 @@ class SupplierproductController extends PublicController
 
         $detail = (new SupplierProductModel)->getDetail($request['id']);
         $detail['material_cat_name'] = $this->setMaterialCatFor($detail['material_cat_no']);
+        $detail['brand'] = $this->setBrand($detail['brand']);
 
         //attachs
         $detail['attach_list'] = (new SupplierProductAttachModel)->getList($detail);
@@ -153,5 +155,11 @@ class SupplierproductController extends PublicController
         }
 
         return $materialCatName;
+    }
+
+    protected function setBrand($brandObj)
+    {
+        $data = json_decode($brandObj, true);
+        return $data['name'];
     }
 }
