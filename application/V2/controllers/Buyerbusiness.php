@@ -409,23 +409,14 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    public function addGradeAction(){
+    public function editGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new CustomerGradeModel();  //结算方式
-        $res=$model->addGrade($data);
-        if($res){
-            $dataJson['code']=1;
-            $dataJson['message']='成功';
+        if(empty($data['id'])){
+            $res=$model->addGrade($data);
         }else{
-            $dataJson['code']=0;
-            $dataJson['message']='失败';
+            $res=$model->saveGrade($data);
         }
-        $this -> jsonReturn($dataJson);
-    }
-    public function saveGradeAction(){
-        $data = json_decode(file_get_contents("php://input"), true);
-        $model = new CustomerGradeModel();  //结算方式
-        $res=$model->saveGrade($data);
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='成功';
