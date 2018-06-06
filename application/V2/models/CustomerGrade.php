@@ -10,27 +10,49 @@ class CustomerGradeModel extends PublicModel {
     public function __construct() {
         parent::__construct();
     }
+    public function buyerGradeList1($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info=$this
+        ->field('id,type,amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
+        ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
+        ->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            $arr[$k]['id']=$v['id'];  //
+            $arr[$k]['type']=$v['type'];  //
+            $arr[$k]['customer_grade']=$v['amount'];  //客户等级
+            $arr[$k]['created_name']=$v['position'];    //创建人
+            $arr[$k]['created_at']=$v['year_keep'];   //创建时间
+            $arr[$k]['updated_at']=$v['re_purchase']; //更新时间
+            $arr[$k]['customer_admin']=$v['credit_grade'];    //1客户管理员
+            $arr[$k]['checked_at']=$v['purchase'];    //1审核时间
+            $arr[$k]['status']=$v['enterprise'];  //1状态
+        }
+        return $arr;
+    }
     public function buyerGradeList($data){
         if(empty($data['buyer_id'])){
             return false;
         }
-            $info=$this
+        $info=$this
             ->field('id,type,amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
             ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
             ->select();
-            $arr=[];
-            foreach($info as $k => $v){
-                $arr[$k]['id']=$v['id'];  //
-                $arr[$k]['type']=$v['type'];  //
-                $arr[$k]['customer_grade']=$v['amount'];  //客户等级
-                $arr[$k]['created_name']=$v['position'];    //创建人
-                $arr[$k]['created_at']=$v['year_keep'];   //创建时间
-                $arr[$k]['updated_at']=$v['re_purchase']; //更新时间
-                $arr[$k]['customer_admin']=$v['credit_grade'];    //1客户管理员
-                $arr[$k]['checked_at']=$v['purchase'];    //1审核时间
-                $arr[$k]['status']=$v['enterprise'];  //1状态
-            }
-            return $arr;
+        $arr=[];
+        foreach($info as $k => $v){
+            $arr[$k]['id']=$v['id'];  //
+            $arr[$k]['type']=$v['type'];  //
+            $arr[$k]['customer_grade']=$v['amount'];  //客户等级
+            $arr[$k]['created_name']=$v['position'];    //创建人
+            $arr[$k]['created_at']=$v['year_keep'];   //创建时间
+            $arr[$k]['updated_at']=$v['re_purchase']; //更新时间
+            $arr[$k]['customer_admin']=$v['credit_grade'];    //1客户管理员
+            $arr[$k]['checked_at']=$v['purchase'];    //1审核时间
+            $arr[$k]['status']=$v['enterprise'];  //1状态
+        }
+        return $arr;
     }
     private function oldBuyer($data){
         $field=array(
@@ -91,6 +113,8 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
+        $arr['created_by']=$data['created_by'];
+        $arr['created_at']=date('Y-m-d H:i:s');
         $res=$this->add($arr);
         if($res){
             return true;
@@ -108,6 +132,9 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
+        unset($arr['flag']);
+        $arr['updated_by']=$data['created_by'];
+        $arr['updated_at']=date('Y-m-d H:i:s');
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
         return true;
     }
