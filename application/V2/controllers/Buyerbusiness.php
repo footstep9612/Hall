@@ -364,4 +364,46 @@ class BuyerbusinessController extends PublicController
 
         $this -> jsonReturn($dataJson);
     }
+    public function gradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $payment = new PaymentModeModel();  //结算方式
+        $info = $payment->table('erui_config.buyer_grade')->field('id,type,name')->where(array('deleted_flag'=>'N'))->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            if($v['type']==1){
+                unset($v['type']);
+                $arr['position'][]=$v;
+            }else if($v['type']==2){
+                unset($v['type']);
+                $arr['enterprise'][]=$v;
+            }else if($v['type']==3){
+                unset($v['type']);
+                $arr['year_keep'][]=$v;
+            }else if($v['type']==4){
+                unset($v['type']);
+                $arr['re_purchase'][]=$v;
+            }else if($v['type']==5){
+                unset($v['type']);
+                $arr['credit'][]=$v;
+            }
+        }
+        $dataJson['code']=1;
+        $dataJson['message']='客户分级配置数据';
+        $dataJson['data']=$arr;
+        $this -> jsonReturn($dataJson);
+    }
+    public function buyerGradeListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->buyerGradeList($data);
+//        $res=$model->addBuyerGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='客户分级列表数据';
+            $dataJson['data']=$res;
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }
