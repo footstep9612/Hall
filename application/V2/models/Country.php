@@ -433,13 +433,13 @@ class CountryModel extends PublicModel {
         foreach($bn as $k => $v){
             $area=$this->table('erui_operation.market_area_country')->field('market_area_bn')->where(array('country_bn'=>$v['bn']))->find();
             if($v['lang']=='en'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'en'))
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
                     ->save(array('region_bn'=>$area['market_area_bn'],'name_en'=>$v['name']));
             }elseif($v['lang']=='ru'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'ru'))
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
                     ->save(array('region_bn'=>$area['market_area_bn'],'name_ru'=>$v['name']));
             }elseif($v['lang']=='es'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'es'))
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
                     ->save(array('region_bn'=>$area['market_area_bn'],'name_es'=>$v['name']));
             }elseif($v['lang']=='zh'){
                 $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
@@ -876,7 +876,23 @@ class CountryModel extends PublicModel {
     public function getCountryBnCodeByName($country_name) {
         return $this->field('bn,int_tel_code')->where(array('name' => $country_name))->find();
     }
-    
+    //国家简称获取->国家名称,地区名称
+    public function getCountryAreaByBn($country_bn,$lang='zh'){
+        $cond=array(
+            'bn'=>$country_bn,
+            'lang'=>$lang,
+            'deleted_flag'=>'N'
+        );
+        $country=$this->field('name as country_name')->where($cond)->find();
+        $area=$this->table('erui_operation.market_area_country')->alias('country')
+            ->join('erui_operation.market_area area on country.market_area_bn=area.bn and area.deleted_flag=\'N\'','left')
+            ->field('area.name as area_name')
+            ->where(array('country.country_bn'=>$country_bn,'area.lang'=>$lang))
+            ->find();
+        $arr['area']=$area['area_name'];
+        $arr['country']=$country['country_name'];
+        return $arr;
+    }
     /**
      * @desc 通过国家简称获取名称
      *

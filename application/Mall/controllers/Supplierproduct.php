@@ -31,6 +31,8 @@ class SupplierproductController extends SupplierpublicController{
         $count = $supplier_product_model->getCount($condition);
         if($res){
             foreach($res as &$item){
+                $supplier_product_attach_model = new SupplierProductAttachModel();
+                $item['attachs'] = $supplier_product_attach_model->getList(['spu'=>$item['spu']]);
                 $supplier_product_checklog_model = new SupplierProductCheckLogModel();
                 if($item['status']==self::STATUS_REJECTED){
                     $check_log = $supplier_product_checklog_model->getList([$item['spu']]);
@@ -101,7 +103,7 @@ class SupplierproductController extends SupplierpublicController{
     /**
      * 瑞商产品--新增/编辑
      */
-    public function addSupplierProductAction(){
+    public function editSupplierProductAction(){
         $data = $this->getPut();
         $lang = $this->getLang($data['lang']);
         $supplier_id = $this->getSupplierId($data['supplier_id']);
@@ -160,7 +162,6 @@ class SupplierproductController extends SupplierpublicController{
             $supplier_goods_model = new SupplierGoodsModel();
             if(isset($data['goods']) && is_array($data['goods'])){
                 foreach($data['goods'] as $item){
-                    $sku = $supplier_goods_model->setRealSku($spu); //生成新的sku
                     $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty','price'];
                     $resultGoodsFields = $this->_checkFields($item, $checkGoodsFields, 'required'); //校验字段
                     $goodsData = [
@@ -207,9 +208,11 @@ class SupplierproductController extends SupplierpublicController{
                         ];
                         if(empty($sku)){
                             $sku_attr_where['sku'] = $item['sku'];
-                            $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $goodsData);
+                            $attrData['updated_by'] = $this->getTime();
+                            $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
                         }else {
-                            $goodsData['sku'] = $sku;
+                            $attrData['sku'] = $sku;
+                            $attrData['created_at'] = $this->getTime();
                             $res_goods_attr = $supplier_goods_attr_model->addRecord($attrData);
                         }
                         if (!$res_goods_attr) {
@@ -242,7 +245,7 @@ class SupplierproductController extends SupplierpublicController{
     /**
      * 瑞商产品--编辑
      */
-    public function editSupplierProductAction(){
+    public function aeditSupplierProductAction(){
         $data = $this->getPut();
         $lang = $this->getLang($data['lang']);
         $supplier_id = $this->getSupplierId($data['supplier_id']);
@@ -398,6 +401,7 @@ class SupplierproductController extends SupplierpublicController{
                     if ($r['lang'] == $lang) {
                         $brand_ary = array(
                             'name' => $r['name'],
+                            'lang' => $lang,
                             'style' => isset($r['style']) ? $r['style'] : 'TEXT',
                             'label' => isset($r['label']) ? $r['label'] : $r['name'],
                             'logo' => isset($r['logo']) ? $r['logo'] : '',
@@ -425,6 +429,7 @@ class SupplierproductController extends SupplierpublicController{
                         if ($r['lang'] == $lang) {
                             $brand_ary = array(
                                 'name' => $r['name'],
+                                'lang' => $lang,
                                 'style' => isset($r['style']) ? $r['style'] : 'TEXT',
                                 'label' => isset($r['label']) ? $r['label'] : $r['name'],
                                 'logo' => isset($r['logo']) ? $r['logo'] : '',
@@ -437,6 +442,7 @@ class SupplierproductController extends SupplierpublicController{
                 }else {
                     $brand_ary = array(
                         'name' => $brand,
+                        'lang' => $lang,
                         'style' => 'TEXT',
                         'label' => $brand,
                         'logo' => '',
@@ -445,7 +451,7 @@ class SupplierproductController extends SupplierpublicController{
                     $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
                     $data['created_at'] = $this->getTime();
                     $data['deleted_flag'] = 'N';
-                    $brand_model->add($brand_model->create($data['brand']));
+                    $brand_model->addRecord($data);
                 }
             } else {
                 $data['brand'] = '';
@@ -458,16 +464,17 @@ class SupplierproductController extends SupplierpublicController{
     //校验必填字段
     private function _checkFields($param, $field, $name='required'){
         if (empty($param) || empty($field)) {
-            return array();
+            jsonReturn('', -1,'缺少参数!');
         }
         foreach ($field as $k => $item) {
             if($name == 'required'){
-                if ($param[$k] == '' || empty($param[$k])) {
-                    jsonReturn('', -1, '缺少参数!');
+                if ($param[$item] == '' || empty($param[$item])) {
+
+                    jsonReturn('', -1, $item.'缺少参数!');
                 }
             }
             //继续添加...
-            $param[$k] = trim($param[$k]);
+            $param[$item] = trim($param[$item]);
             continue;
         }
         return $param;
