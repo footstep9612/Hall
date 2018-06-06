@@ -4,6 +4,7 @@ class BuyerBusinessModel extends PublicModel
 {
     protected $dbName = 'erui_buyer'; //数据库名称
     protected $tableName = 'buyer_business'; //采购商业务信息表名
+    protected $grade = 'erui_buyer.customer_grade'; //客户分级
     public function __construct()
     {
         parent::__construct();

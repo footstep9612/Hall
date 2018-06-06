@@ -843,17 +843,7 @@ class ExcelimportandexportController extends PublicController {
             ];
             $i++;
         }
-        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
-        if (file_exists($file)) {
-            $fileInfo = $this->_uploadToFastDFS($file);
-            if ($fileInfo['code'] == '1') {
-                unlink($file);
-                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
-            } else {
-                $this->jsonReturn(false);
-            }
-        }
-        $this->jsonReturn(false);
+        $this->_handleExportExcelFile($fileName, $titleList, $outData, $sheetTitle, $outPath);
     }
     
     /**
@@ -942,17 +932,7 @@ class ExcelimportandexportController extends PublicController {
             ];
             $i++;
         }
-        $file = $this->_exportExcel($fileName, $titleList, $outData, $sheetTitle, $outPath, 'file');
-        if (file_exists($file)) {
-            $fileInfo = $this->_uploadToFastDFS($file);
-            if ($fileInfo['code'] == '1') {
-                unlink($file);
-                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
-            } else {
-                $this->jsonReturn(false);
-            }
-        }
-        $this->jsonReturn(false);
+        $this->_handleExportExcelFile($fileName, $titleList, $outData, $sheetTitle, $outPath);
     }
     
     /**
@@ -1564,6 +1544,30 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _isTemplet($file) {
         return preg_match('/^.*templet(_\d+|\d*)\.xls(x)?$/i', $file) ? true : false;
+    }
+    
+    /**
+     * @desc 处理导出的excel文件
+     *
+     * @param string $fileName 文件名
+     * @param array $titleList 表格标题
+     * @param array $dataList 表格数据
+     * @param string $sheetTitle sheet标题
+     * @param string $outPath 输出的文件路径
+     * @return mixed
+     * @author liujf
+     * @time 2018-05-30
+     */
+    private function _handleExportExcelFile($fileName, $titleList, $dataList, $sheetTitle, $outPath) {
+        $file = $this->_exportExcel($fileName, $titleList, $dataList, $sheetTitle, $outPath, 'file');
+        if (file_exists($file)) {
+            $fileInfo = $this->_uploadToFastDFS($file);
+            if ($fileInfo['code'] == '1') {
+                unlink($file);
+                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
+            }
+        }
+        $this->jsonReturn(false);
     }
     
     /**
