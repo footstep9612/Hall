@@ -37,4 +37,18 @@ class SupplierProductCheckLogModel extends PublicModel
         ])));
 
     }
+
+    public function getList($condition, $type = 'REJECTED')
+    {
+        $data = $this->where([
+            'spu' => $condition['spu'],
+            'status' => $type
+        ])->field(['approved_by', 'approved_at', 'remarks'])->select();
+
+        foreach ($data as &$datum) {
+            $datum['approved_by'] = (new EmployeeModel)->getNameByid($datum['approved_by'])['name'];
+        }
+
+        return $data;
+    }
 }
