@@ -102,32 +102,6 @@ class CustomerGradeModel extends PublicModel {
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
             }
-//            if($admin===1){
-//                if($v['status']==1){
-//                    $v['status']='待审核';
-//                }else if($v['status']==2){
-//                    $v['status']='已通过';
-//                }else if($v['status']==4){
-//                    $v['status']='未通过';
-//                }
-//                $check=true;   $show=true;    $edit=false;    $delete=false;  $submit=false;
-//            }else{
-//                if($v['status']==0){
-//                    $v['status']='新建';
-//                    $check=true;   $show=true;    $edit=true;    $delete=true;  $submit=true;
-//                }else if($v['status']==1){
-//                    $v['status']='待审核';
-//                    $check=false;   $show=true;    $edit=true;    $delete=true;  $submit=false;
-//                }else if($v['status']==2){
-//                    $v['status']='已通过';
-//                }else if($v['status']==4){
-//                    $v['status']='未通过';
-//                }
-//            }
-//
-//
-//
-//
         }
         return $info;
     }
@@ -228,6 +202,17 @@ class CustomerGradeModel extends PublicModel {
             'deleted_at'=>date('Y-m-d H:i:s')
         );
         $res=$this->where($cond)->save($save);
+        if($res){
+            return true;
+        }
+        return false;
+    }
+    public function submitGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        $cond=array('id'=>$data['id'],'status'=>0,'deleted_flag'=>'N');
+        $res=$this->where($cond)->save(array('status'=>1));
         if($res){
             return true;
         }
