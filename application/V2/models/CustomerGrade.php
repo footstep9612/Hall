@@ -69,11 +69,11 @@ class CustomerGradeModel extends PublicModel {
             ->field($field)
             ->where($cond)
             ->select();
-        $check=false;   //审核
-        $show=false;   //查看
-        $edit=false;   //编辑
-        $delete=false;   //删除
-        $submit=false;   //提交
+//        $check=false;   //审核
+//        $show=false;   //查看
+//        $edit=false;   //编辑
+//        $delete=false;   //删除
+//        $submit=false;   //提交
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
