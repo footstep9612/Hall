@@ -160,7 +160,12 @@ class CustomerGradeModel extends PublicModel {
             return false;
         }
         $cond=array('id'=>$data['id']);
-        $res=$this->where($cond)->save(array('deleted_flag'=>'Y'));
+        $save=array(
+            'deleted_flag'=>'Y',
+            'deleted_by'=>$data['created_by'],
+            'deleted_at'=>date('Y-m-d H:i:s')
+        );
+        $res=$this->where($cond)->save($save);
         if($res){
             return true;
         }

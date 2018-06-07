@@ -428,6 +428,7 @@ class BuyerbusinessController extends PublicController
     }
     public function delGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->delGrade($data);
         if($res){
