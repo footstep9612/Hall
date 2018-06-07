@@ -65,6 +65,8 @@ class CustomerGradeModel extends PublicModel {
                 $v['status']='待审核';
             }else if($v['status']==2){
                 $v['status']='已通过';
+            }else if($v['status']==4){
+                $v['status']='未通过';
             }
         }
         return $info;
@@ -170,5 +172,17 @@ class CustomerGradeModel extends PublicModel {
             return true;
         }
         return false;
+    }
+    public function checkedGrade($data){
+        if(empty($data['status'])){
+            return false;
+        }
+        if($data['status']==2){    //0,新建;1,待审核; 2,审核通过
+            $arr['status']=2;
+        }else{
+            $arr['status']=4;
+        }
+        $arr['checked_by']=$data['created_by'];
+        $arr['checked_at']=date('Y-m-d H:i:s');
     }
 }
