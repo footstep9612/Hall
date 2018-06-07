@@ -446,6 +446,21 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    //提交
+    public function submitGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->submitGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
     //审核
     public function checkedGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
