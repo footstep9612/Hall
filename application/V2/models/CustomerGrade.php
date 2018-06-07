@@ -59,7 +59,6 @@ class CustomerGradeModel extends PublicModel {
             ->select();
         foreach($info as $k => &$v){
             unset($v['created_by']);
-//            $info[$k]['customer_admin']='刘仲梅';    //1客户管理员
             if($v['status']==0){
                 $v['status']='新建';
             }else if($v['status']==1){
@@ -129,6 +128,7 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
+        $arr['status']=$data['flag']==1?1:0;
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
         $res=$this->add($arr);
@@ -149,6 +149,7 @@ class CustomerGradeModel extends PublicModel {
         unset($arr['type']);
         unset($arr['buyer_id']);
         unset($arr['flag']);
+        unset($arr['status']);
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
