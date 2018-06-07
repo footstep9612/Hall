@@ -84,7 +84,7 @@ class EsProductModel extends Model {
             if ($brand) {
                 $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
             } else {
-                $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($condition['brand']), 'boost' => 100]]];
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => strtolower(trim($condition['brand'])), 'boost' => 100]]];
             }
             //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
         }
