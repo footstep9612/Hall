@@ -68,6 +68,7 @@ class CustomerGradeModel extends PublicModel {
         $info=$this->alias('grade')
             ->field($field)
             ->where($cond)
+            ->order('grade.id desc')
             ->select();
 //        $check=false;   //审核
 //        $show=false;   //查看
