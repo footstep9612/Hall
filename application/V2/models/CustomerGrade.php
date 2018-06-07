@@ -174,7 +174,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function checkedGrade($data){
-        if(empty($data['status'])){
+        if(empty($data['status']) || empty($data['id'])){
             return false;
         }
         if($data['status']==2){    //0,新建;1,待审核; 2,审核通过
@@ -184,5 +184,14 @@ class CustomerGradeModel extends PublicModel {
         }
         $arr['checked_by']=$data['created_by'];
         $arr['checked_at']=date('Y-m-d H:i:s');
+        $cond=array(
+            'id'=>$data['id'],
+            'deleted_flag'=>'N',
+            'status'=>1,
+        );
+        $res=$this->where($cond)->save($arr);
+        if($res){
+            return true;
+        }
     }
 }
