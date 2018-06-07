@@ -620,7 +620,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalOilFlag($list);
         //$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
-        $this->_setQuoteSpendTime($list); 
+        $this->_setQuoteSpendTime($list);
         // $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
     }
