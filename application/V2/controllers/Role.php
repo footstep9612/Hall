@@ -42,7 +42,7 @@ class RoleController extends PublicController {
 //        $data = json_decode(file_get_contents("php://input"), true);
         $model=new RoleModel();
         $res=$model->sortRole();
-        $dataJson['code '] = 1;
+        $dataJson['code'] = 1;
         $dataJson['message'] = '角色配置列表';
         $dataJson['data'] = $res;
         $this->jsonReturn($dataJson);
@@ -80,6 +80,7 @@ class RoleController extends PublicController {
             }
         }
         $where['role.deleted_flag'] = "N";
+        $where['role.attr_id'] = ['neq',0];
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
 
@@ -242,7 +243,13 @@ class RoleController extends PublicController {
             $datajson['message'] = '权限名称不可为空!';
             $this->jsonReturn($datajson);
         }
-
+        if (empty($data['attr_id'])) {  //属性id
+            $datajson['code'] =0;
+            $datajson['message'] = '请选择角色的归属分类';
+            $this->jsonReturn($datajson);
+        }else{
+            $role_arr['attr_id'] = $data['attr_id'];
+        }
         $model_rolo = new RoleModel();
         if (!empty($data['role_no'])) {
             $roleinfo = $model_rolo->where(['role_no' => $data['role_no'], 'deleted_flag' => 'N'])->find();
@@ -316,6 +323,13 @@ class RoleController extends PublicController {
         } else {
             $where['id'] = $data['id'];
             $role_arr['role_id'] = $data['id'];
+        }
+        if (empty($data['attr_id'])) {  //属性id
+            $datajson['code'] =0;
+            $datajson['message'] = '请选择角色的归属分类';
+            $this->jsonReturn($datajson);
+        }else{
+            $role_arr['attr_id'] = $data['attr_id'];
         }
         $model_rolo = new RoleModel();
         if (!empty($data['role_no'])) {
