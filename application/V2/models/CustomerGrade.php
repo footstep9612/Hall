@@ -53,21 +53,80 @@ class CustomerGradeModel extends PublicModel {
         }
         $field.="(select name from erui_sys.employee where id=grade.created_by and deleted_flag='N') as  created_name";
         $field.=",(select name from erui_sys.employee where id=grade.checked_by and deleted_flag='N') as customer_admin";
+        $cond=array(
+            'grade.buyer_id'=>$data['buyer_id'],
+            'grade.deleted_flag'=>'N'
+        );
+        if(in_array('客户管理员',$data['role'])){
+            $admin=1; //客户管理员角色
+            $cond['grade.status']=[
+                    'in',
+                    [1,2,4]
+                ];
+        }
+//        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
-            ->where(array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N'))
+            ->where($cond)
             ->select();
+        $check=false;   //审核
+        $show=false;   //查看
+        $edit=false;   //编辑
+        $delete=false;   //删除
+        $submit=false;   //提交
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
                 $v['status']='新建';
+                $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
             }else if($v['status']==1){
                 $v['status']='待审核';
+                if($admin===1){
+                    $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }else{
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }
             }else if($v['status']==2){
                 $v['status']='已通过';
+                if($admin===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }else{
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }
             }else if($v['status']==4){
                 $v['status']='未通过';
+                if($admin===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }else{
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }
             }
+//            if($admin===1){
+//                if($v['status']==1){
+//                    $v['status']='待审核';
+//                }else if($v['status']==2){
+//                    $v['status']='已通过';
+//                }else if($v['status']==4){
+//                    $v['status']='未通过';
+//                }
+//                $check=true;   $show=true;    $edit=false;    $delete=false;  $submit=false;
+//            }else{
+//                if($v['status']==0){
+//                    $v['status']='新建';
+//                    $check=true;   $show=true;    $edit=true;    $delete=true;  $submit=true;
+//                }else if($v['status']==1){
+//                    $v['status']='待审核';
+//                    $check=false;   $show=true;    $edit=true;    $delete=true;  $submit=false;
+//                }else if($v['status']==2){
+//                    $v['status']='已通过';
+//                }else if($v['status']==4){
+//                    $v['status']='未通过';
+//                }
+//            }
+//
+//
+//
+//
         }
         return $info;
     }

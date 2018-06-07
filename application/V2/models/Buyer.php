@@ -2288,6 +2288,9 @@ EOF;
         }else{
             $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
+        if(in_array('客户管理员',$data['admin']['role'])){
+            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
+        }
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }

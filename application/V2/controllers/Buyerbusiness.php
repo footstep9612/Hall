@@ -396,6 +396,7 @@ class BuyerbusinessController extends PublicController
     public function buyerGradeListAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang']=$this->getLang();
+        $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->buyerGradeList($data);
         if($res){
