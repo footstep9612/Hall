@@ -184,8 +184,10 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
-//        unset($arr['flag']);
-        unset($arr['status']);
+        if($arr['flag']==1){
+            $arr['status']=1;
+
+        }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
