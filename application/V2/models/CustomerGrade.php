@@ -222,7 +222,14 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        return $this->where(array('id'=>$data['id']))->find();
+        $info=$this->where(array('id'=>$data['id']))->find();
+        $info['amount']=intval($info['amount']);
+        $info['re_purchase']=intval($info['re_purchase']);
+
+        $info['purchase']=intval($info['purchase']);
+        $info['income']=intval($info['income']);
+        $info['scale']=intval($info['scale']);
+        return $info;
     }
     public function checkedGrade($data){
         if(empty($data['status']) || empty($data['id'])){
