@@ -218,6 +218,12 @@ class CustomerGradeModel extends PublicModel {
         }
         return false;
     }
+    public function infoGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+        return $this->where(array('id'=>$data['id']))->find();
+    }
     public function checkedGrade($data){
         if(empty($data['status']) || empty($data['id'])){
             return false;
