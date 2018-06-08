@@ -184,7 +184,7 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
-        unset($arr['flag']);
+//        unset($arr['flag']);
         unset($arr['status']);
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
