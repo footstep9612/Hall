@@ -184,8 +184,10 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
-        unset($arr['flag']);
-        unset($arr['status']);
+        if($arr['flag']==1){
+            $arr['status']=1;
+
+        }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
@@ -222,7 +224,14 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        return $this->where(array('id'=>$data['id']))->find();
+        $info=$this->where(array('id'=>$data['id']))->find();
+        $info['amount']=intval($info['amount']);
+        $info['re_purchase']=intval($info['re_purchase']);
+
+        $info['purchase']=intval($info['purchase']);
+        $info['income']=intval($info['income']);
+        $info['scale']=intval($info['scale']);
+        return $info;
     }
     public function checkedGrade($data){
         if(empty($data['status']) || empty($data['id'])){
