@@ -90,7 +90,7 @@ class SupplierGoodsAttrModel extends PublicModel{
      * @param array $where , $condition
      * @return bool
      */
-    public function deleteInfo($where = [], $condition = []) {
+    public function deleteInfo($condition = []) {
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
