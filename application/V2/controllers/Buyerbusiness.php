@@ -367,23 +367,28 @@ class BuyerbusinessController extends PublicController
     public function gradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang']=$this->getLang();
-        $payment = new PaymentModeModel();  //结算方式
-        $info = $payment->table('erui_config.buyer_grade')->field('id,type,name')->where(array('deleted_flag'=>'N'))->select();
+        $model = new CustomerGradeModel();  //结算方式
+        $info = $model->table('erui_config.buyer_grade')->field('id,type,grade_no,name')->where(array('deleted_flag'=>'N'))->select();
         $arr=[];
         foreach($info as $k => $v){
             if($v['type']==1){
+                unset($v['id']);
                 unset($v['type']);
                 $arr['position'][]=$v;
             }else if($v['type']==2){
+                unset($v['id']);
                 unset($v['type']);
                 $arr['enterprise'][]=$v;
             }else if($v['type']==3){
+                unset($v['id']);
                 unset($v['type']);
                 $arr['year_keep'][]=$v;
             }else if($v['type']==4){
+                unset($v['id']);
                 unset($v['type']);
                 $arr['re_purchase'][]=$v;
             }else if($v['type']==5){
+                unset($v['id']);
                 unset($v['type']);
                 $arr['credit'][]=$v;
             }
@@ -396,6 +401,7 @@ class BuyerbusinessController extends PublicController
     public function buyerGradeListAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang']=$this->getLang();
+        $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->buyerGradeList($data);
         if($res){
@@ -426,10 +432,56 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    public function infoGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->infoGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
     public function delGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->delGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //提交
+    public function submitGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->submitGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //审核
+    public function checkedGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->checkedGrade($data);
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='成功';

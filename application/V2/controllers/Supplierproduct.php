@@ -26,6 +26,11 @@ class SupplierproductController extends PublicController
         foreach ($data as &$datum) {
             $datum['material_cat_name'] = $this->setMaterialCatFor($datum['material_cat_no']);
             $datum['brand'] = $this->setBrand($datum['brand']);
+
+            if ($datum['status'] == 'INVALID') {
+                $datum['invalid_list'] = (new SupplierProductCheckLogModel)->getList($datum);
+            }
+
         }
 
         $this->jsonReturn([

@@ -221,12 +221,12 @@ class QuoteItemModel extends PublicModel {
                 }
             } else {
                 $supplierId = $suppliersModel->where(['name' => $value['supplier_name'], 'deleted_flag' => 'N'])->getField('id');
-                if (!is_numeric($value['supplier_id']) && !is_numeric($supplierId)) {
+                if (!is_numeric($supplierId)) {
                     // 匹配供应商失败列表
                     $supplierFailList[] = $row;
                     continue;
                 } else {
-                    $value['supplier_id'] = $value['supplier_id'] ? : $supplierId;
+                    $value['supplier_id'] = $supplierId;
                 }
                 if (!is_numeric($value['purchase_unit_price'])){
                     if ($i > 0) {
