@@ -2246,7 +2246,7 @@ EOF;
         if(empty($data['admin']['role'])){
             return false;
         }
-        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+        if(!in_array('CRM客户管理',$data['admin']['role']) && !in_array('客户管理员',$data['admin']['role'])){    //权限
             if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
                 return false;
             }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
@@ -2288,9 +2288,9 @@ EOF;
         }else{
             $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
-        if(in_array('客户管理员',$data['admin']['role'])){
-            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
-        }
+//        if(in_array('客户管理员',$data['admin']['role'])){
+//            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
+//        }
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
