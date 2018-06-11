@@ -79,11 +79,13 @@ class CustomerGradeModel extends PublicModel {
 //        $edit=false;   //编辑
 //        $delete=false;   //删除
 //        $submit=false;   //提交
+//        $change=false;   //申请变更
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
                 $v['status']=$lang=='zh'?'新建':'NEW';
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
+                $v['change']=false;
             }else if($v['status']==1){
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
@@ -91,12 +93,15 @@ class CustomerGradeModel extends PublicModel {
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
+                $v['change']=false;
             }else if($v['status']==2){
                 $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=true;
                 }
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回':'REJECT';
@@ -105,6 +110,7 @@ class CustomerGradeModel extends PublicModel {
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
                 }
+                $v['change']=false;
             }
             if($lang=='zh'){
                 $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' 级';
@@ -280,6 +286,22 @@ class CustomerGradeModel extends PublicModel {
             'id'=>$data['id'],
             'deleted_flag'=>'N',
             'status'=>1,
+        );
+        $res=$this->where($cond)->save($arr);
+        if($res){
+            return true;
+        }
+    }
+    public function changeGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+
+        $arr['status']=0;
+        $cond=array(
+            'id'=>$data['id'],
+            'deleted_flag'=>'N',
+            'status'=>2,
         );
         $res=$this->where($cond)->save($arr);
         if($res){
