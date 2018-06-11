@@ -107,7 +107,7 @@ class CustomerGradeModel extends PublicModel {
     }
     private function oldBuyer($data){
         $field=array(
-            'buyer_id',
+//            'buyer_id',
             'amount', //客户历史成单金额
             'amount_score',
             'position', //易瑞产品采购量占客户总需求量地位
@@ -122,18 +122,19 @@ class CustomerGradeModel extends PublicModel {
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(!empty($data[$v])){
-                $arr[$v]=$data[$v];
-            }else{
-                $arr[$v]='';
+            if(empty($data[$v])){
+                return false;
             }
+            $arr[$v]=$data[$v];
+//            if(!empty($data[$v])){
+//            }
         }
         return $arr;
     }
     private function newBuyer($data){
         $arr['type']=0;
         $field=array(
-            'buyer_id',
+//            'buyer_id',
             'credit_grade', //客户资信等级
             'credit_score',
             'purchase', //零配件年采购额
@@ -150,20 +151,30 @@ class CustomerGradeModel extends PublicModel {
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(!empty($data[$v])){
-                $arr[$v]=$data[$v];
-            }else{
-                $arr[$v]='';
+            if(empty($data[$v])){
+                return false;
             }
+            $arr[$v]=$data[$v];
+//            if(!empty($data[$v])){
+//            }else{
+//                $arr[$v]='';
+//            }
         }
         return $arr;
     }
     public function addGrade($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
         if($data['type']==1){
             $arr=$this->oldBuyer($data);    //老客户
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
+        if($arr===false){
+            return false;
+        }
+        $arr['buyer_id']=$data['buyer_id'];
         $arr['status']=$data['flag']==1?1:0;
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
@@ -174,13 +185,16 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function saveGrade($data){
-        if(empty($data['id'])){
+        if(empty($data['id']) || empty($data['type'])){
             return false;
         }
         if($data['type']==1){
             $arr=$this->oldBuyer($data);    //老客户
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
+        }
+        if($arr===false){
+            return false;
         }
         unset($arr['type']);
         unset($arr['buyer_id']);

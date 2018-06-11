@@ -428,7 +428,7 @@ class BuyerbusinessController extends PublicController
             $dataJson['message']='成功';
         }else{
             $dataJson['code']=0;
-            $dataJson['message']='失败';
+            $dataJson['message']='请填写完整数据';
         }
         $this -> jsonReturn($dataJson);
     }
