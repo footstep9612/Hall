@@ -103,6 +103,11 @@ class CustomerGradeModel extends PublicModel {
                     $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
                 }
             }
+            if($lang=='zh'){
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' 级';
+            }else{
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' LEVEL';
+            }
         }
         return $info;
     }
@@ -179,6 +184,7 @@ class CustomerGradeModel extends PublicModel {
         $arr['status']=$data['flag']==1?1:0;
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
+        $arr['customer_grade']=mb_substr($arr['customer_grade'],0,1);
         $res=$this->add($arr);
         if($res){
             return true;
@@ -205,6 +211,7 @@ class CustomerGradeModel extends PublicModel {
         }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
+        $arr['customer_grade']=mb_substr($arr['customer_grade'],0,1);
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
         return true;
     }
@@ -236,6 +243,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function infoGrade($data){
+        $lang=$data['lang'];
         if(empty($data['id'])){
             return false;
         }
@@ -246,6 +254,12 @@ class CustomerGradeModel extends PublicModel {
         $info['purchase']=intval($info['purchase']);
         $info['income']=intval($info['income']);
         $info['scale']=intval($info['scale']);
+        if($lang=='zh'){
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' 级';
+        }else{
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' LEVEL';
+        }
+
         return $info;
     }
     public function checkedGrade($data){
