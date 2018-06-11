@@ -33,6 +33,7 @@ class CustomerGradeModel extends PublicModel {
         return $arr;
     }
     public function buyerGradeList($data){
+        $lang=$data['lang'];
         if(empty($data['buyer_id'])){
             return false;
         }
@@ -78,36 +79,41 @@ class CustomerGradeModel extends PublicModel {
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
-                $v['status']='新建';
+                $v['status']=$lang=='zh'?'新建':'NEW';
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
             }else if($v['status']==1){
-                $v['status']='待审核';
+                $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
             }else if($v['status']==2){
-                $v['status']='已通过';
+                $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
             }else if($v['status']==4){
-                $v['status']='未通过';
+                $v['status']=$lang=='zh'?'驳回':'REJECT';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
                 }
+            }
+            if($lang=='zh'){
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' 级';
+            }else{
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' LEVEL';
             }
         }
         return $info;
     }
     private function oldBuyer($data){
         $field=array(
-            'buyer_id',
+//            'buyer_id',
             'amount', //客户历史成单金额
             'amount_score',
             'position', //易瑞产品采购量占客户总需求量地位
@@ -122,18 +128,19 @@ class CustomerGradeModel extends PublicModel {
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(!empty($data[$v])){
-                $arr[$v]=$data[$v];
-            }else{
-                $arr[$v]='';
+            if(empty($data[$v])){
+                return false;
             }
+            $arr[$v]=$data[$v];
+//            if(!empty($data[$v])){
+//            }
         }
         return $arr;
     }
     private function newBuyer($data){
         $arr['type']=0;
         $field=array(
-            'buyer_id',
+//            'buyer_id',
             'credit_grade', //客户资信等级
             'credit_score',
             'purchase', //零配件年采购额
@@ -150,23 +157,34 @@ class CustomerGradeModel extends PublicModel {
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(!empty($data[$v])){
-                $arr[$v]=$data[$v];
-            }else{
-                $arr[$v]='';
+            if(empty($data[$v])){
+                return false;
             }
+            $arr[$v]=$data[$v];
+//            if(!empty($data[$v])){
+//            }else{
+//                $arr[$v]='';
+//            }
         }
         return $arr;
     }
     public function addGrade($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
         if($data['type']==1){
             $arr=$this->oldBuyer($data);    //老客户
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
+        if($arr===false){
+            return false;
+        }
+        $arr['buyer_id']=$data['buyer_id'];
         $arr['status']=$data['flag']==1?1:0;
         $arr['created_by']=$data['created_by'];
         $arr['created_at']=date('Y-m-d H:i:s');
+        $arr['customer_grade']=mb_substr($arr['customer_grade'],0,1);
         $res=$this->add($arr);
         if($res){
             return true;
@@ -174,13 +192,16 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function saveGrade($data){
-        if(empty($data['id'])){
+        if(empty($data['id']) || empty($data['type'])){
             return false;
         }
         if($data['type']==1){
             $arr=$this->oldBuyer($data);    //老客户
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
+        }
+        if($arr===false){
+            return false;
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
@@ -190,6 +211,7 @@ class CustomerGradeModel extends PublicModel {
         }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
+        $arr['customer_grade']=mb_substr($arr['customer_grade'],0,1);
         $this->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->save($arr);
         return true;
     }
@@ -221,6 +243,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function infoGrade($data){
+        $lang=$data['lang'];
         if(empty($data['id'])){
             return false;
         }
@@ -231,6 +254,12 @@ class CustomerGradeModel extends PublicModel {
         $info['purchase']=intval($info['purchase']);
         $info['income']=intval($info['income']);
         $info['scale']=intval($info['scale']);
+        if($lang=='zh'){
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' 级';
+        }else{
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' LEVEL';
+        }
+
         return $info;
     }
     public function checkedGrade($data){
