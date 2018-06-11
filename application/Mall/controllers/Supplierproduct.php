@@ -593,8 +593,8 @@ class SupplierproductController extends SupplierpublicController{
         return $param;
     }
 
-    public function getLang($lang) {
-        $lang = $lang ? $lang : 'zh';
+    public function getLang($lang='') {
+        $lang = (isset($lang)&&!empty($lang)) ? $lang : 'zh';
         return $lang;
     }
 
