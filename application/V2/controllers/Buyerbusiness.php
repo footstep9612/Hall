@@ -366,9 +366,18 @@ class BuyerbusinessController extends PublicController
     }
     public function gradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['lang']=$this->getLang();
+        $lang=$this->getLang();
         $model = new CustomerGradeModel();  //结算方式
-        $info = $model->table('erui_config.buyer_grade')->field('id,type,grade_no,name')->where(array('deleted_flag'=>'N'))->select();
+        if($lang=='zh'){
+            $field='id,type,grade_no,name';
+        }else{
+            $field='id,type,grade_no,name_en as name';
+        }
+        $info = $model->table('erui_config.buyer_grade')
+            ->field($field)
+            ->where(array('deleted_flag'=>'N'))
+            ->order('sort asc')
+            ->select();
         $arr=[];
         foreach($info as $k => $v){
             if($v['type']==1){
@@ -407,6 +416,13 @@ class BuyerbusinessController extends PublicController
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
+            if(in_array('客户管理员',$data['role'])){
+                $dataJson['old_button']=false;
+                $dataJson['new_button']=false;
+            }else{
+                $dataJson['old_button']=true;
+                $dataJson['new_button']=true;
+            }
             $dataJson['data']=$res;
         }else{
             $dataJson['code']=0;
@@ -417,6 +433,9 @@ class BuyerbusinessController extends PublicController
     public function editGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by']=$this->user['id'];
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
         $model = new CustomerGradeModel();  //结算方式
         if(empty($data['id'])){
             $res=$model->addGrade($data);
@@ -435,6 +454,7 @@ class BuyerbusinessController extends PublicController
     public function infoGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by']=$this->user['id'];
+        $data['lang']=$this->getLang();
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->infoGrade($data);
         if($res){
