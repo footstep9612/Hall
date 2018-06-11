@@ -311,7 +311,7 @@ class ReportController extends PublicController {
         $esgoods_model = new EsGoodsModel();
         $onshelfcondition['status'] = 'VALID';
         $onshelfcondition['onshelf_flag'] = 'Y';
-        $onshelfcondition['lang'] = $condition['lang'];
+        $onshelfcondition['lang'] = !empty($condition['lang']) ? trim($condition['lang']) : 'zh';
         if (!empty($condition['created_at_start'])) {
             $onshelfcondition['onshelf_at_start'] = $condition['created_at_start'];
         }
