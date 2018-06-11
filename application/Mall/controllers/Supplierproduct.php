@@ -8,7 +8,7 @@
 class SupplierproductController extends SupplierpublicController{
 
     public function init(){
-        $this->supplier_token = false;
+        //$this->supplier_token = false;
         parent::init();
     }
 
