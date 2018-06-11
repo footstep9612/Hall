@@ -71,16 +71,21 @@ class CustomerGradeModel extends PublicModel {
             ->where($cond)
             ->order('grade.id desc')
             ->select();
+        if(empty($info)){
+            return [];
+        }
 //        $check=false;   //审核
 //        $show=false;   //查看
 //        $edit=false;   //编辑
 //        $delete=false;   //删除
 //        $submit=false;   //提交
+//        $change=false;   //申请变更
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
                 $v['status']=$lang=='zh'?'新建':'NEW';
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
+                $v['change']=false;
             }else if($v['status']==1){
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
@@ -88,12 +93,15 @@ class CustomerGradeModel extends PublicModel {
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
+                $v['change']=false;
             }else if($v['status']==2){
                 $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=true;
                 }
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回':'REJECT';
@@ -102,6 +110,7 @@ class CustomerGradeModel extends PublicModel {
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
                 }
+                $v['change']=false;
             }
             if($lang=='zh'){
                 $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' 级';
@@ -114,24 +123,24 @@ class CustomerGradeModel extends PublicModel {
     private function oldBuyer($data){
         $field=array(
 //            'buyer_id',
-            'amount', //客户历史成单金额
-            'amount_score',
-            'position', //易瑞产品采购量占客户总需求量地位
-            'position_score',
-            'year_keep',   //连续N年及以上履约状况良好
-            'keep_score',
-            're_purchase',   //年复购次数
-            're_score',
-            'final_score',  //综合分值
-            'customer_grade',   //客户等级
-            'flag'  //提交 flag=1 保存 flag=0
+            'amount'=>'客户历史成单金额', //客户历史成单金额
+            'amount_score'=>'客户历史成单金额',
+            'position'=>'易瑞产品采购量占客户总需求量地位', //易瑞产品采购量占客户总需求量地位
+            'position_score'=>'易瑞产品采购量占客户总需求量地位分值',
+            'year_keep'=>'连续N年及以上履约状况良好',   //连续N年及以上履约状况良好
+            'keep_score'=>'连续N年及以上履约状况良好分值',
+            're_purchase'=>'年复购次数',   //年复购次数
+            're_score'=>'年复购次数分值',
+            'final_score'=>'综合分值',  //综合分值
+            'customer_grade'=>'客户等级',   //客户等级
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(empty($data[$v])){
-                return false;
+            if(empty($data[$k])){
+                return $v;
             }
-            $arr[$v]=$data[$v];
+            $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }
         }
@@ -141,26 +150,26 @@ class CustomerGradeModel extends PublicModel {
         $arr['type']=0;
         $field=array(
 //            'buyer_id',
-            'credit_grade', //客户资信等级
-            'credit_score',
-            'purchase', //零配件年采购额
-            'purchase_score',
-            'enterprise',   //企业性质
-            'enterprise_score',
-            'income',   //营业收入
-            'income_score',
-            'scale',    //资产规模
-            'scale_score',
-            'final_score',  //综合分值
-            'customer_grade',   //客户等级
-            'flag'  //提交 flag=1 保存 flag=0
+            'credit_grade'=>'客户资信等级', //客户资信等级
+            'credit_score'=>'客户资信等级分值',
+            'purchase'=>'零配件年采购额', //零配件年采购额
+            'purchase_score'=>'零配件年采购额分值',
+            'enterprise'=>'企业性质',   //企业性质
+            'enterprise_score'=>'企业性质分值',
+            'income'=>'营业收入',   //营业收入
+            'income_score'=>'营业收入分值',
+            'scale'=>'资产规模',    //资产规模
+            'scale_score'=>'资产规模分值',
+            'final_score'=>'综合分值',  //综合分值
+            'customer_grade'=>'客户等级',   //客户等级
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(empty($data[$v])){
-                return false;
+            if(empty($data[$k])){
+                return $v;
             }
-            $arr[$v]=$data[$v];
+            $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }else{
 //                $arr[$v]='';
@@ -177,8 +186,8 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
-        if($arr===false){
-            return false;
+        if(!is_array($arr)){
+            return $arr;
         }
         $arr['buyer_id']=$data['buyer_id'];
         $arr['status']=$data['flag']==1?1:0;
@@ -200,8 +209,8 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
-        if($arr===false){
-            return false;
+        if(!is_array($arr)){
+            return $arr;
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
@@ -277,6 +286,22 @@ class CustomerGradeModel extends PublicModel {
             'id'=>$data['id'],
             'deleted_flag'=>'N',
             'status'=>1,
+        );
+        $res=$this->where($cond)->save($arr);
+        if($res){
+            return true;
+        }
+    }
+    public function changeGrade($data){
+        if(empty($data['id'])){
+            return false;
+        }
+
+        $arr['status']=0;
+        $cond=array(
+            'id'=>$data['id'],
+            'deleted_flag'=>'N',
+            'status'=>2,
         );
         $res=$this->where($cond)->save($arr);
         if($res){
