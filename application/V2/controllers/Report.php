@@ -322,17 +322,19 @@ class ReportController extends PublicController {
         list( $SupplieridsAndSpuCount, $spu_supplierids) = $esproduct_model->getSupplieridsAndSpuCountByCondition($onshelfcondition, $condition['lang']);
         list( $SupplieridsAndSkuCount, $sku_supplierids) = $esgoods_model->getSupplieridsAndSkuCountByCondition($onshelfcondition, $condition['lang']);
         $supplierids = array_merge($spu_supplierids, $sku_supplierids);
-        $supplier_model = new SupplierChainModel();
-        $suppliers = $supplier_model->field('id,name')->where(['id' => ['in', $supplierids], 'deleted_flag' => 'N'])->select();
-        if ($suppliers) {
-            foreach ($suppliers as $key => $supplier) {
 
-                $supplier['spu_count'] = isset($SupplieridsAndSpuCount[$supplier['id']]) ? $SupplieridsAndSpuCount[$supplier['id']] : 0;
-                $supplier['sku_count'] = isset($SupplieridsAndSkuCount[$supplier['id']]) ? $SupplieridsAndSkuCount[$supplier['id']] : 0;
-                $suppliers[$key] = $supplier;
+        if ($supplierids) {
+            $supplier_model = new SupplierChainModel();
+            $suppliers = $supplier_model->field('id,name')->where(['id' => ['in', $supplierids], 'deleted_flag' => 'N'])->select();
+            if ($suppliers) {
+                foreach ($suppliers as $key => $supplier) {
+
+                    $supplier['spu_count'] = isset($SupplieridsAndSpuCount[$supplier['id']]) ? $SupplieridsAndSpuCount[$supplier['id']] : 0;
+                    $supplier['sku_count'] = isset($SupplieridsAndSkuCount[$supplier['id']]) ? $SupplieridsAndSkuCount[$supplier['id']] : 0;
+                    $suppliers[$key] = $supplier;
+                }
             }
         }
-
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
 
