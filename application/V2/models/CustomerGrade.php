@@ -71,6 +71,9 @@ class CustomerGradeModel extends PublicModel {
             ->where($cond)
             ->order('grade.id desc')
             ->select();
+        if(empty($info)){
+            return [];
+        }
 //        $check=false;   //审核
 //        $show=false;   //查看
 //        $edit=false;   //编辑
@@ -114,24 +117,24 @@ class CustomerGradeModel extends PublicModel {
     private function oldBuyer($data){
         $field=array(
 //            'buyer_id',
-            'amount', //客户历史成单金额
-            'amount_score',
-            'position', //易瑞产品采购量占客户总需求量地位
-            'position_score',
-            'year_keep',   //连续N年及以上履约状况良好
-            'keep_score',
-            're_purchase',   //年复购次数
-            're_score',
-            'final_score',  //综合分值
-            'customer_grade',   //客户等级
-            'flag'  //提交 flag=1 保存 flag=0
+            'amount'=>'客户历史成单金额', //客户历史成单金额
+            'amount_score'=>'客户历史成单金额',
+            'position'=>'易瑞产品采购量占客户总需求量地位', //易瑞产品采购量占客户总需求量地位
+            'position_score'=>'易瑞产品采购量占客户总需求量地位分值',
+            'year_keep'=>'连续N年及以上履约状况良好',   //连续N年及以上履约状况良好
+            'keep_score'=>'连续N年及以上履约状况良好分值',
+            're_purchase'=>'年复购次数',   //年复购次数
+            're_score'=>'年复购次数分值',
+            'final_score'=>'综合分值',  //综合分值
+            'customer_grade'=>'客户等级',   //客户等级
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(empty($data[$v])){
-                return false;
+            if(empty($data[$k])){
+                return $v;
             }
-            $arr[$v]=$data[$v];
+            $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }
         }
@@ -141,26 +144,26 @@ class CustomerGradeModel extends PublicModel {
         $arr['type']=0;
         $field=array(
 //            'buyer_id',
-            'credit_grade', //客户资信等级
-            'credit_score',
-            'purchase', //零配件年采购额
-            'purchase_score',
-            'enterprise',   //企业性质
-            'enterprise_score',
-            'income',   //营业收入
-            'income_score',
-            'scale',    //资产规模
-            'scale_score',
-            'final_score',  //综合分值
-            'customer_grade',   //客户等级
-            'flag'  //提交 flag=1 保存 flag=0
+            'credit_grade'=>'客户资信等级', //客户资信等级
+            'credit_score'=>'客户资信等级分值',
+            'purchase'=>'零配件年采购额', //零配件年采购额
+            'purchase_score'=>'零配件年采购额分值',
+            'enterprise'=>'企业性质',   //企业性质
+            'enterprise_score'=>'企业性质分值',
+            'income'=>'营业收入',   //营业收入
+            'income_score'=>'营业收入分值',
+            'scale'=>'资产规模',    //资产规模
+            'scale_score'=>'资产规模分值',
+            'final_score'=>'综合分值',  //综合分值
+            'customer_grade'=>'客户等级',   //客户等级
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(empty($data[$v])){
-                return false;
+            if(empty($data[$k])){
+                return $v;
             }
-            $arr[$v]=$data[$v];
+            $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }else{
 //                $arr[$v]='';
@@ -177,8 +180,8 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
-        if($arr===false){
-            return false;
+        if(!is_array($arr)){
+            return $arr;
         }
         $arr['buyer_id']=$data['buyer_id'];
         $arr['status']=$data['flag']==1?1:0;
@@ -200,8 +203,8 @@ class CustomerGradeModel extends PublicModel {
         }else{
             $arr=$this->newBuyer($data);    //潜在客户
         }
-        if($arr===false){
-            return false;
+        if(!is_array($arr)){
+            return $arr;
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
