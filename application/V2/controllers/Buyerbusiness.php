@@ -366,9 +366,18 @@ class BuyerbusinessController extends PublicController
     }
     public function gradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['lang']=$this->getLang();
+        $lang=$this->getLang();
         $model = new CustomerGradeModel();  //结算方式
-        $info = $model->table('erui_config.buyer_grade')->field('id,type,grade_no,name')->where(array('deleted_flag'=>'N'))->select();
+        if($lang=='zh'){
+            $field='id,type,grade_no,name';
+        }else{
+            $field='id,type,grade_no,name_en as name';
+        }
+        $info = $model->table('erui_config.buyer_grade')
+            ->field($field)
+            ->where(array('deleted_flag'=>'N'))
+            ->order('sort asc')
+            ->select();
         $arr=[];
         foreach($info as $k => $v){
             if($v['type']==1){
