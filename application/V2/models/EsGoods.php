@@ -330,6 +330,37 @@ class EsGoodsModel extends Model {
     }
 
     /*
+     * 获取供应商及对应供应商SKU数量总数
+     * @param array $condition //搜索条件
+     * @param string $lang // 语言
+     * @author  zhongyg
+     * @date    2018-6-11 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getSupplieridsAndSkuCountByCondition($condition, $lang) {
+        $body = $this->getCondition($condition);
+        $es = new ESClient();
+        $es->setbody($body);
+
+        $es->setaggs('suppliers.supplier_id', 'supplier_id', 'terms', 0);
+        $es->setfields(['spu']);
+        $ret = $es->search($this->dbName, $this->tableName . '_' . $lang, 0, 1);
+        $result = [];
+        $supplier_ids = [];
+        if (isset($ret['aggregations']['supplier_id']['buckets'])) {
+
+            foreach ($ret['aggregations']['supplier_id']['buckets'] as $SupplieridSkuCount) {
+
+                $result[$SupplieridSkuCount['key']] = $SupplieridSkuCount['doc_count'];
+                $supplier_ids[] = $SupplieridSkuCount['key'];
+            }
+        }
+        return [$result, $supplier_ids];
+    }
+
+    /*
      * 获取SKU总数
      * @param array $condition //搜索条件
      * @param string $lang // 语言

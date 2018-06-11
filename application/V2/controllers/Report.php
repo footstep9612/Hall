@@ -29,14 +29,14 @@ class ReportController extends PublicController {
             $key = '9b2a37b7b606c14d43db538487a148c7';
             $input = json_decode(file_get_contents("php://input"), true);
 
-
-            $sign = md5($key . $input['input']);
-//            echo $sign;
-            if ($input['sign'] != $sign) {
-                $this->setCode(MSG::MSG_FAILED);
-                $this->setMessage('验证失败!');
-                $this->jsonReturn();
-            }
+//
+//            $sign = md5($key . $input['input']);
+////            echo $sign;
+//            if ($input['sign'] != $sign) {
+//                $this->setCode(MSG::MSG_FAILED);
+//                $this->setMessage('验证失败!');
+//                $this->jsonReturn();
+//            }
             $data = $this->put_data = json_decode($input['input'], true);
         }
         if ($name) {
@@ -297,6 +297,46 @@ class ReportController extends PublicController {
         $this->setCode(MSG::MSG_SUCCESS);
         $this->setMessage('获取成功!');
         $this->jsonReturn();
+    }
+
+    /**
+     * 已开发供应商数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getSupplierInfoListAction() {
+        $condition = $this->getPut();
+        $esproduct_model = new EsProductModel();
+        $esgoods_model = new EsGoodsModel();
+        $onshelfcondition['status'] = 'VALID';
+        $onshelfcondition['onshelf_flag'] = 'Y';
+        $onshelfcondition['lang'] = $condition['lang'];
+        if (!empty($condition['created_at_start'])) {
+            $onshelfcondition['onshelf_at_start'] = $condition['created_at_start'];
+        }
+        if (!empty($condition['created_at_end'])) {
+            $onshelfcondition['onshelf_at_end'] = $condition['created_at_end'];
+        }
+
+        list( $SupplieridsAndSpuCount, $spu_supplierids) = $esproduct_model->getSupplieridsAndSpuCountByCondition($onshelfcondition, $condition['lang']);
+        list( $SupplieridsAndSkuCount, $sku_supplierids) = $esgoods_model->getSupplieridsAndSkuCountByCondition($onshelfcondition, $condition['lang']);
+        $supplierids = array_merge($spu_supplierids, $sku_supplierids);
+        $supplier_model = new SupplierChainModel();
+        $suppliers = $supplier_model->field('id,name')->where(['id' => ['in', $supplierids], 'deleted_flag' => 'N'])->select();
+        if ($suppliers) {
+            foreach ($suppliers as $key => $supplier) {
+
+                $supplier['spu_count'] = isset($SupplieridsAndSpuCount[$supplier['id']]) ? $SupplieridsAndSpuCount[$supplier['id']] : 0;
+                $supplier['sku_count'] = isset($SupplieridsAndSkuCount[$supplier['id']]) ? $SupplieridsAndSkuCount[$supplier['id']] : 0;
+                $suppliers[$key] = $supplier;
+            }
+        }
+
+        $this->setCode(MSG::MSG_SUCCESS);
+        $this->setMessage('获取成功!');
+
+        $this->jsonReturn($suppliers);
     }
 
     /**
