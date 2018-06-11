@@ -33,6 +33,7 @@ class CustomerGradeModel extends PublicModel {
         return $arr;
     }
     public function buyerGradeList($data){
+        $lang=$data['lang'];
         if(empty($data['buyer_id'])){
             return false;
         }
@@ -78,28 +79,28 @@ class CustomerGradeModel extends PublicModel {
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
-                $v['status']='新建';
+                $v['status']=$lang=='zh'?'新建':'NEW';
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
             }else if($v['status']==1){
-                $v['status']='待审核';
+                $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
             }else if($v['status']==2){
-                $v['status']='已通过';
+                $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
             }else if($v['status']==4){
-                $v['status']='未通过';
+                $v['status']=$lang=='zh'?'驳回':'REJECT';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
                 }
             }
         }
