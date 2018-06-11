@@ -27,7 +27,7 @@ class SupplierproductController extends SupplierpublicController{
         $condition = $this->getPut();
         $lang = $this->getLang($condition['lang']);
         $supplier_product_model = new SupplierProductModel();
-        $condition['supplier_id'] = '229';//$this->getSupplierId($condition['supplier_id']);
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
         $res = $supplier_product_model->getList($condition);
         $count = $supplier_product_model->getCount($condition);
         if($res){
@@ -36,9 +36,9 @@ class SupplierproductController extends SupplierpublicController{
                 $item['attachs'] = $supplier_product_attach_model->getList(['spu'=>$item['spu']]);
                 $materialCatModel = new MaterialCatModel();
                 $item['material_cat'] = $materialCatModel->getinfo($item['material_cat_no'],$lang);
-                $supplier_product_checklog_model = new SupplierProductCheckLogModel();
                 if($item['status']==self::STATUS_REJECTED){
-                    $check_log = $supplier_product_checklog_model->getList([$item['spu']]);
+                    $supplier_product_checklog_model = new SupplierProductCheckLogModel();
+                    $check_log = $supplier_product_checklog_model->getList(['spu'=>$item['spu']]);
                     $item['check_list'] = $check_log;
                 }
             }
@@ -59,7 +59,7 @@ class SupplierproductController extends SupplierpublicController{
     public function getSupplierProductInfoAction(){
         $condition = $this->getPut();
         $condition['lang'] = $this->getLang($condition['lang']);
-        $condition['supplier_id'] = '229';//$this->getSupplierId($condition['supplier_id']);
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
         if(!isset($condition['spu']) || empty($condition['spu'])){
             jsonReturn('',-1,'缺少产品参数');
         }
@@ -88,7 +88,7 @@ class SupplierproductController extends SupplierpublicController{
     public function getSupplierGoodsInfoAction(){
         $condition = $this->getPut();
         $condition['lang'] = $this->getLang($condition['lang']);
-        $condition['supplier_id'] = '229';//$this->getSupplierId($condition['supplier_id']);
+        $condition['supplier_id'] = $this->getSupplierId($condition['supplier_id']);
         if(!isset($condition['spu']) || empty($condition['spu'])){
             jsonReturn('',-1,'缺少产品参数');
         }
@@ -112,18 +112,19 @@ class SupplierproductController extends SupplierpublicController{
         $data = $this->getPut();
         $lang = $this->getLang($data['lang']);
         $supplier_id = $this->getSupplierId($data['supplier_id']);
-        $supplier_id = '229';//测试使用
+        //$supplier_id = '229';//测试使用
         $supplier_product_model = new SupplierProductModel();
         // 校验字段
         $checkFields = ['material_cat_no', 'name', 'brand', 'warranty', 'product_attachs'];
         $resultFields = $this->_checkFields($data, $checkFields, 'required'); //校验字段
-        $name = $this->checkName($resultFields['name'], $lang, 'name');  //产品名称校验
-        if(!$name){
-            jsonReturn('', -1, '产品名称已存在!');
-        }
         $brand = $this->editBrand($resultFields['brand'],$lang);  //品牌校验
-        $spu='';
+        $spu= $name ='';
         if(!isset($data['spu']) || empty($data['spu'])){
+            $name = $this->checkName($resultFields['name'], $lang, 'name');  //产品名称校验
+            if(!$name){
+                jsonReturn('', -1, '产品名称已存在!');
+            }
+            $resultFields['name'] = $name;
             $spu = $supplier_product_model->createSpu(strtoupper($resultFields['material_cat_no']));  //不存在生产spu
         }
         $supplier_product_model->startTrans();
@@ -133,7 +134,7 @@ class SupplierproductController extends SupplierpublicController{
                 'lang' => $lang,
                 'supplier_id' => $supplier_id,
                 'material_cat_no' => $resultFields['material_cat_no'],
-                'name' => $name,
+                'name' => $resultFields['name'],
                 'brand' => $brand,
                 'warranty' => $resultFields['warranty'],
                 'description' => $data['description'],
@@ -188,8 +189,8 @@ class SupplierproductController extends SupplierpublicController{
                         'created_at' => $this->getTime()
                     ];
                     $sku='';
-                    if(!isset($data['sku']) || empty($data['sku'])){
-                        $sku = $supplier_goods_model->setRealSku($spu);;  //不存在生产sku
+                    if(!isset($item['sku']) || empty($item['sku'])){
+                        $sku = $supplier_goods_model->setRealSku($goodsData['spu']);;  //不存在生产sku
                     }
 
                     if(empty($sku)){
@@ -209,14 +210,15 @@ class SupplierproductController extends SupplierpublicController{
                         $attrData = [
                             'lang' => $lang,
                             'spu' => empty($spu) ? $data['spu'] : $spu,
-                            'other_attrs' => !empty($item['attr']['other_attrs']) ? json_encode($item['attr']['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
-                            'ex_goods_attrs' => !empty($item['attr']['ex_goods_attrs']) ? json_encode($item['attr']['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                            'ex_goods_attrs' => !empty($item['attr']['other_attrs']) ? json_encode($item['attr']['other_attrs'], JSON_UNESCAPED_UNICODE) : null,
+                            'other_attrs' => !empty($item['attr']['ex_goods_attrs']) ? json_encode($item['attr']['ex_goods_attrs'], JSON_UNESCAPED_UNICODE) : null,
                             //'status' => self::STATUS_VALID,
                             'deleted_flag' => 'N',
                         ];
+
                         if(empty($sku)){
                             $sku_attr_where['sku'] = $item['sku'];
-                            $attrData['updated_by'] = $this->getTime();
+                            $attrData['updated_at'] = $this->getTime();
                             $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
                         }else {
                             $attrData['sku'] = $sku;
@@ -226,13 +228,13 @@ class SupplierproductController extends SupplierpublicController{
                         if (!$res_goods_attr) {
                             $supplier_product_model->rollback();
                         }
+                    }else {
+                        $res_goods_attr = true;
                     }
                 }
             } else{
                 $res_goods = true;
-                $res_goods_attr = true;
             }
-
             if($res_product && $res_pro_attach && $res_goods && $res_goods_attr){
                 $supplier_product_model->commit();
                 $this->setCode(MSG::MSG_SUCCESS);
