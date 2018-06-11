@@ -407,6 +407,13 @@ class BuyerbusinessController extends PublicController
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
+            if(in_array('客户管理员',$data['role'])){
+                $dataJson['old_button']=false;
+                $dataJson['new_button']=false;
+            }else{
+                $dataJson['old_button']=true;
+                $dataJson['new_button']=true;
+            }
             $dataJson['data']=$res;
         }else{
             $dataJson['code']=0;
