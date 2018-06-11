@@ -234,6 +234,7 @@ class SupplierproductController extends SupplierpublicController{
                 }
             } else{
                 $res_goods = true;
+                $res_goods_attr = true;
             }
             if($res_product && $res_pro_attach && $res_goods && $res_goods_attr){
                 $supplier_product_model->commit();
