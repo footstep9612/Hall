@@ -244,6 +244,7 @@ class SupplierproductController extends SupplierpublicController{
             }else {
                 $supplier_product_model->rollback();
                 $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
         }catch (Exception $e) {
