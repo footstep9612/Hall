@@ -167,6 +167,15 @@ class SupplierproductController extends PublicController
     protected function setBrand($brandObj)
     {
         $data = json_decode($brandObj, true);
+
+        if (count($data)) {
+            foreach ($data as $datum) {
+                if ($datum['lang'] =='zh') {
+                    return $datum['name'];
+                }
+            }
+        }
+
         return $data['name'];
     }
 }
