@@ -13,9 +13,9 @@
  * @version V2.0
  * @desc
  */
-class SpecialKeywordModel extends PublicModel {
+class SpecialCategoryModel extends PublicModel {
     protected $dbName = 'erui_mall';
-    protected $tableName = 'special_keyword';
+    protected $tableName = 'special_category';
 
     public function __construct() {
         parent::__construct();
@@ -26,8 +26,11 @@ class SpecialKeywordModel extends PublicModel {
         if(isset($condition['special_id'])){
             $where['special_id'] = intval($condition['special_id']);
         }
-        if(isset($condition['keyword'])){
-            $where['keyword'] = ['like', '%' . trim($condition['keyword']) . '%'];
+        if(isset($condition['pid'])){
+            $where['pid'] = intval($condition['pid']);
+        }
+        if(isset($condition['cat_name'])){
+            $where['cat_name'] = ['like', '%' . trim($condition['cat_name']) . '%'];
         }
         if(isset($condition['created_at_start']) && isset($condition['created_at_end'])){
             $where['created_at'] = ['between', trim($condition['created_at_start']).','.trim($condition['created_at_end'])];
@@ -40,7 +43,7 @@ class SpecialKeywordModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field('id,special_id,keyword,description,created_at,created_by,updated_by,updated_at,settings')->where($where)
+            $rel = $this->field('id,special_id,cat_name,pid,allpid,description,created_at,created_by,updated_by,updated_at,settings')->where($where)
                 ->limit($from, $size)
                 ->select();
             if($rel){
@@ -73,12 +76,13 @@ class SpecialKeywordModel extends PublicModel {
      * @param $id
      * @return bool|mixed
      */
-    public function getInfo($id){
+    public function getInfo($id,$field=''){
         if(!$id || !is_numeric($id)){
             jsonReturn('', MSG::MSG_FAILED,'id不存在');
         }
         try{
-            return $this->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
+            $field = empty($field) ? 'id,special_id,cat_name,thumb,pid,allpid,sort_list,settings,description,created_by,created_at,updated_by,updated_at' : $field;
+            return $this->field("$field")->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
         }catch (Exception $e){
             return false;
         }
@@ -93,25 +97,41 @@ class SpecialKeywordModel extends PublicModel {
         if(!isset($input['special_id']) || empty($input['special_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择专题');
         }
-        if(!isset($input['keyword']) || empty($input['keyword'])){
+        if(!isset($input['cat_name']) || empty($input['cat_name'])){
             jsonReturn('', MSG::MSG_FAILED,'请输入名称');
         }
         try{
             $data = [
                 'special_id' => intval($input['special_id']),
-                'keyword' =>$input['keyword'],
+                'cat_name' =>$input['cat_name'],
+                'thumb' => isset($input['thumb']) ? trim($input['thumb']) : '',
                 'description' => isset($input['description']) ? trim($input['description']) : '',
+                'sort_list' => isset($input['sort_list']) ? intval($input['sort_list']) : 0,
                 'settings' => (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '',
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
+            if( isset($input['pid']) && $input['pid']!==0){
+                $data['pid'] = intval($input['pid']);
+                //根据pid查询父级信息
+                $parentInfo = $this->getInfo($data['pid']);
+                if(!$parentInfo){
+                    jsonReturn('', MSG::MSG_FAILED, '父级未找到');
+                }
+                $data['allpid'] = $parentInfo['allpid'].','.$data['pid'];
+            }
             $where = [
                 'special_id' => $data['special_id'],
-                'keyword' => $data['keyword'],
+                'cat_name' => $data['cat_name'],
                 'deleted_at' => ['exp', 'is null']
             ];
             if(!self::exist($where)){
-                return $this->add($data);
+                $id = $this->add($data);
+              /*  //添加成功后，更新所有子节点为自身
+                if($id){
+                    $this->where(['id'=>$id])->save(['allchilds'=>$id]);
+                }*/
+                return $id ? $id : false;
             }else{
                 jsonReturn('', MSG::MSG_FAILED,'已经存在');
             }
@@ -132,34 +152,53 @@ class SpecialKeywordModel extends PublicModel {
         if(!isset($input['special_id']) || empty($input['special_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择专题');
         }
-        if(!isset($input['keyword']) || empty($input['keyword'])){
-            jsonReturn('', MSG::MSG_FAILED,'请输入关键词');
-        }
         try{
             $id = isset($input['id']) ? intval($input['id']) : 0;
             if(!$id){
                 jsonReturn('', MSG::MSG_FAILED,'没有id');
             }
             $data = [
-                'special_id' => intval($input['special_id']),
-                'keyword' => trim($input['keyword']),
                 'updated_by' => defined('UID') ? UID : 0,
                 'updated_at' => date('Y-m-d H:i:s', time())
             ];
-            $where = [
-                'id' => ['neq', $id],
-                'special_id' => intval($input['special_id']),
-                'keyword' => trim($input['keyword']),
-                'deleted_at' => ['exp', 'is null']
-            ];
-            if(self::exist($where)){
-                jsonReturn('', MSG::MSG_FAILED,'已经存在');
+            if(isset($input['cat_name'])){
+                $where = [
+                    'id' => ['neq', $id],
+                    'special_id' => intval($input['special_id']),
+                    'cat_name' => trim($input['cat_name']),
+                    'deleted_at' => ['exp', 'is null']
+                ];
+                if(self::exist($where)){
+                    jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                }
+                $data['cat_name'] = trim($input['cat_name']);
             }
             if(isset($input['description'])){
                 $data['description'] = trim($input['description']);
             }
             if(isset($input['settings'])){
                 $data['settings'] = (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '';
+            }
+            if(isset($input['pid'])){
+                $data['pid'] = intval($input['pid']);
+                //先获取当前分类的所有父级
+                $thisallpid = $this->getInfo($id,'allpid');
+
+                //根据pid查询父级信息
+                $parentInfo = $this->getInfo($data['pid']);
+                if(!$parentInfo){
+                    jsonReturn('', MSG::MSG_FAILED, '父级未找到');
+                }
+                $data['allpid'] = $parentInfo['allpid'].','.$data['pid'];
+
+                //初始化所有子节点的父级
+                $this->where(['allpid'=>['like',$thisallpid['allpid'].'%']])->save(['allpid'=>['exp',"replace(allpid,'".$thisallpid['allpid']."','".$data['allpid']."')"],'updated_by'=>defined('UID') ? UID : 0,'updated_at'=>date('Y-m-d H:i:s',time())]);
+            }
+            if(isset($input['thumb'])){
+                $data['thumb'] = trim($input['thumb']);
+            }
+            if(isset($input['sort_list'])){
+                $data['sort_list'] = intval($input['sort_list']);
             }
             return $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
         }catch (Exception $e){

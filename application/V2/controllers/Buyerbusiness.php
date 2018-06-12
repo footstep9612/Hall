@@ -413,7 +413,8 @@ class BuyerbusinessController extends PublicController
         $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->buyerGradeList($data);
-        if($res){
+        
+        if(is_array($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
             if(in_array('客户管理员',$data['role'])){
@@ -442,12 +443,15 @@ class BuyerbusinessController extends PublicController
         }else{
             $res=$model->saveGrade($data);
         }
-        if($res){
+        if($res===true){
             $dataJson['code']=1;
             $dataJson['message']='成功';
+        }elseif($res!==true && $res!==false){
+            $dataJson['code']=1;
+            $dataJson['message']=$res.'不能为空';
         }else{
             $dataJson['code']=0;
-            $dataJson['message']='请填写完整数据';
+            $dataJson['message']='失败';
         }
         $this -> jsonReturn($dataJson);
     }
@@ -502,6 +506,21 @@ class BuyerbusinessController extends PublicController
         $data['created_by']=$this->user['id'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->checkedGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //申请变更
+    public function changeGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->changeGrade($data);
         if($res){
             $dataJson['code']=1;
             $dataJson['message']='成功';

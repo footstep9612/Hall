@@ -45,6 +45,31 @@ class SpecialController extends PublicController{
         $sModel = new SpecialModel();
         $result = $sModel->getInfo(intval($input['special_id']));
         if($result!==false){
+            //获取广告信息
+            if(isset($input['ad_on']) && $input['ad_on']){
+                $spModel = new SpecialPositionModel();
+                $fields = 'name,description,remark,sort_order,thumb,link';
+                $adInfo = $spModel->getList(['special_id'=>intval($input['special_id']),'type'=>'A'],'',$fields);
+
+                $result['adList'] = $adInfo ? $adInfo['data'] : [];
+            }
+
+            //获取楼层推荐位信息
+            if(isset($input['position_on']) && $input['position_on']){
+
+                $spModel = new SpecialPositionModel();
+                $positionInfo = $spModel->getList(['special_id'=>intval($input['special_id'])],['type'=>['neq','A']]);
+                if($positionInfo && isset($input['position_goods_on']) && $input['position_goods_on']){
+                    foreach($positionInfo['data'] as $index => $posi){
+                        $spdModel = new SpecialPositionDataModel();
+                        $goodsInfo = $spdModel->getList(['special_id'=>$posi['special_id'],'position_id'=>$posi['id']]);
+
+                        $positionInfo['data'][$index]['goodsInfo'] = $goodsInfo ? $goodsInfo['data'] : [];
+                    }
+                }
+
+                $result['positionList'] = $positionInfo ? $positionInfo['data'] : [];
+            }
             jsonReturn($result);
         }else{
             jsonReturn('', ErrorMsg::FAILED);

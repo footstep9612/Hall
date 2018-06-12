@@ -52,3 +52,5 @@ public/tmp/
 .project
 /public/file/sku.xlsx
 /application/V2/models/Temp.php
+.gitignore
+public/file/
