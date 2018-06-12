@@ -2344,6 +2344,13 @@ EOF;
         if(!empty($data['max_percent'])){    //信息完整度max
             $cond .= " and buyer.percent <=".$data['max_percent'];
         }
+
+        if(!empty($data['build_time_start'])){    //档案信息创建时间
+            $cond .= " and buyer.build_time >='".$data['build_time_start']."'";
+        }
+        if(!empty($data['build_time_end'])){    //档案信息创建时间
+            $cond .= " and buyer.build_time <='".$data['build_time_end']."'";
+        }
         return $cond;
     }
     /**
