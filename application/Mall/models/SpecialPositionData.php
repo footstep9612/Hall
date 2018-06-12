@@ -47,7 +47,7 @@ class SpecialPositionDataModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$gtable.name,attach.attach_url")
+            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$gtable.name,$gtable.show_name,attach.attach_url")
                 ->join("$gtable ON $thistable.sku=$gtable.sku AND $gtable.lang=$thistable.lang")
                 ->join("(SELECT spu,MAX(sort_order),attach_url,default_flag,deleted_flag,status FROM $patable GROUP BY spu) as attach ON $thistable.spu=attach.spu AND attach.default_flag='Y' AND attach.deleted_flag='N' AND attach.status='VALID'","LEFT")
                 ->where($where)
