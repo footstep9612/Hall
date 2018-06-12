@@ -234,6 +234,7 @@ class SupplierproductController extends SupplierpublicController{
                 }
             } else{
                 $res_goods = true;
+                $res_goods_attr = true;
             }
             if($res_product && $res_pro_attach && $res_goods && $res_goods_attr){
                 $supplier_product_model->commit();
@@ -243,6 +244,7 @@ class SupplierproductController extends SupplierpublicController{
             }else {
                 $supplier_product_model->rollback();
                 $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage(MSG::MSG_FAILED);
                 $this->jsonReturn();
             }
         }catch (Exception $e) {
@@ -549,21 +551,7 @@ class SupplierproductController extends SupplierpublicController{
                 $brand_where['brand'] = ['like',"%\"name\":\"".$brand."\"%"];
                 $res_brand = $brand_model->field('id,brand')->where($brand_where)->find();
                 if($res_brand){
-                    $brandAry = json_decode($res_brand['brand'], true);
-                    foreach ($brandAry as $r) {
-                        if ($r['lang'] == $lang) {
-                            $brand_ary = array(
-                                'name' => $r['name'],
-                                'lang' => $lang,
-                                'style' => isset($r['style']) ? $r['style'] : 'TEXT',
-                                'label' => isset($r['label']) ? $r['label'] : $r['name'],
-                                'logo' => isset($r['logo']) ? $r['logo'] : '',
-                            );
-                            ksort($brand_ary);
-                            $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                            break;
-                        }
-                    }
+                    $data['brand'] = $res_brand['brand'];
                 }else {
                     $brand_ary = array(
                         'name' => $brand,
@@ -605,8 +593,8 @@ class SupplierproductController extends SupplierpublicController{
         return $param;
     }
 
-    public function getLang($lang) {
-        $lang = $lang ? $lang : 'zh';
+    public function getLang($lang='') {
+        $lang = (isset($lang)&&!empty($lang)) ? $lang : 'zh';
         return $lang;
     }
 
