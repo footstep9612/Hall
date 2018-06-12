@@ -322,10 +322,13 @@ class ReportController extends PublicController {
         list( $SupplieridsAndSpuCount, $spu_supplierids) = $esproduct_model->getSupplieridsAndSpuCountByCondition($onshelfcondition, $condition['lang']);
         list( $SupplieridsAndSkuCount, $sku_supplierids) = $esgoods_model->getSupplieridsAndSkuCountByCondition($onshelfcondition, $condition['lang']);
         $supplierids = array_merge($spu_supplierids, $sku_supplierids);
-
+        $suppliers = null;
         if ($supplierids) {
             $supplier_model = new SupplierChainModel();
-            $suppliers = $supplier_model->field('id,name')->where(['id' => ['in', $supplierids], 'deleted_flag' => 'N'])->select();
+            $suppliers = $supplier_model
+                    ->field('id,name')
+                    ->where(['id' => ['in', $supplierids], 'deleted_flag' => 'N'])
+                    ->select();
             if ($suppliers) {
                 foreach ($suppliers as $key => $supplier) {
 
