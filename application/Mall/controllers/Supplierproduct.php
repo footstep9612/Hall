@@ -170,7 +170,7 @@ class SupplierproductController extends SupplierpublicController{
             $supplier_goods_model = new SupplierGoodsModel();
             if(isset($data['goods']) && is_array($data['goods'])){
                 foreach($data['goods'] as $item){
-                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty','price'];
+                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty'];
                     $resultGoodsFields = $this->_checkFields($item, $checkGoodsFields, 'required'); //校验字段
                     $goodsData = [
                         'spu' => empty($spu) ? $data['spu'] : $spu,

@@ -256,7 +256,34 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        $info=$this->where(array('id'=>$data['id']))->find();
+        $field=array(
+            'id',
+            'buyer_id',
+            'type',
+            'amount',
+            'amount_score',
+            'position',
+            'position_score',
+            'year_keep',
+            'keep_score',
+            're_purchase',
+            're_score',
+            'credit_grade',
+            'credit_score',
+            'purchase',
+            'purchase_score',
+            'enterprise',
+            'enterprise_score',
+            'income',
+            'income_score',
+            'scale',
+            'scale_score',
+            'final_score',
+            'customer_grade',
+            'flag',
+            'status'
+        );
+        $info=$this->field($field)->where(array('id'=>$data['id']))->find();
         $info['amount']=floatval($info['amount']);
         $info['re_purchase']=floatval($info['re_purchase']);
 
