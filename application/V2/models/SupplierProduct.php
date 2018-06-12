@@ -96,7 +96,7 @@ class SupplierProductModel extends PublicModel
 
         //供应商名称
         if (!empty($condition['supplier_name'])) {
-            $conditions['s.name'] = ['like', '%' . $condition['name'] . '%'];
+            $conditions['s.name'] = ['like', '%' . $condition['supplier_name'] . '%'];
         }
 
         //产品名称
