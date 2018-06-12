@@ -133,7 +133,7 @@ class CustomerGradeModel extends PublicModel {
             're_score'=>'年复购次数分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
@@ -162,7 +162,7 @@ class CustomerGradeModel extends PublicModel {
             'scale_score'=>'资产规模分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
@@ -257,12 +257,12 @@ class CustomerGradeModel extends PublicModel {
             return false;
         }
         $info=$this->where(array('id'=>$data['id']))->find();
-        $info['amount']=intval($info['amount']);
-        $info['re_purchase']=intval($info['re_purchase']);
+        $info['amount']=floatval($info['amount']);
+        $info['re_purchase']=floatval($info['re_purchase']);
 
-        $info['purchase']=intval($info['purchase']);
-        $info['income']=intval($info['income']);
-        $info['scale']=intval($info['scale']);
+        $info['purchase']=floatval($info['purchase']);
+        $info['income']=floatval($info['income']);
+        $info['scale']=floatval($info['scale']);
         if($lang=='zh'){
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' 级';
         }else{
