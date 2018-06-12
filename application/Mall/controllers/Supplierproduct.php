@@ -308,7 +308,7 @@ class SupplierproductController extends SupplierpublicController{
             $supplier_goods_model = new SupplierGoodsModel();
             if(isset($data['goods']) && is_array($data['goods'])) {
                 foreach($data['goods'] as $item){
-                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty','price'];
+                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty'];
                     $resultGoodsFields = $this->_checkFields($item, $checkGoodsFields, 'required'); //校验字段
                     $goodsData = [
                         'spu' => $spu,
@@ -321,7 +321,7 @@ class SupplierproductController extends SupplierpublicController{
                         'nude_cargo_unit' => $resultGoodsFields['nude_cargo_unit'],  //商品裸货单位
                         'min_pack_unit' => $resultGoodsFields['min_pack_unit'],  //最小包装单位
                         'min_order_qty' => $resultGoodsFields['min_order_qty'],  //最小订货数量
-                        'price' => $resultGoodsFields['price'],  //价格
+                        'price' => $item['price'],  //价格
                         'status' => $item['status'] ? strtoupper($item['status']) : self::STATUS_VALID,  //默认有效状态
                         'deleted_flag' => 'N',    // 非删除
                         'created_at' => $this->getTime()
