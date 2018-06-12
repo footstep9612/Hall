@@ -51,6 +51,8 @@ class SupplierproductController extends PublicController
         $detail = (new SupplierProductModel)->getDetail($request['id']);
         $detail['material_cat_name'] = $this->setMaterialCatFor($detail['material_cat_no']);
         $detail['brand'] = $this->setBrand($detail['brand']);
+        $detail['description'] = htmlspecialchars_decode($detail['description']);
+        $detail['tech_paras'] =  htmlspecialchars_decode($detail['tech_paras']);
 
         //attachs
         $detail['attach_list'] = (new SupplierProductAttachModel)->getList($detail);

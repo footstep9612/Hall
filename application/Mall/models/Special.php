@@ -20,7 +20,7 @@ class SpecialModel extends Model {
                 'status' => 'VALID',
                 'deleted_at' => ['exp', 'is null']
             ];
-            $result = $this->field('id,country_bn,name,lang,remark,type')->where($condition)->find();
+            $result = $this->field('id,country_bn,name,lang,remark,type,settings')->where($condition)->find();
             return $result;
         }catch (Exception $e){
             return false;
