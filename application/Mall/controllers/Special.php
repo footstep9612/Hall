@@ -41,8 +41,8 @@ class SpecialController extends PublicController{
         if(isset($input['special_id']) && !isset($input['id'])){
             $input['id'] = intval($input['special_id']);
         }
-        if (!isset($input['id']) || empty($input['id'])) {
-            jsonReturn('', 'id不能为空');
+        if (!isset($input['id']) || !isset($input['name'])) {
+            jsonReturn('', 'id或name不能全为空');
         }
 
         $sModel = new SpecialModel();
