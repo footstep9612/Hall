@@ -108,7 +108,7 @@ class CustomerGradeModel extends PublicModel {
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=false;  $v['submit']=false;
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
                 $v['change']=false;
             }
