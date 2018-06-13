@@ -178,11 +178,11 @@ class SupplierproductController extends SupplierpublicController{
                         'name' => $item['name'] ? $item['name'] : '',
                         'model' => $resultGoodsFields['model'],
                         'exw_days' => $resultGoodsFields['exw_days'],  //出货周期（天）
-                        'min_pack_naked_qty' => $resultGoodsFields['min_pack_naked_qty'],  //最小包装内裸货商品数量
+                        'min_pack_naked_qty' => $resultGoodsFields['min_pack_naked_qty']?$resultGoodsFields['min_pack_naked_qty']:null,  //最小包装内裸货商品数量
                         'nude_cargo_unit' => $resultGoodsFields['nude_cargo_unit'],  //商品裸货单位
                         'min_pack_unit' => $resultGoodsFields['min_pack_unit'],  //最小包装单位
-                        'min_order_qty' => $resultGoodsFields['min_order_qty'],  //最小订货数量
-                        'price' => $resultGoodsFields['price'],  //价格
+                        'min_order_qty' => $resultGoodsFields['min_order_qty']?$resultGoodsFields['min_order_qty']:null,  //最小订货数量
+                        'price' => $resultGoodsFields['price']?$resultGoodsFields['price']:null,  //价格
                         'status' => $item['status'] ? strtoupper($item['status']) : self::STATUS_VALID,  //默认有效状态
                         'deleted_flag' => 'N',    // 非删除
                         'created_at' => $this->getTime()
