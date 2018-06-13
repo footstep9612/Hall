@@ -69,8 +69,10 @@ class SupplierAccountModel extends PublicModel
                 $map['email'] = $data['email'];
                 $map['user_name'] = $data['user_name'];
             }
+            $map['deleted_flag'] = 'N';
             $row = $this->table('erui_supplier.supplier_account')->where($map)->select();
         } else {
+            $data['deleted_flag'] = 'N';
             $row = $this->table('erui_supplier.supplier_account')->where($data)->select();
         }
         return empty($row) ? false : $row;

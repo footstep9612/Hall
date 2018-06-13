@@ -26,7 +26,7 @@ class SupplierProductModel extends PublicModel{
         $condition['current_no'] = $condition['currentPage'];
 
         list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,lang,spu,supplier_id,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
+        $field = 'id,lang,spu,supplier_id,material_cat_no,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
         return $this->field($field)
                      ->where($where)
                      ->limit($start_no, $pagesize)
@@ -54,7 +54,7 @@ class SupplierProductModel extends PublicModel{
      */
     public function getDetail($condition = []) {
         $where = $this->_getCondition($condition);
-        $field = 'id,lang,spu,supplier_id,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
+        $field = 'id,lang,spu,supplier_id,material_cat_no,name,show_name,brand,keywords,tech_paras,description,warranty,source,status,created_at';
         return $this->field($field)
                      ->where($where)
                      ->find();
@@ -93,11 +93,15 @@ class SupplierProductModel extends PublicModel{
      * @param array $where , $condition
      * @return bool
      */
-    public function deleteInfo($where = [], $condition = []) {
+    public function deleteInfo($condition = []) {
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
-        } else {
+        }
+        if (!empty($condition['spu'])) {
+            $where['spu'] = ['in', explode(',', $condition['spu'])];
+        }
+        if(empty($where)){
             return false;
         }
         $res = $this->where($where)->save(['deleted_flag'=>'Y']);
@@ -155,10 +159,10 @@ class SupplierProductModel extends PublicModel{
         if (isset($condition['status']) && !empty($condition['status'])) {
             $where['status'] = strtoupper($condition['status']);                  //状态
         }
-        if (!empty($condition['credit_date_start']) && !empty($condition['credit_date_end'])) {   //时间
-            $where['credit_apply_date'] = array(
-                array('egt', date('Y-m-d 0:0:0',strtotime($condition['credit_date_start']))),
-                array('elt', date('Y-m-d 23:59:59',strtotime($condition['credit_date_end'])))
+        if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //时间
+            $where['created_at'] = array(
+                array('egt', date('Y-m-d 0:0:0',strtotime($condition['start_time']))),
+                array('elt', date('Y-m-d 23:59:59',strtotime($condition['end_time'])))
             );
         }
         if (isset($condition['deleted_flag']) && !empty($condition['deleted_flag'])) {
@@ -166,6 +170,7 @@ class SupplierProductModel extends PublicModel{
         }else {
             $where['deleted_flag'] = 'N';
         }
+        //jsonReturn($where);
         return $where;
     }
 

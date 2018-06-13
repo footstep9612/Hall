@@ -90,11 +90,18 @@ class SupplierGoodsAttrModel extends PublicModel{
      * @param array $where , $condition
      * @return bool
      */
-    public function deleteInfo($where = [], $condition = []) {
+    public function deleteInfo($condition = []) {
 
         if (!empty($condition['id'])) {
             $where['id'] = ['in', explode(',', $condition['id'])];
-        } else {
+        }
+        if (!empty($condition['spu'])) {
+            $where['spu'] = ['in', explode(',', $condition['spu'])];
+        }
+        if (!empty($condition['sku'])) {
+            $where['sku'] = ['in', explode(',', $condition['sku'])];
+        }
+        if(empty($where)){
             return false;
         }
         $res = $this->where($where)->save(['deleted_flag'=>'Y']);

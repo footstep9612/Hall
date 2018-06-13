@@ -364,4 +364,170 @@ class BuyerbusinessController extends PublicController
 
         $this -> jsonReturn($dataJson);
     }
+    public function gradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $model = new CustomerGradeModel();  //结算方式
+        if($lang=='zh'){
+            $field='id,type,grade_no,name';
+        }else{
+            $field='id,type,grade_no,name_en as name';
+        }
+        $info = $model->table('erui_config.buyer_grade')
+            ->field($field)
+            ->where(array('deleted_flag'=>'N'))
+            ->order('sort asc')
+            ->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            if($v['type']==1){
+                unset($v['id']);
+                unset($v['type']);
+                $arr['position'][]=$v;
+            }else if($v['type']==2){
+                unset($v['id']);
+                unset($v['type']);
+                $arr['enterprise'][]=$v;
+            }else if($v['type']==3){
+                unset($v['id']);
+                unset($v['type']);
+                $arr['year_keep'][]=$v;
+            }else if($v['type']==4){
+                unset($v['id']);
+                unset($v['type']);
+                $arr['re_purchase'][]=$v;
+            }else if($v['type']==5){
+                unset($v['id']);
+                unset($v['type']);
+                $arr['credit'][]=$v;
+            }
+        }
+        $dataJson['code']=1;
+        $dataJson['message']='客户分级配置数据';
+        $dataJson['data']=$arr;
+        $this -> jsonReturn($dataJson);
+    }
+    public function buyerGradeListAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $data['role']=$this->user['role_no'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->buyerGradeList($data);
+        
+        if(is_array($res)){
+            $dataJson['code']=1;
+            $dataJson['message']='客户分级列表数据';
+            if(in_array('客户管理员',$data['role'])){
+                $dataJson['old_button']=false;
+                $dataJson['new_button']=false;
+            }else{
+                $dataJson['old_button']=true;
+                $dataJson['new_button']=true;
+            }
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    public function editGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        foreach($data as $k => &$v){
+            $v=trim($v,' ');
+        }
+        $model = new CustomerGradeModel();  //结算方式
+        if(empty($data['id'])){
+            $res=$model->addGrade($data);
+        }else{
+            $res=$model->saveGrade($data);
+        }
+        if($res===true){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }elseif($res!==true && $res!==false){
+            $dataJson['code']=1;
+            $dataJson['message']=$res.'不能为空';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    public function infoGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $data['lang']=$this->getLang();
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->infoGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    public function delGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->delGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //提交
+    public function submitGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->submitGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //审核
+    public function checkedGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->checkedGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //申请变更
+    public function changeGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->changeGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='成功';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
 }

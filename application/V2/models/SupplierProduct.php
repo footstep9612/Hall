@@ -58,6 +58,33 @@ class SupplierProductModel extends PublicModel
         return $this->alias('a')->where(array_merge($this->defaultConditions(), ['id' => $id]))->field($field)->find();
     }
 
+    public function reviewList(array $conditions = [])
+    {
+        $where = array_merge($this->defaultConditions(), [
+            'id' => ['in', $conditions['id']]
+        ]);
+
+        $field = ['id', 'status'];
+
+        return $this->alias('a')->where($where)->field($field)->select();
+    }
+
+    public function checkIsApproving($product)
+    {
+        return $this->where(['id' => $product])->getField('status');
+    }
+
+    public function updateStatusFor($product, $status, $user)
+    {
+        return $this->where(['id' => $product])->save([
+            'status' => $status,
+            'updated_by' => $user,
+            'updated_at' => date('Y-m-d H:i:s'),
+            'checked_by' => $user,
+            'checked_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
     /**
      * 设置筛选条件
      * @param array $condition
@@ -69,7 +96,7 @@ class SupplierProductModel extends PublicModel
 
         //供应商名称
         if (!empty($condition['supplier_name'])) {
-            $conditions['s.name'] = ['like', '%' . $condition['name'] . '%'];
+            $conditions['s.name'] = ['like', '%' . $condition['supplier_name'] . '%'];
         }
 
         //产品名称
@@ -85,6 +112,8 @@ class SupplierProductModel extends PublicModel
         //状态
         if (!empty($condition['status'])) {
             $conditions['a.status'] = $condition['status'];
+        }else {
+            $conditions['a.status'] = 'APPROVING';
         }
 
         //提交时间

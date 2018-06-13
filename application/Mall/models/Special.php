@@ -13,14 +13,23 @@ class SpecialModel extends Model {
         parent::__construct();
     }
 
-    public function getInfo($id){
+    public function getInfo($input){
+        if(!isset($input['id']) && !isset($input['name'])){
+            jsonReturn('', MSG::MSG_FAILED,'请传递id或name');
+        }
+
         try{
             $condition = [
-                'id' => $id,
                 'status' => 'VALID',
                 'deleted_at' => ['exp', 'is null']
             ];
-            $result = $this->field('id,country_bn,name,lang,remark,type')->where($condition)->find();
+
+            if(isset($input['id']) && is_numeric($input['id'])){
+                $condition['id'] = intval($input['id']);
+            }elseif(isset($input['name'])){
+                $condition['name'] = trim($input['name']);
+            }
+            $result = $this->field('id,country_bn,name,lang,remark,type,settings')->where($condition)->find();
             return $result;
         }catch (Exception $e){
             return false;
