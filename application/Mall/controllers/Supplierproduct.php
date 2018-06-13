@@ -216,9 +216,16 @@ class SupplierproductController extends SupplierpublicController{
                         ];
 
                         if(empty($sku)){
-                            $sku_attr_where['sku'] = $item['sku'];
-                            $attrData['updated_at'] = $this->getTime();
-                            $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            $checkSku = $supplier_goods_attr_model->field('sku')->where(['sku' => $item['sku']])->find();
+                            if(!$checkSku){
+                                $attrData['sku'] = $item['sku'];
+                                $attrData['created_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->addRecord($attrData);
+                            }else {
+                                $sku_attr_where['sku'] = $item['sku'];
+                                $attrData['updated_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            }
                         }else {
                             $attrData['sku'] = $sku;
                             $attrData['created_at'] = $this->getTime();
