@@ -20,8 +20,8 @@ class SpecialPositionDataModel extends PublicModel {
      * @return array|bool
      */
     public function getList($condition){
-        $gModel = new GoodsModel();
-        $gtable = $gModel->getTableName();
+        $pModel = new ProductModel();
+        $ptable = $pModel->getTableName();
         $thistable = $this->getTableName();
         $pModel = new ProductAttachModel();
         $patable = $pModel->getTableName();
@@ -47,8 +47,8 @@ class SpecialPositionDataModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$gtable.name,attach.attach_url")
-                ->join("$gtable ON $thistable.sku=$gtable.sku AND $gtable.lang=$thistable.lang")
+            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$ptable.name,$ptable.show_name,attach.attach_url")
+                ->join("$ptable ON $thistable.spu=$ptable.spu AND $ptable.lang=$thistable.lang")
                 ->join("(SELECT spu,MAX(sort_order),attach_url,default_flag,deleted_flag,status FROM $patable GROUP BY spu) as attach ON $thistable.spu=attach.spu AND attach.default_flag='Y' AND attach.deleted_flag='N' AND attach.status='VALID'","LEFT")
                 ->where($where)
                 ->limit($from, $size)

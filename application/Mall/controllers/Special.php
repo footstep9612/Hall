@@ -47,7 +47,7 @@ class SpecialController extends PublicController{
 
         $sModel = new SpecialModel();
         $result = $sModel->getInfo($input);
-        if($result!==false){
+        if($result){
             //获取广告信息
             if(isset($input['ad_on']) && $input['ad_on']){
                 $spModel = new SpecialPositionModel();
