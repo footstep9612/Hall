@@ -124,7 +124,6 @@ class SupplierproductController extends SupplierpublicController{
             if(!$name){
                 jsonReturn('', -1, '产品名称已存在!');
             }
-            $resultFields['name'] = $name;
             $spu = $supplier_product_model->createSpu(strtoupper($resultFields['material_cat_no']));  //不存在生产spu
         }
         $supplier_product_model->startTrans();
