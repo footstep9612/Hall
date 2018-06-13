@@ -102,9 +102,9 @@ class SpecialPositionDataModel extends PublicModel {
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择spu');
         }
-        if(!isset($input['sku']) || empty($input['sku'])){
+        /*if(!isset($input['sku']) || empty($input['sku'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择sku');
-        }
+        }*/
         if(!isset($input['special_id']) || empty($input['special_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择专题');
         }
@@ -118,8 +118,6 @@ class SpecialPositionDataModel extends PublicModel {
             $data = [
                 'special_id' => intval($input['special_id']),
                 'position_id' => intval($input['position_id']),
-                'spu' => trim($input['spu']),
-                'sku' => trim($input['sku']),
                 'sort_order' => isset($input['sort_order']) ? intval($input['sort_order']) : 0,
                 'lang' => isset($input['lang']) ? strtolower($input['lang']) : 'en',
                 'created_by' => defined('UID') ? UID : 0,
@@ -128,14 +126,35 @@ class SpecialPositionDataModel extends PublicModel {
             $where = [
                 'special_id' => $data['special_id'],
                 'position_id' => $data['position_id'],
-                'sku' => $data['sku'],
                 'deleted_at' => ['exp', 'is null']
             ];
-            if(!self::exist($where)){
-                return $this->add($data);
+            $dataAll = [];
+            if(is_array($input['spu'])){
+                $input['spu'] = array_unique($input['spu']);
+                foreach($input['spu'] as $spu){
+                    $data['spu'] = $spu;
+                    $data['sku'] = substr($data['spu'],0,-1).'1';
+                    $where['spu'] = $data['spu'];
+                    $where['sku'] = $data['sku'];
+                    if(self::exist($where)){
+                        jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                    }
+                    $dataAll[] = $data;
+                    unset($data['spu'],$data['sku'],$where['spu'],$where['sku']);
+                }
             }else{
-                jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                $data['spu'] = trim($input['spu']);
+                $data['sku'] = isset($input['sku']) ? trim($input['sku']) : substr($data['spu'],0,-1).'1';
+                $where['spu'] = $data['spu'];
+                $where['sku'] = $data['sku'];
+                if(self::exist($where)){
+                    jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                }
+                $dataAll[] = $data;
+                unset($data['spu'],$data['sku'],$where['spu'],$where['sku']);
             }
+
+            return $this->addAll($dataAll);
         }catch (Exception $e){
             return false;
         }
@@ -162,8 +181,8 @@ class SpecialPositionDataModel extends PublicModel {
                 if(!isset($input['position_id']) || empty($input['position_id'])){
                     jsonReturn('', MSG::MSG_FAILED,'请选择推荐位');
                 }
-                if(!isset($input['sku']) || empty($input['sku'])){
-                    jsonReturn('', MSG::MSG_FAILED,'请选择sku');
+                if(!isset($input['spu']) || empty($input['spu'])){
+                    jsonReturn('', MSG::MSG_FAILED,'请选择spu');
                 }
                 if(isset($input['special_id'])){
                     $where['special_id'] = intval($input['special_id']);
@@ -171,8 +190,8 @@ class SpecialPositionDataModel extends PublicModel {
                 if(isset($input['position_id'])){
                     $where['position_id'] = intval($input['position_id']);
                 }
-                if(isset($input['sku'])){
-                    $where['sku'] = trim($input['sku']);
+                if(isset($input['spu'])){
+                    $where['spu'] = trim($input['spu']);
                 }
             }
 
@@ -186,6 +205,9 @@ class SpecialPositionDataModel extends PublicModel {
             }
             if(isset($input['lang'])){
                 $data['lang'] = strtolower($input['lang']);
+            }
+            if(isset($input['sku'])){
+                $data['sku'] = trim($input['sku']);
             }
 
             return $this->where($where)->save($data);
