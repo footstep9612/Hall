@@ -57,6 +57,8 @@ class SpecialPositionDataModel extends PublicModel {
                 $data['data'] = $rel;
                 $count = $this->getCount($where);
                 $data['count'] = $count ? $count : 0;
+                $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] :1;
+                $data['pagesize'] = $size;
             }
             return $data;
         }catch (Exception $e){

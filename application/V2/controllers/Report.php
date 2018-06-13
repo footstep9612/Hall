@@ -158,10 +158,10 @@ class ReportController extends PublicController {
         $goods_model = new GoodsModel();
         $valid_count = $goods_model
                 ->alias('p')
-                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.spu')
+                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.sku')
                 ->where($validcondition)
-                ->count('DISTINCT p.spu');
-
+                ->count('DISTINCT p.sku');
+        echo $goods_model->_sql();
         return intval($valid_count);
     }
 

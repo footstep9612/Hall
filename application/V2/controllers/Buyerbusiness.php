@@ -449,7 +449,8 @@ class BuyerbusinessController extends PublicController
             $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
         }elseif($res!==true && $res!==false){
             $dataJson['code']=0;
-            $dataJson['message']=$res.'不能为空';
+            $dataJson['message']=$lang=='zh'?'数据不能为空':'Data can not be empty';
+//            $dataJson['message']=$res.'不能为空';
         }else{
             $dataJson['code']=0;
             $dataJson['message']=$lang=='zh'?'失败':'ERROR';
