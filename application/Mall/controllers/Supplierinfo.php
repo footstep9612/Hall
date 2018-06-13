@@ -9,7 +9,7 @@
 /**
  * Description of UserController
  */
-class SupplierInfoController extends SupplierpublicController {
+class SupplierinfoController extends SupplierpublicController {
 
     public function init() {
         //$this->supplier_token = false;

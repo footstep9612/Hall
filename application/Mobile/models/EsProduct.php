@@ -81,7 +81,11 @@ class EsProductModel extends Model {
         if (!empty($condition['brand'])) {
             $brandmodel = new BrandModel();
             $brand = $brandmodel->getbrand(['name' => trim($condition['brand'])], $lang);
-            $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            if ($brand) {
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.all' => ['value' => trim($brand), 'boost' => 100]]];
+            } else {
+                $body['query']['bool']['must'][] = [ESClient::TERM => ['brand.name.lower' => ['value' => strtolower(trim($condition['brand'])), 'boost' => 100]]];
+            }
             //$this->_getQurey($condition, $body, ESClient::MATCH_PHRASE, 'brand', 'brand.name.all');
         }
         ESClient::getQurey($condition, $body, ESClient::WILDCARD, 'real_name', 'name.all');

@@ -714,9 +714,9 @@ function trace($value = '[yaf]', $label = '', $level = 'DEBUG', $record = false)
         if ($record) {
             Log::write($info, $level);
         }
-//        if ('ERR' == $level) {// 抛出异常
-//            throw new Exception($info);
-//        }
+        if ('ERR' == $level) {// 抛出异常
+            throw new Exception($info);
+        }
         $level = strtoupper($level);
         if (!isset($_trace[$level])) {
             $_trace[$level] = array();
@@ -1386,10 +1386,15 @@ function browser_lang() {
  */
 function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     @header('Content-Type:application/json; charset=utf-8');
+    $returnData = [];
     if (isset($data['data'])) {
-        $data = $data['data'];
+        $returnData = $data;
+    }else{
+        $returnData['data'] =  $code == 1 ? $data : false;
     }
-    exit(json_encode(array('data' => $code == 1 ? $data : false, 'code' => $code, 'message' => ErrorMsg::getMessage($code, $message, $lang))));
+    $returnData['code'] = $code;
+    $returnData['message'] = ErrorMsg::getMessage($code, $message, $lang);
+    exit(json_encode($returnData, JSON_UNESCAPED_UNICODE));
 }
 
 /**

@@ -13,6 +13,7 @@ return array(
     'INQUIRY_BIZ_DISPATCHING' => '事业部分单员',
     'INQUIRY_CC_DISPATCHING' => '易瑞客户中心分单员',
     'INQUIRY_BIZ_QUOTING' => '事业部报价',
+    'INQUIRY_REJECT_QUOTING' => '事业部审核退回事业部报价',
     'INQUIRY_LOGI_DISPATCHING' => '物流分单员',
     'INQUIRY_LOGI_QUOTING' => '物流报价',
     'INQUIRY_LOGI_APPROVING' => '物流审核',

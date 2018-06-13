@@ -64,7 +64,26 @@ class RoleUserModel extends PublicModel {
             return $this->query($sql);
         }
     }
-
+    public function getUserRole($user_id) {
+        $role=new RoleModel();
+        $roleInfo=$role->field('id,name')->where(array('attr_id'=>0,'deleted_flag'=>'N'))->select();
+        $mem=$this->field('role_id')->where(array('employee_id'=>$user_id))->select();
+        $str='';
+        foreach($mem as $k => $v){
+            $str.=','.$v['role_id'];
+        }
+        $str=substr($str,1);
+        foreach($roleInfo as $k => $v){
+            $res=$role->field('id,name')
+                ->where("id in ($str) and attr_id=$v[id] and deleted_flag='N'")
+                ->select();
+            if(empty($res)){
+                $res=[];
+            }
+            $roleInfo[$k]['child']=$res;
+        }
+        return $roleInfo;
+    }
     /**
      * 获取列表
      * @param data $data;

@@ -470,7 +470,7 @@ class BuyerModel extends PublicModel {
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
-//        $country = new CountryModel();
+        $country = new CountryModel();
         $order = new OrderModel();
         $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
@@ -489,7 +489,9 @@ class BuyerModel extends PublicModel {
             }
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
-                $info[$k]['area'] = $this->getAreaByCountrybn($v['country_bn'],$lang);
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['area'];
+                $info[$k]['country_name'] = $area['country'];
             }
             $agentInfo=$agent->getBuyerAgentArr($v['id']);
             $info[$k]['agent_id'] = $agentInfo['id'];
@@ -535,6 +537,7 @@ class BuyerModel extends PublicModel {
                 $arr[$k]['name']=$v['name'];  //客户名称
                 $arr[$k]['account_email']=$v['account_email'];  //客户邮箱
                 $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
+                $arr[$k]['area']=$v['area'];  //国家
                 $arr[$k]['country_name']=$v['country_name'];  //国家
                 $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
 //            $arr[$k]['status']=$v['status'];  //客户状态
@@ -568,6 +571,7 @@ class BuyerModel extends PublicModel {
                 $arr[$k]['name']=$v['name'];  //客户名称
                 $arr[$k]['account_email']=$v['account_email'];  //客户邮箱
                 $arr[$k]['buyer_code']=$v['buyer_code'];  //客户代码
+                $arr[$k]['area']=$v['area'];  //国家
                 $arr[$k]['country_name']=$v['country_name'];  //国家
                 $arr[$k]['created_at']=$v['created_at'];  //客户注册时间
 //            $arr[$k]['status']=$v['status'];  //客户状态
@@ -607,10 +611,10 @@ class BuyerModel extends PublicModel {
         }
         if($lang=='zh'){
             $sheetName='customer';
-            $tableheader = array('客户信息完整度','客户编号','客户名称','客户邮箱','CRM客户代码', '国家', '创建时间', '客户状态', '会员级别', '客户分类','用户来源','定级日期');
+            $tableheader = array('客户信息完整度','客户编号','客户名称','客户邮箱','CRM客户代码','地区', '国家', '创建时间', '客户状态', '会员级别', '客户分类','用户来源','定级日期');
         }else{
             $sheetName='Customer list';
-            $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code', 'Country', 'Creation_time', 'Customer status', 'Customer level','Customer cate','Registration source of customer','Verification date');
+            $tableheader = array('Integrity','Customer NO','Company name','Customer email', 'Customer code','area', 'Country', 'Creation_time', 'Customer status', 'Customer level','Customer cate','Registration source of customer','Verification date');
         }
         //创建对象
         $excel = new PHPExcel();
@@ -2242,7 +2246,7 @@ EOF;
         if(empty($data['admin']['role'])){
             return false;
         }
-        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+        if(!in_array('CRM客户管理',$data['admin']['role']) && !in_array('客户管理员',$data['admin']['role'])){    //权限
             if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
                 return false;
             }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
@@ -2284,6 +2288,9 @@ EOF;
         }else{
             $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
         }
+//        if(in_array('客户管理员',$data['admin']['role'])){
+//            $cond=" 1=1 and buyer.is_build=1 and buyer.status='APPROVED' and buyer.deleted_flag='N'";
+//        }
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
@@ -2336,6 +2343,13 @@ EOF;
         }
         if(!empty($data['max_percent'])){    //信息完整度max
             $cond .= " and buyer.percent <=".$data['max_percent'];
+        }
+
+        if(!empty($data['build_time_start'])){    //档案信息创建时间
+            $cond .= " and buyer.build_time >='".$data['build_time_start']."'";
+        }
+        if(!empty($data['build_time_end'])){    //档案信息创建时间
+            $cond .= " and buyer.build_time <='".$data['build_time_end']."'";
         }
         return $cond;
     }

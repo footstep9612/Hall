@@ -189,16 +189,24 @@ class QuoteItemModel extends PublicModel {
      * 保存SKU信息，不加任何必填校验
      * @param $data 数据对象
      * @param $user 当前用户
+     * @param $currentPage 当前页
+     * @param $pageSize 每页条数
      *
      * @return array|bool
      * @author mmt、liujf
      */
-    public function updateItemBatch($data,$user){
+    public function updateItemBatch($data,$user,$currentPage,$pageSize){
         $inquiryItemModel = new InquiryItemModel();
+        $suppliersModel = new SuppliersModel();
         $data = dataTrim($data);
+        $supplierFailList = [];
         $i = 0;
+        $currentPage = intval($currentPage) ? : 1;
+        $pageSize = intval($pageSize) ? : 10;
+        $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
         foreach ($data as $key=>$value){
+            $row++;
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
             if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == ''
                 || $value['category'] == '' || $value['category'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == ''
@@ -212,8 +220,13 @@ class QuoteItemModel extends PublicModel {
                     $quoteItemResult = $this->delItem($value['inquiry_item_id']);
                 }
             } else {
-                if (!is_numeric($value['supplier_id'])) {
-                    $value['supplier_id'] = null;
+                $supplierId = $suppliersModel->where(['name' => $value['supplier_name'], 'deleted_flag' => 'N'])->getField('id');
+                if (!is_numeric($supplierId)) {
+                    // 匹配供应商失败列表
+                    $supplierFailList[] = $row;
+                    continue;
+                } else {
+                    $value['supplier_id'] = $supplierId;
                 }
                 if (!is_numeric($value['purchase_unit_price'])){
                     if ($i > 0) {
@@ -276,7 +289,7 @@ class QuoteItemModel extends PublicModel {
             $i++;
         }
         $this->commit();
-        return ['code' => '1', 'message' => L('SUCCESS')];
+        return ['code' => '1', 'message' => L('SUCCESS'), 'supplier_fail_list' => implode(',', $supplierFailList)];
     }
 
     public function syncSku($request,$user){

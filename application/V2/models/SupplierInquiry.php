@@ -459,14 +459,14 @@ class SupplierInquiryModel extends PublicModel {
         ];
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
             $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = trim($condition['created_at_end']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
             $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
         } elseif (!empty($condition['created_at_start'])) {
 
             $created_at_start = trim($condition['created_at_start']);
             $where['i.created_at'] = ['egt', $created_at_start];
         } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = trim($condition['created_at_end']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
             $where['i.created_at'] = ['elt', $created_at_end];
         }
         if (!empty($condition['country_bn'])) {
@@ -595,13 +595,13 @@ class SupplierInquiryModel extends PublicModel {
         ];
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
             $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = trim($condition['created_at_end']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
             $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
         } elseif (!empty($condition['created_at_start'])) {
             $created_at_start = trim($condition['created_at_start']);
             $where['i.created_at'] = ['egt', $created_at_start];
         } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = trim($condition['created_at_end']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
             $where['i.created_at'] = ['elt', $created_at_end];
         }
         if (!empty($condition['country_bn'])) {

@@ -342,9 +342,14 @@ class PortModel extends PublicModel {
         return $arr;
     }
     public function portTest(){
-        $info=$this->field('bn,name')->where(array('lang'=>'en'))->select();
+        $info=$this->field('bn,name,port_type,trans_mode')->where(array('lang'=>'en'))->select();
         foreach($info as $k => $v){
-            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save(array('name_en'=>$v['name']));
+            $save=array(
+                'name_en'=>$v['name'],
+                'port_type'=>$v['port_type'],
+                'trans_mode'=>$v['trans_mode']
+            );
+            $this->where(array('lang'=>'zh','bn'=>$v['bn']))->save($save);
         }
         print_r(1);die;
     }
@@ -384,7 +389,7 @@ class PortModel extends PublicModel {
         $cc=$this->field('bn')->where(array('bn'=>$bn['bn'],'deleted_flag'=>'N'))->select();
         $zh=[
             'country_bn'=>$data['country_bn'],
-            'bn'=>$data['port_bn'],
+//            'bn'=>$data['port_bn'],
             'name'=>$data['port_name_zh'],
             'name_en'=>$data['port_name_en'],
             'port_type'=>$data['port_type'],
@@ -395,7 +400,7 @@ class PortModel extends PublicModel {
 
         $en=[
             'country_bn'=>$data['country_bn'],
-            'bn'=>$data['port_bn'],
+//            'bn'=>$data['port_bn'],
             'name'=>$data['port_name_en'],
             'name_en'=>$data['port_name_en'],
             'port_type'=>$data['port_type'],

@@ -237,6 +237,24 @@ class CountryModel extends PublicModel {
         }
         return true;
     }
+    ////////////////////////////////////////////////////////////////////////////////
+    public function checkArea($area_bn){
+        $cond=array('bn'=>$area_bn,'deleted_flag'=>'N');
+        $info=$this->table('erui_operation.market_area')->field('bn as area_bn')->where($cond)->select();
+        return $info;
+    }
+    public function checkCountryBn($country_bn){
+        $cond=array('bn'=>$country_bn,'deleted_flag'=>'N');
+        $info=$this->field('id,lang,bn as country_bn')->where($cond)->select();
+        return $info;
+    }
+    public function checkCountryName($str){
+        $cond="deleted_flag='N' and name in ($str)";
+        $info=$this->field('lang,name as country_name')
+            ->where($cond)
+            ->select();
+        return $info;
+    }
     public function updateCountryBn($country){
         $country=$this->field('id,bn')->where(array('deleted_flag'=>'N','bn'=>$country,'lang'=>'zh'))->find();
         return $country;
@@ -276,7 +294,7 @@ class CountryModel extends PublicModel {
             $info=$this->field('id,bn as country_bn,name,name_en,name_ru,name_es')
                 ->where(array('lang'=>'zh','deleted_flag'=>'N','id'=>$data['id']))
                 ->find();
-            $this->where(array('bn'=>$info['country_bn']))->save(array('deleted_flag'=>'Y'));
+            $this->where(array('bn'=>$info['country_bn']))->save(array('deleted_flag'=>'Y','source'=>$data['source']));
 
             $area=$this->table('erui_operation.market_area_country')
                 ->where(array('country_bn'=>$info['country_bn']))
@@ -297,6 +315,8 @@ class CountryModel extends PublicModel {
             $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
+            $arr[$k]['source']=$data['source'];
+            $arr[$k]['code']=$data['country_name']['en'];
         }
         $info[]=$arr['zh'];
         $info[]=$arr['en'];
@@ -313,28 +333,53 @@ class CountryModel extends PublicModel {
     }
     public function updateCountry($data){
         $arr=[];
-
         foreach($data['country_name'] as $k =>$v){
             $arr[$k]['lang']=$k;
-            $arr[$k]['code']=$data['code'];
-            $arr[$k]['name']=$data['country_name'][$k];
-            $arr[$k]['name_en']=$data['country_name']['en'];
-            $arr[$k]['name_ru']=$data['country_name']['ru'];
-            $arr[$k]['name_es']=$data['country_name']['es'];
-            $arr[$k]['bn']=$data['country_bn'];
+//            $arr[$k]['code']=$data['code'];
+            $arr[$k]['name']=$data['country_name'][$k]?$data['country_name'][$k]:null;
+            $arr[$k]['name_en']=$data['country_name']['en']?$data['country_name']['en']:null;
+            $arr[$k]['name_ru']=$data['country_name']['ru']?$data['country_name']['ru']:null;
+            $arr[$k]['name_es']=$data['country_name']['es']?$data['country_name']['es']:null;
+//            $arr[$k]['bn']=$data['country_bn'];
             $arr[$k]['int_tel_code']=$data['tel_code'];
             $arr[$k]['region_bn']=$data['area_bn'];
+            $arr[$k]['source']=$data['source'];
         }
-        $hehe=$this->field('bn')->where(array('id'=>$data['id']))->find();
-        $this->where(array('id'=>$data['id']))->save($arr['zh']);
-        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
-        $info[]=$arr['en'];
-        $info[]=$arr['ru'];
-        $info[]=$arr['es'];
-        $res=$this->addAll($info);
+        $hehe=$this->field('id,code,bn')->where(array('id'=>$data['id']))->find();
+        $info=$this->field('lang')->where(array('bn'=>$hehe['bn']))->select();
+        $a=array_keys($arr);
+        $z=[];
+        foreach($info as $k => $v){
+            $z[]=$v['lang'];
+        }
+        $d=array_diff($a,$z);
+        $i=array_intersect($a,$z);
+        if(!empty($d)){
+            foreach($d as $k => $v){
+                $arr[$v]['bn']=$hehe['bn'];
+                $arr[$v]['code']=$hehe['code'];
+                $res=$this->add($arr[$v]);
+            }
+        }
+        if(!empty($i)){
+            foreach($i as $k => $v){
+                $this->where(array('lang'=>$v,'bn'=>$hehe['bn']))->save($arr[$v]);
+            }
+        }
+//        $this->where(array('id'=>$data['id']))->save($arr['zh']);
+//        $this->where("bn='$hehe[bn]' and id <> $data[id] ")->save(array('deleted_flag'=>'Y'));
+//        $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
+//        $info[]=$arr['zh'];
+//        $info[]=$arr['en'];
+//        $info[]=$arr['ru'];
+//        $info[]=$arr['es'];
+//        foreach($info as $k => $v){
+//            $this->where("bn='$hehe[bn]'")->save(array('deleted_flag'=>'Y'));
+//        }
+//        $res=$this->addAll($info);
 
         $areaInfo['market_area_bn']=$data['area_bn'];
-        $areaInfo['country_bn']=$data['country_bn'];
+        $areaInfo['country_bn']=$hehe['bn'];
         $areaInfo['created_at']=date('Y-m-d H:i:s');
         $model=new MarketAreaCountryModel();
         $model->where(array('country_bn'=>$hehe['bn']))->delete();
@@ -354,19 +399,22 @@ class CountryModel extends PublicModel {
     public function countryAdmin($data=[]){
         $cond=$this->getCountryCond($data);
         $page=isset($data['current_page'])?$data['current_page']:1;
+        $lang=isset($data['lang'])?$data['lang']:'zh';
         $offsize=($page-1)*10;
         $count=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
             ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
             ->field('country.id,country.bn as country_bn,country.name,country.name_en,country.name_ru,country.name_es,area.name as area_name')
             ->where($cond)
+
+
 //            ->where(array('country.lang'=>'zh','country.deleted_flag'=>'N'))
             ->count();
         $field='country.id,country.bn as country_bn,country.name as country_name_zh,country.name_en as country_name_en,country.name_ru as country_name_ru,country.name_es as country_name_es,area.name as area_name';
         $field.=",(select count(*) from erui_dict.port port where port.country_bn=country.bn and port.deleted_flag='N' and port.lang='zh') as port_count";
         $info=$this->alias('country')
             ->join('erui_operation.market_area_country countryBn on country.bn=countryBn.country_bn','left')
-            ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='zh'",'left')
+            ->join("erui_operation.market_area area on countryBn.market_area_bn=area.bn and area.lang='$lang'",'left')
             ->field($field)
             ->where($cond)
             ->order('country.id desc')
@@ -383,15 +431,22 @@ class CountryModel extends PublicModel {
     public function countryTest(){
         $bn=$this->field('lang,bn,name')->select();
         foreach($bn as $k => $v){
+            $area=$this->table('erui_operation.market_area_country')->field('market_area_bn')->where(array('country_bn'=>$v['bn']))->find();
             if($v['lang']=='en'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_en'=>$v['name']));
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
+                    ->save(array('region_bn'=>$area['market_area_bn'],'name_en'=>$v['name']));
             }elseif($v['lang']=='ru'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_ru'=>$v['name']));
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
+                    ->save(array('region_bn'=>$area['market_area_bn'],'name_ru'=>$v['name']));
             }elseif($v['lang']=='es'){
-                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))->save(array('name_es'=>$v['name']));
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
+                    ->save(array('region_bn'=>$area['market_area_bn'],'name_es'=>$v['name']));
+            }elseif($v['lang']=='zh'){
+                $this->where(array('bn'=>$v['bn'],'lang'=>'zh'))
+                    ->save(array('region_bn'=>$area['market_area_bn']));
             }
         }
-        return $flag;
+        return true;
     }
 
     /**
@@ -821,7 +876,23 @@ class CountryModel extends PublicModel {
     public function getCountryBnCodeByName($country_name) {
         return $this->field('bn,int_tel_code')->where(array('name' => $country_name))->find();
     }
-    
+    //国家简称获取->国家名称,地区名称
+    public function getCountryAreaByBn($country_bn,$lang='zh'){
+        $cond=array(
+            'bn'=>$country_bn,
+            'lang'=>$lang,
+            'deleted_flag'=>'N'
+        );
+        $country=$this->field('name as country_name')->where($cond)->find();
+        $area=$this->table('erui_operation.market_area_country')->alias('country')
+            ->join('erui_operation.market_area area on country.market_area_bn=area.bn and area.deleted_flag=\'N\'','left')
+            ->field('area.name as area_name')
+            ->where(array('country.country_bn'=>$country_bn,'area.lang'=>$lang))
+            ->find();
+        $arr['area']=$area['area_name'];
+        $arr['country']=$country['country_name'];
+        return $arr;
+    }
     /**
      * @desc 通过国家简称获取名称
      *
