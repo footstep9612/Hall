@@ -1176,6 +1176,11 @@ EOF;
             $dataJson['data']=[];
             $this->jsonReturn($dataJson);
         }
+        //客户分级
+        $grade=new CustomerGradeModel();
+        $cond_grade=array('buyer_id'=>$data['buyer_id'],'status'=>2,'deleted_flag'=>'N');
+        $gradeInfo=$grade->field('id,customer_grade')->where($cond_grade)->order('id desc')->find();
+        $buerInfo['customer_grade']=$gradeInfo['customer_grade'];
         //获取客户账号
         $account = new BuyerAccountModel();
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
