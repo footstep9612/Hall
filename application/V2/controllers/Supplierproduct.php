@@ -129,7 +129,7 @@ class SupplierproductController extends PublicController
             'spu' => $supplierProduct['spu'],
             'name' => $supplierProduct['name'],
             'show_name' => $supplierProduct['show_name'],
-            'brand' => $supplierProduct['brand'],
+            'brand' => $this->reSortBrands($supplierProduct['brand'], $supplierProduct['lang']),
             'keywords' => $supplierProduct['keywords'],
             'tech_paras' => strip_tags(htmlspecialchars_decode($supplierProduct['tech_paras'])),
             'description' => strip_tags(htmlspecialchars_decode($supplierProduct['description'])),
@@ -170,7 +170,7 @@ class SupplierproductController extends PublicController
             foreach ($supplierProductAttach as $attach) {
                 $productAttach->add($productAttach->create([
                     'spu' => $attach['spu'],
-                    'attach_type' => $attach['attach_type'],
+                    'attach_type' => 'BIG_IMAGE',
                     'attach_name' => $attach['attach_name'],
                     'attach_url' => $attach['attach_url'],
                     'default_flag' => $attach['default_flag'],
@@ -321,5 +321,19 @@ class SupplierproductController extends PublicController
         }
 
         return $data['name'];
+    }
+
+    public function reSortBrands($brands, $lang)
+    {
+        $data = json_decode($brands, true);
+
+        if (count($data)) {
+            foreach ($data as $datum) {
+                if ($datum['lang'] == $lang) {
+                    return json_encode($datum);
+                }
+            }
+        }
+        return $brands;
     }
 }
