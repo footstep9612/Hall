@@ -589,6 +589,7 @@ class SupplierproductController extends SupplierpublicController{
                 $data['brand'] = '';
             }
         }
+
         return $data['brand'];
     }
 
