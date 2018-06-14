@@ -155,7 +155,7 @@ class CustomerGradeModel extends PublicModel {
             'purchase'=>'零配件年采购额', //零配件年采购额
             'purchase_score'=>'零配件年采购额分值',
             'enterprise'=>'企业性质',   //企业性质
-            'enterprise_score'=>'企业性质分值',
+//            'enterprise_score'=>'企业性质分值',
             'income'=>'营业收入',   //营业收入
             'income_score'=>'营业收入分值',
             'scale'=>'资产规模',    //资产规模

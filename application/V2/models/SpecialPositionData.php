@@ -19,8 +19,8 @@ class SpecialPositionDataModel extends PublicModel {
      * @return array|bool
      */
     public function getList($condition){
-        $gModel = new GoodsModel();
-        $gtable = $gModel->getTableName();
+        $pModel = new ProductModel();
+        $ptable = $pModel->getTableName();
         $thistable = $this->getTableName();
         $pModel = new ProductAttachModel();
         $patable = $pModel->getTableName();
@@ -46,9 +46,9 @@ class SpecialPositionDataModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$gtable.name,$patable.attach_url")
-                ->join("$gtable ON $thistable.sku=$gtable.sku AND $gtable.lang=$thistable.lang")
-                ->join("$patable ON $thistable.spu=$patable.spu AND $patable.default_flag='Y' AND $patable.deleted_flag='N' AND $patable.status='VALID'","LEFT")
+            $rel = $this->field("$thistable.id,$thistable.lang,$thistable.special_id,$thistable.position_id,$thistable.sku,$thistable.sort_order,$thistable.created_at,$thistable.created_by,$thistable.spu,$ptable.name,$ptable.show_name,attach.attach_url")
+                ->join("$ptable ON $thistable.spu=$ptable.spu AND $ptable.lang=$thistable.lang")
+                ->join("(SELECT spu,MAX(sort_order),attach_url,default_flag,deleted_flag,status FROM $patable GROUP BY spu) as attach ON $thistable.spu=attach.spu AND attach.default_flag='Y' AND attach.deleted_flag='N' AND attach.status='VALID'","LEFT")
                 ->where($where)
                 ->limit($from, $size)
                 ->select();
@@ -102,36 +102,59 @@ class SpecialPositionDataModel extends PublicModel {
         if(!isset($input['spu']) || empty($input['spu'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择spu');
         }
-        if(!isset($input['sku']) || empty($input['sku'])){
+        /*if(!isset($input['sku']) || empty($input['sku'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择sku');
-        }
+        }*/
         if(!isset($input['special_id']) || empty($input['special_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择专题');
         }
         if(!isset($input['position_id']) || empty($input['position_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择推荐位');
         }
+        if(!isset($input['lang']) || empty($input['lang'])){
+            jsonReturn('', MSG::MSG_FAILED,'请选择语言');
+        }
         try{
             $data = [
                 'special_id' => intval($input['special_id']),
                 'position_id' => intval($input['position_id']),
-                'spu' => trim($input['spu']),
-                'sku' => trim($input['sku']),
                 'sort_order' => isset($input['sort_order']) ? intval($input['sort_order']) : 0,
+                'lang' => isset($input['lang']) ? strtolower($input['lang']) : 'en',
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
             $where = [
                 'special_id' => $data['special_id'],
                 'position_id' => $data['position_id'],
-                'sku' => $data['sku'],
                 'deleted_at' => ['exp', 'is null']
             ];
-            if(!self::exist($where)){
-                return $this->add($data);
+            $dataAll = [];
+            if(is_array($input['spu'])){
+                $input['spu'] = array_unique($input['spu']);
+                foreach($input['spu'] as $spu){
+                    $data['spu'] = $spu;
+                    $data['sku'] = substr($data['spu'],0,-1).'1';
+                    $where['spu'] = $data['spu'];
+                    $where['sku'] = $data['sku'];
+                    if(self::exist($where)){
+                        jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                    }
+                    $dataAll[] = $data;
+                    unset($data['spu'],$data['sku'],$where['spu'],$where['sku']);
+                }
             }else{
-                jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                $data['spu'] = trim($input['spu']);
+                $data['sku'] = isset($input['sku']) ? trim($input['sku']) : substr($data['spu'],0,-1).'1';
+                $where['spu'] = $data['spu'];
+                $where['sku'] = $data['sku'];
+                if(self::exist($where)){
+                    jsonReturn('', MSG::MSG_FAILED,'已经存在');
+                }
+                $dataAll[] = $data;
+                unset($data['spu'],$data['sku'],$where['spu'],$where['sku']);
             }
+
+            return $this->addAll($dataAll);
         }catch (Exception $e){
             return false;
         }
@@ -146,31 +169,29 @@ class SpecialPositionDataModel extends PublicModel {
         if(empty($input)){
             jsonReturn('', MSG::MSG_FAILED,'没有信息');
         }
-        if(!isset($input['special_id']) || empty($input['special_id'])){
-            jsonReturn('', MSG::MSG_FAILED,'请选择专题');
-        }
-        if(!isset($input['position_id']) || empty($input['position_id'])){
-            jsonReturn('', MSG::MSG_FAILED,'请选择推荐位');
-        }
-        if(!isset($input['sku']) || empty($input['sku'])){
-            jsonReturn('', MSG::MSG_FAILED,'请选择sku');
-        }
-        if(!isset($input['sort_order']) || empty($input['sort_order'])){
-            jsonReturn('', MSG::MSG_FAILED,'请输入排号');
-        }
+
         try{
             $where = ['deleted_at' => ['exp', 'is null']];
             if(isset($input['id'])){
                 $where['id'] = intval($input['id']);
             }else{
+                if(!isset($input['special_id']) || empty($input['special_id'])){
+                    jsonReturn('', MSG::MSG_FAILED,'请选择专题');
+                }
+                if(!isset($input['position_id']) || empty($input['position_id'])){
+                    jsonReturn('', MSG::MSG_FAILED,'请选择推荐位');
+                }
+                if(!isset($input['spu']) || empty($input['spu'])){
+                    jsonReturn('', MSG::MSG_FAILED,'请选择spu');
+                }
                 if(isset($input['special_id'])){
                     $where['special_id'] = intval($input['special_id']);
                 }
                 if(isset($input['position_id'])){
                     $where['position_id'] = intval($input['position_id']);
                 }
-                if(isset($input['sku'])){
-                    $where['sku'] = trim($input['sku']);
+                if(isset($input['spu'])){
+                    $where['spu'] = trim($input['spu']);
                 }
             }
 
@@ -180,8 +201,15 @@ class SpecialPositionDataModel extends PublicModel {
             ];
 
             if(isset($input['sort_order'])){
-                $data['sort_order'] = trim($input['sort_order']);
+                $data['sort_order'] = intval($input['sort_order']);
             }
+            if(isset($input['lang'])){
+                $data['lang'] = strtolower($input['lang']);
+            }
+            if(isset($input['sku'])){
+                $data['sku'] = trim($input['sku']);
+            }
+
             return $this->where($where)->save($data);
         }catch (Exception $e){
             return false;
@@ -194,7 +222,7 @@ class SpecialPositionDataModel extends PublicModel {
      * @return bool
      */
     public function deleteData($input=[]){
-        if(empty($input) || !isset($input['id'])){
+        if(empty($input)){
             return false;
         }
         try{

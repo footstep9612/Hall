@@ -29,7 +29,7 @@ class SpecialPositionModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field($fields ? $fields : 'id,special_id,type,name,description,remark,sort_order,thumb,link')->where($where)->order('sort_order DESC')
+            $rel = $this->field($fields ? $fields : 'id,special_id,type,name,description,remark,sort_order,thumb,link,settings')->where($where)->order('sort_order DESC')
                 ->limit($from, $size)
                 ->select();
             if($rel){

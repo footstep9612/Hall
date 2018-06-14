@@ -30,7 +30,7 @@ class SpecialpositiondataController extends PublicController{
      */
     public function infoAction(){
         $id = $this->getPut('id','');
-        $model = new SpecialPositionModel();
+        $model = new SpecialPositionDataModel();
         $rel = $model->getInfo($id);
         if($rel){
             jsonReturn($rel);
@@ -43,7 +43,7 @@ class SpecialpositiondataController extends PublicController{
      * 增
      */
     public function createAction(){
-        $model = new SpecialPositionModel();
+        $model = new SpecialPositionDataModel();
         $rel = $model->createData($this->getPut());
         if($rel){
             jsonReturn($rel);
@@ -56,7 +56,7 @@ class SpecialpositiondataController extends PublicController{
      * 改
      */
     public function updateAction(){
-        $model = new SpecialPositionModel();
+        $model = new SpecialPositionDataModel();
         $rel = $model->updateData($this->getPut());
         if($rel){
             jsonReturn($rel);
@@ -69,7 +69,7 @@ class SpecialpositiondataController extends PublicController{
      * 删
      */
     public function deleteAction(){
-        $model = new SpecialPositionModel();
+        $model = new SpecialPositionDataModel();
         $rel = $model->deleteData($this->getPut());
         if($rel){
             jsonReturn($rel);

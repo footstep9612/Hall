@@ -124,7 +124,6 @@ class SupplierproductController extends SupplierpublicController{
             if(!$name){
                 jsonReturn('', -1, '产品名称已存在!');
             }
-            $resultFields['name'] = $name;
             $spu = $supplier_product_model->createSpu(strtoupper($resultFields['material_cat_no']));  //不存在生产spu
         }
         $supplier_product_model->startTrans();
@@ -170,7 +169,7 @@ class SupplierproductController extends SupplierpublicController{
             $supplier_goods_model = new SupplierGoodsModel();
             if(isset($data['goods']) && is_array($data['goods'])){
                 foreach($data['goods'] as $item){
-                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty','price'];
+                    $checkGoodsFields = ['model', 'exw_days', 'min_pack_naked_qty', 'nude_cargo_unit', 'min_pack_unit','min_order_qty'];
                     $resultGoodsFields = $this->_checkFields($item, $checkGoodsFields, 'required'); //校验字段
                     $goodsData = [
                         'spu' => empty($spu) ? $data['spu'] : $spu,
@@ -179,11 +178,11 @@ class SupplierproductController extends SupplierpublicController{
                         'name' => $item['name'] ? $item['name'] : '',
                         'model' => $resultGoodsFields['model'],
                         'exw_days' => $resultGoodsFields['exw_days'],  //出货周期（天）
-                        'min_pack_naked_qty' => $resultGoodsFields['min_pack_naked_qty'],  //最小包装内裸货商品数量
+                        'min_pack_naked_qty' => $resultGoodsFields['min_pack_naked_qty']?$resultGoodsFields['min_pack_naked_qty']:null,  //最小包装内裸货商品数量
                         'nude_cargo_unit' => $resultGoodsFields['nude_cargo_unit'],  //商品裸货单位
                         'min_pack_unit' => $resultGoodsFields['min_pack_unit'],  //最小包装单位
-                        'min_order_qty' => $resultGoodsFields['min_order_qty'],  //最小订货数量
-                        'price' => $resultGoodsFields['price'],  //价格
+                        'min_order_qty' => $resultGoodsFields['min_order_qty']?$resultGoodsFields['min_order_qty']:null,  //最小订货数量
+                        'price' => $resultGoodsFields['price']?$resultGoodsFields['price']:null,  //价格
                         'status' => $item['status'] ? strtoupper($item['status']) : self::STATUS_VALID,  //默认有效状态
                         'deleted_flag' => 'N',    // 非删除
                         'created_at' => $this->getTime()
@@ -217,9 +216,16 @@ class SupplierproductController extends SupplierpublicController{
                         ];
 
                         if(empty($sku)){
-                            $sku_attr_where['sku'] = $item['sku'];
-                            $attrData['updated_at'] = $this->getTime();
-                            $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            $checkSku = $supplier_goods_attr_model->field('sku')->where(['sku' => $item['sku']])->find();
+                            if(!$checkSku){
+                                $attrData['sku'] = $item['sku'];
+                                $attrData['created_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->addRecord($attrData);
+                            }else {
+                                $sku_attr_where['sku'] = $item['sku'];
+                                $attrData['updated_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            }
                         }else {
                             $attrData['sku'] = $sku;
                             $attrData['created_at'] = $this->getTime();
@@ -520,7 +526,20 @@ class SupplierproductController extends SupplierpublicController{
     private function editBrand($brand,$lang){
         $brand_model = new BrandModel();
         if (is_numeric($brand)) {
-            $data['brand'] = '';
+            $brand_ary = array(
+                'name' => $brand,
+                'lang' => $lang,
+                'style' => 'TEXT',
+                'label' => $brand,
+                'logo' => '',
+            );
+            ksort($brand_ary);
+            $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+            $data['created_at'] = $this->getTime();
+            $data['deleted_flag'] = 'N';
+            $brand_model->addRecord($data);
+
+            /*$data['brand'] = '';
             $brandInfo = $brand_model->info($brand);
             if ($brandInfo) {
                 $brandAry = json_decode($brandInfo['brand'], true);
@@ -535,10 +554,23 @@ class SupplierproductController extends SupplierpublicController{
                         );
                         ksort($brand_ary);
                         $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                        break;
                     }
                 }
-            }
+            }else{
+                $brand_ary = array(
+                    'name' => $brand,
+                    'lang' => $lang,
+                    'style' => 'TEXT',
+                    'label' => $brand,
+                    'logo' => '',
+                );
+                ksort($brand_ary);
+                $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                $data['created_at'] = $this->getTime();
+                $data['deleted_flag'] = 'N';
+                $brand_model->addRecord($data);
+
+            }*/
         } else {
             if (is_array($brand)) {
                 ksort($brand);
@@ -570,6 +602,7 @@ class SupplierproductController extends SupplierpublicController{
                 $data['brand'] = '';
             }
         }
+
         return $data['brand'];
     }
 
