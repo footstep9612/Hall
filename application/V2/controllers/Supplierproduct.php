@@ -96,6 +96,9 @@ class SupplierproductController extends PublicController
             //记录审核日志
             (new SupplierProductCheckLogModel)->createReviewLogFor($item, $this->user['id']);
 
+            //同步到正式产品/商品库
+            $this->syncToRegular($item);
+
         }
 
         $this->jsonReturn([
@@ -103,6 +106,147 @@ class SupplierproductController extends PublicController
             'message' => '成功'
         ]);
 
+    }
+
+    public function syncToRegular($item)
+    {
+        //Products
+        $supplierProduct = (new SupplierProductModel)->where(['id' => $item])->find();
+        //p($supplierProduct);
+        $supplierProductAttach = (new SupplierProductAttachModel)->where(['spu' => $supplierProduct['spu'], 'deleted_flag' => 'N'])->select();
+
+        //Goods
+        $supplierGoods = (new SupplierGoodsModel)->where(['spu' => $supplierProduct['spu'], 'deleted_flag' => 'N'])->select();
+        $supplierGoodsAttr = ( new SupplierGoodsAttrModel)->where(['spu' => $supplierProduct['spu'], 'deleted_flag' => 'N'])->select();
+
+        //Sync product
+        $regularProduct = new ProductModel();
+        $regularProduct->startTrans();
+
+        $productData = [
+            'lang' => $supplierProduct['lang'],
+            'material_cat_no' => $supplierProduct['material_cat_no'],
+            'spu' => $supplierProduct['spu'],
+            'name' => $supplierProduct['name'],
+            'show_name' => $supplierProduct['show_name'],
+            'brand' => $this->reSortBrands($supplierProduct['brand'], $supplierProduct['lang']),
+            'keywords' => $supplierProduct['keywords'],
+            'tech_paras' => strip_tags(htmlspecialchars_decode($supplierProduct['tech_paras'])),
+            'description' => strip_tags(htmlspecialchars_decode($supplierProduct['description'])),
+            'warranty' => $supplierProduct['warranty'],
+            'status' => 'VALID',
+            'created_by' => $this->user['id'],
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s'),
+            'checked_by' => $this->user['id'],
+            'checked_at' => date('Y-m-d H:i:s')
+        ];
+
+        $syncProduct = $regularProduct->add($regularProduct->create($productData));
+        //更新Es
+
+        //Product supllier
+        $productSupplier = new ProductSupplierModel();
+        $productSupplier->startTrans();
+        $syncProductSupplier = $productSupplier->add($productSupplier->create([
+            'spu' => $supplierProduct['spu'],
+            'supplier_id' => $supplierProduct['supplier_id'],
+            'brand' => $supplierProduct['brand'],
+            'status' => 'VALID',
+            'created_by' => $this->user['id'],
+            'created_at' => date('Y-m-d H:i:s'),
+            'checked_by' => $this->user['id'],
+            'checked_at' => date('Y-m-d H:i:s')
+        ]));
+
+
+        if ($syncProduct && $syncProductSupplier) {
+            $regularProduct->commit();
+            $productSupplier->commit();
+
+            //product attach
+            $productAttach = new ProductAttachModel();
+            foreach ($supplierProductAttach as $attach) {
+                $productAttach->add($productAttach->create([
+                    'spu' => $attach['spu'],
+                    'attach_type' => 'BIG_IMAGE',
+                    'attach_name' => $attach['attach_name'],
+                    'attach_url' => $attach['attach_url'],
+                    'default_flag' => $attach['default_flag'],
+                    'sort_order' => $attach['sort_order'],
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'checked_by' => $this->user['id'],
+                    'checked_at' => date('Y-m-d H:i:s')
+                ]));
+            }
+
+            //更新Es
+            (new EsProductModel)->create_data($productData, 'zh');
+
+            //Sync goods
+            $goods = new GoodsModel();
+            $goodsSupplier = new GoodsSupplierModel();
+
+            foreach ($supplierGoods as $good) {
+                $goodData = [
+                    'lang' => $good['lang'],
+                    'spu' => $good['spu'],
+                    'sku' => $good['sku'],
+                    'name' => $good['name'],
+                    'show_name' => $good['show_name'],
+                    'model' => $good['model'],
+                    'description' => $good['description'],
+                    'exw_days' => $good['exw_days'],
+                    'min_pack_naked_qty' => $good['min_pack_naked_qty'],
+                    'nude_cargo_unit' => $good['nude_cargo_unit'],
+                    'min_pack_unit' => $good['min_pack_unit'],
+                    'min_order_qty' => $good['min_order_qty'],
+                    'purchase_price' => $good['price'],
+                    'purchase_price_cur_bn' => $good['price_cur_bn'],
+                    'source' => $good['source'],
+                    'status' => 'VALID',
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'checked_by' => $this->user['id'],
+                    'checked_at' => date('Y-m-d H:i:s')
+                ];
+                $goods->add($goods->create($goodData));
+
+                (new EsGoodsModel)->create_data($goodData, 'zh');
+
+                //Sync goods Supplier
+                $goodsSupplier->add($goodsSupplier->create([
+                    'spu' => $good['spu'],
+                    'sku' => $good['sku'],
+                    'supplier_id' => $good['supplier_id'],
+                    'status' => 'VALID',
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'checked_by' => $this->user['id'],
+                    'checked_at' => date('Y-m-d H:i:s')
+                ]));
+            }
+
+            //Sync supplier goods attr
+            $goodsAttr = new GoodsAttrModel();
+            foreach ($supplierGoodsAttr as $supplierGoodAttr) {
+                $goodsAttr->add($goodsAttr->create([
+                    'lang' => $supplierGoodAttr['lang'],
+                    'spu' => $supplierGoodAttr['spu'],
+                    'sku' => $supplierGoodAttr['sku'],
+                    'ex_goods_attrs' => $supplierGoodAttr['ex_goods_attrs'],
+                    'other_attrs' => $supplierGoodAttr['other_attrs'],
+                    'created_by' => $this->user['id'],
+                    'created_at' => date('Y-m-d H:i:s')
+                ]));
+            }
+
+        }else{
+            $regularProduct->rollback();
+            $productSupplier->rollback();
+        }
     }
 
     /**
@@ -177,5 +321,19 @@ class SupplierproductController extends PublicController
         }
 
         return $data['name'];
+    }
+
+    public function reSortBrands($brands, $lang)
+    {
+        $data = json_decode($brands, true);
+
+        if (count($data)) {
+            foreach ($data as $datum) {
+                if ($datum['lang'] == $lang) {
+                    return json_encode($datum);
+                }
+            }
+        }
+        return $brands;
     }
 }
