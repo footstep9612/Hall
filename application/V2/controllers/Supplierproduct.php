@@ -129,14 +129,18 @@ class SupplierproductController extends PublicController
             'spu' => $supplierProduct['spu'],
             'name' => $supplierProduct['name'],
             'show_name' => $supplierProduct['show_name'],
-            'brand' => $supplierProduct['brand'],
+            'brand' => $this->reSortBrands($supplierProduct['brand'], $supplierProduct['lang']),
             'keywords' => $supplierProduct['keywords'],
             'tech_paras' => strip_tags(htmlspecialchars_decode($supplierProduct['tech_paras'])),
             'description' => strip_tags(htmlspecialchars_decode($supplierProduct['description'])),
             'warranty' => $supplierProduct['warranty'],
             'status' => 'VALID',
             'created_by' => $this->user['id'],
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s'),
+            'checked_by' => $this->user['id'],
+            'checked_at' => date('Y-m-d H:i:s')
         ];
 
         $syncProduct = $regularProduct->add($regularProduct->create($productData));
@@ -166,7 +170,7 @@ class SupplierproductController extends PublicController
             foreach ($supplierProductAttach as $attach) {
                 $productAttach->add($productAttach->create([
                     'spu' => $attach['spu'],
-                    'attach_type' => $attach['attach_type'],
+                    'attach_type' => 'BIG_IMAGE',
                     'attach_name' => $attach['attach_name'],
                     'attach_url' => $attach['attach_url'],
                     'default_flag' => $attach['default_flag'],
@@ -210,7 +214,7 @@ class SupplierproductController extends PublicController
                 ];
                 $goods->add($goods->create($goodData));
 
-                (new EsgoodsModel)->create_data($goodData);
+                (new EsGoodsModel)->create_data($goodData, 'zh');
 
                 //Sync goods Supplier
                 $goodsSupplier->add($goodsSupplier->create([
@@ -317,5 +321,19 @@ class SupplierproductController extends PublicController
         }
 
         return $data['name'];
+    }
+
+    public function reSortBrands($brands, $lang)
+    {
+        $data = json_decode($brands, true);
+
+        if (count($data)) {
+            foreach ($data as $datum) {
+                if ($datum['lang'] == $lang) {
+                    return json_encode($datum);
+                }
+            }
+        }
+        return $brands;
     }
 }
