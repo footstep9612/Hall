@@ -201,7 +201,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function saveGrade($data){
-        if(empty($data['id']) || empty($data['type'])){
+        if(empty($data['id'])){
             return false;
         }
         if($data['type']==1){
