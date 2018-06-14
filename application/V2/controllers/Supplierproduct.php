@@ -214,7 +214,7 @@ class SupplierproductController extends PublicController
                 ];
                 $goods->add($goods->create($goodData));
 
-                (new EsgoodsModel)->create_data($goodData, 'zh');
+                (new EsGoodsModel)->create_data($goodData, 'zh');
 
                 //Sync goods Supplier
                 $goodsSupplier->add($goodsSupplier->create([
