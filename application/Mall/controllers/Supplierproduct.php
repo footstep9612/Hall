@@ -216,9 +216,16 @@ class SupplierproductController extends SupplierpublicController{
                         ];
 
                         if(empty($sku)){
-                            $sku_attr_where['sku'] = $item['sku'];
-                            $attrData['updated_at'] = $this->getTime();
-                            $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            $checkSku = $supplier_goods_attr_model->field('sku')->where(['sku' => $item['sku']])->find();
+                            if(!$checkSku){
+                                $attrData['sku'] = $item['sku'];
+                                $attrData['created_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->addRecord($attrData);
+                            }else {
+                                $sku_attr_where['sku'] = $item['sku'];
+                                $attrData['updated_at'] = $this->getTime();
+                                $res_goods_attr = $supplier_goods_attr_model->updateInfo($sku_attr_where, $attrData);
+                            }
                         }else {
                             $attrData['sku'] = $sku;
                             $attrData['created_at'] = $this->getTime();
@@ -519,7 +526,29 @@ class SupplierproductController extends SupplierpublicController{
     private function editBrand($brand,$lang){
         $brand_model = new BrandModel();
         if (is_numeric($brand)) {
-            $data['brand'] = '';
+            $brand_where=[
+                'status'=>'VALID',
+                'deleted_flag'=>'N'
+            ];
+            $brand_where['brand'] = ['like',"%\"name\":\"".$brand."\"%"];
+            $res_brand = $brand_model->field('id,brand')->where($brand_where)->find();
+            if($res_brand){
+                $data['brand'] = $res_brand['brand'];
+            }else {
+                $brand_ary = array(
+                    'name' => $brand,
+                    'lang' => $lang,
+                    'style' => 'TEXT',
+                    'label' => $brand,
+                    'logo' => '',
+                );
+                ksort($brand_ary);
+                $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                $data['created_at'] = $this->getTime();
+                $data['deleted_flag'] = 'N';
+                $brand_model->addRecord($data);
+            }
+            /*$data['brand'] = '';
             $brandInfo = $brand_model->info($brand);
             if ($brandInfo) {
                 $brandAry = json_decode($brandInfo['brand'], true);
@@ -534,10 +563,23 @@ class SupplierproductController extends SupplierpublicController{
                         );
                         ksort($brand_ary);
                         $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                        break;
                     }
                 }
-            }
+            }else{
+                $brand_ary = array(
+                    'name' => $brand,
+                    'lang' => $lang,
+                    'style' => 'TEXT',
+                    'label' => $brand,
+                    'logo' => '',
+                );
+                ksort($brand_ary);
+                $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                $data['created_at'] = $this->getTime();
+                $data['deleted_flag'] = 'N';
+                $brand_model->addRecord($data);
+
+            }*/
         } else {
             if (is_array($brand)) {
                 ksort($brand);
@@ -569,6 +611,7 @@ class SupplierproductController extends SupplierpublicController{
                 $data['brand'] = '';
             }
         }
+
         return $data['brand'];
     }
 

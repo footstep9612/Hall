@@ -195,4 +195,28 @@ class BrandModel extends PublicModel {
         }
     }
 
+    /**
+     * 获取列表
+     * @param  string $code 编码
+     * @param  int $id id
+     * @param  string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    public function info($id = '', $status = 'VALID') {
+        if ($id) {
+            $where['id'] = $id;
+        } else {
+            return [];
+        }
+        $redis_key = $id;
+        if (redisHashExist('Brand', $redis_key)) {
+            return json_decode(redisHashGet('Brand', $redis_key), true);
+        }
+        $item = $this->where($where)
+            ->find();
+        redisHashSet('Brand', $redis_key, json_encode($item));
+        return $item;
+    }
+
 }
