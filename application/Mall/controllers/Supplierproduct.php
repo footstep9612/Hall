@@ -541,9 +541,22 @@ class SupplierproductController extends SupplierpublicController{
                         );
                         ksort($brand_ary);
                         $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-                        break;
                     }
                 }
+            }else{
+                $brand_ary = array(
+                    'name' => $brand,
+                    'lang' => $lang,
+                    'style' => 'TEXT',
+                    'label' => $brand,
+                    'logo' => '',
+                );
+                ksort($brand_ary);
+                $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                $data['created_at'] = $this->getTime();
+                $data['deleted_flag'] = 'N';
+                $brand_model->addRecord($data);
+
             }
         } else {
             if (is_array($brand)) {
