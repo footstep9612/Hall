@@ -47,7 +47,7 @@ class SpecialController extends PublicController{
 
         $sModel = new SpecialModel();
         $result = $sModel->getInfo($input);
-        if($result!==false){
+        if($result){
             //获取广告信息
             if(isset($input['ad_on']) && $input['ad_on']){
                 $spModel = new SpecialPositionModel();
@@ -73,26 +73,6 @@ class SpecialController extends PublicController{
 
                 $result['positionList'] = $positionInfo ? $positionInfo['data'] : [];
             }
-            jsonReturn($result);
-        }else{
-            jsonReturn('', ErrorMsg::FAILED);
-        }
-    }
-
-    /**
-     * 推荐商品列表
-     */
-    public function pglistAction(){
-        $input = $this->getPut();
-        if (!isset($input['special_id']) || empty($input['special_id'])) {
-            jsonReturn('', 'special_id不能为空');
-        }
-        if (!isset($input['position_id']) || empty($input['position_id'])) {
-            jsonReturn('', 'position_id不能为空');
-        }
-        $spgModel = new SpecialPositionGoodsModel();
-        $result = $spgModel->getList(intval($input['special_id']), intval($input['position_id']), isset($input['size']) ? intval($input['size']): 0);
-        if($result!==false){
             jsonReturn($result);
         }else{
             jsonReturn('', ErrorMsg::FAILED);

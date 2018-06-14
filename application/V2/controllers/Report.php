@@ -158,10 +158,10 @@ class ReportController extends PublicController {
         $goods_model = new GoodsModel();
         $valid_count = $goods_model
                 ->alias('p')
-                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.spu')
+                ->join($produtc_check_log_table . ' pcl on pcl.lang = p.lang and pcl.sku = p.sku')
                 ->where($validcondition)
-                ->count('DISTINCT p.spu');
-
+                ->count('DISTINCT p.sku');
+   
         return intval($valid_count);
     }
 
@@ -271,20 +271,20 @@ class ReportController extends PublicController {
     public function getSupplierCountAction() {
         $condition = $this->getPut();
         $supplier_model = new SupplierChainModel();
-        $total = $supplier_model->getCount($condition); //已开发供应商数量
+        $total = $supplier_model->getReportCount($condition); //已开发供应商数量
         $this->setvalue('count', $total); //已开发供应商数量
         $condition['status'] = 'APPROVING';
-        $CheckingCount = $supplier_model->getSupplierCount($condition); //待审核供应商数量
+        $CheckingCount = $supplier_model->getReportCount($condition); //待审核供应商数量
         $this->setvalue('checking_count', $CheckingCount); //待审核供应商数量
         // $this->setvalue('checking_rate', $this->_number_format($CheckingCount, $total));
         $condition['status'] = 'APPROVED';
-        $ValidCount = $supplier_model->getSupplierCount($condition); //已通过供应商数量
+        $ValidCount = $supplier_model->getReportCount($condition); //已通过供应商数量
         $this->setvalue('valid_count', $ValidCount); //待审核供应商数量
         // $this->setvalue('valid_rate', $this->_number_format($ValidCount, $total));
 
 
         $condition['status'] = 'INVALID';
-        $InvalidCount = $supplier_model->getSupplierCount($condition); //已驳回供应商数量
+        $InvalidCount = $supplier_model->getReportCount($condition); //已驳回供应商数量
         $this->setvalue('invalid_count', $InvalidCount); //$InvalidCount
         //  $this->setvalue('invalid_rate', $this->_number_format($InvalidCount, $total));
 

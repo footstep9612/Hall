@@ -39,8 +39,13 @@ class SupplierChainModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function _getcondition($condition = [], &$where = [], $is_Chain = true) {
-        if ($is_Chain) {
+    protected function _getcondition($condition = [], &$where = [], $is_Chain = true, $is_report = false) {
+        if ($is_report) {
+            $where = [
+                'deleted_flag' => 'N',
+                'status' => ['in', ['REVIEW', 'APPROVED', 'INVALID', 'APPROVING']]
+            ];
+        } elseif ($is_Chain) {
             $where = [
                 'deleted_flag' => 'N',
                 'status' => 'APPROVED',
@@ -67,20 +72,20 @@ class SupplierChainModel extends PublicModel {
         // 开发人
         if (!empty($condition['developer'])) {
             $developerIds = $employee_model->getUserIdByName($condition['developer']);
-            $supplierIds = $developerIds ? ($supplierAgentModel->getSupplierIdsByUserIds($developerIds) ? : []) : [];
-            $where['id'] = ['in', $supplierIds ? : ['-1']];
+            $supplierIds = $developerIds ? ($supplierAgentModel->getSupplierIdsByUserIds($developerIds) ?: []) : [];
+            $where['id'] = ['in', $supplierIds ?: ['-1']];
         }
         // 创建人
         if (!empty($condition['created_name'])) {
-            $where['created_by'] = ['in', $employee_model->getUserIdByName($condition['created_name']) ? : ['-1']];
+            $where['created_by'] = ['in', $employee_model->getUserIdByName($condition['created_name']) ?: ['-1']];
         }
         // 供货范围
         if (!empty($condition['cat_name'])) {
-            $catSupplierIds = $supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+            $catSupplierIds = $supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ?: [];
             if (isset($supplierIds)) {
                 $catSupplierIds = array_intersect($catSupplierIds, $supplierIds);
             }
-            $where['id'] = ['in', $catSupplierIds ? : ['-1']];
+            $where['id'] = ['in', $catSupplierIds ?: ['-1']];
         }
         $this->_getValue($where, $condition, 'supplier_level');
         if ($is_Chain) {
@@ -114,7 +119,12 @@ class SupplierChainModel extends PublicModel {
                 $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']];
             }
             //  $where['status'] = 'DRAFT';
-            $this->_getValue($where, $condition, 'status');
+
+            if (!empty($condition['status']) && $condition['status'] == 'APPROVING') {
+                $where['status'] = ['in', ['APPROVING', 'REVIEW']];
+            } else {
+                $this->_getValue($where, $condition, 'status');
+            }
             if (!empty($condition['checked_at_end'])) {
                 $condition['checked_at_end'] = date('Y-m-d H:i:s', strtotime($condition['checked_at_end']) + 86399);
             }
@@ -191,17 +201,32 @@ class SupplierChainModel extends PublicModel {
     }
 
     /**
+     * 获取列表数量
+     * @param mix $condition
+     * @return mix
+     * @author zyg
+     */
+    public function getReportCount($condition = []) {
+        $where = [];
+        $this->_getValue($where, $condition, 'created_at', 'between');
+        $this->_getcondition($condition, $where, false, true);
+        $count = $this->where($where)
+                ->count();
+        return $count;
+    }
+
+    /**
      * 获取列表
      * @param mix $condition
      * @return mix
      * @author zyg
      */
-    public function getSupplierCount($condition = []) {
+    public function getSupplierCount($condition = [], $is_report = false) {
         $where = ['deleted_flag' => 'N',
-            'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING', 'DRAFT']]
+            'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING', 'REVIEW', 'DRAFT']]
         ];
         $this->_getValue($where, $condition, 'created_at', 'between');
-        $this->_getcondition($condition, $where, false);
+        $this->_getcondition($condition, $where, false, $is_report);
         $count = $this->where($where)
                 ->count();
         return $count;
@@ -277,6 +302,9 @@ class SupplierChainModel extends PublicModel {
 
                 switch ($item['status']) {
                     case 'APPLING':
+                        $item['status'] = '待审核';
+                        break;
+                    case 'REVIEW':
                         $item['status'] = '待审核';
                         break;
                     case 'APPROVED':
@@ -443,27 +471,27 @@ class SupplierChainModel extends PublicModel {
             $this->rollback();
             return FALSE;
         }
-       $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
-       /*
-        * 更新日志
-        */
-       $supplierchecklog_model = new SupplierCheckLogModel();
+        $suppliers = $this->field('id,name,is_erui,org_id')->where($where)->select();
+        /*
+         * 更新日志
+         */
+        $supplierchecklog_model = new SupplierCheckLogModel();
 
-       foreach ($suppliers as $supplier) {
-           $condition['supplier_id'] = $supplier['id'];
-           $condition['erui_member_flag'] = $supplier['is_erui'];
-           $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
-           $condition['rating'] = $supplier_level;
-           $condition['group'] = 'RATING';
-           $condition['note'] = $supplier_note;
-           $flag_log = $supplierchecklog_model->create_data($condition);
-           if (!$flag_log) {
-               $this->rollback();
-               jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】评级日志失败!');
-           }
-       }
-       $this->commit();
-       return true;
+        foreach ($suppliers as $supplier) {
+            $condition['supplier_id'] = $supplier['id'];
+            $condition['erui_member_flag'] = $supplier['is_erui'];
+            $condition['org_id'] = in_array($supplier['org_id'], $org_ids) ? $supplier['org_id'] : $org_ids[0];
+            $condition['rating'] = $supplier_level;
+            $condition['group'] = 'RATING';
+            $condition['note'] = $supplier_note;
+            $flag_log = $supplierchecklog_model->create_data($condition);
+            if (!$flag_log) {
+                $this->rollback();
+                jsonReturn(null, MSG::MSG_FAILED, '更新供应商【' . $supplier['name'] . '】评级日志失败!');
+            }
+        }
+        $this->commit();
+        return true;
     }
 
     /**
@@ -580,6 +608,8 @@ class SupplierChainModel extends PublicModel {
         } elseif ($info && $info['status'] === 'INVALID') {
             jsonReturn($data, MSG::MSG_FAILED, '已拒绝的供应商不能审核!');
         } elseif ($info && $info['status'] !== 'APPROVING') {
+            jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
+        } elseif ($info && $info['status'] !== 'REVIEW') {
             jsonReturn($data, MSG::MSG_FAILED, '未报审的供应商不能审核!');
         } elseif ($info && $info['status'] === 'DRAFT') {
             jsonReturn($data, MSG::MSG_FAILED, '暂存状态的供应商不能审核!');
