@@ -279,7 +279,22 @@ class SupplierGoodsModel extends PublicModel{
      */
     public function getSkus($spu) {
         $result = $this->field('sku')->where(array('spu' => $spu))->order('sku DESC')->find();
-        return $result ? $result['sku'] : false;
+        $goods_model = new GoodsModel();
+        $result2 = $goods_model->field('sku')->where(array('spu' => $spu))->order('sku DESC')->find();
+        if($result && $result2){
+            if($result2 > $result){
+               $sku = $result2['sku'];
+            }else{
+                $sku =  $result['sku'];
+            }
+        }elseif($result2 && !$result){
+            $sku = $result2['sku'];
+        }elseif(!$result2 && $result){
+            $sku =  $result['sku'];
+        }else {
+            $sku = false;
+        }
+        return $sku;
     }
 
 }
