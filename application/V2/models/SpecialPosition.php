@@ -35,7 +35,7 @@ class SpecialPositionModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field($fields ? $fields : 'id,special_id,type,name,description,created_at,created_by,updated_by,updated_at,remark,sort_order,thumb,maxnum,link')->where($where)->order('sort_order DESC')
+            $rel = $this->field($fields ? $fields : 'id,special_id,type,name,description,created_at,created_by,updated_by,updated_at,remark,sort_order,thumb,maxnum,link,settings')->where($where)->order('sort_order DESC')
                 ->limit($from, $size)
                 ->select();
             if($rel){
@@ -73,7 +73,7 @@ class SpecialPositionModel extends PublicModel {
             jsonReturn('', MSG::MSG_FAILED,'id不存在');
         }
         try{
-            return $this->field('id,special_id,type,name,description,created_at,created_by,updated_by,updated_at,remark,sort_order,thumb,maxnum,link')->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
+            return $this->field('id,special_id,type,name,description,created_at,created_by,updated_by,updated_at,remark,sort_order,thumb,maxnum,link,settings')->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
         }catch (Exception $e){
             return false;
         }
@@ -99,6 +99,7 @@ class SpecialPositionModel extends PublicModel {
                 'thumb' => isset($input['thumb']) ? trim($input['thumb']) : '',
                 'maxnum' => isset($input['maxnum']) ? intval($input['maxnum']) : 20,
                 'link' => isset($input['link']) ? trim($input['link']) : '',
+                'settings' => isset($input['settings']) ? json_encode($input['settings'],320) : '',
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
@@ -168,6 +169,9 @@ class SpecialPositionModel extends PublicModel {
             }
             if(isset($input['link'])){
                 $data['link'] = intval($input['link']);
+            }
+            if(isset($input['settings'])){
+                $data['settings'] = json_encode($input['settings'],320);
             }
             return $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
         }catch (Exception $e){
