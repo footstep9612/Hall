@@ -526,19 +526,28 @@ class SupplierproductController extends SupplierpublicController{
     private function editBrand($brand,$lang){
         $brand_model = new BrandModel();
         if (is_numeric($brand)) {
-            $brand_ary = array(
-                'name' => $brand,
-                'lang' => $lang,
-                'style' => 'TEXT',
-                'label' => $brand,
-                'logo' => '',
-            );
-            ksort($brand_ary);
-            $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
-            $data['created_at'] = $this->getTime();
-            $data['deleted_flag'] = 'N';
-            $brand_model->addRecord($data);
-
+            $brand_where=[
+                'status'=>'VALID',
+                'deleted_flag'=>'N'
+            ];
+            $brand_where['brand'] = ['like',"%\"name\":\"".$brand."\"%"];
+            $res_brand = $brand_model->field('id,brand')->where($brand_where)->find();
+            if($res_brand){
+                $data['brand'] = $res_brand['brand'];
+            }else {
+                $brand_ary = array(
+                    'name' => $brand,
+                    'lang' => $lang,
+                    'style' => 'TEXT',
+                    'label' => $brand,
+                    'logo' => '',
+                );
+                ksort($brand_ary);
+                $data['brand'] = json_encode($brand_ary, JSON_UNESCAPED_UNICODE);
+                $data['created_at'] = $this->getTime();
+                $data['deleted_flag'] = 'N';
+                $brand_model->addRecord($data);
+            }
             /*$data['brand'] = '';
             $brandInfo = $brand_model->info($brand);
             if ($brandInfo) {
