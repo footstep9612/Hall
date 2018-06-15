@@ -67,6 +67,10 @@ class CustomerGradeModel extends PublicModel {
         }
         if(in_array('201711242',$data['role'])){
             $country=1;
+            $cond['grade.status']=[
+                'in',
+                [1,2,4]
+            ];
         }
 //        print_r($cond);die;
         $info=$this->alias('grade')
