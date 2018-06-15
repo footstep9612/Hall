@@ -25,15 +25,25 @@ class BrandController extends PublicController {
             $current_no = 1;
         }
         foreach ($arr as $key => $item) {
+
+
             $brands = json_decode($item['brand'], true);
 
-            $brand = [];
             foreach ($this->langs as $lang) {
                 $brand[$lang] = [];
             }
-            foreach ($brands as $val) {
+            if (isset($brands['lang'])) {
+                $val = $brands;
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
+            } else {
+                foreach ($brands as $val) {
+                    if (empty($val['lang'])) {
+                        continue;
+                    }
+                    $brand[$val['lang']] = $val;
+                    $brand[$val['lang']]['id'] = $item['id'];
+                }
             }
             $arr[$key] = $brand;
         }
@@ -235,6 +245,7 @@ class BrandController extends PublicController {
                 $this->jsonReturn();
             }
         }
+
         $result = $brand_model->create_data($data);
         if ($result !== false) {
             $this->delcache();
