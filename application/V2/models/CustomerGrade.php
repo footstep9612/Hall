@@ -65,6 +65,13 @@ class CustomerGradeModel extends PublicModel {
                     [1,2,4]
                 ];
         }
+        if(in_array('201711242',$data['role'])){
+            $country=1;
+            $cond['grade.status']=[
+                'in',
+                [1,2,4]
+            ];
+        }
 //        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
@@ -87,6 +94,7 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
                 $v['change']=false;
             }else if($v['status']==1){
+                
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
