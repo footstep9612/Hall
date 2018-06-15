@@ -73,7 +73,6 @@ class SpecialGoodsModel extends PublicModel {
                 $dataAll[] = $data;
                 unset($data['spu'],$where['spu']);
             }
-
             return $this->addAll($dataAll);
         }catch (Exception $e){
             return false;
@@ -161,6 +160,22 @@ class SpecialGoodsModel extends PublicModel {
         }catch (Exception $e){
             return false;
         }
+    }
+
+    /**
+     * 检测是否存在
+     * @param array $where
+     * @return bool|mixed
+     */
+    private function exist($where=[]){
+        if(empty($where)){
+            return true;
+        }
+        try{
+            return $this->field('id')->where($where)->find();
+        }catch (Exception $e){
+            return true;
+        };
     }
 
     /*
