@@ -13,6 +13,6 @@ class SupplierGoodsAttrModel extends PublicModel
     public function getAttr($request)
     {
         $attrs = $this->where(['spu' => $request['spu'], 'sku' => $request['sku'], 'deleted_flag' => 'N'])->getField('ex_goods_attrs');
-        return explode(',', $attrs);
+        return json_decode($attrs,true);
     }
 }
