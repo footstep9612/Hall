@@ -94,6 +94,7 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
                 $v['change']=false;
             }else if($v['status']==1){
+                
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
