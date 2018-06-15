@@ -57,7 +57,7 @@ class EsproductController extends PublicController {
         $keyword = '';
         if( isset($condition['special_id'])){
             $special = new SpecialModel();
-            $specialInfo = $special->getInfo(intval($condition['special_id']));
+            $specialInfo = $special->getInfo(['id'=>intval($condition['special_id'])]);
             $keyword = $specialInfo ? $specialInfo['name'] : '';
         }
         if(isset($condition['keyword_id'])){
