@@ -9,4 +9,12 @@ class SupplierGoodsAttrModel extends PublicModel
     {
         parent::__construct();
     }
+
+    public function getAttr($request)
+    {
+        $attrs = $this->where(['spu' => $request['spu'], 'sku' => $request['sku'], 'deleted_flag' => 'N'])->getField('ex_goods_attrs');
+        //$arr = json_decode($attrs,true);
+        //p($arr);
+        return json_decode($attrs,true);
+    }
 }
