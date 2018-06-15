@@ -60,6 +60,10 @@ class SupplierproductController extends PublicController
         //goods
         $detail['goods_list'] = (new SupplierGoodsModel)->getList($detail);
 
+        foreach ($detail['goods_list'] as &$good) {
+            $good = array_merge($good, (new SupplierGoodsAttrModel)->getAttr($good));
+        }
+
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',

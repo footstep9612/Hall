@@ -65,6 +65,17 @@ class CustomerGradeModel extends PublicModel {
                     [1,2,4]
                 ];
         }
+<<<<<<< HEAD
+=======
+        
+        if(in_array('201711242',$data['role'])){
+            $country=1;
+            $cond['grade.status']=[
+                'in',
+                [1,2,4]
+            ];
+        }
+>>>>>>> dev2
 //        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
@@ -87,6 +98,7 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
                 $v['change']=false;
             }else if($v['status']==1){
+                
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
@@ -133,13 +145,13 @@ class CustomerGradeModel extends PublicModel {
             're_score'=>'年复购次数分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }
@@ -155,20 +167,20 @@ class CustomerGradeModel extends PublicModel {
             'purchase'=>'零配件年采购额', //零配件年采购额
             'purchase_score'=>'零配件年采购额分值',
             'enterprise'=>'企业性质',   //企业性质
-//            'enterprise_score'=>'企业性质分值',
+            'enterprise_score'=>'企业性质分值',
             'income'=>'营业收入',   //营业收入
             'income_score'=>'营业收入分值',
             'scale'=>'资产规模',    //资产规模
             'scale_score'=>'资产规模分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }else{
