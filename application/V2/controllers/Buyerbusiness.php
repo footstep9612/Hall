@@ -413,7 +413,6 @@ class BuyerbusinessController extends PublicController
         $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->buyerGradeList($data);
-        
         if(is_array($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
