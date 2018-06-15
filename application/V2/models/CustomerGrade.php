@@ -65,6 +65,7 @@ class CustomerGradeModel extends PublicModel {
                     [1,2,4]
                 ];
         }
+        
         if(in_array('201711242',$data['role'])){
             $country=1;
             $cond['grade.status']=[
