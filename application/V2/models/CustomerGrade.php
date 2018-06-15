@@ -65,8 +65,6 @@ class CustomerGradeModel extends PublicModel {
                     [1,2,4]
                 ];
         }
-<<<<<<< HEAD
-=======
         
         if(in_array('201711242',$data['role'])){
             $country=1;
@@ -75,7 +73,6 @@ class CustomerGradeModel extends PublicModel {
                 [1,2,4]
             ];
         }
->>>>>>> dev2
 //        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
@@ -102,23 +99,33 @@ class CustomerGradeModel extends PublicModel {
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
+                }elseif($country===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }
-                $v['change']=false;
             }else if($v['status']==2){
                 $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                     $v['change']=false;
-                }else{
+                }elseif($country===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                     $v['change']=true;
+                }else{
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回':'REJECT';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }elseif($country===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
@@ -213,7 +220,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function saveGrade($data){
-        if(empty($data['id']) || empty($data['type'])){
+        if(empty($data['id'])){
             return false;
         }
         if($data['type']==1){
@@ -226,9 +233,10 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
-        if($arr['flag']==1){
+        if($data['flag']==1){
             $arr['status']=1;
-
+        }else{
+            $arr['status']=0;
         }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
