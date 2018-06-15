@@ -152,13 +152,13 @@ class CustomerGradeModel extends PublicModel {
             're_score'=>'年复购次数分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }
@@ -174,20 +174,20 @@ class CustomerGradeModel extends PublicModel {
             'purchase'=>'零配件年采购额', //零配件年采购额
             'purchase_score'=>'零配件年采购额分值',
             'enterprise'=>'企业性质',   //企业性质
-//            'enterprise_score'=>'企业性质分值',
+            'enterprise_score'=>'企业性质分值',
             'income'=>'营业收入',   //营业收入
             'income_score'=>'营业收入分值',
             'scale'=>'资产规模',    //资产规模
             'scale_score'=>'资产规模分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }else{
