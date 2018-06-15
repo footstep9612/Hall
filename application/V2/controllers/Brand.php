@@ -403,7 +403,27 @@ class BrandController extends PublicController {
 
     public function deleteAction() {
         $brand_model = new BrandModel();
+        $product_model = new EsProductModel();
         $id = $this->getPut('id');
+        $brand_info = $brand_model->info($id);
+        $brands = json_decode($brand_info['brand'], true);
+        if ($brands) {
+            foreach ($brands as $brand) {
+
+                if (!empty($brand['name'])) {
+                    $conditions = [];
+                    $condition['status'] = 'ALL';
+                    $condition['onshelf_flag'] = 'A';
+                    $conditions['brand'] = trim($brand['name']);
+                    $data = $product_model->getCounts($conditions, $brand['lang']);
+
+                    if ($data) {
+                        $this->setCode(MSG::DELETE_MATERIAL_CAT_ERR);
+                        $this->jsonReturn();
+                    }
+                }
+            }
+        }
         $result = $brand_model->delete_data($id);
         if ($result !== false) {
             $this->delcache();
