@@ -81,7 +81,7 @@ class SpecialCategoryModel extends PublicModel {
             jsonReturn('', MSG::MSG_FAILED,'id不存在');
         }
         try{
-            $field = empty($field) ? 'id,special_id,cat_name,thumb,pid,allpid,sort_list,settings,description,created_by,created_at,updated_by,updated_at' : $field;
+            $field = empty($field) ? 'id,special_id,cat_name,thumb,pid,allpid,sort_order,settings,description,created_by,created_at,updated_by,updated_at' : $field;
             return $this->field("$field")->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
         }catch (Exception $e){
             return false;
@@ -106,7 +106,7 @@ class SpecialCategoryModel extends PublicModel {
                 'cat_name' =>$input['cat_name'],
                 'thumb' => isset($input['thumb']) ? trim($input['thumb']) : '',
                 'description' => isset($input['description']) ? trim($input['description']) : '',
-                'sort_list' => isset($input['sort_list']) ? intval($input['sort_list']) : 0,
+                'sort_order' => isset($input['sort_order']) ? intval($input['sort_order']) : 0,
                 'settings' => (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '',
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
@@ -197,8 +197,8 @@ class SpecialCategoryModel extends PublicModel {
             if(isset($input['thumb'])){
                 $data['thumb'] = trim($input['thumb']);
             }
-            if(isset($input['sort_list'])){
-                $data['sort_list'] = intval($input['sort_list']);
+            if(isset($input['sort_order'])){
+                $data['sort_order'] = intval($input['sort_order']);
             }
             return $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
         }catch (Exception $e){
