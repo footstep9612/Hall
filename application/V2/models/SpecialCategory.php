@@ -235,10 +235,17 @@ class SpecialCategoryModel extends PublicModel {
             }else{
                 $where['id'] = intval($input['id']);
             }
-            $data=[
-                'deleted_by' => defined('UID') ? UID : 0,
-                'deleted_at' => date('Y-m-d H:i:s', time())
-            ];
+            if(isset($input['type']) && $input['type']=='UNDELETE'){
+                $data = [
+                    'deleted_by' => 0,
+                    'deleted_at' => null
+                ];
+            }else{
+                $data=[
+                    'deleted_by' => defined('UID') ? UID : 0,
+                    'deleted_at' => date('Y-m-d H:i:s', time())
+                ];
+            }
             return $this->where($where)->save($data);
         }catch (Exception $e){
             return false;
