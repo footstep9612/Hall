@@ -20,7 +20,9 @@ class NotificationController extends PublicController
         $pagesize = !empty($request['pageSize']) ? $request['pageSize'] : 10;
 
         $inquiry = new InquiryModel();
-
+        $marketAreaCountryModel = new MarketAreaCountryModel();
+        $marketAreaModel = new MarketAreaModel();
+        $countryModel = new CountryModel();
         $where = [
             'now_agent_id'=>$this->user['id'], 
             'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']], 
@@ -36,6 +38,9 @@ class NotificationController extends PublicController
             $item['remind_count'] = count($this->remindList($item['id']));
             $item['remind_list'] = $this->remindList($item['id']);
             $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);
+            $item['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $item['country_bn']])->getField('market_area_bn');
+            $item['area_name'] = $marketAreaModel->getAreaNameByBn($item['area_bn'], $this->lang);
+            $item['country_name'] = $countryModel->getCountryNameByBn($item['country_bn'], $this->lang);
         }
 
         $this->jsonReturn([
@@ -45,6 +50,49 @@ class NotificationController extends PublicController
             'data'    => $list
         ]);
 
+    }
+    
+    /**
+     * @desc 待办客户列表
+     *
+     * @author liujf
+     * @time 2018-06-19
+     */
+    public function buyerListAction() {
+        $request = $this->validateRequestParams();
+        // 是否有市场区域（国家）负责人的角色
+        if (in_array('201711242', $this->user['role_no'])) {
+            $buyerModel = new BuyerModel();
+            $marketAreaCountryModel = new MarketAreaCountryModel();
+            $marketAreaModel = new MarketAreaModel();
+            $countryModel = new CountryModel();
+            $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+            $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
+            $buyerSqlObj = $buyerModel->where(['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N']);
+            $buyerList = $buyerSqlObj->field('id, status, country_bn, name')
+                                                          ->page($currentPage, $pageSize)
+                                                          ->select();
+            foreach ($buyerList as &$buyer) {
+                $buyer['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $buyer['country_bn']])->getField('market_area_bn');
+                $buyer['area_name'] = $marketAreaModel->getAreaNameByBn($buyer['area_bn'], $this->lang);
+                $buyer['country_name'] = $countryModel->getCountryNameByBn($buyer['country_bn'], $this->lang);
+            }
+            if ($buyerList) {
+                $res['code'] = '1';
+                $res['message'] = L('SUCCESS');
+                $res['count'] = $buyerSqlObj->count('id') ? : 0;
+                $res['data'] = $buyerList;
+            } else {
+                $res['code'] = '-101';
+                $res['message'] = L('NO_DATA');
+            }
+            $this->jsonReturn($res);
+        } else {
+            $this->jsonReturn([
+                'code' => '-101',
+                'message' => L('FAIL')
+            ]);
+        }
     }
 
     public function createAction()
