@@ -213,7 +213,7 @@ class BuyerModel extends PublicModel {
      * 客户管理-客户统计-获取所有客户的搜索列表条件
      * wangs
      */
-    public function getBuyerStatisListCond($data){
+    public function getBuyerStatisListCond($data,$falg=true){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -289,11 +289,13 @@ class BuyerModel extends PublicModel {
             $data['name']=trim($data['name']," ");
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
-        if(!empty($data['status'])){    //审核状态
-            if($data['status']=='PASS'){
-                $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
-            }else{
-                $cond .= " and buyer.status='".$data['status']."'";
+        if($falg===true){
+            if(!empty($data['status'])){    //审核状态
+                if($data['status']=='PASS'){
+                    $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
+                }else{
+                    $cond .= " and buyer.status='".$data['status']."'";
+                }
             }
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
