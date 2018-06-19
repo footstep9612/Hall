@@ -42,13 +42,17 @@ class NotificationController extends PublicController
             $item['area_name'] = $marketAreaModel->getAreaNameByBn($item['area_bn'], $this->lang);
             $item['country_name'] = $countryModel->getCountryNameByBn($item['country_bn'], $this->lang);
         }
-
-        $this->jsonReturn([
-            'code'    => 1,
-            'message' => L('NOTIFICATION_SUCCESS'),
-            'count'   => count($inquiry->where($where)->field('id')->select()),
-            'data'    => $list
-        ]);
+        
+        if ($list) {
+            $res['code'] = '1';
+            $res['message'] = L('SUCCESS');
+            $res['count'] = $inquiry->where($where)->count('id') ? : 0;
+            $res['data'] = $list;
+        } else {
+            $res['code'] = '-101';
+            $res['message'] = L('NO_DATA');
+        }
+        $this->jsonReturn($res);
 
     }
     
