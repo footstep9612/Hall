@@ -36,7 +36,7 @@ class RoleModel extends PublicModel {
         return true;
     }
     public function sortRole($attr_id=0){
-        $info=$this->field('id,name')->where(array('attr_id'=>$attr_id))->select();
+        $info=$this->field('id,name')->where(array('attr_id'=>$attr_id,'deleted_flag'=>'N'))->select();
         return $info;
     }
     public function getRoleList($data){
