@@ -201,13 +201,40 @@ class BuyerController extends PublicController {
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
+
+        $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总数
+        $arr=array(
+            'total_status'=>$totalCount,
+            'approved_status'=>$statusCount['APPROVED'],
+            'approving_status'=>$statusCount['APPROVING'],
+            'rejected_status'=>$statusCount['REJECTED']
+        );
+
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'count' => intval($ststisInfo['totalCount']),
+//            'count' => intval($ststisInfo['totalCount']),
+
+            'total_status' => intval($totalCount),
+            'approved_status' => intval($statusCount['APPROVED']),
+            'approving_status' => intval($statusCount['APPROVING']),
+            'rejected_status' => intval($statusCount['REJECTED']),
+
             'currentPage' => $ststisInfo['currentPage'],
-            'data' => $ststisInfo['info']
+//            'data' => $ststisInfo['info']
         );
+        if(empty($data['status'])){
+            $dataJson['count']=intval($ststisInfo['totalCount']);
+        }elseif($data['status']=='APPROVED'){
+            $dataJson['count']=intval($statusCount['APPROVED']);
+        }elseif($data['status']=='APPROVING'){
+            $dataJson['count']=intval($statusCount['APPROVING']);
+        }elseif($data['status']=='REJECTED'){
+            $dataJson['count']=intval($statusCount['REJECTED']);
+        }
+        $dataJson['data']= $ststisInfo['info'];
         $this->jsonReturn($dataJson);
     }
     //crm-客户列表Excel导出-wangs
