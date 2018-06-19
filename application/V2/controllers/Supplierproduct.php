@@ -60,6 +60,10 @@ class SupplierproductController extends PublicController
         //goods
         $detail['goods_list'] = (new SupplierGoodsModel)->getList($detail);
 
+        foreach ($detail['goods_list'] as &$good) {
+            $good = array_merge($good, (new SupplierGoodsAttrModel)->getAttr($good));
+        }
+
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
@@ -167,6 +171,15 @@ class SupplierproductController extends PublicController
     protected function setBrand($brandObj)
     {
         $data = json_decode($brandObj, true);
+
+        if (count($data)) {
+            foreach ($data as $datum) {
+                if ($datum['lang'] =='zh') {
+                    return $datum['name'];
+                }
+            }
+        }
+
         return $data['name'];
     }
 }

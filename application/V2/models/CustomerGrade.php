@@ -65,6 +65,14 @@ class CustomerGradeModel extends PublicModel {
                     [1,2,4]
                 ];
         }
+        
+        if(in_array('201711242',$data['role'])){
+            $country=1;
+            $cond['grade.status']=[
+                'in',
+                [1,2,4]
+            ];
+        }
 //        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
@@ -87,26 +95,37 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
                 $v['change']=false;
             }else if($v['status']==1){
+                
                 $v['status']=$lang=='zh'?'待审核':'CHECKING';
                 if($admin===1){
                     $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
+                }elseif($country===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }
-                $v['change']=false;
             }else if($v['status']==2){
                 $v['status']=$lang=='zh'?'已通过':'PASS';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                     $v['change']=false;
-                }else{
+                }elseif($country===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                     $v['change']=true;
+                }else{
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回':'REJECT';
                 if($admin===1){
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                }elseif($country===1){
+                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                    $v['change']=false;
                 }else{
                     $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
                 }
@@ -133,13 +152,13 @@ class CustomerGradeModel extends PublicModel {
             're_score'=>'年复购次数分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>1];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }
@@ -162,13 +181,13 @@ class CustomerGradeModel extends PublicModel {
             'scale_score'=>'资产规模分值',
             'final_score'=>'综合分值',  //综合分值
             'customer_grade'=>'客户等级',   //客户等级
-//            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
+            'flag'=>'提交/保存'  //提交 flag=1 保存 flag=0
         );
         $arr=['type'=>0];
         foreach($field as $k => $v){
-            if(empty($data[$k])){
-                return $v;
-            }
+//            if(empty($data[$k])){
+//                return $v;
+//            }
             $arr[$k]=$data[$k];
 //            if(!empty($data[$v])){
 //            }else{
@@ -201,7 +220,7 @@ class CustomerGradeModel extends PublicModel {
         return false;
     }
     public function saveGrade($data){
-        if(empty($data['id']) || empty($data['type'])){
+        if(empty($data['id'])){
             return false;
         }
         if($data['type']==1){
@@ -214,9 +233,10 @@ class CustomerGradeModel extends PublicModel {
         }
         unset($arr['type']);
         unset($arr['buyer_id']);
-        if($arr['flag']==1){
+        if($data['flag']==1){
             $arr['status']=1;
-
+        }else{
+            $arr['status']=0;
         }
         $arr['updated_by']=$data['created_by'];
         $arr['updated_at']=date('Y-m-d H:i:s');
@@ -256,7 +276,34 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        $info=$this->where(array('id'=>$data['id']))->find();
+        $field=array(
+            'id',
+            'buyer_id',
+            'type',
+            'amount',
+            'amount_score',
+            'position',
+            'position_score',
+            'year_keep',
+            'keep_score',
+            're_purchase',
+            're_score',
+            'credit_grade',
+            'credit_score',
+            'purchase',
+            'purchase_score',
+            'enterprise',
+            'enterprise_score',
+            'income',
+            'income_score',
+            'scale',
+            'scale_score',
+            'final_score',
+            'customer_grade',
+            'flag',
+            'status'
+        );
+        $info=$this->field($field)->where(array('id'=>$data['id']))->find();
         $info['amount']=floatval($info['amount']);
         $info['re_purchase']=floatval($info['re_purchase']);
 

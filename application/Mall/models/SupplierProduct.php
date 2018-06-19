@@ -216,12 +216,26 @@ class SupplierProductModel extends PublicModel{
                 'material_cat_no' => $material_cat_no
             );
             $result = $this->field('spu')->where($condition)->order('spu DESC')->find();
-            if ($result) {
+            $product_model = new ProductModel();
+            $result2 = $product_model->field('spu')->where($condition)->order('spu DESC')->find();
+            if($result && $result2){
+                if($result2 > $result){
+                    $code = substr($result2['spu'], (strlen($material_cat_no) + 2), 4);
+                    $code = intval($code) + 1;
+                }else{
+                    $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
+                    $code = intval($code) + 1;
+                }
+            }elseif($result2 && !$result){
+                $code = substr($result2['spu'], (strlen($material_cat_no) + 2), 4);
+                $code = intval($code) + 1;
+            }elseif(!$result2 && $result){
                 $code = substr($result['spu'], (strlen($material_cat_no) + 2), 4);
                 $code = intval($code) + 1;
-            } else {
+            }else {
                 $code = 1;
             }
+
             $spu = $material_cat_no . '00' . str_pad($code, 4, '0', STR_PAD_LEFT) . '0000';
             return $this->createSpu($material_cat_no, $spu);
         }

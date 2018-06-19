@@ -18,14 +18,8 @@ class SpecialController extends PublicController{
         if (!isset($input['special_id']) || empty($input['special_id'])) {
             jsonReturn('', 'special_id不能为空');
         }
-
         $model = new SpecialGoodsModel();
-        if(!isset($input['sku']) || empty($input['sku'])){    //列表
-            $result = $model->getList($input);
-        }else{    //详情
-            $result = $model->getInfo($input);
-        }
-
+        $result = $model->getList($input);
         if($result!==false){
             jsonReturn($result);
         }else{
@@ -38,18 +32,21 @@ class SpecialController extends PublicController{
      */
     public function infoAction(){
         $input = $this->getPut();
-        if (!isset($input['special_id']) || empty($input['special_id'])) {
-            jsonReturn('', 'special_id不能为空');
+        if(isset($input['special_id']) && !isset($input['id'])){
+            $input['id'] = intval($input['special_id']);
+        }
+        if (!isset($input['id']) && !isset($input['name'])) {
+            jsonReturn('', 'id或name不能全为空');
         }
 
         $sModel = new SpecialModel();
-        $result = $sModel->getInfo(intval($input['special_id']));
-        if($result!==false){
+        $result = $sModel->getInfo($input);
+        if($result){
             //获取广告信息
             if(isset($input['ad_on']) && $input['ad_on']){
                 $spModel = new SpecialPositionModel();
                 $fields = 'name,description,remark,sort_order,thumb,link';
-                $adInfo = $spModel->getList(['special_id'=>intval($input['special_id']),'type'=>'A'],'',$fields);
+                $adInfo = $spModel->getList(['special_id'=>$result['id'],'type'=>'A'],'',$fields);
 
                 $result['adList'] = $adInfo ? $adInfo['data'] : [];
             }
@@ -58,7 +55,7 @@ class SpecialController extends PublicController{
             if(isset($input['position_on']) && $input['position_on']){
 
                 $spModel = new SpecialPositionModel();
-                $positionInfo = $spModel->getList(['special_id'=>intval($input['special_id'])],['type'=>['neq','A']]);
+                $positionInfo = $spModel->getList(['special_id'=>$result['id']],['type'=>['neq','A']]);
                 if($positionInfo && isset($input['position_goods_on']) && $input['position_goods_on']){
                     foreach($positionInfo['data'] as $index => $posi){
                         $spdModel = new SpecialPositionDataModel();
@@ -70,26 +67,6 @@ class SpecialController extends PublicController{
 
                 $result['positionList'] = $positionInfo ? $positionInfo['data'] : [];
             }
-            jsonReturn($result);
-        }else{
-            jsonReturn('', ErrorMsg::FAILED);
-        }
-    }
-
-    /**
-     * 推荐商品列表
-     */
-    public function pglistAction(){
-        $input = $this->getPut();
-        if (!isset($input['special_id']) || empty($input['special_id'])) {
-            jsonReturn('', 'special_id不能为空');
-        }
-        if (!isset($input['position_id']) || empty($input['position_id'])) {
-            jsonReturn('', 'position_id不能为空');
-        }
-        $spgModel = new SpecialPositionGoodsModel();
-        $result = $spgModel->getList(intval($input['special_id']), intval($input['position_id']), isset($input['size']) ? intval($input['size']): 0);
-        if($result!==false){
             jsonReturn($result);
         }else{
             jsonReturn('', ErrorMsg::FAILED);
