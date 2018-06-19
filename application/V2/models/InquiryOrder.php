@@ -60,12 +60,12 @@ class InquiryOrderModel extends PublicModel {
      * @desc 根据销售合同号获取询单ID
      *
      * @param string $no
-     * @return mixed
+     * @return array
      * @author liujf
-     * @time 2018-03-26
+     * @time 2018-06-19
      */
     public function getInquiryIdByContractNo($no) {
-        return $this->where(['contract_no' => ['like', '%' . trim($no) . '%']])->getField('inquiry_id', true);
+        return $this->where(['contract_no' => trim($no)])->getField('inquiry_id', true) ? : [];
     }
 
     /**

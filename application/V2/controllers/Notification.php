@@ -72,8 +72,9 @@ class NotificationController extends PublicController
             $countryModel = new CountryModel();
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
-            $buyerSqlObj = $buyerModel->where(['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N']);
-            $buyerList = $buyerSqlObj->field('id, status, country_bn, name')
+            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N'];
+            $buyerList = $buyerModel->field('id, status, country_bn, name')
+                                                          ->where($where)
                                                           ->page($currentPage, $pageSize)
                                                           ->select();
             foreach ($buyerList as &$buyer) {
@@ -84,7 +85,7 @@ class NotificationController extends PublicController
             if ($buyerList) {
                 $res['code'] = '1';
                 $res['message'] = L('SUCCESS');
-                $res['count'] = $buyerSqlObj->count('id') ? : 0;
+                $res['count'] = $buyerModel->where($where)->count('id') ? : 0;
                 $res['data'] = $buyerList;
             } else {
                 $res['code'] = '-101';

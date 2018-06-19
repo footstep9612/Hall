@@ -177,16 +177,27 @@ class InquiryModel extends PublicModel {
             $where['a.country_bn'] = $condition['country_bn'];    //国家
         }
 
-        if (!empty($condition['serial_no'])) {
+        /*if (!empty($condition['serial_no'])) {
             $where['a.serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
-        }
+        }*/
         
         if (!empty($condition['buyer_name'])) {
             $where['a.buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];  //客户名称
         }
         
-        if (!empty($condition['buyer_code'])) {
+        /*if (!empty($condition['buyer_code'])) {
             $where['a.buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }*/
+        
+        if (!empty($condition['input_code'])) {
+            // 用户输入编码匹配
+            $match = [
+                'a.serial_no' => $condition['input_code'],
+                'a.buyer_code' => $condition['input_code'],
+                'a.id' => ['in', (new InquiryOrderModel())->getInquiryIdByContractNo($condition['input_code']) ? : ['-1']],
+                '_logic' => 'or'
+            ];
+            $where[] = $match;
         }
 
         if (!empty($condition['buyer_inquiry_no'])) {
@@ -329,16 +340,27 @@ class InquiryModel extends PublicModel {
             $where['country_bn'] = ['in', $condition['country_bn'] ? : ['-1']];    //国家
         }
     
-        if (!empty($condition['serial_no'])) {
+        /*if (!empty($condition['serial_no'])) {
             $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
         }
     
-        /*if (!empty($condition['buyer_name'])) {
+        if (!empty($condition['buyer_name'])) {
             $where['buyer_name'] = $condition['buyer_name'];  //客户名称
-        }*/
+        }
         
         if (!empty($condition['buyer_code'])) {
             $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }*/
+        
+        if (!empty($condition['input_code'])) {
+            // 用户输入编码匹配
+            $match = [
+                'a.serial_no' => $condition['input_code'],
+                'a.buyer_code' => $condition['input_code'],
+                'a.id' => ['in', (new InquiryOrderModel())->getInquiryIdByContractNo($condition['input_code']) ? : ['-1']],
+                '_logic' => 'or'
+            ];
+            $where[] = $match;
         }
     
         if (isset($condition['agent_id'])) {
