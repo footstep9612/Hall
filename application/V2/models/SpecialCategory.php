@@ -111,6 +111,11 @@ class SpecialCategoryModel extends PublicModel {
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
+            $where = [
+                'special_id' => $data['special_id'],
+                'cat_name' => $data['cat_name'],
+                'deleted_at' => ['exp', 'is null']
+            ];
             if( isset($input['pid']) && $input['pid']!==0){
                 $data['pid'] = intval($input['pid']);
                 //根据pid查询父级信息
@@ -119,18 +124,10 @@ class SpecialCategoryModel extends PublicModel {
                     jsonReturn('', MSG::MSG_FAILED, '父级未找到');
                 }
                 $data['allpid'] = $parentInfo['allpid'].','.$data['pid'];
+                $where['pid'] = $data['pid'];
             }
-            $where = [
-                'special_id' => $data['special_id'],
-                'cat_name' => $data['cat_name'],
-                'deleted_at' => ['exp', 'is null']
-            ];
             if(!self::exist($where)){
                 $id = $this->add($data);
-              /*  //添加成功后，更新所有子节点为自身
-                if($id){
-                    $this->where(['id'=>$id])->save(['allchilds'=>$id]);
-                }*/
                 return $id ? $id : false;
             }else{
                 jsonReturn('', MSG::MSG_FAILED,'已经存在');
@@ -152,6 +149,7 @@ class SpecialCategoryModel extends PublicModel {
         if(!isset($input['special_id']) || empty($input['special_id'])){
             jsonReturn('', MSG::MSG_FAILED,'请选择专题');
         }
+        $this->startTrans();
         try{
             $id = isset($input['id']) ? intval($input['id']) : 0;
             if(!$id){
@@ -161,28 +159,19 @@ class SpecialCategoryModel extends PublicModel {
                 'updated_by' => defined('UID') ? UID : 0,
                 'updated_at' => date('Y-m-d H:i:s', time())
             ];
-            if(isset($input['cat_name'])){
-                $where = [
-                    'id' => ['neq', $id],
-                    'special_id' => intval($input['special_id']),
-                    'cat_name' => trim($input['cat_name']),
-                    'deleted_at' => ['exp', 'is null']
-                ];
-                if(self::exist($where)){
-                    jsonReturn('', MSG::MSG_FAILED,'已经存在');
-                }
-                $data['cat_name'] = trim($input['cat_name']);
-            }
-            if(isset($input['description'])){
-                $data['description'] = trim($input['description']);
-            }
-            if(isset($input['settings'])){
-                $data['settings'] = (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '';
-            }
+            //先获取当前分类的所有父级
+            $thisallpid = $this->getInfo($id,'allpid,cat_name,pid');
+
+            $where = [
+                'id' => ['neq', $id],
+                'special_id' => intval($input['special_id']),
+                'deleted_at' => ['exp', 'is null']
+            ];
             if(isset($input['pid'])){
                 $data['pid'] = intval($input['pid']);
-                //先获取当前分类的所有父级
-                $thisallpid = $this->getInfo($id,'allpid');
+
+                $where['pid'] = intval($input['pid']);
+                $where['cat_name'] = $thisallpid['cat_name'];
 
                 //根据pid查询父级信息
                 $parentInfo = $this->getInfo($data['pid']);
@@ -194,14 +183,39 @@ class SpecialCategoryModel extends PublicModel {
                 //初始化所有子节点的父级
                 $this->where(['allpid'=>['like',$thisallpid['allpid'].'%']])->save(['allpid'=>['exp',"replace(allpid,'".$thisallpid['allpid']."','".$data['allpid']."')"],'updated_by'=>defined('UID') ? UID : 0,'updated_at'=>date('Y-m-d H:i:s',time())]);
             }
+            if(isset($input['cat_name'])){
+                if(!isset($input['pid'])){
+                    $where['pid'] = $thisallpid['pid'];
+                }
+                $where['cat_name'] = trim($input['cat_name']);
+                $data['cat_name'] = trim($input['cat_name']);
+            }
+            if(self::exist($where)){
+                jsonReturn('', MSG::MSG_FAILED,'已经存在');
+            }
+
+            if(isset($input['description'])){
+                $data['description'] = trim($input['description']);
+            }
+            if(isset($input['settings'])){
+                $data['settings'] = (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '';
+            }
             if(isset($input['thumb'])){
                 $data['thumb'] = trim($input['thumb']);
             }
             if(isset($input['sort_order'])){
                 $data['sort_order'] = intval($input['sort_order']);
             }
-            return $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
+            $rel = $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
+            if($rel){
+                $this->commit();
+                return $rel;
+            }else{
+                $this->rollback();
+                return false;
+            }
         }catch (Exception $e){
+            $this->rollback();
             return false;
         }
     }
