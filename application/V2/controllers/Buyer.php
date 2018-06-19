@@ -196,8 +196,8 @@ class BuyerController extends PublicController {
      */
     public function buyerListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $this->user['id'];;
+        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
@@ -266,7 +266,33 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    public function buyerStatusCountAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->getUserRole();   //=1市场专员
+        $data['created_by'] = $this->user['id'];
 
+        $model = new BuyerModel();
+        $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        if($cond==false){
+            $datajson['code'] = 1;
+            $datajson['message'] = '无权限/无数据';
+            $datajson['data'] = array('total_count'=>0);
+            $this->jsonReturn($datajson);
+        }
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总数
+        $arr=array(
+            'total_status'=>$totalCount,
+            'approved_status'=>$statusCount['APPROVED'],
+            'approving_status'=>$statusCount['APPROVING'],
+            'rejected_status'=>$statusCount['REJECTED']
+        );
+        $datajson['code']=1;
+        $datajson['message']='各个状态统计数量';
+        $datajson['data']=$arr;
+
+        $this->jsonReturn($datajson);
+    }
     /*
      * 客户审核列表 jhw
      * */
@@ -1094,7 +1120,93 @@ EOF;
             );
         }
     }
+    //新版crm
+    public function editBuyerBaseInfoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerModel();
+        $res = $model->editBuyerBaseInfo($data);
+        if ($res !== true && $res !== false) {
+            $valid = array(
+                'code' => 0,
+                'message' => $res,
+            );
+            $this->jsonReturn($valid);
+        } elseif ($res === false) {
+            $valid = array(
+                'code' => 0,
+                'message' =>L('error') ,
+            );
+            $this->jsonReturn($valid);
+        }
+        $valid = array(
+            'code' => 1,
+            'message' => L('success'),
+            'buyer_id'=>$data['buyer_id']
+        );
+        $this->jsonReturn($valid);
+    }
+    public function showBuyerBaseInfoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $data['lang'] = $this->getLang();
+        $model = new BuyerModel();
+        $buerInfo = $model->showBuyerInfo($data);
+        if ($buerInfo===false) {
+            $dataJson['code']=0;
+            $dataJson['message']='缺少参数';
+            $this->jsonReturn($dataJson);
+        }
+        //获取客户账号
+        $account = new BuyerAccountModel();
+        $accountInfo = $account->getBuyerAccount($data['buyer_id']);
+        $buerInfo['buyer_account'] = $accountInfo['email'];
+        //客户订单分类
+//        $order = new OrderModel();
+//        $orderInfo = $order->statisOrder($data['buyer_id']);
+//        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
+        //获取服务经理经办人，调用市场经办人方法
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
+        $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
+        //获取财务报表
+        $attach = new BuyerattachModel();
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id']);
+        if (!empty($finance)) {
+            $buerInfo['finance_attach'] = $finance;
+        } else {
+            $buerInfo['finance_attach'] = array();
+        }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id']);
+        if (!empty($org_chart)) {
+            $buerInfo['org_chart'] = $org_chart;
+        } else {
+            $buerInfo['org_chart'] = array();
+        }
+        $arr['base_info'] = $buerInfo;  //客户基本信息
+        //业务基本信息
+        $business = new BuyerBusinessModel();
+        $businessInfo = $business->showBusiness($data);
+        $arr['business_info']=$businessInfo;
+        //结算信息
+        $settlementInfo = $business->showSettlement($data);
+        $arr['settlement_info']=$settlementInfo;
+        //入网管理
+        $net = new NetSubjectModel();
+        $netInfo = $net->showNetSubject($data);
+        $arr['net_info']=$netInfo;
+        //联系人
+//        $contact = new BuyercontactModel();
+//        $contactInfo = $contact->showContactsList($data);
+//        $arr['contact_info']=$contactInfo;
 
+        $dataJson['code']=1;
+        $dataJson['message']='查看档案信息';
+        $dataJson['data']=$arr;
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
