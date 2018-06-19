@@ -508,9 +508,9 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
-                $info[$k]['status'] = 'PASS';
-            }
+//            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
+//                $info[$k]['status'] = 'PASS';
+//            }
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
@@ -522,6 +522,9 @@ class BuyerModel extends PublicModel {
             $info[$k]['employee_name'] = $agentInfo['name'];
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;

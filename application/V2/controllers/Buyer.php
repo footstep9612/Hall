@@ -205,12 +205,12 @@ class BuyerController extends PublicController {
         $cond = $model->getBuyerStatisListCond($data,false);  //获取条件
         $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
         $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总数
-        $arr=array(
-            'total_status'=>$totalCount,
-            'approved_status'=>$statusCount['APPROVED'],
-            'approving_status'=>$statusCount['APPROVING'],
-            'rejected_status'=>$statusCount['REJECTED']
-        );
+//        $arr=array(
+//            'total_status'=>$totalCount,
+//            'approved_status'=>$statusCount['APPROVED'],
+//            'approving_status'=>$statusCount['APPROVING'],
+//            'rejected_status'=>$statusCount['REJECTED']
+//        );
 
         $dataJson = array(
             'code' => 1,
