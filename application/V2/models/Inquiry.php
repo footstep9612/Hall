@@ -256,7 +256,7 @@ class InquiryModel extends PublicModel {
                 
                             if ($orgId) $map[] = ['a.org_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole) {
+                        if (!in_array(self::inquiryIssueRole, $condition['role_no']) && !in_array(self::quoteIssueMainRole, $condition['role_no']) && ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole)) {
                             $where[] = ['a.country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                     }
@@ -278,7 +278,7 @@ class InquiryModel extends PublicModel {
                             
                             if ($orgId) $map[] = ['a.logi_org_id' => ['in', $orgId]];
                         }
-                        if ($roleNo == self::logiIssueAuxiliaryRole) {
+                        if (!in_array(self::logiIssueMainRole, $condition['role_no']) && $roleNo == self::logiIssueAuxiliaryRole) {
                             $where[] = ['a.country_bn' => ['in', $condition['user_country'] ? : ['-1']]];
                         }
                         if ($roleNo == self::logiQuoterRole) {
