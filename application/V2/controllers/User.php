@@ -771,7 +771,7 @@ class UserController extends PublicController {
             'show_supplier_check' => '供应商审核',
             'show_goods_check' => 'SPU审核'
         ];
-        foreach ($mapping as  $k => $v) {
+        foreach ($mapping as $k => $v) {
             $data[$k] = 'N';
         }
         $this->_scanMenu($menu, $mapping, $data);
