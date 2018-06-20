@@ -355,9 +355,9 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['input_code'])) {
             // 用户输入编码匹配
             $match = [
-                'a.serial_no' => $condition['input_code'],
-                'a.buyer_code' => $condition['input_code'],
-                'a.id' => ['in', (new InquiryOrderModel())->getInquiryIdByContractNo($condition['input_code']) ? : ['-1']],
+                'serial_no' => $condition['input_code'],
+                'buyer_code' => $condition['input_code'],
+                'id' => ['in', (new InquiryOrderModel())->getInquiryIdByContractNo($condition['input_code']) ? : ['-1']],
                 '_logic' => 'or'
             ];
             $where[] = $match;
