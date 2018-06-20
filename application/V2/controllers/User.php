@@ -771,16 +771,9 @@ class UserController extends PublicController {
             'show_supplier_check' => '供应商审核',
             'show_goods_check' => 'SPU审核'
         ];
-        $data = [
-            'show_create_inquiry' => 'N',
-            'show_create_order' => 'N',
-            'show_create_buyer' => 'N',
-            'show_create_visit' => 'N',
-            'show_demand_feedback' => 'N',
-            'show_request_permission' => 'N',
-            'show_supplier_check' => 'N',
-            'show_goods_check' => 'N'
-        ];
+        foreach ($mapping as  $k => $v) {
+            $data[$k] = 'N';
+        }
         $this->_scanMenu($menu, $mapping, $data);
         $this->jsonReturn([
             'code' => 1,
