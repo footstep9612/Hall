@@ -3603,4 +3603,76 @@ EOF;
         unset($info['country_bn']);
         return $info;
     }
+    public function showBuyerInquiry($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info)){
+            return [];
+        }
+        $arr=$this->getInquiry($data['buyer_id'],$data['lang']);
+        foreach($arr as $k => &$v){
+            $v['buyer_code']=$info['buyer_code'];
+            $v['created_at']=substr($v['created_at'],0,16);
+            switch ($v['status']){
+                case 'DRAFT':
+                    $v['status']='新建询单';
+                    break;
+                case 'REJECT_MARKET':
+                    $v['status']='驳回市场';
+                    break;
+                case 'REJECT_CLOSE':
+                    $v['status']='驳回市场关闭';
+                    break;
+                case 'BIZ_DISPATCHING':
+                    $v['status']='事业部分单员';
+                    break;
+                case 'CC_DISPATCHING':
+                    $v['status']='易瑞客户中心';
+                    break;
+                case 'BIZ_QUOTING':
+                    $v['status']='事业部报价';
+                    break;
+                case 'REJECT_QUOTING':
+                    $v['status']='事业部审核退回事业部报价';
+                    break;
+                case 'LOGI_DISPATCHING':
+                    $v['status']='物流分单员';
+                    break;
+                case 'LOGI_QUOTING':
+                    $v['status']='物流报价';
+                    break;
+                case 'LOGI_APPROVING':
+                    $v['status']='物流审核';
+                    break;
+                case 'BIZ_APPROVING':
+                    $v['status']='事业部核算';
+                    break;
+                case 'MARKET_APPROVING':
+                    $v['status']='事业部审核';
+                    break;
+                case 'MARKET_CONFIRMING':
+                    $v['status']='市场确认';
+                    break;
+                case 'QUOTE_SENT':
+                    $v['status']='报价单已发出';
+                    break;
+                case 'INQUIRY_CLOSED':
+                    $v['status']='报价单发送后关闭';
+                    break;
+            }
+        }
+        return $arr;
+    }
+    public function getInquiry($buyer_id,$lang='zh'){
+        $field='serial_no,status,created_at';
+        $field.=",(select name from erui_dict.country country where country.bn=country_bn and lang='$lang' and deleted_flag='N')  as country_name";
+        $field.=',(select name from erui_sys.employee employee where id=now_agent_id and deleted_flag=\'N\') as operator';
+        $arr=$this->table('erui_rfq.inquiry')
+            ->field($field)
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
+            ->select();
+        return $arr;
+    }
 }
