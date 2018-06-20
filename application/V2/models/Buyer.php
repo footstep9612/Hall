@@ -3587,4 +3587,20 @@ EOF;
 //        $contact -> updateBuyerContact($data['contact_info'],$data['buyer_id'],$data['created_by']);
         return true;
     }
+    public function buyerTitleInfo($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name,country_bn')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info)){
+            return [];
+        }
+        $area=new CountryModel();
+        $res=$area->getCountryAreaByBn($info['country_bn'],$lang);
+        $info['area_name']=$res['area'];
+        $info['country_name']=$res['country'];
+        unset($info['country_bn']);
+        return $info;
+    }
 }
