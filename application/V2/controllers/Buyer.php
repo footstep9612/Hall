@@ -1173,6 +1173,22 @@ EOF;
         );
         $this->jsonReturn($valid);
     }
+    //档案基本标题信息
+    public function buyerTitleInfoAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->getLang();
+        $model = new BuyerModel();
+        $info = $model->buyerTitleInfo($data);
+        if($info===false){
+            $dataJson['code']=0;
+            $dataJson['message']='缺少参数';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='数据';
+            $dataJson['data']=$info;
+        }
+        $this->jsonReturn($dataJson);
+    }
     public function showBuyerBaseInfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
