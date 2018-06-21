@@ -19,9 +19,25 @@ class CustomerCreditModel extends PublicModel{
             'buyer_id'=>$data['buyer_id'],
             'deleted_flag'=>'N'
         );
-        $info=$this->field('buyer_id,credit_level,credit_type,line_of_credit,credit_available,payment_behind,behind_time,reputation,violate_treaty,treaty_content,comments')->where($cond)->find();
+        $field=array(
+            'buyer_id',
+            'credit_level',
+            'credit_type',
+            'line_of_credit',
+            'credit_available',
+            'payment_behind',
+            'behind_time',
+            'reputation',
+            'violate_treaty',
+            'treaty_content',
+            'comments'
+        );
+        $info=$this->field($field)->where($cond)->find();
         if(empty($info)){
-            return new $this;
+            $info=[];
+            foreach($field as $k => $v){
+                $info[$v]='';
+            }
         }
         if($info['behind_time']==0){
             $info['behind_time']='';
