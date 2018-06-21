@@ -3610,10 +3610,14 @@ EOF;
         }
         $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
         if(empty($info)){
-            return [];
+            $arr['info']=[];
+            $arr['total_count']=0;
+            $arr['page']=1;
+            return $arr;
         }
-        $arr=$this->getInquiry($data['buyer_id'],$data['lang']);
-        foreach($arr as $k => &$v){
+        $page=!empty($data['page'])?$data['page']:1;
+        $arr=$this->getInquiry($data['buyer_id'],$data['lang'],$page);
+        foreach($arr['info'] as $k => &$v){
             $v['buyer_code']=$info['buyer_code'];
             $v['created_at']=substr($v['created_at'],0,16);
             switch ($v['status']){
@@ -3672,9 +3676,12 @@ EOF;
         }
         $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
         if(empty($info['buyer_code'])){
-            return [];
+            $arr['info']=[];
+            $arr['total_count']=0;
+            $arr['page']=1;
+            return $arr;
         }
-        $page=isset($data['page'])?$data['page']:1;
+        $page=!empty($data['page'])?$data['page']:1;
         $arr=$this->getOrder($info['buyer_code'],$page);
         return $arr;
     }
@@ -3690,12 +3697,18 @@ EOF;
             'status', //订单状态
             'process_progress' //流程进度
         );
+        $pageSize=10;
+        $offset=($page-1)*$pageSize;
         $total=$this->table('erui_new_order.order')
             ->field($field)
             ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
             ->count();
-        $pageSize=10;
-        $offset=($page-1)*$pageSize;
+        if($total==0){
+            $arr['info']=[];
+            $arr['total_count']=$total;
+            $arr['page']=$page;
+            return $arr;
+        }
         $info=$this->table('erui_new_order.order')
             ->field($field)
             ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
@@ -3754,18 +3767,33 @@ EOF;
         $arr['page']=$page;
         return $arr;
     }
-    public function getInquiry($buyer_id,$lang='zh'){
+    public function getInquiry($buyer_id,$lang='zh',$page){
         $field='serial_no,status,created_at';
         $field.=",(select name from erui_dict.country country where country.bn=country_bn and lang='$lang' and deleted_flag='N')  as country_name";
         $field.=',(select name from erui_sys.employee employee where id=now_agent_id and deleted_flag=\'N\') as operator';
-        $arr=$this->table('erui_rfq.inquiry')
+        $pageSize=10;
+        $offset=($page-1)*$pageSize;
+        $count=$this->table('erui_rfq.inquiry')
+            ->field($field)
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
+            ->count();
+        if($count==0){
+            $arr['total_count']=0;
+            $arr['page']=1;
+            $arr['info']=[];
+        }
+        $info=$this->table('erui_rfq.inquiry')
             ->field($field)
             ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
             ->order('created_at desc')
+            ->limit($offset,$pageSize)
             ->select();
-        if(empty($arr)){
-            $arr=[];
+        if(empty($info)){
+            $info=[];
         }
+        $arr['total_count']=$count;
+        $arr['page']=$page;
+        $arr['info']=$info;
         return $arr;
     }
 }

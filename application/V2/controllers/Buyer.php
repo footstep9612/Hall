@@ -1267,7 +1267,9 @@ EOF;
         }else{
             $dataJson['code']=1;
             $dataJson['message']='询单';
-            $dataJson['data']=$res;
+            $dataJson['total_count']=$res['total_count'];
+            $dataJson['page']=$res['page'];
+            $dataJson['data']=$res['info'];
         }
         $this->jsonReturn($dataJson);
     }
