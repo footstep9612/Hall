@@ -170,10 +170,17 @@ class NetSubjectModel extends PublicModel {
         );
         $arr=array();
         $info=$this->field($field)->where($cond)->select();
-        foreach($info as $k => &$v){
-            $kk=$v['subject_name'];
-            unset($v['subject_name']);
-            $arr[$kk]=$v;
+        if(!empty($info)){
+            foreach($info as $k => &$v){
+                $kk=$v['subject_name'];
+                unset($v['subject_name']);
+                $arr[$kk]=$v;
+            }
+        }else{
+            $arr=array(
+                'equipment'=>array('net_at'=>'','net_invalid_at'=>'','net_goods'=>''),
+                'erui'=>array('net_at'=>'','net_invalid_at'=>'','net_goods'=>'')
+            );
         }
         return $arr;
     }
