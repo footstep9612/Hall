@@ -3674,10 +3674,11 @@ EOF;
         if(empty($info['buyer_code'])){
             return [];
         }
-        $arr=$this->getOrder($info['buyer_code'],$data['lang']);
+        $page=isset($data['page'])?$data['page']:1;
+        $arr=$this->getOrder($info['buyer_code'],$page);
         return $arr;
     }
-    public function getOrder($buyer_code){
+    public function getOrder($buyer_code,$page){
         $field=array(
             'contract_no', //销售合同号
             'project_no', //项目号
@@ -3689,10 +3690,17 @@ EOF;
             'status', //订单状态
             'process_progress' //流程进度
         );
+        $total=$this->table('erui_new_order.order')
+            ->field($field)
+            ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
+            ->count();
+        $pageSize=10;
+        $offset=($page-1)*$pageSize;
         $info=$this->table('erui_new_order.order')
             ->field($field)
             ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
             ->order('signing_date desc')
+            ->limit($offset,$pageSize)
             ->select();
         if(empty($info)){
             $info=[];
@@ -3741,7 +3749,10 @@ EOF;
                 $v['process_progress']='未执行';   //1
             }
         }
-        return $info;
+        $arr['info']=$info;
+        $arr['total_count']=$total;
+        $arr['page']=$page;
+        return $arr;
     }
     public function getInquiry($buyer_id,$lang='zh'){
         $field='serial_no,status,created_at';
