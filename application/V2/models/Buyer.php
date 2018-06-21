@@ -3455,6 +3455,8 @@ EOF;
             }
             $dateArr=[$y,$m,$d];
             $base['company_reg_date']=implode('-',$dateArr);
+        }else{
+            return $baseArr['company_reg_date'].L('not empty');
         }
 //        if(!empty($base['official_phone'])){
 //            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
@@ -3665,6 +3667,83 @@ EOF;
         }
         return $arr;
     }
+    public function showBuyerOrder($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info['buyer_code'])){
+            return [];
+        }
+        $arr=$this->getOrder($info['buyer_code'],$data['lang']);
+        return $arr;
+    }
+    public function getOrder($buyer_code){
+        $field=array(
+            'contract_no', //销售合同号
+            'project_no', //项目号
+            'inquiry_no', //询单号
+            'signing_date', //订单签约日期
+            'order_type', //订单类型
+            'total_price', //合同总价
+            'pay_status', //款项状态
+            'status', //订单状态
+            'process_progress' //流程进度
+        );
+        $info=$this->table('erui_new_order.order')
+            ->field($field)
+            ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
+            ->order('signing_date desc')
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        foreach($info as $k => &$v){
+            if($v['order_type']==1){
+                $v['order_type']='油气';
+            }elseif($v['order_type']==2){
+                $v['order_type']='非油气';
+            }else{
+                $v['order_type']='其他';  //null
+            }
+            if($v['pay_status']==2){
+                $v['pay_status']='部分付款';
+            }elseif($v['pay_status']==3){
+                $v['pay_status']='收款完成';
+            }else{
+                $v['pay_status']='未付款'; //1
+            }
+            if($v['status']==2){
+                $v['status']='未执行';
+            }elseif($v['status']==3){
+                $v['status']='执行中';
+            }elseif($v['status']==4){
+                $v['status']='完成';
+            }else{
+                $v['status']='待确认'; //1
+            }
+            if($v['process_progress']==2){
+                $v['process_progress']='正常执行';
+            }elseif($v['process_progress']==3){
+                $v['process_progress']='采购中';
+            }elseif($v['process_progress']==4){
+                $v['process_progress']='已报检';
+            }elseif($v['process_progress']==5){
+                $v['process_progress']='质检中';
+            }elseif($v['process_progress']==6){
+                $v['process_progress']='已入库';
+            }elseif($v['process_progress']==7){
+                $v['process_progress']='出库质检';
+            }elseif($v['process_progress']==8){
+                $v['process_progress']='已出库';
+            }elseif($v['process_progress']==9){
+                $v['process_progress']='已发运';
+            }else{
+                $v['process_progress']='未执行';   //1
+            }
+        }
+        return $info;
+    }
     public function getInquiry($buyer_id,$lang='zh'){
         $field='serial_no,status,created_at';
         $field.=",(select name from erui_dict.country country where country.bn=country_bn and lang='$lang' and deleted_flag='N')  as country_name";
@@ -3672,7 +3751,11 @@ EOF;
         $arr=$this->table('erui_rfq.inquiry')
             ->field($field)
             ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
+            ->order('created_at desc')
             ->select();
+        if(empty($arr)){
+            $arr=[];
+        }
         return $arr;
     }
 }

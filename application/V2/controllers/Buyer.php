@@ -1271,6 +1271,22 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //客户订单
+    public function orderAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $res=$buyer->showBuyerOrder($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='订单';
+            $dataJson['data']=$res;
+        }
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
