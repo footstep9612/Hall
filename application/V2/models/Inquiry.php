@@ -208,6 +208,10 @@ class InquiryModel extends PublicModel {
             $where['a.agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
         }
         
+        if (isset($condition['now_agent_id'])) {
+            $where['a.now_agent_id'] = ['in', $condition['now_agent_id'] ? : ['-1']]; //当前办理人
+        }
+        
         if (isset($condition['quote_id'])) {
             $where['a.quote_id'] = ['in', $condition['quote_id'] ? : ['-1']]; //报价人
         }
@@ -365,6 +369,10 @@ class InquiryModel extends PublicModel {
     
         if (isset($condition['agent_id'])) {
             $where['agent_id'] = ['in', $condition['agent_id'] ? : ['-1']]; //市场经办人
+        }
+        
+        if (isset($condition['now_agent_id'])) {
+            $where['now_agent_id'] = ['in', $condition['now_agent_id'] ? : ['-1']]; //当前办理人
         }
         
         if (isset($condition['quote_id'])) {
