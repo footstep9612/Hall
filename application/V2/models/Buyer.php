@@ -2073,8 +2073,6 @@ EOF;
             $level = new BuyerLevelModel();
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
         }
-
-
 //        if($data['is_check'] == true){
         if(!empty($info['buyer_type'])){
             $type = new BuyerTypeModel();
@@ -2086,6 +2084,7 @@ EOF;
             $country = new CountryModel();
             $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
         }
+        $info['reg_capital'] = floatval($info['reg_capital']);
         return $info;
     }
 
