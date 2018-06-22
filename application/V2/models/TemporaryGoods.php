@@ -136,14 +136,36 @@ class TemporaryGoodsModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function Relation($id, $sku) {
+    public function Relation($id, $sku, &$error = null) {
 
 
         try {
+            $this->startTrans();
+            $tmpgoods = $this->where(['id' => $id])->find();
+            if (!$tmpgoods) {
+                $error = '临时询单商品不存在!';
+                return false;
+            }
             $flag = $this->where(['id' => $id])->save(['sku' => $sku]);
 
+
+            if ($flag !== false) {
+                $inquiry_item_model = new InquiryItemModel();
+                $f = $inquiry_item_model->where(['id' => $tmpgoods['inquiry_item_id']])->save(['sku' => $sku]);
+                if ($f === false) {
+                    $this->rollback();
+                    $error = '更新询单项SKU失败!';
+                    return false;
+                }
+            } elseif ($flag === false) {
+                $this->rollback();
+                $error = '关联SKU失败!';
+                return false;
+            }
+            $this->commit();
             return $flag;
         } catch (Exception $ex) {
+            $error = $ex->getMessage();
             Log::write($ex->getMessage(), Log::ERR);
             return false;
         }

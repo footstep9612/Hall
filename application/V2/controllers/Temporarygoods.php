@@ -136,14 +136,17 @@ class TemporarygoodsController extends PublicController {
             $this->setMessage('请选择需要关联的SKU!');
             $this->jsonReturn();
         }
+        $error = null;
         $model = new TemporaryGoodsModel();
         $result = $model->Relation($id, $sku);
-        if ($result !== false) {
 
+        if ($result !== false) {
             $this->setCode(MSG::MSG_SUCCESS);
+
             $this->jsonReturn();
         } else {
             $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage($error);
             $this->jsonReturn();
         }
     }
