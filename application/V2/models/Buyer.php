@@ -2066,32 +2066,48 @@ EOF;
             'status'=>'APPROVED',
             'deleted_flag'=>'N'
         );
-        $info = $this->field($buyerArr)
+        $reg=$this->field('is_build')->where($cond)->find();
+        if($reg['is_build']==0){
+            $cookie=$_COOKIE;
+            $opt = array(
+                'http'=>array(
+                    'method'=>"POST",
+                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+                )
+            );
+            $context = stream_context_create($opt);
+            $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+            $json = file_get_contents($url,false,$context);
+                print_r($json);die;
+            }
+            print_r($reg);die;
+            $info = $this->field($buyerArr)
             ->where($cond)
             ->find();
-        if(!empty($info['buyer_level'])){
+            if(!empty($info['buyer_level'])){
             $level = new BuyerLevelModel();
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
-        }
-//        if($data['is_check'] == true){
-        if(!empty($info['buyer_type'])){
+            }
+            //        if($data['is_check'] == true){
+            if(!empty($info['buyer_type'])){
             $type = new BuyerTypeModel();
             $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
             $info['buyer_type'] = $buyerType['type_name'];
-        }
-//        }
-        if(!empty($info['country_bn'])){
+            }
+            //        }
+            if(!empty($info['country_bn'])){
             $country = new CountryModel();
             $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
-        }
-        $info['reg_capital'] = floatval($info['reg_capital']);
-        return $info;
-    }
+            }
+            $info['reg_capital'] = floatval($info['reg_capital']);
+            return $info;
+}
 
-    /**
-     * 客户管理-客户信息的统计数据
-     * wangs
-     */
+/**
+* 客户管理-客户信息的统计数据
+* wangs
+*/
     public function showBuyerStatis($data){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['buyer_id']) || empty($data['created_by'])){
@@ -3341,7 +3357,7 @@ EOF;
     }
     //信息完整度统计客户基本信息
     public function percentBuyer($data){
-        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $cond=array('id'=>$data['buyer_id'],'deleted_flag'=>'N');
         $baseField=array(
 //            'buyer_code', //客户代码
             'buyer_no', //客户编码
