@@ -3341,7 +3341,7 @@ EOF;
     }
     //信息完整度统计客户基本信息
     public function percentBuyer($data){
-        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $cond=array('id'=>$data['buyer_id'],'deleted_flag'=>'N');
         $baseField=array(
 //            'buyer_code', //客户代码
             'buyer_no', //客户编码
