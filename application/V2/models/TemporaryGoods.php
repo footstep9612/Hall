@@ -157,11 +157,15 @@ class TemporaryGoodsModel extends PublicModel {
                     'model' => $tmpgoods['model']
                 ];
             }
-            $flag = $this->where($where)->save(['sku' => $sku, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
+            $flag = $this->where($where)->save(['sku' => $sku,
+                'updated_by' => defined('UID') ? UID : 0,
+                'updated_at' => date('Y-m-d H:i:s')]);
 
             if ($flag !== false) {
                 $inquiry_item_model = new InquiryItemModel();
-                $f = $inquiry_item_model->where($InquiryItem_where)->save(['sku' => $sku, 'updated_by' => defined('UID') ? UID : 0, 'updated_at' => date('Y-m-d H:i:s')]);
+                $f = $inquiry_item_model->where($InquiryItem_where)->save(['sku' => $sku,
+                    'updated_by' => defined('UID') ? UID : 0,
+                    'updated_at' => date('Y-m-d H:i:s')]);
 
                 if ($f === false) {
                     $this->rollback();
