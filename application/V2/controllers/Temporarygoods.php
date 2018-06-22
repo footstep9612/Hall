@@ -151,4 +151,32 @@ class TemporarygoodsController extends PublicController {
         }
     }
 
+    /**
+     * 获取详情
+     */
+    public function InfoAction() {
+
+        $id = $this->getPut('id');
+
+
+        if (empty($id)) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage('请选择临时商品ID!');
+            $this->jsonReturn();
+        }
+
+        $error = null;
+        $model = new TemporaryGoodsModel();
+        $result = $model->Info($id, $error);
+
+        if ($result) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($result);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage($error);
+            $this->jsonReturn();
+        }
+    }
+
 }

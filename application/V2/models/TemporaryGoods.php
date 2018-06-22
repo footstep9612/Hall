@@ -23,6 +23,11 @@ class TemporaryGoodsModel extends PublicModel {
      */
     protected $defaultCondition = ['deleted_flag' => 'N'];
 
+    /**
+     * 同步数据到临时库
+     * @return mix
+     * @author zyg
+     */
     public function sync() {
 
 
@@ -68,7 +73,7 @@ class TemporaryGoodsModel extends PublicModel {
     /**
      * 条件解析
      * @param mix $condition 搜索条件
-     * @param string $lang 语言
+
      * @return mix
      * @author zyg
      */
@@ -85,6 +90,13 @@ class TemporaryGoodsModel extends PublicModel {
         return $where;
     }
 
+    /**
+     * 获取数据列表
+     * @param mix $condition 搜索条件
+
+     * @return mix
+     * @author zyg
+     */
     public function getList(array $condition = []) {
         $where = $this->_getcondition($condition);
         list($row_start, $pagesize) = $this->_getPage($condition);
@@ -111,7 +123,7 @@ class TemporaryGoodsModel extends PublicModel {
     /**
      * 获取数据条数
      * @param mix $condition 搜索条件
-     * @param string $lang 语言
+
      * @return mix
      * @author zyg
      */
@@ -126,6 +138,30 @@ class TemporaryGoodsModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return 0;
+        }
+    }
+
+    /**
+     * 获取详情
+     * @return mix
+     * @author zyg
+     */
+    public function Info($id, &$error) {
+        $where = ['id' => $id];
+
+        try {
+            $info = $this->where($where)
+                    ->find();
+
+            if (empty($result)) {
+                $error = '临时商品不存在!';
+                return null;
+            }
+            return $info;
+        } catch (Exception $ex) {
+            $error = $ex->getMessage();
+            Log::write($ex->getMessage(), Log::ERR);
+            return [];
         }
     }
 
@@ -152,10 +188,14 @@ class TemporaryGoodsModel extends PublicModel {
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
                 $InquiryItem_where = $where = ['name' => $tmpgoods['name'],
-                    'name_zh' => $tmpgoods['name_zh'],
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
+                if (!empty($tmpgoods['name_zh'])) {
+                    $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
+                } else {
+                    $InquiryItem_where[] = $where[] = 'isnull(name_zh)';
+                }
             }
             $flag = $this->where($where)->save(['sku' => $sku,
                 'updated_by' => defined('UID') ? UID : 0,
