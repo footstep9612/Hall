@@ -1199,6 +1199,10 @@ EOF;
             $dataJson['code']=0;
             $dataJson['message']='缺少参数';
             $this->jsonReturn($dataJson);
+        }elseif($buerInfo==='info'){
+            $dataJson['code']=0;
+            $dataJson['message']='档案信息异常';
+            $this->jsonReturn($dataJson);
         }
         //客户分级
         $grade=new CustomerGradeModel();
