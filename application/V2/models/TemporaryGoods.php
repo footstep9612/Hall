@@ -153,7 +153,7 @@ class TemporaryGoodsModel extends PublicModel {
             $info = $this->where($where)
                     ->find();
 
-            if (empty($result)) {
+            if (empty($info)) {
                 $error = '临时商品不存在!';
                 return null;
             }
