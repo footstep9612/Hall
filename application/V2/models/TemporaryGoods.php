@@ -5,8 +5,8 @@
  * Class TemporaryGoodsModel
  * @author 买买提
  */
-class TemporaryGoodsModel extends PublicModel
-{
+class TemporaryGoodsModel extends PublicModel {
+
     /**
      * @var string
      */
@@ -23,25 +23,92 @@ class TemporaryGoodsModel extends PublicModel
      */
     protected $defaultCondition = ['deleted_flag' => 'N'];
 
-    public function sync()
-    {
+    public function sync() {
         //从询报价sku同步到临时商品库
     }
 
-    public function getList(array $condition = [])
-    {
+    /**
+     * 条件解析
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
+     */
+    private function _getcondition($condition) {
 
+        $where = ['deleted_flag' => 'N'];
+        $this->_getValue($where, $condition, 'id', 'string');
+        $this->_getValue($where, $condition, 'name', 'like');
+        $this->_getValue($where, $condition, 'inquiry_at', 'between');
+        if (!empty($condition['relation_flag'])) {
+            $where['relation_flag'] = $condition['relation_flag'] === 'Y' ? 'Y' : ($condition['relation_flag'] === 'A' ? 'A' : 'N');
+        }
+
+        return $where;
+    }
+
+    public function getList(array $condition = []) {
+        $where = $this->_getcondition($condition);
+        list($row_start, $pagesize) = $this->_getPage($condition);
+        $redis_key = md5(json_encode($where) . $row_start . $pagesize);
+        if (redisHashExist(strtoupper($this->tableName), $redis_key)) {
+            return json_decode(redisHashGet(strtoupper($this->tableName), $redis_key), true);
+        }
+        try {
+            $item = $this->where($where)
+                    ->field('id,sku,inquiry_id, serial_no,inquiry_at,name, name_zh,  brand,  model, '
+                            . 'relation_flag,updated_by,  updated_at,  checked_by,  checked_at ')
+                    ->order('id desc')
+                    ->limit($row_start, $pagesize)
+                    ->select();
+
+            redisHashSet(strtoupper($this->tableName), $redis_key, json_encode($item));
+            return $item;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
     }
 
     /**
-     * 设置分页
-     * @param array $condition
-     * @return array
+     * 获取数据条数
+     * @param mix $condition 搜索条件
+     * @param string $lang 语言
+     * @return mix
+     * @author zyg
      */
-    protected function setPage(array $condition = [])
-    {
-        $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
-        return [$currentPage, $pageSize];
+    public function getCount($condition) {
+        $where = $this->_getcondition($condition);
+
+        try {
+            $count = $this->where($where)
+                    ->count('id');
+
+            return $count;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return 0;
+        }
     }
+
+    /**
+     * 获取数据条数
+     * @param string $id ID
+     * @param string $sku SKU
+     * @return mix
+     * @author zyg
+     */
+    public function Relation($id, $sku) {
+
+
+        try {
+            $flag = $this->where(['id' => $id])->save(['sku' => $sku]);
+
+            return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
 }
