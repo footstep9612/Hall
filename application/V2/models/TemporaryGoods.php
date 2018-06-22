@@ -147,7 +147,7 @@ class TemporaryGoodsModel extends PublicModel {
                 return false;
             }
             $where = [];
-            if (empty($tmpgoods['name']) || empty($tmpgoods['name_zh']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {
+            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {
                 $where = ['id' => $id];
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
