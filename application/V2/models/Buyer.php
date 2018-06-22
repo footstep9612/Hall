@@ -2066,32 +2066,50 @@ EOF;
             'status'=>'APPROVED',
             'deleted_flag'=>'N'
         );
+        $reg=$this->field('is_build')->where($cond)->find();
+        if($reg['is_build']==0){
+            $cookie=$_COOKIE;
+            $opt = array(
+                'http'=>array(
+                    'method'=>"POST",
+                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+                )
+            );
+            $context = stream_context_create($opt);
+            $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+            $json = file_get_contents($url,false,$context);
+            $result=$data = json_decode($json, true);
+            if($result['code']!=1){
+                return 'info';
+            }
+        }
         $info = $this->field($buyerArr)
-            ->where($cond)
-            ->find();
+                    ->where($cond)
+                    ->find();
         if(!empty($info['buyer_level'])){
             $level = new BuyerLevelModel();
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
         }
-//        if($data['is_check'] == true){
+        //        if($data['is_check'] == true){
         if(!empty($info['buyer_type'])){
             $type = new BuyerTypeModel();
             $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
             $info['buyer_type'] = $buyerType['type_name'];
         }
-//        }
+        //        }
         if(!empty($info['country_bn'])){
             $country = new CountryModel();
             $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
         }
         $info['reg_capital'] = floatval($info['reg_capital']);
         return $info;
-    }
+}
 
-    /**
-     * 客户管理-客户信息的统计数据
-     * wangs
-     */
+/**
+* 客户管理-客户信息的统计数据
+* wangs
+*/
     public function showBuyerStatis($data){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['buyer_id']) || empty($data['created_by'])){
