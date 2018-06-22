@@ -24,6 +24,44 @@ class TemporaryGoodsModel extends PublicModel {
     protected $defaultCondition = ['deleted_flag' => 'N'];
 
     public function sync() {
+
+
+
+        $where = ['i.deleted_flag' => 'N', 'ii.deleted_flag' => 'N', 'ISNULL(ii.sku) ',
+            'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )'
+        ];
+
+        $inquiry_table = (new InquiryModel())->getTableName();
+        $inquiry_item_model = new InquiryItemModel();
+
+        $count = $inquiry_item_model->alias('ii')
+                ->field('ii.id,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
+                ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
+                ->where($where)
+                ->order('i.created_at asc')
+                ->count();
+
+        for ($i = 0; $i < $count; $i += 100) {
+            $skus = $inquiry_item_model->alias('ii')
+                    ->field('ii.id,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
+                    ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
+                    ->where($where)
+                    ->order('i.created_at asc')
+                    ->limit(0, 100)
+                    ->select();
+            $this->startTrans();
+            foreach ($skus as $item) {
+
+                $flag = $this->addData($item);
+
+                if ($flag === false) {
+
+                    continue;
+                }
+            }
+            $this->commit();
+        }
+        return true;
         //从询报价sku同步到临时商品库
     }
 
@@ -50,10 +88,10 @@ class TemporaryGoodsModel extends PublicModel {
     public function getList(array $condition = []) {
         $where = $this->_getcondition($condition);
         list($row_start, $pagesize) = $this->_getPage($condition);
-        $redis_key = md5(json_encode($where) . $row_start . $pagesize);
-        if (redisHashExist(strtoupper($this->tableName), $redis_key)) {
-            return json_decode(redisHashGet(strtoupper($this->tableName), $redis_key), true);
-        }
+//        $redis_key = md5(json_encode($where) . $row_start . $pagesize);
+//        if (redisHashExist(strtoupper($this->tableName), $redis_key)) {
+//            return json_decode(redisHashGet(strtoupper($this->tableName), $redis_key), true);
+//        }
         try {
             $item = $this->where($where)
                     ->field('id,sku,inquiry_id, serial_no,inquiry_at,name, name_zh,  brand,  model, '
@@ -62,7 +100,7 @@ class TemporaryGoodsModel extends PublicModel {
                     ->limit($row_start, $pagesize)
                     ->select();
 
-            redisHashSet(strtoupper($this->tableName), $redis_key, json_encode($item));
+//            redisHashSet(strtoupper($this->tableName), $redis_key, json_encode($item), 3600);
             return $item;
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
@@ -105,6 +143,30 @@ class TemporaryGoodsModel extends PublicModel {
             $flag = $this->where(['id' => $id])->save(['sku' => $sku]);
 
             return $flag;
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return false;
+        }
+    }
+
+    /**
+     * 获取数据条数
+     * @param string $id ID
+     * @param string $sku SKU
+     * @return mix
+     * @author zyg
+     */
+    public function addData($item) {
+
+
+        try {
+            $item['inquiry_at'] = $item['created_at'];
+            $item['inquiry_item_id'] = $item['id'];
+            unset($item['id']);
+            $data = $this->create($item);
+
+
+            return $this->add($data);
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return false;
