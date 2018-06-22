@@ -2092,11 +2092,11 @@ EOF;
             $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
         }
         //        if($data['is_check'] == true){
-        if(!empty($info['buyer_type'])){
-            $type = new BuyerTypeModel();
-            $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
-            $info['buyer_type'] = $buyerType['type_name'];
-        }
+//        if(!empty($info['buyer_type'])){
+//            $type = new BuyerTypeModel();
+//            $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
+//            $info['buyer_type'] = $buyerType['type_name'];
+//        }
         //        }
         if(!empty($info['country_bn'])){
             $country = new CountryModel();
