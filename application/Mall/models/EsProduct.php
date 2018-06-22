@@ -202,18 +202,34 @@ class EsProductModel extends Model {
             if (empty($show_cat_model)) {
                 $show_cat_model = new ShowCatModel();
             }
+            $showcats_obj = redisHashGet('show_cats', md5($keyword) . '_' . $condition['country_bn'] . '_' . $lang);
 
-            $showcats = $show_cat_model->field('cat_no')
-                            ->where(['lang' => $lang,
-                                'country_bn' => $condition['country_bn'],
-                                'name' => $keyword,
-                                'status' => 'VALID',
-                                'deleted_flag' => 'N'
-                            ])->select();
+            if (empty($showcats_obj)) {
+
+
+                $showcats = $show_cat_model->field('cat_no')
+                                ->where(['lang' => $lang,
+                                    'country_bn' => $condition['country_bn'],
+                                    'name' => $keyword,
+                                    'status' => 'VALID',
+                                    'deleted_flag' => 'N'
+                                ])->select();
+                redisHashSet('show_cats', md5($keyword) . '_' . $condition['country_bn'] . '_' . $lang, json_encode($showcats), 3600);
+            } else {
+                $showcats = json_decode($showcats_obj, true);
+            }
             if (empty($showcats)) {
                 $this->_setshow_cats_nested($condition, $country_bn, $onshelf_flag, $body);
-                $brand_model = new BrandModel();
-                $brands = $brand_model->getBrandByBrandName($keyword, $lang);
+                if (empty($brandmodel)) {
+                    $brandmodel = new BrandModel();
+                }
+                $brands_obj = redisHashGet('brand', md5($keyword) . '_' . $lang);
+                if (empty($brands_obj)) {
+                    $brands = $brandmodel->getBrandByBrandName($keyword, $lang);
+                    redisHashSet('brand', md5($keyword) . '_' . $lang, json_encode($brands), 3600);
+                } else {
+                    $brands = json_decode($brands_obj, true);
+                }
 
                 if (empty($brands)) {
 
@@ -575,13 +591,6 @@ class EsProductModel extends Model {
             $from = ($current_no - 1) * $pagesize;
 
             $es = new ESClient();
-//            $ret_count = $es->setbody($body)->count($this->dbName, $this->tableName . '_' . $lang, '');
-//            if (isset($ret_count['count']) && $ret_count['count'] <= $from) {
-//
-//                $from = $ret_count['count'] % $pagesize === 0 ? $ret_count['count'] - $pagesize : $ret_count['count'] - $ret_count['count'] % $pagesize;
-//                $current_no = intval($ret_count['count'] / $pagesize);
-//            }
-
             if (isset($condition['source'])) {
                 unset($condition['source']);
             }
@@ -600,8 +609,7 @@ class EsProductModel extends Model {
             }
             $es->setfields($fidlsd);
             $es->sethighlight(['show_name.' . $analyzer => new stdClass(), 'name.' . $analyzer => new stdClass()]);
-
-
+            $es->setaggs('sku_count', 'sku_count', 'sum');
             $data = [$es->search($this->dbName, $this->tableName . '_' . $lang, $from, $pagesize), $current_no, $pagesize];
             $es->body = $body = $es = null;
             unset($es, $body);
