@@ -3442,6 +3442,10 @@ EOF;
             }
         }
         if(!empty($base['company_reg_date'])){
+            $head=substr($base['company_reg_date'],0,4);
+            if(!is_numeric($head)){
+                return $baseArr['company_reg_date'].L('not empty');
+            }
             $date=explode('-',$base['company_reg_date']);
             $y=$date[0];
             $m=sprintf("%02s",intval($date[1]));
