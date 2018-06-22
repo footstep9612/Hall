@@ -17,8 +17,18 @@ class TemporarygoodsController extends PublicController {
      * 定时从询报价的SKU导入到临时商品库(Temporarygoods)
      */
     public function syncAction() {
+
+        set_time_limit(0);
+        ini_set('memory_limi', '1G');
         $response = (new TemporaryGoodsModel)->sync();
-        $this->jsonReturn($response);
+        if ($response !== false) {
+            $this->delcache();
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn();
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn(null);
+        }
     }
 
     /**
@@ -28,16 +38,19 @@ class TemporarygoodsController extends PublicController {
         $request = $this->validateRequestParams();
         $model = new TemporaryGoodsModel();
         $response = $model->getList($request);
+
+
         $this->_setUname($response);
         $this->_setQuoteFlag($response);
         $count = $model->getCount($request);
         $this->setvalue('count', $count);
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => '成功',
-            'total' => 0,
-            'data' => $response
-        ]);
+        if ($response !== false) {
+            $this->setCode(MSG::MSG_SUCCESS);
+            $this->jsonReturn($response);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn(null);
+        }
     }
 
     /*
