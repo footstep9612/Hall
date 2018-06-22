@@ -2058,31 +2058,30 @@ EOF;
             'profile', //公司介绍
             'company_address' //公司地址
         );
-//        '会员账号',
-//'客户服务经理',
-//'联系方式',
         $cond=array(
             'id'=>$data['buyer_id'],
             'status'=>'APPROVED',
             'deleted_flag'=>'N'
         );
-        $reg=$this->field('is_build')->where($cond)->find();
-        if($reg['is_build']==0){
-            $cookie=$_COOKIE;
-            $opt = array(
-                'http'=>array(
-                    'method'=>"POST",
-                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
-                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
-                )
-            );
-            $context = stream_context_create($opt);
-            $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
-            $json = file_get_contents($url,false,$context);
-            $result=$data = json_decode($json, true);
-            if($result['code']!=1){
-                return 'info';
-            }
+        $reg=$this->field('id')->where($cond)->find();
+        if(empty($reg)){
+            return false;
+        }
+        //percentInfo
+        $cookie=$_COOKIE;
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+                'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+            )
+        );
+        $context = stream_context_create($opt);
+        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+        $json = file_get_contents($url,false,$context);
+        $result=$data = json_decode($json, true);
+        if($result['code']!=1){
+            return 'info';
         }
         $info = $this->field($buyerArr)
                     ->where($cond)
