@@ -22,7 +22,7 @@ class TemporarygoodsController extends PublicController {
         ini_set('memory_limi', '1G');
         $response = (new TemporaryGoodsModel)->sync();
         if ($response !== false) {
-            $this->delcache();
+
             $this->setCode(MSG::MSG_SUCCESS);
             $this->jsonReturn();
         } else {
