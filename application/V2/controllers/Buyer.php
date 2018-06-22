@@ -201,29 +201,30 @@ class BuyerController extends PublicController {
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
-
+        if($ststisInfo===false){
+            $dataJson = array(
+                'code' => 1,
+                'message' => '返回数据',
+                'total_status' => 0,
+                'approved_status' => 0,
+                'approving_status' => 0,
+                'rejected_status' => 0,
+                'currentPage' => 1,
+                'data' => []
+            );
+            $this->jsonReturn($dataJson);
+        }
         $cond = $model->getBuyerStatisListCond($data,false);  //获取条件
         $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
-        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总数
-//        $arr=array(
-//            'total_status'=>$totalCount,
-//            'approved_status'=>$statusCount['APPROVED'],
-//            'approving_status'=>$statusCount['APPROVING'],
-//            'rejected_status'=>$statusCount['REJECTED']
-//        );
-
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-//            'count' => intval($ststisInfo['totalCount']),
-
             'total_status' => intval($totalCount),
             'approved_status' => intval($statusCount['APPROVED']),
             'approving_status' => intval($statusCount['APPROVING']),
             'rejected_status' => intval($statusCount['REJECTED']),
-
             'currentPage' => $ststisInfo['currentPage'],
-//            'data' => $ststisInfo['info']
         );
         if(empty($data['status'])){
             $dataJson['count']=intval($ststisInfo['totalCount']);
