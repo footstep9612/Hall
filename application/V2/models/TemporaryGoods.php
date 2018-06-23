@@ -40,7 +40,6 @@ class TemporaryGoodsModel extends PublicModel {
         $inquiry_item_model = new InquiryItemModel();
 
         $count = $inquiry_item_model->alias('ii')
-                ->field('ii.id,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
                 ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
                 ->where($where)
                 ->order('i.created_at asc')
@@ -49,7 +48,7 @@ class TemporaryGoodsModel extends PublicModel {
         for ($i = 0; $i < $count; $i += 100) {
             $skus = $inquiry_item_model->alias('ii')
                     ->field('ii.id,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
-                    ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
+                    ->join($inquiry_table . ' i on i.id=ii.inquiry_id', 'left')
                     ->where($where)
                     ->order('i.created_at asc')
                     ->limit(0, 100)
@@ -147,16 +146,46 @@ class TemporaryGoodsModel extends PublicModel {
      * @author zyg
      */
     public function Info($id, &$error) {
-        $where = ['id' => $id];
+        $where = ['tg.id' => $id];
 
         try {
-            $info = $this->where($where)
+            $inquiry_table = (new InquiryModel())->getTableName();
+            $quote_item_table = (new QuoteItemModel())->getTableName();
+            $inquiry_item_table = (new InquiryItemModel())->getTableName();
+            $info = $this
+                    ->alias('tg')
+                    ->field('tg.id,tg.sku,tg.inquiry_item_id,tg.inquiry_id,tg.serial_no,tg.inquiry_at,'
+                            . 'tg.name,tg.name_zh,tg.brand,tg.model,tg.deleted_flag,tg.relation_flag,'
+                            . 'tg.updated_by,tg.updated_at,tg.checked_by,tg.checked_at,'
+                            . 'ii.qty,ii.unit,i.project_basic_info,qi.supplier_id,qi.id as quote_item_id,'
+                            . 'qi.purchase_unit_price,qi.purchase_price_cur_bn,'
+                            . 'qi.period_of_validity,qi.gross_weight_kg,qi.package_mode,'
+                            . 'qi.goods_source,qi.stock_loc,qi.delivery_days,qi.package_size')
+                    ->join($inquiry_table . ' i on i.id=tg.inquiry_id and i.deleted_flag=\'N\'')
+                    ->join($inquiry_item_table . ' ii on ii.id=tg.inquiry_item_id and ii.deleted_flag=\'N\'')
+                    ->join($quote_item_table . ' qi on qi.inquiry_item_id=tg.inquiry_item_id  and qi.deleted_flag=\'N\'', 'left')
+                    ->where($where)
                     ->find();
 
             if (empty($info)) {
                 $error = '临时商品不存在!';
                 return null;
             }
+
+            if (!empty($info['supplier_id'])) {
+
+                $supplier = (new SupplierModel())->field('name')
+                                ->where(['id' => $info['supplier_id'], 'deleted_flag' => 'N'])->find();
+                if ($supplier) {
+                    $info['supplier_name'] = $supplier['name'];
+                } else {
+                    $info['supplier_name'] = '';
+                }
+            } else {
+                $info['supplier_name'] = '';
+            }
+
+
             return $info;
         } catch (Exception $ex) {
             $error = $ex->getMessage();
