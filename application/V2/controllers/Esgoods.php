@@ -52,13 +52,16 @@ class EsgoodsController extends PublicController {
      */
     public function listAction() {
         $lang = $this->getPut('lang', 'zh');
-        $data = $this->getPut();
+        $condition = $this->getPut();
         $model = new EsGoodsModel();
-        $ret = $model->getgoods($data, null, $lang);
+        $ret = $model->getgoods($condition, null, $lang);
 
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
+            if (!empty($condition['is_quote_count']) && $condition['is_quote_count'] == 'Y') {
+                $this->_setQuoteNum($list);
+            }
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -85,7 +88,7 @@ class EsgoodsController extends PublicController {
         $data = $this->getPut();
         $model = new EsGoodsModel();
         $_source = ['name', 'name_loc', 'material_cat', 'material_cat_zh', 'sku', 'spu'
-            , 'model', 'brand', 'supplier_count', 'created_at'];
+            , 'model', 'brand', 'supplier_count', 'created_at', 'status', 'onshelf_flag'];
         $ret = $model->getgoods($data, $_source, $lang);
 
         if ($ret) {
@@ -247,7 +250,6 @@ class EsgoodsController extends PublicController {
             if (!empty($item['sku'])) {
                 $skus[] = trim($item['sku']);
             }
-            $list[$key]['quote_num'] = 0;
         }
         if (!empty($skus)) {
             $quote_item_model = new QuoteItemModel();
@@ -261,13 +263,13 @@ class EsgoodsController extends PublicController {
             }
             foreach ($list as $key => $item) {
 
-                $list[$key]['quote_num'] = isset($skusnums[$item['sku']]) ? $skusnums[$item['sku']] : 0;
+                $list[$key]['quote_count'] = isset($skusnums[$item['sku']]) ? intval($skusnums[$item['sku']]) : 0;
             }
         } else {
 
             foreach ($list as $key => $item) {
 
-                $list[$key]['quote_num'] = 0;
+                $list[$key]['quote_count'] = 0;
             }
         }
     }
