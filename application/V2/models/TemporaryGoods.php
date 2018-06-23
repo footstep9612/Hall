@@ -157,11 +157,10 @@ class TemporaryGoodsModel extends PublicModel {
                     ->field('tg.id,tg.sku,tg.inquiry_item_id,tg.inquiry_id,tg.serial_no,tg.inquiry_at,'
                             . 'tg.name,tg.name_zh,tg.brand,tg.model,tg.deleted_flag,tg.relation_flag,'
                             . 'tg.updated_by,tg.updated_at,tg.checked_by,tg.checked_at,'
-                            . 'ii.qty,ii.unit,i.project_basic_info,qi.supplier_id,qi.id as quote_item_id,'
+                            . 'ii.qty,ii.unit,ii.remarks,qi.id as quote_item_id,qi.supplier_id,'
                             . 'qi.purchase_unit_price,qi.purchase_price_cur_bn,'
                             . 'qi.period_of_validity,qi.gross_weight_kg,qi.package_mode,'
                             . 'qi.goods_source,qi.stock_loc,qi.delivery_days,qi.package_size')
-                    ->join($inquiry_table . ' i on i.id=tg.inquiry_id and i.deleted_flag=\'N\'')
                     ->join($inquiry_item_table . ' ii on ii.id=tg.inquiry_item_id and ii.deleted_flag=\'N\'')
                     ->join($quote_item_table . ' qi on qi.inquiry_item_id=tg.inquiry_item_id  and qi.deleted_flag=\'N\'', 'left')
                     ->where($where)
