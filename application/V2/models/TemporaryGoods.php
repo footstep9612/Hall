@@ -198,6 +198,7 @@ class TemporaryGoodsModel extends PublicModel {
                 }
             }
             $flag = $this->where($where)->save(['sku' => $sku,
+                'relation_flag' => 'Y',
                 'updated_by' => defined('UID') ? UID : 0,
                 'updated_at' => date('Y-m-d H:i:s')]);
 
