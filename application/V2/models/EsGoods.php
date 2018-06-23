@@ -248,10 +248,15 @@ class EsGoodsModel extends Model {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
 
+
+
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
             $es->setbody($body);
+            if ($_source) {
+                $es->setfields($_source);
+            }
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc')->setsort('sku', 'desc');
                 $es->setpreference('_primary_first');
