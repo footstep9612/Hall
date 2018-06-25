@@ -1069,11 +1069,11 @@ EOF;
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
-        if (!empty($data['agent'])) {
-            $arr['status'] = 'APPROVED';
-        }
         if (!empty($data['status'])) {
             $arr['status'] = $data['status'];
+        }
+        if (!empty($data['agent'])) {
+            $arr['status'] = 'APPROVED';
         }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
