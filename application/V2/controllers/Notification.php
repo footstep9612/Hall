@@ -29,7 +29,7 @@ class NotificationController extends PublicController
             'deleted_flag'=>'N'
         ];
         $list = $inquiry->where($where)
-                        ->order('id DESC')
+                        ->order('updated_at DESC')
                         ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
                         ->page($page, $pagesize)
                         ->select();
@@ -76,6 +76,7 @@ class NotificationController extends PublicController
             $buyerList = $buyerModel->field('id, status, country_bn, name')
                                                           ->where($where)
                                                           ->page($currentPage, $pageSize)
+                                                          ->order('id DESC')
                                                           ->select();
             foreach ($buyerList as &$buyer) {
                 $buyer['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $buyer['country_bn']])->getField('market_area_bn');
