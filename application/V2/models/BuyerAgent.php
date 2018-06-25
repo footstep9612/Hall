@@ -467,11 +467,13 @@ class BuyerAgentModel extends PublicModel {
         return $str;
     }
     //buyerList 获取经办人信息
-    public function getBuyerAgentArr($buyer_id){
+    public function getBuyerAgentArr($buyer_id,$agent_name=''){
+        $agent_name=trim($agent_name);
+        $cond=array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N','employee.deleted_flag'=>'N');
         $info = $this->alias('agent')
             ->join('erui_sys.employee employee on agent.agent_id=employee.id')
             ->field('agent.agent_id,employee.name')
-            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N','employee.deleted_flag'=>'N'))
+            ->where($cond)
             ->select();
         $nameStr='';
         $idStr='';
@@ -481,6 +483,13 @@ class BuyerAgentModel extends PublicModel {
         ];
         if(!empty($info)){
             foreach($info as $k=> $v){
+                if($v['name']==$agent_name){
+                    $re[]=$v;
+                    unset($info[$k]);
+                }
+            }
+            $test = array_merge($re, $info);
+            foreach($test as $k=> $v){
                 $idStr.=','.$v['agent_id'];
                 $nameStr.=','.$v['name'];
             }
