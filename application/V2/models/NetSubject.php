@@ -183,8 +183,6 @@ class NetSubjectModel extends PublicModel {
                 'erui'=>array('flag'=>'N','net_at'=>'','net_invalid_at'=>'','net_goods'=>'')
             );
         }
-        $arr['equipment_flag']=$arr['equipment']['flag'];
-        $arr['erui_flag']=$arr['erui']['flag'];
         return $arr;
     }
     public function editNetSubject($data){
@@ -197,8 +195,8 @@ class NetSubjectModel extends PublicModel {
         }
     }
     public function addNetSubject($data){
-        $equipment_flag=$data['equipment_flag'];
-        $erui_flag=$data['erui_flag'];
+        $equipment_flag=$data['equipment']['flag'];
+        $erui_flag=$data['erui']['flag'];
 
         $equipment=$data['equipment'];
         $erui=$data['erui'];
@@ -242,10 +240,8 @@ class NetSubjectModel extends PublicModel {
     public function updateNetSubject($data){
         $equipment=$data['equipment'];
         $erui=$data['erui'];
-
-        $equipment_flag=$data['equipment_flag'];
-        $erui_flag=$data['erui_flag'];
-
+        $equipment_flag=$data['equipment']['flag'];
+        $erui_flag=$data['erui']['flag'];
         if($equipment_flag=='N'){
             $equipment=[];
         }
