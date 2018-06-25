@@ -60,6 +60,7 @@ class TemporaryGoodsModel extends PublicModel {
                     continue;
                 }
             }
+            $this->commit();
         }
         $inquiry_table = $inquiry_item_model = null;
         $this->updatesync();
@@ -102,6 +103,7 @@ class TemporaryGoodsModel extends PublicModel {
                     continue;
                 }
             }
+            $this->commit();
         }
     }
 
