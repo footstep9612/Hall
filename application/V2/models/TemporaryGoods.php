@@ -110,7 +110,7 @@ class TemporaryGoodsModel extends PublicModel {
             $item = $this->where($where)
                     ->field('id,sku,inquiry_id, serial_no,inquiry_at,name, name_zh,  brand,  model, '
                             . 'relation_flag,updated_by,  updated_at,  checked_by,  checked_at ')
-                    ->order('id desc')
+                    ->order('inquiry_at desc')
                     ->limit($row_start, $pagesize)
                     ->select();
 
