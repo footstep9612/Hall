@@ -1073,11 +1073,7 @@ EOF;
             $arr['status'] = 'APPROVED';
         }
         if (!empty($data['status'])) {
-            if ($data['status'] == 'REJECTED') {
-                $arr['status'] = 'REJECTED';
-            }else{
-                $arr['status'] = 'APPROVED';
-            }
+            $arr['status'] = $data['status'];
         }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
