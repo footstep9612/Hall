@@ -445,6 +445,8 @@ class BuyerModel extends PublicModel {
                 }
                 $str=implode(',',$arr);
                 $cond.=" and buyer.id in ($str)";
+            }else{
+                $cond.=" and buyer.id in ('crm')";
             }
         }
         return $cond;
@@ -608,6 +610,9 @@ class BuyerModel extends PublicModel {
 
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
+        }
+        if(empty($info)){
+            $info=[];
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;

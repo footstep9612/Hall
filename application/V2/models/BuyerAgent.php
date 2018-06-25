@@ -481,21 +481,39 @@ class BuyerAgentModel extends PublicModel {
             'id'=>'',
             'name'=>''
         ];
-        if(!empty($info)){
-            foreach($info as $k=> $v){
-                if($v['name']==$agent_name){
-                    $re[]=$v;
-                    unset($info[$k]);
+        if(empty($agent_name)){
+            if(!empty($info)){
+                foreach($info as $k=> $v){
+                    $idStr.=','.$v['agent_id'];
+                    $nameStr.=','.$v['name'];
                 }
+                $arr['id']=substr($idStr,1);
+                $arr['name']=substr($nameStr,1);
+            }else{
+                $arr['id']='';
+                $arr['name']='';
             }
-            $test = array_merge($re, $info);
-            foreach($test as $k=> $v){
-                $idStr.=','.$v['agent_id'];
-                $nameStr.=','.$v['name'];
+        }else{
+            if(!empty($info)){
+                foreach($info as $k=> $v){
+                    if($v['name']==$agent_name){
+                        $re[]=$v;
+                        unset($info[$k]);
+                    }
+                }
+                $test = array_merge($re, $info);
+                foreach($test as $k=> $v){
+                    $idStr.=','.$v['agent_id'];
+                    $nameStr.=','.$v['name'];
+                }
+                $arr['id']=substr($idStr,1)?substr($idStr,1):'';
+                $arr['name']=substr($nameStr,1)?substr($nameStr,1):'';
+            }else{
+                $arr['id']='';
+                $arr['name']='';
             }
-            $arr['id']=substr($idStr,1);
-            $arr['name']=substr($nameStr,1);
         }
+
         return $arr;
     }
     //crm 更新市场经办人-wangs
