@@ -32,8 +32,10 @@ class TemporaryGoodsModel extends PublicModel {
 
 
 
-        $where = ['i.deleted_flag' => 'N', 'ii.deleted_flag' => 'N',
-            'ISNULL(ii.sku) or ii.sku=\'\'',
+        $where = ['i.deleted_flag' => 'N',
+            'ii.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+            //  'ISNULL(ii.sku) or ii.sku=\'\'',
             'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )'
         ];
 
@@ -81,21 +83,23 @@ class TemporaryGoodsModel extends PublicModel {
      */
     private function _getcondition($condition) {
 
-        $where = ['deleted_flag' => 'N'];
-        $this->_getValue($where, $condition, 'id', 'string');
+        $where = ['tg.deleted_flag' => 'N',
+            'ii.deleted_flag' => 'N',
+        ];
+        $this->_getValue($where, $condition, 'id', 'string', 'tg.id');
         if (!empty($condition['name'])) {
             $name = trim($condition['name']);
 
-            $map['name'] = ['like', '%' . $name . '%'];
-            $map['name_zh'] = ['like', '%' . $name . '%'];
+            $map['tg.name'] = ['like', '%' . $name . '%'];
+            $map['tg.name_zh'] = ['like', '%' . $name . '%'];
             $map['_logic'] = 'or';
             $where['_complex'] = $map;
         }
-        $this->_getValue($where, $condition, 'inquiry_at', 'between');
+        $this->_getValue($where, $condition, 'inquiry_at', 'between', 'tg.inquiry_at');
         if (!empty($condition['relation_flag'])) {
-            $where['relation_flag'] = $condition['relation_flag'] === 'Y' ? 'Y' : ($condition['relation_flag'] === 'A' ? 'A' : 'N');
+            $where['tg.relation_flag'] = $condition['relation_flag'] === 'Y' ? 'Y' : ($condition['relation_flag'] === 'A' ? 'A' : 'N');
         }
-
+        $where[] = 'ii.id is not null';
         return $where;
     }
 
@@ -114,10 +118,16 @@ class TemporaryGoodsModel extends PublicModel {
 //            return json_decode(redisHashGet(strtoupper($this->tableName), $redis_key), true);
 //        }
         try {
-            $item = $this->where($where)
-                    ->field('id,sku,inquiry_id, serial_no,inquiry_at,name, name_zh,  brand,  model, '
-                            . 'relation_flag,updated_by,  updated_at,  checked_by,  checked_at ')
-                    ->order('inquiry_at desc')
+
+            $inquiry_item_table = (new InquiryItemModel())->getTableName();
+            $item = $this
+                    ->alias('tg')
+                    ->join($inquiry_item_table . ' ii on ii.id=tg.inquiry_item_id', 'left')
+                    ->where($where)
+                    ->field('tg.id,tg.sku,tg.inquiry_id, tg.serial_no,tg.inquiry_at,tg.name, tg.name_zh,  '
+                            . 'tg.brand,  tg.model, '
+                            . 'tg.relation_flag,tg.updated_by,  tg.updated_at,  tg.checked_by,  tg.checked_at ')
+                    ->order('tg.inquiry_at desc')
                     ->limit($row_start, $pagesize)
                     ->select();
 
@@ -278,7 +288,12 @@ class TemporaryGoodsModel extends PublicModel {
         try {
             $item['inquiry_at'] = $item['created_at'];
             if ($item['sku']) {
-                $item['relation_flag'] = 'Y';
+
+                $sku = trim($item['sku']);
+                $info = (new GoodsModel)->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
+                if ($info) {
+                    $item['relation_flag'] = 'Y';
+                }
             }
             $item['inquiry_item_id'] = $item['id'];
             unset($item['id']);
