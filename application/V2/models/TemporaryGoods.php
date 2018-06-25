@@ -32,7 +32,8 @@ class TemporaryGoodsModel extends PublicModel {
 
 
 
-        $where = ['i.deleted_flag' => 'N', 'ii.deleted_flag' => 'N', 'ISNULL(ii.sku) ',
+        $where = ['i.deleted_flag' => 'N', 'ii.deleted_flag' => 'N',
+            'ISNULL(ii.sku) or ii.sku=\'\'',
             'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )'
         ];
 
@@ -47,13 +48,15 @@ class TemporaryGoodsModel extends PublicModel {
 
         for ($i = 0; $i < $count; $i += 100) {
             $skus = $inquiry_item_model->alias('ii')
-                    ->field('ii.id,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
+                    ->field('ii.id,ii.sku,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
                     ->join($inquiry_table . ' i on i.id=ii.inquiry_id', 'left')
                     ->where($where)
                     ->order('i.created_at asc')
                     ->limit(0, 100)
                     ->select();
             $this->startTrans();
+
+
             foreach ($skus as $item) {
 
                 $flag = $this->addData($item);
@@ -267,6 +270,9 @@ class TemporaryGoodsModel extends PublicModel {
 
         try {
             $item['inquiry_at'] = $item['created_at'];
+            if ($item['sku']) {
+                $item['relation_flag'] = 'Y';
+            }
             $item['inquiry_item_id'] = $item['id'];
             unset($item['id']);
             $data = $this->create($item);
