@@ -772,7 +772,7 @@ class UserController extends PublicController {
             'show_goods_check' => 'SPU审核'
         ];
         foreach ($mapping as $k => $v) {
-            $data[$k] = 'N';
+            $data[$k]['show'] = 'N';
         }
         $this->_scanMenu($menu, $mapping, $data);
         $this->jsonReturn([
@@ -792,10 +792,12 @@ class UserController extends PublicController {
      * @time 2018-06-19
      */
     private function _scanMenu($menu, $mapping, &$data) {
+        $urlPermModel = new UrlPermModel();
         foreach ($menu as $item) {
             foreach ($mapping as $k => $v) {
                 if ($item['fn'] == $v) {
-                    $data[$k] = 'Y';
+                    $data[$k]['show'] = 'Y';
+                    $data[$k]['parent_id'] = $urlPermModel->getOneLevelMenuId($item['func_perm_id']);
                 }
             }
             if (isset($item['children'])) {

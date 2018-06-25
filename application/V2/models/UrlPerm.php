@@ -107,5 +107,22 @@ class UrlPermModel extends PublicModel {
         $data['created_at'] = date("Y-m-d H:i:s");
         return $this->add($data);
     }
+    
+    /**
+     * @desc 获取指定菜单的一级父类菜单ID
+     *
+     * @param int $menuId 菜单ID
+     * @return mixed
+     * @author liujf
+     * @time 2018-06-25
+     */
+    public function getOneLevelMenuId($menuId) {
+        $parentId = $this->where(['id' => $menuId])->getField('parent_id');
+        if ($parentId > 0) {
+            return $this->getOneLevelMenuId($parentId);
+        } else {
+            return $menuId;
+        }
+    }
 
 }
