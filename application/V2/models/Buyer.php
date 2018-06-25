@@ -213,7 +213,7 @@ class BuyerModel extends PublicModel {
      * 客户管理-客户统计-获取所有客户的搜索列表条件
      * wangs
      */
-    public function getBuyerStatisListCond($data,$falg=true){
+    public function getBuyerStatisListCond1($data,$falg=true){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -350,6 +350,102 @@ class BuyerModel extends PublicModel {
         }
         if(!empty($data['level_at_end'])){  //审核时间===buy
             $cond .= " and buyer.level_at <= '".$data['level_at_end']."'";
+        }
+        return $cond;
+    }
+    public function getBuyerStatisListCond($data,$falg=true){
+        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
+        if(empty($data['admin']['role'])){
+            return false;
+        }
+        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
+                return false;
+            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
+                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
+            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=$this->validAgent($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " and buyer.id in ($str) ";
+                }else{
+                    $cond.= " and buyer.id in ('wangs') ";
+                }
+            }else{  //即使国家负责人,也是市场经办人
+                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=$this->validAgent($createdArr,$list);
+//                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " or buyer.id in ($str) )";
+                }else{
+                    $cond.= " or buyer.id in ('wangs') )";
+                }
+            }
+        }else{
+            $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
+        }
+        foreach($data as $k => $v){
+            $data[$k]=trim($v,' ');
+        }
+        if(!empty($data['country_search'])){    //国家搜索
+            $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
+        }
+
+        if(!empty($data['buyer_no'])){  //客户编号
+            $data['buyer_no']=trim($data['buyer_no']," ");
+            $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
+        }
+        if(!empty($data['buyer_code'])){    //客户CRM代码
+            $data['buyer_code']=trim($data['buyer_code']," ");
+            $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
+        }
+        if(!empty($data['name'])){    //客户名称
+            $data['name']=trim($data['name']," ");
+            $cond .= " and buyer.name like '%".$data['name']."%'";
+        }
+        if($falg===true){
+            if(!empty($data['status'])){    //审核状态
+                if($data['status']=='PASS'){
+                    $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
+                }else{
+                    $cond .= " and buyer.status='".$data['status']."'";
+                }
+            }
+        }
+
+        if(!empty($data['employee_name'])){  //创建人名称
+            $map="employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
+            $info=$this->table('erui_buyer.buyer_agent')->alias('agent')
+                ->join("erui_sys.employee employee on agent.agent_id=employee.id",'left')
+                ->field('agent.buyer_id')
+                ->where($map)
+                ->group('agent.buyer_id')
+                ->select();
+            if(!empty($info)){
+                $arr=[];
+                foreach($info as $k => $v){
+                    $arr[]=$v['buyer_id'];
+                }
+                $str=implode(',',$arr);
+                $cond.=" and buyer.id in ($str)";
+            }
         }
         return $cond;
     }
