@@ -83,7 +83,14 @@ class TemporaryGoodsModel extends PublicModel {
 
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'id', 'string');
-        $this->_getValue($where, $condition, 'name', 'like');
+        if (!empty($condition['name'])) {
+            $name = trim($condition['name']);
+
+            $map['name'] = ['like', '%' . $name . '%'];
+            $map['name_zh'] = ['like', '%' . $name . '%'];
+            $map['_logic'] = 'or';
+            $where['_complex'] = $map;
+        }
         $this->_getValue($where, $condition, 'inquiry_at', 'between');
         if (!empty($condition['relation_flag'])) {
             $where['relation_flag'] = $condition['relation_flag'] === 'Y' ? 'Y' : ($condition['relation_flag'] === 'A' ? 'A' : 'N');
