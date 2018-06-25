@@ -195,26 +195,29 @@ class NetSubjectModel extends PublicModel {
         }
     }
     public function addNetSubject($data){
-        $equipment=[];
-        $erui=[];
-        $equipment_flag='Y';
-        $erui_flag='Y';
         if(!empty($data['equipment'])){
             $equipment=$data['equipment'];
-            $equipment_flag=$data['equipment']['flag'];
+            $equipment_flag='Y';
+        }else{
+            $equipment=[];
+            $equipment_flag='N';
         }
         if(!empty($data['erui'])){
             $erui=$data['erui'];
-            $erui_flag=$data['erui']['flag'];
+            $erui_flag='Y';
+        }else{
+            $erui=[];
+            $erui_flag='N';
         }
+
         $buyer_id=$data['buyer_id'];
         $created_by=$data['created_by'];
-        if($equipment_flag=='N'){
-            $equipment=[];
-        }
-        if($erui_flag=='N'){
-            $erui=[];
-        }
+//        if($equipment_flag=='N'){
+//            $equipment=[];
+//        }
+//        if($erui_flag=='N'){
+//            $erui=[];
+//        }
         $arr=[
             array(
                 'flag'=>$equipment_flag,
@@ -247,24 +250,24 @@ class NetSubjectModel extends PublicModel {
     public function updateNetSubject($data){
         if(!empty($data['equipment'])){
             $equipment=$data['equipment'];
-            $equipment_flag=$data['equipment']['flag'];
+            $equipment_flag='Y';
         }else{
             $equipment=[];
             $equipment_flag='N';
         }
         if(!empty($data['erui'])){
             $erui=$data['erui'];
-            $erui_flag=$data['erui']['flag'];
+            $erui_flag='Y';
         }else{
             $erui=[];
             $erui_flag='N';
         }
-        if($equipment_flag=='N'){
-            $equipment=[];
-        }
-        if($erui_flag=='N'){
-            $erui=[];
-        }
+//        if($equipment_flag=='N'){
+//            $equipment=[];
+//        }
+//        if($erui_flag=='N'){
+//            $erui=[];
+//        }
         $buyer_id=$data['buyer_id'];
         $created_by=$data['created_by'];
         $equipmentArr=array(
