@@ -29,30 +29,18 @@ class TemporaryGoodsModel extends PublicModel {
      * @author zyg
      */
     public function sync() {
-
-
-
-        $inquiry_at = $this->field('inquiry_at')->order('inquiry_at desc')->find();
+        //  $inquiry_at = $this->field('created_at')->order('created_at desc')->find();
 
         $where = ['i.deleted_flag' => 'N',
             'ii.deleted_flag' => 'N',
             'i.status' => ['neq', 'DRAFT'],
+            'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )'
         ];
-        if (!empty($inquiry_at['inquiry_at'])) {
-            $map[] = 'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )';
-            $map['ii.updated_at'] = ['egt', $inquiry_at['inquiry_at']];
-            $map['_logic'] = 'or';
-            $where['_complex'] = $map;
-        } else {
-            $where[] = 'NOT EXISTS(select tg.id from ' . $this->getTableName() . ' as tg WHERE tg.inquiry_item_id = ii.id )';
-        }
         $inquiry_table = (new InquiryModel())->getTableName();
         $inquiry_item_model = new InquiryItemModel();
-
         $count = $inquiry_item_model->alias('ii')
                 ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
                 ->where($where)
-                ->order('i.created_at asc')
                 ->count();
 
         for ($i = 0; $i < $count; $i += 100) {
@@ -63,22 +51,58 @@ class TemporaryGoodsModel extends PublicModel {
                     ->order('i.created_at asc')
                     ->limit(0, 100)
                     ->select();
+
             $this->startTrans();
-
-
             foreach ($skus as $item) {
-
-                $flag = $this->addData($item, isset($inquiry_at['inquiry_at']) ? $inquiry_at['inquiry_at'] : null);
-
+                $flag = $this->addData($item, null);
                 if ($flag === false) {
 
                     continue;
                 }
             }
-            $this->commit();
         }
+        $inquiry_table = $inquiry_item_model = null;
+        $this->updatesync();
+
         return true;
         //从询报价sku同步到临时商品库
+    }
+
+    private function updatesync() {
+
+        $inquiry_table = (new InquiryModel())->getTableName();
+        $inquiry_item_model = new InquiryItemModel();
+
+        $where = ['i.deleted_flag' => 'N',
+            'ii.deleted_flag' => 'N',
+            'ii.updated_at is not null',
+            'i.status' => ['neq', 'DRAFT'],
+            ' EXISTS(select tg.id from ' . $this->getTableName() . ' as tg '
+            . 'WHERE tg.inquiry_item_id = ii.id and tg.updated_at<ii.updated_at )'
+        ];
+        $count = $inquiry_item_model->alias('ii')
+                ->join($inquiry_table . ' i on i.id=ii.inquiry_id')
+                ->where($where)
+                ->count();
+
+        for ($i = 0; $i < $count; $i += 100) {
+            $skus = $inquiry_item_model->alias('ii')
+                    ->field('ii.updated_at,ii.id,ii.sku,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
+                    ->join($inquiry_table . ' i on i.id=ii.inquiry_id', 'left')
+                    ->where($where)
+                    ->order('i.created_at asc')
+                    ->limit(0, 100)
+                    ->select();
+            echo $inquiry_item_model->_sql();
+            $this->startTrans();
+            foreach ($skus as $item) {
+                $flag = $this->addData($item, true);
+                if ($flag === false) {
+
+                    continue;
+                }
+            }
+        }
     }
 
     /**
@@ -285,15 +309,16 @@ class TemporaryGoodsModel extends PublicModel {
     /**
      * 获取数据条数
      * @param array $item ID
-     * @param string $inquiry_at SKU
+     * @param string $inquiry_flag SKU
      * @return mix
      * @author zyg
      */
-    public function addData($item, $inquiry_at = null) {
+    public function addData($item, $inquiry_flag = false) {
 
 
         try {
             $item['inquiry_at'] = $item['created_at'];
+
             if ($item['sku']) {
 
                 $sku = trim($item['sku']);
@@ -304,13 +329,10 @@ class TemporaryGoodsModel extends PublicModel {
             }
             $item['inquiry_item_id'] = $item['id'];
             unset($item['id']);
-            if ($inquiry_at && $item['updated_at']) {
+            if ($inquiry_flag) {
                 $info = $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->find();
-                if ($info) {
-                    $data = $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->save($item);
-                } else {
-                    $data = $this->create($item);
-                }
+
+                $data = $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->save($item);
             } else {
 
                 $data = $this->create($item);
