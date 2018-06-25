@@ -431,7 +431,7 @@ class BuyerModel extends PublicModel {
         }
 
         if(!empty($data['employee_name'])){  //创建人名称
-            $map="employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
+            $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
             $info=$this->table('erui_buyer.buyer_agent')->alias('agent')
                 ->join("erui_sys.employee employee on agent.agent_id=employee.id",'left')
                 ->field('agent.buyer_id')
@@ -528,12 +528,116 @@ class BuyerModel extends PublicModel {
         $info=$this->query($sql);
         return $info[0]['name'];
     }
+    public function buyerStatisList($data,$excel=false){
+        set_time_limit(0);
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        $cond = $this->getBuyerStatisListCond($data);
+        if($cond==false){   //无角色,无数据
+            return false;
+        }
+        $currentPage = 1;
+        $pageSize = 10;
+        $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
+        $totalPage = ceil($totalCount/$pageSize);
+        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+            $currentPage = ceil($data['currentPage']);
+        }
+        $offset = ($currentPage-1)*$pageSize;
+        $field='';
+        $fieldArr = array(
+            'id',
+            'buyer_no',     //客户编号
+            'buyer_code',   //客户CRM代码buy
+            'name',   //客户名称buy
+            'status',   //审核状态
+            'buyer_level',  //客户等级
+            'level_at',  //客户等级
+            'country_bn',    //国家
+            'created_at',   //注册时间/创建时间
+        );
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $field=substr($field,1);
+        //excel导出标识
+        if($excel==true){
+            $offset=0;
+            $pageSize=10000;
+        }
+        $info = $this->alias('buyer')
+            ->field($field)
+            ->where($cond)
+            ->group('buyer.id')
+            ->order('buyer.checked_at desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        $level = new BuyerLevelModel();
+        $country = new CountryModel();
+        $order = new OrderModel();
+        $agent = new BuyerAgentModel();
+        foreach($info as $k => $v){
+            if(!empty($v['buyer_level'])){ //客户等级
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
+            }
+            if(!empty($v['percent'])){  //信息完整度
+                $info[$k]['percent']=$v['percent'].'%';
+            }else{
+                $info[$k]['percent']='--';
+            }
+//            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
+//                $info[$k]['status'] = 'PASS';
+//            }
+            unset($info[$k]['is_build']);
+            if(!empty($v['country_bn'])){ //国家
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['area'];
+                $info[$k]['country_name'] = $area['country'];
+            }
+            $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['employee_name'] = $agentInfo['name'];
+            $orderInfo=$order->statisOrder($v['id']);
+            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
+        }
+        if($excel==false){
+            $arr['currentPage'] = $currentPage;
+            $arr['totalPage'] = $totalPage;
+            $arr['totalCount'] = $totalCount;
+            $arr['info'] = $info;
+            return $arr;
+        }
+        //整合excel导出数据
+        $package=$this->packageBuyerListExcelData($info,$lang);
+        $excelFile=$this->crmExportBuyerListExcel($package,$lang);
+        //
+        $arr['tmp_name'] = $excelFile;
+        $arr['type'] = 'application/excel';
+        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelFile)){
+            unlink($excelFile); //删除文件
+//            ZipHelper::removeDir(dirname($excelName));    //清除目录
+        }
+        if ($fileId) {
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
+    }
     /**
      * @param $data
      * 客户管理-客户统计-所有客户的搜索列表
      * wangs
      */
-    public function buyerStatisList($data,$excel=false){
+    public function buyerStatisList1($data,$excel=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
@@ -589,6 +693,7 @@ class BuyerModel extends PublicModel {
             ->order('buyer.checked_at desc')
             ->limit($offset,$pageSize)
             ->select();
+        echo $this->getLastSql();die;
         $level = new BuyerLevelModel();
         $country = new CountryModel();
         $order = new OrderModel();
