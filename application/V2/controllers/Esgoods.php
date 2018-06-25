@@ -85,11 +85,15 @@ class EsgoodsController extends PublicController {
      */
     public function RelationlistAction() {
         $lang = $this->getPut('lang', 'zh');
-        $data = $this->getPut();
+        $condition = $this->getPut();
+        $condition['onshelf_flag'] = 'A';
+        $condition['status'] = 'ALL';
+        $condition['shelves_status'] = 'ALL';
+
         $model = new EsGoodsModel();
         $_source = ['name', 'name_loc', 'material_cat', 'material_cat_zh', 'sku', 'spu'
             , 'model', 'brand', 'supplier_count', 'created_at', 'status', 'onshelf_flag'];
-        $ret = $model->getgoods($data, $_source, $lang);
+        $ret = $model->getgoods($condition, $_source, $lang);
 
         if ($ret) {
             $data = $ret[0];
