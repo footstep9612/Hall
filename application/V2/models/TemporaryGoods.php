@@ -322,7 +322,6 @@ class TemporaryGoodsModel extends PublicModel {
             $item['inquiry_at'] = $item['created_at'];
 
             if ($item['sku']) {
-
                 $sku = trim($item['sku']);
                 $goods = (new GoodsModel)->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
                 if ($goods) {
