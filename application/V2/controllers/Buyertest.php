@@ -72,6 +72,30 @@ class BuyertestController extends PublicController
         }
         print_r(count($arr));die;
     }
+    public function statusTestAction(){
+        $buyer=new BuyerModel();
+        $info=$buyer->field('id as buyer_id,status')->where(array('deleted_flag'=>'N'))->select();
+        $arr=[];
+        foreach($info as $k => $v){
+            $res=$buyer->table('erui_buyer.buyer_agent')->where(array('buyer_id'=>$v['buyer_id'],'deleted_flag'=>'N'))->select();
+            $count=count($res);
+            if($v['status']=='APPROVING'){
+                if($count>0){
+                    $buyer->where(array('id'=>$v['buyer_id']))->save(array('status'=>'APPROVED'));
+                }else{
+                    $buyer->where(array('id'=>$v['buyer_id']))->save(array('status'=>'APPROVING'));
+                }
+            }
+            if($v['status']=='APPROVED'){
+                if($count>0){
+                    $buyer->where(array('id'=>$v['buyer_id']))->save(array('status'=>'APPROVED'));
+                }else{
+                    $buyer->where(array('id'=>$v['buyer_id']))->save(array('status'=>'APPROVING'));
+                }
+            }
+        }
+        print_r(1);die;
+    }
     private function percentInfo($data=[]){
         if(empty($data['buyer_id'])){
             $dataJson=array(
