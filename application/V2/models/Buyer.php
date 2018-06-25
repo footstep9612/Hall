@@ -550,6 +550,7 @@ class BuyerModel extends PublicModel {
             'buyer_code',   //客户CRM代码buy
             'name',   //客户名称buy
             'status',   //审核状态
+            'source',   //审核状态
             'buyer_level',  //客户等级
             'level_at',  //客户等级
             'country_bn',    //国家
