@@ -582,11 +582,11 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
-            if(!empty($v['percent'])){  //信息完整度
-                $info[$k]['percent']=$v['percent'].'%';
-            }else{
-                $info[$k]['percent']='--';
-            }
+//            if(!empty($v['percent'])){  //信息完整度
+//                $info[$k]['percent']=$v['percent'].'%';
+//            }else{
+//                $info[$k]['percent']='--';
+//            }
 //            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
 //                $info[$k]['status'] = 'PASS';
 //            }
@@ -596,11 +596,15 @@ class BuyerModel extends PublicModel {
                 $info[$k]['area'] = $area['area'];
                 $info[$k]['country_name'] = $area['country'];
             }
-            $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            if(!empty($data['employee_name'])){
+                $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['employee_name']);
+            }else{
+                $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            }
             $info[$k]['agent_id'] = $agentInfo['id'];
             $info[$k]['employee_name'] = $agentInfo['name'];
-            $orderInfo=$order->statisOrder($v['id']);
-            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+//            $orderInfo=$order->statisOrder($v['id']);
+//            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
 
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
