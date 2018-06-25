@@ -23,6 +23,7 @@ class NotificationController extends PublicController
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
         $countryModel = new CountryModel();
+        $urlPermModel = new UrlPermModel();
         $where = [
             'now_agent_id'=>$this->user['id'], 
             'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']], 
@@ -47,6 +48,7 @@ class NotificationController extends PublicController
             $res['code'] = '1';
             $res['message'] = L('SUCCESS');
             $res['count'] = $inquiry->where($where)->count('id') ? : 0;
+            $res['parent_id'] = $urlPermModel->getMenuIdByName('询报价');
             $res['data'] = $list;
         } else {
             $res['code'] = '-101';
@@ -70,6 +72,7 @@ class NotificationController extends PublicController
             $marketAreaCountryModel = new MarketAreaCountryModel();
             $marketAreaModel = new MarketAreaModel();
             $countryModel = new CountryModel();
+            $urlPermModel = new UrlPermModel();
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
             $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ? : ['-1']], 'deleted_flag' => 'N'];
@@ -87,6 +90,7 @@ class NotificationController extends PublicController
                 $res['code'] = '1';
                 $res['message'] = L('SUCCESS');
                 $res['count'] = $buyerModel->where($where)->count('id') ? : 0;
+                $res['parent_id'] = $urlPermModel->getMenuIdByName('客户');
                 $res['data'] = $buyerList;
             } else {
                 $res['code'] = '-101';

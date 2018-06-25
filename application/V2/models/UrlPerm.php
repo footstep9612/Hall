@@ -124,5 +124,17 @@ class UrlPermModel extends PublicModel {
             return $menuId;
         }
     }
+    
+    /**
+     * @desc 根据菜单名称获取菜单ID
+     *
+     * @param string $name 菜单名称
+     * @return int
+     * @author liujf
+     * @time 2018-06-25
+     */
+    public function getMenuIdByName($name) {
+        return $this->where(['fn' => $name, 'parent_id' => '0'])->getField('id') ? : 0;
+    }
 
 }
