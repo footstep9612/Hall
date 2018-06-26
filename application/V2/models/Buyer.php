@@ -587,7 +587,7 @@ class BuyerModel extends PublicModel {
         if($cond==false){   //无角色,无数据
             return false;
         }
-        $currentPage = 1;
+        $currentPage = !empty($data['currentPage'])?$data['currentPage']:1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
         $totalPage = ceil($totalCount/$pageSize);
@@ -1950,7 +1950,7 @@ EOF;
         if($cond==false){   //无角色,无数据
             return false;
         }
-        $currentPage = 1;
+        $currentPage = !empty($data['currentPage'])?$data['currentPage']:1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
         $totalPage = ceil($totalCount/$pageSize);
