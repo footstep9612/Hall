@@ -872,15 +872,9 @@ EOF;
         }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
-        if (!empty($res)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $res;
-            $datajson['message'] = '成功';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
-        }
+        $datajson['code'] = 1;
+        $datajson['data'] = $res?$res:[];
+        $datajson['message'] = '数据';
         $this->jsonReturn($datajson);
     }
     public function updateagentAction() {
