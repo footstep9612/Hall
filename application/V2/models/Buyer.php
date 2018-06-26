@@ -557,6 +557,7 @@ class BuyerModel extends PublicModel {
             'level_at',  //客户等级
             'country_bn',    //国家
             'created_at',   //注册时间/创建时间
+            'created_by',   //注册时间/创建时间
         );
         foreach($fieldArr as $v){
             $field .= ',buyer.'.$v;
@@ -584,20 +585,12 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
-//            if(!empty($v['percent'])){  //信息完整度
-//                $info[$k]['percent']=$v['percent'].'%';
-//            }else{
-//                $info[$k]['percent']='--';
-//            }
-//            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
-//                $info[$k]['status'] = 'PASS';
-//            }
-            unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $area['area'];
                 $info[$k]['country_name'] = $area['country'];
             }
+
             if(!empty($data['employee_name'])){
                 $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['employee_name']);
             }else{
@@ -605,6 +598,14 @@ class BuyerModel extends PublicModel {
             }
             $info[$k]['agent_id'] = $agentInfo['id'];
             $info[$k]['employee_name'] = $agentInfo['name'];
+
+            if($v['source']==1 && empty($info[$k]['employee_name'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+//                $info[$k]['created_name']=$name['name'];
+                $info[$k]['agent_id'] = $v['created_by'];
+                $info[$k]['employee_name']=$name['name'];
+            }
 //            $orderInfo=$order->statisOrder($v['id']);
 //            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
 
