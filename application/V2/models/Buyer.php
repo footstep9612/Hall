@@ -404,20 +404,37 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
+
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
-
+        if(!empty($data['source'])){    //来源
+            if($data['buyer_level']=='1'){
+                $cond .= " And `buyer`.source=1";
+            }elseif($data['buyer_level']=='2'){
+                $cond .= " And `buyer`.source=2";
+            }elseif($data['buyer_level']=='3'){
+                $cond .= " And `buyer`.source=3";
+            }else{
+                $cond .= " And `buyer`.source=4";
+            }
+        }
+        if(!empty($data['buyer_level'])){    //级别
+            if($data['buyer_level']=='52'){
+                $cond .= " And `buyer`.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " And `buyer`.buyer_level=53";
+            }else{
+                $cond .= " And `buyer`.buyer_level=4";
+            }
+        }
         if(!empty($data['buyer_no'])){  //客户编号
-            $data['buyer_no']=trim($data['buyer_no']," ");
             $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
         }
         if(!empty($data['buyer_code'])){    //客户CRM代码
-            $data['buyer_code']=trim($data['buyer_code']," ");
             $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
         }
         if(!empty($data['name'])){    //客户名称
-            $data['name']=trim($data['name']," ");
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         if($falg===true){
@@ -430,8 +447,12 @@ class BuyerModel extends PublicModel {
             }
         }
 
-        if(!empty($data['employee_name'])){  //创建人名称
-            $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
+        if(!empty($data['employee_name']) || !empty($data['agent_name'])){  //经办人
+            if(!empty($data['employee_name'])){
+                $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
+            }elseif(!empty($data['agent_name'])){
+                $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['agent_name']."%'";
+            }
             $info=$this->table('erui_buyer.buyer_agent')->alias('agent')
                 ->join("erui_sys.employee employee on agent.agent_id=employee.id",'left')
                 ->field('agent.buyer_id')
