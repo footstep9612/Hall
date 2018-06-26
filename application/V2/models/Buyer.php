@@ -404,8 +404,10 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-        if(!empty($data['status'])){    //状态
-            $cond .= " And `buyer`.status='".$data['status']."'";
+        if($falg==true){
+            if(!empty($data['status'])){    //状态
+                $cond .= " And `buyer`.status='".$data['status']."'";
+            }
         }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
