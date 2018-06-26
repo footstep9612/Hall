@@ -1947,6 +1947,20 @@ EOF;
             }else{
                 $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
+            if($v['source']==1){
+                $info[$k]['source']=$lang=='zh'?'后台':'BOSS';
+            }elseif($v['source']==2){
+                $info[$k]['source']=$lang=='zh'?'门户':'WEB';
+            }elseif($v['source']==3){
+                $info[$k]['source']=$lang=='zh'?'移动':'APP';
+            }
+            if($v['status']=='APPROVING'){
+                $info[$k]['status']=$lang=='zh'?'待分配':'APPROVING';
+            }elseif($v['status']=='APPROVED'){
+                $info[$k]['status']=$lang=='zh'?'已分配':'APPROVED';
+            }elseif($v['status']=='REJECTED'){
+                $info[$k]['status']=$lang=='zh'?'已关闭':'REJECTED';
+            }
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $area['area'];
