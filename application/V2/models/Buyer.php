@@ -2278,9 +2278,9 @@ EOF;
         if(empty($reg)){
             return false;
         }
-//        $config = \Yaf_Application::app()->getConfig();
-//        $ssoServer=$config['ssoServer'];
-//        print_r($ssoServer);die;
+        $config = \Yaf_Application::app()->getConfig();
+        $myhost=$config['myhost'];
+//        print_r($myhost);die;
         //percentInfo
         $cookie=$_COOKIE;
         $opt = array(
@@ -2291,7 +2291,8 @@ EOF;
             )
         );
         $context = stream_context_create($opt);
-        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+        $url = $myhost.'v2/Buyerfiles/percentInfo';
+//        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
         $json = file_get_contents($url,false,$context);
         $result=$data = json_decode($json, true);
         if($result['code']!=1){
