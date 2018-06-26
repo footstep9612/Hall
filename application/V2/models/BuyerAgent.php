@@ -67,7 +67,6 @@ class BuyerAgentModel extends PublicModel {
                 ->order('buyer_agent.id desc')
                 ->select();
             return $info;
-            $this->getLastSql();die;
         }
     }
 
