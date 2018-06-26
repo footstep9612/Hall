@@ -457,10 +457,10 @@ class BuyerModel extends PublicModel {
         $sql.=" FROM erui_buyer.buyer buyer";   //buyer
         $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
         $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-        $sql.=" left Join `erui_dict`.`country` country";   //country
-        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
-        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+//        $sql.=" left Join `erui_dict`.`country` country";   //country
+//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
+//        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
         $sql.= 'where '.$cond;
         $count=$this->query($sql);
         $totalCount=$count[0]['total_count'];   //总条数
@@ -504,11 +504,11 @@ class BuyerModel extends PublicModel {
         $sql .= ' FROM erui_buyer.buyer buyer';
         $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
         $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-        $sql.=" left Join `erui_dict`.`country` country";   //country
-        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
-        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
-        $sql.= 'where '.$cond;
+//        $sql.=" left Join `erui_dict`.`country` country";   //country
+//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
+//        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+        $sql.= ' where '.$cond;
         $sql.= ' GROUP BY buyer.id,buyer.status) gbuyer';
 
         $sql.= ' group by gbuyer.status';
