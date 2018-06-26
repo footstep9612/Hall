@@ -1669,7 +1669,7 @@ EOF;
         $group = $this->groupCrmCode($data['buyer_code']);
         if ($group=='no') {
             $dataJson = array(
-                'code' => 0,
+                'code' => 4,
                 'message' => '网络异常'
             );
         }elseif($group=='code'){
