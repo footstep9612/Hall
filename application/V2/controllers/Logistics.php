@@ -838,6 +838,7 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['inquiry_id']) && !empty($condition['current_node'])) {
 	        $this->inquiryModel->startTrans();
 	        
+	        $where = ['inquiry_id' => $condition['inquiry_id']];
 	        $inquiry = $this->inquiryModel->field('quote_id, logi_agent_id')->where(['id' => $condition['inquiry_id']])->find();
 	        
 	        $data = [
@@ -849,6 +850,8 @@ class LogisticsController extends PublicController {
 	            case 'issue' :
 	                $status = 'BIZ_QUOTING'; 
 	                $data['now_agent_id'] = $inquiry['quote_id'];
+	                // 清除物流报价SKU
+	                $logiRes = $this->quoteItemLogiMode->where($where)->delete();
 	                break;
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING'; 
@@ -871,16 +874,26 @@ class LogisticsController extends PublicController {
 	            'updated_by' => $this->user['id'],
 	            'updated_at' => $this->time
 	        ];
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
+	        $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        
 	        if ($res1['code'] == 1 && $res2) {
-	            $this->inquiryModel->commit();
-	            $res = true;
+	            if ($condition['current_node'] == 'issue') {
+	                if ($logiRes) {
+	                    $res = true;
+	                } else {
+	                    $res = false;
+	                }
+	            } else {
+	                $res = true;
+	            }
 	        } else {
-	            $this->inquiryModel->rollback();
 	            $res = false;
 	        }
-	
+	        if ($res) {
+	            $this->inquiryModel->commit();
+	        } else {
+	            $this->inquiryModel->rollback();
+	        }
 	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);
