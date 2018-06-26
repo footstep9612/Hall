@@ -1874,22 +1874,100 @@ EOF;
      * 客户档案管理搜索列表-
      * wangs
      */
-    public function buyerList($data)
+    public function buyerList1($data)
     {
-        $page = isset($data['page'])?$data['page']:1;
+////        $page = isset($data['page'])?$data['page']:1;
+////        $pageSize = 10;
+////        $offset = ($page-1)*$pageSize;
+////        $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
+//        $arr = $this->getBuyerStatisListCond($data);    //获取数据
+//        print_r($arr);die;
+//        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
+//        $totalPage = ceil($totalCount/$pageSize);
+//        $info = $arr['info']?$arr['info']:[];
+//        $res = array(
+//            'page'=>$page,
+//            'totalCount'=>$totalCount,
+//            'totalPage'=>$totalPage,
+//            'info' => $info
+//        );
+//        return $res;
+    }
+    public function buyerList($data,$excel=false){
+        set_time_limit(0);
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        $cond = $this->getBuyerStatisListCond($data);
+        if($cond==false){   //无角色,无数据
+            return false;
+        }
+        $currentPage = 1;
         $pageSize = 10;
-        $offset = ($page-1)*$pageSize;
-        $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
-        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
+        $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
         $totalPage = ceil($totalCount/$pageSize);
-        $info = $arr['info']?$arr['info']:[];
-        $res = array(
-            'page'=>$page,
-            'totalCount'=>$totalCount,
-            'totalPage'=>$totalPage,
-            'info' => $info
+        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+            $currentPage = ceil($data['currentPage']);
+        }
+        $offset = ($currentPage-1)*$pageSize;
+        $field='';
+        $fieldArr = array(
+            'id',
+            'percent',
+            'buyer_no',     //客户编号
+            'buyer_code',   //客户CRM代码buy
+            'name',   //客户名称buy
+            'status',   //审核状态
+            'source',   //审核状态
+            'buyer_level',  //客户等级
+            'level_at',  //客户等级
+            'country_bn',    //国家
+            'created_at',   //注册时间/创建时间
+            'created_by',   //注册时间/创建时间
         );
-        return $res;
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $field=substr($field,1);
+        $info = $this->alias('buyer')
+            ->field($field)
+            ->where($cond)
+            ->group('buyer.id')
+            ->order('buyer.checked_at desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        $level = new BuyerLevelModel();
+        $country = new CountryModel();
+        foreach($info as $k => $v){
+            if(empty($v['percent'])){
+                $info[$k]['percent']='--';
+            }
+            if(!empty($v['buyer_level'])){ //客户等级
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
+            }
+            if(!empty($v['country_bn'])){ //国家
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['area'];
+                $info[$k]['country_name'] = $area['country'];
+            }
+            if(!empty($v['created_by'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+                $info[$k]['created_name']=$name['name'];
+            }else{
+                $info[$k]['created_name']='';
+            }
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            unset($info[$k]['created_by']);
+        }
+        if(empty($info)){
+            $info=[];
+        }
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
