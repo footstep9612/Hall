@@ -95,7 +95,6 @@ class TemporaryGoodsModel extends PublicModel {
                     ->limit(0, 100)
                     ->select();
 
-            var_dump($skus);
             $this->startTrans();
             foreach ($skus as $item) {
                 $flag = $this->addData($item, true);
