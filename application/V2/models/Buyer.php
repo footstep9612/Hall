@@ -404,7 +404,9 @@ class BuyerModel extends PublicModel {
         foreach($data as $k => $v){
             $data[$k]=trim($v,' ');
         }
-
+        if(!empty($data['status'])){    //状态
+            $cond .= " And `buyer`.status='".$data['country_search']."'";
+        }
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
@@ -590,10 +592,10 @@ class BuyerModel extends PublicModel {
         $currentPage = !empty($data['currentPage'])?$data['currentPage']:1;
         $pageSize = 10;
         $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
-        $totalPage = ceil($totalCount/$pageSize);
-        if(!empty($data['currentPage']) && $data['currentPage'] >0){
-            $currentPage = ceil($data['currentPage']);
-        }
+//        $totalPage = ceil($totalCount/$pageSize);
+//        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+//            $currentPage = ceil($data['currentPage']);
+//        }
         $offset = ($currentPage-1)*$pageSize;
         $field='';
         $fieldArr = array(
@@ -667,7 +669,7 @@ class BuyerModel extends PublicModel {
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;
-            $arr['totalPage'] = $totalPage;
+//            $arr['totalPage'] = $totalPage;
             $arr['totalCount'] = $totalCount;
             $arr['info'] = $info;
             return $arr;
