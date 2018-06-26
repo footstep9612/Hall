@@ -1927,11 +1927,6 @@ EOF;
             $field .= ',buyer.'.$v;
         }
         $field=substr($field,1);
-        //excel导出标识
-        if($excel==true){
-            $offset=0;
-            $pageSize=10000;
-        }
         $info = $this->alias('buyer')
             ->field($field)
             ->where($cond)
@@ -1941,9 +1936,10 @@ EOF;
             ->select();
         $level = new BuyerLevelModel();
         $country = new CountryModel();
-        $order = new OrderModel();
-        $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
+            if(empty($v['percent'])){
+                $info[$k]['percent']='--';
+            }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }else{
@@ -1954,58 +1950,24 @@ EOF;
                 $info[$k]['area'] = $area['area'];
                 $info[$k]['country_name'] = $area['country'];
             }
-
-            if(!empty($data['employee_name'])){
-                $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['employee_name']);
-            }else{
-                $agentInfo=$agent->getBuyerAgentArr($v['id']);
-            }
-            $info[$k]['agent_id'] = $agentInfo['id'];
-            $info[$k]['employee_name'] = $agentInfo['name'];
-
-            if($v['source']==1 && empty($info[$k]['employee_name'])){
+            if(!empty($v['created_by'])){
                 $name=$this->table('erui_sys.employee')->field('name')
                     ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
-//                $info[$k]['created_name']=$name['name'];
-                $info[$k]['agent_id'] = $v['created_by'];
-                $info[$k]['employee_name']=$name['name'];
+                $info[$k]['created_name']=$name['name'];
+            }else{
+                $info[$k]['created_name']='';
             }
-//            $orderInfo=$order->statisOrder($v['id']);
-//            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
-
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
-            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
+            unset($info[$k]['created_by']);
         }
         if(empty($info)){
             $info=[];
         }
-        if($excel==false){
-            $arr['currentPage'] = $currentPage;
-            $arr['totalPage'] = $totalPage;
-            $arr['totalCount'] = $totalCount;
-            $arr['info'] = $info;
-            return $arr;
-        }
-        //整合excel导出数据
-        $package=$this->packageBuyerListExcelData($info,$lang);
-        $excelFile=$this->crmExportBuyerListExcel($package,$lang);
-        //
-        $arr['tmp_name'] = $excelFile;
-        $arr['type'] = 'application/excel';
-        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
-        //把导出的文件上传到文件服务器指定目录位置
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-        $url = $server . '/V2/Uploadfile/upload';
-        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
-        //删除文件和目录
-        if(file_exists($excelFile)){
-            unlink($excelFile); //删除文件
-//            ZipHelper::removeDir(dirname($excelName));    //清除目录
-        }
-        if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
-        }
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
