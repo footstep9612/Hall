@@ -58,14 +58,16 @@ class BuyerAgentModel extends PublicModel {
                 ->order('buyer_agent.id desc')
                 ->select();
         }else{
-            return $this->where($condition)
-                ->field($field)
-                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+            $info= $this->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id and em.deleted_flag=\'N\'', 'left')
                 ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
-                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id and org.deleted_flag=\'N\'', 'left')
+                ->where(array('buyer_agent.buyer_id'=>$condition['buyer_id'],'buyer_agent.deleted_flag'=>'N'))
                 ->group('em.id')
                 ->order('buyer_agent.id desc')
                 ->select();
+            return $info;
+            $this->getLastSql();die;
         }
     }
 
