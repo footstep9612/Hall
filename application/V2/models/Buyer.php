@@ -1939,6 +1939,8 @@ EOF;
         foreach($info as $k => $v){
             if(empty($v['percent'])){
                 $info[$k]['percent']='--';
+            }else{
+                $info[$k]['percent']=$info[$k]['percent'].'%';
             }
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
@@ -1958,7 +1960,9 @@ EOF;
                 $info[$k]['created_name']='';
             }
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['buyer_name'] = $info[$k]['name'];
             unset($info[$k]['created_by']);
+            unset($info[$k]['name']);
         }
         if(empty($info)){
             $info=[];
