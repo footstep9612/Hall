@@ -94,7 +94,7 @@ class TemporaryGoodsModel extends PublicModel {
                     ->order('i.created_at asc')
                     ->limit(0, 100)
                     ->select();
-            echo $inquiry_item_model->_sql();
+
             $this->startTrans();
             foreach ($skus as $item) {
                 $flag = $this->addData($item, true);
@@ -334,15 +334,13 @@ class TemporaryGoodsModel extends PublicModel {
             $item['inquiry_item_id'] = $item['id'];
             unset($item['id']);
             if ($inquiry_flag) {
-                $info = $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->find();
-
-                $data = $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->save($item);
+                $data = $this->create($item);
+                return $this->where(['inquiry_item_id' => $item['inquiry_item_id']])->save($data);
             } else {
 
                 $data = $this->create($item);
+                return $this->add($data);
             }
-
-            return $this->add($data);
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return false;
