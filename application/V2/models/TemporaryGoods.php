@@ -183,8 +183,11 @@ class TemporaryGoodsModel extends PublicModel {
         $where = $this->_getcondition($condition);
 
         try {
-            $count = $this->where($where)
-                    ->count('id');
+            $inquiry_item_table = (new InquiryItemModel())->getTableName();
+            $count = $this->alias('tg')
+                    ->join($inquiry_item_table . ' ii on ii.id=tg.inquiry_item_id', 'left')
+                    ->where($where)
+                    ->count('tg.id');
 
             return $count;
         } catch (Exception $ex) {
