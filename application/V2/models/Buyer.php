@@ -437,16 +437,28 @@ class BuyerModel extends PublicModel {
         if(!empty($data['name'])){    //客户名称
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
-        if($falg===true){
-            if(!empty($data['status'])){    //审核状态
-                if($data['status']=='PASS'){
-                    $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
-                }else{
-                    $cond .= " and buyer.status='".$data['status']."'";
-                }
-            }
+        //时间
+        if(!empty($data['created_start_at'])){  //分配时间
+            $cond .= " and buyer.created_at >= '".$data['created_start_at']."'";
         }
-
+        if(!empty($data['created_end_at'])){
+            $cond .= " and buyer.created_at <= '".$data['created_end_at']."'";
+        }
+        if(!empty($data['level_start_at'])){  //分配时间
+            $data['level_start_at']=substr($data['level_start_at'],0,10);
+            $cond .= " and buyer.level_at >= '".$data['level_start_at']."'";
+        }
+        if(!empty($data['level_end_at'])){
+            $data['level_end_at']=substr($data['level_end_at'],0,10);
+            $cond .= " and buyer.level_at <= '".$data['level_end_at']."'";
+        }
+//        if(!empty($data['checked_start_at'])){  //分配时间
+//
+//        }
+//        if(!empty($data['checked_end_at'])){
+//
+//        }
+//        echo $cond;die;
         if(!empty($data['employee_name']) || !empty($data['agent_name'])){  //经办人
             if(!empty($data['employee_name'])){
                 $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
