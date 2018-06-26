@@ -94,7 +94,7 @@ class TemporaryGoodsModel extends PublicModel {
                     ->order('i.created_at asc')
                     ->limit(0, 100)
                     ->select();
-            echo $inquiry_item_model->_sql();
+
             $this->startTrans();
             foreach ($skus as $item) {
                 $flag = $this->addData($item, true);
