@@ -413,11 +413,11 @@ class BuyerModel extends PublicModel {
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
         if(!empty($data['source'])){    //来源
-            if($data['buyer_level']=='1'){
+            if($data['source']==='1'){
                 $cond .= " And `buyer`.source=1";
-            }elseif($data['buyer_level']=='2'){
+            }elseif($data['source']==='2'){
                 $cond .= " And `buyer`.source=2";
-            }elseif($data['buyer_level']=='3'){
+            }elseif($data['source']==='3'){
                 $cond .= " And `buyer`.source=3";
             }else{
                 $cond .= " And `buyer`.source=4";
