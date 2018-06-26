@@ -452,13 +452,30 @@ class BuyerModel extends PublicModel {
             $data['level_end_at']=substr($data['level_end_at'],0,10);
             $cond .= " and buyer.level_at <= '".$data['level_end_at']."'";
         }
-//        if(!empty($data['checked_start_at'])){  //分配时间
-//
-//        }
-//        if(!empty($data['checked_end_at'])){
-//
-//        }
-//        echo $cond;die;
+        if(!empty($data['checked_start_at']) || !empty($data['checked_end_at'])){  //分配时间
+            $map=' 1=1 ';
+            if(!empty($data['checked_start_at'])){
+                $map .= " and created_at >= '".$data['checked_start_at']."'";
+            }
+            if(!empty($data['checked_end_at'])){
+                $map .= " and created_at <= '".$data['checked_end_at']."'";
+            }
+            $info=$this->table('erui_buyer.buyer_agent')
+                ->field('buyer_id')
+                ->where($map)
+                ->group('buyer_id')
+                ->select();
+            if(!empty($info)){
+                $arr=[];
+                foreach($info as $k => $v){
+                    $arr[]=$v['buyer_id'];
+                }
+                $str=implode(',',$arr);
+                $cond.=" and buyer.id in ($str)";
+            }else{
+                $cond.=" and buyer.id in ('crm')";
+            }
+        }
         if(!empty($data['employee_name']) || !empty($data['agent_name'])){  //经办人
             if(!empty($data['employee_name'])){
                 $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
@@ -1969,6 +1986,7 @@ EOF;
             ->select();
         $level = new BuyerLevelModel();
         $country = new CountryModel();
+        $agent = new BuyerAgentModel();
         foreach($info as $k => $v){
             if(empty($v['percent'])){
                 $info[$k]['percent']='--';
@@ -2006,6 +2024,24 @@ EOF;
             }else{
                 $info[$k]['created_name']='';
             }
+
+            if(!empty($data['agent_name'])){
+                $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['agent_name']);
+            }else{
+                $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            }
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['agent_name'] = $agentInfo['name'];
+            $info[$k]['agent_at'] = $agentInfo['checked_at'];
+//---------------------------
+            if($v['source']==1 && empty($info[$k]['agent_name'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+                $info[$k]['agent_id'] = $v['created_by'];
+                $info[$k]['agent_name']=$name['name'];
+                $info[$k]['agent_at']=$v['created_at'];
+            }
+
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['buyer_name'] = $info[$k]['name'];
             unset($info[$k]['created_by']);
