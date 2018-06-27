@@ -23,30 +23,24 @@ class ShowcatController extends PublicController {
         set_time_limit(360);
         $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
-        // $jsondata['level_no'] = 1;
+
         $country_bn = $this->getPut('country_bn', '');
         $market_area_bn = $this->getPut('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['market_area_bn'] = $market_area_bn;
+        $redis_key = 'show_cat_' . $country_bn . '_' . $lang;
+        $data = json_decode(redisGet($redis_key), true);
+        if (!$data) {
+            $arr = $this->_model->tree($jsondata);
+            redisSet($redis_key, json_encode($jsondata), 86400);
+        } else {
+            $arr = $data;
+            unset($data, $jsondata);
+        }
 
-        $arr = $this->_model->tree($jsondata);
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
-//            foreach ($arr as $key => $val) {
-//                $children_data = $jsondata;
-//                $children_data['level_no'] = 2;
-//                $children_data['parent_cat_no'] = $val['value'];
-//                $arr[$key]['children'] = $this->_model->tree($children_data);
-//                if ($arr[$key]['children']) {
-//                    foreach ($arr[$key]['children'] as $k => $item) {
-//                        $children_data['level_no'] = 3;
-//                        $children_data['parent_cat_no'] = $item['value'];
-//                        $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
-//                    }
-//                }
-//            }
-
             $this->setCode(MSG::MSG_SUCCESS);
             $this->_setCount($lang, $country_bn, $market_area_bn);
             $this->jsonReturn($arr);
@@ -99,8 +93,8 @@ class ShowcatController extends PublicController {
         $jsondata['cat_no2'] = $this->getPut('cat_no2', '');
         $jsondata['cat_no3'] = $this->getPut('cat_no3', '');
         $condition = $jsondata;
-
-
+        $redis_key = 'show_cat_' . md5(json_encode($condition));
+        $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
             $arr = $this->_model->getlist($jsondata);
             if ($arr) {
@@ -123,7 +117,7 @@ class ShowcatController extends PublicController {
                         }
                     }
                 }
-
+                redisSet($redis_key, json_encode($arr), 86400);
                 $this->setCode(MSG::MSG_SUCCESS);
                 $this->jsonReturn($arr);
             } else {
@@ -138,14 +132,15 @@ class ShowcatController extends PublicController {
                                     'marke_area_bn' => $markeshow_material_catarea_bn,
                                     'lang' => $lang]);
                     }
-
+                    redisSet($redis_key, json_encode($arr), 86400);
                     $this->setCode(MSG::MSG_SUCCESS);
                     $this->jsonReturn($arr);
                 } else {
                     $condition['level_no'] = 3;
                     $arr = $this->_model->getlist($condition);
-                    if ($arr) {
 
+                    if ($arr) {
+                        redisSet($redis_key, json_encode($arr), 86400);
                         $this->setCode(MSG::MSG_SUCCESS);
                         $this->jsonReturn($arr);
                     } else {
@@ -166,8 +161,19 @@ class ShowcatController extends PublicController {
         $show_material_catno = $this->getPut('show_material_catno', '');
         $country_bn = $this->getPut('country_bn', '');
         $market_area_bn = $this->getPut('market_area_bn', '');
-
-        $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
+        $redis_key = 'show_cat_'
+                . (!empty($show_material_catno) ? '_' . $show_material_catno : '')
+                . (!empty($market_area_bn) ? '_' . $market_area_bn : '')
+                . (!empty($country_bn) ? '_' . $country_bn : '')
+                . (!empty($lang) ? '_' . $lang : '');
+        $data = json_decode(redisGet($redis_key), true);
+        if (!$data) {
+            $arr = $this->_model->get_list($market_area_bn, $country_bn, $show_material_catno, $lang);
+            redisSet($redis_key, json_encode($arr), 86400);
+        } else {
+            $arr = $data;
+            unset($data);
+        }
         if ($arr) {
 
             $this->setCode(MSG::MSG_SUCCESS);

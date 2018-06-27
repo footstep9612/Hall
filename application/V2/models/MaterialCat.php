@@ -104,8 +104,11 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function tree($condition = []) {
+    public function tree($condition = [], $is_two = false) {
         $where = $this->_getcondition($condition);
+        if ($is_two) {
+            $where['level_no'] = ['in', [1, 2]];
+        }
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
