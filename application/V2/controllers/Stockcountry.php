@@ -86,15 +86,27 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
-                $this->_jsonDecode($val,'settings');
+                $this->_jsonDecode($val,'settings');    //json解析
+                $this->_ynTotruefalse($val,'show_flag');
                 $arr[$key] = $val;
             }
         }
     }
 
+    /**
+     * json解析
+     * @param $arr
+     * @param string $field
+     */
     private function _jsonDecode(&$arr, $field = ''){
         if(!empty($field)){
             $arr[$field] = json_decode($arr[$field],true);
+        }
+    }
+
+    private function  _ynTotruefalse(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = $arr[$field]=='Y' ? true : false;
         }
     }
 
