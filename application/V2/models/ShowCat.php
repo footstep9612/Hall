@@ -41,7 +41,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      */
     public function tree($condition = [], $limit = null) {
-        $where = $this->_getcondition($condition);
+        $where = $this->_getcondition($condition, false);
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
@@ -62,6 +62,7 @@ class ShowCatModel extends PublicModel {
                         break;
                 }
             }
+
             foreach ($ret1 as $cat_no1 => $item1) {
                 unset($item1['parent_cat_no'], $item1['level_no']);
                 if (!empty($ret2[$cat_no1])) {
@@ -80,7 +81,6 @@ class ShowCatModel extends PublicModel {
 
                 $ret[] = $item1;
             }
-
 
             return $ret;
         } catch (Exception $ex) {
@@ -183,7 +183,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function _getcondition($condition = []) {
+    protected function _getcondition($condition = [], $is_level_no = true) {
         $where = [];
         getValue($where, $condition, 'id');
         getValue($where, $condition, 'cat_no');
@@ -200,9 +200,10 @@ class ShowCatModel extends PublicModel {
             $where['parent_cat_no'] = $condition['cat_no1'];
         } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
             $where['level_no'] = intval($condition['level_no']);
-        } else {
+        } elseif ($is_level_no) {
             $where['level_no'] = 1;
         }
+
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
@@ -241,8 +242,8 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getcount($condition = []) {
-        $where = $this->_getcondition($condition);
+    public function getcount($condition = [], $is_level_no = true) {
+        $where = $this->_getcondition($condition, $is_level_no);
 
 
         try {

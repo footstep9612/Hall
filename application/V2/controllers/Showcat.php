@@ -15,6 +15,7 @@ class ShowcatController extends PublicController {
         } else {
             parent::init();
         }
+        $this->_model = new ShowCatModel();
     }
 
     public function treeAction() {
@@ -27,8 +28,8 @@ class ShowcatController extends PublicController {
         $market_area_bn = $this->getPut('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['market_area_bn'] = $market_area_bn;
-        $_model = new ShowCatModel();
-        $arr = $_model->tree($jsondata);
+
+        $arr = $this->_model->tree($jsondata);
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
@@ -75,12 +76,12 @@ class ShowcatController extends PublicController {
         ];
 
         $countData['level_no'] = 1;
-        $count1 = $this->_model->getCount($countData); //一级分类数据
+        $count1 = $this->_model->getCount($countData, false); //一级分类数据
 
         $countData['level_no'] = 2;
-        $count2 = $this->_model->getCount($countData); //二级分类数据
+        $count2 = $this->_model->getCount($countData, false); //二级分类数据
         $countData['level_no'] = 3;
-        $count3 = $this->_model->getCount($countData); //三级分类数据
+        $count3 = $this->_model->getCount($countData, false); //三级分类数据
         $this->setvalue('count1', intval($count1));
         $this->setvalue('count2', intval($count2));
         $this->setvalue('count3', intval($count3));
