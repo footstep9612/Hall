@@ -201,12 +201,30 @@ class BuyerController extends PublicController {
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
+        if($ststisInfo===false){
+            $dataJson = array(
+                'code' => 1,
+                'message' => '返回数据',
+                'total_status' => 0,
+                'approved_status' => 0,
+                'approving_status' => 0,
+                'rejected_status' => 0,
+                'currentPage' => 1,
+                'data' => []
+            );
+            $this->jsonReturn($dataJson);
+        }
+        $cond = $model->getBuyerStatisListCond($data,false);  //获取条件
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总
         $dataJson = array(
             'code' => 1,
             'message' => '返回数据',
-            'count' => intval($ststisInfo['totalCount']),
+            'total_status' => intval($totalCount),
+            'approved_status' => intval($statusCount['APPROVED']),
+            'approving_status' => intval($statusCount['APPROVING']),
+            'rejected_status' => intval($statusCount['REJECTED']),
             'currentPage' => $ststisInfo['currentPage'],
-            'data' => $ststisInfo['info']
         );
         $this->jsonReturn($dataJson);
     }
@@ -818,15 +836,9 @@ EOF;
         }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
-        if (!empty($res)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $res;
-            $datajson['message'] = '成功';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
-        }
+        $datajson['code'] = 1;
+        $datajson['data'] = $res?$res:[];
+        $datajson['message'] = '数据';
         $this->jsonReturn($datajson);
     }
     public function updateagentAction() {
@@ -1015,15 +1027,11 @@ EOF;
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
+        if (!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+        }
         if (!empty($data['agent'])) {
             $arr['status'] = 'APPROVED';
-        }
-        if (!empty($data['status'])) {
-            if ($data['status'] == 'REJECTED') {
-                $arr['status'] = 'REJECTED';
-            }else{
-                $arr['status'] = 'APPROVED';
-            }
         }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
@@ -1094,7 +1102,154 @@ EOF;
             );
         }
     }
+    //新版crm
+    public function editBuyerBaseInfoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $model = new BuyerModel();
+        $res = $model->editBuyerBaseInfo($data);
+        if ($res !== true && $res !== false) {
+            $valid = array(
+                'code' => 0,
+                'message' => $res,
+            );
+            $this->jsonReturn($valid);
+        } elseif ($res === false) {
+            $valid = array(
+                'code' => 0,
+                'message' =>L('error') ,
+            );
+            $this->jsonReturn($valid);
+        }
+        $valid = array(
+            'code' => 1,
+            'message' => L('success'),
+            'buyer_id'=>$data['buyer_id']
+        );
+        $this->jsonReturn($valid);
+    }
+    //档案基本标题信息
+    public function buyerTitleInfoAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->getLang();
+        $model = new BuyerModel();
+        $info = $model->buyerTitleInfo($data);
+        if($info===false){
+            $dataJson['code']=0;
+            $dataJson['message']='缺少参数';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='数据';
+            $dataJson['data']=$info;
+        }
+        $this->jsonReturn($dataJson);
+    }
+    public function showBuyerBaseInfoAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];
+        $data['lang'] = $this->getLang();
+        $model = new BuyerModel();
+        $buerInfo = $model->showBuyerInfo($data);
+        if ($buerInfo===false) {
+            $dataJson['code']=0;
+            $dataJson['message']='缺少参数';
+            $this->jsonReturn($dataJson);
+        }elseif($buerInfo==='info'){
+            $dataJson['code']=0;
+            $dataJson['message']='档案信息异常';
+            $this->jsonReturn($dataJson);
+        }
+        //客户分级
+        $grade=new CustomerGradeModel();
+        $cond_grade=array('buyer_id'=>$data['buyer_id'],'status'=>2,'deleted_flag'=>'N');
+        $gradeInfo=$grade->field('id,customer_grade')->where($cond_grade)->order('id desc')->find();
+        $buerInfo['customer_grade']=$gradeInfo['customer_grade'];
+        //获取客户账号
+        $account = new BuyerAccountModel();
+        $accountInfo = $account->getBuyerAccount($data['buyer_id']);
+        $buerInfo['buyer_account'] = $accountInfo['email'];
+        //客户订单分类
+//        $order = new OrderModel();
+//        $orderInfo = $order->statisOrder($data['buyer_id']);
+//        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
+        //获取服务经理经办人，调用市场经办人方法
+        $agent = new BuyerAgentModel();
+        $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);
+        $buerInfo['market_agent_name'] = $agentInfo['agent_info'][0]['name']; //没有数据则为空
+        $buerInfo['market_agent_mobile'] = $agentInfo['agent_info'][0]['agent_emobile'];
+        //获取财务报表
+        $attach = new BuyerattachModel();
+        $finance = $attach->showBuyerExistAttach('FINANCE', $data['buyer_id']);
+        if (!empty($finance)) {
+            $buerInfo['finance_attach'] = $finance;
+        } else {
+            $buerInfo['finance_attach'] = array();
+        }
+        //公司人员组织架构
+        $org_chart = $attach->showBuyerExistAttach('ORGCHART', $data['buyer_id']);
+        if (!empty($org_chart)) {
+            $buerInfo['org_chart'] = $org_chart;
+        } else {
+            $buerInfo['org_chart'] = array();
+        }
+        $arr['base_info'] = $buerInfo;  //客户基本信息
+        //业务基本信息
+        $business = new BuyerBusinessModel();
+        $businessInfo = $business->showBusiness($data);
+        $arr['business_info']=$businessInfo;
+        //结算信息
+        $settlementInfo = $business->showSettlement($data);
+        $arr['settlement_info']=$settlementInfo;
+        //入网管理
+        $net = new NetSubjectModel();
+        $netInfo = $net->showNetSubject($data);
+        $arr['net_info']=$netInfo;
+        //联系人
+//        $contact = new BuyercontactModel();
+//        $contactInfo = $contact->showContactsList($data);
+//        $arr['contact_info']=$contactInfo;
 
+        $dataJson['code']=1;
+        $dataJson['message']='查看档案信息';
+        $dataJson['data']=$arr;
+        $this->jsonReturn($dataJson);
+    }
+    //客户询单
+    public function inquiryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $res=$buyer->showBuyerInquiry($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='询单';
+            $dataJson['total_count']=$res['total_count'];
+            $dataJson['page']=$res['page'];
+            $dataJson['data']=$res['info'];
+        }
+        $this->jsonReturn($dataJson);
+    }
+    //客户订单
+    public function orderAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang'] = $this->getLang();
+        $buyer=new BuyerModel();
+        $res=$buyer->showBuyerOrder($data);
+        if($res===false){
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }else{
+            $dataJson['code']=1;
+            $dataJson['message']='订单';
+            $dataJson['total_count']=$res['total_count'];
+            $dataJson['page']=$res['page'];
+            $dataJson['data']=$res['info'];
+        }
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 客户档案信息管理，创建客户档案-->基本信息
      * wangs
@@ -1476,19 +1631,41 @@ EOF;
 
         //验证集团CRM存在,则展示数据 生产-start
         $group = $this->groupCrmCode($data['buyer_code']);
-        if (!empty($group)) {
+        if ($group=='no') {
+            $dataJson = array(
+                'code' => 4,
+                'message' => '网络异常'
+            );
+        }elseif($group=='code'){
+            $dataJson = array(
+                'code' => 2,
+                'message' => L('Normal_customer') //正常录入客户信息流程
+            );
+        }else {
             $dataJson = array(
                 'code' => 1,
                 'message' => L('Group_crm'), //集团CRM客户信息
                 'data' => $group
             );
-        } else {
-            $dataJson = array(
-                'code' => 2,
-                'message' => L('Normal_customer') //正常录入客户信息流程
-            );
         }
         $this->jsonReturn($dataJson); //生产-end
+//        if (!empty($group) && $group!='code') {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => L('Group_crm'), //集团CRM客户信息
+//                'data' => $group
+//            );
+//        }elseif($group=='code'){
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => L('Normal_customer') //正常录入客户信息流程
+//            );
+//        }else {
+//            $dataJson = array(
+//                'code' => 0,
+//                'message' => '网络异常' //正常录入客户信息流程
+//            );
+//        }
     }
 
     /**
@@ -1510,6 +1687,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
+                'timeout' => 5,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap
@@ -1524,8 +1702,11 @@ EOF;
         $xml = '<root>' . $need . '</root>';
         $xmlObj = simplexml_load_string($xml);
         $arr = json_decode(json_encode($xmlObj), true);
+        if(count($arr)==0){
+            return 'no';
+        }
         if (empty($arr['crm_code'])) {
-            return null;
+            return 'code';
         }
         if (!empty($arr)) {
             $country = new CountryModel();
