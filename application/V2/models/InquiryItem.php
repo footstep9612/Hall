@@ -160,8 +160,8 @@ class InquiryItemModel extends PublicModel {
 
 
             if ($id) {
-                $data['id'] = $id;
-                (new TemporaryGoodsModel)->addData($data, false);
+//                $data['id'] = $id;
+//                (new TemporaryGoodsModel)->addData($data, false);
                 $results['code'] = '1';
                 $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
@@ -247,7 +247,7 @@ class InquiryItemModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if (isset($id)) {
-                (new TemporaryGoodsModel)->addData($data, true);
+                //(new TemporaryGoodsModel)->addData($data, true);
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
             } else {
