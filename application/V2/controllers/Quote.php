@@ -412,6 +412,7 @@ class QuoteController extends PublicController{
             'code' => 1,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getCount($request),
+            'total_purchase_price' => $this->quoteItemModel->getTotalPurchasePrice($request),
             'data' => $list
         ]);
 
