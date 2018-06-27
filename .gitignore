@@ -47,7 +47,10 @@ logs/
 logs/
 .idea/
 application/ExcelFiles/
+public/tmp/
 .settings
 .project
-index.php
-index.php
+/public/file/sku.xlsx
+/application/V2/models/Temp.php
+.gitignore
+public/file/
