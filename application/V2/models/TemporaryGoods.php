@@ -355,4 +355,33 @@ class TemporaryGoodsModel extends PublicModel {
         }
     }
 
+    /**
+     * 删除数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function deleteData($condition) {
+        if (isset($condition['id'])) {
+            $where['inquiry_item_id'] = array('in', explode(',', $condition['id']));
+        } else {
+            return false;
+        }
+        try {
+            $id = $this->where($where)->save(['deleted_flag' => 'Y']);
+            if (isset($id)) {
+                $results['code'] = '1';
+                $results['message'] = L('SUCCESS');
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = L('FAIL');
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
 }

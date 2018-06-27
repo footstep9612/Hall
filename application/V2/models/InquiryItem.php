@@ -60,7 +60,7 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['brand'])) {
             $where['brand'] = $condition['brand'];  //品牌
         }
-        $where['deleted_flag'] = !empty($condition['deleted_flag'])?$condition['deleted_flag']:'N';
+        $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N';
         return $where;
     }
 
@@ -87,11 +87,11 @@ class InquiryItemModel extends PublicModel {
 
         try {
             $list = $this->where($where)->order('id')->select();
-            if($list){
+            if ($list) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
                 $results['data'] = $list;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('NO_DATA');
             }
@@ -110,9 +110,9 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function getInfo($condition = []) {
-        if(!empty($condition['id'])){
+        if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = L('MISSING_PARAMETER');
             return $results;
@@ -121,11 +121,11 @@ class InquiryItemModel extends PublicModel {
         try {
             $info = $this->where($where)->find();
 
-            if($info){
+            if ($info) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
                 $results['data'] = $info;
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('NO_DATA');
             }
@@ -135,7 +135,6 @@ class InquiryItemModel extends PublicModel {
             $results['message'] = $e->getMessage();
             return $results;
         }
-
     }
 
     /**
@@ -158,11 +157,12 @@ class InquiryItemModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-            if($id){
+            (new TemporaryGoodsModel)->addData($data, false);
+            if ($id) {
                 $results['code'] = '1';
                 $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('FAIL');
             }
@@ -193,9 +193,9 @@ class InquiryItemModel extends PublicModel {
         }
 
         $inquirydata = [];
-        for($i = 0; $i < $condition['inquiry_rows']; $i++){
+        for ($i = 0; $i < $condition['inquiry_rows']; $i++) {
             $test['inquiry_id'] = $condition['inquiry_id'];
-            $test['qty']        = '1';
+            $test['qty'] = '1';
             $test['created_by'] = $condition['created_by'];
             $test['created_at'] = $this->getTime();
             $inquirydata[] = $test;
@@ -203,10 +203,10 @@ class InquiryItemModel extends PublicModel {
 
         try {
             $id = $this->addAll($inquirydata);
-            if(isset($id)){
+            if (isset($id)) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('FAIL');
             }
@@ -225,28 +225,29 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function updateData($condition = []) {
-        if(isset($condition['id'])){
+        if (isset($condition['id'])) {
             $where['id'] = $condition['id'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
         //如果从报价过来，品牌是inquiry_brand
-        if(!empty($condition['inquiry_brand'])){
+        if (!empty($condition['inquiry_brand'])) {
             $condition['brand'] = $condition['inquiry_brand'];
         }
 
         $data = $this->create($condition);
-        $data['status'] = !empty($condition['status']) ? $condition['status'] :'VALID';
+        $data['status'] = !empty($condition['status']) ? $condition['status'] : 'VALID';
         $data['updated_at'] = $this->getTime();
 
         try {
             $id = $this->where($where)->save($data);
-            if(isset($id)){
+            if (isset($id)) {
+                (new TemporaryGoodsModel)->addData($data, true);
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('FAIL');
             }
@@ -265,18 +266,19 @@ class InquiryItemModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition = []) {
-        if(isset($condition['id'])){
-            $where['id'] = array('in',explode(',',$condition['id']));
-        }else{
+        if (isset($condition['id'])) {
+            $where['id'] = array('in', explode(',', $condition['id']));
+        } else {
             return false;
         }
 
         try {
-            $id = $this->where($where)->save(['deleted_flag'=>'Y']);
-            if(isset($id)){
+            $id = $this->where($where)->save(['deleted_flag' => 'Y']);
+            if (isset($id)) {
+                (new TemporaryGoodsModel)->deleteData($condition);
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = L('FAIL');
             }
@@ -295,7 +297,7 @@ class InquiryItemModel extends PublicModel {
     public function getTime() {
         return date('Y-m-d H:i:s', time());
     }
-    
+
     /**
      * @desc 获取关联询单SKU查询条件
      *
@@ -306,14 +308,14 @@ class InquiryItemModel extends PublicModel {
      */
     public function getJoinWhere($condition = []) {
         $where['a.deleted_flag'] = 'N';
-         
-        if(!empty($condition['inquiry_id'])) {
+
+        if (!empty($condition['inquiry_id'])) {
             $where['a.inquiry_id'] = $condition['inquiry_id'];
         }
-         
+
         return $where;
     }
-    
+
     /**
      * @desc 获取关联询单SKU查询条件
      *
@@ -324,7 +326,7 @@ class InquiryItemModel extends PublicModel {
      */
     public function getJoinWhere_($condition = []) {
         $where['a.deleted_flag'] = 'N';
-         
+
         if (!empty($condition['id'])) {
             $where['a.id'] = $condition['id'];    //明细id
         }
@@ -337,10 +339,10 @@ class InquiryItemModel extends PublicModel {
         if (!empty($condition['brand'])) {
             $where['a.brand'] = $condition['brand'];  //品牌
         }
-         
+
         return $where;
     }
-    
+
     /**
      * @desc 获取关联询单SKU记录总数
      *
@@ -351,14 +353,14 @@ class InquiryItemModel extends PublicModel {
      */
     public function getJoinCount($condition = []) {
         $where = $this->getJoinWhere($condition);
-        
+
         $count = $this->alias('a')
-                                 ->join($this->joinTable, 'LEFT')
-                                 ->where($where)
-                                 ->count('a.id');
+                ->join($this->joinTable, 'LEFT')
+                ->where($where)
+                ->count('a.id');
         return $count > 0 ? $count : 0;
     }
-    
+
     /**
      * @desc 获取关联询单SKU记录总数
      *
@@ -369,14 +371,14 @@ class InquiryItemModel extends PublicModel {
      */
     public function getJoinCount_($condition = []) {
         $where = $this->getJoinWhere_($condition);
-    
+
         $count = $this->alias('a')
-                                 ->join($this->joinTable_, 'LEFT')
-                                 ->where($where)
-                                 ->count('a.id');
+                ->join($this->joinTable_, 'LEFT')
+                ->where($where)
+                ->count('a.id');
         return $count > 0 ? $count : 0;
     }
-    
+
     /**
      * @desc 获取关联询单SKU列表
      *
@@ -387,15 +389,15 @@ class InquiryItemModel extends PublicModel {
      */
     public function getJoinList($condition = []) {
         $where = $this->getJoinWhere($condition);
-        
+
         return $this->alias('a')
-                            ->field($this->joinField)
-                            ->join($this->joinTable, 'LEFT')
-                            ->where($where)
-                            ->order('a.id DESC')
-                            ->select();
+                        ->field($this->joinField)
+                        ->join($this->joinTable, 'LEFT')
+                        ->where($where)
+                        ->order('a.id DESC')
+                        ->select();
     }
-    
+
     /**
      * @desc 获取关联询单SKU列表
      *
@@ -408,14 +410,14 @@ class InquiryItemModel extends PublicModel {
         $where = $this->getJoinWhere_($condition);
         try {
             $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-            $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+            $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
             $list = $this->alias('a')
-                                ->field($this->joinField_)
-                                ->join($this->joinTable_, 'LEFT')
-                                ->where($where)
-                                ->page($currentPage, $pageSize)
-                                ->order('a.id ASC')
-                                ->select();
+                    ->field($this->joinField_)
+                    ->join($this->joinTable_, 'LEFT')
+                    ->where($where)
+                    ->page($currentPage, $pageSize)
+                    ->order('a.id ASC')
+                    ->select();
             if ($list) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
@@ -432,7 +434,7 @@ class InquiryItemModel extends PublicModel {
             return $results;
         }
     }
-    
+
     /**
      * @desc 根据询单ID删除SKU记录
      *
