@@ -851,7 +851,7 @@ class LogisticsController extends PublicController {
 	                $status = 'BIZ_QUOTING'; 
 	                $data['now_agent_id'] = $inquiry['quote_id'];
 	                // 清除物流报价SKU
-	                $logiRes = $this->quoteItemLogiMode->where($where)->delete();
+	                $logiRes = $this->quoteItemLogiModel->where($where)->delete();
 	                break;
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING'; 

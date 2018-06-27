@@ -341,7 +341,7 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
             $where['country_bn'] = isset($condition['user_country']) ? [['eq', $condition['country_bn']], $where['country_bn']] : $condition['country_bn'];    //国家
         }else if (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
-            $where['country_bn'] = ['in', $condition['country_bn'] ? : ['-1']];    //国家
+            $where['country_bn'] = ['in', isset($condition['user_country']) ? array_unique(array_merge($condition['country_bn'], $condition['user_country'])) : $condition['country_bn']];    //国家
         }
     
         /*if (!empty($condition['serial_no'])) {
