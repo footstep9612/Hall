@@ -276,10 +276,23 @@ class TemporaryGoodsModel extends PublicModel {
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
-//                $map['id'] = $tmpgoods['inquiry_item_id'];
-//                $map[] = 'isnull(sku) and id<>' . $tmpgoods['inquiry_item_id'];
-//                $map['_logic'] = 'or';
-//                $where[]['_complex'] = $map;
+                $map['id'] = $tmpgoods['inquiry_item_id'];
+                $map[] = 'isnull(sku) and id<>' . $tmpgoods['inquiry_item_id'];
+                $map1['id'] = $id;
+                $map1[] = 'isnull(sku) and id<>' . $id;
+                if (!empty($tmpgoods['sku'])) {
+                    $map['sku'] = $tmpgoods['sku'];
+                    $map1['sku'] = $tmpgoods['sku'];
+                }
+                if (!empty($tmpgoods['updated_at'])) {
+                    $map['updated_at'] = $tmpgoods['updated_at'];
+                    $map1['updated_at'] = $tmpgoods['updated_at'];
+                }
+                $map['_logic'] = 'or';
+                $InquiryItem_where['_complex'] = $map;
+
+                $map1['_logic'] = 'or';
+                $where['_complex'] = $map1;
                 if (!empty($tmpgoods['name_zh'])) {
                     $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
                 } else {
