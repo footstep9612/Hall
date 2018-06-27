@@ -353,7 +353,7 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
-    public function getBuyerStatisListCond($data,$falg=true){
+    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -407,6 +407,9 @@ class BuyerModel extends PublicModel {
         if($falg==true){
             if(!empty($data['status'])){    //状态
                 $cond .= " And `buyer`.status='".$data['status']."'";
+            }
+            if($filter==true){
+                $cond .= " And `buyer`.status!='REJECTED'";
             }
         }
         if(!empty($data['country_search'])){    //国家搜索
@@ -1950,7 +1953,7 @@ EOF;
     public function buyerList($data,$excel=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerStatisListCond($data);
+        $cond = $this->getBuyerStatisListCond($data,true,true);
         if($cond==false){   //无角色,无数据
             return false;
         }
