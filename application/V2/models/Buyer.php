@@ -402,7 +402,7 @@ class BuyerModel extends PublicModel {
             $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         }
         foreach($data as $k => $v){
-            $data[$k]=trim($v,' ');
+            $data[$k]=trim($v);
         }
         if($falg==true){
             if(!empty($data['status'])){    //状态
