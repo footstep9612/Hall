@@ -626,7 +626,7 @@ class BuyerModel extends PublicModel {
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
-            ->order('buyer.checked_at desc')
+            ->order('buyer.checked_at desc,buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
@@ -1985,7 +1985,7 @@ EOF;
             ->field($field)
             ->where($cond)
             ->group('buyer.id')
-            ->order('buyer.checked_at desc')
+            ->order('buyer.checked_at desc,buyer.id desc')
             ->limit($offset,$pageSize)
             ->select();
         $level = new BuyerLevelModel();
