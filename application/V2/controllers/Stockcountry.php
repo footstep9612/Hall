@@ -38,6 +38,8 @@ class StockcountryController extends PublicController {
             $this->_setCountry($list, $lang);
             $count = $stock_country_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
+            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
+            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
