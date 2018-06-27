@@ -289,11 +289,13 @@ class BuyerModel extends PublicModel {
             $data['name']=trim($data['name']," ");
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
-        if(!empty($data['status'])){    //审核状态
-            if($data['status']=='PASS'){
-                $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
-            }else{
-                $cond .= " and buyer.status='".$data['status']."'";
+        if($falg===true){
+            if(!empty($data['status'])){    //审核状态
+                if($data['status']=='PASS'){
+                    $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
+                }else{
+                    $cond .= " and buyer.status='".$data['status']."'";
+                }
             }
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
@@ -772,9 +774,9 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
-                $info[$k]['status'] = 'PASS';
-            }
+//            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
+//                $info[$k]['status'] = 'PASS';
+//            }
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
@@ -786,6 +788,9 @@ class BuyerModel extends PublicModel {
             $info[$k]['employee_name'] = $agentInfo['name'];
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;
@@ -2269,15 +2274,15 @@ EOF;
      */
     public function packageBaseData($data, $created_by) {
         //会员有效期12个月--------------1年
-        if (!empty($data['level_at'])) {
-            $level_at = $data['level_at'];
-            $year_at = substr($level_at, 0, 4);
-            $year_end = substr($level_at, 0, 4) + 1;
-            $expiry_at = str_replace($year_at, $year_end, $level_at);
-        }else{
-            $level_at=null;
-            $expiry_at=null;
-        }
+//        if (!empty($data['level_at'])) {
+//            $level_at = $data['level_at'];
+//            $year_at = substr($level_at, 0, 4);
+//            $year_end = substr($level_at, 0, 4) + 1;
+//            $expiry_at = str_replace($year_at, $year_end, $level_at);
+//        }else{
+//            $level_at=null;
+//            $expiry_at=null;
+//        }
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
@@ -2294,8 +2299,8 @@ EOF;
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
-            'level_at' => $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at, //有效期
+//            'level_at' => $level_at,  //定级日期
+//            'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//建立档案标识
 //            'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
@@ -2399,12 +2404,6 @@ EOF;
 
         return $info;
     }
-
-
-    /**
-     * 客户管理-客户信息的统计数据
-     * wangs
-     */
     public function showBuyerInfo($data){
         if(empty($data['buyer_id'])){
             return false;

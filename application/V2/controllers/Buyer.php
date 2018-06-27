@@ -196,8 +196,8 @@ class BuyerController extends PublicController {
      */
     public function buyerListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['created_by'] = $this->user['id'];;
+        $data['admin']=$this->getUserRole();   //=1市场专员
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $ststisInfo = $model->buyerStatisList($data);
@@ -225,8 +225,17 @@ class BuyerController extends PublicController {
             'approving_status' => intval($statusCount['APPROVING']),
             'rejected_status' => intval($statusCount['REJECTED']),
             'currentPage' => $ststisInfo['currentPage'],
-            'data' => $ststisInfo['info']
         );
+        if(empty($data['status'])){
+            $dataJson['count']=intval($ststisInfo['totalCount']);
+        }elseif($data['status']=='APPROVED'){
+            $dataJson['count']=intval($statusCount['APPROVED']);
+        }elseif($data['status']=='APPROVING'){
+            $dataJson['count']=intval($statusCount['APPROVING']);
+        }elseif($data['status']=='REJECTED'){
+            $dataJson['count']=intval($statusCount['REJECTED']);
+        }
+        $dataJson['data']= $ststisInfo['info'];
         $this->jsonReturn($dataJson);
     }
     //crm-客户列表Excel导出-wangs
@@ -285,7 +294,33 @@ class BuyerController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+    public function buyerStatusCountAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['admin']=$this->getUserRole();   //=1市场专员
+        $data['created_by'] = $this->user['id'];
 
+        $model = new BuyerModel();
+        $cond = $model->getBuyerStatisListCond($data);  //获取条件
+        if($cond==false){
+            $datajson['code'] = 1;
+            $datajson['message'] = '无权限/无数据';
+            $datajson['data'] = array('total_count'=>0);
+            $this->jsonReturn($datajson);
+        }
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总数
+        $arr=array(
+            'total_status'=>$totalCount,
+            'approved_status'=>$statusCount['APPROVED'],
+            'approving_status'=>$statusCount['APPROVING'],
+            'rejected_status'=>$statusCount['REJECTED']
+        );
+        $datajson['code']=1;
+        $datajson['message']='各个状态统计数量';
+        $datajson['data']=$arr;
+
+        $this->jsonReturn($datajson);
+    }
     /*
      * 客户审核列表 jhw
      * */
