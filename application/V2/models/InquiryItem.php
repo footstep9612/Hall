@@ -157,8 +157,11 @@ class InquiryItemModel extends PublicModel {
 
         try {
             $id = $this->add($data);
-            (new TemporaryGoodsModel)->addData($data, false);
+
+
             if ($id) {
+                $data['id'] = $id;
+                (new TemporaryGoodsModel)->addData($data, false);
                 $results['code'] = '1';
                 $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
