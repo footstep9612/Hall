@@ -32,7 +32,7 @@ class ShowcatController extends PublicController {
         $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
             $arr = $this->_model->tree($jsondata);
-            redisSet($redis_key, json_encode($jsondata), 86400);
+            redisSet($redis_key, json_encode($arr), 86400);
         } else {
             $arr = $data;
             unset($data, $jsondata);
