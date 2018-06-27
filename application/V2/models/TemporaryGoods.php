@@ -271,24 +271,32 @@ class TemporaryGoodsModel extends PublicModel {
                 $where = ['id' => $id];
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
-                $InquiryItem_where = $where = ['name' => $tmpgoods['name'],
+                $InquiryItem_where = $where = [
+                    'name' => $tmpgoods['name'],
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
+//                $map['id'] = $tmpgoods['inquiry_item_id'];
+//                $map[] = 'isnull(sku) and id<>' . $tmpgoods['inquiry_item_id'];
+//                $map['_logic'] = 'or';
+//                $where[]['_complex'] = $map;
                 if (!empty($tmpgoods['name_zh'])) {
                     $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
                 } else {
                     $InquiryItem_where[] = $where[] = 'isnull(name_zh)';
                 }
             }
-            $flag = $this->where($where)->save(['sku' => $sku,
+            $flag = $this->where($where)->save([
+                'sku' => $sku,
                 'relation_flag' => 'Y',
                 'updated_by' => defined('UID') ? UID : 0,
                 'updated_at' => date('Y-m-d H:i:s')]);
 
             if ($flag !== false) {
                 $inquiry_item_model = new InquiryItemModel();
-                $f = $inquiry_item_model->where($InquiryItem_where)->save(['sku' => $sku,
+                $f = $inquiry_item_model
+                        ->where($InquiryItem_where)
+                        ->save(['sku' => $sku,
                     'updated_by' => defined('UID') ? UID : 0,
                     'updated_at' => date('Y-m-d H:i:s')]);
 
