@@ -225,6 +225,7 @@ class BuyerController extends PublicController {
             'approving_status' => intval($statusCount['APPROVING']),
             'rejected_status' => intval($statusCount['REJECTED']),
             'currentPage' => $ststisInfo['currentPage'],
+            'data' => $ststisInfo['info']
         );
         $this->jsonReturn($dataJson);
     }
