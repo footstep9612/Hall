@@ -86,8 +86,15 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
+                $this->_jsonDecode($val,'settings');
                 $arr[$key] = $val;
             }
+        }
+    }
+
+    private function _jsonDecode(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = json_decode($arr[$field],true);
         }
     }
 
