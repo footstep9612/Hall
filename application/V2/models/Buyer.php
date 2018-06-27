@@ -2003,11 +2003,11 @@ EOF;
                 $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
             if($v['source']==1){
-                $info[$k]['source']=$lang=='zh'?'后台':'BOSS';
+                $info[$k]['source']=$lang=='zh'?'BOSS':'BOSS';
             }elseif($v['source']==2){
                 $info[$k]['source']=$lang=='zh'?'门户':'WEB';
             }elseif($v['source']==3){
-                $info[$k]['source']=$lang=='zh'?'移动':'APP';
+                $info[$k]['source']=$lang=='zh'?'APP':'APP';
             }
             if($v['status']=='APPROVING'){
                 $info[$k]['status']=$lang=='zh'?'待分配':'APPROVING';
