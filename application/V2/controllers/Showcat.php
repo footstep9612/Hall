@@ -15,7 +15,6 @@ class ShowcatController extends PublicController {
         } else {
             parent::init();
         }
-        $this->_model = new ShowCatModel();
     }
 
     public function treeAction() {
@@ -23,32 +22,32 @@ class ShowcatController extends PublicController {
         set_time_limit(360);
         $lang = $this->getPut('lang', 'zh');
         $jsondata = ['lang' => $lang];
-        $jsondata['level_no'] = 1;
+        // $jsondata['level_no'] = 1;
         $country_bn = $this->getPut('country_bn', '');
         $market_area_bn = $this->getPut('market_area_bn', '');
         $jsondata['country_bn'] = $country_bn;
         $jsondata['market_area_bn'] = $market_area_bn;
-
-        $arr = $this->_model->tree($jsondata);
+        $_model = new ShowCatModel();
+        $arr = $_model->tree($jsondata);
 
         if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
-            foreach ($arr as $key => $val) {
-                $children_data = $jsondata;
-                $children_data['level_no'] = 2;
-                $children_data['parent_cat_no'] = $val['value'];
-                $arr[$key]['children'] = $this->_model->tree($children_data);
-                if ($arr[$key]['children']) {
-                    foreach ($arr[$key]['children'] as $k => $item) {
-                        $children_data['level_no'] = 3;
-                        $children_data['parent_cat_no'] = $item['value'];
-                        $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
-                    }
-                }
-            }
+//            foreach ($arr as $key => $val) {
+//                $children_data = $jsondata;
+//                $children_data['level_no'] = 2;
+//                $children_data['parent_cat_no'] = $val['value'];
+//                $arr[$key]['children'] = $this->_model->tree($children_data);
+//                if ($arr[$key]['children']) {
+//                    foreach ($arr[$key]['children'] as $k => $item) {
+//                        $children_data['level_no'] = 3;
+//                        $children_data['parent_cat_no'] = $item['value'];
+//                        $arr[$key]['children'][$k]['children'] = $this->_model->tree($children_data);
+//                    }
+//                }
+//            }
 
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->_setCount($lang, $country_bn, $marke_area_bn);
+            $this->_setCount($lang, $country_bn, $market_area_bn);
             $this->jsonReturn($arr);
         } else {
             $this->setvalue('count1', 0);

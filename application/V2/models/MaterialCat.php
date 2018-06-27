@@ -109,14 +109,47 @@ class MaterialCatModel extends PublicModel {
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no')
+                    ->field('cat_no as value,name as label,level_no,parent_cat_no')
                     ->select();
-            if ($condition['level_no'] == 3) {
-                foreach ($data as $key => $val) {
-                    $data[$key]['label'] = $val['label'] . '-' . $val['value'];
+            $ret = $ret1 = $ret2 = $ret3 = [];
+            foreach ($data as $item) {
+                switch ($item['level_no']) {
+                    case 1:
+
+                        $ret1[$item['value']] = $item;
+                        break;
+                    case 2:
+
+
+                        $ret2[$item['parent_cat_no']][$item['value']] = $item;
+                        break;
+                    case 3:
+                        $item['label'] = $item['label'] . '-' . $item['value'];
+                        $ret3[$item['parent_cat_no']][$item['value']] = $item;
+                        break;
                 }
             }
-            return $data;
+            foreach ($ret1 as $cat_no1 => $item1) {
+                unset($item1['parent_cat_no'], $item1['level_no']);
+                if (!empty($ret2[$cat_no1])) {
+                    foreach ($ret2[$cat_no1] as $cat_no2 => $item2) {
+
+                        if (!empty($ret3[$cat_no2])) {
+                            foreach ($ret3[$cat_no2] as $item3) {
+                                unset($item3['parent_cat_no'], $item3['level_no']);
+                                $item2['children'][] = $item3;
+                            }
+                        }
+                        unset($item2['parent_cat_no'], $item2['level_no']);
+                        $item1['children'][] = $item2;
+                    }
+                }
+
+                $ret[] = $item1;
+            }
+
+
+            return $ret;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
