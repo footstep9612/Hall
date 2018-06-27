@@ -201,10 +201,12 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = null,$settings= '') {
-        $data['country_bn'] = $country_bn;
+    public function updateData($id, $country_bn='', $show_flag, $lang = 'en', $display_position = null, $show_type = null,$settings= '') {
+        if(!empty($country_bn)){
+            $data['country_bn'] = $country_bn;
+        }
         $data['lang'] = $lang;
-        $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
+        $data['show_flag'] = ($show_flag == 'Y' || $show_flag === true) ? 'Y' : 'N';
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
         if(!empty($settings)){
