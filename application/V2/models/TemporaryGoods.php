@@ -372,28 +372,6 @@ class TemporaryGoodsModel extends PublicModel {
         }
     }
 
-    public function CheckedInquiry_statusAndSync($item, $inquiry_flag = false) {
-        $inquiry_table = (new InquiryModel())->getTableName();
-        $inquiry_item_model = new InquiryItemModel();
-        if (!empty($item['id'])) {
-
-
-            $where = ['i.deleted_flag' => 'N',
-                'ii.deleted_flag' => 'N',
-                'i.status' => ['neq', 'DRAFT'],
-                'ii.id' => $item['id'],
-            ];
-            $data = $inquiry_item_model->alias('ii')
-                    ->field('ii.updated_at,ii.id,ii.sku,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
-                    ->join($inquiry_table . ' i on i.id=ii.inquiry_id', 'left')
-                    ->where($where)
-                    ->find();
-            return $this->addData($data, $inquiry_flag);
-        } else {
-            return false;
-        }
-    }
-
     public function getSku($tmpgoods) {
         try {
             if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {

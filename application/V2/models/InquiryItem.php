@@ -159,7 +159,6 @@ class InquiryItemModel extends PublicModel {
             $id = $this->add($data);
             if ($id) {
                 $data['id'] = $id;
-                (new TemporaryGoodsModel)->CheckedInquiry_statusAndSync($data, false);
                 $results['code'] = '1';
                 $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
@@ -246,7 +245,6 @@ class InquiryItemModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if (isset($id)) {
-                (new TemporaryGoodsModel)->CheckedInquiry_statusAndSync($data, true);
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
             } else {
