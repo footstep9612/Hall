@@ -271,24 +271,45 @@ class TemporaryGoodsModel extends PublicModel {
                 $where = ['id' => $id];
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
-                $InquiryItem_where = $where = ['name' => $tmpgoods['name'],
+                $InquiryItem_where = $where = [
+                    'name' => $tmpgoods['name'],
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
+                $map['id'] = $tmpgoods['inquiry_item_id'];
+                $map[] = 'isnull(sku) and id<>' . $tmpgoods['inquiry_item_id'];
+                $map1['id'] = $id;
+                $map1[] = 'isnull(sku) and id<>' . $id;
+                if (!empty($tmpgoods['sku'])) {
+                    $map['sku'] = $tmpgoods['sku'];
+                    $map1['sku'] = $tmpgoods['sku'];
+                }
+                if (!empty($tmpgoods['updated_at'])) {
+                    $map['updated_at'] = $tmpgoods['updated_at'];
+                    $map1['updated_at'] = $tmpgoods['updated_at'];
+                }
+                $map['_logic'] = 'or';
+                $InquiryItem_where['_complex'] = $map;
+
+                $map1['_logic'] = 'or';
+                $where['_complex'] = $map1;
                 if (!empty($tmpgoods['name_zh'])) {
                     $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
                 } else {
                     $InquiryItem_where[] = $where[] = 'isnull(name_zh)';
                 }
             }
-            $flag = $this->where($where)->save(['sku' => $sku,
+            $flag = $this->where($where)->save([
+                'sku' => $sku,
                 'relation_flag' => 'Y',
                 'updated_by' => defined('UID') ? UID : 0,
                 'updated_at' => date('Y-m-d H:i:s')]);
 
             if ($flag !== false) {
                 $inquiry_item_model = new InquiryItemModel();
-                $f = $inquiry_item_model->where($InquiryItem_where)->save(['sku' => $sku,
+                $f = $inquiry_item_model
+                        ->where($InquiryItem_where)
+                        ->save(['sku' => $sku,
                     'updated_by' => defined('UID') ? UID : 0,
                     'updated_at' => date('Y-m-d H:i:s')]);
 
@@ -312,7 +333,7 @@ class TemporaryGoodsModel extends PublicModel {
     }
 
     /**
-     * 获取数据条数
+     * 同步数据
      * @param array $item ID
      * @param string $inquiry_flag SKU
      * @return mix
@@ -322,8 +343,12 @@ class TemporaryGoodsModel extends PublicModel {
 
 
         try {
-            $item['inquiry_at'] = $item['created_at'];
 
+            if (empty($item)) {
+                return false;
+            }
+
+            $item['inquiry_at'] = $item['created_at'];
             if ($item['sku']) {
                 $sku = trim($item['sku']);
                 $goods = (new GoodsModel)->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
@@ -344,6 +369,58 @@ class TemporaryGoodsModel extends PublicModel {
         } catch (Exception $ex) {
             Log::write($ex->getMessage(), Log::ERR);
             return false;
+        }
+    }
+
+    public function getSku($tmpgoods) {
+        try {
+            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {
+                return '';
+            } else {
+
+                $where = [
+                    'name' => $tmpgoods['name'],
+                    'brand' => $tmpgoods['brand'],
+                    'model' => $tmpgoods['model']
+                ];
+                $info = $this->field('sku')
+                        ->where($where)
+                        ->find();
+
+                return isset($info['sku']) ? $info['sku'] : null;
+            }
+        } catch (Exception $ex) {
+            Log::write($ex->getMessage(), Log::ERR);
+            return '';
+        }
+    }
+
+    /**
+     * 删除数据
+     * @param Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function deleteData($condition) {
+        if (isset($condition['id'])) {
+            $where['inquiry_item_id'] = array('in', explode(',', $condition['id']));
+        } else {
+            return false;
+        }
+        try {
+            $id = $this->where($where)->save(['deleted_flag' => 'Y']);
+            if (isset($id)) {
+                $results['code'] = '1';
+                $results['message'] = L('SUCCESS');
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = L('FAIL');
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
         }
     }
 

@@ -353,7 +353,7 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
-    public function getBuyerStatisListCond($data,$falg=true){
+    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -402,11 +402,14 @@ class BuyerModel extends PublicModel {
             $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         }
         foreach($data as $k => $v){
-            $data[$k]=trim($v,' ');
+            $data[$k]=trim($v);
         }
         if($falg==true){
             if(!empty($data['status'])){    //状态
                 $cond .= " And `buyer`.status='".$data['status']."'";
+            }
+            if($filter==true){
+                $cond .= " And `buyer`.status!='REJECTED'";
             }
         }
         if(!empty($data['country_search'])){    //国家搜索
@@ -1950,7 +1953,7 @@ EOF;
     public function buyerList($data,$excel=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerStatisListCond($data);
+        $cond = $this->getBuyerStatisListCond($data,true,true);
         if($cond==false){   //无角色,无数据
             return false;
         }
@@ -2003,11 +2006,11 @@ EOF;
                 $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
             if($v['source']==1){
-                $info[$k]['source']=$lang=='zh'?'后台':'BOSS';
+                $info[$k]['source']=$lang=='zh'?'BOSS':'BOSS';
             }elseif($v['source']==2){
                 $info[$k]['source']=$lang=='zh'?'门户':'WEB';
             }elseif($v['source']==3){
-                $info[$k]['source']=$lang=='zh'?'移动':'APP';
+                $info[$k]['source']=$lang=='zh'?'APP':'APP';
             }
             if($v['status']=='APPROVING'){
                 $info[$k]['status']=$lang=='zh'?'待分配':'APPROVING';
@@ -2448,25 +2451,27 @@ EOF;
         if(empty($reg)){
             return false;
         }
-        $config = \Yaf_Application::app()->getConfig();
-        $myhost=$config['myhost'];
+        if($data['type']!='check'){
+            $config = \Yaf_Application::app()->getConfig();
+            $myhost=$config['myhost'];
 //        print_r($myhost);die;
-        //percentInfo
-        $cookie=$_COOKIE;
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
-                'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
-            )
-        );
-        $context = stream_context_create($opt);
-        $url = $myhost.'v2/Buyerfiles/percentInfo';
+            //percentInfo
+            $cookie=$_COOKIE;
+            $opt = array(
+                'http'=>array(
+                    'method'=>"POST",
+                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+                )
+            );
+            $context = stream_context_create($opt);
+            $url = $myhost.'v2/Buyerfiles/percentInfo';
 //        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
-        $json = file_get_contents($url,false,$context);
-        $result=$data = json_decode($json, true);
-        if($result['code']!=1){
-            return 'info';
+            $json = file_get_contents($url,false,$context);
+            $result=$data = json_decode($json, true);
+            if($result['code']!=1){
+                return 'info';
+            }
         }
         $info = $this->field($buyerArr)
                     ->where($cond)
