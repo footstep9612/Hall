@@ -772,6 +772,7 @@ class InquiryController extends PublicController {
         $buyerModel = new BuyerModel();
         $org = new OrgModel();
         $inquiryCheckLogModel = new InquiryCheckLogModel();
+        $transModeModel = new TransModeModel();
 
         $where = $this->put_data;
         
@@ -830,6 +831,14 @@ class InquiryController extends PublicController {
         //项目获取人
         if (!empty($results['data']['obtain_id'])) {
             $results['data']['obtain_name'] = $employee->getUserNameById($results['data']['obtain_id']);
+        }
+        //目的国
+        if (!empty($results['data']['to_country'])) {
+            $results['data']['to_country_name'] = $countryModel->getCountryNameByBn($results['data']['to_country'], $this->lang);
+        }
+        //运输方式
+        if (!empty($results['data']['trans_mode_bn'])) {
+            $results['data']['trans_mode_name'] = $transModeModel->getTransModeByBn($results['data']['trans_mode_bn'], $this->lang);
         }
 
         if (!empty($results['data'])) {
@@ -1090,7 +1099,7 @@ class InquiryController extends PublicController {
                     }
                 } else {
                     if (!isDecimal($condition['qty'])) {
-                        $condition['qty'] = 1;
+                        $condition['qty'] = null;
                     }
                     if ($condition['id'] == '') {
                         $condition['inquiry_id'] = $data['id'];
