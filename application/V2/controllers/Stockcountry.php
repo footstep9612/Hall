@@ -38,6 +38,8 @@ class StockcountryController extends PublicController {
             $this->_setCountry($list, $lang);
             $count = $stock_country_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
+            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
+            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -84,8 +86,27 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
+                $this->_jsonDecode($val,'settings');    //json解析
+                $this->_ynTotruefalse($val,'show_flag');
                 $arr[$key] = $val;
             }
+        }
+    }
+
+    /**
+     * json解析
+     * @param $arr
+     * @param string $field
+     */
+    private function _jsonDecode(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = json_decode($arr[$field],true);
+        }
+    }
+
+    private function  _ynTotruefalse(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = $arr[$field]=='Y' ? true : false;
         }
     }
 
@@ -175,20 +196,24 @@ class StockcountryController extends PublicController {
             $this->setMessage('ID不能为空!');
             $this->jsonReturn();
         }
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
+        if(count($this->getPut())<2){
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('无修改信息!');
             $this->jsonReturn();
         }
+        $country_bn = $this->getPut('country_bn','');
         $show_type = $this->getPut('show_type');
-        $stock_country_model = new StockCountryModel();
         $lang = $this->getPut('lang', 'en');
-        if ($stock_country_model->getExit($country_bn, $lang, $id, $show_type)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('您选择国家已经存在,请您重新选择!');
-            $this->jsonReturn();
+
+        $stock_country_model = new StockCountryModel();
+        if (!empty($country_bn)) {
+            if ($stock_country_model->getExit($country_bn, $lang, $id, $show_type)) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('您选择国家已经存在,请您重新选择!');
+                $this->jsonReturn();
+            }
         }
+
         $show_flag = $this->getPut('show_flag', 'N');
         $display_position = $this->getPut('display_position');
         $settings = $this->getPut('settings', '');

@@ -186,5 +186,45 @@ class RoleUserModel extends PublicModel {
         }
         return $arr;
     }
+    
+    /**
+     * @desc 获取用户菜单
+     * 
+     * @param array $userId
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2018-06-19
+     */
+    public function getUserMenu($userId, $condition = []) {
+        $where['source'] = $condition['source'];
+        $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
+        $data = $this->userRoleList($userId, $parentId, $where);
+        $count = count($data);
+        $childrencount = 0;
+        for ($i = 0; $i < $count; $i++) {
+            $data[$i]['check'] = false;
+            $data[$i]['lang'] = $this->lang;
+            // 是否只显示第一层级
+            if ($condition['only_one_level'] == 'Y') {
+                continue;
+            }
+            $data[$i]['children'] = $this->userRoleList($userId, $data[$i]['func_perm_id'], $where);
+            $childrencount = count($data[$i]['children']);
+            if ($childrencount > 0) {
+                for ($j = 0; $j < $childrencount; $j++) {
+                    $data[$i]['children'][$j]['lang'] = $this->lang;
+                    $data[$i]['children'][$j]['check'] = false;
+                    $data[$i]['children'][$j]['children'] = $this->userRoleList($userId, $data[$i]['children'][$j]['func_perm_id'], $where);
+                    if (!$data[$i]['children'][$j]['children']) {
+                        unset($data[$i]['children'][$j]['children']);
+                    }
+                }
+            } else {
+                unset($data[$i]['children']);
+            }
+        }
+        return $data;
+    }
 
 }
