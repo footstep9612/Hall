@@ -7,10 +7,25 @@
  * Time: 9:29
  */
 class StorageController extends PublicController {
-
-    //put your code here
     public function init() {
         parent::init();
+    }
+
+    /**
+     * 仓库列表
+     * @author link
+     * @param storage_name|id
+     */
+    public function listAction(){
+        $condition = $this->getPut();
+        $storageModel = new StorageModel();
+        $result = $storageModel->getList($condition);
+
+        if ($result) {
+            jsonReturn($result);
+        } elseif ($result === false) {
+            jsonReturn('',MSG::MSG_FAILED);
+        }
     }
 
     /**
