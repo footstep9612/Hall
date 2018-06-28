@@ -151,17 +151,15 @@ class InquiryItemModel extends PublicModel {
             $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
-
+        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
         $data = $this->create($condition);
         $data['created_at'] = $this->getTime();
 
         try {
             $id = $this->add($data);
-
-
             if ($id) {
-//                $data['id'] = $id;
-//                (new TemporaryGoodsModel)->addData($data, false);
+                $data['id'] = $id;
+                (new TemporaryGoodsModel)->CheckedInquiry_statusAndSync($data, false);
                 $results['code'] = '1';
                 $results['insert_id'] = $id;
                 $results['message'] = L('SUCCESS');
@@ -240,6 +238,7 @@ class InquiryItemModel extends PublicModel {
             $condition['brand'] = $condition['inquiry_brand'];
         }
 
+        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
         $data = $this->create($condition);
         $data['status'] = !empty($condition['status']) ? $condition['status'] : 'VALID';
         $data['updated_at'] = $this->getTime();
@@ -247,7 +246,7 @@ class InquiryItemModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if (isset($id)) {
-                //(new TemporaryGoodsModel)->addData($data, true);
+                (new TemporaryGoodsModel)->CheckedInquiry_statusAndSync($data, true);
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
             } else {
