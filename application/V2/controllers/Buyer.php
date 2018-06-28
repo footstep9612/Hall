@@ -1655,36 +1655,36 @@ EOF;
             
             $this->jsonReturn($dataJson);
         }
-        //test-start
-//        else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>L('Normal_customer') //正常录入客户信息流程
-//            );
-//            $this->jsonReturn($dataJson);
-//        }
-        //test-end
+//        test-start
+        else{
+            $dataJson = array(
+                'code'=>2,
+                'message'=>L('Normal_customer') //正常录入客户信息流程
+            );
+            $this->jsonReturn($dataJson);
+        }
+//        test-end
 
         //验证集团CRM存在,则展示数据 生产-start
-        $group = $this->groupCrmCode($data['buyer_code']);
-        if ($group=='no') {
-            $dataJson = array(
-                'code' => 4,
-                'message' => '网络异常'
-            );
-        }elseif($group=='code'){
-            $dataJson = array(
-                'code' => 2,
-                'message' => L('Normal_customer') //正常录入客户信息流程
-            );
-        }else {
-            $dataJson = array(
-                'code' => 1,
-                'message' => L('Group_crm'), //集团CRM客户信息
-                'data' => $group
-            );
-        }
-        $this->jsonReturn($dataJson); //生产-end
+//        $group = $this->groupCrmCode($data['buyer_code']);
+//        if ($group=='no') {
+//            $dataJson = array(
+//                'code' => 4,
+//                'message' => '网络异常'
+//            );
+//        }elseif($group=='code'){
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => L('Normal_customer') //正常录入客户信息流程
+//            );
+//        }else {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => L('Group_crm'), //集团CRM客户信息
+//                'data' => $group
+//            );
+//        }
+//        $this->jsonReturn($dataJson); //生产-end
 //        if (!empty($group) && $group!='code') {
 //            $dataJson = array(
 //                'code' => 1,
