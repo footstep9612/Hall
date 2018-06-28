@@ -16,6 +16,50 @@ class StorageModel extends PublicModel{
     }
 
     /**
+     * 仓库列表
+     * @param array $condition
+     * @param string $field
+     * @return array|bool
+     */
+    public function getList($condition=[],$field=''){
+        $where = [];
+        if(isset($condition['id'])){
+            $where['id'] = intval($condition['id']);
+        }
+        if(isset($condition['storage_name'])){
+            $where['storage_name'] = ['like', '%'.trim($condition['storage_name']).'%'];
+        }
+        list($from ,$size) = $this->_getPage($condition);
+        try{
+            $data = [];
+            $rel = $this->field(empty($field) ? '' : $field)->where($where)
+                ->limit($from,$size)->select();
+            if($rel){
+                $data['data'] = $rel;
+                $count = $this->getCount($where);
+                $data['count'] = $count ? $count : 0;
+                $data['current_no'] = isset($condition['current_no']) ? intval($condition['current_no']) : 1;
+                $data['pagesize'] = $size;
+            }
+            return $data;
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
+     * 获取记录数
+     * @param $where
+     */
+    public function getCount($where){
+        try{
+            return $this->field('id')->where($where)->count();
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
      * 新增仓库
      * @param $input
      * @return bool|mixed
@@ -94,8 +138,12 @@ class StorageModel extends PublicModel{
             $data = [];
             $data['deleted_at'] = date('Y-m-d H:i:s',time());
             $data['deleted_by'] = defined('UID') ? UID : 0;
+            if(is_array($input['id'])){
+                $where =['id'=>['in', $input['id']]];
+            }else{
+                $where =['id'=>intval($input['id'])];
+            }
 
-            $where =['id'=>$input['id']];
             $flag = $this->where($where)->save($data);
             return $flag ? $flag : false;
         }catch (Exception $e){

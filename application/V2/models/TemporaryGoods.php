@@ -354,7 +354,11 @@ class TemporaryGoodsModel extends PublicModel {
                 $goods = (new GoodsModel)->where(['sku' => $sku, 'deleted_flag' => 'N'])->find();
                 if ($goods) {
                     $item['relation_flag'] = 'Y';
+                } else {
+                    $item['relation_flag'] = 'N';
                 }
+            } else {
+                $item['relation_flag'] = 'N';
             }
             $item['inquiry_item_id'] = $item['id'];
             unset($item['id']);
