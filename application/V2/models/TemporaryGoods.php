@@ -267,12 +267,13 @@ class TemporaryGoodsModel extends PublicModel {
                 return false;
             }
             $where = [];
-            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {
+            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name']) || empty($tmpgoods['name_zh'])) {
                 $where = ['id' => $id];
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
                 $InquiryItem_where = $where = [
                     'name' => $tmpgoods['name'],
+                    'name_zh' => $tmpgoods['name_zh'],
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
@@ -293,11 +294,11 @@ class TemporaryGoodsModel extends PublicModel {
 
                 $map1['_logic'] = 'or';
                 $where['_complex'] = $map1;
-                if (!empty($tmpgoods['name_zh'])) {
-                    $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
-                } else {
-                    $InquiryItem_where[] = $where[] = 'isnull(name_zh)';
-                }
+//                if (!empty($tmpgoods['name_zh'])) {
+//                    $InquiryItem_where['name_zh'] = $where['name_zh'] = $tmpgoods['name_zh'];
+//                } else {
+//                    $InquiryItem_where[] = $where[] = 'isnull(name_zh)';
+//                }
             }
             $flag = $this->where($where)->save([
                 'sku' => $sku,
@@ -378,12 +379,13 @@ class TemporaryGoodsModel extends PublicModel {
 
     public function getSku($tmpgoods) {
         try {
-            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name'])) {
+            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name']) || empty($tmpgoods['name_zh'])) {
                 return '';
             } else {
 
                 $where = [
                     'name' => $tmpgoods['name'],
+                    'name_zh' => $tmpgoods['name_zh'],
                     'brand' => $tmpgoods['brand'],
                     'model' => $tmpgoods['model']
                 ];
