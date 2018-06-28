@@ -44,6 +44,8 @@ class QuoteController extends PublicController{
 
         $exchangeRateModel = new ExchangeRateModel();
         $transModeModel = new TransModeModel();
+        $countryModel = new CountryModel();
+        $portModel = new PortModel();
         $info['exchange_rate'] = $exchangeRateModel->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->order('created_at DESC')->getField('rate');
         $info['exchange_rate'] = $info['exchange_rate'] ? : L('NOTHING');
 
@@ -52,6 +54,14 @@ class QuoteController extends PublicController{
 
         $logiInfo = $this->inquiryModel->where(['id'=>$request['inquiry_id']])->field('dispatch_place,destination,inflow_time,org_id,status')->find();
 
+        // 起运国
+        $info['from_country_name'] = $countryModel->getCountryNameByBn($info['from_country'], $this->lang) ? : L('NOTHING');
+        // 目的国
+        $info['to_country_name'] = $countryModel->getCountryNameByBn($info['to_country'], $this->lang) ? : L('NOTHING');
+        // 起运港
+        $info['from_port_name'] = $portModel->getPortNameByBn($info['from_country'], $info['from_port'], $this->lang) ? : L('NOTHING');
+        // 目的港
+        $info['to_port_name'] = $portModel->getPortNameByBn($info['to_country'], $info['to_port'], $this->lang) ? : L('NOTHING');
         $info['trans_mode_bn'] = $info['trans_mode_bn'] ? : L('NOTHING');
         $info['trans_mode_name'] = $transModeModel->getTransModeByBn($info['trans_mode_bn'], $this->lang) ? : L('NOTHING');
         $info['dispatch_place'] = $info['dispatch_place'] ? : L('NOTHING');

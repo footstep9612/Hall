@@ -730,6 +730,7 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
+            $inquiryModel = new InquiryModel();
             
             $where['inquiry_id'] = $condition['inquiry_id'];
             $where['_complex']['in_node'] = $where['_complex']['out_node'] = 'CLARIFY';
@@ -740,6 +741,8 @@ class InquiryController extends PublicController {
         
             foreach ($clarifyList as &$clarify) {
                 $clarify['created_name'] = $employeeModel->getUserNameById($clarify['created_by']);
+                $clarify['now_agent_id'] = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('now_agent_id');
+                $clarify['now_agent_name'] = $employeeModel->getUserNameById($clarify['now_agent_id']);
             }
         
             if ($clarifyList) {
@@ -773,6 +776,7 @@ class InquiryController extends PublicController {
         $org = new OrgModel();
         $inquiryCheckLogModel = new InquiryCheckLogModel();
         $transModeModel = new TransModeModel();
+        $portModel = new PortModel();
 
         $where = $this->put_data;
         
@@ -832,9 +836,21 @@ class InquiryController extends PublicController {
         if (!empty($results['data']['obtain_id'])) {
             $results['data']['obtain_name'] = $employee->getUserNameById($results['data']['obtain_id']);
         }
+        //起运国
+        if (!empty($results['data']['from_country'])) {
+            $results['data']['from_country_name'] = $countryModel->getCountryNameByBn($results['data']['from_country'], $this->lang);
+        }
         //目的国
         if (!empty($results['data']['to_country'])) {
             $results['data']['to_country_name'] = $countryModel->getCountryNameByBn($results['data']['to_country'], $this->lang);
+        }
+        //起运港
+        if (!empty($results['data']['from_port'])) {
+            $results['data']['from_port_name'] = $portModel->getPortNameByBn($results['data']['from_country'], $results['data']['from_port'], $this->lang);
+        }
+        //目的港
+        if (!empty($results['data']['to_port'])) {
+            $results['data']['to_port_name'] = $portModel->getPortNameByBn($results['data']['to_country'], $results['data']['to_port'], $this->lang);
         }
         //运输方式
         if (!empty($results['data']['trans_mode_bn'])) {
