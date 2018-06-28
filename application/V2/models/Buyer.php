@@ -353,7 +353,7 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
-    public function getBuyerStatisListCond($data,$falg=true){
+    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -407,6 +407,9 @@ class BuyerModel extends PublicModel {
         if($falg==true){
             if(!empty($data['status'])){    //状态
                 $cond .= " And `buyer`.status='".$data['status']."'";
+            }
+            if($filter==true){
+                $cond .= " And `buyer`.status='APPROVED'";
             }
         }
         if(!empty($data['country_search'])){    //国家搜索
@@ -1950,7 +1953,7 @@ EOF;
     public function buyerList($data,$excel=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerStatisListCond($data);
+        $cond = $this->getBuyerStatisListCond($data,true,true);
         if($cond==false){   //无角色,无数据
             return false;
         }
@@ -2448,26 +2451,28 @@ EOF;
         if(empty($reg)){
             return false;
         }
-        $config = \Yaf_Application::app()->getConfig();
-        $myhost=$config['myhost'];
-//        print_r($myhost);die;
-        //percentInfo
-        $cookie=$_COOKIE;
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
-                'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
-            )
-        );
-        $context = stream_context_create($opt);
-        $url = $myhost.'v2/Buyerfiles/percentInfo';
-//        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
-        $json = file_get_contents($url,false,$context);
-        $result=$data = json_decode($json, true);
-        if($result['code']!=1){
-            return 'info';
-        }
+//        if($data['type']!='check'){
+//            $config = \Yaf_Application::app()->getConfig();
+//            $myhost=$config['myhost'];
+////        print_r($myhost);die;
+//            //percentInfo
+//            $cookie=$_COOKIE;
+//            $opt = array(
+//                'http'=>array(
+//                    'method'=>"POST",
+//                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+//                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+//                )
+//            );
+//            $context = stream_context_create($opt);
+//            $url = $myhost.'v2/Buyerfiles/percentInfo';
+////        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+//            $json = file_get_contents($url,false,$context);
+//            $result=$data = json_decode($json, true);
+//            if($result['code']!=1){
+//                return 'info';
+//            }
+//        }
         $info = $this->field($buyerArr)
                     ->where($cond)
                     ->find();
