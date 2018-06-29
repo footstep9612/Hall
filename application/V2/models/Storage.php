@@ -30,6 +30,7 @@ class StorageModel extends PublicModel{
             $result = $this->field( 'id,country_bn,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ) ] )->find();
             if($result){
                 $this->_setUser($result);
+                $this->_jsonDecode($result);
                 return $result;
             }
         } catch ( Exception $e ) {
