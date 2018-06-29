@@ -280,40 +280,13 @@ class UserController extends PublicController {
 
     public function userrolelisttreeAction() {
         $condition = json_decode(file_get_contents("php://input"), true);
-        $role_user_modle = new RoleUserModel();
+        $roleUserModel = new RoleUserModel();
         if (isset($condition['user_id'])) {
-            $user_id = $condition['user_id'];
+            $userId = $condition['user_id'];
         } else {
-            $user_id = $this->user['id'];
+            $userId = $this->user['id'];
         }
-        //$where['source'] = !empty($condition['source']) ? $condition['source'] : 'BOSS' ;
-        $where['source'] = $condition['source'];
-        $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
-        $data = $role_user_modle->userRoleList($user_id, $parentId, $where);
-        $count = count($data);
-        $childrencount = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $data[$i]['check'] = false;
-            $data[$i]['lang'] = $this->lang;
-            // 是否只显示第一层级
-            if ($condition['only_one_level'] == 'Y') {
-                continue;
-            }
-            $data[$i]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['func_perm_id'], $where);
-            $childrencount = count($data[$i]['children']);
-            if ($childrencount > 0) {
-                for ($j = 0; $j < $childrencount; $j++) {
-                    $data[$i]['children'][$j]['lang'] = $this->lang;
-                    $data[$i]['children'][$j]['check'] = false;
-                    $data[$i]['children'][$j]['children'] = $role_user_modle->userRoleList($user_id, $data[$i]['children'][$j]['func_perm_id'], $where);
-                    if (!$data[$i]['children'][$j]['children']) {
-                        unset($data[$i]['children'][$j]['children']);
-                    }
-                }
-            } else {
-                unset($data[$i]['children']);
-            }
-        }
+        $data = $roleUserModel->getUserMenu($userId, $condition);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -776,6 +749,60 @@ class UserController extends PublicController {
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
             $this->jsonReturn();
+        }
+    }
+    
+    /**
+     * @desc 首页快捷入口
+     *
+     * @author liujf
+     * @time 2018-06-19
+     */
+    public function fastEntranceAction() {
+        $roleUserModel = new RoleUserModel();
+        $menu = $roleUserModel->getUserMenu($this->user['id']);
+        $mapping = [
+            'show_create_inquiry' => '询单管理',
+            'show_create_order' => '订单列表',
+            'show_create_buyer' => '客户信息管理',
+            'show_create_visit' => '客户信息管理',
+            'show_demand_feedback' => '客户需求反馈',
+            'show_request_permission' => '授信管理',
+            'show_supplier_check' => '供应商审核',
+            'show_goods_check' => 'SPU审核'
+        ];
+        foreach ($mapping as $k => $v) {
+            $data[$k]['show'] = 'N';
+        }
+        $this->_scanMenu($menu, $mapping, $data);
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('SUCCESS'),
+            'data' => $data
+        ]);
+    }
+    
+    /**
+     * @desc 扫描菜单
+     * 
+     * @param array $menu 菜单数据
+     * @param array $mapping 菜单映射
+     * @param array $data 需处理的数据
+     * @author liujf
+     * @time 2018-06-19
+     */
+    private function _scanMenu($menu, $mapping, &$data) {
+        $urlPermModel = new UrlPermModel();
+        foreach ($menu as $item) {
+            foreach ($mapping as $k => $v) {
+                if ($item['fn'] == $v) {
+                    $data[$k]['show'] = 'Y';
+                    $data[$k]['parent_id'] = $urlPermModel->getOneLevelMenuId($item['func_perm_id']);
+                }
+            }
+            if (isset($item['children'])) {
+                $this->_scanMenu($item['children'], $mapping, $data);
+            }
         }
     }
 

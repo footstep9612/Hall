@@ -434,4 +434,18 @@ class PortModel extends PublicModel {
             ->find();
         return $info;
     }
+    
+    /**
+     * @desc 通过港口简称获取名称
+     *
+     * @param string $countryBn 国家简称
+     * @param string $portBn 港口简称
+     * @param string $lang 语言
+     * @return mixed
+     * @author liujf
+     * @time 2018-06-28
+     */
+    public function getPortNameByBn($countryBn, $portBn, $lang = 'zh') {
+        return $this->where(['country_bn' => $countryBn, 'bn' => $portBn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('name');
+    }
 }

@@ -58,14 +58,15 @@ class BuyerAgentModel extends PublicModel {
                 ->order('buyer_agent.id desc')
                 ->select();
         }else{
-            return $this->where($condition)
-                ->field($field)
-                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id', 'left')
+            $info= $this->field($field)
+                ->join('erui_sys.employee em on em.id=buyer_agent.agent_id and em.deleted_flag=\'N\'', 'left')
                 ->join('erui_sys.org_member on org_member.employee_id=buyer_agent.agent_id', 'left')
-                ->join('erui_sys.org on org.id=org_member.org_id', 'left')
+                ->join('erui_sys.org on org.id=org_member.org_id and org.deleted_flag=\'N\'', 'left')
+                ->where(array('buyer_agent.buyer_id'=>$condition['buyer_id'],'buyer_agent.deleted_flag'=>'N'))
                 ->group('em.id')
                 ->order('buyer_agent.id desc')
                 ->select();
+            return $info;
         }
     }
 
@@ -467,11 +468,13 @@ class BuyerAgentModel extends PublicModel {
         return $str;
     }
     //buyerList 获取经办人信息
-    public function getBuyerAgentArr($buyer_id){
+    public function getBuyerAgentArr($buyer_id,$agent_name=''){
+        $agent_name=trim($agent_name);
+        $cond=array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N','employee.deleted_flag'=>'N');
         $info = $this->alias('agent')
             ->join('erui_sys.employee employee on agent.agent_id=employee.id')
-            ->field('agent.agent_id,employee.name')
-            ->where(array('agent.buyer_id'=>$buyer_id,'agent.deleted_flag'=>'N','employee.deleted_flag'=>'N'))
+            ->field('agent.agent_id,agent.created_at,employee.name')
+            ->where($cond)
             ->select();
         $nameStr='';
         $idStr='';
@@ -479,14 +482,39 @@ class BuyerAgentModel extends PublicModel {
             'id'=>'',
             'name'=>''
         ];
-        if(!empty($info)){
-            foreach($info as $k=> $v){
-                $idStr.=','.$v['agent_id'];
-                $nameStr.=','.$v['name'];
+        if(empty($agent_name)){
+            if(!empty($info)){
+                foreach($info as $k=> $v){
+                    $idStr.=','.$v['agent_id'];
+                    $nameStr.=','.$v['name'];
+                }
+                $arr['id']=substr($idStr,1);
+                $arr['name']=substr($nameStr,1);
+            }else{
+                $arr['id']='';
+                $arr['name']='';
             }
-            $arr['id']=substr($idStr,1);
-            $arr['name']=substr($nameStr,1);
+        }else{
+            if(!empty($info)){
+                foreach($info as $k=> $v){
+                    if($v['name']==$agent_name){
+                        $re[]=$v;
+                        unset($info[$k]);
+                    }
+                }
+                $test = array_merge($re, $info);
+                foreach($test as $k=> $v){
+                    $idStr.=','.$v['agent_id'];
+                    $nameStr.=','.$v['name'];
+                }
+                $arr['id']=substr($idStr,1)?substr($idStr,1):'';
+                $arr['name']=substr($nameStr,1)?substr($nameStr,1):'';
+            }else{
+                $arr['id']='';
+                $arr['name']='';
+            }
         }
+        $arr['checked_at']=end($info)['created_at'];
         return $arr;
     }
     //crm 更新市场经办人-wangs
