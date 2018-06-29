@@ -347,7 +347,7 @@ class TemporaryGoodsModel extends PublicModel {
 
             if (empty($item)) {
                 return false;
-            } elseif (empty($item['name']) || empty($item['brand']) || empty($item['model']) || empty($item['name_zh'])) {
+            } elseif (empty($item['name']) && empty($item['brand']) && empty($item['model']) && empty($item['name_zh'])) {
                 return false;
             }
 
