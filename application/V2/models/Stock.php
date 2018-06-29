@@ -77,37 +77,26 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function getList($condition, $lang) {
-        $stock_floor_model = new StockFloorModel();
-        $stock_floor_table = $stock_floor_model->getTableName();
+    public function getList($condition) {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
-        $where['s.lang'] = $lang;
+        $where['s.lang'] = $condition['lang'];
         $list = $this->alias('s')
-                ->field('s.sku,s.show_name,s.stock,s.spu,s.country_bn,
+                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
-                ->join($stock_floor_table
-                        . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
                 ->where($where)
                 ->limit($from, $size)
-                ->order('s.created_at desc')
+                ->order('s.sort_order desc')
                 ->select();
-
         return $list;
     }
 
     public function getCount($condition, $lang) {
-        $stock_floor_model = new StockFloorModel();
-        $stock_floor_table = $stock_floor_model->getTableName();
         $where = $this->_getCondition($condition);
 
-        $where['s.lang'] = $lang;
+        $where['s.lang'] = $condition['lang'];
 
-        return $this->alias('s')
-                        ->join($stock_floor_table
-                                . ' sf on sf.lang=s.lang and sf.id=s.floor_id and sf.country_bn=s.country_bn and sf.deleted_flag=\'N\'', 'left')
-                        ->where($where)
-                        ->count();
+        return $this->alias('s')->where($where)->count();
     }
 
     /**

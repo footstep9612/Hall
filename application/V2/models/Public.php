@@ -301,4 +301,74 @@ class PublicModel extends Model {
         }
     }
 
+    /**
+     * 根据id补全用户名称
+     * @param $arr
+     */
+    public function _setUser(&$arr) {
+        $user_ids = [];
+        if(count($arr) == count($arr,1)){
+            foreach ($arr as $key => $item) {
+                if ($key == 'created_by' && $item!=0) {
+                    $user_ids[] = $item;
+                }
+                if ($key == 'updated_by' && $item!=0) {
+                    $user_ids[] = $item;
+                }
+                if ($key == 'deleted_by' && $item!=0) {
+                    $user_ids[] = $item;
+                }
+            }
+        }else{
+            foreach ($arr as $key => $item) {
+                if ($item['created_by'] && $item['created_by']!=0) {
+                    $user_ids[] = $item['created_by'];
+                }
+                if ($item['updated_by'] && $item['updated_by']!=0) {
+                    $user_ids[] = $item['updated_by'];
+                }
+                if ($item['deleted_by'] && $item['deleted_by']!=0) {
+                    $user_ids[] = $item['deleted_by'];
+                }
+            }
+        }
+
+        $employee_model = new EmployeeModel();
+        $usernames = $employee_model->getUserNamesByUserids($user_ids);
+        if($usernames){
+            if(count($arr) == count($arr,1)){
+                foreach ( $arr as $key => $val ) {
+                    if ( $key == 'created_by' ) {
+                        $arr[ 'created_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val ] : '';
+                    }
+                    if ( $key == 'updated_by' ) {
+                        $arr[ 'updated_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val] : '';
+                    }
+                    if ( $key == 'deleted_by' ) {
+                        $arr[ 'deleted_by_name' ] = isset( $usernames[ $val ] )  ? $usernames[ $val] : '';
+                    }
+                }
+            }else {
+                foreach ( $arr as $key => $val ) {
+                    if ( $val[ 'created_by' ] && isset( $usernames[ $val[ 'created_by' ] ] ) ) {
+                        $val[ 'created_by_name' ] = $usernames[ $val[ 'created_by' ] ];
+                    } else {
+                        $val[ 'created_by_name' ] = '';
+                    }
+                    if ( $val[ 'updated_by' ] && isset( $usernames[ $val[ 'updated_by' ] ] ) ) {
+                        $val[ 'updated_by_name' ] = $usernames[ $val[ 'updated_by' ] ];
+                    } else {
+                        $val[ 'updated_by_name' ] = '';
+                    }
+                    if ( $val[ 'deleted_by' ] && isset( $usernames[ $val[ 'deleted_by' ] ] ) ) {
+                        $val[ 'deleted_by_name' ] = $usernames[ $val[ 'deleted_by' ] ];
+                    } else {
+                        $val[ 'deleted_by_name' ] = '';
+                    }
+                    $arr[ $key ] = $val;
+                }
+            }
+        }
+    }
+
 }

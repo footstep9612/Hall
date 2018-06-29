@@ -41,14 +41,20 @@ class StockController extends PublicController {
             $this->jsonReturn();
         }
         $stock_model = new StockModel();
-        $list = $stock_model->getList($condition, $lang);
+        $list = $stock_model->getList($condition);
         if ($list) {
             $this->_setCountry($list);
-            $this->_setConstPrice($list, $condition['country_bn']);
-            $this->_setShowcats($list, $lang, $condition['country_bn']);
+            if(isset($condition['costprices']) && $condition['costprices']){
+                $this->_setConstPrice($list, $condition['country_bn']);
+            }
+            if(isset($condition['show_cats']) && $condition['show_cats']){
+                $this->_setShowcats($list, $lang, $condition['country_bn']);
+            }
             $this->_setUser($list);
-            $count = $stock_model->getCount($condition, $lang);
+            $count = $stock_model->getCount($condition);
             $this->setvalue('count', $count);
+            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
+            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
