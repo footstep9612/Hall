@@ -29,6 +29,23 @@ class StorageController extends PublicController {
     }
 
     /**
+     * 仓库详情
+     * @author link
+     * @param storage_name|id
+     */
+    public function infoAction(){
+        $condition = $this->getPut();
+        $storageModel = new StorageModel();
+        $result = $storageModel->getInfo($condition);
+
+        if ($result) {
+            jsonReturn($result);
+        } elseif ($result === false) {
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    /**
      * Description of 新加仓库
      * @author  link
      * @date    2017-12-6 9:12:49
