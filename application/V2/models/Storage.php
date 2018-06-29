@@ -16,6 +16,30 @@ class StorageModel extends PublicModel{
     }
 
     /**
+     * 仓库详情
+     * @param array $condition
+     * @return bool|mixed
+     */
+    public function getInfo($condition=[])
+    {
+        if ( !isset( $condition[ 'id' ] ) ) {
+            jsonReturn( '' , MSG::MSG_PARAM_ERROR , '请传递仓库id' );
+        }
+
+        try {
+            $result = $this->field( 'id,country_bn,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ) ] )->find();
+            if($result){
+                $this->_setUser($result);
+                $this->_jsonDecode($result,'contact');
+                return $result;
+            }
+        } catch ( Exception $e ) {
+            jsonReturn($e);
+            return false;
+        }
+    }
+
+    /**
      * 仓库列表
      * @param array $condition
      * @param string $field
@@ -35,6 +59,7 @@ class StorageModel extends PublicModel{
             $rel = $this->field(empty($field) ? '' : $field)->where($where)
                 ->limit($from,$size)->select();
             if($rel){
+                $this->_setUser($rel);
                 $data['data'] = $rel;
                 $count = $this->getCount($where);
                 $data['count'] = $count ? $count : 0;
