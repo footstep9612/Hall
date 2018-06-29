@@ -78,11 +78,21 @@ class StorageController extends PublicController {
      */
     public function updateAction(){
         $id = $this->getPut('id');
-        if (empty($id)) {
-            jsonReturn('',MSG::ERROR_PARAM,'id不能为空！');
-        }
         $storageModel = new StorageModel();
-        $flag = $storageModel->updateData($this->getPut());
+        if (empty($id)) {   #不存在id执行新增操作
+            $country_bn = $this->getPut('country_bn');
+            if (empty($country_bn)) {
+                jsonReturn('',MSG::ERROR_PARAM,'请选择国家！');
+            }
+            $storage_name = $this->getPut('storage_name');
+            if (empty($storage_name)) {
+                jsonReturn('',MSG::ERROR_PARAM,'请输入仓库名称！');
+            }
+
+            $flag = $storageModel->createData($this->getPut());
+        }else{  #存在id执行修改操作
+            $flag = $storageModel->updateData($this->getPut());
+        }
 
         if ($flag) {
             $this->jsonReturn($flag);
