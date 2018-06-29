@@ -1353,7 +1353,7 @@ class InquiryController extends PublicController {
             unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
 
-            if ($action && !$res['action'] && $action != $res['action']) {
+            if ($action && !empty($res['action']) && $action != $res['action']) {
                 $res = [];
             }
             if (!empty($res['created_by'])) {
