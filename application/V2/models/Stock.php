@@ -91,7 +91,7 @@ class StockModel extends PublicModel {
         return $list;
     }
 
-    public function getCount($condition, $lang) {
+    public function getCount($condition) {
         $where = $this->_getCondition($condition);
 
         $where['s.lang'] = $condition['lang'];

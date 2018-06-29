@@ -11,7 +11,7 @@ class InquiryController extends PublicController {
 
     public function init() {
         parent::init();
-        
+
         $this->put_data = dataTrim($this->put_data);
     }
 
@@ -218,19 +218,19 @@ class InquiryController extends PublicController {
 
         // 市场经办人
         if ($condition['agent_name'] != '') {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ?: [];
         }
-        
+
         // 当前办理人
         if ($condition['now_agent_name'] != '') {
-            $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ? : [];
+            $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: [];
         }
-        
+
         // 报价人
         if ($condition['quote_name'] != '') {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: [];
         }
-        
+
         // 销售合同号
         if ($condition['contract_no'] != '') {
             $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
@@ -243,8 +243,8 @@ class InquiryController extends PublicController {
         $condition['group_id'] = $this->user['group_id'];
 
         $condition['user_id'] = $this->user['id'];
-        
-        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
+
+        $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
 
         $inquiryList = $inquiryModel->getList_($condition);
 
@@ -297,22 +297,22 @@ class InquiryController extends PublicController {
         $marketAreaModel = new MarketAreaModel();
         $transModeModel = new TransModeModel();
         $inquiryOrderModel = new InquiryOrderModel();
-        
+
         // 市场经办人
         if ($condition['agent_name'] != '') {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ? : [];
+            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ?: [];
         }
-        
+
         // 当前办理人
         if ($condition['now_agent_name'] != '') {
-            $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ? : [];
+            $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: [];
         }
-        
+
         // 报价人
         if ($condition['quote_name'] != '') {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ? : [];
+            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: [];
         }
-        
+
         // 销售合同号
         if ($condition['contract_no'] != '') {
             $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
@@ -320,7 +320,7 @@ class InquiryController extends PublicController {
 
         //区域和国家
         if ($condition['market_area_bn'] != '' && $condition['country_bn'] == '') {
-            $condition['country_bn'] = $marketAreaCountryModel->getCountryBn($condition['market_area_bn']) ? : [];
+            $condition['country_bn'] = $marketAreaCountryModel->getCountryBn($condition['market_area_bn']) ?: [];
         }
 
         // 是否显示列表
@@ -334,14 +334,14 @@ class InquiryController extends PublicController {
                 }
                 if ($roleNo == $inquiryModel::viewBizDeptRole) {
                     $isShow = true;
-                    $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub','erui']]);
+                    $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
                     break;
                 }
             }
-            
+
             if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
                 $isShow = true;
-                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ? : [];
+                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
                 break;
             }
         }
@@ -420,7 +420,7 @@ class InquiryController extends PublicController {
      */
     public function getInquiryUserRoleAction() {
         $inquiryModel = new InquiryModel();
-        
+
         $data = $inquiryModel->getUserRoleByNo($this->user['role_no']);
 
         if ($data['is_agent'] == 'Y') {
@@ -486,7 +486,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 退回市场关闭
      *
@@ -495,12 +495,12 @@ class InquiryController extends PublicController {
      */
     public function rejectCloseAction() {
         $condition = $this->put_data;
-    
+
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
-    
+
             $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
-    
+
             $data = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $agentId,
@@ -508,9 +508,9 @@ class InquiryController extends PublicController {
                 'quote_status' => 'NOT_QUOTED',
                 'updated_by' => $this->user['id']
             ];
-    
+
             $res = $inquiryModel->updateData($data);
-    
+
             $this->jsonReturn($res);
         } else {
             $this->setCode('-103');
@@ -535,7 +535,7 @@ class InquiryController extends PublicController {
 
             $inquiryModel->startTrans();
 
-            $quoteId= $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('quote_id');
+            $quoteId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('quote_id');
 
             $data = [
                 'id' => $condition['inquiry_id'],
@@ -581,7 +581,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 项目澄清
      *
@@ -590,21 +590,21 @@ class InquiryController extends PublicController {
      */
     public function projectClarifyAction() {
         $condition = $this->put_data;
-    
+
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
-    
-            $agentId= $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
-    
+
+            $agentId = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('agent_id');
+
             $data = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $agentId,
                 'status' => 'CLARIFY',
                 'updated_by' => $this->user['id']
             ];
-    
+
             $res = $inquiryModel->updateData($data);
-    
+
             if ($res) {
                 $this->setCode('1');
                 $this->setMessage(L('SUCCESS'));
@@ -620,7 +620,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 完成（回复）项目澄清
      *
@@ -629,14 +629,14 @@ class InquiryController extends PublicController {
      */
     public function completeClarifyAction() {
         $condition = $this->put_data;
-    
+
         if (!empty($condition['inquiry_id'])) {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
-    
+
             $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, check_org_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
-            $inquiryCheckLog= $inquiryCheckLogModel->getDetail(['inquiry_id' => $condition['inquiry_id']], 'in_node, out_node');
-            
+            $inquiryCheckLog = $inquiryCheckLogModel->getDetail(['inquiry_id' => $condition['inquiry_id']], 'in_node, out_node');
+
             $error = false;
             if ($inquiryCheckLog['out_node'] == 'CLARIFY') {
                 // 根据流入环节获取当前办理人
@@ -668,19 +668,21 @@ class InquiryController extends PublicController {
                     default :
                         $error = true;
                 }
-            } else $error = true;
-            
-            if ($error) jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
-            
+            } else
+                $error = true;
+
+            if ($error)
+                jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
+
             $inquiryModel->startTrans();
-    
+
             $data = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $nowAgentId,
                 'status' => $inquiryCheckLog['in_node'],
                 'updated_by' => $this->user['id']
             ];
-            
+
             $log = [
                 'inquiry_id' => $condition['inquiry_id'],
                 'action' => 'CLARIFY',
@@ -689,11 +691,11 @@ class InquiryController extends PublicController {
                 'into_at' => $inquiry['inflow_time'],
                 'op_note' => $condition['op_note']
             ];
-    
+
             $res1 = $inquiryModel->updateData($data);
-            
+
             $res2 = $this->_addInquiryCheckLog($log);
-            
+
             if ($res1['code'] == 1 && $res2['code'] == 1) {
                 $inquiryModel->commit();
                 $res = true;
@@ -701,7 +703,7 @@ class InquiryController extends PublicController {
                 $inquiryModel->rollback();
                 $res = false;
             }
-    
+
             if ($res) {
                 $this->setCode('1');
                 $this->setMessage(L('SUCCESS'));
@@ -717,7 +719,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 项目澄清列表
      *
@@ -726,25 +728,25 @@ class InquiryController extends PublicController {
      */
     public function getClarifyListAction() {
         $condition = $this->put_data;
-        
+
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
             $inquiryModel = new InquiryModel();
-            
+
             $where['inquiry_id'] = $condition['inquiry_id'];
             $where['_complex']['in_node'] = $where['_complex']['out_node'] = 'CLARIFY';
             $where['_complex']['_logic'] = 'or';
-            
+
             $field = 'in_node, out_node, op_note, created_by, created_at';
             $clarifyList = $inquiryCheckLogModel->field($field)->where($where)->order('id ASC')->select();
-        
+
             foreach ($clarifyList as &$clarify) {
                 $clarify['created_name'] = $employeeModel->getUserNameById($clarify['created_by']);
                 $clarify['now_agent_id'] = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('now_agent_id');
                 $clarify['now_agent_name'] = $employeeModel->getUserNameById($clarify['now_agent_id']);
             }
-        
+
             if ($clarifyList) {
                 $res['code'] = 1;
                 $res['message'] = L('SUCCESS');
@@ -779,7 +781,7 @@ class InquiryController extends PublicController {
         $portModel = new PortModel();
 
         $where = $this->put_data;
-        
+
         $inquiryStatus = $inquiry->getInquiryStatus();
 
         $results = $inquiry->getInfo($where);
@@ -859,15 +861,15 @@ class InquiryController extends PublicController {
 
         if (!empty($results['data'])) {
             $results['data']['status_name'] = $inquiryStatus[$results['data']['status']];
-            $results['data']['agent_name'] = $results['data']['agent_name'] ? : L('NOTHING');
-            $results['data']['obtain_name'] = $results['data']['obtain_name'] ? : L('NOTHING');
-            $results['data']['current_name'] = $results['data']['current_name'] ? : L('NOTHING');
-            $results['data']['quote_name'] = $results['data']['quote_name'] ? : L('NOTHING');
-            $results['data']['logi_agent_name'] = $results['data']['logi_agent_name'] ? : L('NOTHING');
-            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ? : L('NOTHING');
-            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ? : L('NOTHING');
+            $results['data']['agent_name'] = $results['data']['agent_name'] ?: L('NOTHING');
+            $results['data']['obtain_name'] = $results['data']['obtain_name'] ?: L('NOTHING');
+            $results['data']['current_name'] = $results['data']['current_name'] ?: L('NOTHING');
+            $results['data']['quote_name'] = $results['data']['quote_name'] ?: L('NOTHING');
+            $results['data']['logi_agent_name'] = $results['data']['logi_agent_name'] ?: L('NOTHING');
+            $results['data']['dispatch_place'] = $results['data']['dispatch_place'] ?: L('NOTHING');
+            $results['data']['inquiry_no'] = $results['data']['inquiry_no'] ?: L('NOTHING');
             //$results['data']['project_name'] = $results['data']['project_name'] ? : L('NOTHING');
-            
+
             if ($results['data']['status'] == 'MARKET_APPROVING') {
                 $approvingTime = $inquiryCheckLogModel->where(['inquiry_id' => $results['data']['id'], 'out_node' => 'MARKET_APPROVING'])->order('id DESC')->getField('out_at');
             }
@@ -882,15 +884,15 @@ class InquiryController extends PublicController {
      * Author:张玉良
      */
 
-    /*public function addAction() {
-        $inquiry = new InquiryModel();
-        $data = $this->put_data;
-        $data['agent_id'] = $this->user['id'];
-        $data['created_by'] = $this->user['id'];
+    /* public function addAction() {
+      $inquiry = new InquiryModel();
+      $data = $this->put_data;
+      $data['agent_id'] = $this->user['id'];
+      $data['created_by'] = $this->user['id'];
 
-        $results = $inquiry->addData($data);
-        $this->jsonReturn($results);
-    }*/
+      $results = $inquiry->addData($data);
+      $this->jsonReturn($results);
+      } */
 
     /*
      * 修改询价单
@@ -970,8 +972,8 @@ class InquiryController extends PublicController {
         if ($results['code'] == 1) {
             foreach ($results['data'] as $key => $val) {
                 //修改URL地址，增加下载文件改名
-                if(!empty($val['attach_name'])){
-                    $results['data'][$key]['attach_url'] = $val['attach_url'].'?filename='.$val['attach_name'];
+                if (!empty($val['attach_name'])) {
+                    $results['data'][$key]['attach_url'] = $val['attach_url'] . '?filename=' . $val['attach_name'];
                 }
                 if ($val['attach_group'] == 'BUYER') {
                     $buyerdata = $buyer->field('id,name')->where('id=' . $val['created_by'])->find();
@@ -1158,7 +1160,7 @@ class InquiryController extends PublicController {
         $results = $Item->deleteData($data);
         $this->jsonReturn($results);
     }
-    
+
     /**
      * @desc 删除指定询单的所有SKU
      *
@@ -1185,7 +1187,7 @@ class InquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 获取SKU历史报价列表
      *
@@ -1272,7 +1274,7 @@ class InquiryController extends PublicController {
             $employeeModel = new EmployeeModel();
 
             $inquiryCheckLogList = $inquiryCheckLogModel->getList($condition);
-            
+
             $inquiryStatus = $inquiryModel->getInquiryStatus();
 
             $action = [
@@ -1314,26 +1316,25 @@ class InquiryController extends PublicController {
 
     public function addCheckLogAction() {
         $data = $this->put_data;
-        
+
         $result = $this->_addInquiryCheckLog($data);
-        
+
         $this->jsonReturn($result);
     }
 
-    public function cleanInquiryRemind($inquiry_id){
+    public function cleanInquiryRemind($inquiry_id) {
 
         $inquiryModel = new InquiryModel();
-        $inquiryModel->where(['id'=>$inquiry_id])->save(['remind'=>0]);
+        $inquiryModel->where(['id' => $inquiry_id])->save(['remind' => 0]);
 
         //提醒详情标为已读
         $inquiryRemind = new InquiryRemindModel();
-        $inquiryRemind->where(['inquiry_id'=>$inquiry_id])->save([
+        $inquiryRemind->where(['inquiry_id' => $inquiry_id])->save([
             'isread_flag' => 'Y',
-            'updated_at'  => date('Y-m-d H:i:s')
+            'updated_at' => date('Y-m-d H:i:s')
         ]);
 
         return;
-
     }
 
     /**
@@ -1348,9 +1349,13 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
-
+            $action = isset($condition['action']) ? $condition['action'] : '';
+            unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
 
+            if ($action && !empty($res['action']) && $action != $res['action']) {
+                $res = [];
+            }
             if (!empty($res['created_by'])) {
                 $res['created_name'] = $employeeModel->where(['id' => $res['created_by']])->getField('name');
             }
@@ -1458,7 +1463,7 @@ class InquiryController extends PublicController {
             jsonReturn('', L('FAIL'));
         }
     }
-    
+
     /**
      * @desc 记录询单日志
      *
@@ -1469,7 +1474,7 @@ class InquiryController extends PublicController {
      */
     private function _addInquiryCheckLog($data) {
         $checklog = new CheckLogModel();
-        
+
         $data['agent_id'] = $this->user['id'];
         $data['created_by'] = $this->user['id'];
 
@@ -1477,15 +1482,15 @@ class InquiryController extends PublicController {
 
         //发送短信
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id'=>$data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+        $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no')->find();
 
         $employeeModel = new EmployeeModel();
-        $receiverInfo = $employeeModel->where(['id'=>$inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
+        $receiverInfo = $employeeModel->where(['id' => $inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
 
         //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
-        if( !in_array($data['out_node'],['QUOTE_SENT','INQUIRY_CLOSED'])){
+        if (!in_array($data['out_node'], ['QUOTE_SENT', 'INQUIRY_CLOSED'])) {
 
-            $this->sendSms($receiverInfo['mobile'],$data['action'],$receiverInfo['name'],$inquiryInfo['serial_no'],$this->user['name'],$data['in_node'],$data['out_node']);
+            $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
 
             //发送邮件通知
 //            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
@@ -1509,8 +1514,6 @@ class InquiryController extends PublicController {
 //            }
 //
 //            send_Mail($receiverInfo['email'], $title, $body, $receiverInfo['name']);
-
-
         }
 
 
@@ -1519,10 +1522,11 @@ class InquiryController extends PublicController {
 
         return $result;
     }
+
     /*
-        * 添加询单转订单
-        * Author:jhw
-        */
+     * 添加询单转订单
+     * Author:jhw
+     */
 
     public function addInquiryOrderAction() {
         $attach = new InquiryOrderModel();
@@ -1530,4 +1534,5 @@ class InquiryController extends PublicController {
         $results = $attach->addData($data);
         $this->jsonReturn($results);
     }
+
 }
