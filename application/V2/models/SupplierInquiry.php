@@ -248,13 +248,13 @@ class SupplierInquiryModel extends PublicModel {
             'i.status' => 'QUOTE_SENT',
             'i.quote_status' => 'COMPLETED',
             'i.id' => ['in', $inquiry_ids],
-            //'mac.market_area_bn' => ['in', $this->areas],
+                //'mac.market_area_bn' => ['in', $this->areas],
         ];
 
         //按区域筛选
         if (!empty($condition['area_bn'])) {
             $where['mac.market_area_bn'] = ['in', [trim($condition['area_bn'])]];
-        }else {
+        } else {
             $where['mac.market_area_bn'] = ['in', $this->areas];
         }
 
@@ -296,13 +296,13 @@ class SupplierInquiryModel extends PublicModel {
             'status' => 'QUOTE_SENT',
             'quote_status' => 'COMPLETED',
             'id' => ['in', $inquiry_ids],
-            //'area_bn' => ['in', $this->areas]
+                //'area_bn' => ['in', $this->areas]
         ];
 
         //按区域筛选
         if (!empty($condition['area_bn'])) {
             $where['area_bn'] = ['in', [trim($condition['area_bn'])]];
-        }else {
+        } else {
             $where['area_bn'] = ['in', $this->areas];
         }
 
@@ -470,7 +470,7 @@ class SupplierInquiryModel extends PublicModel {
             $where['i.created_at'] = ['elt', $created_at_end];
         }
         if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ? : ['-1']];
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
         }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
@@ -605,7 +605,7 @@ class SupplierInquiryModel extends PublicModel {
             $where['i.created_at'] = ['elt', $created_at_end];
         }
         if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ? : ['-1']];
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
         }
         $inquiry_model = new InquiryModel();
         $list = $inquiry_model->alias('i')
@@ -866,7 +866,7 @@ class SupplierInquiryModel extends PublicModel {
             $fileId = postfile($data, $url);
             if ($fileId) {
                 unlink($file);
-                return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+                return array('url' => rtrim($fastDFSServer, '/') . '/' . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
             }
             Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Update failed:' . $file . ' 上传到FastDFS失败', Log::ERR);
             return false;
@@ -908,7 +908,7 @@ class SupplierInquiryModel extends PublicModel {
         $biz_despatchings = $inquiry_check_log_model->alias('icl')
                 ->field('icl.inquiry_id,group_concat(DISTINCT `e`.`name`) as biz_despatching')
                 ->join($employee_table . ' e on e.id=icl.agent_id')
-                ->where(['icl.inquiry_id' => ['in', $inquiry_ids ? : ['-1']], 'out_node' => 'BIZ_DISPATCHING'])
+                ->where(['icl.inquiry_id' => ['in', $inquiry_ids ?: ['-1']], 'out_node' => 'BIZ_DISPATCHING'])
                 ->group('icl.inquiry_id')
                 ->select();
         $bizdespatchings = [];
@@ -1096,66 +1096,66 @@ class SupplierInquiryModel extends PublicModel {
                 $item[$v] = '';
             }
             $item['clarification_time'] = '';
-            /*// 最后一次流入事业部分单员的日志ID
-            $lastBizDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->getField('id');
-            // 最后一次流入客户中心的日志ID
-            $lastEruiDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'CC_DISPATCHING']))->order('id DESC')->getField('id');
-            // 优化后的代码，减少数据库查询次数
-            $lastIdSql = '(SELECT MAX(id) FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = ';
-            $idData = $inquiryCheckLogModel->field($lastIdSql . '\'BIZ_DISPATCHING\' ) AS last_biz_dispatching_id, '
-                                                                                      . $lastIdSql . '\'CC_DISPATCHING\' ) AS last_erui_dispatching_id')->find();
-            $lastBizDispatchingID = $idData['last_biz_dispatching_id'];
-            $lastEruiDispatchingID = $idData['last_erui_dispatching_id'];
-            // 项目澄清时间的参考ID
-            $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
-            if ($referenceID) {*/
-                // 各环节的项目澄清时间列表
-                $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, [/*'id' => ['gt', $referenceID],*/ 'in_node' => 'CLARIFY', 'out_node' => ['in', /*array_diff($clarifyNode, ['BIZ_DISPATCHING', 'CC_DISPATCHING'])*/ $clarifyNode]]))->order('id ASC')->select();
-                foreach ($clarifyList as $clarify) {
-                    // 计算各环节的项目澄清时间
-                    $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
+            /* // 最后一次流入事业部分单员的日志ID
+              $lastBizDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'BIZ_DISPATCHING']))->order('id DESC')->getField('id');
+              // 最后一次流入客户中心的日志ID
+              $lastEruiDispatchingID = $inquiryCheckLogModel->where(array_merge($where, ['in_node' => 'CC_DISPATCHING']))->order('id DESC')->getField('id');
+              // 优化后的代码，减少数据库查询次数
+              $lastIdSql = '(SELECT MAX(id) FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = ';
+              $idData = $inquiryCheckLogModel->field($lastIdSql . '\'BIZ_DISPATCHING\' ) AS last_biz_dispatching_id, '
+              . $lastIdSql . '\'CC_DISPATCHING\' ) AS last_erui_dispatching_id')->find();
+              $lastBizDispatchingID = $idData['last_biz_dispatching_id'];
+              $lastEruiDispatchingID = $idData['last_erui_dispatching_id'];
+              // 项目澄清时间的参考ID
+              $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
+              if ($referenceID) { */
+            // 各环节的项目澄清时间列表
+            $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, [/* 'id' => ['gt', $referenceID], */ 'in_node' => 'CLARIFY', 'out_node' => ['in', /* array_diff($clarifyNode, ['BIZ_DISPATCHING', 'CC_DISPATCHING']) */ $clarifyNode]]))->order('id ASC')->select();
+            foreach ($clarifyList as $clarify) {
+                // 计算各环节的项目澄清时间
+                $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
+            }
+            /* // 最后一次事业部分单员的项目澄清时间
+              $item[$clarifyMapping['BIZ_DISPATCHING']] = $inquiryCheckLogModel->field('(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find()['clarify_time'];
+              // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
+              $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
+              // 优化后的代码，减少数据库查询次数
+              $tmpClarifySql = 'FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = \'CLARIFY\'';
+              $lastBizDispatchingClarifySql = '(SELECT UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at) ' . $tmpClarifySql . ' AND out_node = \'BIZ_DISPATCHING\' ORDER BY id DESC LIMIT 1)';
+              $lastCcDispatchingClarifySql = str_replace('BIZ_DISPATCHING', 'CC_DISPATCHING', $lastBizDispatchingClarifySql);
+              $totalClarifySql = '(SELECT SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) ' . $tmpClarifySql . ')'; */
+            $nodeData = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time'
+                            /* . $lastBizDispatchingClarifySql . ' AS last_biz_dispatching_clarify_time, '
+                              . $lastCcDispatchingClarifySql . ' AS last_cc_dispatching_clarify_time, '
+                              . $totalClarifySql . ' AS total_clarify_time' */
+                    )->where($where)->order('id DESC')->find();
+            //$item[$clarifyMapping['BIZ_DISPATCHING']] = $nodeData['last_biz_dispatching_clarify_time'];
+            //$item[$clarifyMapping['CC_DISPATCHING']] = $nodeData['last_cc_dispatching_clarify_time'];
+            $lastClarifyTime = '';
+            if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
+                $lastClarifyTime = $nowTime - $nodeData['out_time'];
+                $item[$clarifyMapping[$nodeData['in_node']]] += $lastClarifyTime;
+                /* if ($nodeData['in_node'] == 'BIZ_DISPATCHING' || $nodeData['in_node'] == 'CC_DISPATCHING') {
+                  $item[$clarifyMapping[$nodeData['in_node']]] = $lastClarifyTime;
+                  } */
+            }
+            foreach ($clarifyMapping as $v) {
+                if ($item[$v] > 0) {
+                    $item['clarification_time'] += $item[$v];
+                    // 项目澄清时间换算成小时
+                    $item[$v] = number_format($item[$v] / 3600, 2);
                 }
-                /*// 最后一次事业部分单员的项目澄清时间
-                $item[$clarifyMapping['BIZ_DISPATCHING']] = $inquiryCheckLogModel->field('(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => 'BIZ_DISPATCHING']))->order('id DESC')->find()['clarify_time'];
-                // 如果最后一条日志为项目澄清且没有流出，根据当前时间计算项目澄清时间
-                $lastLog = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')->where($where)->order('id DESC')->find();
-                // 优化后的代码，减少数据库查询次数
-                $tmpClarifySql = 'FROM ' . $inquiryCheckLogTableName . ' WHERE inquiry_id = \'' . $item['inquiry_id'] . '\' AND in_node = \'CLARIFY\'';
-                $lastBizDispatchingClarifySql = '(SELECT UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at) ' . $tmpClarifySql . ' AND out_node = \'BIZ_DISPATCHING\' ORDER BY id DESC LIMIT 1)';
-                $lastCcDispatchingClarifySql = str_replace('BIZ_DISPATCHING', 'CC_DISPATCHING', $lastBizDispatchingClarifySql);
-                $totalClarifySql = '(SELECT SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) ' . $tmpClarifySql . ')';*/
-                $nodeData = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time'
-                                                                                                /*. $lastBizDispatchingClarifySql . ' AS last_biz_dispatching_clarify_time, '
-                                                                                                . $lastCcDispatchingClarifySql . ' AS last_cc_dispatching_clarify_time, '
-                                                                                                . $totalClarifySql . ' AS total_clarify_time'*/
-                                                                                                )->where($where)->order('id DESC')->find();
-                //$item[$clarifyMapping['BIZ_DISPATCHING']] = $nodeData['last_biz_dispatching_clarify_time'];
-                //$item[$clarifyMapping['CC_DISPATCHING']] = $nodeData['last_cc_dispatching_clarify_time'];
-                $lastClarifyTime = '';
-                if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
-                    $lastClarifyTime = $nowTime - $nodeData['out_time'];
-                    $item[$clarifyMapping[$nodeData['in_node']]] += $lastClarifyTime;
-                    /*if ($nodeData['in_node'] == 'BIZ_DISPATCHING' || $nodeData['in_node'] == 'CC_DISPATCHING') {
-                        $item[$clarifyMapping[$nodeData['in_node']]] = $lastClarifyTime;
-                    }*/
-                }
-                foreach ($clarifyMapping as $v) {
-                    if ($item[$v] > 0) {
-                        $item['clarification_time'] += $item[$v];
-                        // 项目澄清时间换算成小时
-                        $item[$v] = number_format($item[$v] / 3600, 2);
-                    }
-                }
-                // 总的项目澄清时间
-                //$item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
-                //$item['clarification_time'] = $nodeData['total_clarify_time'] + $lastClarifyTime;
-                if ($item['clarification_time'] > 0) {
-                    $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
-                }
+            }
+            // 总的项目澄清时间
+            //$item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
+            //$item['clarification_time'] = $nodeData['total_clarify_time'] + $lastClarifyTime;
+            if ($item['clarification_time'] > 0) {
+                $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
+            }
             //}
         }
     }
-    
+
     /**
      * @desc 设置报价相关用时
      *
@@ -1187,7 +1187,7 @@ class SupplierInquiryModel extends PublicModel {
                 $item[$v] = '';
             }
             // 各环节的报价用时列表
-            $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where([/*'action' => ['neq', 'CLARIFY'],*/ 'inquiry_id' => $item['inquiry_id'], 'in_node' => ['in', $quoteNode]])->select();
+            $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where([/* 'action' => ['neq', 'CLARIFY'], */ 'inquiry_id' => $item['inquiry_id'], 'in_node' => ['in', $quoteNode]])->select();
             foreach ($spendList as $spend) {
                 // 计算各环节的报价用时
                 $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
@@ -1217,7 +1217,7 @@ class SupplierInquiryModel extends PublicModel {
             $item['whole_quoted_time'] = number_format($wholeSpend / 3600, 2);
         }
     }
-    
+
     /**
      * @desc 数据汇总并重新组织数据
      *
@@ -1263,7 +1263,7 @@ class SupplierInquiryModel extends PublicModel {
         }
         $list = $newList;
     }
-    
+
     /**
      * @desc 获取美元兑换汇率
      *
@@ -1279,7 +1279,7 @@ class SupplierInquiryModel extends PublicModel {
             return $this->_getRate('USD', $cur);
         }
     }
-    
+
     /**
      * @desc 获取币种兑换汇率
      *
@@ -1291,11 +1291,12 @@ class SupplierInquiryModel extends PublicModel {
      */
     private function _getRate($holdCur, $exchangeCur = 'CNY') {
         if (!empty($holdCur)) {
-            if ($holdCur == $exchangeCur) return 1;
-             
+            if ($holdCur == $exchangeCur)
+                return 1;
+
             $exchangeRateModel = new ExchangeRateModel();
             $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
-             
+
             return $exchangeRate['rate'];
         } else {
             return false;
@@ -1382,7 +1383,7 @@ class SupplierInquiryModel extends PublicModel {
                 $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
                 $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
                 $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
-    
+
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {
@@ -1426,7 +1427,7 @@ class SupplierInquiryModel extends PublicModel {
             } else {
                 $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                 if ($item['purchase_price_cur_bn'] && $item['total_quote_price']) {
-    
+
                     if ($item['purchase_price_cur_bn'] == 'USD') {
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                     } else {
@@ -1442,7 +1443,7 @@ class SupplierInquiryModel extends PublicModel {
                                     ])
                                     ->order('created_at DESC')
                                     ->getField('rate');
-    
+
                             if (!$exchange_rate) {
                                 $exchange_rate_change = $exchange_rate_model->where([
                                             'cur_bn2' => $item['purchase_price_cur_bn'],
@@ -1691,8 +1692,7 @@ class SupplierInquiryModel extends PublicModel {
      * @time 2018-04-19
      * @return array
      */
-    public function suppliersWithFilterAndTotals(array $attributes)
-    {
+    public function suppliersWithFilterAndTotals(array $attributes) {
         $where = $this->setSuppliersFilterConditions($attributes);
         $fields = 'id supplier_id,name supplier_name,supplier_no';
 
@@ -1713,8 +1713,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mixed
      * @throws Exception
      */
-    public function totalSuppliersWithFilter(array $attributes=null)
-    {
+    public function totalSuppliersWithFilter(array $attributes = null) {
         return (new SuppliersModel)->where($this->setSuppliersFilterConditions($attributes))->count();
     }
 
@@ -1725,14 +1724,13 @@ class SupplierInquiryModel extends PublicModel {
      * @time 2018-04-19
      * @return array
      */
-    private function setSuppliersFilterConditions(array $condition=null)
-    {
+    private function setSuppliersFilterConditions(array $condition = null) {
 
         $where = [
             'deleted_flag' => 'N',
             //'status' => ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']],
             'status' => ['neq', 'DRAFT'],
-            //'name' =>['neq', '']
+                //'name' =>['neq', '']
         ];
 
         if (!empty($condition['id'])) {
@@ -1761,9 +1759,9 @@ class SupplierInquiryModel extends PublicModel {
         return $where;
     }
 
-    public function setInquiryStatics(array $suppliers=null)
-    {
-        if (is_null($suppliers)) return null;
+    public function setInquiryStatics(array $suppliers = null) {
+        if (is_null($suppliers))
+            return null;
 
         //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
         foreach ($suppliers as &$supplier) {
@@ -1781,8 +1779,7 @@ class SupplierInquiryModel extends PublicModel {
         return $suppliers;
     }
 
-    public function areaInquiryStaticsBy($supplier, $area='')
-    {
+    public function areaInquiryStaticsBy($supplier, $area = '') {
         $supplierIds = (new TemporarySupplierRelationModel)->regularSupplierWithTemporarySupplierIdsBy($supplier);
 
         $where = [
@@ -1795,15 +1792,14 @@ class SupplierInquiryModel extends PublicModel {
 
         $inquiry = new InquiryModel();
         $supplier_inquiry = $inquiry->alias('i')
-                                    ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
-                                    ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
-                                    ->where($where)
-                                    ->count("DISTINCT(i.id)");
+                ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+                ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+                ->where($where)
+                ->count("DISTINCT(i.id)");
         return $supplier_inquiry;
     }
 
-    public function areaInquiryDataBy(array $condition=null)
-    {
+    public function areaInquiryDataBy(array $condition = null) {
 
         $supplierIds = (new TemporarySupplierRelationModel)->regularSupplierWithTemporarySupplierIdsBy($condition['supplier_id']);
 
@@ -1822,13 +1818,13 @@ class SupplierInquiryModel extends PublicModel {
 
 
         $supplier_inquiry = $inquiry->alias('i')
-            ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
-            ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
-            ->where($where)
-            ->field('i.id inquiry_id,i.inquiry_no,i.serial_no,i.created_at')
-            ->group('i.id')
-            ->page($currentPage, $pageSize)
-            ->select();
+                ->join('erui_rfq.final_quote_item fqi ON i.id=fqi.inquiry_id')
+                ->join('erui_operation.market_area_country mac ON i.country_bn=mac.country_bn')
+                ->where($where)
+                ->field('i.id inquiry_id,i.inquiry_no,i.serial_no,i.created_at')
+                ->group('i.id')
+                ->page($currentPage, $pageSize)
+                ->select();
 
         return $supplier_inquiry;
     }
