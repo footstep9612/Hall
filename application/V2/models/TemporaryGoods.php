@@ -88,7 +88,8 @@ class TemporaryGoodsModel extends PublicModel {
 
         for ($i = 0; $i < $count; $i += 100) {
             $skus = $inquiry_item_model->alias('ii')
-                    ->field('ii.updated_at,ii.id,ii.sku,ii.inquiry_id,ii.model,ii.name,ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
+                    ->field('ii.updated_at,ii.id,ii.sku,ii.inquiry_id,ii.model,ii.name,'
+                            . 'ii.name_zh,i.serial_no,ii.brand,i.created_at,i.created_by')
                     ->join($inquiry_table . ' i on i.id=ii.inquiry_id', 'left')
                     ->where($where)
                     ->order('i.created_at asc')
@@ -267,7 +268,7 @@ class TemporaryGoodsModel extends PublicModel {
                 return false;
             }
             $where = [];
-            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name']) || empty($tmpgoods['name_zh'])) {
+            if (empty($tmpgoods['name']) || empty($tmpgoods['brand']) || empty($tmpgoods['name_zh']) || empty($tmpgoods['model'])) {
                 $where = ['id' => $id];
                 $InquiryItem_where = ['id' => $tmpgoods['inquiry_item_id']];
             } else {
@@ -346,6 +347,8 @@ class TemporaryGoodsModel extends PublicModel {
         try {
 
             if (empty($item)) {
+                return false;
+            } elseif (empty($item['name']) && empty($item['brand']) && empty($item['model']) && empty($item['name_zh'])) {
                 return false;
             }
 
