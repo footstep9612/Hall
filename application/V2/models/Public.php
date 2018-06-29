@@ -371,4 +371,26 @@ class PublicModel extends Model {
         }
     }
 
+    /**
+     * json解析
+     * @param $arr
+     * @param string $field
+     */
+    public function _jsonDecode(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = json_decode($arr[$field],true);
+        }
+    }
+
+    /**
+     * YN转true false
+     * @param $arr
+     * @param string $field
+     */
+    public function  _ynTotruefalse(&$arr, $field = ''){
+        if(!empty($field)){
+            $arr[$field] = $arr[$field]=='Y' ? true : false;
+        }
+    }
+
 }
