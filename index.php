@@ -63,7 +63,7 @@ if ($module == 'V2' || $module == 'App') {
  * 而不会写入Response对象
  */
 //$application->getDispatcher()->flushInstantly(TRUE);
-//Yaf_Dispatcher::getInstance()->catchException(TRUE);
+Yaf_Dispatcher::getInstance()->catchException(TRUE);
 /* 如果没有关闭自动response(通过Yaf_Dispatcher::getInstance()->returnResponse(TRUE)),
  * 则$response会被自动输出, 此处也不需要再次输出Response
  */

@@ -123,6 +123,7 @@ class StockCountryModel extends PublicModel {
 
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
+        $where['deleted_at'] = ['exp', 'is null'];
         if ($id) {
             $where['id'] = ['neq', $id];
         }
@@ -144,14 +145,21 @@ class StockCountryModel extends PublicModel {
 
     /**
      * Description of 获取现货国家详情
-     * @author  zhongyg
+     * @author  link
      * @date    2017-12-6 9:12:49
      * @version V2.0
      * @desc  现货国家
      */
-    public function getInfo($country_bn) {
-        $where['country_bn'] = $country_bn;
+    public function getInfo($condition) {
+        if(isset($condition['id']) && is_numeric($condition['id'])){
+            $where['id'] = intval($condition['id']);
+        }elseif(isset($condition['country_bn'])){
+            $where['country_bn'] = $condition['country_bn'];
+        }else{
+            jsonReturn('', MSG::ERROR_PARAM, '请传递id或country_bn');
+        }
 
+        $where['deleted_at'] = ['exp', 'is null'];
         return $this->where($where)->find();
     }
 

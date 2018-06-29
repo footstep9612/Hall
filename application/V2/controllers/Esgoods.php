@@ -52,13 +52,53 @@ class EsgoodsController extends PublicController {
      */
     public function listAction() {
         $lang = $this->getPut('lang', 'zh');
-        $data = $this->getPut();
+        $condition = $this->getPut();
         $model = new EsGoodsModel();
-        $ret = $model->getgoods($data, null, $lang);
+        $ret = $model->getgoods($condition, null, $lang);
 
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
+            if (!empty($condition['is_quote_count']) && $condition['is_quote_count'] == 'Y') {
+                $this->_setQuoteNum($list);
+            }
+            $send['count'] = intval($data['hits']['total']);
+            $send['current_no'] = intval($ret[1]);
+            $send['pagesize'] = intval($ret[2]);
+            $send['data'] = $list;
+            $this->setCode(MSG::MSG_SUCCESS);
+            $send['code'] = $this->getCode();
+            $send['message'] = $this->getMessage();
+            $this->jsonReturn($send);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * Description of 列表
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 商品
+     */
+    public function RelationlistAction() {
+        $lang = $this->getPut('lang', 'zh');
+        $condition = $this->getPut();
+        $condition['onshelf_flag'] = 'A';
+        $condition['status'] = 'ALL';
+        $condition['shelves_status'] = 'ALL';
+
+        $model = new EsGoodsModel();
+        $_source = ['name', 'name_loc', 'material_cat', 'material_cat_zh', 'sku', 'spu'
+            , 'model', 'brand', 'supplier_count', 'created_at', 'status', 'onshelf_flag'];
+        $ret = $model->getgoods($condition, $_source, $lang);
+
+        if ($ret) {
+            $data = $ret[0];
+            $list = $this->_getdata($data);
+            $this->_setQuoteNum($list);
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -90,6 +130,7 @@ class EsgoodsController extends PublicController {
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data);
+
             $send['count'] = intval($data['hits']['total']);
             $send['current_no'] = intval($ret[1]);
             $send['pagesize'] = intval($ret[2]);
@@ -195,6 +236,46 @@ class EsgoodsController extends PublicController {
             $list[$key] = $val;
         }
         return $list;
+    }
+
+    /*
+     * 处理ES 数据
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    private function _setQuoteNum(&$list) {
+
+        $skus = [];
+
+        foreach ($list as $key => $item) {
+            if (!empty($item['sku'])) {
+                $skus[] = trim($item['sku']);
+            }
+        }
+        if (!empty($skus)) {
+            $quote_item_model = new QuoteItemModel();
+            $quote_sku_nums = $quote_item_model->field('sku,count(DISTINCT inquiry_id) as num ')
+                    ->where(['sku' => ['in', $skus], 'deleted_flag' => 'N'])
+                    ->group(' sku ')
+                    ->select();
+            $skusnums = [];
+            foreach ($quote_sku_nums as $item) {
+                $skusnums[$item['sku']] = $item['num'];
+            }
+            foreach ($list as $key => $item) {
+
+                $list[$key]['quote_count'] = isset($skusnums[$item['sku']]) ? intval($skusnums[$item['sku']]) : 0;
+            }
+        } else {
+
+            foreach ($list as $key => $item) {
+
+                $list[$key]['quote_count'] = 0;
+            }
+        }
     }
 
     /*

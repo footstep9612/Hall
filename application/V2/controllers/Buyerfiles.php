@@ -115,7 +115,7 @@ class BuyerfilesController extends PublicController
         //客户基本信息
         $base = new BuyerModel();
         $baseInfo=$base->percentBuyer($data);
-        if(empty($baseInfo['buyer_no'])){
+        if(empty($baseInfo)){
             $dataJson=array(
                 'code'=>0,
                 'message'=>'暂无信息'

@@ -42,10 +42,13 @@ class EsGoodsModel extends Model {
         $body = [];
         if ($lang == 'zh') {
             $analyzer = 'ik';
+            $analyzer_loc = 'en';
         } elseif (in_array($lang, ['zh', 'en', 'es', 'ru'])) {
             $analyzer = $lang;
+            $analyzer_loc = 'ik';
         } else {
             $analyzer = 'ik';
+            $analyzer_loc = 'en';
         }
 
         if (!empty($condition['product_name'])) {
@@ -205,15 +208,15 @@ class EsGoodsModel extends Model {
                         //  [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         //[ESClient::MATCH => ['show_name.' . $analyzer => ['query' => $show_name, 'boost' => 7]]],
                         [ESClient::TERM => ['sku' => ['value' => $show_name, 'boost' => 100]]],
-                        [ESClient::MATCH => ['model.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
+                        //  [ESClient::MATCH => ['model.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
                         [ESClient::TERM => ['spu' => ['value' => $show_name, 'boost' => 90]]],
-                        [ESClient::MATCH => ['attr.spec_attrs.value.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['attr.spec_attrs.name.' . $analyzer => ['query' => $show_name, 'boost' => 1, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['brand.name.' . $analyzer => ['query' => $show_name, 'boost' => 5, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['model.' . $analyzer => ['query' => $show_name, 'boost' => 9, 'operator' => 'and']]],
+                        [ESClient::TERM => ['attr.spec_attrs.value.lower' => ['value' => strtolower($show_name), 'boost' => 1,]]],
+                        [ESClient::TERM => ['attr.spec_attrs.name.lower' => ['value' => strtolower($show_name), 'boost' => 1,]]],
+                        [ESClient::TERM => ['brand.name.lower' => ['value' => strtolower($show_name), 'boost' => 5,]]],
+                        [ESClient::TERM => ['model.lower' => ['value' => strtolower($show_name), 'boost' => 9]]],
                         [ESClient::MATCH => ['name.' . $analyzer => ['query' => $show_name, 'boost' => 9, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['name_loc.' . $analyzer => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
-                        [ESClient::MATCH => ['show_name_loc.' . $analyzer => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['name_loc.' . $analyzer_loc => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
+                        [ESClient::MATCH => ['show_name_loc.' . $analyzer_loc => ['query' => $show_name, 'boost' => 7, 'operator' => 'and']]],
             ]]];
         }
 
@@ -248,10 +251,15 @@ class EsGoodsModel extends Model {
                 $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
             }
 
+
+
             $from = ($current_no - 1) * $pagesize;
             $es = new ESClient();
 
             $es->setbody($body);
+            if ($_source) {
+                $es->setfields($_source);
+            }
             if (isset($condition['keyword']) && $condition['keyword']) {
                 $es->setsort('_score', 'desc')->setsort('created_at', 'desc')->setsort('sku', 'desc');
                 $es->setpreference('_primary_first');

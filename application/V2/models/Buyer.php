@@ -213,7 +213,7 @@ class BuyerModel extends PublicModel {
      * 客户管理-客户统计-获取所有客户的搜索列表条件
      * wangs
      */
-    public function getBuyerStatisListCond($data){
+    public function getBuyerStatisListCond1($data,$falg=true){
         $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         if(empty($data['admin']['role'])){
             return false;
@@ -289,11 +289,13 @@ class BuyerModel extends PublicModel {
             $data['name']=trim($data['name']," ");
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
-        if(!empty($data['status'])){    //审核状态
-            if($data['status']=='PASS'){
-                $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
-            }else{
-                $cond .= " and buyer.status='".$data['status']."'";
+        if($falg===true){
+            if(!empty($data['status'])){    //审核状态
+                if($data['status']=='PASS'){
+                    $cond .= " and buyer.is_build=1 and buyer.status='APPROVED'";
+                }else{
+                    $cond .= " and buyer.status='".$data['status']."'";
+                }
             }
         }
         if(!empty($data['create_information_buyer_name'])){   //客户档案创建时,选择客户
@@ -351,16 +353,171 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
+    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
+        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
+        if(empty($data['admin']['role'])){
+            return false;
+        }
+        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
+            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
+                return false;
+            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
+                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
+            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=$this->validAgent($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " and buyer.id in ($str) ";
+                }else{
+                    $cond.= " and buyer.id in ('wangs') ";
+                }
+            }else{  //即使国家负责人,也是市场经办人
+                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
+                $agent=new BuyerAgentModel();
+                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $created=new BuyerModel();
+                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
+                $totalList=$this->validAgent($createdArr,$list);
+//                $totalList=array_merge($createdArr,$list);
+                $str='';
+                foreach($totalList as $k => $v){
+                    $str.=','.$v['buyer_id'];
+                }
+                $str=substr($str,1);
+                if(!empty($str)){
+                    $cond.= " or buyer.id in ($str) )";
+                }else{
+                    $cond.= " or buyer.id in ('wangs') )";
+                }
+            }
+        }else{
+            $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
+        }
+        foreach($data as $k => $v){
+            $data[$k]=trim($v);
+        }
+        if($falg==true){
+            if(!empty($data['status'])){    //状态
+                $cond .= " And `buyer`.status='".$data['status']."'";
+            }
+            if($filter==true){
+                $cond .= " And `buyer`.status='APPROVED'";
+            }
+        }
+        if(!empty($data['country_search'])){    //国家搜索
+            $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
+        }
+        if(!empty($data['source'])){    //来源
+            if($data['source']==='1'){
+                $cond .= " And `buyer`.source=1";
+            }elseif($data['source']==='2'){
+                $cond .= " And `buyer`.source=2";
+            }elseif($data['source']==='3'){
+                $cond .= " And `buyer`.source=3";
+            }else{
+                $cond .= " And `buyer`.source=4";
+            }
+        }
+        if(!empty($data['buyer_level'])){    //级别
+            if($data['buyer_level']=='52'){
+                $cond .= " And `buyer`.buyer_level=52";
+            }elseif($data['buyer_level']=='53'){
+                $cond .= " And `buyer`.buyer_level=53";
+            }else{
+                $cond .= " And `buyer`.buyer_level=4";
+            }
+        }
+        if(!empty($data['buyer_no'])){  //客户编号
+            $cond .= " and buyer.buyer_no like '%".$data['buyer_no']."%'";
+        }
+        if(!empty($data['buyer_code'])){    //客户CRM代码
+            $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
+        }
+        if(!empty($data['name'])){    //客户名称
+            $cond .= " and buyer.name like '%".$data['name']."%'";
+        }
+        //时间
+        if(!empty($data['created_start_at'])){  //分配时间
+            $cond .= " and buyer.created_at >= '".$data['created_start_at']."'";
+        }
+        if(!empty($data['created_end_at'])){
+            $cond .= " and buyer.created_at <= '".$data['created_end_at']."'";
+        }
+        if(!empty($data['level_start_at'])){  //分配时间
+            $data['level_start_at']=substr($data['level_start_at'],0,10);
+            $cond .= " and buyer.level_at >= '".$data['level_start_at']."'";
+        }
+        if(!empty($data['level_end_at'])){
+            $data['level_end_at']=substr($data['level_end_at'],0,10);
+            $cond .= " and buyer.level_at <= '".$data['level_end_at']."'";
+        }
+        if(!empty($data['checked_start_at']) || !empty($data['checked_end_at'])){  //分配时间
+            $map=' 1=1 ';
+            if(!empty($data['checked_start_at'])){
+                $map .= " and created_at >= '".$data['checked_start_at']."'";
+            }
+            if(!empty($data['checked_end_at'])){
+                $map .= " and created_at <= '".$data['checked_end_at']."'";
+            }
+            $info=$this->table('erui_buyer.buyer_agent')
+                ->field('buyer_id')
+                ->where($map)
+                ->group('buyer_id')
+                ->select();
+            if(!empty($info)){
+                $arr=[];
+                foreach($info as $k => $v){
+                    $arr[]=$v['buyer_id'];
+                }
+                $str=implode(',',$arr);
+                $cond.=" and buyer.id in ($str)";
+            }else{
+                $cond.=" and buyer.id in ('crm')";
+            }
+        }
+        if(!empty($data['employee_name']) || !empty($data['agent_name'])){  //经办人
+            if(!empty($data['employee_name'])){
+                $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['employee_name']."%'";
+            }elseif(!empty($data['agent_name'])){
+                $map="agent.deleted_flag='N' and employee.deleted_flag='N' AND employee.name like '%".$data['agent_name']."%'";
+            }
+            $info=$this->table('erui_buyer.buyer_agent')->alias('agent')
+                ->join("erui_sys.employee employee on agent.agent_id=employee.id",'left')
+                ->field('agent.buyer_id')
+                ->where($map)
+                ->group('agent.buyer_id')
+                ->select();
+            if(!empty($info)){
+                $arr=[];
+                foreach($info as $k => $v){
+                    $arr[]=$v['buyer_id'];
+                }
+                $str=implode(',',$arr);
+                $cond.=" and buyer.id in ($str)";
+            }else{
+                $cond.=" and buyer.id in ('crm')";
+            }
+        }
+        return $cond;
+    }
     //crm客户统计获取客户总数-wangs
     public function crmGetBuyerTotal($cond){
         $sql="SELECT count(DISTINCT buyer.id) as total_count";
         $sql.=" FROM erui_buyer.buyer buyer";   //buyer
         $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
         $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
-        $sql.=" left Join `erui_dict`.`country` country";   //country
-        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
-        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
-        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+//        $sql.=" left Join `erui_dict`.`country` country";   //country
+//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
+//        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
         $sql.= 'where '.$cond;
         $count=$this->query($sql);
         $totalCount=$count[0]['total_count'];   //总条数
@@ -397,6 +554,28 @@ class BuyerModel extends PublicModel {
         }
         return $levelCount;
     }
+    public function crmGetBuyerStatusCount($cond){
+        $sql = "select gbuyer.status,count(*) as status_count from (";
+
+        $sql .= ' SELECT buyer.id,buyer.status';
+        $sql .= ' FROM erui_buyer.buyer buyer';
+        $sql.=" left Join `erui_buyer`.`buyer_agent` agent";  //buyer_agent
+        $sql.=" on agent.buyer_id = buyer.id and agent.deleted_flag='N' ";
+//        $sql.=" left Join `erui_dict`.`country` country";   //country
+//        $sql.=" on buyer.`country_bn` = country.`bn` and country.lang='zh' and country.deleted_flag='N'";
+//        $sql.=" left Join `erui_sys`.`employee` employee";   //经办人
+//        $sql.=" on agent.`agent_id` = employee.`id` and employee.deleted_flag='N'";
+        $sql.= ' where '.$cond;
+        $sql.= ' GROUP BY buyer.id,buyer.status) gbuyer';
+
+        $sql.= ' group by gbuyer.status';
+        $count=$this->query($sql);
+        $arr=[];
+        foreach($count as $k => $v){
+            $arr[$v['status']]=$v['status_count'];
+        }
+        return $arr;
+    }
     public function getAreaByCountrybn($country_bn,$lang='zh'){
         $sql='select ';
         $sql.=' name ';
@@ -408,12 +587,125 @@ class BuyerModel extends PublicModel {
         $info=$this->query($sql);
         return $info[0]['name'];
     }
+    public function buyerStatisList($data,$excel=false){
+        set_time_limit(0);
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        $cond = $this->getBuyerStatisListCond($data);
+        if($cond==false){   //无角色,无数据
+            return false;
+        }
+        $currentPage = !empty($data['currentPage'])?$data['currentPage']:1;
+        $pageSize = 10;
+        $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
+//        $totalPage = ceil($totalCount/$pageSize);
+//        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+//            $currentPage = ceil($data['currentPage']);
+//        }
+        $offset = ($currentPage-1)*$pageSize;
+        $field='';
+        $fieldArr = array(
+            'id',
+            'buyer_no',     //客户编号
+            'buyer_code',   //客户CRM代码buy
+            'name',   //客户名称buy
+            'status',   //审核状态
+            'source',   //审核状态
+            'buyer_level',  //客户等级
+            'level_at',  //客户等级
+            'country_bn',    //国家
+            'created_at',   //注册时间/创建时间
+            'created_by',   //注册时间/创建时间
+        );
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $field=substr($field,1);
+        //excel导出标识
+        if($excel==true){
+            $offset=0;
+            $pageSize=10000;
+        }
+        $info = $this->alias('buyer')
+            ->field($field)
+            ->where($cond)
+            ->group('buyer.id')
+            ->order('buyer.checked_at desc,buyer.id desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        $level = new BuyerLevelModel();
+        $country = new CountryModel();
+        $order = new OrderModel();
+        $agent = new BuyerAgentModel();
+        foreach($info as $k => $v){
+            if(!empty($v['buyer_level'])){ //客户等级
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
+            }
+            if(!empty($v['country_bn'])){ //国家
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['area'];
+                $info[$k]['country_name'] = $area['country'];
+            }
+
+            if(!empty($data['employee_name'])){
+                $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['employee_name']);
+            }else{
+                $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            }
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['employee_name'] = $agentInfo['name'];
+
+            if($v['source']==1 && empty($info[$k]['employee_name'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+//                $info[$k]['created_name']=$name['name'];
+                $info[$k]['agent_id'] = $v['created_by'];
+                $info[$k]['employee_name']=$name['name'];
+            }
+//            $orderInfo=$order->statisOrder($v['id']);
+//            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
+        }
+        if(empty($info)){
+            $info=[];
+        }
+        if($excel==false){
+            $arr['currentPage'] = $currentPage;
+//            $arr['totalPage'] = $totalPage;
+            $arr['totalCount'] = $totalCount;
+            $arr['info'] = $info;
+            return $arr;
+        }
+        //整合excel导出数据
+        $package=$this->packageBuyerListExcelData($info,$lang);
+        $excelFile=$this->crmExportBuyerListExcel($package,$lang);
+        //
+        $arr['tmp_name'] = $excelFile;
+        $arr['type'] = 'application/excel';
+        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelFile)){
+            unlink($excelFile); //删除文件
+//            ZipHelper::removeDir(dirname($excelName));    //清除目录
+        }
+        if ($fileId) {
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
+    }
     /**
      * @param $data
      * 客户管理-客户统计-所有客户的搜索列表
      * wangs
      */
-    public function buyerStatisList($data,$excel=false){
+    public function buyerStatisList1($data,$excel=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
@@ -469,6 +761,7 @@ class BuyerModel extends PublicModel {
             ->order('buyer.checked_at desc')
             ->limit($offset,$pageSize)
             ->select();
+        echo $this->getLastSql();die;
         $level = new BuyerLevelModel();
         $country = new CountryModel();
         $order = new OrderModel();
@@ -484,9 +777,9 @@ class BuyerModel extends PublicModel {
             }else{
                 $info[$k]['percent']='--';
             }
-            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
-                $info[$k]['status'] = 'PASS';
-            }
+//            if($v['is_build']==1 && $v['status']=='APPROVED'){ //国家
+//                $info[$k]['status'] = 'PASS';
+//            }
             unset($info[$k]['is_build']);
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
@@ -498,6 +791,9 @@ class BuyerModel extends PublicModel {
             $info[$k]['employee_name'] = $agentInfo['name'];
             $orderInfo=$order->statisOrder($v['id']);
             $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
         }
         if($excel==false){
             $arr['currentPage'] = $currentPage;
@@ -1635,22 +1931,137 @@ EOF;
      * 客户档案管理搜索列表-
      * wangs
      */
-    public function buyerList($data)
+    public function buyerList1($data)
     {
-        $page = isset($data['page'])?$data['page']:1;
+////        $page = isset($data['page'])?$data['page']:1;
+////        $pageSize = 10;
+////        $offset = ($page-1)*$pageSize;
+////        $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
+//        $arr = $this->getBuyerStatisListCond($data);    //获取数据
+//        print_r($arr);die;
+//        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
+//        $totalPage = ceil($totalCount/$pageSize);
+//        $info = $arr['info']?$arr['info']:[];
+//        $res = array(
+//            'page'=>$page,
+//            'totalCount'=>$totalCount,
+//            'totalPage'=>$totalPage,
+//            'info' => $info
+//        );
+//        return $res;
+    }
+    public function buyerList($data,$excel=false){
+        set_time_limit(0);
+        $lang=!empty($data['lang'])?$data['lang']:'zh';
+        $cond = $this->getBuyerStatisListCond($data,true,true);
+        if($cond==false){   //无角色,无数据
+            return false;
+        }
+        $currentPage = !empty($data['currentPage'])?$data['currentPage']:1;
         $pageSize = 10;
-        $offset = ($page-1)*$pageSize;
-        $arr = $this->getBuyerManageDataByCond($data,$offset,$pageSize);    //获取数据
-        $totalCount = $arr['totalCount']?$arr['totalCount']:0;
+        $totalCount=$this->crmGetBuyerTotal($cond); //获取总条数
         $totalPage = ceil($totalCount/$pageSize);
-        $info = $arr['info']?$arr['info']:[];
-        $res = array(
-            'page'=>$page,
-            'totalCount'=>$totalCount,
-            'totalPage'=>$totalPage,
-            'info' => $info
+        if(!empty($data['currentPage']) && $data['currentPage'] >0){
+            $currentPage = ceil($data['currentPage']);
+        }
+        $offset = ($currentPage-1)*$pageSize;
+        $field='';
+        $fieldArr = array(
+            'id',
+            'percent',
+            'buyer_no',     //客户编号
+            'buyer_code',   //客户CRM代码buy
+            'name',   //客户名称buy
+            'status',   //审核状态
+            'source',   //审核状态
+            'buyer_level',  //客户等级
+            'level_at',  //客户等级
+            'country_bn',    //国家
+            'created_at',   //注册时间/创建时间
+            'created_by',   //注册时间/创建时间
         );
-        return $res;
+        foreach($fieldArr as $v){
+            $field .= ',buyer.'.$v;
+        }
+        $field=substr($field,1);
+        $info = $this->alias('buyer')
+            ->field($field)
+            ->where($cond)
+            ->group('buyer.id')
+            ->order('buyer.checked_at desc,buyer.id desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        $level = new BuyerLevelModel();
+        $country = new CountryModel();
+        $agent = new BuyerAgentModel();
+        foreach($info as $k => $v){
+            if(empty($v['percent'])){
+                $info[$k]['percent']='--';
+            }else{
+                $info[$k]['percent']=$info[$k]['percent'].'%';
+            }
+            if(!empty($v['buyer_level'])){ //客户等级
+                $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
+            }else{
+                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
+            }
+            if($v['source']==1){
+                $info[$k]['source']=$lang=='zh'?'BOSS':'BOSS';
+            }elseif($v['source']==2){
+                $info[$k]['source']=$lang=='zh'?'门户':'WEB';
+            }elseif($v['source']==3){
+                $info[$k]['source']=$lang=='zh'?'APP':'APP';
+            }
+            if($v['status']=='APPROVING'){
+                $info[$k]['status']=$lang=='zh'?'待分配':'APPROVING';
+            }elseif($v['status']=='APPROVED'){
+                $info[$k]['status']=$lang=='zh'?'已分配':'APPROVED';
+            }elseif($v['status']=='REJECTED'){
+                $info[$k]['status']=$lang=='zh'?'已关闭':'REJECTED';
+            }
+            if(!empty($v['country_bn'])){ //国家
+                $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
+                $info[$k]['area'] = $area['area'];
+                $info[$k]['country_name'] = $area['country'];
+            }
+            if(!empty($v['created_by'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+                $info[$k]['created_name']=$name['name'];
+            }else{
+                $info[$k]['created_name']='';
+            }
+
+            if(!empty($data['agent_name'])){
+                $agentInfo=$agent->getBuyerAgentArr($v['id'],$data['agent_name']);
+            }else{
+                $agentInfo=$agent->getBuyerAgentArr($v['id']);
+            }
+            $info[$k]['agent_id'] = $agentInfo['id'];
+            $info[$k]['agent_name'] = $agentInfo['name'];
+            $info[$k]['agent_at'] = $agentInfo['checked_at'];
+//---------------------------
+            if($v['source']==1 && empty($info[$k]['agent_name'])){
+                $name=$this->table('erui_sys.employee')->field('name')
+                    ->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+                $info[$k]['agent_id'] = $v['created_by'];
+                $info[$k]['agent_name']=$name['name'];
+                $info[$k]['agent_at']=$v['created_at'];
+            }
+
+            $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
+            $info[$k]['buyer_name'] = $info[$k]['name'];
+            unset($info[$k]['created_by']);
+            unset($info[$k]['name']);
+        }
+        if(empty($info)){
+            $info=[];
+        }
+        $arr['currentPage'] = $currentPage;
+        $arr['totalPage'] = $totalPage;
+        $arr['totalCount'] = $totalCount;
+        $arr['info'] = $info;
+        return $arr;
     }
 
     /**
@@ -1866,15 +2277,15 @@ EOF;
      */
     public function packageBaseData($data, $created_by) {
         //会员有效期12个月--------------1年
-        if (!empty($data['level_at'])) {
-            $level_at = $data['level_at'];
-            $year_at = substr($level_at, 0, 4);
-            $year_end = substr($level_at, 0, 4) + 1;
-            $expiry_at = str_replace($year_at, $year_end, $level_at);
-        }else{
-            $level_at=null;
-            $expiry_at=null;
-        }
+//        if (!empty($data['level_at'])) {
+//            $level_at = $data['level_at'];
+//            $year_at = substr($level_at, 0, 4);
+//            $year_end = substr($level_at, 0, 4) + 1;
+//            $expiry_at = str_replace($year_at, $year_end, $level_at);
+//        }else{
+//            $level_at=null;
+//            $expiry_at=null;
+//        }
         //必须数据
         $arr = array(
             'created_by'    => $created_by, //客户id
@@ -1891,8 +2302,8 @@ EOF;
             'reg_capital'   => $data['reg_capital'],   //注册资金
             'reg_capital_cur'   => $data['reg_capital_cur'],   //注册资金货币
             'profile'   => $data['profile'],   //公司介绍txt
-            'level_at' => $level_at,  //定级日期
-            'expiry_at' =>  $expiry_at, //有效期
+//            'level_at' => $level_at,  //定级日期
+//            'expiry_at' =>  $expiry_at, //有效期
             'is_build' =>'1',//建立档案标识
 //            'status' =>'PASS',//建立档案信息状态标识
             'is_oilgas' =>$data['is_oilgas'],   //是否油气
@@ -1996,12 +2407,98 @@ EOF;
 
         return $info;
     }
+    public function showBuyerInfo($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $buyerArr = array(
+            'id as buyer_id', //客户id
+            'percent', //信息完整度
+            'buyer_no', //客户编码
+            'buyer_code', //客户crm编码
+            'name as buyer_name', //客户名称
+            'area_bn', //地区
+            'country_bn', //国家
 
+            'buyer_level', //客户等级
+            'level_at', //定级日期
+            'expiry_at', //有效日期
+            'buyer_type', //客户类型
+            'type_remarks', //客户类型备注
+            'is_oilgas', //是否油气
 
-    /**
-     * 客户管理-客户信息的统计数据
-     * wangs
-     */
+            'company_reg_date', //公司注册日期
+            'official_email', //公司邮箱
+            'official_phone', //公司电话
+            'official_website', //公司官网
+            'reg_capital', //注册资金
+            'reg_capital_cur', //注册资金货币
+            'dollar_rate', //注册资本相对美元汇率
+            'dollar_amount', //注册资本美元金额
+            'sub_company_name', //子公司名称
+            'employee_count', //雇员数量
+            'company_model', //公司性质
+            'profile', //公司介绍
+            'company_address' //公司地址
+        );
+        $cond=array(
+            'id'=>$data['buyer_id'],
+            'status'=>'APPROVED',
+            'deleted_flag'=>'N'
+        );
+        $reg=$this->field('id')->where($cond)->find();
+        if(empty($reg)){
+            return false;
+        }
+//        if($data['type']!='check'){
+//            $config = \Yaf_Application::app()->getConfig();
+//            $myhost=$config['myhost'];
+////        print_r($myhost);die;
+//            //percentInfo
+//            $cookie=$_COOKIE;
+//            $opt = array(
+//                'http'=>array(
+//                    'method'=>"POST",
+//                    'header'=>"Cookie:_ga=$cookie[_ga];eruitoken=$cookie[eruitoken];Content-Type=application/json",
+//                    'content' =>json_encode(array('buyer_id'=>$data['buyer_id']))
+//                )
+//            );
+//            $context = stream_context_create($opt);
+//            $url = $myhost.'v2/Buyerfiles/percentInfo';
+////        $url = 'http://api.eruidev.com/v2/Buyerfiles/percentInfo';
+//            $json = file_get_contents($url,false,$context);
+//            $result=$data = json_decode($json, true);
+//            if($result['code']!=1){
+//                return 'info';
+//            }
+//        }
+        $info = $this->field($buyerArr)
+                    ->where($cond)
+                    ->find();
+        if(!empty($info['buyer_level'])){
+            $level = new BuyerLevelModel();
+            $info['buyer_level'] = $level->getBuyerLevelById($info['buyer_level'],$lang);
+        }
+        //        if($data['is_check'] == true){
+        //        if(!empty($info['buyer_type'])){
+        //            $type = new BuyerTypeModel();
+        //            $buyerType=$type->buyerTypeNameById($info['buyer_type'],$lang);
+        //            $info['buyer_type'] = $buyerType['type_name'];
+        //        }
+        //        }
+        if(!empty($info['country_bn'])){
+            $country = new CountryModel();
+            $info['country_name'] = $country->getCountryByBn($info['country_bn'],$lang);
+        }
+        $info['reg_capital'] = floatval($info['reg_capital']);
+        return $info;
+}
+
+/**
+* 客户管理-客户信息的统计数据
+* wangs
+*/
     public function showBuyerStatis($data){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         if(empty($data['buyer_id']) || empty($data['created_by'])){
@@ -3251,7 +3748,7 @@ EOF;
     }
     //信息完整度统计客户基本信息
     public function percentBuyer($data){
-        $cond=array('id'=>$data['buyer_id'],'is_build'=>1,'deleted_flag'=>'N');
+        $cond=array('id'=>$data['buyer_id'],'deleted_flag'=>'N');
         $baseField=array(
 //            'buyer_code', //客户代码
             'buyer_no', //客户编码
@@ -3290,5 +3787,424 @@ EOF;
             }
         }
         return $info;
+    }
+    public function validBuyerBaseArr($arr){
+        $base = $arr['base_info'];  //基本信息
+        $contact = $arr['contact_info']; //联系人
+        $baseArr = array(   //创建客户基本信息必须数据
+//            'buyer_id'=>'客户id',
+            'buyer_name'=>L('buyer_name'),
+//            'buyer_account'=>'客户账号',
+//            'buyer_code'=>'客户CRM编码',
+//            'buyer_level'=>'客户级别',
+//            'country_bn'=>'国家',
+//            'area_bn'=>'地区',
+//            'market_agent_name'=>'erui客户服务经理（市场经办人)',
+//            'market_agent_mobile'=>'服务经理联系方式',
+//            'level_at'=>'定级日期',
+//            'expiry_at'=>'有效期',
+            'is_oilgas'=>L('is_oilgas'),    //是否油气
+            'company_model'=>L('company_model'),    //公司性质
+            'official_phone'=>L('official_phone'),  //公司电话
+            'official_email'=>L('official_email'),     //公司邮箱
+            'official_website'=>L('official_website'),  //公司网址
+            'company_reg_date'=>L('company_reg_date'),  //公司成立日期
+            'company_address'=>L('company_address'),//  +公司地址
+            'reg_capital'=>L('reg_capital'),    //注册资金
+            'reg_capital_cur'=>L('reg_capital_cur'),    //注册资金货币
+            'profile'=>L('profile'),    //公司其他信息
+//            'is_oilgas'=>'是否油气',
+//            'company_model'=>'公司性质',
+//            'official_phone'=>'公司电话',
+//            'official_email'=>'公司邮箱',
+//            'official_website'=>'公司网址',
+//            'company_reg_date'=>'公司成立日期',
+//            'company_address'=>'公司地址',  //  +
+//            'reg_capital'=>'注册资金',
+//            'reg_capital_cur'=>'注册资金货币',
+//            'profile'=>'公司其他信息',
+
+        );
+        foreach($baseArr as $k => $v){
+            if(empty($base[$k])){
+                return $v.L('not empty');
+            }
+        }
+        if(!empty($base['company_reg_date'])){
+            $head=substr($base['company_reg_date'],0,4);
+            if(!is_numeric($head)){
+                return $baseArr['company_reg_date'].L('not empty');
+            }
+            $date=explode('-',$base['company_reg_date']);
+            $y=$date[0];
+            $m=sprintf("%02s",intval($date[1]));
+            $d=sprintf("%02s",intval($date[2]));
+            if($m<0 || $m>12){
+                return $baseArr['company_reg_date'].L('format_error');    //的月份错误
+            }
+            if($m=='00'){
+                if($d != '00'){
+                    return $baseArr['company_reg_date'].L('format_error');  //的月份日期错误
+                }
+            }else{
+                if(in_array($m,['04','06','09','11'])){
+                    if($d <0 || $d >30){
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
+                    }
+                }
+                if(in_array($m,['01','03','05','07','08','10','12'])){
+                    if($d <0 || $d >31){
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
+                    }
+                }
+                if($m == '02'){
+                    if($d <0 || $d >28){
+                        return $baseArr['company_reg_date'].L('format_error');    //的日期错误
+                    }
+                }
+            }
+            $dateArr=[$y,$m,$d];
+            $base['company_reg_date']=implode('-',$dateArr);
+        }else{
+            return $baseArr['company_reg_date'].L('not empty');
+        }
+//        if(!empty($base['official_phone'])){
+//            if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$base['official_phone'])){
+//                return '公司电话:(选)2~4位区号-6~11位电话号码';
+//            }
+//        }
+        if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$base['official_email'])){
+            return $baseArr['official_email'].L('format_error');
+        }else{
+            $email=$this->field('official_email')
+                ->where(array('id'=>$arr['buyer_id'],'deleted_flag'=>'N'))
+                ->find();//默认邮箱
+            if($base['official_email']!=$email['official_email']){  //修改邮箱
+                $exist=$this->field('official_email')->where(array('official_email'=>trim($base['official_email'],' '),'deleted_flag'=>'N'))->find();
+                if($exist){
+                    return $baseArr['official_email'].L('already existed');
+                }
+            }
+        }
+        if(is_numeric($base['reg_capital'])  && $base['reg_capital']>0){
+        }else{
+            return $baseArr['reg_capital'].L('format_error');
+        }
+
+        //基本信息可选数据
+        $baseExtra = array( //创建客户基本信息可选数据
+            'type_id'=>'客户类型',   //buyer_type
+            'type_remarks'=>'类型备注',
+            'is_oilgas'=>'是否油气',
+            'employee_count'=>L('employee_count')
+        );
+        //联系人【contact】
+//        $contactArr = array(    //创建客户信息联系人必须数据
+//            'name'=>L('contact_name'),  //联系人姓名
+//            'title'=>L('contact_title'),    //联系人职位
+//            'phone'=>L('contact_phone'),    //联系人电话
+//        );
+//        $contactExtra = array(  //创建客户信息联系人可选数据
+//            'role'=>'购买角色',
+//            'email'=>L('contact_email'),    //联系人邮箱
+//            'hobby'=>'喜好',
+//            'address'=>'详细地址',
+//            'experience'=>'工作经历',
+//            'social_relations'=>'社会关系',
+//
+//            'key_concern'=>'决策主要关注点',
+//            'attitude'=>'对科瑞的态度',
+//            'social_place'=>'常去社交场所',
+//            'relatives_family'=>'家庭亲戚相关信息',
+//        );
+//        $contactEmail=array();  //crm
+//        foreach($contact as $value){
+//            foreach($contactArr as $k => $v){
+//                if(empty($value[$k]) || strlen($value[$k]) > 50){
+//                    return $v.L('not empty');
+//                }
+////                if(!empty($value['phone'])){
+////                    if(!preg_match ("/^(\d{2,4}-)?\d{6,11}$/",$value['phone'])){
+////                        return '联系人电话:(选)2~4位区号-6~11位电话号码';
+////                    }
+////                }
+//            }
+//            if(!empty($value['email'])){
+//                $value['email']=trim($value['email'],' ');
+//                if(!preg_match ("/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/",$value['email'])){
+//                    return $contactExtra['email'].L('format_error');
+//                }else{
+//                    $buyerContact=new BuyercontactModel();
+//                    if(empty($value['id'])){
+//                        $email=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                        if($email){
+//                            return $contactExtra['email'].L('already existed');
+//                        }
+//                    }else{
+//                        $email=$buyerContact->field('email')->where(array('id'=>$value['id']))->find();//默认邮箱
+//                        if($value['email']!=$email['email']){  //修改邮箱
+//                            $exist=$buyerContact->field('email')->where(array('email'=>$value['email'],'deleted_flag'=>'N'))->find();
+//                            if($exist){
+//                                return $contactExtra['email'].L('already existed');
+//                            }
+//                        }
+//                    }
+//
+//                }
+//                $contactEmail[]=$value['email'];
+//            }
+//            $emailTotal=count($contactEmail);   //联系人邮箱总数
+//            $validTotal=count(array_flip(array_flip($contactEmail)));   //联系人邮箱过滤重复后总数
+//            if($emailTotal!=$validTotal){
+//                return $contactExtra['email'].L('repeat');
+//            }
+//        }
+        if(!empty($base['employee_count'])){
+            if(is_numeric($base['employee_count']) && $base['employee_count'] > 0){
+                return true;
+            }else{
+                return $baseExtra['employee_count'];
+            }
+        }
+        return true;
+    }
+    //新版crm
+    public function editBuyerBaseInfo($data){
+        $info = $this->validBuyerBaseArr($data);
+        if($info !== true){
+            return $info;
+        }
+        //基本信息
+        $data['base_info']['buyer_id']=$data['buyer_id'];
+        $arr = $this -> packageBaseData($data['base_info'],$data['created_by']);    //组装基本信息数据
+        $this->where(array('id'=>$arr['id']))->save($arr);  //创建或修改客户档案信息
+        //编辑财务报表
+        $attach = new BuyerattachModel();
+        $attach -> updateBuyerFinanceTableArr($data['base_info']['finance_attach'],'FINANCE',$data['buyer_id'],$data['created_by']);
+        //公司人员组织架构
+        $attach -> updateBuyerFinanceTableArr($data['base_info']['org_chart'],'ORGCHART',$data['buyer_id'],$data['created_by']);
+        //业务信息
+        $business = new BuyerBusinessModel();
+        $data['business_info']['buyer_id']=$data['buyer_id'];
+        $business->editBusiness($data['business_info']);
+        //结算信息
+        $data['settlement_info']['buyer_id']=$data['buyer_id'];
+        $business->editSettlement($data['settlement_info']);
+        //入网管理
+        $net = new NetSubjectModel();
+        $data['net_info']['buyer_id']=$data['buyer_id'];
+        $net->editNetSubject($data['net_info']);
+        //编辑联系人必填
+//        $contact = new BuyercontactModel();
+//        $contact -> updateBuyerContact($data['contact_info'],$data['buyer_id'],$data['created_by']);
+        return true;
+    }
+    public function buyerTitleInfo($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $lang=isset($data['lang'])?$data['lang']:'zh';
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name,country_bn')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info)){
+            return [];
+        }
+        $area=new CountryModel();
+        $res=$area->getCountryAreaByBn($info['country_bn'],$lang);
+        $info['area_name']=$res['area'];
+        $info['country_name']=$res['country'];
+        unset($info['country_bn']);
+        return $info;
+    }
+    public function showBuyerInquiry($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info)){
+            $arr['info']=[];
+            $arr['total_count']=0;
+            $arr['page']=1;
+            return $arr;
+        }
+        $page=!empty($data['page'])?$data['page']:1;
+        $arr=$this->getInquiry($data['buyer_id'],$data['lang'],$page);
+        foreach($arr['info'] as $k => &$v){
+            $v['buyer_code']=$info['buyer_code'];
+            $v['created_at']=substr($v['created_at'],0,16);
+            switch ($v['status']){
+                case 'DRAFT':
+                    $v['status']='新建询单';
+                    break;
+                case 'REJECT_MARKET':
+                    $v['status']='驳回市场';
+                    break;
+                case 'REJECT_CLOSE':
+                    $v['status']='驳回市场关闭';
+                    break;
+                case 'BIZ_DISPATCHING':
+                    $v['status']='事业部分单员';
+                    break;
+                case 'CC_DISPATCHING':
+                    $v['status']='易瑞客户中心';
+                    break;
+                case 'BIZ_QUOTING':
+                    $v['status']='事业部报价';
+                    break;
+                case 'REJECT_QUOTING':
+                    $v['status']='事业部审核退回事业部报价';
+                    break;
+                case 'LOGI_DISPATCHING':
+                    $v['status']='物流分单员';
+                    break;
+                case 'LOGI_QUOTING':
+                    $v['status']='物流报价';
+                    break;
+                case 'LOGI_APPROVING':
+                    $v['status']='物流审核';
+                    break;
+                case 'BIZ_APPROVING':
+                    $v['status']='事业部核算';
+                    break;
+                case 'MARKET_APPROVING':
+                    $v['status']='事业部审核';
+                    break;
+                case 'MARKET_CONFIRMING':
+                    $v['status']='市场确认';
+                    break;
+                case 'QUOTE_SENT':
+                    $v['status']='报价单已发出';
+                    break;
+                case 'INQUIRY_CLOSED':
+                    $v['status']='报价单发送后关闭';
+                    break;
+            }
+        }
+        return $arr;
+    }
+    public function showBuyerOrder($data){
+        if(empty($data['buyer_id'])){
+            return false;
+        }
+        $info=$this->field('id as buyer_id,buyer_no,buyer_code,name as buyer_name')->where(array('id'=>$data['buyer_id'],'deleted_flag'=>'N'))->find();
+        if(empty($info['buyer_code'])){
+            $arr['info']=[];
+            $arr['total_count']=0;
+            $arr['page']=1;
+            return $arr;
+        }
+        $page=!empty($data['page'])?$data['page']:1;
+        $arr=$this->getOrder($info['buyer_code'],$page);
+        return $arr;
+    }
+    public function getOrder($buyer_code,$page){
+        $field=array(
+            'contract_no', //销售合同号
+            'project_no', //项目号
+            'inquiry_no', //询单号
+            'signing_date', //订单签约日期
+            'order_type', //订单类型
+            'total_price', //合同总价
+            'pay_status', //款项状态
+            'status', //订单状态
+            'process_progress' //流程进度
+        );
+        $pageSize=10;
+        $offset=($page-1)*$pageSize;
+        $total=$this->table('erui_new_order.order')
+            ->field($field)
+            ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
+            ->count();
+        if($total==0){
+            $arr['info']=[];
+            $arr['total_count']=$total;
+            $arr['page']=$page;
+            return $arr;
+        }
+        $info=$this->table('erui_new_order.order')
+            ->field($field)
+            ->where(array('crm_code'=>$buyer_code,'delete_flag'=>0))
+            ->order('signing_date desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        foreach($info as $k => &$v){
+            if($v['order_type']==1){
+                $v['order_type']='油气';
+            }elseif($v['order_type']==2){
+                $v['order_type']='非油气';
+            }else{
+                $v['order_type']='其他';  //null
+            }
+            if($v['pay_status']==2){
+                $v['pay_status']='部分付款';
+            }elseif($v['pay_status']==3){
+                $v['pay_status']='收款完成';
+            }else{
+                $v['pay_status']='未付款'; //1
+            }
+            if($v['status']==2){
+                $v['status']='未执行';
+            }elseif($v['status']==3){
+                $v['status']='执行中';
+            }elseif($v['status']==4){
+                $v['status']='完成';
+            }else{
+                $v['status']='待确认'; //1
+            }
+            if($v['process_progress']==2){
+                $v['process_progress']='正常执行';
+            }elseif($v['process_progress']==3){
+                $v['process_progress']='采购中';
+            }elseif($v['process_progress']==4){
+                $v['process_progress']='已报检';
+            }elseif($v['process_progress']==5){
+                $v['process_progress']='质检中';
+            }elseif($v['process_progress']==6){
+                $v['process_progress']='已入库';
+            }elseif($v['process_progress']==7){
+                $v['process_progress']='出库质检';
+            }elseif($v['process_progress']==8){
+                $v['process_progress']='已出库';
+            }elseif($v['process_progress']==9){
+                $v['process_progress']='已发运';
+            }else{
+                $v['process_progress']='未执行';   //1
+            }
+        }
+        $arr['info']=$info;
+        $arr['total_count']=$total;
+        $arr['page']=$page;
+        return $arr;
+    }
+    public function getInquiry($buyer_id,$lang='zh',$page){
+        $field='serial_no,status,created_at';
+        $field.=",(select name from erui_dict.country country where country.bn=country_bn and lang='$lang' and deleted_flag='N')  as country_name";
+        $field.=',(select name from erui_sys.employee employee where id=now_agent_id and deleted_flag=\'N\') as operator';
+        $pageSize=10;
+        $offset=($page-1)*$pageSize;
+        $count=$this->table('erui_rfq.inquiry')
+            ->field($field)
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
+            ->count();
+        if($count==0){
+            $arr['total_count']=0;
+            $arr['page']=1;
+            $arr['info']=[];
+        }
+        $info=$this->table('erui_rfq.inquiry')
+            ->field($field)
+            ->where(array('buyer_id'=>$buyer_id,'deleted_flag'=>'N'))
+            ->order('created_at desc')
+            ->limit($offset,$pageSize)
+            ->select();
+        if(empty($info)){
+            $info=[];
+        }
+        $arr['total_count']=$count;
+        $arr['page']=$page;
+        $arr['info']=$info;
+        return $arr;
     }
 }

@@ -24,6 +24,9 @@ class LogisticsController extends PublicController {
 		$this->historicalSkuQuoteModel = new HistoricalSkuQuoteModel();
 		$this->quoteLogiCostModel = new QuoteLogiCostModel();
 		$this->transModeModel = new TransModeModel();
+		$this->countryModel = new CountryModel();
+		$this->portModel = new PortModel();
+		$this->boxTypeModel = new BoxTypeModel();
 
         $this->time = date('Y-m-d H:i:s');
 	}
@@ -223,32 +226,28 @@ class LogisticsController extends PublicController {
     	        $outField = 'logi_quote_org_id';
     	        $findFields = ['logi_check_org_id', $outField];
     	        $quoteLogiFee['current_quote_org_id'] = $this->_getOrgIds($this->user['id'], $findFields, $outField);*/
-    	        $countryModel = New CountryModel();
     	        $quoteLogiFee['trans_mode_bn'] = $quoteLogiFee['trans_mode_bn'] ? : L('NOTHING');
     	        $quoteLogiFee['trans_mode_name'] = $this->transModeModel->getTransModeByBn($quoteLogiFee['trans_mode_bn'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['package_mode'] = $quoteLogiFee['package_mode'] ? : L('NOTHING');
     	        $quoteLogiFee['dispatch_place'] = $quoteLogiFee['dispatch_place'] ? : L('NOTHING');
-				if(empty($quoteLogiFee['from_country'])){
-				    //如果是空值赋值暂无
-					$quoteLogiFee['from_country'] = L('NOTHING');
-				}else{
-				    //否则改成中文
-					$quoteLogiFee['from_country'] = $countryModel->where(['bn' => $quoteLogiFee['from_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
-				}
+    	        $quoteLogiFee['from_country'] = $quoteLogiFee['from_country'] ? : L('NOTHING');
+    	        $quoteLogiFee['from_country_name'] = $this->countryModel->getCountryNameByBn($quoteLogiFee['from_country'], $this->lang) ? : L('NOTHING');
+    	        $quoteLogiFee['to_country'] = $quoteLogiFee['to_country'] ? : L('NOTHING');
+    	        $quoteLogiFee['to_country_name'] = $this->countryModel->getCountryNameByBn($quoteLogiFee['to_country'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['from_port'] = $quoteLogiFee['from_port'] ? : L('NOTHING');
-				if(empty($quoteLogiFee['to_country'])){
-				    //如果是空值赋值暂无
-					$quoteLogiFee['to_country'] = L('NOTHING');
-				}else{
-				    //否则改成中文
-					$quoteLogiFee['to_country'] = $countryModel->where(['bn' => $quoteLogiFee['to_country'], 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
-				}
+    	        $quoteLogiFee['from_port_name'] = $this->portModel->getPortNameByBn($quoteLogiFee['from_country'], $quoteLogiFee['from_port'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['to_port'] = $quoteLogiFee['to_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['to_port_name'] = $this->portModel->getPortNameByBn($quoteLogiFee['to_country'], $quoteLogiFee['to_port'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['delivery_addr'] = $quoteLogiFee['delivery_addr'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_trans_mode_bn'] = $quoteLogiFee['logi_trans_mode_bn'] ? : L('NOTHING');
     	        $quoteLogiFee['logi_trans_mode_name'] = $this->transModeModel->getTransModeByBn($quoteLogiFee['logi_trans_mode_bn'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['logi_from_port'] = $quoteLogiFee['logi_from_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_from_port_name'] = $this->portModel->getPortNameByBn($quoteLogiFee['from_country'], $quoteLogiFee['logi_from_port'], $this->lang) ? : L('NOTHING');
     	        $quoteLogiFee['logi_to_port'] = $quoteLogiFee['logi_to_port'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_to_port_name'] = $this->portModel->getPortNameByBn($quoteLogiFee['to_country'], $quoteLogiFee['logi_to_port'], $this->lang) ? : L('NOTHING');
+    	        $quoteLogiFee['logi_box_type_bn'] = $quoteLogiFee['logi_box_type_bn'] ? : L('NOTHING');
+    	        $quoteLogiFee['logi_box_type_name'] = $this->boxTypeModel->getBoxTypeNameByBn($quoteLogiFee['logi_box_type_bn'], $this->lang) ? : L('NOTHING');
+    	        
     	        // 港杂费和国际运费
     	        $logiCostList = $this->quoteLogiCostModel->getList(['inquiry_id' => $quoteLogiFee['inquiry_id']], 'unit, qty, price, cur_bn, type');
     	        $quoteLogiFee['port_surcharge_items'] = $quoteLogiFee['inter_shipping_items'] = [];
@@ -838,6 +837,7 @@ class LogisticsController extends PublicController {
 	    if (!empty($condition['inquiry_id']) && !empty($condition['current_node'])) {
 	        $this->inquiryModel->startTrans();
 	        
+	        $where = ['inquiry_id' => $condition['inquiry_id']];
 	        $inquiry = $this->inquiryModel->field('quote_id, logi_agent_id')->where(['id' => $condition['inquiry_id']])->find();
 	        
 	        $data = [
@@ -849,6 +849,8 @@ class LogisticsController extends PublicController {
 	            case 'issue' :
 	                $status = 'BIZ_QUOTING'; 
 	                $data['now_agent_id'] = $inquiry['quote_id'];
+	                // 清除物流报价SKU
+	                $logiRes = $this->quoteItemLogiModel->where($where)->delete();
 	                break;
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING'; 
@@ -871,16 +873,26 @@ class LogisticsController extends PublicController {
 	            'updated_by' => $this->user['id'],
 	            'updated_at' => $this->time
 	        ];
-	        $res2 = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
+	        $res2 = $this->quoteModel->where($where)->save($quoteData);
 	        
 	        if ($res1['code'] == 1 && $res2) {
-	            $this->inquiryModel->commit();
-	            $res = true;
+	            if ($condition['current_node'] == 'issue') {
+	                if ($logiRes) {
+	                    $res = true;
+	                } else {
+	                    $res = false;
+	                }
+	            } else {
+	                $res = true;
+	            }
 	        } else {
-	            $this->inquiryModel->rollback();
 	            $res = false;
 	        }
-	
+	        if ($res) {
+	            $this->inquiryModel->commit();
+	        } else {
+	            $this->inquiryModel->rollback();
+	        }
 	        $this->jsonReturn($res);
 	    } else {
 	        $this->jsonReturn(false);

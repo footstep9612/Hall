@@ -41,19 +41,48 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      */
     public function tree($condition = [], $limit = null) {
-        $where = $this->_getcondition($condition);
+        $where = $this->_getcondition($condition, false);
         try {
-            $this->where($where)
+            $data = $this->where($where)
                     ->order('sort_order DESC')
-                    ->field('cat_no as value,name as label,parent_cat_no');
-            if ($limit) {
-                $this->limit(0, 10);
+                    ->field('cat_no as value,name as label,parent_cat_no,level_no')
+                    ->select();
+            $ret = $ret1 = $ret2 = $ret3 = [];
+            foreach ($data as $item) {
+                switch ($item['level_no']) {
+                    case 1:
+                        $ret1[$item['value']] = $item;
+                        break;
+                    case 2:
+                        $ret2[$item['parent_cat_no']][$item['value']] = $item;
+                        break;
+                    case 3:
+                        $item['label'] = $item['label'] . '-' . $item['value'];
+                        $ret3[$item['parent_cat_no']][$item['value']] = $item;
+                        break;
+                }
             }
-            $result = $this->select();
-            foreach ($result as $key => $val) {
-                $result[$key]['label'] = $val['label'] . '-' . $val['value'];
+
+            foreach ($ret1 as $cat_no1 => $item1) {
+                unset($item1['parent_cat_no'], $item1['level_no']);
+                if (!empty($ret2[$cat_no1])) {
+                    foreach ($ret2[$cat_no1] as $cat_no2 => $item2) {
+
+                        if (!empty($ret3[$cat_no2])) {
+                            foreach ($ret3[$cat_no2] as $item3) {
+                                unset($item3['parent_cat_no'], $item3['level_no']);
+                                $item2['children'][] = $item3;
+                            }
+                        }
+                        unset($item2['parent_cat_no'], $item2['level_no']);
+                        $item1['children'][] = $item2;
+                    }
+                }
+
+                $ret[] = $item1;
             }
-            return $result;
+
+            return $ret;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
@@ -154,7 +183,7 @@ class ShowCatModel extends PublicModel {
      * @author zyg
      *
      */
-    protected function _getcondition($condition = []) {
+    protected function _getcondition($condition = [], $is_level_no = true) {
         $where = [];
         getValue($where, $condition, 'id');
         getValue($where, $condition, 'cat_no');
@@ -171,9 +200,10 @@ class ShowCatModel extends PublicModel {
             $where['parent_cat_no'] = $condition['cat_no1'];
         } elseif (isset($condition['level_no']) && intval($condition['level_no']) <= 3) {
             $where['level_no'] = intval($condition['level_no']);
-        } else {
+        } elseif ($is_level_no) {
             $where['level_no'] = 1;
         }
+
         getValue($where, $condition, 'parent_cat_no');
         getValue($where, $condition, 'mobile', 'like');
         getValue($where, $condition, 'lang', 'string');
@@ -212,8 +242,8 @@ class ShowCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function getcount($condition = []) {
-        $where = $this->_getcondition($condition);
+    public function getcount($condition = [], $is_level_no = true) {
+        $where = $this->_getcondition($condition, $is_level_no);
 
 
         try {
