@@ -195,7 +195,7 @@ class InquiryItemModel extends PublicModel {
         $inquirydata = [];
         for ($i = 0; $i < $condition['inquiry_rows']; $i++) {
             $test['inquiry_id'] = $condition['inquiry_id'];
-            $test['qty'] = '1';
+            $test['qty'] = null;
             $test['created_by'] = $condition['created_by'];
             $test['created_at'] = $this->getTime();
             $inquirydata[] = $test;
