@@ -27,10 +27,10 @@ class StorageModel extends PublicModel{
         }
 
         try {
-            $result = $this->field( 'id,country_bn,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ) ] )->find();
+            $result = $this->field( 'id,country_bn,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ), 'deleted_at' => ['exp', 'is null']] )->find();
             if($result){
                 $this->_setUser($result);
-                $this->_jsonDecode($result,'contact');
+                jsonDecode($result,'contact');
                 return $result;
             }
         } catch ( Exception $e ) {
@@ -46,7 +46,7 @@ class StorageModel extends PublicModel{
      * @return array|bool
      */
     public function getList($condition=[],$field=''){
-        $where = [];
+        $where = [ 'deleted_at' => ['exp', 'is null']];
         if(isset($condition['id'])){
             $where['id'] = intval($condition['id']);
         }
@@ -101,9 +101,9 @@ class StorageModel extends PublicModel{
                 'description' => trim($input['description']),
                 'remark' => trim($input['remark']),
                 'content' => trim($input['content']),
-                'contact' => $input['contact'] ? json_encode($input['contact'],JSON_UNESCAPED_UNICODE) : ''
+                'contact' => $input['contact'] ? json_encode($input['contact'],JSON_UNESCAPED_UNICODE) : '[]'
             ];
-            if($this->getExit(['country_bn'=>$data['country_bn'],'storage_name'=>$data['storage_name']])===false){
+            if($this->getExit(['country_bn'=>$data['country_bn'],'storage_name'=>$data['storage_name'],'deleted_at' => ['exp', 'is null']])===false){
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $flag = $this->add($data);
@@ -128,7 +128,7 @@ class StorageModel extends PublicModel{
             $data = [];
             foreach($input as $k=>$v){
                 if($k=='contact'){
-                    $v = $v ? json_encode($v,JSON_UNESCAPED_UNICODE ) : '';
+                    $v = $v ? json_encode($v,JSON_UNESCAPED_UNICODE ) : '[]';
                 }
                 if(in_array($k,['country_bn','storage_name','keyword','description','remark','content','status','contact'])){
                     $v = (trim($k)=='country_bn') ? ucfirst(trim($v)) : trim($v);
