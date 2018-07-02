@@ -668,11 +668,10 @@ class InquiryController extends PublicController {
                     default :
                         $error = true;
                 }
-            } else
+            } else {
                 $error = true;
-
-            if ($error)
-                jsonReturn('', '-101', L('INQUIRY_NODE_ERROR'));
+            }
+            $error == true ? jsonReturn('', '-101', L('INQUIRY_NODE_ERROR')) : '';
 
             $inquiryModel->startTrans();
 
@@ -1353,9 +1352,9 @@ class InquiryController extends PublicController {
             unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
 
-            if ($action && !empty($res['action']) && $action != $res['action']) {
-                $res = [];
-            }
+//            if ($action && !empty($res['action']) && $action != $res['action']) {
+//                $res = [];
+//            }
             if (!empty($res['created_by'])) {
                 $res['created_name'] = $employeeModel->where(['id' => $res['created_by']])->getField('name');
             }
