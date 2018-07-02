@@ -24,25 +24,9 @@ class StoragecycleController extends PublicController {
         if (empty($storage_id)) {
             jsonReturn('',MSG::ERROR_PARAM,'请选择仓库！');
         }
-        $spu = $this->getPut('spu');
-        if (empty($spu)) {
-            jsonReturn('',MSG::ERROR_PARAM,'请输入spu！');
-        }
-        $sku = $this->getPut('sku');
-        if (empty($sku)) {
-            jsonReturn('',MSG::ERROR_PARAM,'请输入sku！');
-        }
-        $to_country_bn = $this->getPut('to_country_bn');
-        if (empty($to_country_bn)) {
-            jsonReturn('',MSG::ERROR_PARAM,'请输入to_country_bn！');
-        }
-        $to_city = $this->getPut('to_city');
-        if (empty($to_city)) {
-            jsonReturn('',MSG::ERROR_PARAM,'请输入to_city！');
-        }
-        $cycle = $this->getPut('cycle');
-        if (empty($cycle)) {
-            jsonReturn('',MSG::ERROR_PARAM,'请输入cycle！');
+        $data = $this->getPut('data');
+        if (empty($data)) {
+            jsonReturn('',MSG::ERROR_PARAM,'请输入时效信息');
         }
 
         $storagecycleModel = new StorageCycleModel();
@@ -62,9 +46,13 @@ class StoragecycleController extends PublicController {
      * @desc   现货仓库
      */
     public function updateAction(){
-        $id = $this->getPut('id');
-        if (empty($id)) {
-            jsonReturn('',MSG::ERROR_PARAM,'id不能为空！');
+        $storage_id = $this->getPut('storage_id');
+        if (empty($storage_id)) {
+            jsonReturn('',MSG::ERROR_PARAM,'请选择仓库！');
+        }
+        $data = $this->getPut('data');
+        if (empty($data)) {
+            jsonReturn('',MSG::ERROR_PARAM,'请输入时效信息');
         }
         $storageModel = new StorageCycleModel();
         $flag = $storageModel->updateData($this->getPut());

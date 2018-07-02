@@ -21,28 +21,43 @@ class StorageCycleModel extends PublicModel{
      * @return bool|mixed
      */
     public function createData($input){
-        if(empty($input['storage_id']) || empty($input['sku']) ||  empty($input['cycle'])){
+        if(empty($input['storage_id']) ||  empty($input['data'])){
             return false;
         }
         try{
-            $data = [
-                'storage_id' => intval($input['storage_id']),
-                'spu' => trim($input['spu']),
-                'sku' => trim($input['sku']),
-                'to_country_bn' => ucfirst(trim($input['to_country_bn'])),
-                'to_city' => trim($input['to_city']),
-            ];
-            if($this->getExit($data)===false){
-                $data['cycle'] = trim($input['cycle']);
-                $data['created_at'] = date('Y-m-d H:i:s',time());
-                $data['created_by'] = defined('UID') ? UID : 0;
-                $flag = $this->add($data);
-                return $flag ? $flag : false;
+            $storageModel = new StorageModel();
+            $storageInfo = $storageModel->getInfo(['id'=>$input['storage_id']]);
+            if(!$storageInfo){
+                jsonReturn('', MSG::MSG_FAILED, '仓库不存在');
             }
+
+            $dataAll = [];
+            $exitAry = [];
+            foreach($input['data'] as $key=>$r){
+                $data = [
+                    'storage_id' => intval($input['storage_id']),
+                    'spu' => isset($r['spu']) ? trim($r['spu']) : '',
+                    'sku' => isset($r['sku']) ? trim($r['sku']) : '',
+                    'to_country_bn' => isset($r['to_country_bn']) ? ucfirst(trim($r['to_country_bn'])) : '',
+                    'to_city' => trim($r['to_city']),
+                ];
+                if($data['to_country_bn']==''){
+                    $data['to_country_bn'] = $storageInfo['country_bn'];
+                }
+                if($this->getExit($data)===false && !in_array(md5(json_encode($data)),$exitAry)){
+                    $exitAry[] = md5(json_encode($data));
+                    $data['cycle'] = trim($r['cycle']);
+                    $data['created_at'] = date('Y-m-d H:i:s',time());
+                    $data['created_by'] = defined('UID') ? UID : 0;
+                    $dataAll[] = $data;
+                }
+                unset($data);
+            }
+            $flag = $this->addAll($dataAll);
+            return $flag ? $flag : false;
         }catch (Exception $e){
             return false;
         }
-
     }
 
     /**
@@ -51,6 +66,50 @@ class StorageCycleModel extends PublicModel{
      * @return bool|mixed
      */
     public function updateData($input){
+        if(empty($input['storage_id']) ||  empty($input['data'])){
+            return false;
+        }
+        try{
+            $storageModel = new StorageModel();
+            $storageInfo = $storageModel->getInfo(['id'=>$input['storage_id']]);
+            if(!$storageInfo){
+                jsonReturn('', MSG::MSG_FAILED, '仓库不存在');
+            }
+
+            foreach($input['data'] as $key=>$r){
+                if(empty($r['id'])){
+                    continue;
+                }
+                $data = [
+                    'storage_id' => intval($input['storage_id']),
+                    'spu' => isset($r['spu']) ? trim($r['spu']) : '',
+                    'sku' => isset($r['sku']) ? trim($r['sku']) : '',
+                    'to_country_bn' => isset($r['to_country_bn']) ? ucfirst(trim($r['to_country_bn'])) : '',
+                    'to_city' => trim($r['to_city']),
+                ];
+                if($data['to_country_bn']==''){
+                    $data['to_country_bn'] = $storageInfo['country_bn'];
+                }
+                $data['id'] = ['neq',$r['id']];
+                if($this->getExit($data)===false){
+                    $data['cycle'] = trim($r['cycle']);
+                    $data['updated_at'] = date('Y-m-d H:i:s',time());
+                    $data['updated_by'] = defined('UID') ? UID : 0;
+                    unset($data['id']);
+                    $flag = $this->where(['id'=>$r['id']])->save($data);
+                    return $flag ? $flag : false;
+                }
+                unset($data);
+            }
+            return false;
+        }catch (Exception $e){
+            return false;
+        }
+
+
+
+
+
         if(empty($input['id'])){
             jsonReturn('',MSG::MSG_FAILED, 'Id不能为空');
         }
