@@ -1421,7 +1421,7 @@ class InquiryController extends PublicController {
                             $inquiry['quote_id'] != UID ? $res = [] : '';
                             break;
                         case 'MARKET_APPROVING'://事业部审核
-                            in_array(UID, [$inquiry['agent_id'], $inquiry['check_org_id']]) ? $res = [] : '';
+                            !in_array(UID, [$inquiry['agent_id'], $inquiry['check_org_id']]) ? $res = [] : '';
                             break;
                     }
                 }
