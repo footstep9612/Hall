@@ -1349,13 +1349,75 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
-            //  $action = isset($condition['action']) ? $condition['action'] : '';
+            $action = isset($condition['action']) ? $condition['action'] : '';
             unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
 
-//            if ($action && !empty($res['action']) && $action != $res['action']) {
-//                $res = [];
-//            }
+            if ($action && !empty($res['action']) && $action != $res['action']) {
+                $res = [];
+            } elseif (empty($res)) {
+                $res = [];
+            } elseif (!empty($res) && $res['agent_id'] != UID) {
+                $inquiry = (new InquiryModel())->where(['id' => $condition['inquiry_id']])->find();
+                if (empty($inquiry)) {
+                    $res = [];
+                } elseif (!empty($inquiry) && $inquiry['now_agent_id'] != UID) {
+
+                } else {
+
+                    switch ($res['out_node']) {
+                        case 'DRAFT'://新建询单
+                            $inquiry['obtain_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'REJECT_MARKET'://驳回市场
+                            $inquiry['agent_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'REJECT_CLOSE'://驳回市场关闭
+
+                            $inquiry['agent_id'] != UID ?
+                                            ( $inquiry['obtain_id'] != UID ? $res = [] : '') :
+                                            '';
+                            break;
+                        case 'BIZ_DISPATCHING'://事业部分单员
+                            $info = (new OrgMemberModel())
+                                    ->where(['employee_id' => UID,
+                                        'org_id' => $inquiry['org_id']]
+                                    )
+                                    ->find();
+                            empty($info) ? $res = [] : '';
+                            break;
+                        case 'CC_DISPATCHING'://易瑞客户中心
+                            $inquiry['erui_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'BIZ_QUOTING'://事业部报价
+                            $inquiry['quote_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'REJECT_QUOTING'://事业部审核退回事业部报价
+                            $inquiry['quote_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'LOGI_DISPATCHING'://物流分单员
+                            $info = (new OrgMemberModel())
+                                    ->where(['employee_id' => UID,
+                                        'org_id' => $inquiry['logi_org_id']]
+                                    )
+                                    ->find();
+                            empty($info) ? $res = [] : '';
+                            break;
+                        case 'LOGI_QUOTING'://物流报价
+                            $inquiry['logi_agent_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'LOGI_APPROVING'://物流审核
+                            $inquiry['logi_check_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'BIZ_APPROVING'://事业部核算
+                            $inquiry['check_org_id'] != UID ? $res = [] : '';
+                            break;
+                        case 'MARKET_APPROVING'://事业部审核
+                            in_array(UID, [$inquiry['agent_id'], $inquiry['check_org_id']]) ? $res = [] : '';
+                            break;
+                    }
+                }
+            }
             if (!empty($res['created_by'])) {
                 $res['created_name'] = $employeeModel->where(['id' => $res['created_by']])->getField('name');
             }
