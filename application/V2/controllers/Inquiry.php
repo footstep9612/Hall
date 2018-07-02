@@ -1349,13 +1349,13 @@ class InquiryController extends PublicController {
         if (!empty($condition['inquiry_id'])) {
             $inquiryCheckLogModel = new InquiryCheckLogModel();
             $employeeModel = new EmployeeModel();
-            $action = isset($condition['action']) ? $condition['action'] : '';
+            //  $action = isset($condition['action']) ? $condition['action'] : '';
             unset($condition['action']);
             $res = $inquiryCheckLogModel->getDetail($condition);
 
-            if ($action && !empty($res['action']) && $action != $res['action']) {
-                $res = [];
-            }
+//            if ($action && !empty($res['action']) && $action != $res['action']) {
+//                $res = [];
+//            }
             if (!empty($res['created_by'])) {
                 $res['created_name'] = $employeeModel->where(['id' => $res['created_by']])->getField('name');
             }
