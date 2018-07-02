@@ -29,6 +29,7 @@ class StockModel extends PublicModel {
         $this->_getValue($where, $condition, 'floor_name', 'like', 'sf.floor_name');
         $this->_getValue($where, $condition, 'show_name', 'like', 's.show_name');
         $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
+        $this->_getValue($where, $condition, 'lang', 'string', 's.lang');
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
             $userids = $employee_model->getUseridsByUserName(trim($condition['created_by_name']));
@@ -51,6 +52,9 @@ class StockModel extends PublicModel {
         $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
         $this->_getValue($where, $condition, 'updated_at', 'between', 's.updated_at');
+        if(isset($condition['keyword']) && !empty($condition['keyword'])){
+            $where = "s.country_bn='".$condition['country_bn']."' AND s.lang='".$condition['lang']."' AND s.deleted_at is null AND s.status='VALID' AND (s.show_name like '%".$condition['keyword']."%' OR s.sku='".$condition['keyword']."')";
+        }
         return $where;
     }
 
@@ -80,7 +84,6 @@ class StockModel extends PublicModel {
     public function getList($condition) {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
-        $where['s.lang'] = $condition['lang'];
         $list = $this->alias('s')
                 ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
@@ -93,8 +96,6 @@ class StockModel extends PublicModel {
 
     public function getCount($condition) {
         $where = $this->_getCondition($condition);
-
-        $where['s.lang'] = $condition['lang'];
 
         return $this->alias('s')->where($where)->count();
     }
