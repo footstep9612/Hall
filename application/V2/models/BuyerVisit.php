@@ -264,11 +264,11 @@ class BuyerVisitModel extends PublicModel {
             if($result){
                 //产品信息
                 $visit_product=new VisitProductModel();
-                if($is_show_name==true){
-                    $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark',true,$lang);
-                }else{
-                    $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark');
-                }
+//                if($is_show_name==true){
+//                    $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark',true,$lang);
+//                }else{
+//                }
+                $product=$visit_product->getProductInfo($result['id'],'id,visit_id,product_cate,product_desc,purchase_amount,supplier,remark');
                 //user
                 $user_model = new UserModel();
                 $userInfo = $user_model->field('name,user_no')->where(['id'=>$result['created_by']])->find();
