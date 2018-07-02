@@ -1091,6 +1091,9 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         $results = $Item->updateData($data);
+        if (!empty($results['code']) && $results['code'] == 1) {
+            (new TemporaryGoodsModel)->sync();
+        }
         $this->jsonReturn($results);
     }
 
@@ -1144,6 +1147,7 @@ class InquiryController extends PublicController {
         }
         if ($insertItemIds) {
             $results['insert_item_ids'] = $insertItemIds;
+            (new TemporaryGoodsModel)->sync();
         }
         $this->jsonReturn($results);
     }
@@ -1361,7 +1365,7 @@ class InquiryController extends PublicController {
                 $inquiry = (new InquiryModel())->where(['id' => $condition['inquiry_id']])->find();
                 if (empty($inquiry)) {
                     $res = [];
-                } elseif (!empty($inquiry) && $inquiry['now_agent_id'] != UID) {
+                } elseif (!empty($inquiry) && $inquiry['now_agent_id'] == UID) {
 
                 } else {
 
@@ -1379,15 +1383,17 @@ class InquiryController extends PublicController {
                                             '';
                             break;
                         case 'BIZ_DISPATCHING'://事业部分单员
-                            $info = (new OrgMemberModel())
-                                    ->where(['employee_id' => UID,
-                                        'org_id' => $inquiry['org_id']]
-                                    )
-                                    ->find();
-                            empty($info) ? $res = [] : '';
+                            $nowAgentId = (new InquiryModel())
+                                    ->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [InquiryModel::inquiryIssueAuxiliaryRole,
+                                    InquiryModel::quoteIssueAuxiliaryRole]], ['in', [InquiryModel::inquiryIssueRole,
+                                    InquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+
+                            $nowAgentId != UID ? $res = [] : '';
                             break;
                         case 'CC_DISPATCHING'://易瑞客户中心
-                            $inquiry['erui_id'] != UID ? $res = [] : '';
+                            $nowAgentId = (new InquiryModel())
+                                    ->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['erui_id']], InquiryModel::inquiryIssueAuxiliaryRole, InquiryModel::inquiryIssueRole, 'erui');
+                            $nowAgentId != UID ? $res = [] : '';
                             break;
                         case 'BIZ_QUOTING'://事业部报价
                             $inquiry['quote_id'] != UID ? $res = [] : '';
@@ -1396,12 +1402,10 @@ class InquiryController extends PublicController {
                             $inquiry['quote_id'] != UID ? $res = [] : '';
                             break;
                         case 'LOGI_DISPATCHING'://物流分单员
-                            $info = (new OrgMemberModel())
-                                    ->where(['employee_id' => UID,
-                                        'org_id' => $inquiry['logi_org_id']]
-                                    )
-                                    ->find();
-                            empty($info) ? $res = [] : '';
+                            $nowAgentId = (new InquiryModel())
+                                    ->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryMode::logiIssueMainRole, 'lg');
+
+                            $nowAgentId != UID ? $res = [] : '';
                             break;
                         case 'LOGI_QUOTING'://物流报价
                             $inquiry['logi_agent_id'] != UID ? $res = [] : '';
@@ -1410,7 +1414,7 @@ class InquiryController extends PublicController {
                             $inquiry['logi_check_id'] != UID ? $res = [] : '';
                             break;
                         case 'BIZ_APPROVING'://事业部核算
-                            $inquiry['check_org_id'] != UID ? $res = [] : '';
+                            $inquiry['quote_id'] != UID ? $res = [] : '';
                             break;
                         case 'MARKET_APPROVING'://事业部审核
                             in_array(UID, [$inquiry['agent_id'], $inquiry['check_org_id']]) ? $res = [] : '';

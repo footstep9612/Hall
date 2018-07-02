@@ -245,6 +245,7 @@ class InquiryItemModel extends PublicModel {
         try {
             $id = $this->where($where)->save($data);
             if (isset($id)) {
+
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
             } else {
