@@ -57,7 +57,8 @@ class BuyervisitController extends PublicController {
         }
 
         $visit_model = new BuyerVisitModel();
-        $arr = $visit_model->getInfoById($data, (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
+//        $arr = $visit_model->getInfoById($data, (isset($data['show_name']) && !empty($data['show_name'])) ? true : false);
+        $arr = $visit_model->getInfoById($data);
         if ($arr !== false) {
             jsonReturn($arr);
         }else{
