@@ -88,6 +88,9 @@ class StockfloorController extends PublicController {
 
         $list = $stock_floor_model->getInfo($id);
         if ($list) {
+            $sfaModel = new StockFloorAdsModel();
+            $ads = $sfaModel->getData(['floor_id'=>$id]);
+            $list['ads'] = $ads;
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
