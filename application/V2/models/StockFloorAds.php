@@ -106,6 +106,23 @@ class StockFloorAdsModel extends PublicModel {
                         ->select();
     }
 
+
+    /**
+     * 根据条件获取楼层图
+     * @param $condition
+     * @return mixed
+     */
+    public function getData($condition) {
+        if(!isset($condition['deleted_at'])){
+            $condition['deleted_at'] = ['exp','is null'];
+        }
+        if(!isset($condition['status'])){
+            $condition['status'] = 'VALID';
+        }
+
+        return $this->field('id,country_bn,lang,floor_id,sort_order,img_url,img_name,link,group,status,created_at,created_by,updated_at,updated_by,show_type')->where($condition)->select();
+    }
+
     /**
      * Description of 获取SPU关联列表
      * @author  zhongyg
@@ -139,7 +156,7 @@ class StockFloorAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function createData($input) {
+    public function createData($input,$floor_id,$country_bn,$lang) {
         if(count($input) == count($input, 1)){
             $inputData[] = $input;
         }else{
@@ -157,41 +174,44 @@ class StockFloorAdsModel extends PublicModel {
 
             switch ($info['show_type']) {
                 case self::SHOW_TYPE_A:
-                    $data['show_type'] = self::SHOW_TYPE_A;
+                    $condition['show_type'] = self::SHOW_TYPE_A;
                     break;
                 case self::SHOW_TYPE_P:
-                    $data['show_type'] = self::SHOW_TYPE_P;
+                    $condition['show_type'] = self::SHOW_TYPE_P;
                     break;
                 case self::SHOW_TYPE_M:
-                    $data['show_type'] = self::SHOW_TYPE_M;
+                    $condition['show_type'] = self::SHOW_TYPE_M;
                     break;
                 case self::SHOW_TYPE_PM:
-                    $data['show_type'] = self::SHOW_TYPE_PM;
+                    $condition['show_type'] = self::SHOW_TYPE_PM;
                     break;
                 case self::SHOW_TYPE_AP:
-                    $data['show_type'] = self::SHOW_TYPE_AP;
+                    $condition['show_type'] = self::SHOW_TYPE_AP;
                     break;
                 case self::SHOW_TYPE_AM:
-                    $data['show_type'] = self::SHOW_TYPE_AM;
+                    $condition['show_type'] = self::SHOW_TYPE_AM;
                     break;
                 case self::SHOW_TYPE_APM:
-                    $data['show_type'] = self::SHOW_TYPE_APM;
+                    $condition['show_type'] = self::SHOW_TYPE_APM;
                     break;
-                default : $data['show_type'] = self::SHOW_TYPE_P;
+                default : $condition['show_type'] = self::SHOW_TYPE_P;
                     break;
             }
-            $condition['country_bn'] = trim($condition['country_bn']);
+            $condition['country_bn'] = $country_bn;
             $condition['img_url'] = trim($condition['img_url']);
-            $condition['lang'] = trim($condition['lang']);
+            $condition['lang'] = $lang;
             $condition['img_name'] = trim($condition['img_name']);
-            $condition['floor_id'] = trim($condition['floor_id']);
+            $condition['floor_id'] = $floor_id;
             $condition['sort_order'] = intval($condition['sort_order']);
             $condition['group'] = trim($condition['group']);
             $condition['link'] = trim($condition['link']);
             $condition['deleted_flag'] = 'N';
-            $data[] = $this->create($condition);
-            $data[]['created_at'] = date('Y-m-d H:i:s');
-            $data[]['created_by'] = defined('UID') ? UID : 0;
+            $condition = $this->create($condition);
+            $condition['created_at'] = date('Y-m-d H:i:s');
+            $condition['created_by'] = defined('UID') ? UID : 0;
+            unset($condition['id']);
+            $data[] = $condition;
+            unset($condition);
         }
         return $this->addAll($data);
     }
@@ -203,18 +223,18 @@ class StockFloorAdsModel extends PublicModel {
      * @version V2.0
      * @desc  现货楼层
      */
-    public function updateData($input) {
+    public function updateData($input,$floor_id,$country_bn,$lang) {
         if(count($input) == count($input, 1)){
             $inputData[] = $input;
         }else{
             $inputData = $input;
         }
         foreach($inputData as $key =>$condition){
-            $condition['country_bn'] = trim($condition['country_bn']);
+            $condition['country_bn'] = ucfirst(strtolower($country_bn));
             $condition['img_url'] = trim($condition['img_url']);
             $condition['img_name'] = trim($condition['img_name']);
-            $condition['floor_id'] = trim($condition['floor_id']);
-            $condition['lang'] = trim($condition['lang']);
+            $condition['floor_id'] = $floor_id;
+            $condition['lang'] = $lang;
             $condition['group'] = trim($condition['group']);
             $condition['link'] = trim($condition['link']);
             $condition['sort_order'] = intval($condition['sort_order']);

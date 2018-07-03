@@ -30,23 +30,34 @@ class StockfloorController extends PublicController {
     public function ListAction() {
 
         $condition = $this->getPut();
-        if (empty($condition['lang'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
-
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
             $this->jsonReturn();
         }
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
         $stock_floor_model = new StockFloorModel();
-
         $list = $stock_floor_model->getList($condition);
         if ($list) {
             $count = $stock_floor_model->getCont($condition);
             $this->setvalue('count', $count);
+            $ids = [];
+            foreach($list as $r){
+                $ids[] = $r['id'];
+            }
+            $sfaModel = new StockFloorAdsModel();
+            $ads = $sfaModel->getData(['floor_id'=>['in',$ids]]);
+            $adsAry = [];
+            foreach($ads as $ad){
+                $adsAry[$ad['floor_id']][] = $ad;
+            }
+            foreach($list as $k=>$v){
+                $list[$k]['ads'] = $adsAry[$v['id']];
+            }
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);

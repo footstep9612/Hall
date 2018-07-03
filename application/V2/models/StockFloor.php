@@ -187,7 +187,7 @@ class StockFloorModel extends PublicModel {
             $id = $this->add( $data );
             if ( isset( $condition[ 'ads' ] ) && !empty( $condition[ 'ads' ] ) ) {
                 $sfadsModel = new StockFloorAdsModel();
-                $rel = $sfadsModel->createData( $condition[ 'ads' ] );
+                $rel = $sfadsModel->createData( $condition[ 'ads' ] ,$id , $condition['country_bn'], $condition['lang'] );
                 if ( !$rel ) {
                     $this->rollback();
                     return false;
@@ -250,7 +250,7 @@ class StockFloorModel extends PublicModel {
             $rel = $this->where(['id' => $id])->save($data);
             if ( isset( $condition[ 'ads' ] ) && !empty( $condition[ 'ads' ] ) ) {
                 $sfadsModel = new StockFloorAdsModel();
-                $rel = $sfadsModel->updateData( $condition[ 'ads' ] );
+                $rel = $sfadsModel->updateData( $condition[ 'ads' ],$id, $condition['country_bn'],$condition['lang'] );
                 if ( !$rel ) {
                     $this->rollback();
                     return false;
