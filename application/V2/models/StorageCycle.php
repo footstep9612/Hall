@@ -16,6 +16,28 @@ class StorageCycleModel extends PublicModel{
     }
 
     /**
+     * 详情
+     */
+    public function getInfo($condition){
+        if(!isset($condition['id']) || empty($condition['id'])){
+            jsonReturn('',MSG::MSG_FAILED, '请选择时效ID');
+        }
+        $where = [
+            'id' => intval($condition['id']),
+            'deleted_at' => ['exp','is null']
+        ];
+        try{
+            $result = $this->field('id,storage_id,to_country_bn,to_city,cycle,created_at,created_by,updated_at,updated_by')->where($where)->find();
+            if($result){
+                $this->_setUser($result);
+            }
+            return $result ? $result : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
      * 新增
      * @param $input
      * @return bool|mixed

@@ -14,6 +14,27 @@ class StoragecycleController extends PublicController {
     }
 
     /**
+     * 仓库物流时效详情
+     * @author  link
+     * @date    2017-12-6 9:12:49
+     * @desc   现货仓库
+     */
+    public function infoAction(){
+        $id = $this->getPut('id');
+        if (empty($id)) {
+            jsonReturn('',MSG::ERROR_PARAM,'id不能为空！');
+        }
+        $storageModel = new StorageCycleModel();
+        $flag = $storageModel->getInfo($this->getPut());
+
+        if ($flag) {
+            jsonReturn($flag);
+        } elseif ($flag === false) {
+            jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    /**
      * Description of 新加仓库物流时效
      * @author  link
      * @date    2017-12-6 9:12:49
