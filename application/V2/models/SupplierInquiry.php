@@ -480,8 +480,8 @@ class SupplierInquiryModel extends PublicModel {
                 ->field($field)
                 ->where($where)
                 ->select();
-        echo $inquiry_model->_sql();
-        die;
+//        echo $inquiry_model->_sql();
+//        die;  --del   //20180704
         $this->_setSupplierName($list);
         $this->_setquoted_time($list);
         $this->_setProductName($list);
