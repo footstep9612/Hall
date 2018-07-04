@@ -317,7 +317,7 @@ class StockFloorModel extends PublicModel {
         foreach ($skus as $sku) {
             $flag = $stock_model->where(['lang' => $lang,
                         'country_bn' => $country_bn,
-                        'sku' => $sku])->save(['floor_id' => $floor_id,
+                        'sku' => $sku['sku']])->save(['floor_id' => $floor_id, 'sort_order'=>(isset($sku['sort_order']) && $sku['sort_order']) ? intval($sku['sort_order']) : 0, 'recommend_home'=>(isset($sku['recommend_home']) && $sku['recommend_home']) ? 1 : 0,
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0
             ]);

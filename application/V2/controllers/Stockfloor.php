@@ -251,6 +251,35 @@ class StockfloorController extends PublicController {
     }
 
     /**
+     * 楼层商品列表
+     * @author link
+     * @date    2018-07-04
+     */
+    public function goodsListAction()
+    {
+        $condition = $this->getPut();
+        if ( empty( $condition['floor_id'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择楼层!');
+        }
+        if ( empty( $condition['country_bn'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择国家!');
+        }else{
+            $condition['country_bn'] = ucfirst(strtolower($condition['country_bn']));
+        }
+        if ( empty( $condition['lang'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择语言!');
+        }
+
+        $stock = new StockModel();
+        $list = $stock->getList($condition);
+        if($list){
+            jsonReturn($list);
+        }else{
+            jsonReturn('', MSG::MSG_FAILED, '');
+        }
+    }
+
+    /**
      * Description of 更新现货楼层
      * @author  zhongyg
      * @date    2017-8-1 16:50:09
