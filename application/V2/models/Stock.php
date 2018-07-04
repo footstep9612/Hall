@@ -86,7 +86,7 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
         $data = [];
         $list = $this->alias('s')
-                ->field('s.sku,s.show_name,s.lang,s.stock,s.floor_id,s.spu,s.country_bn,s.recommend_home,
+                ->field('s.id,s.sku,s.show_name,s.lang,s.stock,s.floor_id,s.spu,s.country_bn,s.recommend_home,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
@@ -194,13 +194,63 @@ class StockModel extends PublicModel {
     }
 
     /**
+     * 更新
+     * @author link
+     * @date 2018-07-04
+     * @param $condition
+     * @return bool
+     */
+    public function updateDate($condition){
+        $where['id'] = $condition['id'];
+        $data = [
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => defined('UID') ? UID : 0
+        ];
+        if(isset($condition['recommend_home']) && $condition['recommend_home']!==''){
+            $data['recommend_home'] = $condition['recommend_home'] ? 1 : 0;
+        }
+        if(isset($condition['stock']) && $condition['stock']!==''){
+            $data['stock'] = intval($condition['stock']);
+        }
+        if(isset($condition['sort_order']) && $condition['sort_order']!==''){
+            $data['sort_order'] = intval($condition['sort_order']);
+        }
+        if(isset($condition['price'])){
+            $data['price'] = ($condition['price'] == '') ? null : $condition['price'];
+        }
+        if(isset($condition['price_strategy_type'])){
+            $data['price_strategy_type'] = $condition['price_strategy_type'];
+        }
+        if(isset($condition['price_cur_bn'])){
+            $data['price_cur_bn'] = $condition['price_cur_bn'];
+        }
+        if(isset($condition['price_symbol'])){
+            $data['price_symbol'] = $condition['price_symbol'];
+        }
+
+        return $this->where($where)->save($data);
+    }
+
+    /**
+     * 清除楼层商品
+     * @author link
+     * @date 2018-07-04
+     */
+    public function clearFloor($condition){
+        $where['floor_id'] = is_array($condition['floor_id']) ? ['in',$condition['floor_id']] : trim($condition['floor_id']);
+        return $this->where($where)->save(['floor_id' => 0, 'updated_at'=>date('Y-m-d H:i:s',time()), 'updated_by'=>defined('UID') ? UID : 0]);
+    }
+
+
+
+    /**
      * Description of 更新库存
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
      * @version V2.0
      * @desc  现货
      */
-    public function UpdateStock($country_bn, $sku, $lang, $stock) {
+/*    public function UpdateStock($country_bn, $sku, $lang, $stock) {
 
         $where = ['country_bn' => $country_bn, 'sku' => $sku, 'lang' => $lang];
         $data = [
@@ -212,7 +262,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }
+    }*/
 
     /**
      * Description of 更新排序
@@ -221,7 +271,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
+ /*   public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
 
         $where = ['country_bn' => $country_bn, 'lang' => $lang];
         if (is_array($sku)) {
@@ -238,7 +288,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }
+    }*/
 
     /**
      * Description of 更新现货
@@ -282,15 +332,6 @@ class StockModel extends PublicModel {
         }
         $this->commit();
         return true;
-    }
-
-    /**
-     * 清除楼层商品
-     * @author link
-     */
-    public function clearFloor($condition){
-        $where['floor_id'] = is_array($condition['floor_id']) ? ['in',$condition['floor_id']] : trim($condition['floor_id']);
-        return $this->where($where)->save(['floor_id' => 0, 'updated_at'=>date('Y-m-d H:i:s',time()), 'updated_by'=>defined('UID') ? UID : 0]);
     }
 
     /**

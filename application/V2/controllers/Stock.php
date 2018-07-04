@@ -21,6 +21,25 @@ class StockController extends PublicController {
     }
 
     /**
+     * 现货更新
+     * @author link
+     * @date 2018-07-04
+     */
+    public function updateAction(){
+        $condition = $this->getPut();
+        if (!isset($condition['id'])) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择现货');
+        }
+        $model = new StockModel();
+        $rel = $model->updateDate($condition);
+        if($rel){
+            jsonReturn('', MSG::MSG_SUCCESS, '操作成功');
+        }else{
+            jsonReturn('', MSG::MSG_FAILED, '操作失败');
+        }
+    }
+
+    /**
      * Description of 获取现货列表
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
