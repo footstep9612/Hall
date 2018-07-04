@@ -27,7 +27,7 @@ class BuyerCreditModel extends PublicModel
      * 获取详情
      */
     public function getInfo($buyer_no){
-        return $this->where(['buyer_no' => $buyer_no])->find();
+        return $this->where(['buyer_no' => $buyer_no,'deleted_flag'=>'N'])->find();
     }
 
     /**
@@ -255,6 +255,15 @@ class BuyerCreditModel extends PublicModel
         if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
             $dataInfo['account_settle'] = strtoupper($data['account_settle']);
         }
+
+        if($dataInfo['account_settle'] == 'OA'){                 //可用额度
+            $dataInfo['credit_available'] = trim($data['nolc_granted']);
+        }elseif($dataInfo['account_settle'] == 'L/C'){
+            $dataInfo['credit_available'] = trim($data['lc_granted']);
+        }
+        if(isset($data['crm_code']) && !empty($data['crm_code'])){      //crm编码
+            $dataInfo['crm_code'] = trim($data['crm_code']);
+        }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
         $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
@@ -333,6 +342,12 @@ class BuyerCreditModel extends PublicModel
         }
         if(isset($data['account_settle']) && !empty($data['account_settle'])){      //结算方式
             $dataInfo['account_settle'] = strtoupper($data['account_settle']);
+        }
+        if(isset($data['credit_available']) && !empty($data['credit_available'])){  //可用额度
+            $dataInfo['credit_available'] = trim($data['credit_available']);
+        }
+        if(isset($data['crm_code']) && !empty($data['crm_code'])){      //crm编码
+            $dataInfo['crm_code'] = trim($data['crm_code']);
         }
         /*$buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
