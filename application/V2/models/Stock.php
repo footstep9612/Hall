@@ -84,14 +84,22 @@ class StockModel extends PublicModel {
     public function getList($condition) {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
+        $data = [];
         $list = $this->alias('s')
-                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,
+                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,s.recommend_home,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
                 ->order('s.sort_order desc')
                 ->select();
-        return $list;
+        if($list){
+            $this->_setUser($list);
+            $data['data'] = $list;
+            $data['count'] = $this->getCount($condition);
+            $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
+            $data['pagesize'] = $size;
+        }
+        return $data;
     }
 
     public function getCount($condition) {

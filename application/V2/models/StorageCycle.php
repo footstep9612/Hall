@@ -16,6 +16,28 @@ class StorageCycleModel extends PublicModel{
     }
 
     /**
+     * 详情
+     */
+    public function getInfo($condition){
+        if(!isset($condition['id']) || empty($condition['id'])){
+            jsonReturn('',MSG::MSG_FAILED, '请选择时效ID');
+        }
+        $where = [
+            'id' => intval($condition['id']),
+            'deleted_at' => ['exp','is null']
+        ];
+        try{
+            $result = $this->field('id,storage_id,to_country_bn,to_city,cycle,created_at,created_by,updated_at,updated_by')->where($where)->find();
+            if($result){
+                $this->_setUser($result);
+            }
+            return $result ? $result : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
      * 新增
      * @param $input
      * @return bool|mixed
@@ -105,32 +127,50 @@ class StorageCycleModel extends PublicModel{
         }catch (Exception $e){
             return false;
         }
+    }
 
-
-
-
-
-        if(empty($input['id'])){
-            jsonReturn('',MSG::MSG_FAILED, 'Id不能为空');
+    /**
+     * 列表
+     */
+    public function getList($condition){
+        if(!isset($condition['storage_id']) || empty($condition['storage_id'])){
+            jsonReturn('',MSG::MSG_FAILED, '请选择仓库ID');
+        }
+        $where = [
+            'storage_id' => intval($condition['storage_id']),
+            'deleted_at' => ['exp','is null']
+        ];
+        if(isset($condition['to_city'])){
+            $where['to_city'] = ['like','%'.$condition['to_city'].'%'];
+        }
+        if(isset($condition['to_country_bn'])){
+            $where['to_country_bn'] = ucfirst(strtolower($condition['to_country_bn']));
         }
         try{
             $data = [];
-            foreach($input as $k=>$v){
-                if(in_array($k,['storage_id','spu','sku','to_country_bn','to_city','cycle'])){
-                    $v = (trim($k)=='to_country_bn') ? ucfirst(trim($v)) : trim($v);
-                    $data[$k] = $v;
-                }
+            list($from ,$size) = $this->_getPage($condition);
+            $result = $this->field('id,storage_id,to_country_bn,to_city,cycle,created_at,created_by,updated_at,updated_by')->where($where)->limit($from,$size)->select();
+            if($result){
+                $this->_setUser($rel);
+                $data['data'] = $result;
+                $count = $this->getCount($where);
+                $data['count'] = $count ? $count : 0;
+                $data['current_no'] = isset($condition['current_no']) ? intval($condition['current_no']) : 1;
+                $data['pagesize'] = $size;
             }
-            if(empty($data)){
-               return false;
-            }
-            $data['updated_at'] = date('Y-m-d H:i:s',time());
-            $data['updated_by'] = defined('UID') ? UID : 0;
+            return $data ? $data : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
 
-            $where =['id'=>$input['id']];
-            $flag = $this->where($where)->save($data);
-            unset($data);
-            return $flag ? $flag : false;
+    /**
+     * 获取记录数
+     * @param $where
+     */
+    public function getCount($where){
+        try{
+            return $this->field('id')->where($where)->count();
         }catch (Exception $e){
             return false;
         }
@@ -150,7 +190,11 @@ class StorageCycleModel extends PublicModel{
             $data['deleted_at'] = date('Y-m-d H:i:s',time());
             $data['deleted_by'] = defined('UID') ? UID : 0;
 
-            $where =['id'=>$input['id']];
+            if(is_array($input['id'])){
+                $where =['id'=>['in', $input['id']]];
+            }else{
+                $where =['id'=>$input['id']];
+            }
             $flag = $this->where($where)->save($data);
             return $flag ? $flag : false;
         }catch (Exception $e){

@@ -30,23 +30,34 @@ class StockfloorController extends PublicController {
     public function ListAction() {
 
         $condition = $this->getPut();
-        if (empty($condition['lang'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
-
         if (empty($condition['country_bn'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择国家!');
             $this->jsonReturn();
         }
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
         $stock_floor_model = new StockFloorModel();
-
         $list = $stock_floor_model->getList($condition);
         if ($list) {
             $count = $stock_floor_model->getCont($condition);
             $this->setvalue('count', $count);
+            $ids = [];
+            foreach($list as $r){
+                $ids[] = $r['id'];
+            }
+            $sfaModel = new StockFloorAdsModel();
+            $ads = $sfaModel->getData(['floor_id'=>['in',$ids]]);
+            $adsAry = [];
+            foreach($ads as $ad){
+                $adsAry[$ad['floor_id']][] = $ad;
+            }
+            foreach($list as $k=>$v){
+                $list[$k]['ads'] = $adsAry[$v['id']];
+            }
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -77,6 +88,9 @@ class StockfloorController extends PublicController {
 
         $list = $stock_floor_model->getInfo($id);
         if ($list) {
+            $sfaModel = new StockFloorAdsModel();
+            $ads = $sfaModel->getData(['floor_id'=>$id]);
+            $list['ads'] = $ads;
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -233,6 +247,35 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 楼层商品列表
+     * @author link
+     * @date    2018-07-04
+     */
+    public function goodsListAction()
+    {
+        $condition = $this->getPut();
+        if ( empty( $condition['floor_id'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择楼层!');
+        }
+        if ( empty( $condition['country_bn'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择国家!');
+        }else{
+            $condition['country_bn'] = ucfirst(strtolower($condition['country_bn']));
+        }
+        if ( empty( $condition['lang'] ) ) {
+            jsonReturn('', Msg::ERROR_PARAM, '请选择语言!');
+        }
+
+        $stock = new StockModel();
+        $list = $stock->getList($condition);
+        if($list){
+            jsonReturn($list);
+        }else{
+            jsonReturn('', MSG::MSG_FAILED, '');
         }
     }
 
