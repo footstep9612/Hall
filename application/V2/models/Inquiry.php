@@ -859,9 +859,14 @@ class InquiryModel extends PublicModel {
 
         $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ?: ['-1']]])->getField('employee_id', true);
 
-        $employeeId = $employeeModel->where(['id' => ['in', $employeeId ?: ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
+        $employee_Ids = $employeeModel->where(['id' => ['in', $employeeId ?: ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
 
-        return $orgMemberModel->where(['org_id' => ['in', $orgId ?: ['-1']], 'employee_id' => ['in', $employeeId ?: ['-1']]])->getField('employee_id', true);
+        $ret = $orgMemberModel->where(['org_id' => ['in', $orgId ?: ['-1']],
+                    'employee_id' => ['in', $employee_Ids ?: ['-1']]])
+                ->getField('employee_id', true);
+
+
+        return $ret;
     }
 
     /**
@@ -982,7 +987,8 @@ class InquiryModel extends PublicModel {
 
         $employeeId = $this->getRoleUserId($groupId, $roleNo, $orgNode);
 
-        return $countryUserModel->where(['employee_id' => ['in', $employeeId ?: ['-1']], 'country_bn' => $country])->getField('employee_id', true);
+        return $countryUserModel->where(['employee_id' => ['in', $employeeId ?: ['-1']],
+                    'country_bn' => $country])->getField('employee_id', true);
     }
 
     /**
@@ -998,9 +1004,42 @@ class InquiryModel extends PublicModel {
      * @time 2017-11-28
      */
     public function getCountryIssueUserId($country = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
-        $userId = $this->getCountryRoleUserId($country, $groupId, $roleNo1, $orgNode) ?: $this->getRoleUserId($groupId, $roleNo2, $orgNode);
+        $userId = $this->getCountryRoleUserId($country, $groupId, $roleNo1, $orgNode) ?:
+                $this->getRoleUserId($groupId, $roleNo2, $orgNode);
 
         return $userId[0];
+    }
+
+    public function getInquiryIssueUserIds($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+
+        $country = $this->getInquiryCountry($id);
+
+        $countryUserModel = new CountryUserModel();
+
+        $employeeId = $this->getRoleUserId($groupId, $roleNo1, $orgNode);
+
+        $employeeIds = $countryUserModel->field('employee_id')->where(['employee_id' => ['in', $employeeId ?: ['-1']],
+                    'country_bn' => $country])->select();
+        if (!$employeeIds) {
+            $orgMemberModel = new OrgMemberModel();
+            $roleModel = new RoleModel();
+            $roleUserModel = new RoleUserModel();
+            $employeeModel = new EmployeeModel();
+            $orgId = $this->getDeptOrgId($groupId, $orgNode);
+            $roleId = $roleModel->where(['role_no' => $roleNo2, 'deleted_flag' => 'N'])->getField('id', true);
+            $employeeId = $roleUserModel->where(['role_id' => ['in', $roleId ?: ['-1']]])->getField('employee_id', true);
+            $employee_Ids = $employeeModel->where(['id' => ['in', $employeeId ?: ['-1']], 'deleted_flag' => 'N'])->getField('id', true);
+            $employeeIds = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ?: ['-1']],
+                        'employee_id' => ['in', $employee_Ids ?: ['-1']]])->select();
+        }
+        $ret = [];
+        if ($employeeIds) {
+            foreach ($employeeIds as $item) {
+                $ret[] = $item['employee_id'];
+            }
+        }
+
+        return $ret;
     }
 
     /**
