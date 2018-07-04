@@ -50,12 +50,7 @@ class StockController extends PublicController {
             if(isset($condition['show_cats']) && $condition['show_cats']){
                 $this->_setShowcats($list, $lang, $condition['country_bn']);
             }
-            $this->_setUser($list);
-            $count = $stock_model->getCount($condition);
-            $this->setvalue('count', $count);
-            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
-            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
-            $this->jsonReturn($list);
+            jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');
