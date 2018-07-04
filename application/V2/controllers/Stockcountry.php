@@ -86,8 +86,8 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
-                $this->_jsonDecode($val,'settings');    //json解析
-                $this->_ynTotruefalse($val,'show_flag');
+                jsonDecode($val,'settings');    //json解析
+                ynTotruefalse($val,'show_flag');
                 $arr[$key] = $val;
             }
         }
@@ -112,31 +112,30 @@ class StockcountryController extends PublicController {
 
     /**
      * Description of 获取现货国家详情
-     * @author  zhongyg
+     * @author  Link
      * @date    2017-12-6 9:12:49
      * @version V2.0
      * @desc  现货国家
      */
     public function InfoAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
+        $condition = $this->getPut();
         $stock_country_model = new StockCountryModel();
-
-        $list = $stock_country_model->getInfo($country_bn);
+        $list = $stock_country_model->getInfo($condition);
+        jsonDecode($list,'settings');    //json解析
         if ($list) {
-            $this->jsonReturn($list);
-        } elseif ($list === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据');
-            $this->jsonReturn(null);
+            $scadsModel = new StockCountryAdsModel();
+            $ads = $scadsModel->getList(['country_bn'=>$list['country_bn'], 'deleted_at'=>['exp','is null']]);
+            if($ads){
+                foreach($ads as $r){
+                    $list['ads'][$r['group']][] = $r;
+                }
+            }else{
+                $list['ads'] = [];
+            }
+
+            jsonReturn($list);
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            jsonReturn('' , MSG::MSG_FAILED, '系统错误!' );
         }
     }
 
@@ -218,6 +217,35 @@ class StockcountryController extends PublicController {
         $display_position = $this->getPut('display_position');
         $settings = $this->getPut('settings', '');
         $settings = $settings ? json_encode($settings,JSON_UNESCAPED_UNICODE):'';
+        $ads = $this->getPut('ads');
+        if($ads){
+            $scInfo = $stock_country_model->getInfo(['id'=>$id]);
+            $scadsModel = new StockCountryAdsModel();
+            $scadsModel->startTrans();
+            $type = true;
+            foreach($ads as $key=>$v){
+                foreach($v as $k=>$r){
+                    if(isset($r['id'])){
+                        $result = $scadsModel->updateData($r['id'], $scInfo['country_bn'], isset($r['img_name']) ? $r['img_name'] : '', isset($r['img_url']) ? $r['img_url'] : '',  isset($r['link']) ? $r['link'] : '',  isset($r['group']) ? $r['group'] : '',$scInfo['lang']);
+                        if(!$result){
+                            $type = false;
+                            $scadsModel->rollback();
+                            break;
+                        }
+                    }else{
+                        $result = $scadsModel->createData($scInfo['country_bn'], isset($r['img_name']) ? $r['img_name'] : '', isset($r['img_url']) ? $r['img_url'] : '',  isset($r['link']) ? $r['link'] : '',  isset($r['group']) ? $r['group'] : '',$scInfo['lang']);
+                        if(!$result){
+                            $type = false;
+                            $scadsModel->rollback();
+                            break;
+                        }
+                    }
+                }
+            }
+            if($type){
+                $scadsModel->commit();
+            }
+        }
 
         $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type,$settings);
         if ($list) {
