@@ -28,7 +28,7 @@ class StockModel extends PublicModel {
         $this->_getValue($where, $condition, 'country_bn', 'string', 's.country_bn');
         $this->_getValue($where, $condition, 'floor_name', 'like', 'sf.floor_name');
         $this->_getValue($where, $condition, 'show_name', 'like', 's.show_name');
-        $this->_getValue($where, $condition, 'floor_id', 'string', 's.floor_id');
+        $this->_getValue($where, $condition, 'floor_id', 'int', 's.floor_id');
         $this->_getValue($where, $condition, 'lang', 'string', 's.lang');
         $employee_model = new EmployeeModel();
         if (isset($condition['created_by_name']) && $condition['created_by_name']) {
@@ -86,7 +86,7 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
         $data = [];
         $list = $this->alias('s')
-                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,s.recommend_home,
+                ->field('s.sku,s.show_name,s.lang,s.stock,s.floor_id,s.spu,s.country_bn,s.recommend_home,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
