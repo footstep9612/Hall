@@ -285,6 +285,15 @@ class StockModel extends PublicModel {
     }
 
     /**
+     * 清除楼层商品
+     * @author link
+     */
+    public function clearFloor($condition){
+        $where['floor_id'] = is_array($condition['floor_id']) ? ['in',$condition['floor_id']] : trim($condition['floor_id']);
+        return $this->where($where)->save(['floor_id' => 0, 'updated_at'=>date('Y-m-d H:i:s',time()), 'updated_by'=>defined('UID') ? UID : 0]);
+    }
+
+    /**
      * 更新现货价格策略
      */
     public function updatePriceStrategyType($input){

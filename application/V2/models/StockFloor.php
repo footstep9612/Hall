@@ -331,4 +331,20 @@ class StockFloorModel extends PublicModel {
         return true;
     }
 
+    /**
+     * 删除
+     * @author link
+     */
+    public function deleteData($condition){
+        if(!isset($condition['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        if(is_array($condition['id'])){
+            $where['id'] = ['in', $condition['id']];
+        }else{
+            $where['id'] = trim($condition['id']);
+        }
+        return $this->where($where)->save(['deleted_at'=>date('Y-m-d H:i:s',time()), 'deleted_by'=> defined("UID") ? UID : 0, "deleted_flag"=>"Y"]);
+    }
+
 }

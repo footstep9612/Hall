@@ -259,15 +259,15 @@ class StockfloorController extends PublicController {
     {
         $condition = $this->getPut();
         if ( empty( $condition['floor_id'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择楼层!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层!');
         }
         if ( empty( $condition['country_bn'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择国家!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择国家!');
         }else{
             $condition['country_bn'] = ucfirst(strtolower($condition['country_bn']));
         }
         if ( empty( $condition['lang'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择语言!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
 
         $stock = new StockModel();
@@ -460,6 +460,40 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 删除楼层
+     * @author link
+     * @date 2018-07-04
+     */
+    public function deleteAction(){
+        $input = $this->getPut();
+        if(!isset($input['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        $model = new StockFloorModel();;
+        $model->startTrans();
+        try{
+            $rel = $model->deleteData($input);
+            if($rel){
+                //删除楼层广告
+                $sfaModel = new StockFloorAdsModel();
+                $sfaModel->deletedData(['floor_id'=>$input['id']]);
+
+                //还原楼层商品
+                $stockModel = new StockModel();
+                $stockModel->clearFloor(['floor_id'=>$input['id']]);
+            }else{
+                $model->rollback();
+                jsonReturn(false, MSG::MSG_FAILED, '操作失败!');
+            }
+            $model->commit();
+            jsonReturn('', MSG::MSG_SUCCESS, '操作成功');
+        }catch (Exception $e){
+            $model->rollback();
+            jsonReturn(false, MSG::MSG_FAILED, '系统错误!');
         }
     }
 
