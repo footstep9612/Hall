@@ -65,10 +65,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function getExit($country_bn, $lang, $sku) {
-        $where['country_bn'] = $country_bn;
-        $where['lang'] = $lang;
-        $where['sku'] = $sku;
+    public function getExit($where) {
         $where['deleted_flag'] = 'N';
 
         return $this->where($where)->field('id,floor_id')->find();
@@ -158,7 +155,7 @@ class StockModel extends PublicModel {
         $stock_cost_price_model = new StockCostPriceModel();
         $this->startTrans();
         foreach ($skus as $sku) {
-            $row = $this->getExit($country_bn, $lang, $sku);
+            $row = $this->getExit(['country_bn'=>$country_bn,'lang'=>$lang,'sku'=>$sku]);
             if (!$row) {
                 $goods_name = $this->getSpu($sku, $lang);
                 if (empty($goods_name['spu'])) {
@@ -297,32 +294,41 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function deleteData($country_bn, $skus, $lang) {
+    public function deleteData($condition) {
+        $floor_id = isset($condition['floor_id']) ? $condition['floor_id'] : '';
+        $ids = [];
+        if(!is_array($condition['id'])){
+            $ids[] = $condition['id'];
+        }else{
+            $ids = $condition['id'];
+        }
+
         $this->startTrans();
         $stock_floor_model = new StockFloorModel();
-
-
-        foreach ($skus as $sku) {
-            $row = $this->getExit($country_bn, $lang, $sku);
-
+        foreach ($ids as $id) {
+            $row = $this->getExit(['id'=>$id]);
             if ($row) {
-
-                $where = [
-                    'country_bn' => $country_bn,
-                    'lang' => $lang,
-                    'sku' => $sku,
-                ];
-                $flag = $this->where($where)->save(['deleted_flag' => 'Y',
-                    'deleted_at' => date('Y-m-d H:i:s'),
-                    'deleted_by' => defined('UID') ? UID : 0]);
-
+                $where = [ 'id' => $id ];
+                if($floor_id){
+                    $data = [
+                        'floor_id'=>0,
+                        'updated_at' => date('Y-m-d H:i:s'),
+                        'updated_by' => defined('UID') ? UID : 0
+                    ];
+                }else{
+                    $data = [
+                        'deleted_flag' => 'Y',
+                        'deleted_at' => date('Y-m-d H:i:s'),
+                        'deleted_by' => defined('UID') ? UID : 0
+                    ];
+                }
+                $flag = $this->where($where)->save($data);
                 if (!$flag) {
                     $this->rollback();
                     return false;
                 }
                 if ($row['floor_id']) {
                     $flag = $stock_floor_model->ChangeSkuCount($row['floor_id'], -1);
-
                     if (!$flag) {
                         $this->rollback();
                         return false;
