@@ -1480,7 +1480,7 @@ EOF;
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
         }else{
-            $dataJson['code'] = 1;
+            $dataJson['code'] = 0;
             $dataJson['message'] = $res;
         }
         $this->jsonReturn($dataJson);
