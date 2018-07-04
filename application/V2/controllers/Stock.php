@@ -43,12 +43,12 @@ class StockController extends PublicController {
         $stock_model = new StockModel();
         $list = $stock_model->getList($condition);
         if ($list) {
-            $this->_setCountry($list);
+            $this->_setCountry($list['data']);
             if(isset($condition['costprices']) && $condition['costprices']){
-                $this->_setConstPrice($list, $condition['country_bn']);
+                $this->_setConstPrice($list['data'], $condition['country_bn']);
             }
             if(isset($condition['show_cats']) && $condition['show_cats']){
-                $this->_setShowcats($list, $lang, $condition['country_bn']);
+                $this->_setShowcats($list['data'], $lang, $condition['country_bn']);
             }
             jsonReturn($list);
         } elseif ($list === null) {
@@ -497,6 +497,7 @@ class StockController extends PublicController {
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val['country_bn']);
             }
+
             $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
             foreach ($arr as $key => $val) {
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
