@@ -244,5 +244,29 @@ class BuyercreditController extends PublicController {
         }
     }
 
+    /**
+     * 获取订单授信使用明细
+     */
+    public function getOrderLogListAction() {
+        $data = $this->getPut();
+        $buyer_credit_order_log_model = new BuyerCreditOrderLogModel();
+        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            $buyerModel = new BuyerModel();
+            $buyer_no = $buyerModel->field('buyer_no')->where(['id' => $this->user['buyer_id'], 'deleted_flag' => 'N'])->find();
+            $data['buyer_no'] = $buyer_no['buyer_no'];
+        }
+        $res = $buyer_credit_order_log_model->getlist($data);
+        $count = $buyer_credit_order_log_model->getCount($data);
+        if (!empty($res)) {
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['count'] = $count;
+            $datajson['data'] = $res;
+        } else {
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
 
 }

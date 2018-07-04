@@ -84,14 +84,22 @@ class StockModel extends PublicModel {
     public function getList($condition) {
         $where = $this->_getCondition($condition);
         list($from, $size) = $this->_getPage($condition);
+        $data = [];
         $list = $this->alias('s')
-                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,
+                ->field('s.sku,s.show_name,s.lang,s.stock,s.spu,s.country_bn,s.recommend_home,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
                 ->order('s.sort_order desc')
                 ->select();
-        return $list;
+        if($list){
+            $this->_setUser($list);
+            $data['data'] = $list;
+            $data['count'] = $this->getCount($condition);
+            $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
+            $data['pagesize'] = $size;
+        }
+        return $data;
     }
 
     public function getCount($condition) {
@@ -274,6 +282,15 @@ class StockModel extends PublicModel {
         }
         $this->commit();
         return true;
+    }
+
+    /**
+     * 清除楼层商品
+     * @author link
+     */
+    public function clearFloor($condition){
+        $where['floor_id'] = is_array($condition['floor_id']) ? ['in',$condition['floor_id']] : trim($condition['floor_id']);
+        return $this->where($where)->save(['floor_id' => 0, 'updated_at'=>date('Y-m-d H:i:s',time()), 'updated_by'=>defined('UID') ? UID : 0]);
     }
 
     /**

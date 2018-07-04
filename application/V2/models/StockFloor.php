@@ -317,7 +317,7 @@ class StockFloorModel extends PublicModel {
         foreach ($skus as $sku) {
             $flag = $stock_model->where(['lang' => $lang,
                         'country_bn' => $country_bn,
-                        'sku' => $sku])->save(['floor_id' => $floor_id,
+                        'sku' => $sku['sku']])->save(['floor_id' => $floor_id, 'sort_order'=>(isset($sku['sort_order']) && $sku['sort_order']) ? intval($sku['sort_order']) : 0, 'recommend_home'=>(isset($sku['recommend_home']) && $sku['recommend_home']) ? 1 : 0,
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0
             ]);
@@ -329,6 +329,22 @@ class StockFloorModel extends PublicModel {
         }
         $this->commit();
         return true;
+    }
+
+    /**
+     * 删除
+     * @author link
+     */
+    public function deleteData($condition){
+        if(!isset($condition['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        if(is_array($condition['id'])){
+            $where['id'] = ['in', $condition['id']];
+        }else{
+            $where['id'] = trim($condition['id']);
+        }
+        return $this->where($where)->save(['deleted_at'=>date('Y-m-d H:i:s',time()), 'deleted_by'=> defined("UID") ? UID : 0, "deleted_flag"=>"Y"]);
     }
 
 }
