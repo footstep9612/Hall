@@ -153,35 +153,57 @@ class StockFloorModel extends PublicModel {
         $condition['sku_count'] = intval($condition['sku_count']);
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['deleted_flag'] = 'N';
-        $data = $this->create($condition);
-        $data['created_at'] = date('Y-m-d H:i:s');
-        $data['created_by'] = defined('UID') ? UID : 0;
-        switch ($condition['show_type']) {
-            case self::SHOW_TYPE_A:
-                $data['show_type'] = self::SHOW_TYPE_A;
-                break;
-            case self::SHOW_TYPE_P:
-                $data['show_type'] = self::SHOW_TYPE_P;
-                break;
-            case self::SHOW_TYPE_M:
-                $data['show_type'] = self::SHOW_TYPE_M;
-                break;
-            case self::SHOW_TYPE_PM:
-                $data['show_type'] = self::SHOW_TYPE_PM;
-                break;
-            case self::SHOW_TYPE_AP:
-                $data['show_type'] = self::SHOW_TYPE_AP;
-                break;
-            case self::SHOW_TYPE_AM:
-                $data['show_type'] = self::SHOW_TYPE_AM;
-                break;
-            case self::SHOW_TYPE_APM:
-                $data['show_type'] = self::SHOW_TYPE_APM;
-                break;
-            default : $data['show_type'] = self::SHOW_TYPE_P;
-                break;
+        $this->startTrans();
+        try {
+            $data = $this->create( $condition );
+            $data[ 'created_at' ] = date( 'Y-m-d H:i:s' );
+            $data[ 'created_by' ] = defined( 'UID' ) ? UID : 0;
+            switch ( $condition[ 'show_type' ] ) {
+                case self::SHOW_TYPE_A:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_A;
+                    break;
+                case self::SHOW_TYPE_P:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_P;
+                    break;
+                case self::SHOW_TYPE_M:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_M;
+                    break;
+                case self::SHOW_TYPE_PM:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_PM;
+                    break;
+                case self::SHOW_TYPE_AP:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_AP;
+                    break;
+                case self::SHOW_TYPE_AM:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_AM;
+                    break;
+                case self::SHOW_TYPE_APM:
+                    $data[ 'show_type' ] = self::SHOW_TYPE_APM;
+                    break;
+                default :
+                    $data[ 'show_type' ] = self::SHOW_TYPE_P;
+                    break;
+            }
+            $id = $this->add( $data );
+            if ( isset( $condition[ 'ads' ] ) && !empty( $condition[ 'ads' ] ) ) {
+                $sfadsModel = new StockFloorAdsModel();
+                $rel = $sfadsModel->createData( $condition[ 'ads' ] ,$id , $condition['country_bn'], $condition['lang'] );
+                if ( !$rel ) {
+                    $this->rollback();
+                    return false;
+                }
+            }
+            if ( $id ) {
+                $this->commit();
+                return $id;
+            } else {
+                $this->rollback();
+                return false;
+            }
+        }catch (Exception $e){
+            $this->rollback();
+            return false;
         }
-        return $this->add($data);
     }
 
     /**
@@ -197,33 +219,55 @@ class StockFloorModel extends PublicModel {
         $condition['onshelf_flag'] = trim($condition['onshelf_flag']) == 'Y' ? 'Y' : 'N';
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['deleted_flag'] = 'N';
-        $data = $this->create($condition);
-        $data['updated_at'] = date('Y-m-d H:i:s');
-        $data['updated_by'] = defined('UID') ? UID : 0;
-        switch ($condition['show_type']) {
-            case self::SHOW_TYPE_A:
-                $data['show_type'] = self::SHOW_TYPE_A;
-                break;
-            case self::SHOW_TYPE_P:
-                $data['show_type'] = self::SHOW_TYPE_P;
-                break;
-            case self::SHOW_TYPE_M:
-                $data['show_type'] = self::SHOW_TYPE_M;
-                break;
-            case self::SHOW_TYPE_PM:
-                $data['show_type'] = self::SHOW_TYPE_PM;
-                break;
-            case self::SHOW_TYPE_AP:
-                $data['show_type'] = self::SHOW_TYPE_AP;
-                break;
-            case self::SHOW_TYPE_AM:
-                $data['show_type'] = self::SHOW_TYPE_AM;
-                break;
-            case self::SHOW_TYPE_APM:
-                $data['show_type'] = self::SHOW_TYPE_APM;
-                break;
+        $this->startTrans();
+        try{
+            $data = $this->create($condition);
+            $data['updated_at'] = date('Y-m-d H:i:s');
+            $data['updated_by'] = defined('UID') ? UID : 0;
+            switch ($condition['show_type']) {
+                case self::SHOW_TYPE_A:
+                    $data['show_type'] = self::SHOW_TYPE_A;
+                    break;
+                case self::SHOW_TYPE_P:
+                    $data['show_type'] = self::SHOW_TYPE_P;
+                    break;
+                case self::SHOW_TYPE_M:
+                    $data['show_type'] = self::SHOW_TYPE_M;
+                    break;
+                case self::SHOW_TYPE_PM:
+                    $data['show_type'] = self::SHOW_TYPE_PM;
+                    break;
+                case self::SHOW_TYPE_AP:
+                    $data['show_type'] = self::SHOW_TYPE_AP;
+                    break;
+                case self::SHOW_TYPE_AM:
+                    $data['show_type'] = self::SHOW_TYPE_AM;
+                    break;
+                case self::SHOW_TYPE_APM:
+                    $data['show_type'] = self::SHOW_TYPE_APM;
+                    break;
+            }
+            $rel = $this->where(['id' => $id])->save($data);
+            if ( isset( $condition[ 'ads' ] ) && !empty( $condition[ 'ads' ] ) ) {
+                $sfadsModel = new StockFloorAdsModel();
+                $rel = $sfadsModel->updateData( $condition[ 'ads' ],$id, $condition['country_bn'],$condition['lang'] );
+                if ( !$rel ) {
+                    $this->rollback();
+                    return false;
+                }
+            }
+            if ( $rel ) {
+                $this->commit();
+                return $rel;
+            } else {
+                $this->rollback();
+                return false;
+            }
+        }catch (Exception $e){
+            $this->rollback();
+            return false;
         }
-        return $this->where(['id' => $id])->save($data);
+
     }
 
     /**
@@ -273,7 +317,7 @@ class StockFloorModel extends PublicModel {
         foreach ($skus as $sku) {
             $flag = $stock_model->where(['lang' => $lang,
                         'country_bn' => $country_bn,
-                        'sku' => $sku])->save(['floor_id' => $floor_id,
+                        'sku' => $sku['sku']])->save(['floor_id' => $floor_id, 'sort_order'=>(isset($sku['sort_order']) && $sku['sort_order']) ? intval($sku['sort_order']) : 0, 'recommend_home'=>(isset($sku['recommend_home']) && $sku['recommend_home']) ? 1 : 0,
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0
             ]);
@@ -285,6 +329,22 @@ class StockFloorModel extends PublicModel {
         }
         $this->commit();
         return true;
+    }
+
+    /**
+     * 删除
+     * @author link
+     */
+    public function deleteData($condition){
+        if(!isset($condition['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        if(is_array($condition['id'])){
+            $where['id'] = ['in', $condition['id']];
+        }else{
+            $where['id'] = trim($condition['id']);
+        }
+        return $this->where($where)->save(['deleted_at'=>date('Y-m-d H:i:s',time()), 'deleted_by'=> defined("UID") ? UID : 0, "deleted_flag"=>"Y"]);
     }
 
 }

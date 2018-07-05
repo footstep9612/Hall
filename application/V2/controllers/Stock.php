@@ -21,6 +21,25 @@ class StockController extends PublicController {
     }
 
     /**
+     * 现货更新
+     * @author link
+     * @date 2018-07-04
+     */
+    public function updateAction(){
+        $condition = $this->getPut();
+        if (!isset($condition['id'])) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择现货');
+        }
+        $model = new StockModel();
+        $rel = $model->updateDate($condition);
+        if($rel){
+            jsonReturn('', MSG::MSG_SUCCESS, '操作成功');
+        }else{
+            jsonReturn('', MSG::MSG_FAILED, '操作失败');
+        }
+    }
+
+    /**
      * Description of 获取现货列表
      * @author  zhongyg
      * @date    2017-12-6 9:12:49
@@ -43,19 +62,14 @@ class StockController extends PublicController {
         $stock_model = new StockModel();
         $list = $stock_model->getList($condition);
         if ($list) {
-            $this->_setCountry($list);
+            $this->_setCountry($list['data']);
             if(isset($condition['costprices']) && $condition['costprices']){
-                $this->_setConstPrice($list, $condition['country_bn']);
+                $this->_setConstPrice($list['data'], $condition['country_bn']);
             }
             if(isset($condition['show_cats']) && $condition['show_cats']){
-                $this->_setShowcats($list, $lang, $condition['country_bn']);
+                $this->_setShowcats($list['data'], $lang, $condition['country_bn']);
             }
-            $this->_setUser($list);
-            $count = $stock_model->getCount($condition);
-            $this->setvalue('count', $count);
-            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
-            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
-            $this->jsonReturn($list);
+            jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');
@@ -260,27 +274,13 @@ class StockController extends PublicController {
      * @version V2.0
      * @desc  现货
      */
-    public function deletedAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
-        $skus = $this->getPut('skus');
-        if (empty($skus)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择现货商品!');
-            $this->jsonReturn();
-        }
-        $lang = $this->getPut('lang');
-        if (empty($lang)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
+    public function deleteAction() {
+        $condition = $this->getPut();
+        if (!isset($condition['id'])) {
+            jsonReturn('', MSG::ERROR_PARAM, '请选择商品!');
         }
         $stock_model = new StockModel();
-        $list = $stock_model->deleteData($country_bn, $skus, $lang);
+        $list = $stock_model->deleteData($condition);
         if ($list) {
             $this->setCode(MSG::MSG_SUCCESS);
             $this->setMessage('删除成功!');
@@ -502,6 +502,7 @@ class StockController extends PublicController {
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val['country_bn']);
             }
+
             $countrynames = $country_model->getNamesBybns($country_bns, 'zh');
             foreach ($arr as $key => $val) {
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {

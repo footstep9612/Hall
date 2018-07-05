@@ -426,9 +426,11 @@ class ExcelmanagerController extends PublicController {
             $sku[$k]['name'] = $v[2]; //外文品名
             $sku[$k]['name_zh'] = $v[3]; //中文品名
             $sku[$k]['buy_number'] = $v[4]; //数量
-            $sku[$k]['nude_cargo_unit'] = $v[5]; //单位
-            $sku[$k]['brand'] = $v[6]; //品牌
-            $sku[$k]['model'] = $v[7]; //型号
+			$sku[$k]['price'] = $v[5]; //数量
+			$sku[$k]['department'] = $v[6]; //数量
+            $sku[$k]['nude_cargo_unit'] = $v[7]; //单位
+            $sku[$k]['brand'] = $v[8]; //品牌
+            $sku[$k]['model'] = $v[9]; //型号
         }
         //删除本地临时文件
         if (file_exists($localFile)) {
