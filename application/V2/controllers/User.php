@@ -750,60 +750,6 @@ class UserController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
-    /**
-     * @desc 首页快捷入口
-     *
-     * @author liujf
-     * @time 2018-06-19
-     */
-    public function fastEntranceAction() {
-        $roleUserModel = new RoleUserModel();
-        $menu = $roleUserModel->getUserMenu($this->user['id']);
-        $mapping = [
-            'show_create_inquiry' => '询单管理',
-            'show_create_order' => '订单列表',
-            'show_create_buyer' => '客户信息管理',
-            'show_create_visit' => '客户信息管理',
-            'show_demand_feedback' => '客户需求反馈',
-            'show_request_permission' => '授信管理',
-            'show_supplier_check' => '供应商审核',
-            'show_goods_check' => 'SPU审核'
-        ];
-        foreach ($mapping as $k => $v) {
-            $data[$k]['show'] = 'N';
-        }
-        $this->_scanMenu($menu, $mapping, $data);
-        $this->jsonReturn([
-            'code' => 1,
-            'message' => L('SUCCESS'),
-            'data' => $data
-        ]);
-    }
-    
-    /**
-     * @desc 扫描菜单
-     * 
-     * @param array $menu 菜单数据
-     * @param array $mapping 菜单映射
-     * @param array $data 需处理的数据
-     * @author liujf
-     * @time 2018-06-19
-     */
-    private function _scanMenu($menu, $mapping, &$data) {
-        $urlPermModel = new UrlPermModel();
-        foreach ($menu as $item) {
-            foreach ($mapping as $k => $v) {
-                if ($item['fn'] == $v) {
-                    $data[$k]['show'] = 'Y';
-                    $data[$k]['parent_id'] = $urlPermModel->getOneLevelMenuId($item['func_perm_id']);
-                }
-            }
-            if (isset($item['children'])) {
-                $this->_scanMenu($item['children'], $mapping, $data);
-            }
-        }
-    }
 
     /**
      * @desc 首页快捷入口
