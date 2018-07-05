@@ -108,10 +108,34 @@ class NotificationController extends PublicController {
             'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
             'deleted_flag' => 'N'
         ];
-        $where_buyer = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
-        $inquiry_count = (new InquiryModel)->where($where_inquiry)->count('id') ?: 0;
-        $buyer_count = (new BuyerModel)->where($where_buyer)->count('id') ?: 0;
-        $this->jsonReturn(($inquiry_count + $buyer_count));
+        $inquiry_model = new InquiryModel();
+        if ($this->user['country_bn']) {
+            $where = ['status' => 'APPROVING',
+                'country_bn' => ['in',
+                    $this->user['country_bn']]
+                , 'deleted_flag' => 'N'];
+            $list = $inquiry_model->field('COUNT(id) AS tp_count')
+                    ->where($where_inquiry)
+                    ->union(['field' => 'COUNT(id) AS tp_count',
+                        'table' => (new BuyerModel)->getTableName(), 'where' => $where], true)
+                    ->select();
+            $count = 0;
+
+            if ($list) {
+                foreach ($list as $val) {
+                    $count += isset($val['tp_count']) ? $val['tp_count'] : 0;
+                }
+            }
+        } else {
+            $where_inquiry = [
+                'now_agent_id' => $this->user['id'],
+                'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
+                'deleted_flag' => 'N'
+            ];
+
+            $count = $inquiry_model->where($where_inquiry)->count('id') ?: 0;
+        }
+        $this->jsonReturn($count);
     }
 
     public function createAction() {
@@ -148,7 +172,7 @@ class NotificationController extends PublicController {
         $inquiry = new InquiryModel();
 
         $where = ['inquiry_id' => $inquiry_id, 'isread_flag' => 'N'];
-        $data = $inquiryRemind->where($where)->field('inquiry_id,created_by,created_at')->select();
+        $data = $inquiryRemind->where($where)->field('inquiry_id, created_by, created_at')->select();
 
         foreach ($data as &$datum) {
             $datum['role_name'] = $this->_setRoleName($inquiry->getUserRoleById($datum['created_by']));
