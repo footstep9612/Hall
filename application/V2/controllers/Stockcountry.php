@@ -94,23 +94,6 @@ class StockcountryController extends PublicController {
     }
 
     /**
-     * json解析
-     * @param $arr
-     * @param string $field
-     */
-    private function _jsonDecode(&$arr, $field = ''){
-        if(!empty($field)){
-            $arr[$field] = json_decode($arr[$field],true);
-        }
-    }
-
-    private function  _ynTotruefalse(&$arr, $field = ''){
-        if(!empty($field)){
-            $arr[$field] = $arr[$field]=='Y' ? true : false;
-        }
-    }
-
-    /**
      * Description of 获取现货国家详情
      * @author  Link
      * @date    2017-12-6 9:12:49
