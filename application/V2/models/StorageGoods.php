@@ -5,7 +5,7 @@
  * Date: 2018/5/30
  * Time: 9:34
  */
-class StorageGoodsModel extends Model{
+class StorageGoodsModel extends PublicModel{
     //put your code here
     protected $tableName = 'storage_goods';
     protected $dbName = 'erui_stock';
@@ -28,7 +28,7 @@ class StorageGoodsModel extends Model{
             if(is_array($input['sku'])){
                 $data = [];
                 foreach($input['sku'] as $sku){
-                    if($this->_exist(["storage_id" => intval(trim($input['storage_id'])), "sku" => $sku])){
+                    if($this->getExit(["storage_id" => intval(trim($input['storage_id'])), "sku" => $sku])){
                         continue;
                     }
                     $data_item = [
@@ -41,7 +41,7 @@ class StorageGoodsModel extends Model{
                 }
                 return $this->addAll($data);
             }else{
-                if($this->_exist(["storage_id" => intval(trim($input['storage_id'])), "sku" => trim($input['sku'])])){
+                if($this->getExit(["storage_id" => intval(trim($input['storage_id'])), "sku" => trim($input['sku'])])){
                     return true;
                 }
                 $data = [
@@ -90,12 +90,56 @@ class StorageGoodsModel extends Model{
     }
 
     /**
+     * 仓库商品列表
+     * @param $condition
+     * @return array
+     */
+    public function getList($condition){
+        $sModel = new StorageModel();
+        $where_storage = ['id'=>intval($condition['storage_id'])];
+        $storageInfo = $sModel->getInfo($where_storage);
+
+        $thisTable = $this->getTableName();
+        $where = [
+            "$thisTable.storage_id" => intval($condition['storage_id']),
+            "$thisTable.deleted_at" => ['exp', 'is null']
+        ];
+
+        if(isset($condition['sku'])){
+            $where["$thisTable.sku"] = $condition['sku'];
+        }
+
+        $model = new StockModel();
+        $stockTable = $model->getTableName();
+        $field = "$thisTable.id,s.show_name,s.sku,$thisTable.created_at,$thisTable.created_by";
+        list($from,$size) = $this->_getPage($condition);
+
+        $data = [];
+        $list = $this->field($field)->join("$stockTable as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku",'LEFT')->where($where)
+            ->limit($from,$size)
+            ->select();
+        if($list){
+            $this->_setUser($list);
+            $data['data'] = $list;
+            $data['count'] = $this->getCount($where);
+            $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
+            $data['pagesize'] = $size;
+        }
+        return $data;
+    }
+
+    public function getCount($where) {
+
+        return $this->where($where)->count();
+    }
+
+    /**
      * 检测是否存在
      * 注意：当出现异常时默认按存在处理。
      * @param array $where
      * @return bool|mixed
      */
-    private function _exist($where = []){
+    private function getExit($where = []){
         if(empty($where)){
             $where = 1;
         }
