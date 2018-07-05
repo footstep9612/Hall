@@ -100,13 +100,10 @@ class StorageGoodsModel extends PublicModel{
         $storageInfo = $sModel->getInfo($where_storage);
 
         $thisTable = $this->getTableName();
-        $where = [
-            "$thisTable.storage_id" => intval($condition['storage_id']),
-            "$thisTable.deleted_at" => ['exp', 'is null']
-        ];
+        $where = "$thisTable.storage_id = ".intval($condition['storage_id'])." AND $thisTable.deleted_at is null";
 
-        if(isset($condition['sku'])){
-            $where["$thisTable.sku"] = $condition['sku'];
+        if(isset($condition['keyword'])){
+            $where.=" AND ($thisTable.sku ='".trim($condition['keyword'])."' OR s.show_name like '%".trim($condition['keyword'])."%')";
         }
 
         $model = new StockModel();
@@ -115,22 +112,22 @@ class StorageGoodsModel extends PublicModel{
         list($from,$size) = $this->_getPage($condition);
 
         $data = [];
-        $list = $this->field($field)->join("$stockTable as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku AND s.deleted_at is null AND s.status='VALID'",'LEFT')->where($where)
+        $join = "$stockTable as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku AND s.deleted_at is null AND s.status='VALID'";
+        $list = $this->field($field)->join($join,'LEFT')->where($where)
             ->limit($from,$size)
             ->select();
         if($list){
             $this->_setUser($list);
             $data['data'] = $list;
-            $data['count'] = $this->getCount($where);
+            $data['count'] = $this->getCount($where,$join);
             $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
             $data['pagesize'] = $size;
         }
         return $data;
     }
 
-    public function getCount($where) {
-
-        return $this->where($where)->count();
+    public function getCount($where,$join) {
+        return $this->join($join,'LEFT')->where($where)->count();
     }
 
     /**
