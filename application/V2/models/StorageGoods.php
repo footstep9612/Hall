@@ -115,7 +115,7 @@ class StorageGoodsModel extends PublicModel{
         list($from,$size) = $this->_getPage($condition);
 
         $data = [];
-        $list = $this->field($field)->join("$stockTable as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku",'LEFT')->where($where)
+        $list = $this->field($field)->join("$stockTable as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku AND s.deleted_at is null AND s.status='VALID'",'LEFT')->where($where)
             ->limit($from,$size)
             ->select();
         if($list){
