@@ -1097,6 +1097,13 @@ class BuyerModel extends PublicModel {
         $data['status'] = 'APPROVED';  //APPROVING
 //        $datajson = $this->create($data);
         $datajson = $data;
+        //
+        $config = \Yaf_Application::app()->getConfig();
+        $myhost=$config['myhost'];
+        if($myhost!="http://api.erui.com/"){
+            $create['is_group_crm']=false;
+        }
+        //
         if($create['is_group_crm'] == true){
             $group_status = $this->addGroupCrm($datajson);
             $datajson['group_status'] = $group_status;
