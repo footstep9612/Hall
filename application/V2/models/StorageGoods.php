@@ -112,7 +112,7 @@ class StorageGoodsModel extends PublicModel{
         list($from,$size) = $this->_getPage($condition);
 
         $data = [];
-        $join = "(SELECT show_name,sku,lang,country_bn,MAX(sort_order),deleted_at,status FROM $stockTable GROUP BY sku) as s ON s.country_bn='".$storageInfo['country_bn']."' AND s.lang='".$storageInfo["lang"]."' AND s.sku=".$thisTable.".sku AND s.deleted_at is null AND s.status='VALID'";
+        $join = "(SELECT show_name,sku,lang,country_bn,MAX(sort_order),deleted_at,status FROM $stockTable WHERE country_bn='".$storageInfo['country_bn']."' AND lang='".$storageInfo["lang"]."' AND deleted_at is null AND status='VALID' GROUP BY sku) as s ON s.sku=".$thisTable.".sku";
         $list = $this->field($field)->join($join,'LEFT')->where($where)
             ->limit($from,$size)
             ->select();
