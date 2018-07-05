@@ -41,18 +41,6 @@ class NotificationController extends PublicController {
             $item['area_name'] = $marketAreaModel->getAreaNameByBn($item['area_bn'], $this->lang);
             $item['country_name'] = $countryModel->getCountryNameByBn($item['country_bn'], $this->lang);
         }
-        
-        if ($list) {
-            $res['code'] = '1';
-            $res['message'] = L('SUCCESS');
-            $res['count'] = $inquiry->where($where)->count('id') ? : 0;
-            $res['parent_id'] = $urlPermModel->getMenuIdByName('询报价');
-            $res['data'] = $list;
-        } else {
-            $res['code'] = '-101';
-            $res['message'] = L('NO_DATA');
-        }
-        $this->jsonReturn($res);
 
         if ($list) {
             $res['code'] = '1';
