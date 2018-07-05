@@ -64,7 +64,7 @@ class StoragegoodsController extends PublicController {
     public function listAction(){
         $condition = $this->getPut();
         if(!isset($condition['storage_id'])){
-            jsonReturn('',MSG::ERROR_PARAM,'storage_id不能全为空');
+            jsonReturn('',MSG::ERROR_PARAM,'storage_id不能为空');
         }
         $model = new StorageGoodsModel();
         $result = $model->getList($condition);
