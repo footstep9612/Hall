@@ -26,7 +26,7 @@ class PricestrategyController extends PublicController {
 
         if ($result) {
             jsonReturn($result);
-        } elseif ($result === false) {
+        } else {
             jsonReturn('',MSG::MSG_FAILED);
         }
     }
