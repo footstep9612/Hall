@@ -20,43 +20,20 @@ class CountryController extends PublicController {
 
     public function listAction() {
         if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
+            $condtion = $this->getParam();
+
+            $condtion['lang'] = $this->getParam('lang', 'zh');
         } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
+            $condtion = $this->getPut();
+            $condtion['lang'] = $this->getPut('lang', 'zh');
         }
 
         $country_model = new Common_CountryModel();
-        $arr = $country_model->GetList($data); //($this->put_data);
-        $count = $country_model->getCount($data);
+        $arr = $country_model->getList($condtion); //($this->put_data);
+        $count = $country_model->getCount($condtion);
         $this->setvalue('count', $count);
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
-            $this->jsonReturn($arr);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-
-            $this->jsonReturn();
-        }
-    }
-
-    public function shortcutsAction() {
-        if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
-        } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
-        }
-
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-
             $this->jsonReturn($arr);
         } else {
             $this->setCode(MSG::MSG_FAILED);

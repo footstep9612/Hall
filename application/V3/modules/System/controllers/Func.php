@@ -9,10 +9,6 @@
 
 class FuncController extends PublicController {
 
-    protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $index = 'erui_dict';
-    protected $es = '';
-
     public function __init() {
         parent::init();
         ini_set("display_errors", "off");

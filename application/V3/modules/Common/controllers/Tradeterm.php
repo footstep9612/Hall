@@ -21,53 +21,34 @@ class TradetermController extends PublicController {
     }
 
     /*
-     * 所有功能清单
+     * Description of 贸易术语列表
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   贸易术语
      */
 
     public function listAction() {
         if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
+            $condtion = $this->getParam();
+
+            $condtion['lang'] = $this->getParam('lang', 'zh');
         } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
+            $condtion = $this->getPut();
+            $condtion['lang'] = $this->getPut('lang', 'zh');
         }
-
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
+        $trade_term_model = new Common_TradetermModel();
+        $arr = $trade_term_model->getList($condtion);
+        if ($arr) {
             $this->setCode(MSG::MSG_SUCCESS);
-
+            $count = $trade_term_model->getCount($condtion);
+            $this->setvalue('count', $count);
             $this->jsonReturn($arr);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
-
-            $this->jsonReturn();
-        }
-    }
-
-    public function shortcutsAction() {
-        if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
-        } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
-        }
-
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-
-            $this->jsonReturn($arr);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-
             $this->jsonReturn();
         }
     }

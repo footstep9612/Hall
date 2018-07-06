@@ -8,10 +8,6 @@
 
 class CityController extends PublicController {
 
-    protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $index = 'erui_dict';
-    protected $es = '';
-
     public function __init() {
         parent::init();
         ini_set("display_errors", "off");
@@ -21,53 +17,37 @@ class CityController extends PublicController {
     }
 
     /*
-     * 所有功能清单
+     * Description of 城市列表
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   城市
      */
 
     public function listAction() {
         if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
+            $condtion = $this->getParam();
+
+            $condtion['lang'] = $this->getParam('lang', 'zh');
         } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
+            $condtion = $this->getPut();
+            $condtion['lang'] = $this->getPut('lang', 'zh');
         }
+        $city_model = new Common_CityModel();
+        $arr = $city_model->getList($condtion);
+        if ($arr) {
+            $data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, 'en');
+            $data['code'] = MSG::MSG_SUCCESS;
+            $data['data'] = $arr;
+            $data['count'] = $city_model->getCount($condtion);
 
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-
-            $this->jsonReturn($arr);
+            $this->jsonReturn($data);
+        } elseif ($arr === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setvalue('count', 0);
+            $this->jsonReturn(null);
         } else {
             $this->setCode(MSG::MSG_FAILED);
-
-            $this->jsonReturn();
-        }
-    }
-
-    public function shortcutsAction() {
-        if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
-        } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
-        }
-
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-
-            $this->jsonReturn($arr);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-
             $this->jsonReturn();
         }
     }

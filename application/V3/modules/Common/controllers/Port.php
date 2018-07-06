@@ -8,10 +8,6 @@
 
 class PortController extends PublicController {
 
-    protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $index = 'erui_dict';
-    protected $es = '';
-
     public function __init() {
         parent::init();
         ini_set("display_errors", "off");
@@ -33,32 +29,8 @@ class PortController extends PublicController {
             $data['lang'] = $this->getPut('lang', 'zh');
         }
 
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
-
-            $this->jsonReturn($arr);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-
-            $this->jsonReturn();
-        }
-    }
-
-    public function shortcutsAction() {
-        if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
-        } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
-        }
-
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
+        $country_model = new Common_PortModel();
+        $arr = $country_model->getList($data); //($this->put_data);
         $count = $country_model->getCount($data);
         $this->setvalue('count', $count);
         if (!empty($arr)) {

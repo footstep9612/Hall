@@ -204,7 +204,9 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     public function getParam($name = null, $default = null) {
 
         if (!$this->params) {
-            $data = $this->params = $this->getRequest()->getParams();
+            $data = $this->getRequest()->getParams();
+            $gets = $this->getRequest()->getQuery();
+            $this->params = array_merge($data, $gets);
         }
         if ($name === 'lang') {
 

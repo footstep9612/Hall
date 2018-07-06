@@ -43,14 +43,16 @@ class Common_CountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function GetList($condition, $order = 'id desc') {
+    public function getList($condition, $order = 'id desc') {
         try {
             $where = $this->_getCondition($condition);
+
+
             unset($condition);
             $redis_key = md5(json_encode($where) . $order);
-//            if (redisHashExist('Country', $redis_key)) {
-//                return json_decode(redisHashGet('Country', $redis_key), true);
-//            }
+            if (redisHashExist('Country', $redis_key)) {
+                return json_decode(redisHashGet('Country', $redis_key), true);
+            }
             $result = $this
                     ->field('bn,name')
                     ->where($where)
@@ -71,7 +73,7 @@ class Common_CountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getCount($condition, $order = 'id desc') {
+    public function getCount($condition) {
         try {
             $where = $this->_getCondition($condition);
             unset($condition);
