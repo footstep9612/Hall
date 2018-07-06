@@ -34,6 +34,14 @@ class StockCountryModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
+        if(isset($condition['country_name'])){
+            $countryModel = new CountryModel();
+            $data = $countryModel->field('bn')->where(['deleted_flag'=>'N','status'=>'VALID','name'=>['like',"%".trim($condition['country_name'])."%"]])->select();
+            foreach($data as $r){
+                $condition['country_bn'][]= $r['bn'];
+            }
+            $this->_getValue($where, $condition, 'country_bn','array');
+        }
         $this->_getValue($where, $condition, 'lang');
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'display_position');
@@ -74,7 +82,6 @@ class StockCountryModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
-
         list($row_start, $pagesize) = $this->_getPage($condition);
         return $this->where($where)
                         ->order('id desc')
@@ -116,6 +123,7 @@ class StockCountryModel extends PublicModel {
 
         $where['country_bn'] = $country_bn;
         $where['lang'] = $lang;
+        $where['deleted_at'] = ['exp', 'is null'];
         if ($id) {
             $where['id'] = ['neq', $id];
         }
@@ -137,14 +145,21 @@ class StockCountryModel extends PublicModel {
 
     /**
      * Description of 获取现货国家详情
-     * @author  zhongyg
+     * @author  link
      * @date    2017-12-6 9:12:49
      * @version V2.0
      * @desc  现货国家
      */
-    public function getInfo($country_bn) {
-        $where['country_bn'] = $country_bn;
+    public function getInfo($condition) {
+        if(isset($condition['id']) && is_numeric($condition['id'])){
+            $where['id'] = intval($condition['id']);
+        }elseif(isset($condition['country_bn'])){
+            $where['country_bn'] = $condition['country_bn'];
+        }else{
+            jsonReturn('', MSG::ERROR_PARAM, '请传递id或country_bn');
+        }
 
+        $where['deleted_at'] = ['exp', 'is null'];
         return $this->where($where)->find();
     }
 
@@ -201,10 +216,12 @@ class StockCountryModel extends PublicModel {
      * @version V2.0
      * @desc  现货国家
      */
-    public function updateData($id, $country_bn, $show_flag, $lang = 'en', $display_position = null, $show_type = null,$settings= '') {
-        $data['country_bn'] = $country_bn;
+    public function updateData($id, $country_bn='', $show_flag, $lang = 'en', $display_position = null, $show_type = null,$settings= '') {
+        if(!empty($country_bn)){
+            $data['country_bn'] = $country_bn;
+        }
         $data['lang'] = $lang;
-        $data['show_flag'] = $show_flag == 'Y' ? 'Y' : 'N';
+        $data['show_flag'] = ($show_flag == 'Y' || $show_flag === true) ? 'Y' : 'N';
         $data['updated_at'] = date('Y-m-d H:i:s');
         $data['updated_by'] = defined('UID') ? UID : 0;
         if(!empty($settings)){

@@ -38,6 +38,8 @@ class StockcountryController extends PublicController {
             $this->_setCountry($list, $lang);
             $count = $stock_country_model->getCount($condition, $lang);
             $this->setvalue('count', $count);
+            $this->setvalue('current_no', isset($condition['current_no']) ? intval($condition['current_no']) : 1);
+            $this->setvalue('pagesize', isset($condition['pagesize']) ? intval($condition['pagesize']) : 10);
             $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -84,6 +86,8 @@ class StockcountryController extends PublicController {
                     $val['market_area_name'] = '';
                     $val['market_area_bn'] = '';
                 }
+                jsonDecode($val,'settings');    //json解析
+                ynTotruefalse($val,'show_flag');
                 $arr[$key] = $val;
             }
         }
@@ -91,31 +95,30 @@ class StockcountryController extends PublicController {
 
     /**
      * Description of 获取现货国家详情
-     * @author  zhongyg
+     * @author  Link
      * @date    2017-12-6 9:12:49
      * @version V2.0
      * @desc  现货国家
      */
     public function InfoAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
+        $condition = $this->getPut();
         $stock_country_model = new StockCountryModel();
-
-        $list = $stock_country_model->getInfo($country_bn);
+        $list = $stock_country_model->getInfo($condition);
+        jsonDecode($list,'settings');    //json解析
         if ($list) {
-            $this->jsonReturn($list);
-        } elseif ($list === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据');
-            $this->jsonReturn(null);
+            $scadsModel = new StockCountryAdsModel();
+            $ads = $scadsModel->getList(['country_bn'=>$list['country_bn'], 'deleted_at'=>['exp','is null']]);
+            if($ads){
+                foreach($ads as $r){
+                    $list['ads'][$r['group']][] = $r;
+                }
+            }else{
+                $list['ads'] = [];
+            }
+
+            jsonReturn($list);
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            jsonReturn('' , MSG::MSG_FAILED, '系统错误!' );
         }
     }
 
@@ -175,36 +178,71 @@ class StockcountryController extends PublicController {
             $this->setMessage('ID不能为空!');
             $this->jsonReturn();
         }
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
+        if(count($this->getPut())<2){
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('无修改信息!');
             $this->jsonReturn();
         }
+        $country_bn = $this->getPut('country_bn','');
         $show_type = $this->getPut('show_type');
-        $stock_country_model = new StockCountryModel();
         $lang = $this->getPut('lang', 'en');
-        if ($stock_country_model->getExit($country_bn, $lang, $id, $show_type)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('您选择国家已经存在,请您重新选择!');
-            $this->jsonReturn();
-        }
-        $show_flag = $this->getPut('show_flag', 'N');
-        $display_position = $this->getPut('display_position');
-        $settings = $this->getPut('settings', '');
-        $settings = $settings ? json_encode($settings,JSON_UNESCAPED_UNICODE):'';
 
-        $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type,$settings);
-        if ($list) {
-            $this->jsonReturn($list);
-        } elseif ($list === false) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('更新失败!');
-            $this->jsonReturn(null);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+        try{
+            $stock_country_model = new StockCountryModel();
+            if (!empty($country_bn)) {
+                if ($stock_country_model->getExit($country_bn, $lang, $id, $show_type)) {
+                    $this->setCode(MSG::MSG_EXIST);
+                    $this->setMessage('您选择国家已经存在,请您重新选择!');
+                    $this->jsonReturn();
+                }
+            }
+
+            $show_flag = $this->getPut('show_flag', 'N');
+            $display_position = $this->getPut('display_position');
+            $settings = $this->getPut('settings', '');
+            $settings = $settings ? json_encode($settings,JSON_UNESCAPED_UNICODE):'';
+            $ads = $this->getPut('ads');
+            $stock_country_model->startTrans();
+            if($ads){
+                $scInfo = $stock_country_model->getInfo(['id'=>$id]);
+                $scadsModel = new StockCountryAdsModel();
+                foreach($ads as $key=>$v){
+                    foreach($v as $k=>$r){
+                        if(isset($r['id']) && $r['id']!=''){
+                            $result = $scadsModel->updateData($r['id'], $scInfo['country_bn'], isset($r['img_name']) ? $r['img_name'] : '', isset($r['img_url']) ? $r['img_url'] : '',  isset($r['link']) ? $r['link'] : '',  isset($r['group']) ? $r['group'] : '',$scInfo['lang']);
+                            if(!$result){
+                                $stock_country_model->rollback();
+                                jsonReturn('', MSG::MSG_FAILED, '操作失败！');
+                            }
+                        }else{
+                            $result = $scadsModel->createData($scInfo['country_bn'], isset($r['img_name']) ? $r['img_name'] : '', isset($r['img_url']) ? $r['img_url'] : '',  isset($r['link']) ? $r['link'] : '',  isset($r['group']) ? $r['group'] : '',$scInfo['lang']);
+                            if(!$result){
+                                $stock_country_model->rollback();
+                                jsonReturn('', MSG::MSG_FAILED, '操作失败！');
+                            }
+                        }
+                    }
+                }
+            }
+
+            $list = $stock_country_model->updateData($id, $country_bn, $show_flag, $lang, $display_position, $show_type,$settings);
+            if ($list) {
+                $stock_country_model->commit();
+                $this->jsonReturn($list);
+            } elseif ($list === false) {
+                $stock_country_model->rollback();
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->setMessage('更新失败!');
+                $this->jsonReturn(null);
+            } else {
+                $stock_country_model->rollback();
+                $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage('系统错误!');
+                $this->jsonReturn();
+            }
+        }catch (Exception $e){
+            $stock_country_model->rollback();
+            jsonReturn('', MSG::MSG_FAILED, '操作失败！');
         }
     }
 

@@ -554,6 +554,257 @@ class BuyercreditController extends PublicController {
         }
     }
 
+    /**授信订单使用收支
+     * @desc
+     */
+    public function buyerCreditPaymentByOrderAction(){
+        $data = $this->getPut();
+        $money = '100.00';
 
+        if(!isset($data['contract_no']) || empty($data['contract_no'])){
+            jsonReturn('',MSG::MSG_FAILED,'');
+        }
+        if(!isset($data['crm_code']) || empty($data['crm_code'])){
+            jsonReturn('',MSG::MSG_FAILED,'');
+        }
+
+        $lockKey = MYPATH . '/public/tmp/orderpay_' . $data['contract_no'] . '.lock';
+        if(!file_exists($lockKey)){
+            $dirName = MYPATH . '/public/tmp';
+            if (!is_dir($dirName)) {
+                if (!mkdir($dirName, 0777, true)) {
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建订单合同授信文件锁失败，请尝试手动创建', Log::NOTICE);
+                }
+            }
+        }
+
+        $buyer_model = new BuyerModel();
+        $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
+        if(!$buyerInfo){
+            jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+        }
+        $buyer_credit_model = new BuyerCreditModel();
+        $buyer_credit_Info = $buyer_credit_model->getInfo($buyerInfo['buyer_no']);
+        if(!$buyer_credit_Info){
+            jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
+        }
+
+        if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $money){
+            jsonReturn('',MSG::MSG_FAILED,'可用授信额度已不足!');
+        }
+        $buyer_credit_model->startTrans();
+        try{
+            //上锁
+            $handle_res = $this->getLock($lockKey);
+
+            if($handle_res[0] && $handle_res[1]){
+
+                $left = $buyer_credit_Info['credit_available'] - $money;  //余额
+                $dataCredit['credit_available'] = $left;
+                $dataCredit['buyer_no'] = $buyerInfo['buyer_no'];
+                $dataCredit['crm_code'] = $data['crm_code'];
+                $updateRes = $buyer_credit_model->update_data($dataCredit);
+                if(!$updateRes){
+                    $buyer_credit_model->rollback();
+                }
+                //授信使用明细
+                $type = ($money<0)? 'SPENDING' : 'REFUND';    //SPENDING-支出；REFUND-还款
+                $creditLogArr = [
+                    'buyer_no'=> $buyerInfo['buyer_no'],
+                    'credit_type'=> $buyer_credit_Info['account_settle'],
+                    'credit_cur_bn'=> $buyer_credit_Info['credit_cur_bn'],
+                    'use_credit_granted'=> '-'.$money,//使用额度
+                    'credit_available'=> $left,//剩余可用额度(使用后)
+                    'content'=> '', //备注内容
+                   // 'order_id'=> '',
+                    'contract_no'=> $data['contract_no'], //销售合同号
+                    'crm_code'=> $data['crm_code'], //crm编码
+                    'type'=> $type, //收支类型
+                    'credit_at'=> date('Y-m-d H:i:s',time())
+                ];
+                $buyer_credit_order_log_model = new BuyerCreditOrderLogModel();
+                $log_res = $buyer_credit_order_log_model->addRecord($creditLogArr);
+
+                if(!$log_res){
+                    $buyer_credit_model->rollback();
+                }
+            } else {
+                fclose($handle_res[0]);
+                jsonReturn('',MSG::MSG_FAILED,'系统繁忙,请稍后再试!');
+            }
+
+            if($updateRes && $log_res) {
+                $buyer_credit_model->commit();
+                $res= true;
+            }else{
+                $buyer_credit_model->rollback();
+                $res = false;
+            }
+            //释放锁
+            $this->releaseLock($handle_res[0]);
+
+            if($res){
+                $this->setCode(MSG::MSG_SUCCESS);
+                $datajson['data'] = '操作成功!';
+                $this->jsonReturn($datajson);
+            }else{
+                $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }catch (Exception $e) {
+            $buyer_credit_model->rollback();
+        //释放锁
+            $this->releaseLock($handle_res[0]);
+            $res = false;
+            $this->jsonReturn($res);
+        }
+
+    }
+
+//上锁
+    function getLock($lockKey){
+        $handle = fopen($lockKey, "w");
+        if ($handle === false) {
+            Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Lock Error: Lock file [' . $lockKey . '] create faild.', Log::ERR);
+            return [false,false];
+        }
+        return [$handle,flock($handle, LOCK_EX)];
+
+    }
+//释放
+    function releaseLock($handle){
+        if ($handle !== false) {
+            flock($handle, LOCK_UN);
+        }
+        //进行关闭
+        fclose($handle);
+
+    }
+
+    /**授信订单使用回滚机制
+     * @desc
+     */
+    public function buyerCreditPaymentByOrderRollbackAction(){
+        $data = $this->getPut();
+        if(!isset($data['contract_no']) || empty($data['contract_no'])){
+            jsonReturn('',MSG::MSG_FAILED,'');
+        }
+        if(!isset($data['crm_code']) || empty($data['crm_code'])){
+            jsonReturn('',MSG::MSG_FAILED,'');
+        }
+
+        $lockKey = MYPATH . '/public/tmp/orderpayrollback_' . $data['contract_no'] . '.lock';
+        if(!file_exists($lockKey)){
+            $dirName = MYPATH . '/public/tmp';
+            if (!is_dir($dirName)) {
+                if (!mkdir($dirName, 0777, true)) {
+                    Log::write(__CLASS__ . PHP_EOL . __LINE__ . PHP_EOL . 'Notice:' . $dirName . '创建订单合同授信文件锁失败，请尝试手动创建', Log::NOTICE);
+                }
+            }
+        }
+
+        $buyer_credit_order_log_model = new BuyerCreditOrderLogModel();
+        $orderLogWhere = [
+            'crm_code'=>$data['crm_code'],
+            'contract_no'=>$data['contract_no'],
+            'deleted_flag'=>'N'
+        ];
+        $buyerCreditOrderLogInfo = $buyer_credit_order_log_model->getInfo($orderLogWhere);
+        if(!$buyerCreditOrderLogInfo){
+            jsonReturn('',MSG::MSG_FAILED,'没有此合同操作日志!');
+        }
+        $buyer_credit_model = new BuyerCreditModel();
+
+        $buyer_credit_model->startTrans();
+        try{
+            //上锁
+            $handle_res = $this->getLock($lockKey);
+
+            if($handle_res[0] && $handle_res[1]){
+
+                $rollback_left = $buyerCreditOrderLogInfo['credit_available'] - $buyerCreditOrderLogInfo['use_credit_granted'];  //余额
+                $dataCreditRollback['credit_available'] = $rollback_left;
+                $dataCreditRollback['buyer_no'] = $buyerCreditOrderLogInfo['buyer_no'];
+                $dataCreditRollback['crm_code'] = $data['crm_code'];
+                $updateRollback = $buyer_credit_model->update_data($dataCreditRollback);
+                if(!$updateRollback){
+                    $buyer_credit_model->rollback();
+                }
+                //授信使用明细
+                $creditLogRollbackArr = [
+                    'buyer_no'=> $buyerCreditOrderLogInfo['buyer_no'],
+                    'credit_type'=> $buyerCreditOrderLogInfo['credit_type'],
+                    'credit_cur_bn'=> $buyerCreditOrderLogInfo['credit_cur_bn'],
+                    'use_credit_granted'=> -$buyerCreditOrderLogInfo['use_credit_granted'],//使用额度
+                    'credit_available'=> $rollback_left,//剩余可用额度(使用后)
+                    'content'=> '回滚,合同号:'.$data['contract_no'].',合同金额:'.-$buyerCreditOrderLogInfo['use_credit_granted'], //备注内容
+                    // 'order_id'=> '',
+                    'contract_no'=> $data['contract_no'], //销售合同号
+                    'crm_code'=> $data['crm_code'], //crm
+                    'credit_at'=> date('Y-m-d H:i:s',time())
+                ];
+
+                $log_rollback = $buyer_credit_order_log_model->addRecord($creditLogRollbackArr);
+
+                if(!$log_rollback){
+                    $buyer_credit_model->rollback();
+                }
+            } else {
+                fclose($handle_res[0]);
+                jsonReturn('',MSG::MSG_FAILED,'系统繁忙,请稍后再试!');
+            }
+
+            if($updateRollback && $log_rollback) {
+                $buyer_credit_model->commit();
+                $res= true;
+            }else{
+                $buyer_credit_model->rollback();
+                $res = false;
+            }
+            //释放锁
+            $this->releaseLock($handle_res[0]);
+
+            if($res){
+                $this->setCode(MSG::MSG_SUCCESS);
+                $datajson['data'] = '回滚成功!';
+                $this->jsonReturn($datajson);
+            }else{
+                $this->setCode(MSG::MSG_FAILED);
+                $this->setMessage(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }catch (Exception $e) {
+            $buyer_credit_model->rollback();
+            //释放锁
+            $this->releaseLock($handle_res[0]);
+            $res = false;
+            $this->jsonReturn($res);
+        }
+
+    }
+
+    /**
+     * 获取订单授信使用明细
+     */
+    public function getOrderLogListAction() {
+        $data = $this->getPut();
+        $buyer_credit_order_log_model = new BuyerCreditOrderLogModel();
+        if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编号缺失!');
+        }
+        $res = $buyer_credit_order_log_model->getlist($data);
+        $count = $buyer_credit_order_log_model->getCount($data);
+        if (!empty($res)) {
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['count'] = $count;
+            $datajson['data'] = $res;
+        } else {
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = 'Data is empty!';
+        }
+        $this->jsonReturn($datajson);
+    }
 
 }

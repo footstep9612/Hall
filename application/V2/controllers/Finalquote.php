@@ -22,6 +22,10 @@ class FinalquoteController extends PublicController {
         $finalquote = new FinalQuoteModel();
         $employee = new EmployeeModel();
         $quoteModel = new QuoteModel();
+        $transModeModel = new TransModeModel();
+        $countryModel = new CountryModel();
+        $portModel = new PortModel();
+        $boxTypeModel = new BoxTypeModel();
         $where = $this->put_data;
 
         //获取市场报价单详细信息
@@ -46,7 +50,7 @@ class FinalquoteController extends PublicController {
 
             //获取综合报价信息
 
-            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,logi_quote_flag,certification_fee';
+            $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,payment_mode,trade_terms_bn,payment_period,from_country,to_country,from_port,to_port,trans_mode_bn,bank_interest,period_of_validity,exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,logi_quote_flag,certification_fee';
 
             $quotedata = $quoteModel->field($fields)->where('inquiry_id='.$quotewhere['inquiry_id'])->find();
 
@@ -61,9 +65,18 @@ class FinalquoteController extends PublicController {
                 $quoteinfo['quote_remarks'] = $quotedata['quote_remarks'];    //报价备注
                 $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
                 $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
-                $quoteinfo['from_country'] = $quotedata['dispatch_place'];    //起始发运地
-                $quoteinfo['to_country'] = $quotedata['delivery_addr'];    //目的地
+                $quoteinfo['dispatch_place'] = $quotedata['dispatch_place'];    //起始发运地
+                $quoteinfo['delivery_addr'] = $quotedata['delivery_addr'];    //交货地点
+                $quoteinfo['from_country'] = $quotedata['from_country'];    //起运国
+                $quoteinfo['from_country_name'] = $countryModel->getCountryNameByBn($quotedata['from_country'], $this->lang);
+                $quoteinfo['to_country'] = $quotedata['to_country'];    //目的国
+                $quoteinfo['to_country_name'] = $countryModel->getCountryNameByBn($quotedata['to_country'], $this->lang);
+                $quoteinfo['from_port'] = $quotedata['from_port'];    //起运港
+                $quoteinfo['from_port_name'] = $portModel->getPortNameByBn($quotedata['from_country'], $quotedata['from_port'], $this->lang);
+                $quoteinfo['to_port'] = $quotedata['to_port'];    //目的港
+                $quoteinfo['to_port_name'] = $portModel->getPortNameByBn($quotedata['to_country'], $quotedata['to_port'], $this->lang);
                 $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
+                $quoteinfo['trans_mode_name'] = $transModeModel->getTransModeByBn($quotedata['trans_mode_bn'], $this->lang);
                 $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
                 $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
@@ -87,6 +100,15 @@ class FinalquoteController extends PublicController {
             $quoteLogiFee = $quotetlogifee->getJoinDetail($quotewhere);
 
             if (!empty($quoteLogiFee)) {
+                $quoteLogiFee['from_country_name'] = $countryModel->getCountryNameByBn($quoteLogiFee['from_country'], $this->lang);
+                $quoteLogiFee['to_country_name'] = $countryModel->getCountryNameByBn($quoteLogiFee['to_country'], $this->lang);
+                $quoteLogiFee['from_port_name'] = $portModel->getPortNameByBn($quoteLogiFee['from_country'], $quoteLogiFee['from_port'], $this->lang);
+                $quoteLogiFee['to_port_name'] = $portModel->getPortNameByBn($quoteLogiFee['to_country'], $quoteLogiFee['to_port'], $this->lang);
+                $quoteLogiFee['trans_mode_name'] = $transModeModel->getTransModeByBn($quoteLogiFee['trans_mode_bn'], $this->lang);
+                $quoteLogiFee['logi_trans_mode_name'] = $transModeModel->getTransModeByBn($quoteLogiFee['logi_trans_mode_bn'], $this->lang);
+                $quoteLogiFee['logi_from_port_name'] = $portModel->getPortNameByBn($quoteLogiFee['from_country'], $quoteLogiFee['logi_from_port'], $this->lang);
+                $quoteLogiFee['logi_to_port_name'] = $portModel->getPortNameByBn($quoteLogiFee['to_country'], $quoteLogiFee['logi_to_port'], $this->lang);
+                $quoteLogiFee['logi_box_type_name'] = $boxTypeModel->getBoxTypeNameByBn($quoteLogiFee['logi_box_type_bn'], $this->lang);
 
                 $quoteLogiFee['land_freight_usd'] = round($quoteLogiFee['land_freight'] / $this->_getRateUSD($quoteLogiFee['land_freight_cur']), 8);
     	        $quoteLogiFee['port_surcharge_usd'] = round($quoteLogiFee['port_surcharge'] / $this->_getRateUSD($quoteLogiFee['port_surcharge_cur']), 8);
