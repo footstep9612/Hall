@@ -636,7 +636,7 @@ class BuyerModel extends PublicModel {
         $country = new CountryModel();
         $order = new OrderModel();
         $agent = new BuyerAgentModel();
-        foreach($info as $k => $v){
+        foreach($info as $k => &$v){
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }else{
@@ -655,6 +655,7 @@ class BuyerModel extends PublicModel {
             }
             $info[$k]['agent_id'] = $agentInfo['id'];
             $info[$k]['employee_name'] = $agentInfo['name'];
+            $info[$k]['checked_at'] = $agentInfo['checked_at'];
 
             if($v['source']==1 && empty($info[$k]['employee_name'])){
                 $name=$this->table('erui_sys.employee')->field('name')
@@ -665,7 +666,12 @@ class BuyerModel extends PublicModel {
             }
 //            $orderInfo=$order->statisOrder($v['id']);
 //            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
-
+            if(!empty($v['created_by'])){
+                $employee=$this->table('erui_sys.employee')->field('name')->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
+                $v['created_name']=$employee['name'];
+            }else{
+                $v['created_name']='';
+            }
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
         }
