@@ -121,7 +121,7 @@ class NotificationController extends PublicController {
                         'table' => (new BuyerModel)->getTableName(), 'where' => $where], true)
                     ->select();
             $count = 0;
-            echo $inquiry_model->_sql();
+
             if ($list) {
                 foreach ($list as $val) {
                     $count += isset($val['tp_count']) ? $val['tp_count'] : 0;
