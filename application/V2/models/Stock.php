@@ -235,7 +235,7 @@ class StockModel extends PublicModel {
             $data['price_symbol'] = $condition['price_symbol'];
         }
         if(isset($condition['show_flag'])){  //上下架
-            $data['show_flag'] = $condition['show_flag'] ? 'Y' : 'N';
+            $data['show_flag'] = ($condition['show_flag']===true || $condition['show_flag']=='Y' || $condition['show_flag']==1 || $condition['show_flag']=='1') ? 'Y' : 'N';
         }
 
         $this->startTrans();
