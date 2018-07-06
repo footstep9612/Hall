@@ -175,9 +175,6 @@ class StockCountryAdsModel extends PublicModel {
      * @desc  现货国家
      */
     public function updateData($id, $country_bn, $img_name, $img_url, $link, $group, $lang, $show_type = null) {
-
-
-
         $data['country_bn'] = $country_bn;
         $data['img_name'] = $img_name;
         $data['img_url'] = $img_url;
