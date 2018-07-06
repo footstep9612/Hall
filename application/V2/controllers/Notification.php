@@ -109,6 +109,7 @@ class NotificationController extends PublicController {
             'deleted_flag' => 'N'
         ];
         $inquiry_model = new InquiryModel();
+
         if ($this->user['country_bn']) {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
@@ -120,7 +121,7 @@ class NotificationController extends PublicController {
                         'table' => (new BuyerModel)->getTableName(), 'where' => $where], true)
                     ->select();
             $count = 0;
-
+            echo $inquiry_model->_sql();
             if ($list) {
                 foreach ($list as $val) {
                     $count += isset($val['tp_count']) ? $val['tp_count'] : 0;
@@ -135,7 +136,18 @@ class NotificationController extends PublicController {
 
             $count = $inquiry_model->where($where_inquiry)->count('id') ?: 0;
         }
-        $this->jsonReturn($count);
+
+
+        header('Content-Type:application/json; charset=utf-8');
+
+        if ($count) {
+            $this->send['data'] = intval($count);
+        } elseif ($count === 0) {
+            $this->send['data'] = 0;
+        }
+        $this->send['code'] = $this->getCode();
+        $this->send['message'] = L('SUCCESS', null, '成功！');
+        exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
     }
 
     public function createAction() {
