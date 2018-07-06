@@ -209,9 +209,12 @@ class StockCountryAdsModel extends PublicModel {
         return $this->where(['id' => $id])->save($data);
     }
 
-    public function DeletedData($id) {
-
-
+    /**
+     * 删除
+     * @param $id
+     * @return bool
+     */
+    public function deleteData($id) {
         $data['deleted_flag'] = 'Y';
         $data['deleted_at'] = date('Y-m-d H:i:s');
         $data['deleted_by'] = defined('UID') ? UID : 0;
