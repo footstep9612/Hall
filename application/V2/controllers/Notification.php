@@ -36,9 +36,6 @@ class NotificationController extends PublicController {
         $this->_remindList($list);
         foreach ($list as &$item) {
             $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);
-            $item['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $item['country_bn']])->getField('market_area_bn');
-            $item['area_name'] = $marketAreaModel->getAreaNameByBn($item['area_bn'], $this->lang);
-            $item['country_name'] = $countryModel->getCountryNameByBn($item['country_bn'], $this->lang);
         }
 
         if ($list) {
