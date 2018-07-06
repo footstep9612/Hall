@@ -109,8 +109,7 @@ class NotificationController extends PublicController {
             'deleted_flag' => 'N'
         ];
         $inquiry_model = new InquiryModel();
-
-        if ($this->user['country_bn']) {
+        if (!empty($this->user['country_bn']) && in_array('201711242', $this->user['role_no'])) {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
