@@ -20,7 +20,7 @@ class PriceStrategyDiscountModel extends PublicModel{
      * @param $input
      * @return bool|mixed
      */
-    public function getList($input){
+    public function getList($input,$order){
         $where = [
             'deleted_at'=>['exp', 'is null']
         ];
@@ -35,7 +35,7 @@ class PriceStrategyDiscountModel extends PublicModel{
         }
 
         try{
-            return $this->field('id,group,group_id,sku,price,discount,promotion_price,min_purchase_qty,max_purchase_qty,created_by,created_at')->where($where)->select();
+            return $this->field('id,group,group_id,sku,price,discount,promotion_price,min_purchase_qty,max_purchase_qty,created_by,created_at')->where($where)->order($order)->select();
         }catch (Exception $e){
             return false;
         }

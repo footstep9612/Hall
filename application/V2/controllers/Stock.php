@@ -71,6 +71,13 @@ class StockController extends PublicController {
                 $this->_setStrategy($list['data'],$condition['special_id']);
             }
             if(isset($condition['show_cats']) && $condition['show_cats']){
+                if (empty($condition['country_bn'])) {
+                    jsonReturn('', MSG::ERROR_PARAM, '请选择国家!');
+                }
+                $lang = $this->getPut('lang');
+                if (empty($lang)) {
+                    jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
+                }
                 $this->_setShowcats($list['data'], $lang, $condition['country_bn']);
             }
             jsonReturn($list);
@@ -594,6 +601,13 @@ class StockController extends PublicController {
         }
     }
 
+    /**
+     * 初始化价格策略详情
+     * @author link
+     * @param $arr
+     * @param $special_id
+     * @date 2018-07-06
+     */
     private function _setStrategy(&$arr,$special_id){
         if ($arr) {
             $skus = [];
@@ -602,20 +616,20 @@ class StockController extends PublicController {
             }
 
             $psdmodel = new PriceStrategyDiscountModel();
-            $strategy = $psdmodel->getList(['group'=>'STOCK','group_id'=>$special_id,'sku'=>$skus]);
-            jsonReturn($strategy);
-
-
-
-
+            $strategy = $psdmodel->getList(['group'=>'STOCK','group_id'=>$special_id,'sku'=>$skus],'min_purchase_qty ASC');
+            $strategyAry = [];
+            if($strategy){
+                foreach($strategy as $key => $item){
+                    $strategyAry[$item['sku']][] = $item;
+                }
+            }
 
             foreach ($arr as $key => $val) {
-                if (trim($val['sku']) && isset($scats[trim($val['sku'])])) {
-                    $val['show_cats'] = $scats[trim($val['sku'])];
+                if (trim($val['sku']) && isset($strategyAry[trim($val['sku'])])) {
+                    $val['price_range'] = $strategyAry[trim($val['sku'])];
                 } else {
-                    $val['show_cats'] = [];
+                    $val['price_range'] = [];
                 }
-                rsort($val['show_cats']);
                 $arr[$key] = $val;
             }
         }
