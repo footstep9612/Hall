@@ -420,7 +420,6 @@ class BuyerModel extends PublicModel {
         }else{  //国家
             $country_bn=$data['area_country'][1];
             $cond.=" and buyer.country_bn='$country_bn'";
-            echo $cond;
         }
 
         foreach($data as $k => $v){
