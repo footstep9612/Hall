@@ -758,22 +758,32 @@ class UserController extends PublicController {
      * @time 2018-06-19
      */
     public function fastEntranceAction() {
-        $roleUserModel = new RoleUserModel();
-        $menu = $roleUserModel->getUserMenu($this->user['id']);
-        $mapping = [
-            'show_create_inquiry' => '询单管理',
-            'show_create_order' => '订单列表',
-            'show_create_buyer' => '客户信息管理',
-            'show_create_visit' => '客户信息管理',
-            'show_demand_feedback' => '客户需求反馈',
-            'show_request_permission' => '授信管理',
-            'show_supplier_check' => '供应商审核',
-            'show_goods_check' => 'SPU审核'
-        ];
-        foreach ($mapping as $k => $v) {
-            $data[$k]['show'] = 'N';
+
+        $redis_key = 'user_fastentrance_' . $this->user['id'];
+        $data = null;
+        if (!redisExist($redis_key)) {
+
+            $roleUserModel = new RoleUserModel();
+            $menu = $roleUserModel->getUserMenu($this->user['id']);
+            $mapping = [
+                'show_create_inquiry' => '询单管理',
+                'show_create_order' => '订单列表',
+                'show_create_buyer' => '客户信息管理',
+                'show_create_visit' => '客户信息管理',
+                'show_demand_feedback' => '客户需求反馈',
+                'show_request_permission' => '授信管理',
+                'show_supplier_check' => '供应商审核',
+                'show_goods_check' => 'SPU审核'
+            ];
+            foreach ($mapping as $k => $v) {
+                $data[$k]['show'] = 'N';
+            }
+            $this->_scanMenu($menu, $mapping, $data);
+            redisSet($redis_key, json_encode($data), 360);
+        } else {
+
+            $data = json_decode(redisGet($redis_key), true);
         }
-        $this->_scanMenu($menu, $mapping, $data);
         $this->jsonReturn([
             'code' => 1,
             'message' => L('SUCCESS'),
