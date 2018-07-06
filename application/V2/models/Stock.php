@@ -271,7 +271,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
- /*   public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
+   public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
 
         $where = ['country_bn' => $country_bn, 'lang' => $lang];
         if (is_array($sku)) {
@@ -288,7 +288,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }*/
+    }
 
     /**
      * Description of 更新现货
