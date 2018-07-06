@@ -250,7 +250,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-/*    public function UpdateStock($country_bn, $sku, $lang, $stock) {
+    public function UpdateStock($country_bn, $sku, $lang, $stock) {
 
         $where = ['country_bn' => $country_bn, 'sku' => $sku, 'lang' => $lang];
         $data = [
@@ -262,7 +262,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }*/
+    }
 
     /**
      * Description of 更新排序
