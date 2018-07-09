@@ -43,7 +43,7 @@ class NoticeController extends PublicController {
             $condtion['lang'] = $this->getPut('lang', 'zh');
         }
         $notice_model = new System_NoticeModel();
-        $total = $notice_model->count($condtion);
+        $total = $notice_model->getCount($condtion);
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
