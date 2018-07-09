@@ -87,7 +87,7 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
         $data = [];
         $list = $this->alias('s')
-                ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
+                ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
@@ -219,6 +219,9 @@ class StockModel extends PublicModel {
         if(isset($condition['sort_order']) && $condition['sort_order']!==''){
             $data['sort_order'] = intval($condition['sort_order']);
         }
+        if(isset($condition['price'])){
+            $data['price'] = ( $condition['price'] != '') ? trim($condition['price']) : 0;
+        }
         if(isset($condition['price_strategy_type'])){
             $data['price_strategy_type'] = $condition['price_strategy_type'];
         }
@@ -228,11 +231,9 @@ class StockModel extends PublicModel {
         if(isset($condition['strategy_validity_end']) && !empty($condition['strategy_validity_end'])){        //策略有效期结束时间
             $data['strategy_validity_end'] = $condition['strategy_validity_end'];
         }
-        if(isset($condition['price_cur_bn'])){  //币种
-            $data['price_cur_bn'] = $condition['price_cur_bn'];
-        }
-        if(isset($condition['price_symbol'])){  //币种符号
-            $data['price_symbol'] = $condition['price_symbol'];
+        if(isset($condition['price_cur_bn']) && is_array($condition['price_cur_bn'])){  //币种
+            $data['price_cur_bn'] = $condition['price_cur_bn']['bn'];
+            $data['price_symbol'] = $condition['price_cur_bn']['symbol'];   //币种符号
         }
         if(isset($condition['show_flag'])){  //上下架
             $data['show_flag'] = ($condition['show_flag']===true || $condition['show_flag']=='Y' || $condition['show_flag']==1 || $condition['show_flag']=='1') ? 'Y' : 'N';
