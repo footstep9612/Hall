@@ -29,7 +29,7 @@ class System_NoticeModel extends PublicModel {
                         ->select();
     }
 
-    public function count($request) {
+    public function getCount($request = null) {
         $where = ['deleted_flag' => 'N',];
         if (!empty($request['status'])) {
 

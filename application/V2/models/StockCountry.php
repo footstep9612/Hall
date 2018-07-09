@@ -155,6 +155,7 @@ class StockCountryModel extends PublicModel {
             $where['id'] = intval($condition['id']);
         }elseif(isset($condition['country_bn'])){
             $where['country_bn'] = $condition['country_bn'];
+            $where['lang'] = $condition['lang'];
         }else{
             jsonReturn('', MSG::ERROR_PARAM, '请传递id或country_bn');
         }
