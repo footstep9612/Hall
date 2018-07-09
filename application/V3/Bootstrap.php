@@ -7,7 +7,7 @@
  */
 class Bootstrap extends Yaf_Bootstrap_Abstract {
 
-    public function _initSession($dispatcher) {
+    public function _initSession() {
         Yaf_Session::getInstance()->start();
     }
 

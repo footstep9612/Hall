@@ -125,11 +125,11 @@ class PublicModel extends Model {
         if (!$field) {
             $field = $name;
         }
-        if($type === 'int') {
+        if ($type === 'int') {
             if (isset($condition[$name])) {
                 $where[$field] = intval($condition[$name]);
             }
-        }elseif ($type === 'string') {
+        } elseif ($type === 'string') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $where[$field] = trim($condition[$name]);
             } elseif ($default) {
@@ -214,164 +214,6 @@ class PublicModel extends Model {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return false;
-        }
-    }
-
-// 插入数据前的回调方法
-    protected function _before_insert(&$data, $options) {
-        if (isset($data['id']) && empty($data['id'])) {
-            unset($data['id']);
-        }
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-
-        $uid = defined('UID') ? UID : 0;
-
-        self::$op_log_id = $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
-    }
-
-    // 插入成功后的回调方法
-    protected function _after_insert($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '新增成功!', 'Y');
-    }
-
-    // 更新数据前的回调方法
-    protected function _before_update(&$data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-
-        self::$op_log_id = $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始更新!', 'N');
-    }
-
-    // 更新成功后的回调方法
-    protected function _after_update($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '更新成功!', 'Y');
-    }
-
-    // 删除数据前的回调方法
-    protected function _before_delete($options) {
-        $obj_id = isset($options['id']) && $options['id'] ? $options['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        self::$op_log_id = $this->_addlog('DELETE', $obj_id, $uid, $options, date('Y-m-d H:i:s') . '开始删除', 'N');
-    }
-
-    // 更新成功后的回调方法
-    protected function _after_delete($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('DELETE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '删除成功', 'Y');
-    }
-
-    /**
-     * 新增日志文件
-     * @param  string $action 操作 CREATE、UPDATE、DELETE、CHECK
-     * @param  string $obj_id 对象ID
-     * @param  string $uid 操作者ID
-     * @param  mix $op_note 比如具体审核意见。如果是修改，可以是json串
-     * @param  string $op_log 文本格式：yyyy-mm-dd hh:mm:ss 张三创建询单1
-     * @param  string $op_result 操作结果：Y-成功；N-失败
-     * @param  string $category 操作者ID
-     * @return mix
-     * @date 2017-08-01
-     * @author zyg
-     */
-    protected function _addlog($action, $obj_id, $uid, $op_note = [], $op_log = '', $op_result = 'Y', $category = null) {
-        try {
-            $op_log_model = new OpLogModel();
-            if (!$category) {
-                $data['category'] = $this->tableName;
-            } else {
-                $data['category'] = $category;
-            }
-            $data['action'] = $action;
-            $data['obj_id'] = $obj_id;
-            $data['op_log'] = $op_log;
-            $data['op_note'] = $op_note;
-            $data['op_result'] = $op_result;
-            if (self::$op_log_id) {
-                return $op_log_model->update_data($data, self::$op_log_id, $uid);
-            } else {
-                return $op_log_model->create_data($data, $uid);
-            }
-
-            return $op_log_model->create_data($data, $uid);
-        } catch (Exception $ex) {
-            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
-            LOG::write($ex->getMessage(), LOG::ERR);
-            return false;
-        }
-    }
-
-    /**
-     * 根据id补全用户名称
-     * @param $arr
-     */
-    public function _setUser(&$arr) {
-        $user_ids = [];
-        if(count($arr) == count($arr,1)){
-            foreach ($arr as $key => $item) {
-                if ($key == 'created_by' && $item!=0) {
-                    $user_ids[] = $item;
-                }
-                if ($key == 'updated_by' && $item!=0) {
-                    $user_ids[] = $item;
-                }
-                if ($key == 'deleted_by' && $item!=0) {
-                    $user_ids[] = $item;
-                }
-            }
-        }else{
-            foreach ($arr as $key => $item) {
-                if ($item['created_by'] && $item['created_by']!=0) {
-                    $user_ids[] = $item['created_by'];
-                }
-                if ($item['updated_by'] && $item['updated_by']!=0) {
-                    $user_ids[] = $item['updated_by'];
-                }
-                if ($item['deleted_by'] && $item['deleted_by']!=0) {
-                    $user_ids[] = $item['deleted_by'];
-                }
-            }
-        }
-
-        $employee_model = new EmployeeModel();
-        $usernames = $employee_model->getUserNamesByUserids($user_ids);
-        if($usernames){
-            if(count($arr) == count($arr,1)){
-                foreach ( $arr as $key => $val ) {
-                    if ( $key == 'created_by' ) {
-                        $arr[ 'created_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val ] : '';
-                    }
-                    if ( $key == 'updated_by' ) {
-                        $arr[ 'updated_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val] : '';
-                    }
-                    if ( $key == 'deleted_by' ) {
-                        $arr[ 'deleted_by_name' ] = isset( $usernames[ $val ] )  ? $usernames[ $val] : '';
-                    }
-                }
-            }else {
-                foreach ( $arr as $key => $val ) {
-                    if ( $val[ 'created_by' ] && isset( $usernames[ $val[ 'created_by' ] ] ) ) {
-                        $val[ 'created_by_name' ] = $usernames[ $val[ 'created_by' ] ];
-                    } else {
-                        $val[ 'created_by_name' ] = '';
-                    }
-                    if ( $val[ 'updated_by' ] && isset( $usernames[ $val[ 'updated_by' ] ] ) ) {
-                        $val[ 'updated_by_name' ] = $usernames[ $val[ 'updated_by' ] ];
-                    } else {
-                        $val[ 'updated_by_name' ] = '';
-                    }
-                    if ( $val[ 'deleted_by' ] && isset( $usernames[ $val[ 'deleted_by' ] ] ) ) {
-                        $val[ 'deleted_by_name' ] = $usernames[ $val[ 'deleted_by' ] ];
-                    } else {
-                        $val[ 'deleted_by_name' ] = '';
-                    }
-                    $arr[ $key ] = $val;
-                }
-            }
         }
     }
 

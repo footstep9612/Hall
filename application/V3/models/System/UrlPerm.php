@@ -11,7 +11,7 @@
  *
  * @author zyg
  */
-class SYstem_UrlPermModel extends PublicModel {
+class System_UrlPermModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'func_perm';
@@ -28,7 +28,7 @@ class SYstem_UrlPermModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlist($data, $limit, $order = 'sort') {
+    public function getlist($data, $limit = null, $order = 'sort') {
         if (!empty($limit)) {
             //,'false' as check
             return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")
@@ -90,6 +90,22 @@ class SYstem_UrlPermModel extends PublicModel {
      */
     public function getMenuIdByName($name) {
         return $this->where(['fn' => $name, 'parent_id' => '0'])->getField('id') ?: 0;
+    }
+
+    public function update_data($data, $where) {
+        $arr = $this->create($data);
+        if (!empty($data['parent_id']) && $data['parent_id'] != $data['id']) {
+            $arr['top_parent_id'] = $this->getOneLevelMenuId($data['parent_id']);
+        } elseif (!empty($data['parent_id']) && $data['parent_id'] == $data['id']) {
+            $arr['top_parent_id'] = $data['id'];
+        } elseif (!empty($data['id'])) {
+            $arr['top_parent_id'] = $this->getOneLevelMenuId($data['id']);
+        }
+        if (!empty($where)) {
+            return $this->where($where)->save($arr);
+        } else {
+            return false;
+        }
     }
 
 }

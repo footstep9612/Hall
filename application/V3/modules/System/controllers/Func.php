@@ -28,9 +28,7 @@ class FuncController extends PublicController {
             $condition['lang'] = $this->getPut('lang', 'zh');
         }
         $roleUserModel = new System_RoleUserModel();
-
         $userId = !empty($condition['user_id']) ? trim($condition['user_id']) : $this->user['id'];
-
         $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         if (!empty($data)) {
             $datajson['code'] = 1;
@@ -43,6 +41,7 @@ class FuncController extends PublicController {
     }
 
     public function shortcutsAction() {
+
         if ($this->getMethod() === 'GET') {
             $data = $this->getParam();
             $data['lang'] = $this->getParam('lang', 'zh');
@@ -53,6 +52,7 @@ class FuncController extends PublicController {
 
         $redis_key = 'user_fastentrance_' . $this->user['id'];
         $data = null;
+
         if (!redisExist($redis_key)) {
             $mapping = [
                 'show_create_inquiry' => '询单管理',
@@ -64,19 +64,15 @@ class FuncController extends PublicController {
                 'show_supplier_check' => '供应商审核',
                 'show_goods_check' => 'SPU审核'
             ];
-            $keys = array_keys($mapping);
+            $values = array_values($mapping);
             $roleUserModel = new System_RoleUserModel();
-            $menu = $roleUserModel->getUserMenu($this->user['id'], ['fn' => $keys], $this->lang);
-
-
-
-//            foreach ($mapping as $k => $v) {
-//                $data[$k]['show'] = 'N';
-//            }
+            $menu = $roleUserModel->getUserMenu($this->user['id'], ['fn' => $values], $this->lang);
+            foreach ($mapping as $k => $v) {
+                $data[$k]['show'] = 'N';
+            }
             $this->_scanMenu($menu, $mapping, $data);
             redisSet($redis_key, json_encode($data), 360);
         } else {
-
             $data = json_decode(redisGet($redis_key), true);
         }
         $this->jsonReturn([
@@ -96,19 +92,39 @@ class FuncController extends PublicController {
      * @time 2018-06-19
      */
     private function _scanMenu($menu, $mapping, &$data) {
-        $urlPermModel = new SYstem_UrlPermModel();
+
         foreach ($menu as $item) {
             foreach ($mapping as $k => $v) {
                 if ($item['fn'] == $v) {
                     $data[$k]['show'] = 'Y';
-                    $data[$k]['parent_id'] = $urlPermModel
-                            ->getOneLevelMenuId($item['func_perm_id']);
+                    $data[$k]['parent_id'] = $item['top_parent_id'];
                 }
             }
-            if (isset($item['children'])) {
-                $this->_scanMenu($item['children'], $mapping, $data);
-            }
         }
+    }
+
+    /**
+     * @desc 扫描菜单
+     *
+     * @param array $menu 菜单数据
+     * @param array $mapping 菜单映射
+     * @param array $data 需处理的数据
+     * @author liujf
+     * @time 2018-06-19
+     */
+    public function batchSetTopParentIdAction() {
+
+        set_time_limit(0);
+        $urlperm_model = new System_UrlPermModel();
+        $list = $urlperm_model->where(['isNull(top_parent_id)'])->select();
+        foreach ($list as $val) {
+            $falg = $urlperm_model->update_data($val, ['id' => $val['id']]);
+        }
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('SUCCESS'),
+            'data' => null
+        ]);
     }
 
 }

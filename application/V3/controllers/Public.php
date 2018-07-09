@@ -25,24 +25,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $this->headers = getHeaders();
         $this->put_data = $this->getPut();
-        if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            $this->setLang($this->getPut('lang', 'en'));
+
+        $this->user = $GLOBALS['SSO_USER'];
+        $this->_setUid($this->user);
+        if (isset($this->user['id']) && $this->user['id'] > 0) {
+            // 加载php公共配置文件
+            $this->loadCommonConfig();
+            // 语言检查
+            $this->checkLanguage();
+            // 设置语言
+            $this->setLang(LANG_SET);
         } else {
-            $this->user = $GLOBALS['SSO_USER'];
-            $this->_setUid($this->user);
-            if (isset($this->user['id']) && $this->user['id'] > 0) {
-                // 加载php公共配置文件
-                $this->loadCommonConfig();
-                // 语言检查
-                $this->checkLanguage();
-                // 设置语言
-                $this->setLang(LANG_SET);
-            } else {
-                header("Content-Type: application/json");
-                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
-            }
+            header("Content-Type: application/json");
+            exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
         }
     }
 
@@ -339,8 +334,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
     }
 
     function think_filter(&$value) {
-        // TODO 其他安全过滤
-        // 过滤查询特殊字符
+// TODO 其他安全过滤
+// 过滤查询特殊字符
         if (preg_match('/^(EXP|NEQ|GT|EGT|LT|ELT|OR|XOR|LIKE|NOTLIKE|NOT BETWEEN|NOTBETWEEN|BETWEEN|NOTIN|NOT IN|IN)$/i', $value)) {
             $value .= ' ';
         }
@@ -534,15 +529,15 @@ abstract class PublicController extends Yaf_Controller_Abstract {
      * @time 2018-01-25
      */
     public function checkLanguage() {
-        // 不开启语言包功能，仅仅加载框架语言文件直接返回
+// 不开启语言包功能，仅仅加载框架语言文件直接返回
         if (!C('LANG_SWITCH_ON', null, false)) {
             return;
         }
         $langSet = C('DEFAULT_LANG');
         $varLang = C('VAR_LANGUAGE', null, 'l');
         $langList = C('LANG_LIST', null, 'zh');
-        // 启用了语言包功能
-        // 根据是否启用自动侦测设置获取语言选择
+// 启用了语言包功能
+// 根据是否启用自动侦测设置获取语言选择
         if (C('LANG_AUTO_DETECT', null, true)) {
             $langParam = $this->getPut($varLang);
             $langHeader = getHeaders()[$varLang];
@@ -571,19 +566,19 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $langSet = C('DEFAULT_LANG');
             }
         }
-        // 定义当前语言
+// 定义当前语言
         define('LANG_SET', strtolower($langSet));
-        // 读取公共语言包
+// 读取公共语言包
         $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
         if (is_file($file)) {
             L(include $file);
         }
-        // 读取模块语言包
+// 读取模块语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
         if (is_file($file)) {
             L(include $file);
         }
-        // 读取当前控制器语言包
+// 读取当前控制器语言包
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
         if (is_file($file)) {
             L(include $file);
@@ -655,7 +650,7 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $response = json_decode(MailHelper::sendSms($data), true);
 
-        //记录短信
+//记录短信
         if ($response['code'] == 200) {
 
             $smsLog = new SmsLogModel();

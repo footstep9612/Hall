@@ -24,45 +24,44 @@ class System_RoleUserModel extends PublicModel {
     }
 
     public function userRoleList($user_id, $pid = '', $where = []) {
+
         if ($user_id) {
-            if ($user_id) {
-                $fields = ' `fp`.`id` as func_perm_id,`fp`.`logo_name`,'
-                        . '`fp`.`logo_url`,`fp`.`url`,`fp`.`sort`,`fp`.`fn`,'
-                        . '`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`,'
-                        . '`fp`.`show_name`,`fp`.`show_name_en`,`fp`.`show_name_es`,'
-                        . '`fp`.`show_name_ru`,`fp`.`parent_id` ,`fp`.`source`';
-                $employee_model = new EmployeeModel();
+            $fields = ' `fp`.`id` as func_perm_id,`fp`.`logo_name`,'
+                    . '`fp`.`logo_url`,`fp`.`url`,`fp`.`sort`,`fp`.`fn`,'
+                    . '`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`,'
+                    . '`fp`.`show_name`,`fp`.`show_name_en`,`fp`.`show_name_es`,'
+                    . '`fp`.`show_name_ru`,`fp`.`parent_id` ,`fp`.`source`,fp.top_parent_id';
+            $employee_model = new System_EmployeeModel();
 
-                if (!empty($user_id)) {
-                    $where['rm.employee_id'] = $user_id;
-                }
-                if (!empty($pid) && is_string($pid)) {
-                    $where['fp.parent_id'] = $pid;
-                } elseif (!empty($pid) && is_array($pid)) {
-                    $where['fp.parent_id'] = ['in', $pid];
-                }
-
-                $where[] = '`fp`.`id` is not null';
-                $data = $employee_model
-                        ->alias('u')
-                        ->field($fields)
-                        ->where($where)
-                        ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
-                        ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id')
-                        ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
-                        ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
-                        ->group('fp.id')
-                        ->order('`fp`.`sort` asc')
-                        ->select();
-                $ret = [];
-
-                if (!empty($data)) {
-                    foreach ($data as $val) {
-                        $ret[$val['parent_id']][] = $val;
-                    }
-                }
-                return $ret;
+            if (!empty($user_id)) {
+                $where['rm.employee_id'] = $user_id;
             }
+            if (!empty($pid) && is_string($pid)) {
+                $where['fp.parent_id'] = $pid;
+            } elseif (!empty($pid) && is_array($pid)) {
+                $where['fp.parent_id'] = ['in', $pid];
+            }
+
+            $where[] = '`fp`.`id` is not null';
+            $data = $employee_model
+                    ->alias('u')
+                    ->field($fields)
+                    ->where($where)
+                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id', 'LEFT')
+                    ->join((new System_RoleModel())->getTableName() . ' r on r.id=rm.role_id', 'LEFT')
+                    ->join((new System_RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id', 'LEFT')
+                    ->join((new System_FuncPermModel())->getTableName() . '  fp on fp.id=rap.func_perm_id', 'LEFT')
+                    ->group('fp.id')
+                    ->order('`fp`.`sort` asc')
+                    ->select();
+            $ret = [];
+
+            if (!empty($data)) {
+                foreach ($data as $val) {
+                    $ret[] = $val;
+                }
+            }
+            return $ret;
         }
     }
 
@@ -162,6 +161,7 @@ class System_RoleUserModel extends PublicModel {
         }
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
         $data = $this->userRoleList($userId, $parentId, $where);
+
         return $this->_funcChildren($userId, $data, isset($condition['source']) ? trim($condition['source']) : '', $fn, $lang, $condition['only_one_level']);
     }
 
@@ -233,8 +233,8 @@ class System_RoleUserModel extends PublicModel {
                     . '`fp`.`logo_url`,`fp`.`url`,`fp`.`sort`,`fp`.`fn`,'
                     . '`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`,'
                     . '`fp`.`show_name`,`fp`.`show_name_en`,`fp`.`show_name_es`,'
-                    . '`fp`.`show_name_ru`,`fp`.`parent_id` ,`fp`.`source`';
-            $employee_model = new EmployeeModel();
+                    . '`fp`.`show_name_ru`,`fp`.`parent_id` ,`fp`.`source`,fp.top_parent_id';
+            $employee_model = new System_EmployeeModel();
             $where = [];
             if (!empty($user_id)) {
                 $where['rm.employee_id'] = $user_id;
@@ -255,10 +255,10 @@ class System_RoleUserModel extends PublicModel {
                     ->alias('u')
                     ->field($fields)
                     ->where($where)
-                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
-                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id')
-                    ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
-                    ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
+                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id', 'LEFT')
+                    ->join((new System_RoleModel())->getTableName() . ' r on r.id=rm.role_id', 'LEFT')
+                    ->join((new System_RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id', 'LEFT')
+                    ->join((new System_FuncPermModel())->getTableName() . ' fp on fp.id=rap.func_perm_id', 'LEFT')
                     ->group('fp.id')
                     ->order('`fp`.`sort` asc')
                     ->select();
