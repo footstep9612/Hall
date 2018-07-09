@@ -48,29 +48,40 @@ class StockController extends PublicController {
      */
     public function ListAction() {
         $condition = $this->getPut();
-        if (empty($condition['country_bn'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
+        if(!isset($condition['special_id'])){
+            if (empty($condition['country_bn'])) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('请选择国家!');
+                $this->jsonReturn();
+            }
+            $lang = $this->getPut('lang');
+            if (empty($lang)) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('请选择语言!');
+                $this->jsonReturn();
+            }
         }
-        $lang = $this->getPut('lang');
-        if (empty($lang)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
+
         $stock_model = new StockModel();
         $list = $stock_model->getList($condition);
         if ($list) {
             $this->_setCountry($list['data']);
-            if(isset($condition['costprices']) && $condition['costprices']){
-                $this->_setConstPrice($list['data'], $condition['country_bn']);
+            if(isset($condition['strategy']) && $condition['strategy'] && isset($condition['special_id'])){
+                //$this->_setConstPrice($list['data']);
+                $this->_setStrategy($list['data'],$condition['special_id']);
             }
             if(isset($condition['show_cats']) && $condition['show_cats']){
+                if (empty($condition['country_bn'])) {
+                    jsonReturn('', MSG::ERROR_PARAM, '请选择国家!');
+                }
+                $lang = $this->getPut('lang');
+                if (empty($lang)) {
+                    jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
+                }
                 $this->_setShowcats($list['data'], $lang, $condition['country_bn']);
             }
             jsonReturn($list);
-        } elseif ($list === null) {
+        } elseif (empty($list)) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');
             $this->jsonReturn(null);
@@ -89,28 +100,27 @@ class StockController extends PublicController {
      * @desc  现货
      */
     public function InfoAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
-        $lang = $this->getPut('lang');
-        if (empty($lang)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
+        $input = $this->getPut();
+        if(!isset($input['id']) || empty($input['id'])){
+            if (empty($input['country_bn'])) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('请选择国家!');
+                $this->jsonReturn();
+            }
+            if (empty($input['lang'])) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('请选择语言!');
+                $this->jsonReturn();
+            }
+            if (empty($input['lang'])) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('请选择商品!');
+                $this->jsonReturn();
+            }
         }
 
-        $sku = $this->getPut('sku');
-        if (empty($lang)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择商品!');
-            $this->jsonReturn();
-        }
         $stock_model = new StockModel();
-
-        $list = $stock_model->getInfo($country_bn, $lang, $sku);
+        $list = $stock_model->getInfo( $input );
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -132,6 +142,12 @@ class StockController extends PublicController {
      * @desc  现货
      */
     public function CreateAction() {
+        $special_id = $this->getPut('special_id');
+        if (empty($special_id)) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择专区!');
+            $this->jsonReturn();
+        }
         $country_bn = $this->getPut('country_bn');
         if (empty($country_bn)) {
             $this->setCode(MSG::MSG_EXIST);
@@ -151,7 +167,7 @@ class StockController extends PublicController {
             $this->jsonReturn();
         }
         $stock_model = new StockModel();
-        $flag = $stock_model->createData($country_bn, $skus, $lang);
+        $flag = $stock_model->createData($this->getPut());
 
         if ($flag) {
             $this->jsonReturn();
@@ -580,6 +596,40 @@ class StockController extends PublicController {
                     $val['show_cats'] = [];
                 }
                 rsort($val['show_cats']);
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /**
+     * 初始化价格策略详情
+     * @author link
+     * @param $arr
+     * @param $special_id
+     * @date 2018-07-06
+     */
+    private function _setStrategy(&$arr,$special_id){
+        if ($arr) {
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = trim($val['sku']);
+            }
+
+            $psdmodel = new PriceStrategyDiscountModel();
+            $strategy = $psdmodel->getList(['group'=>'STOCK','group_id'=>$special_id,'sku'=>$skus],'min_purchase_qty ASC');
+            $strategyAry = [];
+            if($strategy){
+                foreach($strategy as $key => $item){
+                    $strategyAry[$item['sku']][] = $item;
+                }
+            }
+
+            foreach ($arr as $key => $val) {
+                if (trim($val['sku']) && isset($strategyAry[trim($val['sku'])])) {
+                    $val['price_range'] = $strategyAry[trim($val['sku'])];
+                } else {
+                    $val['price_range'] = [];
+                }
                 $arr[$key] = $val;
             }
         }

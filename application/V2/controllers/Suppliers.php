@@ -1290,7 +1290,7 @@ class SuppliersController extends PublicController {
             $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ? : [];
         }
 
-        list($data, $total) = (new SuppliersModel)->ruishangList($request);
+        list($data, $total, $approving, $approved, $invalid, $review) = (new SuppliersModel)->ruishangList($request);
 
         foreach ($data as &$datum){
             $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
@@ -1304,6 +1304,10 @@ class SuppliersController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'total' => $total,
+            'approving' => $approving,
+            'approved' => $approved,
+            'invalid' => $invalid,
+            'review' => $review,
             'data' => $data
         ]);
     }
