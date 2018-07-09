@@ -54,6 +54,7 @@ class TodoController extends PublicController {
                     . '`status` = \'APPROVING\' AND `country_bn` IN '
                     . '(' . $country_bns . ') AND `deleted_flag` = \'N\'  order by id DESC)) as a';
             $sql .= ' limit ' . (($page - 1) * $pagesize) . ',' . $pagesize;
+
             $list = $inquiry_model->db()->query($sql);
         } else {
             $where_inquiry = [
