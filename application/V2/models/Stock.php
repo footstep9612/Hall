@@ -211,7 +211,7 @@ class StockModel extends PublicModel {
             $data['special_id'] = intval($condition['special_id']);
         }
         if(isset($condition['recommend_home']) && $condition['recommend_home']!==''){
-            $data['recommend_home'] = $condition['recommend_home'] ? 1 : 0;
+            $data['recommend_home'] = $condition['recommend_home'] ? 'Y' : 'N';
         }
         if(isset($condition['stock']) && $condition['stock']!==''){
             $data['stock'] = intval($condition['stock']);
