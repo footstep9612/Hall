@@ -90,5 +90,18 @@ class BoxTypeModel extends PublicModel {
             return [];
         }
     }
+    
+    /**
+     * @desc 通过发货箱型简称获取名称
+     *
+     * @param string $bn 发货箱型简称
+     * @param string $lang 语言
+     * @return mixed
+     * @author liujf
+     * @time 2018-06-28
+     */
+    public function getBoxTypeNameByBn($bn, $lang = 'zh') {
+        return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('box_type_name');
+    }
 
 }

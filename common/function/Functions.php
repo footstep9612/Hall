@@ -1982,3 +1982,27 @@ function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_t
     }
     return [];
 }
+
+/**
+ * json解析
+ * @author link
+ * @param $arr
+ * @param string $field
+ */
+function jsonDecode(&$arr, $field = ''){
+    if(!empty($field)){
+        $arr[$field] = json_decode($arr[$field],true);
+    }
+}
+
+/**
+ * YN转true false
+ * @author link
+ * @param $arr
+ * @param string $field
+ */
+function  ynTotruefalse(&$arr, $field = ''){
+    if(!empty($field)){
+        $arr[$field] = ($arr[$field] || $arr[$field]=='1' || $arr[$field]=='Y') ? true : false;
+    }
+}

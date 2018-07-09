@@ -18,7 +18,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 
 $module = ucfirst($out[1]);
 
-if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall', 'api', 'mobile'])) {
+if (!in_array(strtolower($module), ['v2', 'v3', 'api2', 'app', 'api3', 'mall', 'api', 'mobile'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
@@ -54,7 +54,7 @@ define('CONTROLLER_NAME', ucfirst($out[2]));
 $application = new Yaf_Application($application_path);
 
 #SSO登陆验证 added by zhengkq
-if ($module == 'V2' || $module == 'App') {
+if ($module == 'V2' || $module == 'App' || $module == 'V3') {
     $config = $application->getConfig();
     require_once('common/library/Erui/Common/SSOClient.php');
     Erui\Common\SSOClient::Start($config->ssoServer);
@@ -63,7 +63,7 @@ if ($module == 'V2' || $module == 'App') {
  * 而不会写入Response对象
  */
 //$application->getDispatcher()->flushInstantly(TRUE);
-//Yaf_Dispatcher::getInstance()->catchException(TRUE);
+Yaf_Dispatcher::getInstance()->catchException(TRUE);
 /* 如果没有关闭自动response(通过Yaf_Dispatcher::getInstance()->returnResponse(TRUE)),
  * 则$response会被自动输出, 此处也不需要再次输出Response
  */

@@ -163,6 +163,7 @@ class NetSubjectModel extends PublicModel {
         );
         $field=array(
             'id', //入网主题简称
+            'flag',
             'subject_name', //入网主题简称
             'net_at', //入网时间
             'net_invalid_at', //失效时间
@@ -178,8 +179,8 @@ class NetSubjectModel extends PublicModel {
             }
         }else{
             $arr=array(
-                'equipment'=>array('net_at'=>'','net_invalid_at'=>'','net_goods'=>''),
-                'erui'=>array('net_at'=>'','net_invalid_at'=>'','net_goods'=>'')
+                'equipment'=>array('flag'=>'N','net_at'=>'','net_invalid_at'=>'','net_goods'=>''),
+                'erui'=>array('flag'=>'N','net_at'=>'','net_invalid_at'=>'','net_goods'=>'')
             );
         }
         return $arr;
@@ -194,12 +195,32 @@ class NetSubjectModel extends PublicModel {
         }
     }
     public function addNetSubject($data){
-        $equipment=$data['equipment'];
-        $erui=$data['erui'];
+        if(!empty($data['equipment'])){
+            $equipment=$data['equipment'];
+            $equipment_flag='Y';
+        }else{
+            $equipment=[];
+            $equipment_flag='N';
+        }
+        if(!empty($data['erui'])){
+            $erui=$data['erui'];
+            $erui_flag='Y';
+        }else{
+            $erui=[];
+            $erui_flag='N';
+        }
+
         $buyer_id=$data['buyer_id'];
         $created_by=$data['created_by'];
+//        if($equipment_flag=='N'){
+//            $equipment=[];
+//        }
+//        if($erui_flag=='N'){
+//            $erui=[];
+//        }
         $arr=[
             array(
+                'flag'=>$equipment_flag,
                 'buyer_id'=>$buyer_id, //主题名称
                 'subject_name'=>'equipment', //主题名称
                 'net_at'=>!empty($equipment['net_at'])?$equipment['net_at']:null, //入网时间
@@ -209,6 +230,7 @@ class NetSubjectModel extends PublicModel {
                 'created_at'=>date('Y-m-d H:i:s'), //入网商品
             ),
             array(
+                'flag'=>$erui_flag,
                 'buyer_id'=>$buyer_id, //主题名称
                 'subject_name'=>'erui', //主题名称
                 'net_at'=>!empty($erui['net_at'])?$erui['net_at']:null, //入网时间
@@ -226,11 +248,31 @@ class NetSubjectModel extends PublicModel {
         return true;
     }
     public function updateNetSubject($data){
-        $equipment=$data['equipment'];
-        $erui=$data['erui'];
+        if(!empty($data['equipment'])){
+            $equipment=$data['equipment'];
+            $equipment_flag='Y';
+        }else{
+            $equipment=[];
+            $equipment_flag='N';
+        }
+        if(!empty($data['erui'])){
+            $erui=$data['erui'];
+            $erui_flag='Y';
+        }else{
+            $erui=[];
+            $erui_flag='N';
+        }
+//        if($equipment_flag=='N'){
+//            $equipment=[];
+//        }
+//        if($erui_flag=='N'){
+//            $erui=[];
+//        }
         $buyer_id=$data['buyer_id'];
         $created_by=$data['created_by'];
         $equipmentArr=array(
+//            'id'=>$equipment['id'],
+            'flag'=>$equipment_flag,
             'buyer_id'=>$buyer_id, //主题名称
             'subject_name'=>'equipment', //主题名称
             'net_at'=>!empty($equipment['net_at'])?$equipment['net_at']:null, //入网时间
@@ -240,6 +282,63 @@ class NetSubjectModel extends PublicModel {
             'created_at'=>date('Y-m-d H:i:s'), //入网商品
         );
         $eruiArr=array(
+//            'id'=>$erui['id'],
+            'flag'=>$erui_flag,
+            'buyer_id'=>$buyer_id, //主题名称
+            'subject_name'=>'erui', //主题名称
+            'net_at'=>!empty($erui['net_at'])?$erui['net_at']:null, //入网时间
+            'net_invalid_at'=>!empty($erui['net_invalid_at'])?$erui['net_invalid_at']:null, //入网失效时间
+            'net_goods'=>$erui['net_goods'], //入网商品
+            'created_by'=>$created_by, //入网商品
+            'created_at'=>date('Y-m-d H:i:s'), //入网商品
+        );
+        $equipmentCond=array('buyer_id'=>$buyer_id,'subject_name'=>'equipment','deleted_flag'=>'N');
+        $eruiCond=array('buyer_id'=>$buyer_id,'subject_name'=>'erui','deleted_flag'=>'N');
+        $equipmentExist=$this->where($equipmentCond)->find();
+        $eruiExist=$this->where($eruiCond)->find();
+        if(!empty($equipmentExist)){
+            $this->where($equipmentCond)->save($equipmentArr);
+        }else{
+            $this->add($equipmentArr);
+        }
+        if(!empty($eruiExist)){
+            $this->where($eruiCond)->save($eruiArr);
+        }else{
+            $this->add($eruiArr);
+        }
+        return true;
+    }
+    public function updateNetSubject1($data){
+        if(!empty($data['equipment'])){
+            $equipment=$data['equipment'];
+        }
+        if(!empty($data['erui'])){
+            $erui=$data['erui'];
+        }
+        print_r($equipment);die;
+        $equipment_flag=$data['equipment']['flag'];
+        $erui_flag=$data['erui']['flag'];
+        if($equipment_flag=='N'){
+            $equipment=[];
+        }
+        if($erui_flag=='N'){
+            $erui=[];
+        }
+
+        $buyer_id=$data['buyer_id'];
+        $created_by=$data['created_by'];
+        $equipmentArr=array(
+            'flag'=>$equipment_flag,
+            'buyer_id'=>$buyer_id, //主题名称
+            'subject_name'=>'equipment', //主题名称
+            'net_at'=>!empty($equipment['net_at'])?$equipment['net_at']:null, //入网时间
+            'net_invalid_at'=>!empty($equipment['net_invalid_at'])?$equipment['net_invalid_at']:null, //入网失效时间
+            'net_goods'=>$equipment['net_goods'], //入网商品
+            'created_by'=>$created_by, //入网商品
+            'created_at'=>date('Y-m-d H:i:s'), //入网商品
+        );
+        $eruiArr=array(
+            'flag'=>$erui_flag,
             'buyer_id'=>$buyer_id, //主题名称
             'subject_name'=>'erui', //主题名称
             'net_at'=>!empty($erui['net_at'])?$erui['net_at']:null, //入网时间

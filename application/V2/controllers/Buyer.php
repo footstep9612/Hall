@@ -872,15 +872,9 @@ EOF;
         }
         $model = new BuyerAgentModel();
         $res = $model->getlist($array);
-        if (!empty($res)) {
-            $datajson['code'] = 1;
-            $datajson['data'] = $res;
-            $datajson['message'] = '成功';
-        } else {
-            $datajson['code'] = -104;
-            $datajson['data'] = "";
-            $datajson['message'] = '数据操作失败!';
-        }
+        $datajson['code'] = 1;
+        $datajson['data'] = $res?$res:[];
+        $datajson['message'] = '数据';
         $this->jsonReturn($datajson);
     }
     public function updateagentAction() {
@@ -1069,15 +1063,11 @@ EOF;
         if (!empty($data['area_bn'])) {
             $arr['area_bn'] = $data['area_bn'];
         }
+        if (!empty($data['status'])) {
+            $arr['status'] = $data['status'];
+        }
         if (!empty($data['agent'])) {
             $arr['status'] = 'APPROVED';
-        }
-        if (!empty($data['status'])) {
-            if ($data['status'] == 'REJECTED') {
-                $arr['status'] = 'REJECTED';
-            }else{
-                $arr['status'] = 'APPROVED';
-            }
         }
         if (!empty($data['address'])) {
             $arr['address'] = $data['address'];
@@ -1490,7 +1480,7 @@ EOF;
             $dataJson['code'] = 1;
             $dataJson['message'] = L('success');
         }else{
-            $dataJson['code'] = 1;
+            $dataJson['code'] = 0;
             $dataJson['message'] = $res;
         }
         $this->jsonReturn($dataJson);
@@ -1657,39 +1647,109 @@ EOF;
                 $this->jsonReturn($dataJson);
             }
         }
+        $config = \Yaf_Application::app()->getConfig();
+        $myhost=$config['myhost'];
+        if($myhost!="http://api.erui.com/"){    //测试
+            if (!empty($info)) {
+                $dataJson = array(
+                    'code' => 0,
+                    'message' => L('crm_existed')
+                );
+
+            }else{
+                $dataJson = array(
+                    'code'=>2,
+                    'message'=>L('Normal_customer') //正常录入客户信息流程
+                );
+            }
+            $this->jsonReturn($dataJson);
+        }else{  //生产
+            if (!empty($info)) {
+                $dataJson = array(
+                    'code' => 0,
+                    'message' => L('crm_existed')
+                );
+
+                $this->jsonReturn($dataJson);
+            }
+            //验证集团CRM存在,则展示数据 生产-start
+            $group = $this->groupCrmCode($data['buyer_code']);
+            if ($group=='no') {
+                $dataJson = array(
+                    'code' => 4,
+                    'message' => '网络异常'
+                );
+            }elseif($group=='code'){
+                $dataJson = array(
+                    'code' => 2,
+                    'message' => L('Normal_customer') //正常录入客户信息流程
+                );
+            }else {
+                $dataJson = array(
+                    'code' => 1,
+                    'message' => L('Group_crm'), //集团CRM客户信息
+                    'data' => $group
+                );
+            }
+            $this->jsonReturn($dataJson); //生产-end
+        }
+
+        //==========================================================================================
         if (!empty($info)) {
             $dataJson = array(
                 'code' => 0,
                 'message' => L('crm_existed')
             );
-            
+
             $this->jsonReturn($dataJson);
         }
-        //test-start
-//        else{
-//            $dataJson = array(
-//                'code'=>2,
-//                'message'=>L('Normal_customer') //正常录入客户信息流程
-//            );
-//            $this->jsonReturn($dataJson);
-//        }
-        //test-end
+//        test-start
+        else{
+            $dataJson = array(
+                'code'=>2,
+                'message'=>L('Normal_customer') //正常录入客户信息流程
+            );
+            $this->jsonReturn($dataJson);
+        }
+//        test-end
 
         //验证集团CRM存在,则展示数据 生产-start
         $group = $this->groupCrmCode($data['buyer_code']);
-        if (!empty($group)) {
+        if ($group=='no') {
+            $dataJson = array(
+                'code' => 4,
+                'message' => '网络异常'
+            );
+        }elseif($group=='code'){
+            $dataJson = array(
+                'code' => 2,
+                'message' => L('Normal_customer') //正常录入客户信息流程
+            );
+        }else {
             $dataJson = array(
                 'code' => 1,
                 'message' => L('Group_crm'), //集团CRM客户信息
                 'data' => $group
             );
-        } else {
-            $dataJson = array(
-                'code' => 2,
-                'message' => L('Normal_customer') //正常录入客户信息流程
-            );
         }
         $this->jsonReturn($dataJson); //生产-end
+//        if (!empty($group) && $group!='code') {
+//            $dataJson = array(
+//                'code' => 1,
+//                'message' => L('Group_crm'), //集团CRM客户信息
+//                'data' => $group
+//            );
+//        }elseif($group=='code'){
+//            $dataJson = array(
+//                'code' => 2,
+//                'message' => L('Normal_customer') //正常录入客户信息流程
+//            );
+//        }else {
+//            $dataJson = array(
+//                'code' => 0,
+//                'message' => '网络异常' //正常录入客户信息流程
+//            );
+//        }==================================================================================================
     }
 
     /**
@@ -1711,6 +1771,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
+                'timeout' => 5,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap
@@ -1725,8 +1786,11 @@ EOF;
         $xml = '<root>' . $need . '</root>';
         $xmlObj = simplexml_load_string($xml);
         $arr = json_decode(json_encode($xmlObj), true);
+        if(count($arr)==0){
+            return 'no';
+        }
         if (empty($arr['crm_code'])) {
-            return null;
+            return 'code';
         }
         if (!empty($arr)) {
             $country = new CountryModel();

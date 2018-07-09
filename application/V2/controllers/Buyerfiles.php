@@ -69,6 +69,7 @@ class BuyerfilesController extends PublicController
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
         $data['admin']=$this->getUserRole();
         $model = new BuyerModel();
         $arr = $model->buyerList($data);
