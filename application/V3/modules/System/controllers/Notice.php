@@ -37,7 +37,6 @@ class NoticeController extends PublicController {
     public function countAction() {
         if ($this->getMethod() === 'GET') {
             $condtion = $this->getParam();
-
             $condtion['lang'] = $this->getParam('lang', 'zh');
         } else {
             $condtion = $this->getPut();
