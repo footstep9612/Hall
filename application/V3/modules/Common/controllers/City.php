@@ -12,8 +12,6 @@ class CityController extends PublicController {
         parent::init();
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
-
-        $this->es = new ESClient();
     }
 
     /*

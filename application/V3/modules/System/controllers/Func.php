@@ -13,8 +13,6 @@ class FuncController extends PublicController {
         parent::init();
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
-
-        $this->es = new ESClient();
     }
 
     /*
@@ -23,26 +21,25 @@ class FuncController extends PublicController {
 
     public function listAction() {
         if ($this->getMethod() === 'GET') {
-            $data = $this->getParam();
-            $data['lang'] = $this->getParam('lang', 'zh');
+            $condition = $this->getParam();
+            $condition['lang'] = $this->getParam('lang', 'zh');
         } else {
-            $data = $this->getPut();
-            $data['lang'] = $this->getPut('lang', 'zh');
+            $condition = $this->getPut();
+            $condition['lang'] = $this->getPut('lang', 'zh');
         }
+        $roleUserModel = new System_RoleUserModel();
 
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
+        $userId = !empty($condition['user_id']) ? trim($condition['user_id']) : $this->user['id'];
 
-            $this->jsonReturn($arr);
+        $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
+        if (!empty($data)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-
-            $this->jsonReturn();
+            $datajson['code'] = -104;
+            $datajson['message'] = '数据为空!';
         }
+        $this->jsonReturn($datajson);
     }
 
     public function shortcutsAction() {
@@ -54,18 +51,63 @@ class FuncController extends PublicController {
             $data['lang'] = $this->getPut('lang', 'zh');
         }
 
-        $country_model = new CountryModel();
-        $arr = $country_model->getlistBycodition($data); //($this->put_data);
-        $count = $country_model->getCount($data);
-        $this->setvalue('count', $count);
-        if (!empty($arr)) {
-            $this->setCode(MSG::MSG_SUCCESS);
+        $redis_key = 'user_fastentrance_' . $this->user['id'];
+        $data = null;
+        if (!redisExist($redis_key)) {
+            $mapping = [
+                'show_create_inquiry' => '询单管理',
+                'show_create_order' => '订单列表',
+                'show_create_buyer' => '客户信息管理',
+                'show_create_visit' => '客户信息管理',
+                'show_demand_feedback' => '客户需求反馈',
+                'show_request_permission' => '授信管理',
+                'show_supplier_check' => '供应商审核',
+                'show_goods_check' => 'SPU审核'
+            ];
+            $keys = array_keys($mapping);
+            $roleUserModel = new System_RoleUserModel();
+            $menu = $roleUserModel->getUserMenu($this->user['id'], ['fn' => $keys], $this->lang);
 
-            $this->jsonReturn($arr);
+
+
+//            foreach ($mapping as $k => $v) {
+//                $data[$k]['show'] = 'N';
+//            }
+            $this->_scanMenu($menu, $mapping, $data);
+            redisSet($redis_key, json_encode($data), 360);
         } else {
-            $this->setCode(MSG::MSG_FAILED);
 
-            $this->jsonReturn();
+            $data = json_decode(redisGet($redis_key), true);
+        }
+        $this->jsonReturn([
+            'code' => 1,
+            'message' => L('SUCCESS'),
+            'data' => $data
+        ]);
+    }
+
+    /**
+     * @desc 扫描菜单
+     *
+     * @param array $menu 菜单数据
+     * @param array $mapping 菜单映射
+     * @param array $data 需处理的数据
+     * @author liujf
+     * @time 2018-06-19
+     */
+    private function _scanMenu($menu, $mapping, &$data) {
+        $urlPermModel = new SYstem_UrlPermModel();
+        foreach ($menu as $item) {
+            foreach ($mapping as $k => $v) {
+                if ($item['fn'] == $v) {
+                    $data[$k]['show'] = 'Y';
+                    $data[$k]['parent_id'] = $urlPermModel
+                            ->getOneLevelMenuId($item['func_perm_id']);
+                }
+            }
+            if (isset($item['children'])) {
+                $this->_scanMenu($item['children'], $mapping, $data);
+            }
         }
     }
 

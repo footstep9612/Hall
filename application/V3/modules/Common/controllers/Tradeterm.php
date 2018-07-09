@@ -8,16 +8,10 @@
 
 class TradetermController extends PublicController {
 
-    protected $langs = ['en', 'es', 'ru', 'zh'];
-    protected $index = 'erui_dict';
-    protected $es = '';
-
     public function __init() {
         parent::init();
         ini_set("display_errors", "off");
         error_reporting(E_ERROR | E_STRICT);
-
-        $this->es = new ESClient();
     }
 
     /*
