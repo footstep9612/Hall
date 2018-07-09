@@ -109,6 +109,8 @@ class MaterialCatModel extends PublicModel {
         if ($is_two) {
             $where['level_no'] = ['in', [1, 2]];
         }
+
+
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
