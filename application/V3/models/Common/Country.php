@@ -69,7 +69,7 @@ class Common_CountryModel extends PublicModel {
 
     /**
      * 获取列表
-     * @param data $condition;
+     * @param array ;
      * @return array
      * @author jhw
      */
@@ -81,12 +81,79 @@ class Common_CountryModel extends PublicModel {
             $count = $this
                     ->where($where)
                     ->count();
-
-
             return $count;
         } catch (Exception $ex) {
             print_r($ex);
             return [];
+        }
+    }
+
+    /*
+     * 根据用户ID 获取用户姓名
+     * @param array $user_ids // 用户ID
+     * @return mix
+     * @author  zhongyg
+     *  @date    2017-8-5 15:39:16
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function getNamesBybns($bns, $lang = null) {
+
+        try {
+            $where = [];
+
+            if (is_string($bns)) {
+                $where['bn'] = $bns;
+            } elseif (is_array($bns)) {
+                $where['bn'] = ['in', $bns];
+            } else {
+                return false;
+            }
+            if ($lang) {
+                $where['lang'] = $lang;
+            } else {
+                $where['lang'] = LANG_SET;
+            }
+            $areas = $this->where($where)->field('bn,name')->select();
+            $area_names = [];
+            foreach ($areas as $area) {
+                $area_names[$area['bn']] = $area['name'];
+            }
+
+            return $area_names;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setCountry(&$arr) {
+        if ($arr) {
+
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val['country_bn']);
+            }
+            $countrynames = $this->getNamesBybns($country_bns, $this->lang);
+            foreach ($arr as $key => $val) {
+                if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
+                    $val['country_name'] = $countrynames[trim($val['country_bn'])];
+                } else {
+                    $val['country_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
         }
     }
 

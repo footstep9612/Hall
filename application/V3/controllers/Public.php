@@ -25,7 +25,6 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $this->headers = getHeaders();
         $this->put_data = $this->getPut();
-
         $this->user = $GLOBALS['SSO_USER'];
         $this->_setUid($this->user);
         if (isset($this->user['id']) && $this->user['id'] > 0) {
@@ -570,16 +569,21 @@ abstract class PublicController extends Yaf_Controller_Abstract {
         define('LANG_SET', strtolower($langSet));
 // 读取公共语言包
         $file = COMMON_PATH . DS . 'lang' . DS . LANG_SET . '.php';
+
         if (is_file($file)) {
             L(include $file);
         }
 // 读取模块语言包
+
+
         $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . '.php';
         if (is_file($file)) {
             L(include $file);
         }
+
 // 读取当前控制器语言包
-        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . CONTROLLER_NAME . '.php';
+        $file = APPLICATION_PATH . DS . 'lang' . DS . LANG_SET . DS . $this->getModuleName() . '.php';
+
         if (is_file($file)) {
             L(include $file);
         }

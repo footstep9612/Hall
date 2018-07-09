@@ -60,4 +60,41 @@ class Common_MarketAreaCountryModel extends PublicModel {
         }
     }
 
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setAreaBn(&$arr) {
+        if ($arr) {
+
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                $country_bns[] = trim($val['country_bn']);
+            }
+            $area_bns = $this->field('country_bn,market_area_bn')
+                            ->where(['country_bn' => ['in', $country_bns]])->select();
+
+
+            $countrytoarea_bns = [];
+            foreach ($area_bns as $item) {
+                $countrytoarea_bns[$item['country_bn']] = $item['market_area_bn'];
+            }
+
+            foreach ($arr as $key => $val) {
+                if (trim($val['country_bn']) && isset($countrytoarea_bns[trim($val['country_bn'])])) {
+                    $val['area_bn'] = $countrytoarea_bns[trim($val['country_bn'])];
+                } else {
+                    $val['area_bn'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }

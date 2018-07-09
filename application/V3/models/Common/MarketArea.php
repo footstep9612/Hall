@@ -132,37 +132,6 @@ class Common_MarketAreaModel extends PublicModel {
     }
 
     /**
-     * 删除数据
-     * @param  int  $bn
-     * @return bool
-     * @author jhw
-     */
-    public function delete_data($bn = '') {
-        if ($bn) {
-            $bns = explode(',', $bn);
-            if (is_array($bns)) {
-                $where['bn'] = ['in', $bns];
-            } else {
-                $where['bn'] = $bn;
-            }
-        }
-        if (!empty($where['bn'])) {
-            try {
-
-                $flag = $this->where($where)->save(['status' => 'DELETED', 'deleted_flag' => 'Y']);
-
-                return $flag;
-            } catch (Exception $ex) {
-                Log::write($ex->getMessage(), Log::ERR);
-            }
-        } else {
-
-
-            return false;
-        }
-    }
-
-    /**
      * Description of 判断数据是否存在
      * @param array $where 条件
      * @author  zhongyg
@@ -176,97 +145,6 @@ class Common_MarketAreaModel extends PublicModel {
                 ->field('id,status')
                 ->find();
         return empty($row) ? false : $row;
-    }
-
-    /**
-     * Description of 增
-     * @param array $create 新增的数据
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc   营销区域
-     */
-    public function create_data($create = []) {
-        if (isset($create['en']['name']) && isset($create['zh']['name'])) {
-            $newbn = ucwords($create['en']['name']);
-            $create['en']['name'] = ucwords($create['en']['name']);
-            $langs = ['en', 'zh', 'es', 'ru'];
-            $this->startTrans();
-            foreach ($langs as $lang) {
-                $create['bn'] = $newbn;
-                $flag = $this->_updateandcreate($create, $lang, $newbn);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-            }
-            $market_area_team_model = new MarketAreaTeamModel();
-            $market_area_team_model->updateandcreate($create, $newbn);
-            $this->commit();
-
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 修改数据
-     * @param  int $data id
-     * @return bool
-     * @author jhw
-     */
-    public function update_data($data) {
-        if (!isset($data['bn']) || !$data['bn']) {
-            return false;
-        }
-        $newbn = trim(ucwords($data['en']['name']));
-        $data['en']['name'] = trim(ucwords($data['en']['name']));
-        $this->startTrans();
-        $langs = ['en', 'zh', 'es', 'ru'];
-        foreach ($langs as $lang) {
-            $flag = $this->_updateandcreate($data, $lang, $newbn);
-            if (!$flag) {
-                $this->rollback();
-
-                return false;
-            }
-        }
-        $market_area_team_model = new MarketAreaTeamModel();
-        $market_area_team_model->updateandcreate($data, $newbn);
-        $this->commit();
-
-        return true;
-    }
-
-    private function _updateandcreate($data, $lang, $newbn) {
-        if (isset($data[$lang]['name'])) {
-            $where['lang'] = $lang;
-            $where['bn'] = trim($data['bn']);
-            $arr['bn'] = $newbn;
-            $arr['lang'] = $lang;
-            $arr['name'] = trim($data[$lang]['name']);
-            $arr['status'] = 'VALID';
-            if ($this->Exits($where)) {
-                $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = defined('UID') ? UID : 0;
-                $arr['deleted_flag'] = 'N';
-
-                $flag = $this->where($where)->save($arr);
-                return $flag;
-            } else {
-                $arr['updated_at'] = date('Y-m-d H:i:s');
-                $arr['updated_by'] = defined('UID') ? UID : 0;
-
-                $arr['created_at'] = date('Y-m-d H:i:s');
-                $arr['created_by'] = defined('UID') ? UID : 0;
-
-                $flag = $this->add($arr);
-                return $flag;
-            }
-        } else {
-            return true;
-        }
     }
 
     /*
@@ -345,6 +223,34 @@ class Common_MarketAreaModel extends PublicModel {
      */
     public function getAreaNameByBn($bn, $lang = 'zh') {
         return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('name');
+    }
+
+    /*
+     * Description of 获取营销区域
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setArea(&$arr) {
+        if ($arr) {
+            $marketarea_model = new Common_MarketAreaModel();
+            $area_bns = [];
+            foreach ($arr as $key => $val) {
+                $area_bns[] = trim($val['area_bn']);
+            }
+            $area_names = $marketarea_model->getNamesBybns($area_bns);
+            foreach ($arr as $key => $val) {
+                if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
+                    $val['area_name'] = $area_names[trim($val['area_bn'])];
+                } else {
+                    $val['area_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
 }

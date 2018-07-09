@@ -44,10 +44,10 @@ class TodoController extends PublicController {
                 ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
                 ->page($page, $pagesize)
                 ->select();
-        $this->_setAreaBn($list);
-        $this->_setArea($list);
-        $this->_setCountry($list);
-        $this->_remindList($list);
+        (new Common_MarketAreaCountryModel())->setAreaBn($list);
+        (new Common_MarketAreaModel())->setArea($list);
+        (new Common_CountryModel())->setCountry($list);
+        // (new Rfq_InquiryRemindModel)->_remindList($list);
         foreach ($list as &$item) {
             $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);
         }
@@ -83,16 +83,17 @@ class TodoController extends PublicController {
             $urlPermModel = new System_UrlPermModel();
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
-            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
+            $where = ['status' => 'APPROVING',
+                'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
             $buyerList = $buyerModel
                     ->field('id, status, country_bn, name')
                     ->where($where)
                     ->page($currentPage, $pageSize)
                     ->order('id DESC')
                     ->select();
-            $this->_setAreaBn($buyerList);
-            $this->_setArea($buyerList);
-            $this->_setCountry($buyerList);
+            (new Common_MarketAreaCountryModel())->setAreaBn($buyerList);
+            (new Common_MarketAreaModel())->setArea($buyerList);
+            (new Common_CountryModel())->setCountry($buyerList);
             if ($buyerList) {
                 $res['code'] = '1';
                 $res['message'] = L('SUCCESS');
@@ -159,91 +160,6 @@ class TodoController extends PublicController {
         exit(json_encode($this->send, JSON_UNESCAPED_UNICODE));
     }
 
-    public function remindList($inquiry_id) {
-
-        $inquiryRemind = new Rfq_InquiryRemindModel();
-        $inquiry = new Rfq_InquiryModel();
-
-        $where = ['inquiry_id' => $inquiry_id, 'isread_flag' => 'N'];
-        $data = $inquiryRemind->where($where)->field('inquiry_id, created_by, created_at')->select();
-        foreach ($data as &$datum) {
-            $datum['role_name'] = $this->_setRoleName($inquiry->getUserRoleById($datum['created_by']));
-            $datum['created_by'] = $this->_setUserName($datum['created_by']);
-        }
-
-        return $data;
-    }
-
-    public function _remindList(&$list) {
-
-        if ($list) {
-            $inquiryRemind = new Rfq_InquiryRemindModel();
-            $inquiry = new Rfq_InquiryModel();
-            $inquiry_ids = [];
-            foreach ($list as $item) {
-                $inquiry_ids[] = $item['id'];
-            }
-
-            $where = ['inquiry_id' => ['in', $inquiry_ids], 'isread_flag' => 'N'];
-            $data = $inquiryRemind->where($where)->field('inquiry_id, created_by, created_at')->select();
-            $ret = [];
-            foreach ($data as &$datum) {
-                $datum['role_name'] = $this->_setRoleName($inquiry->getUserRoleById($datum['created_by']));
-                $datum['created_by'] = $this->_setUserName($datum['created_by']);
-                $ret[$datum['inquiry_id']][] = $datum;
-            }
-            foreach ($list as $key => $item) {
-                if (!empty($ret[$item['id']])) {
-
-                    $item['remind_count'] = count($ret[$item['id']]);
-                    $item['remind_list'] = $ret[$item['id']];
-                } else {
-
-                    $item['remind_count'] = 0;
-                    $item['remind_list'] = [];
-                }
-                $list[$key] = $item;
-            }
-            return $data;
-        }
-    }
-
-    public function remindCount($inquiry_id) {
-
-        $inquiryRemind = new Rfq_InquiryRemindModel();
-        $where = ['isread_flag' => 'N'];
-        if ($inquiry_id && is_numeric($inquiry_id)) {
-            $where = ['inquiry_id' => $inquiry_id];
-        } elseif ($inquiry_id && is_array($inquiry_id)) {
-            $where = ['inquiry_id' => ['in', $inquiry_id]];
-        }
-        $data = $inquiryRemind->where($where)->count();
-        return $data;
-    }
-
-    private function _setRoleName($rolaArr) {
-        if (!empty($rolaArr)) {
-            if ($rolaArr['is_agent'] == 'Y') {
-                return L('NOTIFICATION_AGENT');
-            } elseif ($rolaArr['is_check'] == 'Y') {
-                return L('NOTIFICATION_CHECK');
-            } elseif ($rolaArr['is_country_agent'] == 'Y') {
-                return L('NOTIFICATION_COUNTRY_AGENT');
-            } elseif ($rolaArr['is_erui'] == 'Y') {
-                return L('NOTIFICATION_ERUI');
-            } elseif ($rolaArr['is_issue'] == 'Y') {
-                return L('NOTIFICATION_ISSUE');
-            } elseif ($rolaArr['is_quote'] == 'Y') {
-                return L('NOTIFICATION_QUOTE');
-            }
-        }
-    }
-
-    private function _setUserName($id) {
-        $employee = new System_EmployeeModel();
-        return $employee->where(['id' => $id])->getField('name');
-    }
-
     private function _setInflowTime($start_time, $end_time = '') {
 
         $end_time = $end_time ? $end_time : time();
@@ -255,102 +171,10 @@ class TodoController extends PublicController {
         $hour = floor($distance % 86400 / 3600);
         $minut = round($distance % 86400 % 3600 / 60);
 
-        $distance_str = $day . L('NOTIFICATION_DAYS') . $hour . L('NOTIFICATION_HOURS') . $minut . L('NOTIFICATION_MINUTES');
+        $distance_str = $day . L('NOTIFICATION_DAYS')
+                . $hour . L('NOTIFICATION_HOURS')
+                . $minut . L('NOTIFICATION_MINUTES');
         return $distance_str;
-    }
-
-    /*
-     * Description of 获取国家
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setCountry(&$arr) {
-        if ($arr) {
-            $country_model = new Common_CountryModel();
-            $country_bns = [];
-            foreach ($arr as $key => $val) {
-                $country_bns[] = trim($val['country_bn']);
-            }
-            $countrynames = $country_model->getNamesBybns($country_bns, $this->lang);
-            foreach ($arr as $key => $val) {
-                if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
-                    $val['country_name'] = $countrynames[trim($val['country_bn'])];
-                } else {
-                    $val['country_name'] = '';
-                }
-                $arr[$key] = $val;
-            }
-        }
-    }
-
-    /*
-     * Description of 获取国家
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setAreaBn(&$arr) {
-        if ($arr) {
-            $marketAreaCountryModel = new Common_MarketAreaCountryModel();
-            $country_bns = [];
-            foreach ($arr as $key => $val) {
-                $country_bns[] = trim($val['country_bn']);
-            }
-            $area_bns = $marketAreaCountryModel
-                            ->field('country_bn,market_area_bn')
-                            ->where(['country_bn' => ['in', $country_bns]])->select();
-
-
-            $countrytoarea_bns = [];
-            foreach ($area_bns as $item) {
-                $countrytoarea_bns[$item['country_bn']] = $item['market_area_bn'];
-            }
-
-            foreach ($arr as $key => $val) {
-                if (trim($val['country_bn']) && isset($countrytoarea_bns[trim($val['country_bn'])])) {
-                    $val['area_bn'] = $countrytoarea_bns[trim($val['country_bn'])];
-                } else {
-                    $val['area_bn'] = '';
-                }
-
-                $arr[$key] = $val;
-            }
-        }
-    }
-
-    /*
-     * Description of 获取营销区域
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setArea(&$arr) {
-        if ($arr) {
-            $marketarea_model = new Common_MarketAreaModel();
-            $area_bns = [];
-            foreach ($arr as $key => $val) {
-                $area_bns[] = trim($val['area_bn']);
-            }
-            $area_names = $marketarea_model->getNamesBybns($area_bns);
-            foreach ($arr as $key => $val) {
-                if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
-                    $val['area_name'] = $area_names[trim($val['area_bn'])];
-                } else {
-                    $val['area_name'] = '';
-                }
-                $arr[$key] = $val;
-            }
-        }
     }
 
 }
