@@ -534,6 +534,7 @@ class InquiryModel extends PublicModel {
         return $this->getSqlJoint($condition)
                         ->field('a.*')
                         ->page($currentPage, $pageSize)
+                        ->group('b.inquiry_id')
                         ->order('a.updated_at DESC')
                         ->select();
     }
