@@ -35,7 +35,7 @@ class PriceStrategyDiscountModel extends PublicModel{
         }
 
         try{
-            return $this->field('id,group,group_id,sku,price,discount,promotion_price,min_purchase_qty,max_purchase_qty,created_by,created_at')->where($where)->order($order)->select();
+            return $this->field('id,group,group_id,sku,discount,promotion_price,min_purchase_qty,max_purchase_qty,created_by,created_at')->where($where)->order($order)->select();
         }catch (Exception $e){
             return false;
         }
@@ -58,7 +58,6 @@ class PriceStrategyDiscountModel extends PublicModel{
                     'group' => $group,
                     'group_id' => $group_id,
                     'sku' => $sku,
-                    'price' => (isset($item['price']) && $item['price'] != '') ? trim($item['price']) : 0,
                     'discount' => (isset($item['discount']) && $item['discount'] != '') ? trim($item['discount']) : 10,
                     'promotion_price' => (isset($item['promotion_price']) && $item['promotion_price'] != '') ? trim($item['promotion_price']) : 0,
                     'min_purchase_qty' => (isset($item['min_purchase_qty']) && $item['min_purchase_qty'] != '') ? intval($item['min_purchase_qty']) : 1,

@@ -24,16 +24,26 @@ class Common_CountryModel extends PublicModel {
         parent::__construct();
     }
 
-    /*
-     * 条件id,lang,bn,name,time_zone,region,pinyin
-     */
-
     private function _getCondition(&$condition) {
-        $data = ['deleted_flag' => 'N'];
-        getValue($data, $condition, 'lang', 'string', 'lang');
+        $data = ['c.deleted_flag' => 'N'];
+        getValue($data, $condition, 'lang', 'string', 'c.lang');
         if (isset($condition['bn']) && $condition['bn']) {
-            $data['bn'] = $condition['bn'];
+            $data['c.bn'] = $condition['bn'];
         }
+
+
+        getValue($data, $condition, 'name', 'like', 'c.name');
+        getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
+        getValue($data, $condition, 'region_bn', 'string', 'c.region_bn');
+        if (isset($condition['status']) && $condition['status'] == 'ALL') {
+
+        } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
+            $data['c.status'] = $condition['status'];
+        } else {
+            $data['c.status'] = 'VALID';
+        }
+        getValue($data, $condition, 'market_area_bn', 'string', 'mac.market_area_bn');
+
         return $data;
     }
 
@@ -43,20 +53,25 @@ class Common_CountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getList($condition, $order = 'id desc') {
+    public function getList($condition, $order = 'c.id desc', $type = true) {
         try {
             $where = $this->_getCondition($condition);
-
-
+            if ($type) {
+                list($from, $pagesize) = $this->_getPage($condition);
+            }
             unset($condition);
-            $redis_key = md5(json_encode($where) . $order);
+
+            $redis_key = md5(json_encode($where) . $order . $from . $pagesize . $type);
             if (redisHashExist('Country', $redis_key)) {
                 return json_decode(redisHashGet('Country', $redis_key), true);
             }
-            $result = $this
-                    ->field('bn,name')
-                    ->where($where)
-                    ->order($order)
+            $this->alias('c')
+                    ->join((new Common_MarketAreaCountryModel())->getTableName() . ' mac on c.bn=mac.country_bn', 'left')
+                    ->join((new Common_MarketAreaModel())->getTableName() . ' ma on ma.bn=mac.market_area_bn and ma.lang=c.lang and ma.deleted_flag=\'N\'', 'left')
+                    ->field('c.bn,c.name')
+                    ->where($where);
+
+            $result = $this->order($order)
                     ->select();
 
             redisHashSet('Country', $redis_key, json_encode($result));
@@ -67,24 +82,22 @@ class Common_CountryModel extends PublicModel {
         }
     }
 
-    /**
-     * 获取列表
-     * @param array ;
-     * @return array
-     * @author jhw
+    /*
+     * 获取数据
      */
+
     public function getCount($condition) {
         try {
             $where = $this->_getCondition($condition);
-            unset($condition);
-
-            $count = $this
-                    ->where($where)
-                    ->count();
-            return $count;
+            return $this->alias('c')
+                            ->join((new Common_MarketAreaCountryModel())->getTableName() . ' mac on c.bn=mac.country_bn', 'left')
+                            ->join((new Common_MarketAreaModel())->getTableName() . ' ma on ma.bn=mac.market_area_bn and ma.lang=c.lang and ma.deleted_flag=\'N\'', 'left')
+                            ->where($where)
+                            ->count('DISTINCT c.bn');
         } catch (Exception $ex) {
-            print_r($ex);
-            return [];
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return 0;
         }
     }
 

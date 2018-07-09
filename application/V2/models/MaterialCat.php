@@ -109,6 +109,8 @@ class MaterialCatModel extends PublicModel {
         if ($is_two) {
             $where['level_no'] = ['in', [1, 2]];
         }
+
+
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
@@ -133,17 +135,23 @@ class MaterialCatModel extends PublicModel {
                 }
             }
             foreach ($ret1 as $cat_no1 => $item1) {
-                unset($item1['parent_cat_no'], $item1['level_no']);
+                if (!$is_two) {
+                    unset($item1['parent_cat_no'], $item1['level_no']);
+                }
+
                 if (!empty($ret2[$cat_no1])) {
                     foreach ($ret2[$cat_no1] as $cat_no2 => $item2) {
 
-                        if (!empty($ret3[$cat_no2])) {
+                        if (!empty($ret3[$cat_no2]) && !$is_two) {
                             foreach ($ret3[$cat_no2] as $item3) {
                                 unset($item3['parent_cat_no'], $item3['level_no']);
                                 $item2['children'][] = $item3;
                             }
                         }
-                        unset($item2['parent_cat_no'], $item2['level_no']);
+
+                        if (!$is_two) {
+                            unset($item2['parent_cat_no'], $item2['level_no']);
+                        }
                         $item1['children'][] = $item2;
                     }
                 }

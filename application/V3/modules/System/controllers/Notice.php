@@ -37,14 +37,13 @@ class NoticeController extends PublicController {
     public function countAction() {
         if ($this->getMethod() === 'GET') {
             $condtion = $this->getParam();
-
             $condtion['lang'] = $this->getParam('lang', 'zh');
         } else {
             $condtion = $this->getPut();
             $condtion['lang'] = $this->getPut('lang', 'zh');
         }
         $notice_model = new System_NoticeModel();
-        $total = $notice_model->count($condtion);
+        $total = $notice_model->getCount($condtion);
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',

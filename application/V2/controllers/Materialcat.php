@@ -60,7 +60,7 @@ class MaterialcatController extends PublicController {
         $redis_key = 'Material_cat_twotree_' . $lang;
         $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
-            $arr = $this->_model->tree($jsondata);
+            $arr = $this->_model->tree($jsondata, true);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);
                 redisSet($redis_key, json_encode($arr), 86400);
