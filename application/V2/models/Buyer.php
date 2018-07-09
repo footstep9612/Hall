@@ -353,74 +353,121 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
-    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
-        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
-        if(empty($data['admin']['role'])){
+    public function arrToStr($data,$column=''){
+        $str='';
+        foreach($data as $k => $v){
+            if(empty($column)){
+                $str.=",'".$v."'";
+            }else{
+                $str.=",'".$v[$column]."'";
+            }
+        }
+        $str=mb_substr($str,1);
+        return $str;
+    }
+    public function arrToArray($data,$column){
+        $arr=[];
+        foreach($data as $k => $v){
+            $arr[]=$v[$column];
+        }
+        return $arr;
+    }
+    //地区-国家-权限
+    public function accessCountry($data){
+        $cond = ' 1=1 and buyer.deleted_flag=\'N\'';    //条件
+        if(empty($data['admin']['role']) || empty($data['admin']['country'])){
             return false;
         }
-        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
-            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
-                return false;
-            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
-                $cond .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
-            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
-                $agent=new BuyerAgentModel();
-                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $created=new BuyerModel();
-                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $totalList=$this->validAgent($createdArr,$list);
-                $str='';
-                foreach($totalList as $k => $v){
-                    $str.=','.$v['buyer_id'];
-                }
-                $str=substr($str,1);
-                if(!empty($str)){
-                    $cond.= " and buyer.id in ($str) ";
-                }else{
-                    $cond.= " and buyer.id in ('wangs') ";
-                }
-            }else{  //即使国家负责人,也是市场经办人
-                $cond .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
-                $agent=new BuyerAgentModel();
-                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $created=new BuyerModel();
-                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-                $totalList=$this->validAgent($createdArr,$list);
-//                $totalList=array_merge($createdArr,$list);
-                $str='';
-                foreach($totalList as $k => $v){
-                    $str.=','.$v['buyer_id'];
-                }
-                $str=substr($str,1);
-                if(!empty($str)){
-                    $cond.= " or buyer.id in ($str) )";
-                }else{
-                    $cond.= " or buyer.id in ('wangs') )";
-                }
+        //国家
+        $countryStr=$this->arrToStr($data['admin']['country']);
+        //地区
+        $area=new CountryModel();
+        $areaArr=$area->table('erui_operation.market_area_country')
+            ->field('market_area_bn as area_bn')
+            ->where("country_bn in ($countryStr)")
+            ->group('market_area_bn')
+            ->select();
+        $areaStr=$this->arrToStr($areaArr,'area_bn');   //地区
+        //地区下属国家
+        $countryArr=$area->table('erui_operation.market_area_country')
+            ->field('country_bn')
+            ->where("market_area_bn in ($areaStr)")
+            ->group('country_bn')
+            ->select();
+        $areaCountryStr=$this->arrToStr($countryArr,'country_bn');  //地区下属国家
+
+        if(in_array('CRM客户管理',$data['admin']['role'])){ //营运
+            $cond .= '';
+        }elseif(in_array('area-customers',$data['admin']['role'])){ //地区
+            $cond .= " And  `buyer`.country_bn in ($areaCountryStr)";
+        }elseif(in_array('201711242',$data['admin']['role'])){ //国家
+            $cond .= " And  `buyer`.country_bn in ($countryStr)";
+        }elseif(in_array('A001',$data['admin']['role'])){ //经办人
+            $agent=new BuyerAgentModel();
+            $agentArr=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();   //经办人管理的客户
+            $agentArray=$this->arrToArray($agentArr,'buyer_id');
+            $created=new BuyerModel();
+            $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();   //经办人创建的客户
+            $createdArray=$this->arrToArray($createdArr,'buyer_id');
+            $idArr=array_merge($agentArray,$createdArray);
+            $buyerArr=array_unique($idArr);
+            $idStr=$this->arrToStr($buyerArr);  //经办人角色管理的客户
+            if(!empty($idStr)){
+                $cond.= " and buyer.id in ($idStr) ";
+            }else{
+                $cond.= " and buyer.id in ('error') ";
             }
         }else{
-            $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
+            return false;
         }
-        $area=new CountryModel();
+        return $cond;
+    }
+    public function getBuyerStatisListCond($data,$falg=true,$filter=false){
+//        $data=array(
+//            'created_by'=>37850,
+//            'admin'=>array(
+//                'role'=>array(
+//                    'CRM客户管理1','area-customers1','201711242','A001','A012','A013','查看客户管理所有菜单','A015'
+//                ),
+//                'country'=>array(
+//                    'Russia','Malaysia','Myanmar','Japan','India'
+//                )
+//            ),
+//            'lang'=>'zh',
+//            'area_country'=>['South America']
+//        );
+        $access=$this->accessCountry($data);
+        if($access==false){
+            return false;
+        }
+        $cond=$access;  //条件
+        $area=new CountryModel();   //地区-国家-搜索 : "area_country":["Asia-Pacific","China"]
         if(empty($data['area_country'][0]) && empty($data['area_country'][1])){    //全部
 
         }elseif(!empty($data['area_country'][0]) && empty($data['area_country'][1])){   //地区
-            $area_bn=$data['area_country'][0];
-            $areaArr=$area->table('erui_operation.market_area_country country_bn')
-                ->join('erui_dict.country country on country_bn.country_bn=country.bn')
-                ->field('country_bn.country_bn as country_bn,country.name as country_name')
-                ->where("country_bn.market_area_bn='$area_bn' and country.lang='$data[lang]' and country.deleted_flag='N'")
+            $area_bn=$data['area_country'][0];  //地区
+            $areaArr=$area->table('erui_operation.market_area_country')
+                ->field('country_bn')
+                ->where("market_area_bn='$area_bn'")
+                ->group('country_bn')
                 ->select();
-            $areaStr='';
-            foreach($areaArr as $k => $v){
-                $areaStr.=",'".$v['country_bn']."'";
+            if(in_array('area-customers',$data['admin']['role'])){  //地区负责人
+                $countryStr=$this->arrToStr($areaArr,'country_bn');
+            }else{  //国家权限
+                $countryArray=$this->arrToArray($areaArr,'country_bn');
+                $countryArr=array_intersect($countryArray,$data['admin']['country']);
+                if(!empty($countryArr)){
+                    $countryStr=$this->arrToStr($countryArr);
+                }else{
+                    $countryStr="'error'";
+                }
             }
-            $areaStr=substr($areaStr,1);
-            $cond.=" and buyer.country_bn in ($areaStr)";
+            $cond.=" and buyer.country_bn in ($countryStr)";
         }else{  //国家
             $country_bn=$data['area_country'][1];
             $cond.=" and buyer.country_bn='$country_bn'";
         }
+
 
         foreach($data as $k => $v){
             $data[$k]=trim($v);
