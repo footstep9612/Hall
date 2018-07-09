@@ -34,7 +34,7 @@ class Common_CountryModel extends PublicModel {
 
         getValue($data, $condition, 'name', 'like', 'c.name');
         getValue($data, $condition, 'time_zone', 'string', 'c.time_zone');
-        getValue($data, $condition, 'region_bn', 'like', 'c.region_bn');
+        getValue($data, $condition, 'region_bn', 'string', 'c.region_bn');
         if (isset($condition['status']) && $condition['status'] == 'ALL') {
 
         } elseif (isset($condition['status']) && in_array($condition['status'], ['VALID', 'INVALID'])) {
@@ -42,7 +42,7 @@ class Common_CountryModel extends PublicModel {
         } else {
             $data['c.status'] = 'VALID';
         }
-        getValue($data, $condition, 'market_area_bn', 'like', 'mac.market_area_bn');
+        getValue($data, $condition, 'market_area_bn', 'string', 'mac.market_area_bn');
 
         return $data;
     }
@@ -53,7 +53,7 @@ class Common_CountryModel extends PublicModel {
      * @return array
      * @author jhw
      */
-    public function getlistBycodition($condition, $order = 'c.id desc', $type = true) {
+    public function getList($condition, $order = 'c.id desc', $type = true) {
         try {
             $where = $this->_getCondition($condition);
             if ($type) {
