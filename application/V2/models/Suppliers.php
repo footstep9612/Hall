@@ -556,13 +556,14 @@ class SuppliersModel extends PublicModel {
         $total = $this->alias('a')->where($condition)->count();
 
         $where = ['a.deleted_flag' => 'N', 'a.source' => 'Portal'];
+        $all = $this->alias('a')->where(array_merge(['status' => ['neq', 'REVIEW']], $where))->count();
         $approving = $this->alias('a')->where(array_merge(['status' => 'APPROVING'], $where))->count();
         $approved = $this->alias('a')->where(array_merge(['status' => 'APPROVED'], $where))->count();
         $invalid = $this->alias('a')->where(array_merge(['status' => 'INVALID'], $where))->count();
         $review = $this->alias('a')->where(array_merge(['status' => 'REVIEW'], $where))->count();
 
 
-        return [$data, $total, $approving, $approved, $invalid, $review];
+        return [$data, $total, $all, $approving, $approved, $invalid, $review];
 
     }
 
