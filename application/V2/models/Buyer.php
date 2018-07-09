@@ -401,6 +401,27 @@ class BuyerModel extends PublicModel {
         }else{
             $cond = ' 1=1 and buyer.deleted_flag=\'N\'';
         }
+        $area=new CountryModel();
+        if(empty($data['area_country'][0]) && empty($data['area_country'][1])){    //全部
+
+        }elseif(!empty($data['area_country'][0]) && empty($data['area_country'][1])){   //地区
+            $area_bn=$data['area_country'][0];
+            $areaArr=$area->table('erui_operation.market_area_country country_bn')
+                ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                ->field('country_bn.country_bn as country_bn,country.name as country_name')
+                ->where("country_bn.market_area_bn='$area_bn' and country.lang='$data[lang]' and country.deleted_flag='N'")
+                ->select();
+            $areaStr='';
+            foreach($areaArr as $k => $v){
+                $areaStr.=",'".$v['country_bn']."'";
+            }
+            $areaStr=substr($areaStr,1);
+            $cond.=" and buyer.country_bn in ($areaStr)";
+        }else{  //国家
+            $country_bn=$data['area_country'][1];
+            $cond.=" and buyer.country_bn='$country_bn'";
+        }
+
         foreach($data as $k => $v){
             $data[$k]=trim($v);
         }
@@ -412,6 +433,7 @@ class BuyerModel extends PublicModel {
                 $cond .= " And `buyer`.status='APPROVED'";
             }
         }
+
         if(!empty($data['country_search'])){    //国家搜索
             $cond .= " And `buyer`.country_bn='".$data['country_search']."'";
         }
@@ -2036,6 +2058,7 @@ EOF;
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $area['area'];
                 $info[$k]['country_name'] = $area['country'];
+                $info[$k]['country_name'] = $area['area'].'/'.$area['country'];
             }
             if(!empty($v['created_by'])){
                 $name=$this->table('erui_sys.employee')->field('name')

@@ -25,6 +25,7 @@ class StockModel extends PublicModel {
 
     private function _getCondition($condition) {
         $where = ['s.deleted_flag' => 'N'];
+        $this->_getValue($where, $condition, 'special_id', 'int', 's.special_id');
         $this->_getValue($where, $condition, 'country_bn', 'string', 's.country_bn');
         $this->_getValue($where, $condition, 'floor_name', 'like', 'sf.floor_name');
         $this->_getValue($where, $condition, 'show_name', 'like', 's.show_name');
@@ -49,7 +50,7 @@ class StockModel extends PublicModel {
             }
         }
         $this->_getValue($where, $condition, 'sku', 'string', 's.sku');
-        $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
+        $this->_getValue($where, $condition, 'show_flag', 'string', 's.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
         $this->_getValue($where, $condition, 'updated_at', 'between', 's.updated_at');
         if(isset($condition['keyword']) && !empty($condition['keyword'])){
@@ -86,7 +87,7 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
         $data = [];
         $list = $this->alias('s')
-                ->field('s.id,s.sku,s.show_name,s.lang,s.stock,s.floor_id,s.spu,s.country_bn,s.recommend_home,
+                ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
@@ -115,10 +116,15 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function getInfo($country_bn, $lang, $sku) {
-        $where['country_bn'] = $country_bn;
-        $where['lang'] = $lang;
-        $where['sku'] = $sku;
+    public function getInfo($condition) {
+        if(isset($condition['id'])){
+            $where['id'] = intval($condition['id']);
+        }else{
+            $where['country_bn'] = $condition['country_bn'];
+            $where['lang'] = $condition['lang'];
+            $where['sku'] = $condition['sku'];
+        }
+
         return $this->where($where)->find();
     }
 
@@ -154,9 +160,11 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function createData($country_bn, $skus, $lang) {
-        $stock_cost_price_model = new StockCostPriceModel();
-        $this->startTrans();
+    public function createData($input) {
+        $skus = $input['skus'];
+        $country_bn = $input['country_bn'];
+        $lang = $input['lang'];
+        $addAll = [];
         foreach ($skus as $sku) {
             $row = $this->getExit(['country_bn'=>$country_bn,'lang'=>$lang,'sku'=>$sku]);
             if (!$row) {
@@ -165,6 +173,7 @@ class StockModel extends PublicModel {
                     return false;
                 }
                 $data = [
+                    'special_id' => intval($input['special_id']),
                     'country_bn' => $country_bn,
                     'lang' => $lang,
                     'spu' => $goods_name['spu'],
@@ -175,22 +184,10 @@ class StockModel extends PublicModel {
                     'created_at' => date('Y-m-d H:i:s'),
                     'created_by' => defined('UID') ? UID : 0
                 ];
-                $flag = $this->add($data);
-                if (!$flag) {
-                    $this->rollback();
-                    return false;
-                }
-
-                $flag_price = $stock_cost_price_model->updateData($country_bn, $lang, $sku, false);
-                if (!$flag_price) {
-
-                    $this->rollback();
-                    return false;
-                }
+                $addAll[] = $data;
             }
         }
-        $this->commit();
-        return true;
+        return $this->addAll($addAll);
     }
 
     /**
@@ -201,11 +198,18 @@ class StockModel extends PublicModel {
      * @return bool
      */
     public function updateDate($condition){
-        $where['id'] = $condition['id'];
+        if(is_array($condition['id'])){
+            $where['id'] = ['in', $condition['id']];
+        }else{
+            $where['id'] = $condition['id'];
+        }
         $data = [
             'updated_at' => date('Y-m-d H:i:s'),
             'updated_by' => defined('UID') ? UID : 0
         ];
+        if(isset($condition['special_id']) && $condition['special_id']!==''){
+            $data['special_id'] = intval($condition['special_id']);
+        }
         if(isset($condition['recommend_home']) && $condition['recommend_home']!==''){
             $data['recommend_home'] = $condition['recommend_home'] ? 1 : 0;
         }
@@ -215,20 +219,55 @@ class StockModel extends PublicModel {
         if(isset($condition['sort_order']) && $condition['sort_order']!==''){
             $data['sort_order'] = intval($condition['sort_order']);
         }
-        if(isset($condition['price'])){
-            $data['price'] = ($condition['price'] == '') ? null : $condition['price'];
-        }
         if(isset($condition['price_strategy_type'])){
             $data['price_strategy_type'] = $condition['price_strategy_type'];
         }
-        if(isset($condition['price_cur_bn'])){
+        if(isset($condition['strategy_validity_start']) && !empty($condition['strategy_validity_start'])){    //策略有效期开始时间
+            $data['strategy_validity_start'] = $condition['strategy_validity_start'];
+        }
+        if(isset($condition['strategy_validity_end']) && !empty($condition['strategy_validity_end'])){        //策略有效期结束时间
+            $data['strategy_validity_end'] = $condition['strategy_validity_end'];
+        }
+        if(isset($condition['price_cur_bn'])){  //币种
             $data['price_cur_bn'] = $condition['price_cur_bn'];
         }
-        if(isset($condition['price_symbol'])){
+        if(isset($condition['price_symbol'])){  //币种符号
             $data['price_symbol'] = $condition['price_symbol'];
         }
+        if(isset($condition['show_flag'])){  //上下架
+            $data['show_flag'] = ($condition['show_flag']===true || $condition['show_flag']=='Y' || $condition['show_flag']==1 || $condition['show_flag']=='1') ? 'Y' : 'N';
+        }
 
-        return $this->where($where)->save($data);
+        $this->startTrans();
+        try{
+            $rel = $this->where($where)->save($data);
+            if($rel){
+                if(isset($condition['price_strategy_type']) && !empty($condition['price_strategy_type'])){
+                    $price_range = isset($condition['price_range']) ? $condition['price_range'] : [];
+                    if(empty($price_range)){
+                        $this->rollback();
+                        jsonReturn('', MSG::ERROR_PARAM, '策略信息不能为空');
+                    }
+                    $stockAry = $this->where($where)->select();
+                    $psdModel = new PriceStrategyDiscountModel();
+                    foreach($stockAry as $key => $stock){
+                        $pr = $psdModel->updateData( 'STOCK', $stock['special_id'], $stock['sku'], $price_range);
+                        if(!$pr){
+                            $this->rollback();
+                            return false;
+                        }
+                    }
+                }
+                $this->commit();
+                return true;
+            }else{
+                $this->rollback();
+                return false;
+            }
+        }catch (Exception $e){
+            $this->rollback();
+            return false;
+        }
     }
 
     /**
@@ -250,7 +289,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-    public function UpdateStock($country_bn, $sku, $lang, $stock) {
+/*    public function UpdateStock($country_bn, $sku, $lang, $stock) {
 
         $where = ['country_bn' => $country_bn, 'sku' => $sku, 'lang' => $lang];
         $data = [
@@ -262,7 +301,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }
+    }*/
 
     /**
      * Description of 更新排序
@@ -271,7 +310,7 @@ class StockModel extends PublicModel {
      * @version V2.0
      * @desc  现货
      */
-   public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
+ /*   public function UpdateSort($country_bn, $sku, $lang, $sort_order) {
 
         $where = ['country_bn' => $country_bn, 'lang' => $lang];
         if (is_array($sku)) {
@@ -288,7 +327,7 @@ class StockModel extends PublicModel {
 
 
         return $flag;
-    }
+    }*/
 
     /**
      * Description of 更新现货
