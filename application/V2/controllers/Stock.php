@@ -81,7 +81,7 @@ class StockController extends PublicController {
                 $this->_setShowcats($list['data'], $lang, $condition['country_bn']);
             }
             jsonReturn($list);
-        } elseif ($list === null) {
+        } elseif (empty($list)) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');
             $this->jsonReturn(null);

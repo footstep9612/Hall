@@ -50,7 +50,7 @@ class StockModel extends PublicModel {
             }
         }
         $this->_getValue($where, $condition, 'sku', 'string', 's.sku');
-        $this->_getValue($where, $condition, 'show_flag', 'bool', 'sf.show_flag');
+        $this->_getValue($where, $condition, 'show_flag', 'string', 's.show_flag');
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
         $this->_getValue($where, $condition, 'updated_at', 'between', 's.updated_at');
         if(isset($condition['keyword']) && !empty($condition['keyword'])){
