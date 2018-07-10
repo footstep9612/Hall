@@ -430,6 +430,163 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+
+
+    //客户历史成单金额1
+    public function amountAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->amount($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='客户历史成单金额';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //易瑞产品采购量占客户总需求量地位2
+    public function positionAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->position($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='易瑞产品采购量占客户总需求量地位';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //连续N年及以上履约状况良好3
+    public function yearKeepAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->yearKeep($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='连续N年及以上履约状况良好';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //年复购次数4
+    public function repurchaseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->repurchase($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='年复购次数';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //客户资信等级5
+    public function creditGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->creditGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='客户资信等级';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //零配件年采购额6
+    public function purchaseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->purchase($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='零配件年采购额';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //企业性质7
+    public function enterpriseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->enterprise($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='企业性质';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //营业收入8
+    public function incomeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->income($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='营业收入';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //资产规模9
+    public function scaleAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->scale($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='资产规模';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //分级结果10
+    public function customerGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->customerGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='综合分值&客户等级';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+
+
+
+
+
     public function editGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
