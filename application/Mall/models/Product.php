@@ -107,7 +107,7 @@ class ProductModel extends PublicModel {
                 $stock = true;
                 $condition_stock = ['spu' => $input['spu'], 'lang' => $input['lang'], 'country_bn' => $input['country_bn'], 'status' => 'VALID', 'deleted_flag' => 'N'];
                 $stockModel = new StockModel();
-                $stockSku = $stockModel->field('sku,stock,price_strategy_type,price,price_cur_bn,price_symbol')->where($condition_stock)->select();
+                $stockSku = $stockModel->field('sku,stock,price_strategy_type,strategy_validity_start,strategy_validity_end,price,price_cur_bn,price_symbol')->where($condition_stock)->select();
                 foreach ($stockSku as $item) {
                     $skus[] = $item['sku'];
                     $skuStock[$item['sku']] = $item['stock'];
@@ -182,12 +182,6 @@ class ProductModel extends PublicModel {
 
             $result = $goodsModel->field('sku,model,min_pack_naked_qty,nude_cargo_unit,min_pack_unit,min_order_qty,exw_days')->where(['id' => ['in', $ids]])->limit(($current_no - 1) * $pageSize, $pageSize)->select();
             if ($result) {
-                /*  $skuAry = [];
-                  foreach ($result as $r) {
-                  $skuAry[] = $r['sku'];
-                  } */
-                //扩展属性
-                //$condition_attr = ['spu' => $input['spu'], 'sku' => ['in', $skuAry], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $condition_attr = ['spu' => $input['spu'], 'lang' => $input['lang'], 'deleted_flag' => 'N'];
                 $attrs = $gattrModel->field('sku,spec_attrs')->where($condition_attr)->select();
 
@@ -206,19 +200,10 @@ class ProductModel extends PublicModel {
                     //现货价格
                     foreach ($result as $index => $item) {
                         $result[$index] = array_merge($result[$index], $stockAry[$item['sku']]);
-                        if (isset($stockAry[$item['sku']]['price_strategy_type'])) {
-                            switch ($stockAry[$item['sku']]['price_strategy_type']) {
-                                case 1:
-                                    $priceInfo = self::getSkuPriceBySku($item['sku'], $input['country_bn']);
-                                    break;
-                                case 2:
-                                    $stockPrice = $stockAry[$item['sku']];
-                                    unset($stockPrice['price']);
-                                    $psdM = new PriceStrategyDiscountModel();
-                                    $priceInfo = $psdM->getPriceList($item['sku'], $input['country_bn'], $stockAry[$item['sku']]['price'], $stockPrice);
-                                    break;
-                            }
-                            $result[$index]['priceAry'] = $priceInfo;
+                        if (isset($stockAry[$item['sku']]['price_strategy_type']) && $stockAry[$item['sku']]['price_strategy_type']!='' && (($stockAry[$item['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockAry[$item['sku']]['strategy_validity_start']==null) && ($stockAry[$item['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockAry[$item['sku']]['strategy_validity_end']==null) )) {
+                            $psdM = new PriceStrategyDiscountModel();
+                            $price_list = $psdM->getDisCountBySkus([$item['sku']], 'STOCK',$input['special_id']);
+                            $result[$index]['priceAry'] = $price_list[$item['sku']];
                         } else {
                             $result[$index]['priceAry'] = [];
                         }
