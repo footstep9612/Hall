@@ -40,7 +40,7 @@ class RfqController extends PublicController {
         ];
         $list = $inquiry->where($where)
                 ->order('updated_at DESC')
-                ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
+                ->field('id,serial_no,inflow_time,status,quote_status,country_bn,\'RFQ\' as type,\'\' as name')
                 ->page($page, $pagesize)
                 ->select();
         (new Common_MarketAreaCountryModel())->setAreaBn($list);

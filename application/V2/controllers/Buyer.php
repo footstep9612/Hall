@@ -16,33 +16,12 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-    //获取用户的角色
+//    获取用户的角色
     public function getUserRole(){
-        $config = \Yaf_Application::app()->getConfig();
-        $ssoServer=$config['ssoServer'];
-        $token=$_COOKIE['eruitoken'];
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Content-Type: application/json\r\n" .
-                    "Cookie: ".$_COOKIE."\r\n",
-                'content' =>json_encode(array('token'=>$token))
-
-            )
-        );
-        $context = stream_context_create($opt);
-        $json = file_get_contents($ssoServer,false,$context);
-        $info=json_decode($json,true);
-
-        $arr['role']=$info['role_no'];
-        if(!empty($info['country_bn'])){
-            $countryArr=[];
-            foreach($info['country_bn'] as $k => $v){
-                $countryArr[]="'".$v."'";
-            }
-            $countryStr=implode(',',$countryArr);
-        }
-        $arr['country']=$countryStr;
+        $arr=[];
+        $data=$this->user;
+        $arr['role']=$data['role_no'];
+        $arr['country']=$data['country_bn'];
         return $arr;
     }
     /*
