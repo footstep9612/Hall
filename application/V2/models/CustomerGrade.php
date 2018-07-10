@@ -355,4 +355,94 @@ class CustomerGradeModel extends PublicModel {
             return true;
         }
     }
+    //客户历史成单金额1
+    public function amount($data){
+        $arr=[];
+        $arr['amount']=$data['amount'];
+        $arr['amount_score']=100;
+        $arr['final_score']=50;
+        $arr['customer_grade']=A;
+        return $arr;
+    }
+    //易瑞产品采购量占客户总需求量地位2
+    public function position($data){
+        $arr=[];
+        $arr['position']=$data['position'];
+        $arr['position_score']=100;
+        $arr['final_score']=60;
+        $arr['customer_grade']=B;
+        return $arr;
+    }
+    //连续N年及以上履约状况良好3
+    public function yearKeep($data){
+        $arr=[];
+        $arr['year_keep']=$data['year_keep'];
+        $arr['keep_score']=100;
+        $arr['final_score']=70;
+        $arr['customer_grade']=C;
+        return $arr;
+    }
+    //年复购此时4
+    public function repurchase($data){
+        $arr=[];
+        $arr['re_purchase']=$data['re_purchase'];
+        $arr['re_score']=100;
+        $arr['final_score']=80;
+        $arr['customer_grade']=S;
+        return $arr;
+    }
+    //客户资信等级5
+    public function creditGrade($data){
+        $arr=[];
+        $arr['credit_grade']=$data['credit_grade'];
+        $arr['credit_score']=100;
+        $arr['final_score']=50;
+        $arr['customer_grade']=A;
+        return $arr;
+    }
+    //零配件年采购额6
+    public function purchase($data){
+        $arr=[];
+        $arr['purchase']=$data['purchase'];
+        $arr['purchase_score']=100;
+        $arr['final_score']=70;
+        $arr['customer_grade']=B;
+        return $arr;
+    }
+    //企业性质7
+    public function enterprise($data){
+        $arr=[];
+        $arr['enterprise']=$data['enterprise'];
+        $arr['enterprise_score']=100;
+        $arr['final_score']=80;
+        $arr['customer_grade']=C;
+        return $arr;
+    }
+    //营业收入8
+    public function income($data){
+        $arr=[];
+        $arr['income']=$data['income'];
+        $arr['income_score']=100;
+        $arr['final_score']=90;
+        $arr['customer_grade']=D;
+        return $arr;
+    }
+    //资产规模9
+    public function scale($data){
+        $arr=[];
+        $arr['scale']=$data['scale'];
+        $arr['scale_score']=100;
+        $arr['final_score']=100;
+        $arr['customer_grade']=S;
+        return $arr;
+    }
+    //综合分值&客户等级
+    public function customerGrade($data){
+        $arr=[];
+//        $arr['final_score']=$data['final_score'];
+//        $arr['customer_grade']=$data['customer_grade'];
+        $arr['final_score']=100;
+        $arr['customer_grade']=S;
+        return $arr;
+    }
 }

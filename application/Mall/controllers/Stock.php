@@ -47,64 +47,6 @@ class StockController extends PublicController {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * Description of 获取现货列表
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  现货
-     */
-    public function ListByKeywordAction() {
-        $condition = $this->getPut();
-        if (empty($condition['country_bn'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
-
-        if (empty($condition['lang'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
-
-        $stock_model = new StockModel();
-        $list = $stock_model->getListByKeyword($condition);
-        if ($list) {
-            $this->_setImage($list);
-            $count = $stock_model->getCountByKeyword($condition);
-            $this->setvalue('count', $count);
-            $this->_setConstPrice($list, $condition['country_bn']);
-            $this->_setDisCount($list, $condition['country_bn']);
-            $this->_SetProductInfo($list, $condition['lang']);
-            $this->jsonReturn($list);
-        } elseif ($list === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据');
-            $this->jsonReturn(null);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
-        }
-    }
-
     /**
      * Description of 获取现货列表
      * @author  zhongyg
@@ -139,6 +81,61 @@ class StockController extends PublicController {
             $this->jsonReturn();
         }
     }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function ListByKeywordAction() {
+        $condition = $this->getPut();
+        if (empty($condition['special_id'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择现货!');
+            $this->jsonReturn();
+        }
+
+        $stock_model = new StockModel();
+        $list = $stock_model->getListByKeyword($condition);
+        if ($list) {
+            $this->_setImage($list);
+            $count = $stock_model->getCountByKeyword($condition);
+            $this->setvalue('count', $count);
+            //$this->_setConstPrice($list, $condition['country_bn']);
+            $this->_setDisCount($list, $condition['special_id']);
+            $this->_SetProductInfo($list, $condition['lang']);
+            $this->jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /*
      * Description of 获取图片
