@@ -360,8 +360,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['amount']=$data['amount'];
         $arr['amount_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=50;
+        $arr['customer_grade']=A;
         return $arr;
     }
     //易瑞产品采购量占客户总需求量地位2
@@ -369,8 +369,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['position']=$data['position'];
         $arr['position_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=60;
+        $arr['customer_grade']=B;
         return $arr;
     }
     //连续N年及以上履约状况良好3
@@ -378,8 +378,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['year_keep']=$data['year_keep'];
         $arr['keep_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=70;
+        $arr['customer_grade']=C;
         return $arr;
     }
     //年复购此时4
@@ -387,7 +387,7 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['re_purchase']=$data['re_purchase'];
         $arr['re_score']=100;
-        $arr['final_score']=100;
+        $arr['final_score']=80;
         $arr['customer_grade']=S;
         return $arr;
     }
@@ -396,8 +396,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['credit_grade']=$data['credit_grade'];
         $arr['credit_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=50;
+        $arr['customer_grade']=A;
         return $arr;
     }
     //零配件年采购额6
@@ -405,8 +405,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['purchase']=$data['purchase'];
         $arr['purchase_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=70;
+        $arr['customer_grade']=B;
         return $arr;
     }
     //企业性质7
@@ -414,8 +414,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['enterprise']=$data['enterprise'];
         $arr['enterprise_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=80;
+        $arr['customer_grade']=C;
         return $arr;
     }
     //营业收入8
@@ -423,8 +423,8 @@ class CustomerGradeModel extends PublicModel {
         $arr=[];
         $arr['income']=$data['income'];
         $arr['income_score']=100;
-        $arr['final_score']=100;
-        $arr['customer_grade']=S;
+        $arr['final_score']=90;
+        $arr['customer_grade']=D;
         return $arr;
     }
     //资产规模9
