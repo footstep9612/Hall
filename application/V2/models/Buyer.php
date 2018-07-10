@@ -378,8 +378,10 @@ class BuyerModel extends PublicModel {
         if(empty($data['admin']['role']) || empty($data['admin']['country'])){
             return false;
         }
-        $data['admin']['country']=trim($data['admin']['country'],"'");
-        $data['admin']['country']=explode("','",$data['admin']['country']);
+        if(!is_array($data['admin']['country'])){
+            $data['admin']['country']=trim($data['admin']['country'],"'");
+            $data['admin']['country']=explode("','",$data['admin']['country']);
+        }
         //国家
         $countryStr=$this->arrToStr($data['admin']['country']);
         //地区
