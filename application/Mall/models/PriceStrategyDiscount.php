@@ -46,6 +46,22 @@ class PriceStrategyDiscountModel extends PublicModel {
         return !empty($ret) ? $ret : [];
     }
 
+    public function getSkuPriceByCount($sku, $group, $special_id = '',$count){
+        try {
+            $condition = [
+                'group'=>$group,
+                'group_id'=>$special_id,
+                'sku'=>$sku,
+                'id' => $id,
+                'deleted_at' => ['exp', 'is null'],
+            ];
+            $result = $this->field('promotion_price')->where($condition)->find();
+            return $result ? $result : [];
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
 
 
 

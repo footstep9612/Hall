@@ -501,8 +501,17 @@ class ProductModel extends PublicModel {
                         if (isset($stockAry[$r['sku']]['price_strategy_type']) && $stockAry[$r['sku']]['price_strategy_type']!='' && (($stockAry[$r['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_start']==null) && ($stockAry[$r['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_end']==null) )) {
                             $psdM = new PriceStrategyDiscountModel();
                             $price_list = $psdM->getDisCountBySkus([$r['sku']], 'STOCK',$input['special_id']);
-                            $r['priceAry'] = $price_list[$r['sku']];
+                            $r['priceList'] = $price_list[$r['sku']];
+                            $r['priceAry'] = [];
+                            $price_info = $psdM->getSkuPriceByCount($r['sku'],'STOCK',$input['special_id'],$result[$r['sku']]['buy_number']);
+                            switch($stockAry[$r['sku']]['price_strategy_type']){
+                                case 'J':
+                                    if($result[$r['sku']]['buy_number']>=)
+                                    $r['priceAry'] = ['price'=>];
+                                    break;
+                            }
                         } else {
+                            $r['priceList'] = [];
                             $r['priceAry'] = [];
                         }
 
