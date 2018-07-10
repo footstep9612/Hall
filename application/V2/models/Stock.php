@@ -87,7 +87,7 @@ class StockModel extends PublicModel {
         list($from, $size) = $this->_getPage($condition);
         $data = [];
         $list = $this->alias('s')
-                ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
+                ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.sort_order,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
