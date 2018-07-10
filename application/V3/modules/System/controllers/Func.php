@@ -116,7 +116,7 @@ class FuncController extends PublicController {
 
         set_time_limit(0);
         $urlperm_model = new System_UrlPermModel();
-        $list = $urlperm_model->where(['isNull(top_parent_id)'])->select();
+        $list = $urlperm_model->where(['isNull(top_parent_id) or top_parent_id=0'])->select();
         foreach ($list as $val) {
             $falg = $urlperm_model->update_data($val, ['id' => $val['id']]);
         }

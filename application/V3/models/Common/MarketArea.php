@@ -157,7 +157,7 @@ class Common_MarketAreaModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getNamesBybns($bns) {
+    public function getNamesBybns($bns, $lang) {
 
         try {
             $where = ['deleted_flag' => 'N'];
@@ -236,12 +236,12 @@ class Common_MarketAreaModel extends PublicModel {
 
     public function setArea(&$arr) {
         if ($arr) {
-            $marketarea_model = new Common_MarketAreaModel();
+
             $area_bns = [];
             foreach ($arr as $key => $val) {
                 $area_bns[] = trim($val['area_bn']);
             }
-            $area_names = $marketarea_model->getNamesBybns($area_bns);
+            $area_names = $this->getNamesBybns($area_bns);
             foreach ($arr as $key => $val) {
                 if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
                     $val['area_name'] = $area_names[trim($val['area_bn'])];
