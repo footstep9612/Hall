@@ -205,15 +205,15 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
 
         $inquiryModel = new InquiryModel();
-        $quoteModel = new QuoteModel();
+
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
-        $buyerModel = new BuyerModel();
+
         $countryUserModel = new CountryUserModel();
-        $org = new OrgModel();
+
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
-        $transModeModel = new TransModeModel();
+
         $inquiryOrderModel = new InquiryOrderModel();
 
 // 市场经办人
@@ -247,6 +247,7 @@ class InquiryController extends PublicController {
         $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
 
         $inquiryList = $inquiryModel->getList_($condition);
+
 
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
@@ -289,15 +290,15 @@ class InquiryController extends PublicController {
         $condition = $this->put_data;
 
         $inquiryModel = new InquiryModel();
-        $quoteModel = new QuoteModel();
+
         $countryModel = new CountryModel();
         $employeeModel = new EmployeeModel();
-        $buyerModel = new BuyerModel();
+
         $countryUserModel = new CountryUserModel();
-        $org = new OrgModel();
+
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
-        $transModeModel = new TransModeModel();
+
         $inquiryOrderModel = new InquiryOrderModel();
 
 // 市场经办人
@@ -1781,28 +1782,30 @@ class InquiryController extends PublicController {
      */
 
     private function _setContractNo(&$arr) {
-        $inquiry_order_model = new InquiryOrderModel();
-        $inquiry_ids = [];
-        foreach ($arr as $key => $val) {
-            if (isset($val['id']) && $val['id']) {
-                $inquiry_ids[] = $val['id'];
-            }
-        }
-
-        $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
-                        ->field('inquiry_id,contract_no')->select();
-        $contract_nos = [];
-        foreach ($inquiry_orders as $inquiry_order) {
-            $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['logi_quote_flag'];
-        }
-        foreach ($arr as $key => $val) {
-            if ($val['id'] && isset($contract_nos[$val['id']])) {
-                $val['contract_no'] = $contract_nos[$val['id']];
-            } else {
-                $val['contract_no'] = '';
+        if ($arr) {
+            $inquiry_order_model = new InquiryOrderModel();
+            $inquiry_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['id']) && $val['id']) {
+                    $inquiry_ids[] = $val['id'];
+                }
             }
 
-            $arr[$key] = $val;
+            $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
+                            ->field('inquiry_id,contract_no')->select();
+            $contract_nos = [];
+            foreach ($inquiry_orders as $inquiry_order) {
+                $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['logi_quote_flag'];
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['id'] && isset($contract_nos[$val['id']])) {
+                    $val['contract_no'] = $contract_nos[$val['id']];
+                } else {
+                    $val['contract_no'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
         }
     }
 
@@ -1816,31 +1819,33 @@ class InquiryController extends PublicController {
      */
 
     private function _setTransModeName(&$arr) {
-        $trans_mode_model = new TransModeModel();
-        $trans_mode_bns = [];
-        foreach ($arr as $key => $val) {
-            if (isset($val['trans_mode_bn']) && $val['trans_mode_bn']) {
-                $trans_mode_bns[] = $val['trans_mode_bn'];
+        if ($arr) {
+            $trans_mode_model = new TransModeModel();
+            $trans_mode_bns = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['trans_mode_bn']) && $val['trans_mode_bn']) {
+                    $trans_mode_bns[] = $val['trans_mode_bn'];
+                }
             }
-        }
 
 
 
-        $trans_mode_names = [];
-        if ($trans_mode_bns) {
-            $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
-                            ->field('bn,trans_mode')->select();
-            foreach ($trans_modes as $trans_mode) {
-                $trans_mode_names[$trans_mode['bn']] = $trans_mode['trans_mode'];
+            $trans_mode_names = [];
+            if ($trans_mode_bns) {
+                $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
+                                ->field('bn,trans_mode')->select();
+                foreach ($trans_modes as $trans_mode) {
+                    $trans_mode_names[$trans_mode['bn']] = $trans_mode['trans_mode'];
+                }
             }
-        }
-        foreach ($arr as $key => $val) {
-            if ($val['trans_mode_bn'] && isset($trans_mode_names[$val['trans_mode_bn']])) {
-                $val['trans_mode_name'] = $trans_mode_names[$val['trans_mode_bn']];
-            } else {
-                $val['trans_mode_name'] = '';
+            foreach ($arr as $key => $val) {
+                if ($val['trans_mode_bn'] && isset($trans_mode_names[$val['trans_mode_bn']])) {
+                    $val['trans_mode_name'] = $trans_mode_names[$val['trans_mode_bn']];
+                } else {
+                    $val['trans_mode_name'] = '';
+                }
+                $arr[$key] = $val;
             }
-            $arr[$key] = $val;
         }
     }
 
