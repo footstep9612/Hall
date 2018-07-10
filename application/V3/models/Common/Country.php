@@ -156,16 +156,20 @@ class Common_CountryModel extends PublicModel {
 
             $country_bns = [];
             foreach ($arr as $key => $val) {
-                $country_bns[] = trim($val['country_bn']);
-            }
-            $countrynames = $this->getNamesBybns($country_bns, $lang);
-            foreach ($arr as $key => $val) {
-                if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
-                    $val['country_name'] = $countrynames[trim($val['country_bn'])];
-                } else {
-                    $val['country_name'] = '';
+                if (isset($val['country_bn']) && $val['country_bn']) {
+                    $country_bns[] = trim($val['country_bn']);
                 }
-                $arr[$key] = $val;
+            }
+            if ($country_bns) {
+                $countrynames = $this->getNamesBybns($country_bns, $lang);
+                foreach ($arr as $key => $val) {
+                    if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
+                        $val['country_name'] = $countrynames[trim($val['country_bn'])];
+                    } else {
+                        $val['country_name'] = '';
+                    }
+                    $arr[$key] = $val;
+                }
             }
         }
     }

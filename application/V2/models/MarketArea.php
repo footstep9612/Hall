@@ -361,16 +361,21 @@ class MarketAreaModel extends PublicModel {
 
             $area_bns = [];
             foreach ($arr as $key => $val) {
-                $area_bns[] = trim($val['area_bn']);
-            }
-            $area_names = $this->getNamesBybns($area_bns);
-            foreach ($arr as $key => $val) {
-                if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
-                    $val['area_name'] = $area_names[trim($val['area_bn'])];
-                } else {
-                    $val['area_name'] = '';
+
+                if (isset($val['area_bn']) && $val['area_bn']) {
+                    $area_bns[] = trim($val['area_bn']);
                 }
-                $arr[$key] = $val;
+            }
+            if ($area_bns) {
+                $area_names = $this->getNamesBybns($area_bns);
+                foreach ($arr as $key => $val) {
+                    if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
+                        $val['area_name'] = $area_names[trim($val['area_bn'])];
+                    } else {
+                        $val['area_name'] = '';
+                    }
+                    $arr[$key] = $val;
+                }
             }
         }
     }
