@@ -46,17 +46,26 @@ class PriceStrategyDiscountModel extends PublicModel {
         return !empty($ret) ? $ret : [];
     }
 
+    /**
+     * 获取当前价格
+     * @param $sku
+     * @param $group
+     * @param string $special_id
+     * @param $count
+     * @return array|bool
+     */
     public function getSkuPriceByCount($sku, $group, $special_id = '',$count){
         try {
             $condition = [
                 'group'=>$group,
                 'group_id'=>$special_id,
                 'sku'=>$sku,
-                'id' => $id,
+                'min_purchase_qty' =>['elt',$count],
+                'max_purchase_qty' =>[['egt',$count],['exp','is null'],'or'],
                 'deleted_at' => ['exp', 'is null'],
             ];
-            $result = $this->field('promotion_price')->where($condition)->find();
-            return $result ? $result : [];
+            $result = $this->field('promotion_price')->where($condition)->order('min_purchase_qty DESC')->find();
+            return $result ? $result['promotion_price'] : '';
         } catch (Exception $e) {
             return false;
         }

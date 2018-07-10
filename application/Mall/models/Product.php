@@ -502,17 +502,10 @@ class ProductModel extends PublicModel {
                             $psdM = new PriceStrategyDiscountModel();
                             $price_list = $psdM->getDisCountBySkus([$r['sku']], 'STOCK',$input['special_id']);
                             $r['priceList'] = $price_list[$r['sku']];
-                            $r['priceAry'] = [];
-                            $price_info = $psdM->getSkuPriceByCount($r['sku'],'STOCK',$input['special_id'],$result[$r['sku']]['buy_number']);
-                            switch($stockAry[$r['sku']]['price_strategy_type']){
-                                case 'J':
-                                    if($result[$r['sku']]['buy_number']>=)
-                                    $r['priceAry'] = ['price'=>];
-                                    break;
-                            }
+                            $r['promotion_price'] = $psdM->getSkuPriceByCount($r['sku'],'STOCK',$input['special_id'],$result[$r['sku']]['buy_number']);
                         } else {
                             $r['priceList'] = [];
-                            $r['priceAry'] = [];
+                            $r['promotion_price'] =  $stockAry[$r['sku']]['price'];
                         }
 
                        /* switch ($stockAry[$r['sku']]['price_strategy_type']) {
