@@ -579,7 +579,7 @@ class InquiryModel extends PublicModel {
         return $this->field($field)
                         ->where($where)
                         ->page($currentPage, $pageSize)
-                        ->order('updated_at DESC')
+                        ->order('updated_at DESC,created_at DESC')
                         ->select();
     }
 

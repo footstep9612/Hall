@@ -139,6 +139,191 @@ class CustomerGradeModel extends PublicModel {
         }
         return $info;
     }
+    public function exportGrade($data){
+        $lang=$data['lang'];
+        $field='';
+        $fieldArr=array(
+            'id', //
+            'buyer_id', //
+            'type', //
+            'amount', //客户历史成单金额
+            'amount_score', //
+            'position', //易瑞产品采购量占客户总需求量地位
+            'position_score', //
+            'year_keep', //连续N年及以上履约状况良好
+            'keep_score', //
+            're_purchase', //年复购次数
+            're_score', //
+            'credit_grade', //客户资信等级
+            'credit_score', //
+            'purchase', //零配件年采购额
+            'purchase_score', //
+            'enterprise', //    企业性质
+            'enterprise_score', //
+            'income', //营业收入
+            'income_score', //
+            'scale', //资产规模
+            'scale_score', //
+            'final_score', //综合分值
+            'customer_grade' //客户等级
+//            'status', //状态: 0,新建;1,待审核; 2,审核通过
+        );
+        foreach($fieldArr as $k => $v){
+            $field.=',grade.'.$v;
+        }
+        $field=mb_substr($field,1);
+        $cond=array(
+//            'grade.buyer_id'=>$data['buyer_id'],
+            'grade.deleted_flag'=>'N'
+        );
+        $info=$this->alias('grade')
+            ->field($field)
+            ->where($cond)
+            ->order('grade.id desc')
+            ->select();
+        if(empty($info)){
+            return [];
+        }
+        $area=new CountryModel();
+        foreach($info as $k => &$v){
+            if($v['type']==1){
+                $v['type']=$lang=='zh'?'老客户':'Old customer';
+            }else{
+                $v['type']=$lang=='zh'?'潜在客户':'Potential customer';
+            }
+            $buyerInfo=$this->table('erui_buyer.buyer')->field('id,name,buyer_no,country_bn')
+                ->where(array('id'=>$v['buyer_id'],'deleted_flag'=>'N'))->find();
+            $info[$k]['name']=$buyerInfo['name'];
+            $info[$k]['buyer_no']=$buyerInfo['buyer_no'];
+            if(!empty($buyerInfo['country_bn'])){
+                $areaInfo=$area->getCountryAreaByBn($buyerInfo['country_bn'],$lang);
+                $info[$k]['area_country']=$areaInfo['area'].'-'.$areaInfo['country'];
+            }else{
+                $info[$k]['area_country']='';
+            }
+        }
+        $packData=$this->packExcelAllData($info);
+        $excelFile=$this->exportAll($packData,$lang);
+        //
+        $arr['tmp_name'] = $excelFile;
+        $arr['type'] = 'application/excel';
+        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelFile)){
+            unlink($excelFile); //删除文件
+        }
+        if ($fileId) {
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
+    }
+    public function exportAll($data,$lang){
+        set_time_limit(0);  # 设置执行时间最大值
+        //存放excel文件目录
+        $excelDir = MYPATH . DS . 'public' . DS . 'tmp' . DS . 'customer';
+        if (!is_dir($excelDir)) {
+            mkdir($excelDir, 0777, true);
+        }
+        $sheetName='customer';
+        if($lang=='zh'){
+            $tableheader = array(
+                '序号','地区-国家','客户名称','客户编码','客户类型',
+                '客户历史成单金额(万美元)', '所占分值', '易瑞产品采购量占客户总需求量地位', '所占分值',
+                '连续N年及以上履约状况良好', '所占分值','年复购次数','所占分值',
+                '客户资信等级', '所占分值','零配件年采购额(万美元)','所占分值',
+                '企业性质', '所占分值','营业收入(万美元)','所占分值',
+                '资产规模(万美元)', '所占分值', '客户综合分值','客户等级'
+            );
+        }else{
+            $tableheader = array(
+                'Serial','Area-Country','Customer name','Customer No.','Customer type',
+                'Customer Historic Order Amount(10000$)', 'Score',
+                'Erui products (not limited to spare parts) purchase volume accounts for the total customer demand', 'Score',
+                'The years that performance is in good condition', 'Score',
+                'Annual repurchase times','Score',
+
+                'Customer credit rating', 'Score','Annual purchase of spare parts(10000$)','Score',
+                'enterprise property', 'Score','operating revenue(10000$)','Score',
+                'asset size(10000$)', 'Score', 'Customer comprehensive score','Customer grade'
+            );
+        }
+        //创建对象
+        $excel = new PHPExcel();
+        $objActSheet = $excel->getActiveSheet();
+        $letter = range(A, Z);
+        //设置当前的sheet
+        $excel->setActiveSheetIndex(0);
+        //设置sheet的name
+        $objActSheet->setTitle($sheetName);
+        //填充表头信息
+        for ($i = 0; $i < count($tableheader); $i++) {
+            //单独设置D列宽度为15
+            $objActSheet->getColumnDimension($letter[$i])->setWidth(20);
+            $objActSheet->setCellValue("$letter[$i]1", "$tableheader[$i]");
+            //设置表头字体样式
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setName('微软雅黑');
+            //设置表头字体大小
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setSize(10);
+            //设置表头字体是否加粗
+            $objActSheet->getStyle("$letter[$i]1")->getFont()->setBold(true);
+            //设置表头文字垂直居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            //设置文字上下居中
+            $objActSheet->getStyle("$letter[$i]1")->getAlignment()->setVertical(\PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            //设置表头外的文字垂直居中
+            $excel->setActiveSheetIndex(0)->getStyle($letter[$i])->getAlignment()->setHorizontal(\PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+
+        //填充表格信息
+        for ($i = 2; $i <= count($data) + 1; $i++) {
+            $j = 0;
+            foreach ($data[$i - 2] as $key => $value) {
+                $objActSheet->setCellValue("$letter[$j]$i", "$value");
+                $j++;
+            }
+        }
+        //创建Excel输入对象
+        $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel2007');
+        $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
+        return $excelDir . DS. $sheetName . '.xlsx';
+    }
+    public function packExcelAllData($data){
+        $info=[];
+        foreach($data as $k => $v){
+            $info[$k]['serial']=$k+1;
+            $info[$k]['area_country']=$v['area_country'];
+            $info[$k]['name']=$v['name'];
+            $info[$k]['buyer_no']=$v['buyer_no'];
+
+            $info[$k]['type']=$v['type'];
+            $info[$k]['amount']=$v['amount'];
+            $info[$k]['amount_score']=$v['amount_score'];
+            $info[$k]['position']=$v['position'];
+            $info[$k]['position_score']=$v['position_score'];
+            $info[$k]['year_keep']=$v['year_keep'];
+            $info[$k]['keep_score']=$v['keep_score'];
+            $info[$k]['re_purchase']=$v['re_purchase'];
+            $info[$k]['re_score']=$v['re_score'];
+            $info[$k]['credit_grade']=$v['credit_grade'];
+            $info[$k]['credit_score']=$v['credit_score'];
+            $info[$k]['purchase']=$v['purchase'];
+            $info[$k]['purchase_score']=$v['purchase_score'];
+            $info[$k]['enterprise']=$v['enterprise'];
+            $info[$k]['enterprise_score']=$v['enterprise_score'];
+            $info[$k]['income']=$v['income'];
+            $info[$k]['income_score']=$v['income_score'];
+            $info[$k]['scale']=$v['scale'];
+            $info[$k]['scale_score']=$v['scale_score'];
+
+            $info[$k]['final_score']=$v['final_score'];
+            $info[$k]['customer_grade']=$v['customer_grade'];
+        }
+        return $info;
+    }
     private function oldBuyer($data){
         $field=array(
 //            'buyer_id',
