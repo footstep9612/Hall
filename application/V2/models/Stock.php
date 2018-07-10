@@ -226,10 +226,10 @@ class StockModel extends PublicModel {
             $data['price_strategy_type'] = $condition['price_strategy_type'];
         }
         if(isset($condition['strategy_validity_start']) && !empty($condition['strategy_validity_start'])){    //策略有效期开始时间
-            $data['strategy_validity_start'] = date('Y-m-d H:i:s',$condition['strategy_validity_start']);
+            $data['strategy_validity_start'] = $condition['strategy_validity_start'];
         }
         if(isset($condition['strategy_validity_end']) && !empty($condition['strategy_validity_end'])){        //策略有效期结束时间
-            $data['strategy_validity_end'] = date('Y-m-d H:i:s',$condition['strategy_validity_end']);
+            $data['strategy_validity_end'] = $condition['strategy_validity_end'];
         }
         if(isset($condition['price_cur_bn'])){  //币种
             $data['price_cur_bn'] = $condition['price_cur_bn'];
