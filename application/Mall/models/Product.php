@@ -482,7 +482,6 @@ class ProductModel extends PublicModel {
                     $spus[] = strval($item['spu']);
                 }
 
-
                 $goods = $goodsModel->field('spu,sku,name,show_name,min_order_qty,min_pack_naked_qty,nude_cargo_unit,'
                                         . 'min_pack_unit,lang,model,status,deleted_flag')
                                 ->where(['sku' => ['in', $skus],
@@ -499,7 +498,15 @@ class ProductModel extends PublicModel {
                 foreach ($goods as $r) {
                     $r['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? $r['spu_name'] : $r['spu_show_name']) : $r['name']) : $r['show_name'];
                     if ($input['type']) {
-                        switch ($stockAry[$r['sku']]['price_strategy_type']) {
+                        if (isset($stockAry[$r['sku']]['price_strategy_type']) && $stockAry[$r['sku']]['price_strategy_type']!='' && (($stockAry[$r['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_start']==null) && ($stockAry[$r['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_end']==null) )) {
+                            $psdM = new PriceStrategyDiscountModel();
+                            $price_list = $psdM->getDisCountBySkus([$r['sku']], 'STOCK',$input['special_id']);
+                            $r['priceAry'] = $price_list[$r['sku']];
+                        } else {
+                            $r['priceAry'] = [];
+                        }
+
+                       /* switch ($stockAry[$r['sku']]['price_strategy_type']) {
                             case 1:
                                 $r['priceAry'] = $this->getSkuPriceByCount($r['sku'], $input['country_bn'], $result[$r['sku']]['buy_number']);
                                 $r['priceList'] = $this->getSkuPriceBySku($r['sku'], $input['country_bn']);
@@ -512,7 +519,7 @@ class ProductModel extends PublicModel {
                                 $r['priceAry'] = array_merge($priceInfo, $stockPrice);
                                 $r['priceList'] = $psdM->getPriceList($r['sku'], $input['country_bn'], $stockAry[$r['sku']]['price'], $stockPrice);
                                 break;
-                        }
+                        }*/
                     }
                     $goodsAry[$r['sku']] = $r;
                 }
