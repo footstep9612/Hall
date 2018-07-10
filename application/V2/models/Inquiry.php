@@ -429,7 +429,7 @@ class InquiryModel extends PublicModel {
      */
     public function getCount_($condition = []) {
         $count = $this->getSqlJoint($condition)->count(' DISTINCT a.id');
-        echo $this->_sql();
+
         return $count > 0 ? $count : 0;
     }
 
