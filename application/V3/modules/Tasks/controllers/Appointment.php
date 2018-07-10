@@ -27,43 +27,40 @@ class AppointmentController extends PublicController {
             $condtion = $this->getPut();
             $condtion['lang'] = $this->getPut('lang', 'zh');
         }
-        $page = !empty($condtion['currentPage']) ? $condtion['currentPage'] : 1;
-        $pagesize = !empty($condtion['pageSize']) ? $condtion['pageSize'] : 10;
+        if (in_array('201711242', $this->user['role_no'])) {
+            $buyerModel = new Buyer_BuyerModel();
 
-        $inquiry = new Rfq_InquiryModel();
-
-        $urlPermModel = new System_UrlPermModel();
-        $where = [
-            'now_agent_id' => $this->user['id'],
-            'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
-            'deleted_flag' => 'N'
-        ];
-        $list = $inquiry->where($where)
-                ->order('updated_at DESC')
-                ->field('id,serial_no,inflow_time,status,quote_status,country_bn')
-                ->page($page, $pagesize)
-                ->select();
-        (new Common_MarketAreaCountryModel())->setAreaBn($list);
-        (new Common_MarketAreaModel())->setArea($list);
-        (new Common_CountryModel())->setCountry($list);
-        foreach ($list as &$item) {
-            $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);
-        }
-
-        if ($list) {
-            $res['code'] = '1';
-            $res['message'] = L('SUCCESS');
-            $res['count'] = $inquiry
-                            ->where($where)
-                            ->count('id') ?: 0;
-            $res['parent_id'] = $urlPermModel
-                    ->getMenuIdByName('询报价');
-            $res['data'] = $list;
+            $urlPermModel = new System_UrlPermModel();
+            $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+            $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
+            $where = ['status' => 'APPROVING',
+                'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
+            $buyerList = $buyerModel
+                    ->field('id, status, country_bn, name')
+                    ->where($where)
+                    ->page($currentPage, $pageSize)
+                    ->order('id DESC')
+                    ->select();
+            (new Common_MarketAreaCountryModel())->setAreaBn($buyerList);
+            (new Common_MarketAreaModel())->setArea($buyerList);
+            (new Common_CountryModel())->setCountry($buyerList);
+            if ($buyerList) {
+                $res['code'] = '1';
+                $res['message'] = L('SUCCESS');
+                $res['count'] = $buyerModel->where($where)->count('id') ?: 0;
+                $res['parent_id'] = $urlPermModel->getMenuIdByName('客户');
+                $res['data'] = $buyerList;
+            } else {
+                $res['code'] = '-101';
+                $res['message'] = L('NO_DATA');
+            }
+            $this->jsonReturn($res);
         } else {
-            $res['code'] = '-101';
-            $res['message'] = L('NO_DATA');
+            $this->jsonReturn([
+                'code' => '-101',
+                'message' => L('FAIL')
+            ]);
         }
-        $this->jsonReturn($res);
     }
 
     /*
@@ -72,15 +69,22 @@ class AppointmentController extends PublicController {
 
     public function countAction() {
 
-        $inquiry_model = new Rfq_InquiryModel();
 
-        $where_inquiry = [
-            'now_agent_id' => $this->user['id'],
-            'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
-            'deleted_flag' => 'N'
-        ];
+        if (!empty($this->user['country_bn']) && in_array('201711242', $this->user['role_no'])) {
+            $where = ['status' => 'APPROVING',
+                'country_bn' => ['in',
+                    $this->user['country_bn']]
+                , 'deleted_flag' => 'N'];
+            $count = (new Buyer_BuyerModel())
+                    ->where($where)
+                    ->count();
+            $count = !empty($count) ? $count : 0;
+        } else {
 
-        $count = $inquiry_model->where($where_inquiry)->count('id') ?: 0;
+            $count = 0;
+        }
+
+
         header('Content-Type:application/json; charset=utf-8');
 
         if ($count) {
