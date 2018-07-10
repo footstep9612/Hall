@@ -1659,12 +1659,15 @@ class InquiryController extends PublicController {
                     $buyer_ids[] = $val['buyer_id'];
                 }
             }
-            $buyers = $buyer_model->field('id,buyer_no')->where(['id' => ['in', $buyer_ids]])->select();
-            $buyer_nos = [];
-            foreach ($buyers as $buyer) {
-                $buyer_nos[$buyer['id']] = $buyer['buyer_no'];
-            }
 
+
+            $buyer_nos = [];
+            if ($buyer_ids) {
+                $buyers = $buyer_model->field('id,buyer_no')->where(['id' => ['in', $buyer_ids]])->select();
+                foreach ($buyers as $buyer) {
+                    $buyer_nos[$buyer['id']] = $buyer['buyer_no'];
+                }
+            }
             foreach ($arr as $key => $val) {
 
                 if ($val['buyer_id'] && isset($buyer_nos[$val['buyer_id']])) {
@@ -1697,9 +1700,11 @@ class InquiryController extends PublicController {
                 }
             }
 
+
+            $logi_quote_flags = [];
+
             $quotes = $quote_model->where(['inquiry_id' => ['in', $inquiry_ids]])
                             ->field('inquiry_id,logi_quote_flag')->select();
-            $logi_quote_flags = [];
             foreach ($quotes as $quote) {
                 $logi_quote_flags[$quote['inquiry_id']] = $quote['logi_quote_flag'];
             }
@@ -1735,11 +1740,14 @@ class InquiryController extends PublicController {
                 }
             }
 
-            $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
-                            ->field('id,name')->select();
+
             $orgnames = [];
-            foreach ($orgs as $org) {
-                $orgnames[$org['id']] = $org['name'];
+            if ($org_ids) {
+                $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
             }
             foreach ($arr as $key => $val) {
                 if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
@@ -1807,13 +1815,15 @@ class InquiryController extends PublicController {
         }
 
 
-        $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
-                        ->field('bn,trans_mode')->select();
-        $trans_mode_names = [];
-        foreach ($trans_modes as $trans_mode) {
-            $trans_mode_names[$trans_mode['bn']] = $trans_mode['trans_mode'];
-        }
 
+        $trans_mode_names = [];
+        if ($trans_mode_bns) {
+            $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
+                            ->field('bn,trans_mode')->select();
+            foreach ($trans_modes as $trans_mode) {
+                $trans_mode_names[$trans_mode['bn']] = $trans_mode['trans_mode'];
+            }
+        }
         foreach ($arr as $key => $val) {
             if ($val['trans_mode_bn'] && isset($trans_mode_names[$val['trans_mode_bn']])) {
                 $val['trans_mode_name'] = $trans_mode_names[$val['trans_mode_bn']];
