@@ -45,7 +45,7 @@ class RfqController extends PublicController {
                 ->select();
         (new Common_MarketAreaCountryModel())->setAreaBn($list);
         (new Common_MarketAreaModel())->setArea($list);
-        (new Common_CountryModel())->setCountry($list);
+        (new Common_CountryModel())->setCountry($list, $this->lang);
         // (new Rfq_InquiryRemindModel)->_remindList($list);
         foreach ($list as &$item) {
             $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);

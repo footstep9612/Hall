@@ -248,21 +248,23 @@ class InquiryController extends PublicController {
 
         $inquiryList = $inquiryModel->getList_($condition);
 
-        foreach ($inquiryList as &$inquiry) {
-            $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
-            $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
-            $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
-            $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
-            $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
-            $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
-            $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
-            $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
-            $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
-            $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-            $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
-            $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
-            $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
-        }
+        $countryModel->setCountry($inquiryList, $this->lang);
+        $marketAreaCountryModel->setAreaBn($inquiryList);
+        $marketAreaModel->setArea($inquiryList);
+        $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
+            'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
+        $this->_setBuyerNo($inquiryList);
+        $this->_setLogiQuoteFlag($inquiryList);
+        $this->_setOrgName($inquiryList);
+        $this->_setTransModeName($inquiryList);
+        $this->_setContractNo($inquiryList);
+//        foreach ($inquiryList as &$inquiry) {
+//            $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
+//            $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
+//            $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+//            $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
+//            $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
+//        }
 
         if ($inquiryList) {
             $res['code'] = 1;
@@ -1603,6 +1605,233 @@ class InquiryController extends PublicController {
         $data = $this->put_data;
         $results = $attach->addData($data);
         $this->jsonReturn($results);
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed_key => $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed_key] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed_key] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setBuyerNo(&$arr) {
+        if ($arr) {
+            $buyer_model = new BuyerModel();
+            $buyer_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['buyer_id']) && $val['buyer_id']) {
+                    $buyer_ids[] = $val['buyer_id'];
+                }
+            }
+
+
+            $buyer_nos = [];
+            if ($buyer_ids) {
+                $buyers = $buyer_model->field('id,buyer_no')->where(['id' => ['in', $buyer_ids]])->select();
+                foreach ($buyers as $buyer) {
+                    $buyer_nos[$buyer['id']] = $buyer['buyer_no'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+
+                if ($val['buyer_id'] && isset($buyer_nos[$val['buyer_id']])) {
+                    $val['buyer_no'] = $buyer_nos[$val['buyer_id']];
+                } else {
+                    $val['buyer_no'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setLogiQuoteFlag(&$arr) {
+        if ($arr) {
+            $quote_model = new QuoteModel();
+            $inquiry_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['id']) && $val['id']) {
+                    $inquiry_ids[] = $val['id'];
+                }
+            }
+
+
+            $logi_quote_flags = [];
+
+            $quotes = $quote_model->where(['inquiry_id' => ['in', $inquiry_ids]])
+                            ->field('inquiry_id,logi_quote_flag')->select();
+            foreach ($quotes as $quote) {
+                $logi_quote_flags[$quote['inquiry_id']] = $quote['logi_quote_flag'];
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['id'] && isset($logi_quote_flags[$val['id']])) {
+                    $val['logi_quote_flag'] = $logi_quote_flags[$val['id']];
+                } else {
+                    $val['logi_quote_flag'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setOrgName(&$arr) {
+
+        if ($arr) {
+            $org_model = new OrgModel();
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['org_id']) && $val['org_id']) {
+                    $org_ids[] = $val['org_id'];
+                }
+            }
+
+
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
+                    $val['org_name'] = $orgnames[$val['org_id']];
+                } else {
+                    $val['org_name'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setContractNo(&$arr) {
+        $inquiry_order_model = new InquiryOrderModel();
+        $inquiry_ids = [];
+        foreach ($arr as $key => $val) {
+            if (isset($val['id']) && $val['id']) {
+                $inquiry_ids[] = $val['id'];
+            }
+        }
+
+        $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
+                        ->field('inquiry_id,contract_no')->select();
+        $contract_nos = [];
+        foreach ($inquiry_orders as $inquiry_order) {
+            $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['logi_quote_flag'];
+        }
+        foreach ($arr as $key => $val) {
+            if ($val['id'] && isset($contract_nos[$val['id']])) {
+                $val['contract_no'] = $contract_nos[$val['id']];
+            } else {
+                $val['contract_no'] = '';
+            }
+
+            $arr[$key] = $val;
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setTransModeName(&$arr) {
+        $trans_mode_model = new TransModeModel();
+        $trans_mode_bns = [];
+        foreach ($arr as $key => $val) {
+            if (isset($val['trans_mode_bn']) && $val['trans_mode_bn']) {
+                $trans_mode_bns[] = $val['trans_mode_bn'];
+            }
+        }
+
+
+
+        $trans_mode_names = [];
+        if ($trans_mode_bns) {
+            $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
+                            ->field('bn,trans_mode')->select();
+            foreach ($trans_modes as $trans_mode) {
+                $trans_mode_names[$trans_mode['bn']] = $trans_mode['trans_mode'];
+            }
+        }
+        foreach ($arr as $key => $val) {
+            if ($val['trans_mode_bn'] && isset($trans_mode_names[$val['trans_mode_bn']])) {
+                $val['trans_mode_name'] = $trans_mode_names[$val['trans_mode_bn']];
+            } else {
+                $val['trans_mode_name'] = '';
+            }
+            $arr[$key] = $val;
+        }
     }
 
 }
