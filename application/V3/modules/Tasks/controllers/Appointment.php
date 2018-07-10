@@ -43,7 +43,7 @@ class AppointmentController extends PublicController {
                     ->select();
             (new Common_MarketAreaCountryModel())->setAreaBn($buyerList);
             (new Common_MarketAreaModel())->setArea($buyerList);
-            (new Common_CountryModel())->setCountry($buyerList);
+            (new Common_CountryModel())->setCountry($buyerList, $this->lang);
             if ($buyerList) {
                 $res['code'] = '1';
                 $res['message'] = L('SUCCESS');

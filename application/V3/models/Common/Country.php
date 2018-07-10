@@ -151,14 +151,14 @@ class Common_CountryModel extends PublicModel {
      * @desc
      */
 
-    public function setCountry(&$arr) {
+    public function setCountry(&$arr, $lang) {
         if ($arr) {
 
             $country_bns = [];
             foreach ($arr as $key => $val) {
                 $country_bns[] = trim($val['country_bn']);
             }
-            $countrynames = $this->getNamesBybns($country_bns, $this->lang);
+            $countrynames = $this->getNamesBybns($country_bns, $lang);
             foreach ($arr as $key => $val) {
                 if (trim($val['country_bn']) && isset($countrynames[trim($val['country_bn'])])) {
                     $val['country_name'] = $countrynames[trim($val['country_bn'])];
