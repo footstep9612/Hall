@@ -1670,8 +1670,6 @@ class InquiryController extends PublicController {
                     $buyer_ids[] = $val['buyer_id'];
                 }
             }
-
-
             $buyer_nos = [];
             if ($buyer_ids) {
                 $buyers = $buyer_model->field('id,buyer_no')->where(['id' => ['in', $buyer_ids]])->select();
@@ -1710,10 +1708,7 @@ class InquiryController extends PublicController {
                     $inquiry_ids[] = $val['id'];
                 }
             }
-
-
             $logi_quote_flags = [];
-
             $quotes = $quote_model->where(['inquiry_id' => ['in', $inquiry_ids]])
                             ->field('inquiry_id,logi_quote_flag')->select();
             foreach ($quotes as $quote) {
@@ -1741,7 +1736,6 @@ class InquiryController extends PublicController {
      */
 
     private function _setOrgName(&$arr) {
-
         if ($arr) {
             $org_model = new OrgModel();
             $org_ids = [];
@@ -1750,8 +1744,6 @@ class InquiryController extends PublicController {
                     $org_ids[] = $val['org_id'];
                 }
             }
-
-
             $orgnames = [];
             if ($org_ids) {
                 $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
@@ -1790,7 +1782,6 @@ class InquiryController extends PublicController {
                     $inquiry_ids[] = $val['id'];
                 }
             }
-
             $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
                             ->field('inquiry_id,contract_no')->select();
             $contract_nos = [];
@@ -1827,9 +1818,6 @@ class InquiryController extends PublicController {
                     $trans_mode_bns[] = $val['trans_mode_bn'];
                 }
             }
-
-
-
             $trans_mode_names = [];
             if ($trans_mode_bns) {
                 $trans_modes = $trans_mode_model->where(['bn' => ['in', $trans_mode_bns], 'lang' => $this->lang, 'deleted_flag' => 'N'])
