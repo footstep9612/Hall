@@ -353,21 +353,31 @@ class InquiryController extends PublicController {
         if ($isShow) {
             $inquiryList = $inquiryModel->getViewList($condition);
 
-            foreach ($inquiryList as &$inquiry) {
-                $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
-                $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
-                $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
-                $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
-                $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
-                $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
-                $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
-                $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
-                $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
-                $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
-                $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
-                $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
-                $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
-            }
+            $countryModel->setCountry($inquiryList, $this->lang);
+            $marketAreaCountryModel->setAreaBn($inquiryList);
+            $marketAreaModel->setArea($inquiryList);
+            $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
+                'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
+            $this->_setBuyerNo($inquiryList);
+            $this->_setLogiQuoteFlag($inquiryList);
+            $this->_setOrgName($inquiryList);
+            $this->_setTransModeName($inquiryList);
+            $this->_setContractNo($inquiryList);
+//            foreach ($inquiryList as &$inquiry) {
+//                $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
+//                $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
+//                $inquiry['quote_name'] = $employeeModel->getUserNameById($inquiry['quote_id']);
+//                $inquiry['buyer_no'] = $buyerModel->where(['id' => $inquiry['buyer_id']])->getField('buyer_no');
+//                $inquiry['now_agent_name'] = $employeeModel->getUserNameById($inquiry['now_agent_id']);
+//                $inquiry['logi_quote_flag'] = $quoteModel->where(['inquiry_id' => $inquiry['id']])->getField('logi_quote_flag');
+//                $inquiry['created_name'] = $employeeModel->getUserNameById($inquiry['created_by']);
+//                $inquiry['obtain_name'] = $employeeModel->getUserNameById($inquiry['obtain_id']);
+//                $inquiry['org_name'] = $org->where(['id' => $inquiry['org_id'], 'deleted_flag' => 'N'])->getField('name');
+//                $inquiry['area_bn'] = $marketAreaCountryModel->where(['country_bn' => $inquiry['country_bn']])->getField('market_area_bn');
+//                $inquiry['area_name'] = $marketAreaModel->getAreaNameByBn($inquiry['area_bn'], $this->lang);
+//                $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
+//                $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
+//            }
         }
 
         if ($inquiryList) {
