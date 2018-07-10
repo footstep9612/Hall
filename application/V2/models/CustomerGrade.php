@@ -10,28 +10,6 @@ class CustomerGradeModel extends PublicModel {
     public function __construct() {
         parent::__construct();
     }
-    public function buyerGradeList1($data){
-        if(empty($data['buyer_id'])){
-            return false;
-        }
-        $info=$this
-        ->field('id,type,amount,position,year_keep,re_purchase,credit_grade,purchase,enterprise,income,scale')
-        ->where(array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N'))
-        ->select();
-        $arr=[];
-        foreach($info as $k => $v){
-            $arr[$k]['id']=$v['id'];  //
-            $arr[$k]['type']=$v['type'];  //
-            $arr[$k]['customer_grade']=$v['amount'];  //客户等级
-            $arr[$k]['created_name']=$v['position'];    //创建人
-            $arr[$k]['created_at']=$v['year_keep'];   //创建时间
-            $arr[$k]['updated_at']=$v['re_purchase']; //更新时间
-            $arr[$k]['customer_admin']=$v['credit_grade'];    //1客户管理员
-            $arr[$k]['checked_at']=$v['purchase'];    //1审核时间
-            $arr[$k]['status']=$v['enterprise'];  //1状态
-        }
-        return $arr;
-    }
     public function buyerGradeList($data){
         $lang=$data['lang'];
         if(empty($data['buyer_id'])){
@@ -139,9 +117,14 @@ class CustomerGradeModel extends PublicModel {
         }
         return $info;
     }
-    public function exportGrade($data){
+    //获取客户分级数据
+    public function exportGradeData($data){
+        if(!empty($data['buyer_id'])){
+            $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+        }else{
+            $cond=array('deleted_flag'=>'N');
+        }
         $lang=$data['lang'];
-        $field='';
         $fieldArr=array(
             'id', //
             'buyer_id', //
@@ -166,18 +149,9 @@ class CustomerGradeModel extends PublicModel {
             'scale_score', //
             'final_score', //综合分值
             'customer_grade' //客户等级
-//            'status', //状态: 0,新建;1,待审核; 2,审核通过
-        );
-        foreach($fieldArr as $k => $v){
-            $field.=',grade.'.$v;
-        }
-        $field=mb_substr($field,1);
-        $cond=array(
-//            'grade.buyer_id'=>$data['buyer_id'],
-            'grade.deleted_flag'=>'N'
         );
         $info=$this->alias('grade')
-            ->field($field)
+            ->field($fieldArr)
             ->where($cond)
             ->order('grade.id desc')
             ->select();
@@ -191,9 +165,10 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $v['type']=$lang=='zh'?'潜在客户':'Potential customer';
             }
-            $buyerInfo=$this->table('erui_buyer.buyer')->field('id,name,buyer_no,country_bn')
+            $buyerInfo=$this->table('erui_buyer.buyer')->field('id,name,buyer_no,buyer_code,buyer_type,country_bn')
                 ->where(array('id'=>$v['buyer_id'],'deleted_flag'=>'N'))->find();
             $info[$k]['name']=$buyerInfo['name'];
+            $info[$k]['buyer_code']=$buyerInfo['buyer_code'];
             $info[$k]['buyer_no']=$buyerInfo['buyer_no'];
             if(!empty($buyerInfo['country_bn'])){
                 $areaInfo=$area->getCountryAreaByBn($buyerInfo['country_bn'],$lang);
@@ -201,27 +176,54 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $info[$k]['area_country']='';
             }
+            if(!empty($buyerInfo['buyer_type'])){
+                $fieldType=$lang=='zh'?'name':'en as name';
+                $typeInfo=$this->table('erui_config.buyer_type')->field($fieldType)
+                    ->where(array('id'=>$buyerInfo['buyer_type'],'deleted_flag'=>'N'))->find();
+                $info[$k]['customer_type']=$typeInfo['name'];
+            }else{
+                $info[$k]['customer_type']='';
+            }
         }
-        $packData=$this->packExcelAllData($info);
-        $excelFile=$this->exportAll($packData,$lang);
-        //
-        $arr['tmp_name'] = $excelFile;
-        $arr['type'] = 'application/excel';
-        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
-        //把导出的文件上传到文件服务器指定目录位置
-        $server = Yaf_Application::app()->getConfig()->myhost;
-        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
-        $url = $server . '/V2/Uploadfile/upload';
-        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
-        //删除文件和目录
-        if(file_exists($excelFile)){
-            unlink($excelFile); //删除文件
-        }
-        if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
-        }
+        return $info;
     }
-    public function exportAll($data,$lang){
+    //整理客户分级数据
+    public function packExcelAllData($data){
+        $info=[];
+        foreach($data as $k => $v){
+            $info[$k]['serial']=$k+1;
+            $info[$k]['area_country']=$v['area_country'];
+            $info[$k]['name']=$v['name'];
+            $info[$k]['buyer_no']=$v['buyer_no'];
+            $info[$k]['buyer_code']=$v['buyer_code'];
+
+            $info[$k]['type']=$v['type'];
+            $info[$k]['amount']=$v['amount'];
+            $info[$k]['amount_score']=$v['amount_score'];
+            $info[$k]['position']=$v['position'];
+            $info[$k]['position_score']=$v['position_score'];
+            $info[$k]['year_keep']=$v['year_keep'];
+            $info[$k]['keep_score']=$v['keep_score'];
+            $info[$k]['re_purchase']=$v['re_purchase'];
+            $info[$k]['re_score']=$v['re_score'];
+            $info[$k]['credit_grade']=$v['credit_grade'];
+            $info[$k]['credit_score']=$v['credit_score'];
+            $info[$k]['purchase']=$v['purchase'];
+            $info[$k]['purchase_score']=$v['purchase_score'];
+            $info[$k]['enterprise']=$v['enterprise'];
+            $info[$k]['enterprise_score']=$v['enterprise_score'];
+            $info[$k]['income']=$v['income'];
+            $info[$k]['income_score']=$v['income_score'];
+            $info[$k]['scale']=$v['scale'];
+            $info[$k]['scale_score']=$v['scale_score'];
+
+            $info[$k]['final_score']=$v['final_score'];
+            $info[$k]['customer_grade']=$v['customer_grade'];
+        }
+        return $info;
+    }
+    //导出模板
+    public function exportMode($data,$lang){
         set_time_limit(0);  # 设置执行时间最大值
         //存放excel文件目录
         $excelDir = MYPATH . DS . 'public' . DS . 'tmp' . DS . 'customer';
@@ -231,7 +233,7 @@ class CustomerGradeModel extends PublicModel {
         $sheetName='customer';
         if($lang=='zh'){
             $tableheader = array(
-                '序号','地区-国家','客户名称','客户编码','客户类型',
+                '序号','地区-国家','客户名称','客户编码','客户代码','客户类型',
                 '客户历史成单金额(万美元)', '所占分值', '易瑞产品采购量占客户总需求量地位', '所占分值',
                 '连续N年及以上履约状况良好', '所占分值','年复购次数','所占分值',
                 '客户资信等级', '所占分值','零配件年采购额(万美元)','所占分值',
@@ -240,7 +242,7 @@ class CustomerGradeModel extends PublicModel {
             );
         }else{
             $tableheader = array(
-                'Serial','Area-Country','Customer name','Customer No.','Customer type',
+                'Serial','Area-Country','Customer name','Customer No.','Customer Code','Customer type',
                 'Customer Historic Order Amount(10000$)', 'Score',
                 'Erui products (not limited to spare parts) purchase volume accounts for the total customer demand', 'Score',
                 'The years that performance is in good condition', 'Score',
@@ -291,39 +293,33 @@ class CustomerGradeModel extends PublicModel {
         $objWriter->save($excelDir . '/' . $sheetName . '.xlsx');    //文件保存
         return $excelDir . DS. $sheetName . '.xlsx';
     }
-    public function packExcelAllData($data){
-        $info=[];
-        foreach($data as $k => $v){
-            $info[$k]['serial']=$k+1;
-            $info[$k]['area_country']=$v['area_country'];
-            $info[$k]['name']=$v['name'];
-            $info[$k]['buyer_no']=$v['buyer_no'];
-
-            $info[$k]['type']=$v['type'];
-            $info[$k]['amount']=$v['amount'];
-            $info[$k]['amount_score']=$v['amount_score'];
-            $info[$k]['position']=$v['position'];
-            $info[$k]['position_score']=$v['position_score'];
-            $info[$k]['year_keep']=$v['year_keep'];
-            $info[$k]['keep_score']=$v['keep_score'];
-            $info[$k]['re_purchase']=$v['re_purchase'];
-            $info[$k]['re_score']=$v['re_score'];
-            $info[$k]['credit_grade']=$v['credit_grade'];
-            $info[$k]['credit_score']=$v['credit_score'];
-            $info[$k]['purchase']=$v['purchase'];
-            $info[$k]['purchase_score']=$v['purchase_score'];
-            $info[$k]['enterprise']=$v['enterprise'];
-            $info[$k]['enterprise_score']=$v['enterprise_score'];
-            $info[$k]['income']=$v['income'];
-            $info[$k]['income_score']=$v['income_score'];
-            $info[$k]['scale']=$v['scale'];
-            $info[$k]['scale_score']=$v['scale_score'];
-
-            $info[$k]['final_score']=$v['final_score'];
-            $info[$k]['customer_grade']=$v['customer_grade'];
+    public function exportExcelGrade($data){
+        $lang=$data['lang'];
+        $info=$this->exportGradeData($data);    //获取客户分级数据
+        if(empty($info)){
+            return [];
         }
-        return $info;
+        $packData=$this->packExcelAllData($info);
+        $excelFile=$this->exportMode($packData,$lang);   //模板
+        //
+        $arr['tmp_name'] = $excelFile;
+        $arr['type'] = 'application/excel';
+        $arr['name'] = pathinfo($excelFile, PATHINFO_BASENAME);
+        //把导出的文件上传到文件服务器指定目录位置
+        $server = Yaf_Application::app()->getConfig()->myhost;
+        $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
+        $url = $server . '/V2/Uploadfile/upload';
+        $fileId = postfile($arr, $url);    //上传到fastDFSUrl访问地址,返回name和url
+        //删除文件和目录
+        if(file_exists($excelFile)){
+            unlink($excelFile); //删除文件
+        }
+        if ($fileId) {
+            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+        }
     }
+
+
     private function oldBuyer($data){
         $field=array(
 //            'buyer_id',

@@ -435,14 +435,14 @@ class BuyerbusinessController extends PublicController
         $data['lang']=$this->getLang();
         $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
-        $res=$model->exportGrade($data);
-        if($res){
+        $res=$model->exportExcelGrade($data);
+        if(!empty($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级导出';
             $dataJson['data']=$res;
         }else{
             $dataJson['code']=0;
-            $dataJson['message']='参数错误';
+            $dataJson['message']='暂无数据';
         }
         $this -> jsonReturn($dataJson);
     }
