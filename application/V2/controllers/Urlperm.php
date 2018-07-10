@@ -161,7 +161,7 @@ class UrlpermController extends PublicController {
 
         $model_url_perm = new UrlPermModel();
         $id = $model_url_perm->update_data($data,$where);
-        if($id >= 0){
+        if($id > 0){
             $datajson['code'] = 1;
             $datajson['message'] = L('SUCCESS');
         }else{

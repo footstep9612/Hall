@@ -14,7 +14,6 @@
 class UrlPermModel extends PublicModel {
 
     //put your code here
-    protected $dbName = 'erui_sys'; //数据库名称
     protected $tableName = 'func_perm';
     Protected $autoCheckFields = true;
 
