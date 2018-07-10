@@ -36,10 +36,10 @@ class AppointmentController extends PublicController {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
             $buyerList = $buyerModel
-                    ->field('id, status, country_bn, name')
+                    ->field('id, status, country_bn, name,\'BUYER\' as type ,\'\' as serial_no,\'\' as inflow_time,\'\' as quote_status')
                     ->where($where)
                     ->page($currentPage, $pageSize)
-                    ->order('id DESC')
+                    ->order('created_at DESC')
                     ->select();
             (new Common_MarketAreaCountryModel())->setAreaBn($buyerList);
             (new Common_MarketAreaModel())->setArea($buyerList);
