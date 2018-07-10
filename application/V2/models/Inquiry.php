@@ -428,7 +428,7 @@ class InquiryModel extends PublicModel {
      * @time 2017-10-19
      */
     public function getCount_($condition = []) {
-        $count = $this->getSqlJoint($condition)->count('a.id');
+        $count = $this->getSqlJoint($condition)->count(' DISTINCT a.id');
         return $count > 0 ? $count : 0;
     }
 
@@ -535,7 +535,7 @@ class InquiryModel extends PublicModel {
                         ->field('a.*')
                         ->page($currentPage, $pageSize)
                         ->group('b.inquiry_id')
-                        ->order('a.updated_at DESC')
+                        ->order('a.updated_at DESC,a.created_at DESC')
                         ->select();
     }
 
