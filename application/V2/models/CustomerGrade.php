@@ -315,7 +315,7 @@ class CustomerGradeModel extends PublicModel {
             unlink($excelFile); //删除文件
         }
         if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'], 'name' => $fileId['name']);
+            return array('url' =>$fileId['url'], 'name' => $fileId['name']);
         }
     }
 
