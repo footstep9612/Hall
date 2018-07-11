@@ -246,9 +246,6 @@ class InquiryController extends PublicController {
 
         $inquiryList = $inquiryModel->getList_($condition);
 
-
-        echo $inquiryModel->_sql();
-        die;
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
         $marketAreaModel->setArea($inquiryList);
