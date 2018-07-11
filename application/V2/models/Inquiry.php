@@ -246,10 +246,10 @@ class InquiryModel extends PublicModel {
                     //}
                     break;
                 case 'erui' :
-                    $map1['a.status'] = 'CC_DISPATCHING';
-                    $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'and';
-                    $map['_complex'] = $map1;
+//                    $map1['a.status'] = 'CC_DISPATCHING';
+//                    $map1['a.now_agent_id'] = $condition['user_id'];
+//                    $map1['_logic'] = 'and';
+//                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
@@ -270,10 +270,10 @@ class InquiryModel extends PublicModel {
                     }
                     break;
                 case 'quote' :
-                    $map1['a.status'] = ['in', ['BIZ_QUOTING', 'BIZ_APPROVING']];
-                    $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'and';
-                    $map['_complex'] = $map1;
+//                    $map1['a.status'] = ['in', ['BIZ_QUOTING', 'REJECT_QUOTING', 'BIZ_APPROVING']];
+//                    $map1['a.now_agent_id'] = $condition['user_id'];
+//                    $map1['_logic'] = 'and';
+//                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['a.quote_id' => $condition['user_id']];
@@ -285,10 +285,10 @@ class InquiryModel extends PublicModel {
                     break;
                 case 'logi' :
 
-                    $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
-                    $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'and';
-                    $map['_complex'] = $map1;
+//                    $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
+//                    $map1['a.now_agent_id'] = $condition['user_id'];
+//                    $map1['_logic'] = 'and';
+//                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
