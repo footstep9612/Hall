@@ -56,6 +56,9 @@ class ProductController extends PublicController {
         }
     }
 
+    /**
+     * 购物车提交
+     */
     public function getSkusAction(){
         $input = $this->getPut();
         if (!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])) {
@@ -113,15 +116,14 @@ class ProductController extends PublicController {
         $productModel = new ProductModel();
         $stockInfo = $productModel->getSkuStockBySku($input['sku'], $input['country_bn'], $input['lang']);
 
-        if(empty($stockInfo[$input['sku']]['price']) || $stockInfo[$input['sku']]['price']==''){
-            $promotion_price = '';
-        }else{
+        $promotion_price = '';
+        if($stockInfo && isset($stockInfo[$input['sku']]['price_strategy_type']) && $stockInfo[$input['sku']]['price_strategy_type']!='' && (($stockInfo[$input['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_start']==null) && ($stockInfo[$input['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_end']==null) )){
             $psdM = new PriceStrategyDiscountModel();
             $promotion_price = $psdM->getSkuPriceByCount($input['sku'],'STOCK',$input['special_id'],$input['count']);
         }
 
         $data = [
-            'price' => $promotion_price ? $promotion_price : '',
+            'price' => $promotion_price ? $promotion_price : ($stockInfo[$input['sku']]['price'] ? $stockInfo[$input['sku']]['price'] : ''),
             'price_cur_bn' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_cur_bn'])) ? $stockInfo[$input['sku']]['price_cur_bn'] : (isset($priceInfo['price_cur_bn']) ? $priceInfo['price_cur_bn'] : ''),
             'price_symbol' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_symbol'])) ? $stockInfo[$input['sku']]['price_symbol'] : (isset($priceInfo['price_symbol']) ? $priceInfo['price_symbol'] : ''),
             'stock' => ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']]['stock'] : 0

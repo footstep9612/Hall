@@ -254,7 +254,7 @@ class ProductModel extends PublicModel {
                         $stockInfo = $productModel->getSkuStockBySku($r['sku'], $input['country_bn'], $input['lang']);
                         $stockAry[$r['sku']] = $symbol = $stockInfo ? $stockInfo[$r['sku']] : [];
                         $r = array_merge($r, $stockAry[$r['sku']]);
-                        switch ($stockAry[$r['sku']]['price_strategy_type']) {
+                       /* switch ($stockAry[$r['sku']]['price_strategy_type']) {
                             case 1:
                                 $r['priceAry'] = $productModel->getSkuPriceByCount($r['sku'], $input['country_bn'], $input['buyNumber'][$r['sku']]);
                                 $r['priceList'] = $productModel->getSkuPriceBySku($r['sku'], $input['country_bn']);
@@ -266,7 +266,19 @@ class ProductModel extends PublicModel {
                                 $r['priceAry'] = array_merge($r['priceAry'], $symbol);
                                 $r['priceList'] = $psdM->getPriceList($r['sku'], $input['country_bn'], $stockAry[$r['sku']]['price'], $symbol);
                                 break;
+                        }*/
+
+
+                        $promotion_price = '';
+                        if (isset($stockAry[$r['sku']]['price_strategy_type']) && $stockAry[$r['sku']]['price_strategy_type']!='' && (($stockAry[$r['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_start']==null) && ($stockAry[$r['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockAry[$r['sku']]['strategy_validity_end']==null) )) {
+                            $psdM = new PriceStrategyDiscountModel();
+                            $price_list = $psdM->getDisCountBySkus([$r['sku']], 'STOCK',$input['special_id']);
+                            $promotion_price = $psdM->getSkuPriceByCount($r['sku'],'STOCK',$input['special_id'],$input['buyNumber'][$r['sku']]);
+                            $r['priceAry'] = $price_list[$r['sku']];
+                        } else {
+                            $r['priceAry'] = $r['price'] ? [['promotion_price' => $r['price']]]:[];
                         }
+                        $r['promotion_price'] = $promotion_price ? $promotion_price : ($r['price'] ? $r['price'] : '');
                     }
                     $result[$r['sku']] = $r;
                     $result[$r['sku']]['name'] = empty($r['show_name']) ? (empty($r['name']) ? (empty($r['spu_show_name']) ? (empty($r['spu_name']) ? '' : $r['spu_name']) : $r['spu_show_name']) : $r['name']) : $r['show_name'];
@@ -423,6 +435,8 @@ class ProductModel extends PublicModel {
 
     /**
      * 根据sku跟国家获取库存
+     * @author link
+     * @lastDate 2018-07-11
      * @param string $sku
      * @param string $country_bn
      * @return array
@@ -443,7 +457,7 @@ class ProductModel extends PublicModel {
         $condition['status'] = 'VALID';
         try {
             $sModel = new StockModel();
-            $stockInfo = $sModel->field('stock,sku,price,price_strategy_type,price_cur_bn,price_symbol')->where($condition)->order('stock DESC')->select();
+            $stockInfo = $sModel->field('stock,sku,price,price_strategy_type,strategy_validity_start,strategy_validity_end,price_cur_bn,price_symbol')->where($condition)->order('stock DESC')->select();
             $data = [];
             if ($stockInfo) {
                 foreach ($stockInfo as $item) {

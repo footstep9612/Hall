@@ -35,6 +35,9 @@ class OrderController extends PublicController {
      */
     public function createAction(){
         $input = $this->getPut();
+        if(!isset($input['special_id']) || empty($input['special_id'])){
+            jsonReturn('', MSG::ERROR_PARAM, 'special_id not null');
+        }
         if(!isset($input['country_bn']) || empty($input['country_bn'])){
             jsonReturn('', MSG::ERROR_PARAM, 'country_bn not null');
         }
