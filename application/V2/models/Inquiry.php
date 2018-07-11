@@ -205,19 +205,19 @@ class InquiryModel extends PublicModel {
             $where['a.buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (isset($condition['agent_id'])) {
+        if (!empty($condition['agent_id'])) {
             $where['a.agent_id'] = ['in', $condition['agent_id'] ?: ['-1']]; //市场经办人
         }
 
-        if (isset($condition['now_agent_id'])) {
+        if (!empty($condition['now_agent_id'])) {
             $where['a.now_agent_id'] = ['in', $condition['now_agent_id'] ?: ['-1']]; //当前办理人
         }
 
-        if (isset($condition['quote_id'])) {
+        if (!empty($condition['quote_id'])) {
             $where['a.quote_id'] = ['in', $condition['quote_id'] ?: ['-1']]; //报价人
         }
 
-        if (isset($condition['contract_inquiry_id'])) {
+        if (!empty($condition['contract_inquiry_id'])) {
             if ($condition['contract_no'] == 'Y') {
                 $where['a.id'] = ['in', $condition['contract_inquiry_id'] ?: ['-1']]; //销售合同号存在
             } else {
@@ -246,12 +246,15 @@ class InquiryModel extends PublicModel {
                     //}
                     break;
                 case 'erui' :
+                    $map1['a.status'] = 'CC_DISPATCHING';
+                    $map1['a.now_agent_id'] = $condition['user_id'];
+                    $map1['_logic'] = 'or';
+                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
 
-                            if ($orgId)
-                                $map[] = ['a.erui_id' => ['in', $orgId]];
+                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
                         }
                     }
                     break;
@@ -259,9 +262,7 @@ class InquiryModel extends PublicModel {
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
-
-                            if ($orgId)
-                                $map[] = ['a.org_id' => ['in', $orgId]];
+                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
                         }
                         if (!in_array(self::inquiryIssueRole, $condition['role_no']) && !in_array(self::quoteIssueMainRole, $condition['role_no']) && ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole)) {
                             $where[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
@@ -269,6 +270,10 @@ class InquiryModel extends PublicModel {
                     }
                     break;
                 case 'quote' :
+                    $map1['a.status'] = ['in', ['BIZ_QUOTING', 'BIZ_APPROVING']];
+                    $map1['a.now_agent_id'] = $condition['user_id'];
+                    $map1['_logic'] = 'or';
+                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['a.quote_id' => $condition['user_id']];
@@ -279,12 +284,16 @@ class InquiryModel extends PublicModel {
                     }
                     break;
                 case 'logi' :
+
+                    $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
+                    $map1['a.now_agent_id'] = $condition['user_id'];
+                    $map1['_logic'] = 'or';
+                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
 
-                            if ($orgId)
-                                $map[] = ['a.logi_org_id' => ['in', $orgId]];
+                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
                         }
                         if (!in_array(self::logiIssueMainRole, $condition['role_no']) && $roleNo == self::logiIssueAuxiliaryRole) {
                             $where[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
