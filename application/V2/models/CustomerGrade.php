@@ -49,6 +49,9 @@ class CustomerGradeModel extends PublicModel {
         if(in_array('A001',$data['role'])){    //经办人
             $admin_agent=1;
         }
+        if(in_array('area_admin',$data['role'])){    //大区分管领导,审核客户分级变更
+            $admin_change=1;
+        }
 //        print_r($cond);die;
         $info=$this->alias('grade')
             ->field($field)
@@ -65,7 +68,8 @@ class CustomerGradeModel extends PublicModel {
         $submit=false;    //提交
         foreach($info as $k => &$v){
             unset($v['created_by']);
-            $v['change']=false;
+            $v['change']=false; //申请变更
+            $v['reply']=false;  //回复申请变更结果
             if($v['status']==0){
                 $v['status']=$lang=='zh'?'新建':'NEW';
                 if($admin_agent===1){  //经办人
@@ -101,8 +105,20 @@ class CustomerGradeModel extends PublicModel {
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==3){
                 $v['status']=$lang=='zh'?'审核通过':'PASS';
-                if($admin_agent===1){
+                if($admin_agent===1){   //申请变更
                     $v['change']=true;
+                }else{
+                    $v['change']=false;
+                }
+                $v['check']=false;
+                $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+            }else if($v['status']==13){
+                $v['status']=$lang=='zh'?'审核通过(申请变更中)':'PASS(Applying)';
+                if($admin_change===1){     //大区:  回复,申请变更结果
+                    $v['reply']=true;
+                }
+                if($admin_agent===1){   //申请变更
+                    $v['change']=false;
                 }else{
                     $v['change']=false;
                 }
@@ -550,16 +566,28 @@ class CustomerGradeModel extends PublicModel {
             return false;
         }
     }
+    //经办人申请变更
+    public function applyGrade($data){
+        if(empty($data['id']) || empty($data['customer_grade'])){
+            return false;
+        }
+        $app=new ApplyGradeModel();
+        $res=$app->AddApplyGrade($data);
+        if($res===false){
+            return false;
+        }
+        return $res;
+    }
     public function changeGrade($data){
         if(empty($data['id'])){
             return false;
         }
-
+        return true;
         $arr['status']=0;
         $cond=array(
             'id'=>$data['id'],
             'deleted_flag'=>'N',
-            'status'=>2,
+            'status'=>3,
         );
         $res=$this->where($cond)->save($arr);
         if($res){
