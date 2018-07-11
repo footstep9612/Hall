@@ -486,7 +486,7 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        $cond=array('id'=>$data['id'],'status'=>0,'deleted_flag'=>'N');
+        $cond=array('id'=>$data['id'],'deleted_flag'=>'N');
         $res=$this->where($cond)->save(array('status'=>1));
         if($res){
             return true;
