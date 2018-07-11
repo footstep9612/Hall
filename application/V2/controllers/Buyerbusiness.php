@@ -439,7 +439,8 @@ class BuyerbusinessController extends PublicController
         if(!empty($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级导出';
-            $dataJson['data']=$res;
+            $dataJson['url']=$res['url'];
+            $dataJson['name']=$res['name'];
         }else{
             $dataJson['code']=0;
             $dataJson['message']='暂无数据';
