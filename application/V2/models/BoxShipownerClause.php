@@ -70,7 +70,7 @@ class BoxShipownerClauseModel extends PublicModel {
                             ->field('tbt.id,bt.box_type_name,sc.clause ')
                             ->where($where)->order($order)->select();
 
-            echo $this->_sql();
+
             redisHashSet('BoxShipownerClause', $redis_key, json_encode($result));
             return $result;
         } catch (Exception $ex) {
