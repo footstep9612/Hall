@@ -254,7 +254,7 @@ class StockModel extends PublicModel {
                     $stockAry = $this->where($where)->select();
                     $psdModel = new PriceStrategyDiscountModel();
                     foreach($stockAry as $key => $stock){
-                        $pr = $psdModel->updateData( 'STOCK', $stock['special_id'], $stock['sku'], $price_range);
+                        $pr = $psdModel->updateData( 'STOCK', $stock['special_id'], $stock['sku'], $price_range,$condition['price_strategy_type'],isset($data['price'])?$data['price']:0);
                         if(!$pr){
                             $this->rollback();
                             return false;

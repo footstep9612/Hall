@@ -50,7 +50,7 @@ class PriceStrategyDiscountModel extends PublicModel{
      * @param $price_range 二维array 策略信息
      * @return bool|mixed
      */
-    public function updateData($group,$group_id,$sku,$price_range){
+    public function updateData($group,$group_id,$sku,$price_range,$price_strategy_type,$price){
         try{
             $insertAll = [];
             foreach($price_range as $k => $item){
@@ -63,6 +63,9 @@ class PriceStrategyDiscountModel extends PublicModel{
                     'min_purchase_qty' => (isset($item['min_purchase_qty']) && $item['min_purchase_qty'] != '') ? intval($item['min_purchase_qty']) : 1,
                     'max_purchase_qty' => (isset($item['max_purchase_qty']) && $item['max_purchase_qty'] != '') ? intval($item['max_purchase_qty']) : null,
                 ];
+                if($price_strategy_type=='Z' && $price){
+                    $data['promotion_price'] = $price*($data['discount']/10);
+                }
                 if(isset($item['id'])){
                     $data['updated_at'] = date('Y-m-d H:i:s',time());
                     $data['updated_by'] = defined('UID') ? UID : 0;
