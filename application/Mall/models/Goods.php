@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel{
 
                 if($stock && $country_bn){    //现货处理
                     $stockModel = new StockModel();
-                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol";
+                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol,special_id";
                     $condition_stock = [
                         'sku'=>$goodsInfo['sku'],
                         'country_bn'=>$country_bn,
@@ -63,18 +63,11 @@ class GoodsModel extends PublicModel{
                         $goodsInfo['name'] = empty($stockInfo['name']) ? $goodsInfo['name'] : $stockInfo['name'];
                         $goodsInfo['show_name'] = empty($stockInfo['show_name']) ? $goodsInfo['show_name'] : $stockInfo['show_name'];
                         $goodsInfo['price'] = $stockInfo['price'];
-                        switch($stockInfo['price_strategy_type']){
-                            case 1:    //阶梯价
-                                $scpriceM = new StockCostPriceModel();
-                                $goodsInfo['priceList'] = $scpriceM->getSkuPriceBySku($goodsInfo['sku'],$country_bn);
-                                $goodsPrice = $this->my_array_multisort($goodsInfo['priceList'],'price');
-                                $goodsInfo['priceAry'] = $goodsPrice[0];
-                                break;
-                            case 2:    //折扣
-                                $psdM = new PriceStrategyDiscountModel();
-                                $priceAry = $psdM->getPrice($goodsInfo['sku'],$country_bn,'MIN',$goodsInfo['price']);
-                                $goodsInfo['priceAry'] =$priceAry;
-                            break;
+                        $goodsInfo['priceAry'] = [];
+                        if($stockInfo['price_strategy_type']!=''){
+                            $psdM = new PriceStrategyDiscountModel();
+                            $price_range = $psdM->getDisCountBySkus([$goodsInfo['sku']], 'STOCK', $stockInfo['special_id']);
+                            $goodsInfo['priceAry'] = isset($price_range[$goodsInfo['sku']]) ? $price_range[$goodsInfo['sku']] : [];
                         }
                     }else{
                         return [];

@@ -49,6 +49,12 @@ class StorageModel extends PublicModel{
         if(isset($condition['id'])){
             $where['id'] = intval($condition['id']);
         }
+        if(isset($condition['country_bn'])){
+            $where['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['lang'])){
+            $where['lang'] = trim($condition['lang']);
+        }
         if(isset($condition['storage_name'])){
             $where['storage_name'] = ['like', '%'.trim($condition['storage_name']).'%'];
         }

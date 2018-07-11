@@ -231,9 +231,11 @@ class StockModel extends PublicModel {
         if(isset($condition['strategy_validity_end']) && !empty($condition['strategy_validity_end'])){        //策略有效期结束时间
             $data['strategy_validity_end'] = $condition['strategy_validity_end'];
         }
-        if(isset($condition['price_cur_bn']) && is_array($condition['price_cur_bn'])){  //币种
-            $data['price_cur_bn'] = $condition['price_cur_bn']['bn'];
-            $data['price_symbol'] = $condition['price_cur_bn']['symbol'];   //币种符号
+        if(isset($condition['price_cur_bn'])){  //币种
+            $data['price_cur_bn'] = $condition['price_cur_bn'];
+            $currency = new CurrencyModel();
+            $symbol = $currency->getSymbolByBns($data['price_cur_bn']);
+            $data['price_symbol'] = $symbol;   //币种符号
         }
         if(isset($condition['show_flag'])){  //上下架
             $data['show_flag'] = ($condition['show_flag']===true || $condition['show_flag']=='Y' || $condition['show_flag']==1 || $condition['show_flag']=='1') ? 'Y' : 'N';
@@ -252,7 +254,7 @@ class StockModel extends PublicModel {
                     $stockAry = $this->where($where)->select();
                     $psdModel = new PriceStrategyDiscountModel();
                     foreach($stockAry as $key => $stock){
-                        $pr = $psdModel->updateData( 'STOCK', $stock['special_id'], $stock['sku'], $price_range);
+                        $pr = $psdModel->updateData( 'STOCK', $stock['special_id'], $stock['sku'], $price_range,$condition['price_strategy_type'],isset($data['price'])?$data['price']:0);
                         if(!$pr){
                             $this->rollback();
                             return false;

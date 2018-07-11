@@ -416,7 +416,7 @@ class BuyerbusinessController extends PublicController
         if(is_array($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
-            if(in_array('客户管理员',$data['role']) || in_array('201711242',$data['role'])){
+            if(!in_array('A001',$data['role'])){
                 $dataJson['old_button']=false;
                 $dataJson['new_button']=false;
             }else{
@@ -435,14 +435,15 @@ class BuyerbusinessController extends PublicController
         $data['lang']=$this->getLang();
         $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
-        $res=$model->exportGrade($data);
-        if($res){
+        $res=$model->exportExcelGrade($data);
+        if(!empty($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级导出';
-            $dataJson['data']=$res;
+            $dataJson['url']=$res['url'];
+            $dataJson['name']=$res['name'];
         }else{
             $dataJson['code']=0;
-            $dataJson['message']='参数错误';
+            $dataJson['message']='暂无数据';
         }
         $this -> jsonReturn($dataJson);
     }
@@ -682,12 +683,15 @@ class BuyerbusinessController extends PublicController
         $data['created_by']=$this->user['id'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->checkedGrade($data);
-        if($res){
+        if($res===true){
             $dataJson['code']=1;
             $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
+        }elseif($res==='error'){
+            $dataJson['code']=2;
+            $dataJson['message']=$lang=='zh'?'流程错误':'ERROR';
         }else{
             $dataJson['code']=0;
-            $dataJson['message']=$lang=='zh'?'失败':'ERROR';
+            $dataJson['message']=$lang=='zh'?'参数错误':'ERROR';
         }
         $this -> jsonReturn($dataJson);
     }
