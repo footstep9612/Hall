@@ -811,29 +811,29 @@ class SuppliersController extends PublicController {
         $count = count($condition['items']);
 
         foreach ($condition['items'] as $item) {
-            if (strlenUtf8($item['name']) > 50)
-                jsonReturn('', -101, '您输入的资质名称长度超过限制!');
-
-            if ($condition['status'] != 'DRAFT' && $item['code'] == '')
-                jsonReturn('', -101, '资质编码不能为空!');
-
-            if (strlenUtf8($item['code']) > 50)
-                jsonReturn('', -101, '您输入的资质编码长度超过限制!');
-
-            if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '')
-                jsonReturn('', -101, '发证日期不能为空!');
-
-            if ($item['issue_date'] == '')
-                $item['issue_date'] = null;
-            
-            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
-                jsonReturn('', -101, '到期时间不能为空!');
-
-            if (strlenUtf8($item['issuing_authority']) > 50)
-                jsonReturn('', -101, '您输入的发证机构长度超过限制!');
-
-            if (strlenUtf8($item['remarks']) > 100)
-                jsonReturn('', -101, '您输入的认证产品长度超过限制!');
+//            if (strlenUtf8($item['name']) > 50)
+//                jsonReturn('', -101, '您输入的资质名称长度超过限制!');
+//
+//            if ($condition['status'] != 'DRAFT' && $item['code'] == '')
+//                jsonReturn('', -101, '资质编码不能为空!');
+//
+//            if (strlenUtf8($item['code']) > 50)
+//                jsonReturn('', -101, '您输入的资质编码长度超过限制!');
+//
+//            if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '')
+//                jsonReturn('', -101, '发证日期不能为空!');
+//
+//            if ($item['issue_date'] == '')
+//                $item['issue_date'] = null;
+//
+//            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
+//                jsonReturn('', -101, '到期时间不能为空!');
+//
+//            if (strlenUtf8($item['issuing_authority']) > 50)
+//                jsonReturn('', -101, '您输入的发证机构长度超过限制!');
+//
+//            if (strlenUtf8($item['remarks']) > 100)
+//                jsonReturn('', -101, '您输入的认证产品长度超过限制!');
             
             if ($count == 1 && !isset($item['id'])) {
                 $item['supplier_id'] = $condition['supplier_id'];
