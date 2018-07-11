@@ -822,12 +822,18 @@ class SuppliersController extends PublicController {
 //
 //            if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '')
 //                jsonReturn('', -101, '发证日期不能为空!');
+            if ($condition['status'] != 'DRAFT' && $item['issue_date'] == '') {
+                $item['issue_date'] = null;
+            }
 //
 //            if ($item['issue_date'] == '')
 //                $item['issue_date'] = null;
 //
 //            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '')
 //                jsonReturn('', -101, '到期时间不能为空!');
+            if ($condition['status'] != 'DRAFT' && $item['expiry_date'] == '') {
+                $item['expiry_date'] = null;
+            }
 //
 //            if (strlenUtf8($item['issuing_authority']) > 50)
 //                jsonReturn('', -101, '您输入的发证机构长度超过限制!');
