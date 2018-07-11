@@ -582,6 +582,9 @@ class UserController extends PublicController {
             // $body = $this->getView()->render('login/email.html', $email_arr);
         }
         if ($res !== false) {
+            redisExist('user_fastentrance_' . $where['id']) ? redisDel('user_fastentrance_' . $where['id']) : '';
+        }
+        if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
         } else {
