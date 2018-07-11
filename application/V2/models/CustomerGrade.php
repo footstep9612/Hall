@@ -36,20 +36,18 @@ class CustomerGradeModel extends PublicModel {
             'grade.buyer_id'=>$data['buyer_id'],
             'grade.deleted_flag'=>'N'
         );
-        if(in_array('客户管理员',$data['role'])){
-            $admin=1; //客户管理员角色
-            $cond['grade.status']=[
-                    'in',
-                    [1,2,4]
-                ];
+        if(in_array('area-customers',$data['role'])){   //地区
+            $admin_area=1;
+//            $cond['grade.status']=[
+//                    'in',
+//                    [1,2,3,4,5]
+//                ];
         }
-        
-        if(in_array('201711242',$data['role'])){
-            $country=1;
-            $cond['grade.status']=[
-                'in',
-                [1,2,4]
-            ];
+        if(in_array('201711242',$data['role'])){    //国家
+            $admin_country=1;
+        }
+        if(in_array('A001',$data['role'])){    //经办人
+            $admin_agent=1;
         }
 //        print_r($cond);die;
         $info=$this->alias('grade')
@@ -60,59 +58,98 @@ class CustomerGradeModel extends PublicModel {
         if(empty($info)){
             return [];
         }
-//        $check=false;   //审核
-//        $show=false;   //查看
-//        $edit=false;   //编辑
-//        $delete=false;   //删除
-//        $submit=false;   //提交
-//        $change=false;   //申请变更
+        $area=false;    //地区
+        $country=false;    //国家
+        $show=false;    //查看
+        $edit=false;    //编辑
+        $delete=false;    //删除
+        $submit=false;    //提交
         foreach($info as $k => &$v){
             unset($v['created_by']);
             if($v['status']==0){
                 $v['status']=$lang=='zh'?'新建':'NEW';
-                $v['check']=false;  $v['show']=true;    $v['edit']=true;    $v['delete']=true;  $v['submit']=true;
-                $v['change']=false;
+                if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area===1 && $admin_country!==1 && $admin_agent===1){ //地区
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 && $admin_country===1 && $admin_agent===1){ //国家
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 || $admin_country!==1){
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }
             }else if($v['status']==1){
-                
-                $v['status']=$lang=='zh'?'待审核':'CHECKING';
-                if($admin===1){
-                    $v['check']=true;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
-                }elseif($country===1){
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
-                }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
+                $v['status']=$lang=='zh'?'审核中(国家)':'CHECKING(Country)';
+                if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area===1 && $admin_country!==1 && $admin_agent===1){ //地区
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area!==1 && $admin_country===1 && $admin_agent===1){ //国家
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area!==1 || $admin_country!==1){
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
                 }
             }else if($v['status']==2){
-                $v['status']=$lang=='zh'?'已通过':'PASS';
-                if($admin===1){
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
-                }elseif($country===1){
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=true;
-                }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
+                $v['status']=$lang=='zh'?'审核中(地区)':'CHECKING(Area)';
+                if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area===1 && $admin_country!==1 && $admin_agent===1){ //地区
+                    $v['check']=true;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area!==1 && $admin_country===1 && $admin_agent===1){ //国家
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
+                }elseif($admin_area!==1 || $admin_country!==1){
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=false;
                 }
+            }else if($v['status']==3){
+                $v['status']=$lang=='zh'?'审核通过':'PASS';
+                $v['check']=false;
+                $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==4){
-                $v['status']=$lang=='zh'?'驳回':'REJECT';
-                if($admin===1){
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                }elseif($country===1){
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
-                    $v['change']=false;
-                }else{
-                    $v['check']=false;  $v['show']=true;    $v['edit']=false;    $v['delete']=false;  $v['submit']=false;
+                $v['status']=$lang=='zh'?'驳回(国家)':'REJECTED(Country)';
+                if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area===1 && $admin_country!==1 && $admin_agent===1){ //地区
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 && $admin_country===1 && $admin_agent===1){ //国家
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 || $admin_country!==1){
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
                 }
-                $v['change']=false;
+            }else if($v['status']==5){
+                $v['status']=$lang=='zh'?'驳回(地区)':'REJECTED(Area)';
+                if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area===1 && $admin_country!==1 && $admin_agent===1){ //地区
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 && $admin_country===1 && $admin_agent===1){ //国家
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }elseif($admin_area!==1 || $admin_country!==1){
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=true;  $v['delete']=true;    $v['submit']=true;
+                }
             }
             if($lang=='zh'){
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' 级';
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
             }else{
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1).' LEVEL';
+                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
             }
         }
         return $info;
@@ -315,7 +352,7 @@ class CustomerGradeModel extends PublicModel {
             unlink($excelFile); //删除文件
         }
         if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return array('url' =>$fileId['url'], 'name' => $fileId['name']);
         }
     }
 
@@ -503,21 +540,33 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['status']) || empty($data['id'])){
             return false;
         }
-        if($data['status']==2){    //0,新建;1,待审核; 2,审核通过
+        $info=$this->field('status')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        $status=$info['status'];
+        //状态: 0,新建;1,审核中(国家); 2,审核中(地区),3,审核通过,4,驳回(国家),5,地区(驳回)
+        if($data['status']==1 && $status==0){
+            $arr['status']=1;
+        }elseif($data['status']==2 && $status==1){
             $arr['status']=2;
-        }else{
+        }elseif($data['status']==3 && $status==2){
+            $arr['status']=3;
+        }elseif($data['status']==4 && $status==1){
             $arr['status']=4;
+        }elseif($data['status']==5 && $status==2){
+            $arr['status']=5;
+        }else{
+            return 'error';
         }
         $arr['checked_by']=$data['created_by'];
         $arr['checked_at']=date('Y-m-d H:i:s');
         $cond=array(
             'id'=>$data['id'],
-            'deleted_flag'=>'N',
-            'status'=>1,
+            'deleted_flag'=>'N'
         );
         $res=$this->where($cond)->save($arr);
         if($res){
             return true;
+        }else{
+            return false;
         }
     }
     public function changeGrade($data){

@@ -220,12 +220,10 @@ class InquiryController extends PublicController {
         if ($condition['agent_name'] != '') {
             $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ?: [];
         }
-
 // 当前办理人
         if ($condition['now_agent_name'] != '') {
             $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: [];
         }
-
 // 报价人
         if ($condition['quote_name'] != '') {
             $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: [];
