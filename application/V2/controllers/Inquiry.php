@@ -334,7 +334,7 @@ class InquiryController extends PublicController {
                     break;
                 }
                 if ($roleNo == $inquiryModel::viewBizDeptRole) {
-                    $isShow = true;
+                    $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
                     $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
                     break;
                 }
@@ -342,10 +342,17 @@ class InquiryController extends PublicController {
 
             if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
                 $isShow = true;
+                $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
                 $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
                 break;
             }
         }
+
+        if ($isShow == false) {
+            $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
+        }
+
+
 
         $inquiryList = [];
 
