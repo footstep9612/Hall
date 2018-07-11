@@ -1750,7 +1750,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
-                'timeout' => 30,
+                'timeout' => 5,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap
