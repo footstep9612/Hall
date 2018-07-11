@@ -149,9 +149,9 @@ class SuppliersController extends PublicController {
             jsonReturn('', -101, '备货地点长度不超过40个字!');
         
         if ($condition['status'] != 'DRAFT') {
-            $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
-            if (!$hasDeveloper) 
-                jsonReturn('', -101, '开发人不能为空!');
+//            $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
+//            if (!$hasDeveloper)
+//                jsonReturn('', -101, '开发人不能为空!');
             
             $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT']])->getField('id');
             if ($hasSupplierName)
@@ -979,8 +979,8 @@ class SuppliersController extends PublicController {
         if ($data) {
             $res['code'] = 1;
             $res['message'] = '成功!';
-            $res['data'] = $data;
             $res['count'] = $join ? $model->getJoinCount($condition) : $model->getCount($condition);
+            $res['data'] = $data;
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn(false);
