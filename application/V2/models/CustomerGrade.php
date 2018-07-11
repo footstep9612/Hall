@@ -113,7 +113,7 @@ class CustomerGradeModel extends PublicModel {
             }else if($v['status']==3){
                 $v['status']=$lang=='zh'?'审核通过':'PASS';
                 if($admin_agent===1){
-                    $v['check']=true;   $v['change']=true;
+                    $v['check']=false;   $v['change']=true;
                     $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
                 }else{
                     $v['check']=false;
