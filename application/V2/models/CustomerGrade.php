@@ -58,8 +58,7 @@ class CustomerGradeModel extends PublicModel {
         if(empty($info)){
             return [];
         }
-        $area=false;    //地区
-        $country=false;    //国家
+        $check=false;    //地区-国家
         $show=false;    //查看
         $edit=false;    //编辑
         $delete=false;    //删除
@@ -113,8 +112,13 @@ class CustomerGradeModel extends PublicModel {
                 }
             }else if($v['status']==3){
                 $v['status']=$lang=='zh'?'审核通过':'PASS';
-                $v['check']=false;
-                $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+                if($admin_agent===1){
+                    $v['check']=false;   $v['change']=true;
+                    $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+                }else{
+                    $v['check']=false;
+                    $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+                }
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回(国家)':'REJECTED(Country)';
                 if($admin_area===1 && $admin_country===1 && $admin_agent===1){  //地区-国家-经办人
@@ -482,7 +486,7 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        $cond=array('id'=>$data['id'],'status'=>0,'deleted_flag'=>'N');
+        $cond=array('id'=>$data['id'],'deleted_flag'=>'N');
         $res=$this->where($cond)->save(array('status'=>1));
         if($res){
             return true;
