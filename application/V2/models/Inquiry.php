@@ -242,6 +242,7 @@ class InquiryModel extends PublicModel {
                     //foreach ($condition['role_no'] as $roleNo) {
                     //if ($roleNo == self::marketAgentRole) {
                     $map[] = ['a.agent_id' => $condition['user_id']];
+                    $map[] = ['a.now_agent_id' => $condition['user_id']];
                     //}
                     //}
                     break;
