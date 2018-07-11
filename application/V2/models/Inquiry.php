@@ -248,7 +248,7 @@ class InquiryModel extends PublicModel {
                 case 'erui' :
                     $map1['a.status'] = 'CC_DISPATCHING';
                     $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'or';
+                    $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
@@ -272,7 +272,7 @@ class InquiryModel extends PublicModel {
                 case 'quote' :
                     $map1['a.status'] = ['in', ['BIZ_QUOTING', 'BIZ_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'or';
+                    $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::quoterRole) {
@@ -287,7 +287,7 @@ class InquiryModel extends PublicModel {
 
                     $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
-                    $map1['_logic'] = 'or';
+                    $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
