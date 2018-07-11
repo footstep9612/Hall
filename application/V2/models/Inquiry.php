@@ -353,14 +353,33 @@ class InquiryModel extends PublicModel {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (isset($condition['user_country'])) {
+        if (!empty($condition['user_country']) && !empty($condition['now_agent_id'])) {
+            $map = [];
+            $map['country_bn'] = ['in', $condition['user_country'] ?: ['-1']];    //查看事业部询单角色国家
+            $map['now_agent_id'] = $condition['now_agent_id'];
+            $map['_logic'] = 'or';
+            $where = $map;
+        } elseif (!empty($condition['user_country'])) {
             $where['country_bn'] = ['in', $condition['user_country'] ?: ['-1']];    //查看事业部询单角色国家
         }
+        if (isset($condition['org_id']) && !empty($condition['now_agent_id'])) {
+            $map = [];
+            $map['org_id'] = ['in', $condition['org_id'] ?: ['-1']]; //事业部
+            $map['now_agent_id'] = $condition['now_agent_id'];
+            $map['_logic'] = 'or';
 
+            $where = $map;
+        } elseif (!empty($condition['org_id'])) {
+            $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']]; //当前办理人
+        }
         if (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
-            $where['country_bn'] = isset($condition['user_country']) ? [['eq', $condition['country_bn']], $where['country_bn']] : $condition['country_bn'];    //国家
+            $where['country_bn'] = isset($condition['user_country']) ?
+                    [['eq', $condition['country_bn']], $where['country_bn']] :
+                    $condition['country_bn'];    //国家
         } else if (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
-            $where['country_bn'] = ['in', isset($condition['user_country']) ? array_unique(array_merge($condition['country_bn'], $condition['user_country'])) : $condition['country_bn']];    //国家
+            $where['country_bn'] = ['in', isset($condition['user_country']) ?
+                array_unique(array_merge($condition['country_bn'], $condition['user_country'])) :
+                $condition['country_bn']];    //国家
         }
 
         /* if (!empty($condition['serial_no'])) {
@@ -390,9 +409,7 @@ class InquiryModel extends PublicModel {
             $where['agent_id'] = ['in', $condition['agent_id'] ?: ['-1']]; //市场经办人
         }
 
-        if (isset($condition['now_agent_id'])) {
-            $where['now_agent_id'] = ['in', $condition['now_agent_id'] ?: ['-1']]; //当前办理人
-        }
+
 
         if (isset($condition['quote_id'])) {
             $where['quote_id'] = ['in', $condition['quote_id'] ?: ['-1']]; //报价人
@@ -406,9 +423,7 @@ class InquiryModel extends PublicModel {
             }
         }
 
-        if (isset($condition['org_id'])) {
-            $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']]; //事业部
-        }
+
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
