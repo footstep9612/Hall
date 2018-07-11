@@ -242,6 +242,7 @@ class InquiryModel extends PublicModel {
                     //foreach ($condition['role_no'] as $roleNo) {
                     //if ($roleNo == self::marketAgentRole) {
                     $map[] = ['a.agent_id' => $condition['user_id']];
+                    $map[] = ['a.now_agent_id' => $condition['user_id']];
                     //}
                     //}
                     break;
@@ -259,6 +260,11 @@ class InquiryModel extends PublicModel {
                     }
                     break;
                 case 'issue' :
+
+                    $map1['a.status'] = 'BIZ_DISPATCHING';
+                    $map1['a.now_agent_id'] = $condition['user_id'];
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
