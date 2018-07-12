@@ -53,6 +53,7 @@ class PriceStrategyDiscountModel extends PublicModel{
     public function updateData($group,$group_id,$sku,$price_range,$price_strategy_type,$price){
         try{
             $insertAll = [];
+            $update_id = [];
             foreach($price_range as $k => $item){
                 $data = [
                     'group' => $group,
@@ -67,18 +68,26 @@ class PriceStrategyDiscountModel extends PublicModel{
                     $data['promotion_price'] = $price*($data['discount']/10);
                 }
                 if(isset($item['id'])){
+
                     $data['updated_at'] = date('Y-m-d H:i:s',time());
                     $data['updated_by'] = defined('UID') ? UID : 0;
                     $updated =$this->where(['id'=>intval($item['id'])])->save($data);
                     if(!$updated){
                         return false;
                     }
+                    $update_id[] = intval($item['id']);
                 }else{
                     $data['created_at'] = date('Y-m-d H:i:s',time());
                     $data['created_by'] = defined('UID') ? UID : 0;
                     $insertAll[] = $data;
                 }
                 unset($data);
+            }
+            if(!empty($update_id)){ //清除多余折扣
+                $rm = $this->where(['group'=>$group,'group_id'=>$group_id,'sku'=>$sku,'id'=>['not in',$update_id]])->save(['deleted_at'=>date('Y-m-d H:i:s',time()),'deleted_by'=>defined('UID') ? UID :0]);
+                if(!$rm){
+                    return false;
+                }
             }
             if(!empty($insertAll)){
                 return $this->addAll($insertAll);
