@@ -41,19 +41,20 @@ class TodoController extends PublicController {
             }
             $country_bns = rtrim($country_bns, ',');
             $sql = ' select id,serial_no,inflow_time,status,quote_status,country_bn,type,name from ('
-                    . '(SELECT `id`,`serial_no`,`inflow_time`,`status`,`quote_status`,`country_bn`,\'\' as name,'
-                    . '\'RFQ\' as type,updated_at FROM erui_rfq.inquiry'
-                    . ' WHERE `now_agent_id` = ' . $this->user['id'] . ' '
-                    . 'AND `status` '
-                    . 'NOT IN (\'INQUIRY_CLOSED\',\'REJECT_CLOSE\',\'QUOTE_SENT\') '
-                    . 'AND `deleted_flag` = \'N\' ) '
-                    . 'UNION ALL (SELECT `id`,\'\' as serial_no,\'\' as inflow_time,`status`,\'\' as quote_status,'
+                    . '(SELECT `id`,\'\' as serial_no,\'\' as inflow_time,`status`,\'\' as quote_status,'
                     . '`country_bn`,`name`,'
                     . '\'BUYER\' as type ,created_at as updated_at '
                     . 'FROM erui_buyer.buyer WHERE '
                     . '`status` = \'APPROVING\' AND `country_bn` IN '
-                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\' )) as a order by updated_at DESC';
+                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\') '
+                    . 'UNION ALL (SELECT `id`,`serial_no`,`inflow_time`,`status`,`quote_status`,`country_bn`,\'\' as name,'
+                    . '\'RFQ\' as type,updated_at FROM erui_rfq.inquiry'
+                    . ' WHERE `now_agent_id` = ' . $this->user['id'] . ' '
+                    . 'AND `status` '
+                    . 'NOT IN (\'INQUIRY_CLOSED\',\'REJECT_CLOSE\',\'QUOTE_SENT\') '
+                    . 'AND `deleted_flag` = \'N\'  )) as a order by updated_at DESC';
             $sql .= ' limit ' . (($page - 1) * $pagesize) . ',' . $pagesize;
+
 
             $list = $inquiry_model->db()->query($sql);
         } else {
