@@ -308,7 +308,7 @@ class InquiryController extends PublicController {
             $res['code'] = 1;
             $res['message'] = L('SUCCESS');
             $res['data'] = $inquiryList;
-            $res['count'] = $inquiryModel->getViewCount($condition);
+            $res['count'] = $inquiryModel->getViewCount($condition, $this->user['role_no'], $this->user['id']);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');

@@ -570,9 +570,9 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewCount($condition = []) {
+    public function getViewCount($condition = [], $role_nos, $user_id) {
 
-        $where = $this->getViewWhere($condition);
+        $where = $this->getViewWhere($condition, $role_nos, $user_id);
 
         $count = $this->where($where)->count('id');
 
