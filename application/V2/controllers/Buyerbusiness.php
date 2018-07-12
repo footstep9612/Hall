@@ -686,9 +686,6 @@ class BuyerbusinessController extends PublicController
         if($res===true){
             $dataJson['code']=1;
             $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
-        }elseif($res==='error'){
-            $dataJson['code']=2;
-            $dataJson['message']=$lang=='zh'?'流程错误':'ERROR';
         }else{
             $dataJson['code']=0;
             $dataJson['message']=$lang=='zh'?'参数错误':'ERROR';
