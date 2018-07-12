@@ -83,8 +83,9 @@ class TodoController extends PublicController {
         if ($list) {
             $res['code'] = '1';
             $res['message'] = L('SUCCESS');
-            $res['parent_id'] = $urlPermModel
+            $res['rfq_parent_id'] = $urlPermModel
                     ->getMenuIdByName('询报价');
+            $res['buyer_parent_id'] = $urlPermModel->getMenuIdByName('客户');
             $res['data'] = $list;
         } else {
             $res['code'] = '-101';
