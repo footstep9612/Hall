@@ -104,7 +104,7 @@ class CustomerGradeModel extends PublicModel {
                 }
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==3){
-                $v['status']=$lang=='zh'?'审核通过':'PASS';
+                $v['status']=$lang=='zh'?'通过':'PASS';
                 if($admin_agent===1){   //申请变更
                     $v['change']=true;
                 }else{
@@ -113,7 +113,7 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==13){
-                $v['status']=$lang=='zh'?'审核通过(申请变更中)':'PASS(Applying)';
+                $v['status']=$lang=='zh'?'通过(申请中)':'PASS(Applying)';
                 if($admin_change===1){     //大区:  回复,申请变更结果
                     $v['reply']=true;
                 }
@@ -526,11 +526,19 @@ class CustomerGradeModel extends PublicModel {
         $info['income']=floatval($info['income']);
         $info['scale']=floatval($info['scale']);
         if($lang=='zh'){
-            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' 级';
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }else{
-            $info['customer_grade']=mb_substr($info['customer_grade'],0,1).' LEVEL';
+            $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }
-
+        $app=$this->table('erui_buyer.apply_grade')
+            ->field('id,customer_grade,attach_url,attach_name')
+            ->where(array('grade_id'=>$info['id']))
+            ->order('id desc')
+            ->select();
+        $info['apply']=[];
+        if(!empty($app)){
+            $info['apply']=$app;
+        }
         return $info;
     }
     public function checkedGrade($data){

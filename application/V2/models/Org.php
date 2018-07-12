@@ -30,13 +30,13 @@ class OrgModel extends PublicModel {
      * @version V2.0
      * @desc   组织
      */
-    public function getNameById($id,$lang) {
+    public function getNameById($id, $lang) {
         if (!$id) {
             return '';
         }
         $where['id'] = $id;
         $org = $this->field('name')->where($where)->find();
-        if($lang=='en'){
+        if ($lang == 'en') {
             $org = $this->field('name_en as name')->where($where)->find();
         }
         if ($org) {
@@ -62,10 +62,6 @@ class OrgModel extends PublicModel {
         ];
         if ($membership === 'ERUI' && $org_node) {
             $where['org_node'] = ['in', ['erui', $org_node]];
-//            $map1['org_node'] = $org_node;
-//            $map1['membership'] = $membership;
-//            $map1['_logic'] = 'or';
-//            $where['_complex'] = $map1;
         } elseif ($org_node) {
             $where['org_node'] = $org_node;
         } elseif ($membership === 'ERUI') {
@@ -79,6 +75,33 @@ class OrgModel extends PublicModel {
             $orgIds[] = $org['id'];
         }
         return $orgIds;
+    }
+
+    public function getList($condition) {
+        $where = ['deleted_flag' => 'N'];
+        if (!empty($condition['org_node']) && is_string($condition['org_node'])) {
+            $where['org_node'] = trim($condition['org_node']);
+        } elseif (!empty($condition['org_node']) && is_array($condition['org_node'])) {
+            $where['org_node'] = ['in', $condition['org_node']];
+        }
+        $list = $this
+                ->field('id,name,name_en,name_es,name_ru')
+                ->where($where)
+                ->select();
+        return $list;
+    }
+
+    public function getCount($condition) {
+        $where = ['deleted_flag' => 'N'];
+        if (!empty($condition['org_node']) && is_string($condition['org_node'])) {
+            $where['org_node'] = trim($condition['org_node']);
+        } elseif (!empty($condition['org_node']) && is_array($condition['org_node'])) {
+            $where['org_node'] = ['in', $condition['org_node']];
+        }
+        $count = $this
+                ->where($where)
+                ->count();
+        return $count;
     }
 
 }

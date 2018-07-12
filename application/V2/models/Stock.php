@@ -54,8 +54,13 @@ class StockModel extends PublicModel {
         $this->_getValue($where, $condition, 'created_at', 'between', 's.created_at');
         $this->_getValue($where, $condition, 'updated_at', 'between', 's.updated_at');
         if(isset($condition['keyword']) && !empty($condition['keyword'])){
-            $where = "s.country_bn='".$condition['country_bn']."' AND s.lang='".$condition['lang']."' AND s.deleted_at is null AND s.status='VALID' AND (s.show_name like '%".$condition['keyword']."%' OR s.sku='".$condition['keyword']."')";
-            if(isset($condition['floor_id'])){
+            if(isset($condition['special_id']) && $condition['special_id']!=''){
+                $where = "s.special_id='".$condition['special_id']."' AND s.deleted_at is null AND s.status='VALID' AND (s.show_name like '%".$condition['keyword']."%' OR s.sku='".$condition['keyword']."')";
+            }else{
+                $where = "s.country_bn='".$condition['country_bn']."' AND s.lang='".$condition['lang']."' AND s.deleted_at is null AND s.status='VALID' AND (s.show_name like '%".$condition['keyword']."%' OR s.sku='".$condition['keyword']."')";
+            }
+
+            if(isset($condition['floor_id']) && $condition['floor_id']!=''){
                 $where.=" AND floor_id = ".intval($condition['floor_id']);
             }
         }
