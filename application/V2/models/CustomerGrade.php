@@ -625,6 +625,7 @@ class CustomerGradeModel extends PublicModel {
         }
         $app=new ApplyGradeModel();
         $res=$app->AddApplyGrade($data);
+        $this->where(array('id'=>$data['id']))->save(array('status'=>13));
         if($res===false){
             return false;
         }
