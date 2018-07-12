@@ -290,85 +290,33 @@ class InquiryController extends PublicController {
         $inquiryModel = new InquiryModel();
 
         $countryModel = new CountryModel();
-        $employeeModel = new EmployeeModel();
 
-        $countryUserModel = new CountryUserModel();
+
+
 
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
 
-        $inquiryOrderModel = new InquiryOrderModel();
-
-// 市场经办人
-        if ($condition['agent_name'] != '') {
-            $condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ?: [];
-        }
-
-// 当前办理人
-        if ($condition['now_agent_name'] != '') {
-            $condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: [];
-        }
-
-// 报价人
-        if ($condition['quote_name'] != '') {
-            $condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: [];
-        }
-
-// 销售合同号
-        if ($condition['contract_no'] != '') {
-            $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo();
-        }
-
-//区域和国家
-        if ($condition['market_area_bn'] != '' && $condition['country_bn'] == '') {
-            $condition['country_bn'] = $marketAreaCountryModel->getCountryBn($condition['market_area_bn']) ?: [];
-        }
-
-// 是否显示列表
-        $isShow = false;
-
-        foreach ($this->user['role_no'] as $roleNo) {
-            if ($condition['view_type'] == 'dept') {
-                if ($roleNo == $inquiryModel::viewAllRole) {
-                    $isShow = true;
-                    break;
-                }
-                if ($roleNo == $inquiryModel::viewBizDeptRole) {
-                    $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
-                    $condition['org_id'] = $inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
-                    break;
-                }
-            }
-
-            if ($condition['view_type'] == 'country' && $roleNo == $inquiryModel::viewCountryRole) {
-                $isShow = true;
-                $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
-                $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
-                break;
-            }
-        }
-
-        if ($isShow == false) {
-            $condition['now_agent_id'] = !empty($condition['now_agent_id']) ? $condition['now_agent_id'] : $this->user['id'];
-        }
 
 
 
-        $inquiryList = [];
 
-        if ($isShow) {
-            $inquiryList = $inquiryModel->getViewList($condition);
 
-            $countryModel->setCountry($inquiryList, $this->lang);
-            $marketAreaCountryModel->setAreaBn($inquiryList);
-            $marketAreaModel->setArea($inquiryList);
-            $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
-                'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
-            $this->_setBuyerNo($inquiryList);
-            $this->_setLogiQuoteFlag($inquiryList);
-            $this->_setOrgName($inquiryList);
-            $this->_setTransModeName($inquiryList);
-            $this->_setContractNo($inquiryList);
+
+
+
+//        if ($isShow) {
+        $inquiryList = $inquiryModel->getViewList($condition, '*', $this->user['role_no'], $this->user['id']);
+        $countryModel->setCountry($inquiryList, $this->lang);
+        $marketAreaCountryModel->setAreaBn($inquiryList);
+        $marketAreaModel->setArea($inquiryList);
+        $this->_setUserName($inquiryList, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
+            'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
+        $this->_setBuyerNo($inquiryList);
+        $this->_setLogiQuoteFlag($inquiryList);
+        $this->_setOrgName($inquiryList);
+        $this->_setTransModeName($inquiryList);
+        $this->_setContractNo($inquiryList);
 //            foreach ($inquiryList as &$inquiry) {
 //                $inquiry['country_name'] = $countryModel->getCountryNameByBn($inquiry['country_bn'], $this->lang);
 //                $inquiry['agent_name'] = $employeeModel->getUserNameById($inquiry['agent_id']);
@@ -384,7 +332,7 @@ class InquiryController extends PublicController {
 //                $inquiry['trans_mode_name'] = $transModeModel->getTransModeByBn($inquiry['trans_mode_bn'], $this->lang);
 //                $inquiry['contract_no'] = $inquiryOrderModel->where(['inquiry_id' => $inquiry['id']])->getField('contract_no');
 //            }
-        }
+//        }
 
         if ($inquiryList) {
             $res['code'] = 1;
