@@ -333,7 +333,7 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewWhere($condition = [], $role_nos = [], $user_id = null) {
+    public function getViewWhere($condition = [], $role_nos = [], $user_id = null, $group_id = null) {
 
         $where['status'] = ['neq', 'DRAFT'];
         $where['deleted_flag'] = 'N';
@@ -411,11 +411,11 @@ class InquiryModel extends PublicModel {
             ];
         }
 
-        $this->_getRolesWhere($where, $condition, $role_nos, $user_id);
+        $this->_getRolesWhere($where, $condition, $role_nos, $user_id, $group_id);
         return $where;
     }
 
-    private function _getRolesWhere(&$where, $condition = [], $role_nos = [], $user_id = null) {
+    private function _getRolesWhere(&$where, $condition = [], $role_nos = [], $user_id = null, $group_id = null) {
 
         if (!in_array(self::viewAllRole, $role_nos) && !in_array(self::viewBizDeptRole, $role_nos) && !in_array(self::viewCountryRole, $role_nos)) {
             if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
@@ -438,7 +438,7 @@ class InquiryModel extends PublicModel {
             switch ($condition['view_type']) {
                 case 'dept':
                     if (in_array(self::viewAllRole, $role_nos) && in_array(self::viewBizDeptRole, $role_nos)) {
-                        $org_ids = $this->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+                        $org_ids = $this->getDeptOrgId($group_id, ['in', ['ub', 'erui']]);
                         $map = ['1=1'];
                         if ($org_ids) {
                             $map['org_id'] = ['in', $org_ids]; //事业部
@@ -449,7 +449,7 @@ class InquiryModel extends PublicModel {
                     } elseif (in_array(self::viewAllRole, $role_nos)) {
 
                     } elseif (in_array(self::viewBizDeptRole, $role_nos)) {
-                        $org_ids = $this->getDeptOrgId($this->user['group_id'], ['in', ['ub', 'erui']]);
+                        $org_ids = $this->getDeptOrgId($group_id, ['in', ['ub', 'erui']]);
                         $map = [];
                         if ($org_ids) {
                             $map['org_id'] = ['in', $org_ids]; //事业部
@@ -570,9 +570,9 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewCount($condition = [], $role_nos, $user_id) {
+    public function getViewCount($condition = [], $role_nos = [], $user_id = null, $group_id = null) {
 
-        $where = $this->getViewWhere($condition, $role_nos, $user_id);
+        $where = $this->getViewWhere($condition, $role_nos, $user_id, $group_id);
 
         $count = $this->where($where)->count('id');
 
@@ -698,9 +698,9 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewList($condition = [], $field = '*', $role_nos = [], $user_id = null) {
+    public function getViewList($condition = [], $field = '*', $role_nos = [], $user_id = null, $group_id = null) {
 
-        $where = $this->getViewWhere($condition, $role_nos, $user_id);
+        $where = $this->getViewWhere($condition, $role_nos, $user_id, $group_id);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];

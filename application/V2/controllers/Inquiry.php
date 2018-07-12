@@ -291,7 +291,7 @@ class InquiryController extends PublicController {
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
 
-        $inquiryList = $inquiryModel->getViewList($condition, '*', $this->user['role_no'], $this->user['id']);
+        $inquiryList = $inquiryModel->getViewList($condition, '*', $this->user['role_no'], $this->user['id'], $this->user['group_id']);
 
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
@@ -308,7 +308,7 @@ class InquiryController extends PublicController {
             $res['code'] = 1;
             $res['message'] = L('SUCCESS');
             $res['data'] = $inquiryList;
-            $res['count'] = $inquiryModel->getViewCount($condition, $this->user['role_no'], $this->user['id']);
+            $res['count'] = $inquiryModel->getViewCount($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
             $this->jsonReturn($res);
         } else {
             $this->setCode('-101');
