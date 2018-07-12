@@ -84,9 +84,7 @@ class OrgController extends PublicController {
     public function listAction() {
 
         $org_nodes = $this->getPut('org_nodes');
-        if (empty($org_nodes)) {
-            $condition = ['org_node' => ['erui', 'ub', 'lg']];
-        } elseif ($org_nodes && is_string($org_nodes)) {
+        if ($org_nodes && is_string($org_nodes)) {
             $condition = ['org_node' => explode(',', $org_nodes)];
         } elseif ($org_nodes && is_array($org_nodes)) {
             $condition = ['org_node' => $org_nodes];
