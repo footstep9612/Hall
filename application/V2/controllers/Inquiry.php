@@ -290,7 +290,9 @@ class InquiryController extends PublicController {
         $countryModel = new CountryModel();
         $marketAreaCountryModel = new MarketAreaCountryModel();
         $marketAreaModel = new MarketAreaModel();
+
         $inquiryList = $inquiryModel->getViewList($condition, '*', $this->user['role_no'], $this->user['id']);
+
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
         $marketAreaModel->setArea($inquiryList);
