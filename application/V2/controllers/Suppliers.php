@@ -809,6 +809,8 @@ class SuppliersController extends PublicController {
         $flag = true;
         $data = [];
         $count = count($condition['items']);
+        //p($condition['items']);
+        //p($count);
 
         foreach ($condition['items'] as $item) {
 //            if (strlenUtf8($item['name']) > 50)
@@ -840,8 +842,8 @@ class SuppliersController extends PublicController {
 //
 //            if (strlenUtf8($item['remarks']) > 100)
 //                jsonReturn('', -101, '您输入的认证产品长度超过限制!');
-            
-            if ($count == 1 && !isset($item['id'])) {
+            //$count == 1 && !isset($item['id'])
+            if (!isset($item['id'])) {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
