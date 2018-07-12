@@ -68,7 +68,6 @@ class PriceStrategyDiscountModel extends PublicModel{
                     $data['promotion_price'] = $price*($data['discount']/10);
                 }
                 if(isset($item['id'])){
-
                     $data['updated_at'] = date('Y-m-d H:i:s',time());
                     $data['updated_by'] = defined('UID') ? UID : 0;
                     $updated =$this->where(['id'=>intval($item['id'])])->save($data);
@@ -83,10 +82,14 @@ class PriceStrategyDiscountModel extends PublicModel{
                 }
                 unset($data);
             }
+
             if(!empty($update_id)){ //清除多余折扣
-                $rm = $this->where(['group'=>$group,'group_id'=>$group_id,'sku'=>$sku,'id'=>['not in',$update_id]])->save(['deleted_at'=>date('Y-m-d H:i:s',time()),'deleted_by'=>defined('UID') ? UID :0]);
-                if(!$rm){
-                    return false;
+                $find = $this->where(['group'=>$group,'group_id'=>$group_id,'sku'=>$sku,'id'=>['not in',$update_id]])->find();
+                if($find){
+                    $rm = $this->where(['group'=>$group,'group_id'=>$group_id,'sku'=>$sku,'id'=>['not in',$update_id]])->save(['deleted_at'=>date('Y-m-d H:i:s',time()),'deleted_by'=>defined('UID') ? UID :0]);
+                    if(!$rm){
+                        return false;
+                    }
                 }
             }
             if(!empty($insertAll)){
