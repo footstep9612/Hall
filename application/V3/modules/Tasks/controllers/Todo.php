@@ -73,19 +73,29 @@ class TodoController extends PublicController {
         (new Common_MarketAreaCountryModel())->setAreaBn($list);
         (new Common_MarketAreaModel())->setArea($list);
         (new Common_CountryModel())->setCountry($list, $this->lang);
-        // (new Rfq_InquiryRemindModel)->_remindList($list);
+
+
+        $rfq_parent_id = $urlPermModel
+                ->getMenuIdByName('询报价');
+        $buyer_parent_id = $urlPermModel->getMenuIdByName('客户');
         foreach ($list as &$item) {
             if (!empty($item['inflow_time'])) {
                 $item['inflow_time'] = $this->_setInflowTime($item['inflow_time']);
+            }
+            switch ($item['type']) {
+                case 'BUYER': $item['parent_id'] = $buyer_parent_id;
+                    break;
+                case 'RFQ': $item['parent_id'] = $rfq_parent_id;
+                    break;
+                default : $item['parent_id'] = $rfq_parent_id;
+                    break;
             }
         }
 
         if ($list) {
             $res['code'] = '1';
             $res['message'] = L('SUCCESS');
-            $res['rfq_parent_id'] = $urlPermModel
-                    ->getMenuIdByName('询报价');
-            $res['buyer_parent_id'] = $urlPermModel->getMenuIdByName('客户');
+
             $res['data'] = $list;
         } else {
             $res['code'] = '-101';
