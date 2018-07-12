@@ -124,6 +124,24 @@ class CustomerGradeModel extends PublicModel {
                 }
                 $v['check']=false;
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+            }else if($v['status']==31){
+                $v['status']=$lang=='zh'?'通过(申请通过)':'PASS(PASS)';
+                if($admin_agent===1){   //申请变更
+                    $v['change']=false;
+                }else{
+                    $v['change']=false;
+                }
+                $v['check']=false;
+                $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
+            }else if($v['status']==30){
+                $v['status']=$lang=='zh'?'通过(申请不变)':'PASS(Nothing)';
+                if($admin_agent===1){   //申请变更
+                    $v['change']=false;
+                }else{
+                    $v['change']=false;
+                }
+                $v['check']=false;
+                $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==4){
                 $v['status']=$lang=='zh'?'驳回(国家)':'REJECTED(Country)';
                 if($admin_agent===1){
@@ -562,7 +580,13 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $arr['status']=5;
             }
-        }else {
+        }elseif($status==13){
+            if($data['status']=='Y'){
+                $arr['status']=31;
+            }else{
+                $arr['status']=30;
+            }
+        }else{
             return false;
         }
 
