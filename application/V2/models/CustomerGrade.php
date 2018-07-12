@@ -542,25 +542,45 @@ class CustomerGradeModel extends PublicModel {
         return $info;
     }
     public function checkedGrade($data){
-        if(empty($data['status']) || empty($data['id'])){
+        if(empty($data['id'])){
             return false;
         }
         $info=$this->field('status')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
-        $status=$info['status'];
-        //状态: 0,新建;1,审核中(国家); 2,审核中(地区),3,审核通过,4,驳回(国家),5,地区(驳回)
-        if($data['status']==1 && $status==0){
-            $arr['status']=1;
-        }elseif($data['status']==2 && $status==1){
-            $arr['status']=2;
-        }elseif($data['status']==3 && $status==2){
-            $arr['status']=3;
-        }elseif($data['status']==4 && $status==1){
-            $arr['status']=4;
-        }elseif($data['status']==5 && $status==2){
-            $arr['status']=5;
-        }else{
-            return 'error';
+        if(empty($info)){
+            return false;
         }
+        $status=$info['status'];
+        if($status==1){
+            if($data['status']=='Y'){
+                $arr['status']=2;
+            }else{
+                $arr['status']=4;
+            }
+        }elseif($status==2){
+            if($data['status']=='Y'){
+                $arr['status']=3;
+            }else{
+                $arr['status']=5;
+            }
+        }else {
+            return false;
+        }
+
+
+        //状态: 0,新建;1,审核中(国家); 2,审核中(地区),3,审核通过,4,驳回(国家),5,地区(驳回)
+//        if($data['status']==1 && $status==0){
+//            $arr['status']=1;
+//        }elseif($data['status']==2 && $status==1){
+//            $arr['status']=2;
+//        }elseif($data['status']==3 && $status==2){
+//            $arr['status']=3;
+//        }elseif($data['status']==4 && $status==1){
+//            $arr['status']=4;
+//        }elseif($data['status']==5 && $status==2){
+//            $arr['status']=5;
+//        }else{
+//            return 'error';
+//        }
         $arr['checked_by']=$data['created_by'];
         $arr['checked_at']=date('Y-m-d H:i:s');
         $cond=array(
