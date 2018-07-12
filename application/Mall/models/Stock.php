@@ -84,7 +84,8 @@ class StockModel extends PublicModel {
             $where['s.country_bn'] = trim($condition['country_bn']);
             $where['s.lang'] = $condition['lang'];
         }
-        $where = ['s.deleted_at' => ['exp','is null']];
+        $where['s.show_flag'] = 'Y';
+        $where['s.deleted_at'] = ['exp','is null'];
         $where['s.floor_id'] = trim($condition['floor_id']);
         if(isset($condition['recommend_home']) && $condition['recommend_home']){
             $where['s.recommend_home'] = 'Y';
