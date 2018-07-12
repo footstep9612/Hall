@@ -27,4 +27,19 @@ class ApplyGradeModel extends PublicModel {
             return false;
         }
     }
+    public function findApplyGrade($grade_id){
+        $field='id,grade_id,created_by,created_at,handler,handle_at';
+        $gradeInfo=$this->table('erui_buyer.apply_grade')
+            ->field($field)
+            ->where(array('grade_id'=>$grade_id,'status'=>'Y'))
+            ->order('id desc')
+            ->find();
+        if(empty($gradeInfo)){
+            $gradeInfo=[];
+        }else{
+            $gradeInfo['handle_at']=date('Y-m-d H:i',$gradeInfo['handle_at']);
+            $gradeInfo['created_at']=date('Y-m-d H:i',$gradeInfo['created_at']);
+        }
+        return $gradeInfo;
+    }
 }

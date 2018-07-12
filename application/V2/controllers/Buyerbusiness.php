@@ -695,72 +695,20 @@ class BuyerbusinessController extends PublicController
     //发送邮件通知客户分级申请变更通过
     public function noticeEmailAction(){
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang=$this->getLang();
-        $email=['741007259@qq.com','593291641@qq.com'];
-//        $email=['593291641@qq.com','742163033@qq.com'];
-        $title='客户分级申请变更成功通知 !';    //邮件标题
-        $body=$this->getCustomerEnHtml();   //邮件模板
-        $code=$this->postSentEmail($email,$title,$body); //发送给客户
-        if($code==200){
-            $dataJson['code']=1;
-            $dataJson['message']='Success';
-        }else{
-            $dataJson['code']=0;
-            $dataJson['message']='Error';
-        }
-        $this->jsonReturn($dataJson);
-    }
-    private function getCustomerEnHtml(){
+        $model = new CustomerGradeModel();  //结算方式
+        $info=$model->noticeEmail($data);
 
-        $html=<<<EOF
-    <!doctype html>  
-    <html>  
-    <head>  
-    <title>Welcome to use ERUI!</title>  
-    <meta charset="utf-8" />  
-    </head>  
-    <body>  
-    <img src="http://www.erui.com/static/en/image/logo.png" alt="Efficient Supply Chain" height="49" width="159" />
-      <!-- logo/工具 -->  
-      <div style="border: 1px solid black;">  
-        <h1>客户分级申请变更成功通知:</h1>  
-      </div>  
-      <!-- 内容 -->  
-      <div style="border: 1px solid black;" align="center">  
-        <p>经办人:鲁遥</p>  
-        <p>申请变更:2018</p>  
-        
-        <p>大区分管领导:boss</p>  
-        <p>处理申请时间:2019</p>  
-      </div>  
-    </body>  
-    </html> 
-    
-EOF;
-        return $html;
+//        if($code==200){
+//            $dataJson['code']=1;
+//            $dataJson['message']='Success';
+//        }else{
+//            $dataJson['code']=0;
+//            $dataJson['message']='Error';
+//        }
+//        $this->jsonReturn($dataJson);
     }
-    private function postSentEmail($email,$title,$body){
-        $url='http://msg.erui.com/api/email/plain/';
-        $arr=array(
-            "to"=>"['$email']",
-            "title"=>$title,
-            "content"=>$body,
-            "groupSending"=>1,
-            "useType"=>'noticeEmail'
-        );
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Content-Type: application/json\r\n" .
-                    "Cookie: ".$_COOKIE."\r\n",
-                'content' =>json_encode($arr)
-            )
-        );
-        $context = stream_context_create($opt);
-        $json = file_get_contents($url,false,$context);
-        $info=json_decode($json,true);
-        return $info['code'];
-    }
+
+
     //申请变更
     public function applyGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
