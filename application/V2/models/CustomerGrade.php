@@ -549,7 +549,7 @@ class CustomerGradeModel extends PublicModel {
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }
         $app=$this->table('erui_buyer.apply_grade')
-            ->field('id,customer_grade,attach_url,attach_name')
+            ->field('id,customer_grade as app_grade ,attach_url,attach_name')
             ->where(array('grade_id'=>$info['id']))
             ->order('id desc')
             ->select();
@@ -736,5 +736,125 @@ class CustomerGradeModel extends PublicModel {
         $arr['final_score']=100;
         $arr['customer_grade']=S;
         return $arr;
+    }
+    public function noticeEmail($data){
+        $app=new ApplyGradeModel();
+        $gradeInfo=$app->findApplyGrade($data['id']);   //申请边更记录信息
+        $noticeInfo=$this->getNoticeInfo($data);    //获取通知人
+        if(empty($gradeInfo) || empty($noticeInfo)){
+            return false;
+        }
+        $grade=$this->table('erui_sys.employee')->field('id,name,user_no,email')
+            ->where("(id=$gradeInfo[created_by] or id=$gradeInfo[handler]) and deleted_flag='N'")
+            ->select();
+        foreach($grade as $k => $v){
+            if($v['id']==$gradeInfo['created_by']){
+                $gradeInfo['created_by']=$v['name'];
+                $gradeInfo['created_no']=$v['user_no'];
+            }
+            if($v['id']==$gradeInfo['handler']){
+                $gradeInfo['handler']=$v['name'];
+                $gradeInfo['handler_no']=$v['user_no'];
+            }
+        }
+        $email='';
+        $toName='';
+        if(!empty($noticeInfo)){
+            foreach($noticeInfo as $k => $v){
+                $email.=',"'.$v['email'].'"';
+                $toName.=','.$v['name'].'('.$v['user_no'].')';
+
+            }
+            $email=mb_substr($email,1);
+            $toName=mb_substr($toName,1);
+        }
+        $gradeInfo['toName']=$toName;   //总数据
+
+
+        $title='客户分级申请变更成功通知 !';    //邮件标题
+        $body=$this->getCustomerEnHtml($gradeInfo,$title);   //邮件模板
+        print_r($body);die;
+        $code=$this->postSentEmail($email,$title,$body); //发送给客户
+    }
+    private function getCustomerEnHtml($data,$title){
+
+        $html=<<<EOF
+    <!doctype html>  
+    <html>  
+    <head>  
+    <title>{$title}</title>  
+    <meta charset="utf-8" />  
+    </head>  
+    <body>  
+    <img src="http://www.erui.com/static/en/image/logo.png" alt="Efficient Supply Chain" height="49" width="159" />
+      <!-- logo/工具 -->  
+      <div style="border: 1px solid black;">  
+        <h1>客户分级申请变更成功通知:</h1>  
+      </div>  
+      <!-- 内容 -->  
+      <div style="border: 1px solid black;" align="center">  
+        <p>经办人:{$data['created_by']} ( {$data['created_no']} )</p>  
+        <p>申请变更: {$data['created_at']}</p>  
+        
+        <p>大区分管领导: {$data['handler']}{$data['handler_no']}</p>  
+        <p>处理申请时间:{$data['handle_at']} </p>  
+      </div>  
+      <div style="border: 1px solid black;" align="center">  
+        <p>收件 :{$data['toName']}</p>  
+  
+      </div> 
+    </body>  
+    </html> 
+    
+EOF;
+        return $html;
+    }
+    private function postSentEmail($email,$title,$body){
+        $url='http://msg.erui.com/api/email/plain/';
+        $arr=array(
+            "to"=>"[$email]",
+            "title"=>$title,
+            "content"=>$body,
+            "groupSending"=>1,
+            "useType"=>'CRM'
+        );
+        $opt = array(
+            'http'=>array(
+                'method'=>"POST",
+                'header'=>"Content-Type: application/json\r\n" .
+                    "Cookie: ".$_COOKIE."\r\n",
+                'content' =>json_encode($arr)
+            )
+        );
+        $context = stream_context_create($opt);
+        $json = file_get_contents($url,false,$context);
+        $info=json_decode($json,true);
+        return $info['code'];
+    }
+    //获取客户分级要通知的数据
+    public function getNoticeInfo(){
+        $role=$this->table('erui_sys.role')->alias('role')
+            ->join('erui_sys.role_member member on role.id=member.role_id')
+            ->field('employee_id')
+            ->where(array('role_no'=>'grade_notice','deleted_flag'=>'N'))
+            ->order('member.id desc')
+            ->select();
+        if(empty($role)){
+            return [];
+        }
+        $str='';
+        foreach($role as $k => $v){
+            $str.=',"'.$v['employee_id'].'"';
+        }
+        $str=mb_substr($str,1);
+        $em=$this->table('erui_sys.employee')
+            ->field('id,name,user_no,email')
+            ->where("id in ($str) and deleted_flag='N'")
+            ->order('id desc')
+            ->select();
+        if(empty($em)){
+            $em=[];
+        }
+        return $em;
     }
 }
