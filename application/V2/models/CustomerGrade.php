@@ -104,7 +104,7 @@ class CustomerGradeModel extends PublicModel {
                 }
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==3){
-                $v['status']=$lang=='zh'?'审核通过':'PASS';
+                $v['status']=$lang=='zh'?'通过':'PASS';
                 if($admin_agent===1){   //申请变更
                     $v['change']=true;
                 }else{
@@ -113,7 +113,7 @@ class CustomerGradeModel extends PublicModel {
                 $v['check']=false;
                 $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
             }else if($v['status']==13){
-                $v['status']=$lang=='zh'?'审核通过(申请变更中)':'PASS(Applying)';
+                $v['status']=$lang=='zh'?'通过(申请中)':'PASS(Applying)';
                 if($admin_change===1){     //大区:  回复,申请变更结果
                     $v['reply']=true;
                 }
