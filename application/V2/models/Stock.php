@@ -63,6 +63,9 @@ class StockModel extends PublicModel {
             if(isset($condition['floor_id']) && $condition['floor_id']!=''){
                 $where.=" AND floor_id = ".intval($condition['floor_id']);
             }
+            if(isset($condition['show_flag']) && $condition['show_flag']!=''){
+                $where.=" AND show_flag = ".trim($condition['show_flag']);
+            }
         }
         return $where;
     }
