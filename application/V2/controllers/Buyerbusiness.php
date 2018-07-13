@@ -697,15 +697,14 @@ class BuyerbusinessController extends PublicController
         $data = json_decode(file_get_contents("php://input"), true);
         $model = new CustomerGradeModel();  //结算方式
         $info=$model->noticeEmail($data);
-
-//        if($code==200){
-//            $dataJson['code']=1;
-//            $dataJson['message']='Success';
-//        }else{
-//            $dataJson['code']=0;
-//            $dataJson['message']='Error';
-//        }
-//        $this->jsonReturn($dataJson);
+        if($info){
+            $dataJson['code']=1;
+            $dataJson['message']='Success';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='Error';
+        }
+        $this->jsonReturn($dataJson);
     }
 
 

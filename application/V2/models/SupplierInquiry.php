@@ -817,7 +817,8 @@ class SupplierInquiryModel extends PublicModel {
                 jsonReturn('', ErrorMsg::FAILED, '操作失败，请联系管理员');
             }
         }
-        PHPExcel_Settings::setCacheStorageMethod(PHPExcel_CachedObjectStorageFactory::cache_in_memory_gzip, array('memoryCacheSize' => '512MB'));
+        PHPExcel_Settings::setCacheStorageMethod(
+                PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp, array('memoryCacheSize' => '512MB'));
         $objPHPExcel = new PHPExcel();
 
         $objSheet = $objPHPExcel->setActiveSheetIndex(0);    //当前sheet
