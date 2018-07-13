@@ -95,35 +95,39 @@ class StorageGoodsModel extends PublicModel{
      * @return array
      */
     public function getList($condition){
-        $sModel = new StorageModel();
-        $where_storage = ['id'=>intval($condition['storage_id'])];
-        $storageInfo = $sModel->getInfo($where_storage);
+        try{
+            $sModel = new StorageModel();
+            $where_storage = ['id'=>intval($condition['storage_id'])];
+            $storageInfo = $sModel->getInfo($where_storage);
 
-        $thisTable = $this->getTableName();
-        $where = "$thisTable.storage_id = ".intval($condition['storage_id'])." AND $thisTable.deleted_at is null";
+            $thisTable = $this->getTableName();
+            $where = "$thisTable.storage_id = ".intval($condition['storage_id'])." AND $thisTable.deleted_at is null";
 
-        if(isset($condition['keyword'])){
-            $where.=" AND ($thisTable.sku ='".trim($condition['keyword'])."' OR s.show_name like '%".trim($condition['keyword'])."%')";
+            if(isset($condition['keyword']) && $condition['keyword']!==''){
+                $where.=" AND ($thisTable.sku ='".trim($condition['keyword'])."' OR s.show_name like '%".trim($condition['keyword'])."%')";
+            }
+
+            $model = new StockModel();
+            $stockTable = $model->getTableName();
+            $field = "$thisTable.id,s.show_name,s.sku,$thisTable.created_at,$thisTable.created_by";
+            list($from,$size) = $this->_getPage($condition);
+
+            $data = [];
+            $join = "(SELECT show_name,sku,lang,country_bn,MAX(sort_order),deleted_at,status FROM $stockTable WHERE country_bn='".$storageInfo['country_bn']."' AND lang='".$storageInfo["lang"]."' AND deleted_at is null AND status='VALID' GROUP BY sku) as s ON s.sku=".$thisTable.".sku";
+            $list = $this->field($field)->join($join,'LEFT')->where($where)
+                ->limit($from,$size)
+                ->select();
+            if($list){
+                $this->_setUser($list);
+                $data['data'] = $list;
+                $data['count'] = $this->getCount($where,$join);
+                $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
+                $data['pagesize'] = $size;
+            }
+            return $data;
+        }catch (Exception $e){
+            return false;
         }
-
-        $model = new StockModel();
-        $stockTable = $model->getTableName();
-        $field = "$thisTable.id,s.show_name,s.sku,$thisTable.created_at,$thisTable.created_by";
-        list($from,$size) = $this->_getPage($condition);
-
-        $data = [];
-        $join = "(SELECT show_name,sku,lang,country_bn,MAX(sort_order),deleted_at,status FROM $stockTable WHERE country_bn='".$storageInfo['country_bn']."' AND lang='".$storageInfo["lang"]."' AND deleted_at is null AND status='VALID' GROUP BY sku) as s ON s.sku=".$thisTable.".sku";
-        $list = $this->field($field)->join($join,'LEFT')->where($where)
-            ->limit($from,$size)
-            ->select();
-        if($list){
-            $this->_setUser($list);
-            $data['data'] = $list;
-            $data['count'] = $this->getCount($where,$join);
-            $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
-            $data['pagesize'] = $size;
-        }
-        return $data;
     }
 
     public function getCount($where,$join) {
