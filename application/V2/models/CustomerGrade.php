@@ -561,7 +561,6 @@ class CustomerGradeModel extends PublicModel {
             ->where(array('grade_id'=>$info['id']))
             ->order('id desc')
             ->select();
-        $info['apply']=[];
         if(!empty($app)){
             $arr['app_grade']=$app[0]['app_grade'];
             foreach($app as $k => &$v){
@@ -569,6 +568,13 @@ class CustomerGradeModel extends PublicModel {
             }
             $arr['attach']=$app;
             $info['apply']=$arr;
+        }else{
+            $info['apply']=array(
+                'app_grade'=>'',
+                "attach"=>array(
+                    array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+                )
+            );
         }
         return $info;
     }
