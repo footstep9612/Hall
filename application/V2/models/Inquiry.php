@@ -205,19 +205,19 @@ class InquiryModel extends PublicModel {
             $where['a.buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!isset($condition['agent_id'])) {
+        if (isset($condition['agent_id'])) {
             $where['a.agent_id'] = ['in', $condition['agent_id'] ?: ['-1']]; //市场经办人
         }
 
-        if (!isset($condition['now_agent_id'])) {
+        if (isset($condition['now_agent_id'])) {
             $where['a.now_agent_id'] = ['in', $condition['now_agent_id'] ?: ['-1']]; //当前办理人
         }
 
-        if (!isset($condition['quote_id'])) {
+        if (isset($condition['quote_id'])) {
             $where['a.quote_id'] = ['in', $condition['quote_id'] ?: ['-1']]; //报价人
         }
 
-        if (!isset($condition['contract_inquiry_id'])) {
+        if (isset($condition['contract_inquiry_id'])) {
             if ($condition['contract_no'] == 'Y') {
                 $where['a.id'] = ['in', $condition['contract_inquiry_id'] ?: ['-1']]; //销售合同号存在
             } else {
