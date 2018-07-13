@@ -478,36 +478,33 @@ class LogisticsController extends PublicController {
 
         // 新增多行
         $row = intval($condition['row']) > 1 ? intval($condition['row']) : 1;
-
-        $count = $this->quoteLogiQwvModel->getCount($condition);
         $flag = true;
         $data['ids'] = [];
-
+        $nulldata = [
+            'inquiry_id' => $condition['inquiry_id'],
+            'created_by' => $this->user['id'],
+            'created_at' => $this->time,
+            'updated_by' => $this->user['id'],
+            'updated_at' => $this->time
+        ];
         for ($i = 0; $i < $row; $i++) {
-            $res = $this->quoteLogiQwvModel->addRecord($qwvData);
+            if ($i == 0) {
+                $res = $this->quoteLogiQwvModel->addRecord($qwvData);
 
-            if ($res) {
-                $data['ids'][] = $res;
+                if ($res) {
+                    $data['ids'][] = $res;
+                } else {
+                    $this->quoteLogiQwvModel->rollback();
+                    $this->jsonReturn(false);
+                }
             } else {
-                $this->quoteLogiQwvModel->rollback();
-                $this->jsonReturn(false);
-            }
-        }
-
-        if ($count == 0 && !empty($qwvData)) {
-            $nulldata = [
-                'inquiry_id' => $condition['inquiry_id'],
-                'created_by' => $this->user['id'],
-                'created_at' => $this->time,
-                'updated_by' => $this->user['id'],
-                'updated_at' => $this->time
-            ];
-            $res = $this->quoteLogiQwvModel->addRecord($nulldata);
-            if ($res) {
-                $data['ids'][] = $res;
-            } else {
-                $this->quoteLogiQwvModel->rollback();
-                $this->jsonReturn(false);
+                $res = $this->quoteLogiQwvModel->addRecord($nulldata);
+                if ($res) {
+                    $data['ids'][] = $res;
+                } else {
+                    $this->quoteLogiQwvModel->rollback();
+                    $this->jsonReturn(false);
+                }
             }
         }
 
