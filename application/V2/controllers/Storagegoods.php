@@ -68,10 +68,10 @@ class StoragegoodsController extends PublicController {
         }
         $model = new StorageGoodsModel();
         $result = $model->getList($condition);
-        if ($result) {
-            jsonReturn($result);
-        } else{
+        if ($result===false) {
             jsonReturn('',MSG::MSG_FAILED);
+        } else{
+            jsonReturn($result);
         }
     }
 
