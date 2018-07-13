@@ -46,4 +46,9 @@ class CountryMemberModel extends PublicModel {
         }
     }
 
+    public function getCountryBnsByUserid($user_id) {
+
+        return $this->where(['employee_id' => $user_id])->getField('country_bn', true);
+    }
+
 }

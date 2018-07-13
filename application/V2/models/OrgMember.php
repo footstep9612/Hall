@@ -269,4 +269,9 @@ class OrgMemberModel extends PublicModel {
         return $ret;
     }
 
+    public function getOrgIdsByUserid($user_id) {
+
+        return $this->where(['employee_id' => $user_id])->getField('org_id', true);
+    }
+
 }

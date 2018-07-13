@@ -560,6 +560,8 @@ class UserController extends PublicController {
 
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
+
+
         if ($res !== false) {
             if (isset($data['role_ids'])) {
                 $model_role_user = new RoleUserModel();
@@ -583,6 +585,11 @@ class UserController extends PublicController {
         }
         if ($res !== false) {
             redisExist('user_fastentrance_' . $where['id']) ? redisDel('user_fastentrance_' . $where['id']) : '';
+            $user_id = $GLOBALS['SSO_USER']['id'];
+            $erui_token = $GLOBALS['SSO_TOKEN'];
+            if (!redisExist('user.' . $user_id . '.' . $erui_token)) {
+                redisDel('user.' . $user_id . '.' . $erui_token);
+            }
         }
         if ($res !== false) {
             $datajson['code'] = 1;
@@ -644,7 +651,7 @@ class UserController extends PublicController {
         $field = 'bn,name';
         $region = (new MarketAreaModel)->where($where)->field($field)->select();
 
-        foreach ($region as &$item) {
+        foreach ($region as & $item) {
             $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
                     ->join('erui_dict.country b ON a.country_bn=b.bn')
                     ->where(['market_area_bn' => $item['bn'], 'b.lang' => 'zh', 'b.deleted_flag' => 'N'])
@@ -707,7 +714,7 @@ class UserController extends PublicController {
         $originForeign = L('ORIGIN_FOREIGN');
         $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originChina . '\', \'' . $originForeign . '\') AS citizenship';
         $userList = $userModel->getList_($condition, $field);
-        foreach ($userList as &$user) {
+        foreach ($userList as & $user) {
             $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
             $countryList = [];
             foreach ($countryBnList as $countryBn) {
@@ -823,7 +830,7 @@ class UserController extends PublicController {
 
         $user_id = isset($request['user_id']) ? $request['user_id'] : $this->user['id'];
         $data = (new RoleUserModel)->userRoleList($user_id, 0, $where);
-        //p($data);
+//p($data);
         $response = $this->restoreUserRoleSource($data);
         $this->jsonReturn([
             'code' => 1,
@@ -849,7 +856,7 @@ class UserController extends PublicController {
 
         sort($restoredData);
 
-        //BOSS DATA_REPORT ORDER
+//BOSS DATA_REPORT ORDER
         $string = implode(',', array_unique($restoredData));
 
         switch ($string) {
