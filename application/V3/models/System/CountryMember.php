@@ -11,23 +11,21 @@
  *
  * @author zyg
  */
-class System_RoleMemberModel extends PublicModel {
+class System_CountryMemberModel extends PublicModel {
 
     //put your code here
-    protected $tableName = 'role_member';
+    protected $tableName = 'country_member';
     Protected $autoCheckFields = true;
-    protected $table_name = 'role_member';
+    protected $table_name = 'country_member';
     protected $dbName = 'erui_sys';
 
     public function __construct() {
         parent::__construct();
     }
 
-    public function getRoleIdsByUserid($user_id) {
+    public function getCountryBnsByUserid($user_id) {
 
-        $data = $this->where(['employee_id' => $user_id,])->getField('role_id', true);
-
-        return $data;
+        return $this->where(['employee_id' => $user_id])->getField('country_bn', true);
     }
 
 }
