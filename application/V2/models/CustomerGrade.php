@@ -46,7 +46,7 @@ class CustomerGradeModel extends PublicModel {
         if(in_array('201711242',$data['role'])){    //国家
             $admin_country=1;
         }
-        if(in_array('A001',$data['role'])){    //经办人
+        if(in_array('customer_agent',$data['role'])){    //经办人
             $admin_agent=1;
         }
         if(in_array('area_admin',$data['role'])){    //大区分管领导,审核客户分级变更
@@ -561,14 +561,19 @@ class CustomerGradeModel extends PublicModel {
             ->where(array('grade_id'=>$info['id']))
             ->order('id desc')
             ->select();
-        $info['apply']=[];
         if(!empty($app)){
-            $arr['app_grade']=$app[0]['app_grade'];
+            $info['app_grade']=$app[0]['app_grade'];
+//            $arr['app_grade']=$app[0]['app_grade'];
             foreach($app as $k => &$v){
                 unset($v['app_grade']);
             }
-            $arr['attach']=$app;
-            $info['apply']=$arr;
+            $info['attach']=$app;
+        }else{
+            $info['app_grade']='';
+
+            $info['attach']=array(
+                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+            );
         }
         return $info;
     }

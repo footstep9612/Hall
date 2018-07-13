@@ -406,7 +406,7 @@ class BuyerModel extends PublicModel {
             $cond .= " And  `buyer`.country_bn in ($areaCountryStr)";
         }elseif(in_array('201711242',$data['admin']['role'])){ //国家
             $cond .= " And  `buyer`.country_bn in ($countryStr)";
-        }elseif(in_array('A001',$data['admin']['role'])){ //经办人
+        }elseif(in_array('customer_agent',$data['admin']['role'])){ //经办人
             $agent=new BuyerAgentModel();
             $agentArr=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();   //经办人管理的客户
             $agentArray=$this->arrToArray($agentArr,'buyer_id');
@@ -2417,9 +2417,9 @@ EOF;
         );
         foreach ($data as $value) {
             foreach ($baseArr as $v) {
-                if (!empty($data[$v])) {
+//                if (!empty($data[$v])) {
                     $arr[$v] = $data[$v];
-                }
+//                }
             }
         }
         return $arr;
@@ -2946,7 +2946,9 @@ EOF;
      */
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerManageCond($data);
+        $cond = $this->getBuyerStatisListCond($data);
+        $cond .= " and buyer.status='APPROVED' ";
+//        $cond = $this->getBuyerManageCond($data);
         if($cond==false){
             return false;
         }

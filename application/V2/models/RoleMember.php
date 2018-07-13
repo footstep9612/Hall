@@ -11,7 +11,7 @@
  *
  * @author zyg
  */
-class System_RoleMemberModel extends PublicModel {
+class RoleMemberModel extends PublicModel {
 
     //put your code here
     protected $tableName = 'role_member';
@@ -25,9 +25,7 @@ class System_RoleMemberModel extends PublicModel {
 
     public function getRoleIdsByUserid($user_id) {
 
-        $data = $this->where(['employee_id' => $user_id,])->getField('role_id', true);
-
-        return $data;
+        return $this->where(['employee_id' => $user_id,])->getField('role_id', true);
     }
 
 }

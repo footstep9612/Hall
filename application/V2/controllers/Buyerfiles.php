@@ -82,6 +82,7 @@ class BuyerfilesController extends PublicController
      * 客户管理列表excel导出
      */
     public function exportBuyerExcelAction(){
+        set_time_limit(0);
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;

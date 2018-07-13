@@ -25,7 +25,17 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $this->headers = getHeaders();
         $this->put_data = $this->getPut();
-        $this->user = $GLOBALS['SSO_USER'];
+
+        $user_id = $GLOBALS['SSO_USER']['id'];
+        $erui_token = $GLOBALS['SSO_TOKEN'];
+        if (!redisExist('user.' . $user_id . '.' . $erui_token)) {
+            $this->user = $this->getUserInfo($user_id);
+            redisSet('user.' . $user_id . '.' . $erui_token, json_encode($this->user), 18000);
+        } else {
+            $user = redisGet('user.' . $user_id . '.' . $erui_token);
+            $this->user = json_decode($user, true);
+            unset($user);
+        }
         $this->_setUid($this->user);
         if (isset($this->user['id']) && $this->user['id'] > 0) {
             // 加载php公共配置文件
@@ -38,6 +48,26 @@ abstract class PublicController extends Yaf_Controller_Abstract {
             header("Content-Type: application/json");
             exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
         }
+    }
+
+    /**
+     * 获取SSO Token
+     * 默认由Cookie读取，其次从Http header读取，token变量名称为eruitoken
+     * @author: zhengkq
+     * @return string $sso_token 返回sso token
+     * */
+    protected function getUserInfo($user_id) {
+        $user_model = new System_EmployeeModel();
+        $user['id'] = $user_id;
+        $user['token'] = $GLOBALS['SSO_TOKEN'];
+
+        $user['name'] = $user_model->getUserNameById($user_id);
+        $user['group_org'] = $user['group_id'] = (new System_OrgMemberModel())->getOrgIdsByUserid($user_id);
+
+        $user['role_id'] = (new System_RoleMemberModel())->getRoleIdsByUserid($user_id);
+        $user['role_no'] = (new System_RoleModel())->getRoleNossByRoleIds($user['role_id']);
+        $user['country_bn'] = (new System_CountryMemberModel())->getCountryBnsByUserid($user_id);
+        return $user;
     }
 
     /*
