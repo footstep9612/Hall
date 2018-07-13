@@ -46,7 +46,7 @@ class CustomerGradeModel extends PublicModel {
         if(in_array('201711242',$data['role'])){    //国家
             $admin_country=1;
         }
-        if(in_array('A001',$data['role'])){    //经办人
+        if(in_array('customer_agent',$data['role'])){    //经办人
             $admin_agent=1;
         }
         if(in_array('area_admin',$data['role'])){    //大区分管领导,审核客户分级变更
