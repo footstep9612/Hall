@@ -1697,7 +1697,7 @@ EOF;
         if ($group=='no') {
             $dataJson = array(
                 'code' => 4,
-                'message' => '网络异常'
+                'message' => '集团网络异常'
             );
         }elseif($group=='code'){
             $dataJson = array(
