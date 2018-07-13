@@ -279,7 +279,7 @@ class StockFloorModel extends PublicModel {
      */
     public function onshelfData($id, $onshelf_flag) {
 
-        $condition['onshelf_flag'] = trim($onshelf_flag) == 'Y' ? 'Y' : 'N';
+        $condition['onshelf_flag'] = (trim($onshelf_flag) == 'Y' || $onshelf_flag===true) ? 'Y' : 'N';
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');

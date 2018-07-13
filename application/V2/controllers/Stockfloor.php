@@ -211,42 +211,27 @@ class StockfloorController extends PublicController {
      * @desc  现货楼层
      */
     public function OnshelfAction() {
-
-        $id = $this->getPut('id');
+        $condition = $this->getPut();
+        $id = $condition['id'];
         if (empty($id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
             $this->jsonReturn();
         }
-        $onshelf_flag = $this->getPut('onshelf_flag');
-        if (empty($onshelf_flag)) {
+        if (!isset($condition['onshelf_flag'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('楼层上下架状态不能为空!');
             $this->jsonReturn();
         }
 
-        if (!in_array($onshelf_flag, ['N', 'Y'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('楼层上下架状态不正确!');
-            $this->jsonReturn();
-        }
         $stock_floor_model = new StockFloorModel();
-
-
-        $list = $stock_floor_model->onshelfData($id, $onshelf_flag);
+        $list = $stock_floor_model->onshelfData($id, $condition['onshelf_flag']);
         if ($list) {
-            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '成功!';
-            $this->setMessage($message);
-            $this->jsonReturn();
+            jsonReturn('', MSG::MSG_SUCCESS);
         } elseif ($list === false) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '失败!';
-            $this->setMessage($message);
-            $this->jsonReturn(null);
+            jsonReturn('', MSG::MSG_FAILED);
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            jsonReturn('', MSG::MSG_FAILED, '系统错误');
         }
     }
 

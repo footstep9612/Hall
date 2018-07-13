@@ -686,15 +686,29 @@ class BuyerbusinessController extends PublicController
         if($res===true){
             $dataJson['code']=1;
             $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
-        }elseif($res==='error'){
-            $dataJson['code']=2;
-            $dataJson['message']=$lang=='zh'?'流程错误':'ERROR';
         }else{
             $dataJson['code']=0;
             $dataJson['message']=$lang=='zh'?'参数错误':'ERROR';
         }
         $this -> jsonReturn($dataJson);
     }
+    //发送邮件通知客户分级申请变更通过
+    public function noticeEmailAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();  //结算方式
+        $info=$model->noticeEmail($data);
+
+//        if($code==200){
+//            $dataJson['code']=1;
+//            $dataJson['message']='Success';
+//        }else{
+//            $dataJson['code']=0;
+//            $dataJson['message']='Error';
+//        }
+//        $this->jsonReturn($dataJson);
+    }
+
+
     //申请变更
     public function applyGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
