@@ -630,7 +630,7 @@ class CustomerGradeModel extends PublicModel {
         $app=new ApplyGradeModel();
         if($res){
             if($email===1){
-                $app->saveAppGrade($data['id']);
+                $app->saveAppGrade($data['id'],$data['created_by']);
                 $this->noticeEmail(array('id'=>$data['id']));
             }
             return true;
