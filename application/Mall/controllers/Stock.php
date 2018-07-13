@@ -70,7 +70,6 @@ class StockController extends PublicController {
             //$this->_setConstPrice($list, $country_bn);
             $this->_setDisCount($list,isset($condition['special_id']) ? $condition['special_id'] : '');
             jsonReturn($list);
-            $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');

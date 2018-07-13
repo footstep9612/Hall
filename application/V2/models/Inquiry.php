@@ -333,10 +333,24 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewWhere($condition = []) {
+    public function getViewWhere($condition = [], $role_nos = [], $user_id = null, $group_id = null) {
 
         $where['status'] = ['neq', 'DRAFT'];
         $where['deleted_flag'] = 'N';
+        $employeeModel = new EmployeeModel();
+        $inquiryOrderModel = new InquiryOrderModel();
+
+// 市场经办人
+        (!empty($condition['agent_name'])) ? ($condition['agent_id'] = $employeeModel->getUserIdByName($condition['agent_name']) ?: []) : '';
+        // 当前办理人
+        (!empty($condition['now_agent_name'])) ? ($condition['now_agent_id'] = $employeeModel->getUserIdByName($condition['now_agent_name']) ?: []) : '';
+// 报价人
+
+        (!empty($condition['quote_name'])) ? ($condition['quote_id'] = $employeeModel->getUserIdByName($condition['quote_name']) ?: []) : '';
+// 销售合同号
+        (!empty($condition['contract_no'])) ? $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo() : '';
+//区域和国家
+        (!empty($condition['country_bn']) && empty($condition['country_bn']) ) ? ($condition['country_bn'] = (new MarketAreaCountryModel())->getCountryBn($condition['market_area_bn']) ?: []) : '';
 
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
             if ($condition['status'] == 'BIZ_QUOTING') {
@@ -353,47 +367,6 @@ class InquiryModel extends PublicModel {
             $where['buyer_inquiry_no'] = ['like', '%' . $condition['buyer_inquiry_no'] . '%'];    //客户询单号
         }
 
-        if (!empty($condition['user_country']) && !empty($condition['now_agent_id'])) {
-            $map = [];
-            $map['country_bn'] = ['in', $condition['user_country'] ?: ['-1']];    //查看事业部询单角色国家
-            $map['now_agent_id'] = $condition['now_agent_id'];
-            $map['_logic'] = 'or';
-            $where = $map;
-        } elseif (!empty($condition['user_country'])) {
-            $where['country_bn'] = ['in', $condition['user_country'] ?: ['-1']];    //查看事业部询单角色国家
-        }
-        if (isset($condition['org_id']) && !empty($condition['now_agent_id'])) {
-            $map = [];
-            $map['org_id'] = ['in', $condition['org_id'] ?: ['-1']]; //事业部
-            $map['now_agent_id'] = $condition['now_agent_id'];
-            $map['_logic'] = 'or';
-
-            $where = $map;
-        } elseif (!empty($condition['org_id'])) {
-            $where['org_id'] = ['in', $condition['org_id'] ?: ['-1']]; //当前办理人
-        }
-        if (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
-            $where['country_bn'] = isset($condition['user_country']) ?
-                    [['eq', $condition['country_bn']], $where['country_bn']] :
-                    $condition['country_bn'];    //国家
-        } else if (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
-            $where['country_bn'] = ['in', isset($condition['user_country']) ?
-                array_unique(array_merge($condition['country_bn'], $condition['user_country'])) :
-                $condition['country_bn']];    //国家
-        }
-
-        /* if (!empty($condition['serial_no'])) {
-          $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%'];  //流程编码
-          }
-
-          if (!empty($condition['buyer_name'])) {
-          $where['buyer_name'] = $condition['buyer_name'];  //客户名称
-          }
-
-          if (!empty($condition['buyer_code'])) {
-          $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
-          } */
-
         if (!empty($condition['input_code'])) {
             // 用户输入编码匹配
             $match = [
@@ -405,26 +378,32 @@ class InquiryModel extends PublicModel {
             $where[] = $match;
         }
 
-        if (isset($condition['agent_id'])) {
-            $where['agent_id'] = ['in', $condition['agent_id'] ?: ['-1']]; //市场经办人
+        if (!empty($condition['agent_id'])) {
+            $where['agent_id'] = ['in', $condition['agent_id']]; //市场经办人
+        } elseif (isset($condition['agent_id'])) {
+            $where['agent_id'] = '-1';
         }
-
-
-
-        if (isset($condition['quote_id'])) {
+        if (!empty($condition['now_agent_id'])) {
+            $where['now_agent_id'] = ['in', $condition['now_agent_id']]; //市场经办人
+        } elseif (isset($condition['now_agent_id'])) {
+            $where['now_agent_id'] = '-1';
+        }
+        if (!empty($condition['quote_id'])) {
             $where['quote_id'] = ['in', $condition['quote_id'] ?: ['-1']]; //报价人
+        } elseif (isset($condition['quote_id'])) {
+            $where['quote_id'] = '-1';
         }
-
-        if (isset($condition['contract_inquiry_id'])) {
+        if (isset($condition['contract_inquiry_id']) && $condition['contract_inquiry_id']) {
             if ($condition['contract_no'] == 'Y') {
-                $where['id'] = ['in', $condition['contract_inquiry_id'] ?: ['-1']]; //销售合同号存在
+                $where['id'] = ['in', $condition['contract_inquiry_id']]; //销售合同号存在
             } else {
-                $where['id'] = ['not in', $condition['contract_inquiry_id'] ?: ['-1']]; //销售合同号不存在
+                $where['id'] = ['not in', $condition['contract_inquiry_id']]; //销售合同号不存在
+            }
+        } elseif (isset($condition['contract_inquiry_id'])) {
+            if ($condition['contract_no'] == 'Y') {
+                $where['id'] = ['in', ['-1']]; //销售合同号存在
             }
         }
-
-
-
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = [
                 ['egt', date('Y-m-d H:i:s', $condition['start_time'])],
@@ -432,7 +411,127 @@ class InquiryModel extends PublicModel {
             ];
         }
 
+        $this->_getRolesWhere($where, $condition, $role_nos, $user_id, $group_id);
         return $where;
+    }
+
+    private function _getRolesWhere(&$where, $condition = [], $role_nos = [], $user_id = null, $group_id = null) {
+
+        if (!in_array(self::viewAllRole, $role_nos) && !in_array(self::viewBizDeptRole, $role_nos) && !in_array(self::viewCountryRole, $role_nos)) {
+            if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                $map = [];
+                $map['country_bn'] = $condition['country_bn'];    //查看事业部询单角色国家
+                $map['now_agent_id'] = $user_id;
+                $map['_logic'] = 'or';
+                $where[] = $map;
+            } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                $map = [];
+                $map['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                $map['now_agent_id'] = $user_id;
+                $map['_logic'] = 'or';
+                $where[] = $map;
+            } else {
+                $where[] = ['now_agent_id' => $user_id];
+            }
+            return;
+        } elseif (!empty($condition['view_type'])) {
+            switch ($condition['view_type']) {
+                case 'dept':
+                    if (in_array(self::viewAllRole, $role_nos) && in_array(self::viewBizDeptRole, $role_nos)) {
+                        $org_ids = $this->getDeptOrgId($group_id, ['in', ['ub', 'erui']]);
+                        $map = ['1=1'];
+                        if ($org_ids) {
+                            $map['org_id'] = ['in', $org_ids]; //事业部
+                        }
+                        $map['now_agent_id'] = $user_id;
+                        $map['_logic'] = 'or';
+                        $where[] = $map;
+                    } elseif (in_array(self::viewAllRole, $role_nos)) {
+
+                    } elseif (in_array(self::viewBizDeptRole, $role_nos)) {
+                        $org_ids = $this->getDeptOrgId($group_id, ['in', ['ub', 'erui']]);
+                        $map = [];
+                        if ($org_ids) {
+                            $map['org_id'] = ['in', $org_ids]; //事业部
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } else {
+                            $where[] = ['now_agent_id' => $user_id];
+                        }
+                    } else {
+                        $where[] = ['now_agent_id' => $user_id];
+                    }
+                    if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                        $where['country_bn'] = $condition['country_bn'];
+                    } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                        $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                    }
+                    break;
+                case 'country':
+                    if ($condition['view_type'] == 'country' && in_array(self::viewCountryRole, $role_nos)) {
+                        $user_country = (new CountryUserModel())->getUserCountry(['employee_id' => $user_id]) ?: [];
+                        if ($user_country && !empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                            $user_country[] = $condition['country_bn'];
+                            $map = [];
+                            $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } elseif ($user_country && !empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                            $user_country = array_unique(array_merge($condition['country_bn'], $user_country));
+                            $map = [];
+                            $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } elseif ($user_country && $user_id) {
+                            $map = [];
+                            $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } elseif (empty($user_country) && !empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                            $map = [];
+                            $map['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } elseif (empty($user_country) && !empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                            $map = [];
+                            $map['country_bn'] = $condition['country_bn'];    //查看事业部询单角色国家
+                            $map['now_agent_id'] = $user_id;
+                            $map['_logic'] = 'or';
+                            $where[] = $map;
+                        } elseif ($user_id) {
+                            $where[] = ['now_agent_id' => $user_id];
+                        } else {
+                            $where['country_bn'] = '-1';
+                        }
+                    } else {
+                        if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                            $where['country_bn'] = $condition['country_bn'];
+                        } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                            $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                        }
+                        $where[] = ['now_agent_id' => $user_id];
+                    }
+                    break;
+            }
+        } else {
+            if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+
+                $where['country_bn'] = $condition['country_bn'];    //查看事业部询单角色国家
+                $where['now_agent_id'] = $user_id;
+            } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                $map = [];
+                $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+
+                $where['now_agent_id'] = $user_id;
+            } else {
+                $where[] = ['now_agent_id' => $user_id];
+            }
+        }
     }
 
     /**
@@ -471,9 +570,9 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewCount($condition = []) {
+    public function getViewCount($condition = [], $role_nos = [], $user_id = null, $group_id = null) {
 
-        $where = $this->getViewWhere($condition);
+        $where = $this->getViewWhere($condition, $role_nos, $user_id, $group_id);
 
         $count = $this->where($where)->count('id');
 
@@ -599,9 +698,9 @@ class InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-02
      */
-    public function getViewList($condition = [], $field = '*') {
+    public function getViewList($condition = [], $field = '*', $role_nos = [], $user_id = null, $group_id = null) {
 
-        $where = $this->getViewWhere($condition);
+        $where = $this->getViewWhere($condition, $role_nos, $user_id, $group_id);
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];

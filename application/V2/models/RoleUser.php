@@ -18,8 +18,8 @@ class RoleUserModel extends PublicModel {
     Protected $autoCheckFields = true;
     protected $table_name = 'role_member';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
     public function userRoleList($user_id, $pid = '', $where = null) {
@@ -200,9 +200,9 @@ class RoleUserModel extends PublicModel {
      * @time 2018-06-19
      */
     public function getUserMenu($userId, $condition = [], $lang = 'zh') {
-        $where['source'] = $condition['source'];
+
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
-        $data = $this->userRoleList($userId, $parentId, $where);
+        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source'], $condition['only_one_level']);
 
         return $this->_funcChildren($userId, $data, $condition['source'], $lang, $condition['only_one_level']);
     }
@@ -250,11 +250,7 @@ class RoleUserModel extends PublicModel {
 
     public function _userRoleList($user_id, $pid = [], $source = null) {
         if ($user_id) {
-            $fields = ' `fp`.`id` as func_perm_id,`fp`.`logo_name`,'
-                    . '`fp`.`logo_url`,`fp`.`url`,`fp`.`sort`,`fp`.`fn`,'
-                    . '`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`,'
-                    . '`fp`.`show_name`,`fp`.`show_name_en`,`fp`.`show_name_es`,'
-                    . '`fp`.`show_name_ru`,`fp`.`parent_id` ,`fp`.`source`';
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
             $employee_model = new EmployeeModel();
             $where = [];
             if (!empty($user_id)) {
@@ -264,6 +260,8 @@ class RoleUserModel extends PublicModel {
                 $where['fp.parent_id'] = $pid;
             } elseif (!empty($pid) && is_array($pid)) {
                 $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
             }
             if ($source) {
                 $where['fp.source'] = $source;
@@ -288,6 +286,40 @@ class RoleUserModel extends PublicModel {
                 }
             }
             return $ret;
+        }
+    }
+
+    private function _TopuserRoleList($user_id, $pid = [], $source = null) {
+        if ($user_id) {
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
+            $employee_model = new EmployeeModel();
+            $where = [];
+            if (!empty($user_id)) {
+                $where['rm.employee_id'] = $user_id;
+            }
+            if (!empty($pid) && is_string($pid)) {
+                $where['fp.parent_id'] = $pid;
+            } elseif (!empty($pid) && is_array($pid)) {
+                $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
+            }
+            if ($source) {
+                $where['fp.source'] = $source;
+            }
+            $where[] = '`fp`.`id` is not null';
+            $data = $employee_model
+                    ->alias('u')
+                    ->field($fields)
+                    ->where($where)
+                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
+                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id')
+                    ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
+                    ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
+                    ->group('fp.id')
+                    ->order('`fp`.`sort` asc')
+                    ->select();
+            return $data;
         }
     }
 

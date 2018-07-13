@@ -157,7 +157,7 @@ class Common_MarketAreaModel extends PublicModel {
      * @desc   ES 产品
      */
 
-    public function getNamesBybns($bns, $lang) {
+    public function getNamesBybns($bns, $lang = null) {
 
         try {
             $where = ['deleted_flag' => 'N'];
@@ -169,7 +169,11 @@ class Common_MarketAreaModel extends PublicModel {
             } else {
                 return false;
             }
-            $where['lang'] = LANG_SET;
+            if ($lang) {
+                $where['lang'] = $lang;
+            } else {
+                $where['lang'] = LANG_SET;
+            }
             $areas = $this->where($where)->field('bn,name')->select();
 
 
