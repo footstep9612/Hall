@@ -26,7 +26,7 @@ class System_RoleUserModel extends PublicModel {
     public function userRoleList($user_id, $pid = '', $where = []) {
 
         if ($user_id) {
-            $fields = ' `fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id';
+            $fields = ' `fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
             $employee_model = new System_EmployeeModel();
 
             if (!empty($user_id)) {
@@ -225,7 +225,7 @@ class System_RoleUserModel extends PublicModel {
 
     public function _userRoleList($user_id, $pid = [], $source = null, $fn = null) {
         if ($user_id) {
-            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id';
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
             $employee_model = new System_EmployeeModel();
             $where = [];
             if (!empty($user_id)) {
