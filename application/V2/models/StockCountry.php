@@ -87,7 +87,7 @@ class StockCountryModel extends PublicModel {
     public function getList($condition) {
         $where = $this->_getCondition($condition);
         if($where===false){
-            return false;
+            return null;
         }
         list($row_start, $pagesize) = $this->_getPage($condition);
         return $this->where($where)
