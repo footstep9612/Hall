@@ -2417,9 +2417,9 @@ EOF;
         );
         foreach ($data as $value) {
             foreach ($baseArr as $v) {
-                if (!empty($data[$v])) {
+//                if (!empty($data[$v])) {
                     $arr[$v] = $data[$v];
-                }
+//                }
             }
         }
         return $arr;
