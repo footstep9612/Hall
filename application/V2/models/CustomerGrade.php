@@ -628,9 +628,9 @@ class CustomerGradeModel extends PublicModel {
         );
         $res=$this->where($cond)->save($arr);
         $app=new ApplyGradeModel();
-        $result=$app->saveAppGrade($data['id']);
         if($res){
             if($email===1){
+                $app->saveAppGrade($data['id']);
                 $this->noticeEmail(array('id'=>$data['id']));
             }
             return true;
