@@ -549,13 +549,19 @@ class CustomerGradeModel extends PublicModel {
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }
         $app=$this->table('erui_buyer.apply_grade')
-            ->field('id,customer_grade as app_grade ,attach_url,attach_name')
+            ->field('id,customer_grade as app_grade ,attach_url,attach_name,attach_size')
             ->where(array('grade_id'=>$info['id']))
             ->order('id desc')
             ->select();
         $info['apply']=[];
         if(!empty($app)){
-            $info['apply']=$app;
+            $arr['app_grade']=$app[0]['app_grade'];
+            foreach($app as $k => &$v){
+                unset($v['app_grade']);
+//                print_r($v);die;
+            }
+            $arr['attach']=$app;
+            $info['apply']=$arr;
         }
         return $info;
     }
