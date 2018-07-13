@@ -1159,15 +1159,17 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //**************档案信息
     public function showBuyerBaseInfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        $data['admin']=$this->getUserRole();
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerInfo($data);
         if ($buerInfo===false) {
             $dataJson['code']=0;
-            $dataJson['message']='缺少参数';
+            $dataJson['message']='暂无该客户权限';
             $this->jsonReturn($dataJson);
         }elseif($buerInfo==='info'){
             $dataJson['code']=0;
