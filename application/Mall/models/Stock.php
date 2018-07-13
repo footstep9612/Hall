@@ -24,7 +24,7 @@ class StockModel extends PublicModel {
     }
 
     private function _getCondition($condition) {
-        $where = ['s.deleted_flag' => 'N', 's.stock' => ['gt', 0]];
+        $where = ['s.deleted_flag' => 'N', 's.stock' => ['gt', 0], 's.show_flag'=>'Y'];
         $where['s.special_id'] = trim($condition['special_id']);
         /*$where['s.country_bn'] = trim($condition['country_bn']);
         $where['s.lang'] = $condition['lang'];*/
@@ -84,7 +84,8 @@ class StockModel extends PublicModel {
             $where['s.country_bn'] = trim($condition['country_bn']);
             $where['s.lang'] = $condition['lang'];
         }
-        $where = ['s.deleted_at' => ['exp','is null']];
+        $where['s.show_flag'] = 'Y';
+        $where['s.deleted_at'] = ['exp','is null'];
         $where['s.floor_id'] = trim($condition['floor_id']);
         if(isset($condition['recommend_home']) && $condition['recommend_home']){
             $where['s.recommend_home'] = 'Y';
