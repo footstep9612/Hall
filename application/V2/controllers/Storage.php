@@ -21,10 +21,10 @@ class StorageController extends PublicController {
         $storageModel = new StorageModel();
         $result = $storageModel->getList($condition);
 
-        if ($result) {
-            jsonReturn($result);
-        } elseif ($result === false) {
+        if ($result === false) {
             jsonReturn('',MSG::MSG_FAILED);
+        } else {
+            jsonReturn($result);
         }
     }
 

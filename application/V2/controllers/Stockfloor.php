@@ -257,10 +257,10 @@ class StockfloorController extends PublicController {
 
         $stock = new StockModel();
         $list = $stock->getList($condition);
-        if($list){
-            jsonReturn($list);
-        }else{
+        if($list===false){
             jsonReturn('', MSG::MSG_FAILED, '');
+        }else{
+            jsonReturn($list);
         }
     }
 

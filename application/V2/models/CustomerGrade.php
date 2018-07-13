@@ -46,7 +46,7 @@ class CustomerGradeModel extends PublicModel {
         if(in_array('201711242',$data['role'])){    //国家
             $admin_country=1;
         }
-        if(in_array('A001',$data['role'])){    //经办人
+        if(in_array('customer_agent',$data['role'])){    //经办人
             $admin_agent=1;
         }
         if(in_array('area_admin',$data['role'])){    //大区分管领导,审核客户分级变更
@@ -67,6 +67,14 @@ class CustomerGradeModel extends PublicModel {
         $delete=false;    //删除
         $submit=false;    //提交
         foreach($info as $k => &$v){
+            $applyInfo=$this->table('erui_buyer.apply_grade')
+                ->field('customer_grade')
+                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
+                ->order('id')
+                ->find();
+            if(!empty($applyInfo)){
+                $v['customer_grade']=$applyInfo['customer_grade'];
+            }
             unset($v['created_by']);
             $v['change']=false; //申请变更
             $v['reply']=false;  //回复申请变更结果
@@ -549,13 +557,23 @@ class CustomerGradeModel extends PublicModel {
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }
         $app=$this->table('erui_buyer.apply_grade')
-            ->field('id,customer_grade as app_grade ,attach_url,attach_name')
+            ->field('id,customer_grade as app_grade ,attach_url,attach_name,attach_size')
             ->where(array('grade_id'=>$info['id']))
             ->order('id desc')
             ->select();
-        $info['apply']=[];
         if(!empty($app)){
-            $info['apply']=$app;
+            $info['app_grade']=$app[0]['app_grade'];
+//            $arr['app_grade']=$app[0]['app_grade'];
+            foreach($app as $k => &$v){
+                unset($v['app_grade']);
+            }
+            $info['attach']=$app;
+        }else{
+            $info['app_grade']='';
+
+            $info['attach']=array(
+                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+            );
         }
         return $info;
     }
@@ -568,6 +586,7 @@ class CustomerGradeModel extends PublicModel {
             return false;
         }
         $status=$info['status'];
+        $email=0;
         if($status==1){
             if($data['status']=='Y'){
                 $arr['status']=2;
@@ -582,6 +601,7 @@ class CustomerGradeModel extends PublicModel {
             }
         }elseif($status==13){
             if($data['status']=='Y'){
+                $email=1;
                 $arr['status']=31;
             }else{
                 $arr['status']=30;
@@ -612,7 +632,12 @@ class CustomerGradeModel extends PublicModel {
             'deleted_flag'=>'N'
         );
         $res=$this->where($cond)->save($arr);
+        $app=new ApplyGradeModel();
         if($res){
+            if($email===1){
+                $app->saveAppGrade($data['id'],$data['created_by']);
+                $this->noticeEmail(array('id'=>$data['id']));
+            }
             return true;
         }else{
             return false;
@@ -739,9 +764,19 @@ class CustomerGradeModel extends PublicModel {
     }
     public function noticeEmail($data){
         $app=new ApplyGradeModel();
+        $area=new CountryModel();
+        $info=$this->field('id,buyer_id,customer_grade')    //客户分级信息
+            ->where(array('id'=>$data['id'],'deleted_flag'=>'N'))
+            ->find();
         $gradeInfo=$app->findApplyGrade($data['id']);   //申请边更记录信息
-        $noticeInfo=$this->getNoticeInfo($data);    //获取通知人
-        if(empty($gradeInfo) || empty($noticeInfo)){
+        $noticeInfo=$this->getNoticeInfo();    //获取通知人
+        $buyerInfo=$this->table('erui_buyer.buyer')->field('buyer_no,name,country_bn')  //客户信息
+            ->where(array('id'=>$info['buyer_id'],'deleted_flag'=>'N'))
+            ->order('id asc')->find();
+        $area_country=$area->getCountryAreaByBn($buyerInfo['country_bn']);
+        $buyerInfo['area']=$area_country['area'];
+        $buyerInfo['country']=$area_country['country'];
+        if(empty($info) || empty($gradeInfo) || empty($noticeInfo) || empty($buyerInfo)){
             return false;
         }
         $grade=$this->table('erui_sys.employee')->field('id,name,user_no,email')
@@ -772,11 +807,15 @@ class CustomerGradeModel extends PublicModel {
 
 
         $title='客户分级申请变更成功通知 !';    //邮件标题
-        $body=$this->getCustomerEnHtml($gradeInfo,$title);   //邮件模板
-        print_r($body);die;
+        $body=$this->getCustomerEnHtml($gradeInfo,$title,$info,$buyerInfo);   //邮件模板
         $code=$this->postSentEmail($email,$title,$body); //发送给客户
+        if($code==200){
+            return true;
+        }else{
+            return false;
+        }
     }
-    private function getCustomerEnHtml($data,$title){
+    private function getCustomerEnHtml($gradeInfo,$title,$info,$buyerInfo){
 
         $html=<<<EOF
     <!doctype html>  
@@ -793,14 +832,21 @@ class CustomerGradeModel extends PublicModel {
       </div>  
       <!-- 内容 -->  
       <div style="border: 1px solid black;" align="center">  
-        <p>经办人:{$data['created_by']} ( {$data['created_no']} )</p>  
-        <p>申请变更: {$data['created_at']}</p>  
-        
-        <p>大区分管领导: {$data['handler']}{$data['handler_no']}</p>  
-        <p>处理申请时间:{$data['handle_at']} </p>  
+        <p>地区-国家 : {$buyerInfo['area']}-{$buyerInfo['country']}</p>  
+        <p>BOSS客户编号 : {$buyerInfo['buyer_no']} 客户名称: {$buyerInfo['name']}</p>  
+        <p>原有客户分级 : {$info['customer_grade']}  &nbsp;&nbsp;&nbsp;&nbsp; 申请变更 : {$gradeInfo['customer_grade']}</p> 
+      </div> 
+      <div style="border: 1px solid black;" align="center">  
+        <p>经办人:{$gradeInfo['created_by']} ( {$gradeInfo['created_no']} )</p>  
+        <p>申请变更: {$gradeInfo['created_at']}</p>  
+       
       </div>  
       <div style="border: 1px solid black;" align="center">  
-        <p>收件 :{$data['toName']}</p>  
+        <p>大区分管领导: {$gradeInfo['handler']} ( {$gradeInfo['handler_no']} )</p>  
+        <p>处理申请时间:{$gradeInfo['handle_at']} </p>  
+      </div> 
+      <div style="border: 1px solid black;" align="center">  
+        <p>收件 :{$gradeInfo['toName']}</p>  
   
       </div> 
     </body>  
