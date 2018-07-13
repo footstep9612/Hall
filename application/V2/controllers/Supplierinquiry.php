@@ -25,8 +25,7 @@ class SupplierinquiryController extends PublicController {
      * @author 买买提
      * @time 2018-04-19
      */
-    public function listAction()
-    {
+    public function listAction() {
         $request = $this->validateRequestParams();
         $supplier_inquiry_model = new SupplierInquiryModel();
 
@@ -75,8 +74,7 @@ class SupplierinquiryController extends PublicController {
         }
     }
 
-    public function infoAction()
-    {
+    public function infoAction() {
         $request = $this->validateRequestParams('supplier_id');
         $supplier_inquiry_model = new SupplierInquiryModel();
 
@@ -134,13 +132,13 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '4G');
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start']) && !empty($condition['last_days']) ) {
-            $days = intval($condition['last_days']) ? : 31;
+        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
+            $days = intval($condition['last_days']) ?: 31;
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->Inquiryexport($condition);
@@ -165,13 +163,13 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryToatolexportAction() {
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '4G');
         set_time_limit(0);
         $condition = $this->getPut();
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        if (empty($condition['created_at_start']) && !empty($condition['last_days']) ) {
-            $days = intval($condition['last_days']) ? : 31;
+        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
+            $days = intval($condition['last_days']) ?: 31;
             $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
         $data = $supplier_inquiry_model->InquiryToatolexport($condition);
@@ -188,10 +186,10 @@ class SupplierinquiryController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 获取多少天之前的日期
-     * 
+     *
      * @return int $days 当前时间之前的天数
      * @author liujf
      * @time 2018-04-11
