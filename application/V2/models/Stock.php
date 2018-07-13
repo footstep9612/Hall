@@ -91,24 +91,28 @@ class StockModel extends PublicModel {
      * @desc  现货
      */
     public function getList($condition) {
-        $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
-        $data = [];
-        $list = $this->alias('s')
+        try{
+            $where = $this->_getCondition($condition);
+            list($from, $size) = $this->_getPage($condition);
+            $data = [];
+            $list = $this->alias('s')
                 ->field('s.id,s.special_id,s.sku,s.show_name,s.lang,s.sort_order,s.stock,s.show_flag,s.floor_id,s.spu,s.country_bn,s.recommend_home,s.price,s.price_strategy_type,s.strategy_validity_start,s.strategy_validity_end,s.price_cur_bn,s.price_symbol,
                         s.created_at,s.updated_by,s.created_by,s.updated_at')
                 ->where($where)
                 ->limit($from, $size)
                 ->order('s.sort_order desc')
                 ->select();
-        if($list){
-            $this->_setUser($list);
-            $data['data'] = $list;
-            $data['count'] = $this->getCount($condition);
-            $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
-            $data['pagesize'] = $size;
+            if($list){
+                $this->_setUser($list);
+                $data['data'] = $list;
+                $data['count'] = $this->getCount($condition);
+                $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
+                $data['pagesize'] = $size;
+            }
+            return $data;
+        }catch (Exception $e){
+            return false;
         }
-        return $data;
     }
 
     public function getCount($condition) {
@@ -365,12 +369,15 @@ class StockModel extends PublicModel {
                 if($floor_id){
                     $data = [
                         'floor_id'=>0,
+                        'recommend_home' => 'N',
                         'updated_at' => date('Y-m-d H:i:s'),
                         'updated_by' => defined('UID') ? UID : 0
                     ];
                 }else{
                     $data = [
                         'deleted_flag' => 'Y',
+                        'recommend_home' => 'N',
+                        'show_flag' => 'N',
                         'deleted_at' => date('Y-m-d H:i:s'),
                         'deleted_by' => defined('UID') ? UID : 0
                     ];
