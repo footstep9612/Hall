@@ -575,10 +575,11 @@ class CustomerGradeModel extends PublicModel {
             $info['attach']=$app;
         }else{
             $info['app_grade']='';
+            $info['attach']=[];
 
-            $info['attach']=array(
-                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
-            );
+//            $info['attach']=array(
+//                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+//            );
         }
         return $info;
     }
