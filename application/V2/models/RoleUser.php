@@ -260,6 +260,8 @@ class RoleUserModel extends PublicModel {
                 $where['fp.parent_id'] = $pid;
             } elseif (!empty($pid) && is_array($pid)) {
                 $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
             }
             if ($source) {
                 $where['fp.source'] = $source;
