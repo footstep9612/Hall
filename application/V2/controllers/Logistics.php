@@ -475,9 +475,12 @@ class LogisticsController extends PublicController {
         ];
 
         $this->quoteLogiQwvModel->startTrans();
-
+        // $count = $this->quoteLogiQwvModel->getCount(['inquiry_id' => $condition['inquiry_id']]);
         // 新增多行
         $row = intval($condition['row']) > 1 ? intval($condition['row']) : 1;
+
+        $this->quoteLogiQwvModel->getcount();
+
         $flag = true;
         $data['ids'] = [];
         $nulldata = [
@@ -487,17 +490,26 @@ class LogisticsController extends PublicController {
             'updated_by' => $this->user['id'],
             'updated_at' => $this->time
         ];
-        for ($i = 0; $i < $row; $i++) {
-            if ($i == 0) {
-                $res = $this->quoteLogiQwvModel->addRecord($qwvData);
 
-                if ($res) {
-                    $data['ids'][] = $res;
-                } else {
-                    $this->quoteLogiQwvModel->rollback();
-                    $this->jsonReturn(false);
-                }
+        if (!empty($condition['row']) && $volumn) {
+            $res = $this->quoteLogiQwvModel->addRecord($qwvData);
+            if ($res) {
+                $data['ids'][] = $res;
             } else {
+                $this->quoteLogiQwvModel->rollback();
+                $this->jsonReturn(false);
+            }
+        } elseif ($volumn) {
+            $res = $this->quoteLogiQwvModel->addRecord($qwvData);
+            if ($res) {
+                $data['ids'][] = $res;
+            } else {
+                $this->quoteLogiQwvModel->rollback();
+                $this->jsonReturn(false);
+            }
+        }
+        if (!empty($condition['row'])) {
+            for ($i = 0; $i < $row; $i++) {
                 $res = $this->quoteLogiQwvModel->addRecord($nulldata);
                 if ($res) {
                     $data['ids'][] = $res;
