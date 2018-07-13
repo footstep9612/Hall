@@ -184,4 +184,12 @@ class System_RoleModel extends PublicModel {
         return $this->add($data);
     }
 
+    public function getRoleNossByRoleIds($ids) {
+        if ($ids) {
+            return $this->where(['id' => ['in', $ids], 'deleted_flag' => 'N'])->getField('role_no', true);
+        } else {
+            return [];
+        }
+    }
+
 }
