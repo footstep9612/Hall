@@ -37,7 +37,7 @@ class SupplierproductController extends PublicController
             'code' => 1,
             'message' => '成功',
             'total' => (new SupplierProductModel)->getCount($request),
-            'all' => (new SupplierProductModel)->getCount($request),
+            'all' => (new SupplierProductModel)->getCount(['status' => ['neq', 'DRAFT']]),
             'approving' => (new SupplierProductModel)->getCount(['status' => 'APPROVING']),
             'approved' => (new SupplierProductModel)->getCount(['status' => 'APPROVED']),
             'invalid' => (new SupplierProductModel)->getCount(['status' => 'INVALID']),
