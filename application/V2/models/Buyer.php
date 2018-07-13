@@ -2946,9 +2946,7 @@ EOF;
      */
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerStatisListCond($data);
-        $cond .= " and buyer.status='APPROVED' ";
-//        $cond = $this->getBuyerManageCond($data);
+        $cond = $this->getBuyerManageCond($data);
         if($cond==false){
             return false;
         }
