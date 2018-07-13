@@ -55,8 +55,11 @@ class ApplyGradeModel extends PublicModel {
         }
         return $gradeInfo;
     }
-    public function saveAppGrade($grade_id){
-        $this->where(array('grade_id'=>$grade_id))->save(array('status'=>'Y'));
+    public function saveAppGrade($grade_id,$handler){
+        $arr['status']='Y';
+        $arr['handler']=$handler;
+        $arr['handle_at']=time();
+        $this->where(array('grade_id'=>$grade_id))->save($arr);
         return true;
     }
 }
