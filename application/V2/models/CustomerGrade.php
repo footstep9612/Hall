@@ -562,18 +562,17 @@ class CustomerGradeModel extends PublicModel {
             ->order('id desc')
             ->select();
         if(!empty($app)){
-            $arr['app_grade']=$app[0]['app_grade'];
+            $info['app_grade']=$app[0]['app_grade'];
+//            $arr['app_grade']=$app[0]['app_grade'];
             foreach($app as $k => &$v){
                 unset($v['app_grade']);
             }
-            $arr['attach']=$app;
-            $info['apply']=$arr;
+            $info['attach']=$app;
         }else{
-            $info['apply']=array(
-                'app_grade'=>'',
-                "attach"=>array(
-                    array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
-                )
+            $info['app_grade']='';
+
+            $info['attach']=array(
+                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
             );
         }
         return $info;
