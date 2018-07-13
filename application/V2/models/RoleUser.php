@@ -202,7 +202,7 @@ class RoleUserModel extends PublicModel {
     public function getUserMenu($userId, $condition = [], $lang = 'zh') {
 
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
-        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source']);
+        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source'], $condition['only_one_level']);
 
         return $this->_funcChildren($userId, $data, $condition['source'], $lang, $condition['only_one_level']);
     }
@@ -301,6 +301,8 @@ class RoleUserModel extends PublicModel {
                 $where['fp.parent_id'] = $pid;
             } elseif (!empty($pid) && is_array($pid)) {
                 $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
             }
             if ($source) {
                 $where['fp.source'] = $source;
