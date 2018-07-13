@@ -2417,9 +2417,9 @@ EOF;
         );
         foreach ($data as $value) {
             foreach ($baseArr as $v) {
-                if (!empty($data[$v])) {
+//                if (!empty($data[$v])) {
                     $arr[$v] = $data[$v];
-                }
+//                }
             }
         }
         return $arr;
@@ -2946,7 +2946,9 @@ EOF;
      */
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
-        $cond = $this->getBuyerManageCond($data);
+        $cond = $this->getBuyerStatisListCond($data);
+        $cond .= " and buyer.status='APPROVED' ";
+//        $cond = $this->getBuyerManageCond($data);
         if($cond==false){
             return false;
         }
