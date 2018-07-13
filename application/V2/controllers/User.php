@@ -318,6 +318,7 @@ class UserController extends PublicController {
             $res=$user_modle->where(array('id'=>$data['id']))->save(array('password_hash'=>$pwd));
             if ($res !== false) {
                 $datajson['code'] = 1;
+                $datajson['code'] = '修改成功';
             } else {
                 $datajson['code'] = -104;
                 $datajson['message'] = '修改失败!';
