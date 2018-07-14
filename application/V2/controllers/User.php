@@ -314,13 +314,10 @@ class UserController extends PublicController {
         $user_modle = new UserModel();
         $data = $user_modle->infoList($arr);
         if ($data) {
-            $res = $user_modle->update_data($new_passwoer, $arr);
-            if ($res !== false) {
-                $datajson['code'] = 1;
-            } else {
-                $datajson['code'] = -104;
-                $datajson['message'] = '修改失败!';
-            }
+//            $res = $user_modle->update_data($new_passwoer, $arr);
+            $user_modle->where(array('id'=>$data['id']))->save(array('password_hash'=>$pwd));
+            $datajson['code'] = 1;
+            $datajson['message'] = '修改成功';
         } else {
             $datajson['code'] = -104;
             $datajson['message'] = '原密码错误!';
