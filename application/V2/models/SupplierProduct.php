@@ -113,7 +113,7 @@ class SupplierProductModel extends PublicModel
         if (!empty($condition['status'])) {
             $conditions['a.status'] = $condition['status'];
         }else {
-            $conditions['a.status'] = 'APPROVING';
+            $conditions['a.status'] = ['neq', 'DRAFT'];
         }
 
         //提交时间

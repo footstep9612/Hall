@@ -56,7 +56,7 @@ class StockfloorController extends PublicController {
                 $adsAry[$ad['floor_id']][] = $ad;
             }
             foreach($list as $k=>$v){
-                $list[$k]['ads'] = $adsAry[$v['id']];
+                $list[$k]['ads'] = empty($adsAry[$v['id']]) ? [] : $adsAry[$v['id']];
             }
             $this->jsonReturn($list);
         } elseif ($list === null) {
