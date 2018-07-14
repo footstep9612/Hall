@@ -67,6 +67,11 @@ class CustomerGradeModel extends PublicModel {
         $delete=false;    //删除
         $submit=false;    //提交
         foreach($info as $k => &$v){
+            if($v['status']>20){
+                $v['show_all']=true;
+            }else{
+                $v['show_all']=false;
+            }
             $applyInfo=$this->table('erui_buyer.apply_grade')
                 ->field('customer_grade')
                 ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
@@ -570,10 +575,11 @@ class CustomerGradeModel extends PublicModel {
             $info['attach']=$app;
         }else{
             $info['app_grade']='';
+            $info['attach']=[];
 
-            $info['attach']=array(
-                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
-            );
+//            $info['attach']=array(
+//                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+//            );
         }
         return $info;
     }

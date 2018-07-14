@@ -310,7 +310,7 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $arr['id'] = $this->user['id'];
         $arr['password_hash'] = md5($data['old_password']);
-        $new_passwoer['password_hash'] = md5($data['password']);
+        $pwd = md5($data['password']);
         $user_modle = new UserModel();
         $data = $user_modle->infoList($arr);
         if ($data) {
