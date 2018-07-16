@@ -350,7 +350,7 @@ class InquiryModel extends PublicModel {
 // 销售合同号
         (!empty($condition['contract_no'])) ? $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo() : '';
 //区域和国家
-        (!empty($condition['country_bn']) && empty($condition['country_bn']) ) ? ($condition['country_bn'] = (new MarketAreaCountryModel())->getCountryBn($condition['market_area_bn']) ?: []) : '';
+        (!empty($condition['market_area_bn']) && empty($condition['country_bn']) ) ? ($condition['country_bn'] = (new MarketAreaCountryModel())->getCountryBn($condition['market_area_bn']) ?: []) : '';
 
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
             if ($condition['status'] == 'BIZ_QUOTING') {
@@ -430,6 +430,8 @@ class InquiryModel extends PublicModel {
                 $map['now_agent_id'] = $user_id;
                 $map['_logic'] = 'or';
                 $where[] = $map;
+            } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                $where['country_bn'] = '-1';    //查看事业部询单角色国家
             } else {
                 $where[] = ['now_agent_id' => $user_id];
             }
@@ -466,11 +468,14 @@ class InquiryModel extends PublicModel {
                         $where['country_bn'] = $condition['country_bn'];
                     } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
                         $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                    } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                        $where['country_bn'] = '-1';    //查看事业部询单角色国家
                     }
                     break;
                 case 'country':
                     if (in_array(self::viewCountryRole, $role_nos)) {
                         $user_country = (new CountryUserModel())->getUserCountry(['employee_id' => $user_id]) ?: [];
+
                         if ($user_country && $user_id) {
                             $map = [];
                             $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
@@ -482,9 +487,11 @@ class InquiryModel extends PublicModel {
                         } else {
                             $where['country_bn'] = '-1';
                         }
-                        if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                        if (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
+                        } elseif (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
                             $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : $condition['country_bn'];
-                        } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                        } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
                             $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : ['in', $condition['country_bn']];    //查看事业部询单角色国家
                         }
                     } else {
@@ -494,6 +501,8 @@ class InquiryModel extends PublicModel {
                             $where['country_bn'] = $condition['country_bn'];
                         } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
                             $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                        } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
                         }
                     }
                     break;
@@ -504,6 +513,8 @@ class InquiryModel extends PublicModel {
                 $where['country_bn'] = $condition['country_bn'];
             } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
                 $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+            } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                $where['country_bn'] = '-1';    //查看事业部询单角色国家
             }
         }
     }
