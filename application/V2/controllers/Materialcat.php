@@ -481,11 +481,14 @@ class MaterialcatController extends PublicController {
         $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang');
         $product_model = new ProductModel();
-        $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])
-                ->find();
+        /**
+         * 更新于2018-07-16
+         * $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])->find();
+         */
+        $data = $product_model->where(['material_cat_no' => $cat_no])->find();
+
         if ($data) {
             $this->setCode(MSG::DELETE_MATERIAL_CAT_ERR);
-
             $this->jsonReturn();
         }
         $result = $this->_model->delete_data($cat_no, $lang);
