@@ -588,59 +588,51 @@ class CustomerGradeModel extends PublicModel {
         if(empty($data['id'])){
             return false;
         }
-        $info=$this->field('status')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
+        $info=$this->field('customer_grade,status')->where(array('id'=>$data['id'],'deleted_flag'=>'N'))->find();
         if(empty($info)){
             return false;
         }
         $status=$info['status'];
         $email=0;
-        if($status==1){
+        if($status==1){ //状态: 0,新建;1,审核中(国家); 2,审核中(地区),3,审核通过,4,驳回(国家),5,地区(驳回)
             if($data['status']=='Y'){
-                $arr['status']=2;
+                $save['status']=2;
             }else{
-                $arr['status']=4;
+                $save['status']=4;
             }
         }elseif($status==2){
             if($data['status']=='Y'){
-                $arr['status']=3;
+                $save['status']=3;
             }else{
-                $arr['status']=5;
+                $save['status']=5;
             }
         }elseif($status==13){
             if($data['status']=='Y'){
                 $email=1;
-                $arr['status']=31;
+                $save['status']=31;
             }else{
-                $arr['status']=30;
+                $save['status']=30;
             }
         }else{
             return false;
         }
+        $time=time();
+        $arr['grade_id']=$data['id'];
+        $arr['customer_grade']=$info['customer_grade'];
+        $arr['status']=$data['status'];
+        $arr['handler']=$data['created_by'];
+        $arr['handle_at']=$time;
 
-
-        //状态: 0,新建;1,审核中(国家); 2,审核中(地区),3,审核通过,4,驳回(国家),5,地区(驳回)
-//        if($data['status']==1 && $status==0){
-//            $arr['status']=1;
-//        }elseif($data['status']==2 && $status==1){
-//            $arr['status']=2;
-//        }elseif($data['status']==3 && $status==2){
-//            $arr['status']=3;
-//        }elseif($data['status']==4 && $status==1){
-//            $arr['status']=4;
-//        }elseif($data['status']==5 && $status==2){
-//            $arr['status']=5;
-//        }else{
-//            return 'error';
-//        }
-        $arr['checked_by']=$data['created_by'];
-        $arr['checked_at']=date('Y-m-d H:i:s');
+        $save['checked_by']=$data['created_by'];
+        $save['checked_at']=date('Y-m-d H:i:s');
         $cond=array(
-            'id'=>$data['id'],
-            'deleted_flag'=>'N'
+            'id'=>$data['id']
         );
-        $res=$this->where($cond)->save($arr);
+        $check=new CheckGradeModel();
+        $res=$check->AddCheckGrade($arr);
+        $result=$this->where($cond)->save($save);
         $app=new ApplyGradeModel();
-        if($res){
+        if($res && $result){
             if($email===1){
                 $app->saveAppGrade($data['id'],$data['created_by']);
                 $this->noticeEmail(array('id'=>$data['id']));
