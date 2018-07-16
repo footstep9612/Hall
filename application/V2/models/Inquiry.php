@@ -247,6 +247,7 @@ class InquiryModel extends PublicModel {
                     //}
                     break;
                 case 'erui' :
+                    $map1 = [];
                     $map1['a.status'] = 'CC_DISPATCHING';
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
@@ -259,20 +260,26 @@ class InquiryModel extends PublicModel {
 
                     break;
                 case 'issue' :
-
+                    $map1 = [];
                     $map1['a.status'] = 'BIZ_DISPATCHING';
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos) || in_array(self::quoteIssueAuxiliaryRole, $role_nos)) {
                         $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
-                        !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
+                        !empty($orgId) ? $map[] = ['a.org_id' => ['in', $orgId]] : '';
                     } elseif (!in_array(self::inquiryIssueRole, $role_nos) && !in_array(self::quoteIssueMainRole, $role_nos) && (in_array(self::inquiryIssueAuxiliaryRole, $role_nos) || in_array(self::quoteIssueAuxiliaryRole, $role_nos))) {
-                        $map[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
+                        $map2 = [];
+                        $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
+                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2['_logic'] = 'and';
+                        $map['_complex'] = $map2;
                     }
 
                     break;
                 case 'quote' :
+                    $map1 = [];
                     $map1['a.status'] = ['in', ['BIZ_QUOTING', 'REJECT_QUOTING', 'BIZ_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
@@ -287,7 +294,7 @@ class InquiryModel extends PublicModel {
                     }
                     break;
                 case 'logi' :
-
+                    $map1 = [];
                     $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
@@ -295,9 +302,14 @@ class InquiryModel extends PublicModel {
                     if (in_array(self::logiIssueMainRole, $role_nos) || in_array(self::logiIssueAuxiliaryRole, $role_nos)
                     ) {
                         $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
-                        !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
+                        !empty($orgId) ? $map[] = ['a.logi_org_id' => ['in', $orgId]] : '';
                     } elseif (!in_array(self::logiIssueMainRole, $role_nos) && in_array(self::logiIssueAuxiliaryRole, $role_nos)) {
-                        $map[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                        $map2 = [];
+                        $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
+                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2['_logic'] = 'and';
+                        $map['_complex'] = $map2;
                     }
                     if (in_array(self::quoteCheckRole, $role_nos)) {
                         $map[] = ['a.check_org_id' => $condition['user_id']];
