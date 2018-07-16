@@ -70,7 +70,7 @@ class UrlPermModel extends PublicModel {
      */
     public function getfnByUrl($url = '') {
         $where['url'] = $url;
-        if (!empty($where['id'])) {
+        if (!empty($where['url'])) {
             $row = $this->where($where)
                     ->field('id,fn,fn_en,fn_es,fn_ru')
                     ->find();

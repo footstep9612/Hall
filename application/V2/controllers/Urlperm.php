@@ -103,7 +103,7 @@ class UrlpermController extends PublicController {
 
         if (empty($url)) {
             $datajson['code'] = -101;
-            $datajson['message'] = L('URL_PERM_ID_NOT_EMPTY');
+            $datajson['message'] = L('URL_PERM_LINK_URL_NOT_EMPTY');
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
