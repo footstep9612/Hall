@@ -63,6 +63,24 @@ class UrlPermModel extends PublicModel {
     }
 
     /**
+     * 获取详情
+     * @param  int  $url
+     * @return array
+     * @author jhw
+     */
+    public function getfnByUrl($url = '') {
+        $where['url'] = $url;
+        if (!empty($where['id'])) {
+            $row = $this->where($where)
+                    ->field('id,fn,fn_en,fn_es,fn_ru')
+                    ->find();
+            return $row;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * 删除数据
      * @param  int $id id
      * @return bool
