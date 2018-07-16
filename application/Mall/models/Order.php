@@ -200,7 +200,7 @@ class OrderModel extends PublicModel {
             }
             //获取价格信息
             $promotion_price = '';
-            if (isset($stockInfo[$sku]['price_strategy_type']) && $stockInfo[$sku]['price_strategy_type']!='' && (($stockInfo[$sku]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_start']==null) && ($stockInfo[$sku]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_end']==null) )) {
+            if (isset($stockInfo[$sku]['price_strategy_type']) && $stockInfo[$sku]['price_strategy_type']!='' && (($stockInfo[$sku]['strategy_validity_start']<= date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_start']==null) && ($stockInfo[$sku]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_end']==null) )) {
                 $psdM = new PriceStrategyDiscountModel();
                 $promotion_price = $psdM->getSkuPriceByCount($sku,'STOCK',$special_id,$number);
             }
