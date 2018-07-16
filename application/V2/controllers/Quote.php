@@ -393,10 +393,10 @@ class QuoteController extends PublicController {
         $org_name = $org_id > 0 ? (new OrgModel())->getNameById($org_id, $this->lang) : '';
 
         $supplier = new SupplierModel();
-
+        $supplier->setSupplier($list);
         foreach ($list as $key => $value) {
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
-            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+
             // 参考历史报价数量
             $condition = [
                 'sku' => $value['sku'],
