@@ -68,6 +68,9 @@ class GoodsModel extends PublicModel{
                             $psdM = new PriceStrategyDiscountModel();
                             $price_range = $psdM->getDisCountBySkus([$goodsInfo['sku']], 'STOCK', $stockInfo['special_id']);
                             $goodsInfo['priceAry'] = isset($price_range[$goodsInfo['sku']]) ? $price_range[$goodsInfo['sku']] : [];
+                            if(!empty($stockInfo['strategy_validity_end'])){
+                                $goodsInfo['validity_days'] = ($stockInfo['strategy_validity_end']-time())/86400;
+                            }
                         }
                     }else{
                         return [];
