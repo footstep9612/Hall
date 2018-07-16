@@ -185,9 +185,9 @@ class CustomerGradeModel extends PublicModel {
     //获取客户分级数据
     public function exportGradeData($data){
         if(!empty($data['buyer_id'])){
-            $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+            $cond=array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N');
         }else{
-            $cond=array('deleted_flag'=>'N');
+            $cond=array('grade.deleted_flag'=>'N');
         }
         $lang=$data['lang'];
         $fieldArr=array(
@@ -220,13 +220,21 @@ class CustomerGradeModel extends PublicModel {
             $field.=",grade.".$v;
         }
         $field=mb_substr($field,1);
-        $info=$this->alias('grade')
-            ->join('(SELECT buyer_id FROM erui_buyer.customer_grade where 1 GROUP BY buyer_id) main on grade.buyer_id =main.buyer_id
+        if(!empty($data['buyer_id'])){
+            $info=$this->alias('grade')
+                ->field($field)
+                ->where($cond)
+                ->order('grade.buyer_id desc')
+                ->select();
+        }else{
+            $info=$this->alias('grade')
+                ->join('(SELECT buyer_id FROM erui_buyer.customer_grade where deleted_flag=\'N\' GROUP BY buyer_id) main on grade.buyer_id =main.buyer_id
 ','right')
-            ->field($field)
-            ->where($cond)
-            ->order('grade.buyer_id desc')
-            ->select();
+                ->field($field)
+                ->where($cond)
+                ->order('grade.buyer_id desc')
+                ->select();
+        }
         if(empty($info)){
             return [];
         }
