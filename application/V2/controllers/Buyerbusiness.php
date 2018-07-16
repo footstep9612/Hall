@@ -436,7 +436,7 @@ class BuyerbusinessController extends PublicController
         $data['role']=$this->user['role_no'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->exportExcelGrade($data);
-        if(count($res)=0){
+        if(count($res)==0){
             $dataJson['code']=4;
             $dataJson['message']='暂无数据';
         }elseif(count($res)>0){
