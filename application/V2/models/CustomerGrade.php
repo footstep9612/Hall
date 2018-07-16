@@ -215,10 +215,17 @@ class CustomerGradeModel extends PublicModel {
             'final_score', //综合分值
             'customer_grade' //客户等级
         );
+        $field='';
+        foreach($fieldArr as $k => $v){
+            $field.=",grade.".$v;
+        }
+        $field=mb_substr($field,1);
         $info=$this->alias('grade')
-            ->field($fieldArr)
+            ->join('(SELECT buyer_id FROM erui_buyer.customer_grade where 1 GROUP BY buyer_id) main on grade.buyer_id =main.buyer_id
+','right')
+            ->field($field)
             ->where($cond)
-            ->order('grade.id desc')
+            ->order('grade.buyer_id desc')
             ->select();
         if(empty($info)){
             return [];
