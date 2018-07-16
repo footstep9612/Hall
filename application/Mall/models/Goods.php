@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel{
 
                 if($stock && $country_bn){    //现货处理
                     $stockModel = new StockModel();
-                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol,special_id";
+                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol,special_id,strategy_validity_start,strategy_validity_end";
                     $condition_stock = [
                         'sku'=>$goodsInfo['sku'],
                         'country_bn'=>$country_bn,
@@ -64,10 +64,13 @@ class GoodsModel extends PublicModel{
                         $goodsInfo['show_name'] = empty($stockInfo['show_name']) ? $goodsInfo['show_name'] : $stockInfo['show_name'];
                         $goodsInfo['price'] = $stockInfo['price'];
                         $goodsInfo['priceAry'] = [];
-                        if($stockInfo['price_strategy_type']!=''){
+                        if($stockInfo['price_strategy_type']!='' && (empty($stockInfo['strategy_validity_start']) || $stockInfo['strategy_validity_start']<=date('Y-m-d H:i:s',time())) && (empty($stockInfo['strategy_validity_end']) || $stockInfo['strategy_validity_end']>date('Y-m-d H:i:s',time()))){
                             $psdM = new PriceStrategyDiscountModel();
                             $price_range = $psdM->getDisCountBySkus([$goodsInfo['sku']], 'STOCK', $stockInfo['special_id']);
                             $goodsInfo['priceAry'] = isset($price_range[$goodsInfo['sku']]) ? $price_range[$goodsInfo['sku']] : [];
+                            if(!empty($stockInfo['strategy_validity_end'])){
+                                $goodsInfo['validity_days'] = ($stockInfo['strategy_validity_end']-time())/86400;
+                            }
                         }
                     }else{
                         return [];

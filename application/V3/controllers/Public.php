@@ -28,10 +28,10 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $user_id = $GLOBALS['SSO_USER']['id'];
         $erui_token = $GLOBALS['SSO_TOKEN'];
-        if (!redisExist('user.' . $user_id . '.' . $erui_token)) {
+        if (!redisExist('user.' . $user_id . '.' . $erui_token) && $user_id) {
             $this->user = $this->getUserInfo($user_id);
             redisSet('user.' . $user_id . '.' . $erui_token, json_encode($this->user), 18000);
-        } else {
+        } elseif ($user_id) {
             $user = redisGet('user.' . $user_id . '.' . $erui_token);
             $this->user = json_decode($user, true);
             unset($user);

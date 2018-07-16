@@ -84,6 +84,12 @@ class OrgModel extends PublicModel {
         } elseif (!empty($condition['org_node']) && is_array($condition['org_node'])) {
             $where['org_node'] = ['in', $condition['org_node']];
         }
+
+        if (!empty($condition['parent_id'])) {
+            $where['parent_id'] = trim($condition['parent_id']);
+        } else {
+            $where['parent_id'] = 0;
+        }
         $list = $this
                 ->field('id,name,name_en,name_es,name_ru')
                 ->where($where)
