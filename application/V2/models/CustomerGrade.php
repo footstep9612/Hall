@@ -556,6 +556,7 @@ class CustomerGradeModel extends PublicModel {
         $info['purchase']=floatval($info['purchase']);
         $info['income']=floatval($info['income']);
         $info['scale']=floatval($info['scale']);
+        $info['final_score']=sprintf("%.2f",$info['final_score']);  //保留2位
         if($lang=='zh'){
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }else{
