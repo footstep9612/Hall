@@ -65,7 +65,10 @@ class SupplierproductController extends PublicController
         $detail['goods_list'] = (new SupplierGoodsModel)->getList($detail);
 
         foreach ($detail['goods_list'] as &$good) {
-            $good = array_merge($good, (new SupplierGoodsAttrModel)->getAttr($good));
+            $attrs = (new SupplierGoodsAttrModel)->getAttr($good);
+            if ($attrs) {
+                $good = array_merge($good, $attrs);
+            }
         }
 
         $this->jsonReturn([
