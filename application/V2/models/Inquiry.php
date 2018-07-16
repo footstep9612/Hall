@@ -234,7 +234,7 @@ class InquiryModel extends PublicModel {
 
         if (!empty($condition['list_type'])) {
             $map = [];
-
+            $role_nos = $condition['role_no'];
             switch ($condition['list_type']) {
                 case 'inquiry' :
                     $map[] = ['a.created_by' => $condition['user_id']];
@@ -247,69 +247,78 @@ class InquiryModel extends PublicModel {
                     //}
                     break;
                 case 'erui' :
+                    $map1 = [];
                     $map1['a.status'] = 'CC_DISPATCHING';
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-                    foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
 
-                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
-                        }
+                    if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+                        $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
+                        !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
                     }
+
                     break;
                 case 'issue' :
-
+                    $map1 = [];
                     $map1['a.status'] = 'BIZ_DISPATCHING';
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-                    foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
-                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
-                        }
-                        if (!in_array(self::inquiryIssueRole, $condition['role_no']) && !in_array(self::quoteIssueMainRole, $condition['role_no']) && ($roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueAuxiliaryRole)) {
-                            $where[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
-                        }
+                    if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos) || in_array(self::quoteIssueAuxiliaryRole, $role_nos)) {
+                        $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
+                        !empty($orgId) ? $map[] = ['a.org_id' => ['in', $orgId]] : '';
+                    } elseif (!in_array(self::inquiryIssueRole, $role_nos) && !in_array(self::quoteIssueMainRole, $role_nos) && (in_array(self::inquiryIssueAuxiliaryRole, $role_nos) || in_array(self::quoteIssueAuxiliaryRole, $role_nos))) {
+                        $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
+                        $map2 = [];
+                        $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
+                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2['_logic'] = 'and';
+                        $map['_complex'] = $map2;
                     }
+
                     break;
                 case 'quote' :
+                    $map1 = [];
                     $map1['a.status'] = ['in', ['BIZ_QUOTING', 'REJECT_QUOTING', 'BIZ_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-                    foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::quoterRole) {
-                            $map[] = ['a.quote_id' => $condition['user_id']];
-                        }
-                        if ($roleNo == self::quoteCheckRole) {
-                            $map[] = ['a.check_org_id' => $condition['user_id']];
-                        }
+                    if (in_array(self::quoterRole, $role_nos) && in_array(self::quoteCheckRole, $role_nos)) {
+                        $map[] = ['a.quote_id' => $condition['user_id']];
+                        $map[] = ['a.check_org_id' => $condition['user_id']];
+                    } elseif (in_array(self::quoterRole, $role_nos)) {
+                        $map[] = ['a.quote_id' => $condition['user_id']];
+                    } elseif (in_array(self::quoteCheckRole, $role_nos)) {
+                        $map[] = ['a.check_org_id' => $condition['user_id']];
                     }
                     break;
                 case 'logi' :
-
+                    $map1 = [];
                     $map1['a.status'] = ['in', ['LOGI_DISPATCHING', 'LOGI_QUOTING', 'LOGI_APPROVING']];
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-                    foreach ($condition['role_no'] as $roleNo) {
-                        if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
-
-                            !empty($orgId) ? $map[] = ['a.erui_id' => ['in', $orgId]] : '';
-                        }
-                        if (!in_array(self::logiIssueMainRole, $condition['role_no']) && $roleNo == self::logiIssueAuxiliaryRole) {
-                            $where[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
-                        }
-                        if ($roleNo == self::logiQuoterRole) {
-                            $map[] = ['a.logi_agent_id' => $condition['user_id']];
-                        }
-                        if ($roleNo == self::logiCheckRole) {
-                            $map[] = ['a.logi_check_id' => $condition['user_id']];
-                        }
+                    if (in_array(self::logiIssueMainRole, $role_nos) || in_array(self::logiIssueAuxiliaryRole, $role_nos)
+                    ) {
+                        $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                        !empty($orgId) ? $map[] = ['a.logi_org_id' => ['in', $orgId]] : '';
+                    } elseif (!in_array(self::logiIssueMainRole, $role_nos) && in_array(self::logiIssueAuxiliaryRole, $role_nos)) {
+                        $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                        $map2 = [];
+                        $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
+                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2['_logic'] = 'and';
+                        $map['_complex'] = $map2;
+                    }
+                    if (in_array(self::quoteCheckRole, $role_nos)) {
+                        $map[] = ['a.check_org_id' => $condition['user_id']];
+                    }
+                    if (in_array(self::logiQuoterRole, $role_nos)) {
+                        $map[] = ['a.logi_agent_id' => $condition['user_id']];
+                    }
+                    if (in_array(self::logiCheckRole, $role_nos)) {
+                        $map[] = ['a.logi_check_id' => $condition['user_id']];
                     }
             }
 
@@ -350,7 +359,7 @@ class InquiryModel extends PublicModel {
 // 销售合同号
         (!empty($condition['contract_no'])) ? $condition['contract_inquiry_id'] = $inquiryOrderModel->getInquiryIdForContractNo() : '';
 //区域和国家
-        (!empty($condition['country_bn']) && empty($condition['country_bn']) ) ? ($condition['country_bn'] = (new MarketAreaCountryModel())->getCountryBn($condition['market_area_bn']) ?: []) : '';
+        (!empty($condition['market_area_bn']) && empty($condition['country_bn']) ) ? ($condition['country_bn'] = (new MarketAreaCountryModel())->getCountryBn($condition['market_area_bn']) ?: []) : '';
 
         if (!empty($condition['status']) && $condition['status'] != 'DRAFT') {
             if ($condition['status'] == 'BIZ_QUOTING') {
@@ -430,6 +439,8 @@ class InquiryModel extends PublicModel {
                 $map['now_agent_id'] = $user_id;
                 $map['_logic'] = 'or';
                 $where[] = $map;
+            } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                $where['country_bn'] = '-1';    //查看事业部询单角色国家
             } else {
                 $where[] = ['now_agent_id' => $user_id];
             }
@@ -466,70 +477,53 @@ class InquiryModel extends PublicModel {
                         $where['country_bn'] = $condition['country_bn'];
                     } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
                         $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                    } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                        $where['country_bn'] = '-1';    //查看事业部询单角色国家
                     }
                     break;
                 case 'country':
-                    if ($condition['view_type'] == 'country' && in_array(self::viewCountryRole, $role_nos)) {
+                    if (in_array(self::viewCountryRole, $role_nos)) {
                         $user_country = (new CountryUserModel())->getUserCountry(['employee_id' => $user_id]) ?: [];
-                        if ($user_country && !empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
-                            $user_country[] = $condition['country_bn'];
+
+                        if ($user_country && $user_id) {
                             $map = [];
                             $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
                             $map['now_agent_id'] = $user_id;
                             $map['_logic'] = 'or';
                             $where[] = $map;
-                        } elseif ($user_country && !empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
-                            $user_country = array_unique(array_merge($condition['country_bn'], $user_country));
-                            $map = [];
-                            $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
-                            $map['now_agent_id'] = $user_id;
-                            $map['_logic'] = 'or';
-                            $where[] = $map;
-                        } elseif ($user_country && $user_id) {
-                            $map = [];
-                            $map['country_bn'] = ['in', $user_country];    //查看事业部询单角色国家
-                            $map['now_agent_id'] = $user_id;
-                            $map['_logic'] = 'or';
-                            $where[] = $map;
-                        } elseif (empty($user_country) && !empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
-                            $map = [];
-                            $map['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
-                            $map['now_agent_id'] = $user_id;
-                            $map['_logic'] = 'or';
-                            $where[] = $map;
-                        } elseif (empty($user_country) && !empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
-                            $map = [];
-                            $map['country_bn'] = $condition['country_bn'];    //查看事业部询单角色国家
-                            $map['now_agent_id'] = $user_id;
-                            $map['_logic'] = 'or';
-                            $where[] = $map;
-                        } elseif ($user_id) {
+                        } elseif (empty($user_country) && $user_id) {
                             $where[] = ['now_agent_id' => $user_id];
                         } else {
                             $where['country_bn'] = '-1';
                         }
+                        if (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
+                        } elseif (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
+                            $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : $condition['country_bn'];
+                        } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn'])) {
+                            $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                        }
                     } else {
+
+                        $where[] = ['now_agent_id' => $user_id];
                         if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
                             $where['country_bn'] = $condition['country_bn'];
                         } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
                             $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                        } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
                         }
-                        $where[] = ['now_agent_id' => $user_id];
                     }
                     break;
             }
         } else {
+            $where[] = ['now_agent_id' => $user_id];
             if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
-
-                $where['country_bn'] = $condition['country_bn'];    //查看事业部询单角色国家
-                $where['now_agent_id'] = $user_id;
+                $where['country_bn'] = $condition['country_bn'];
             } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
-                $map = [];
                 $where['country_bn'] = ['in', $condition['country_bn']];    //查看事业部询单角色国家
-
-                $where['now_agent_id'] = $user_id;
-            } else {
-                $where[] = ['now_agent_id' => $user_id];
+            } elseif (isset($condition['country_bn']) && empty($condition['country_bn'])) {
+                $where['country_bn'] = '-1';    //查看事业部询单角色国家
             }
         }
     }

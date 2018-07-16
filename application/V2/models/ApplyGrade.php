@@ -23,16 +23,25 @@ class ApplyGradeModel extends PublicModel {
             $arr['created_at']=$time; //申请时间
             $res=$this->add($arr);
         }else{
+            $info=[];
             foreach($data['attach'] as $k => &$v){
-                $v['grade_id']=$data['id'];
-                $v['customer_grade']=$data['customer_grade'];
-                $v['attach_url']=!empty($v['attach_url'])?$v['attach_url']:'';
-                $v['attach_name']=!empty($v['attach_name'])?$v['attach_name']:'';
-                $v['attach_size']=!empty($v['attach_size'])?$v['attach_size']:'';
-                $v['created_by']=$data['created_by'];
-                $v['created_at']=$time;
+                $info[$k]['grade_id']=$data['id'];
+                $info[$k]['customer_grade']=$data['customer_grade'];
+                $info[$k]['attach_url']=!empty($v['attach_url'])?$v['attach_url']:'';
+                $info[$k]['attach_name']=!empty($v['attach_name'])?$v['attach_name']:'';
+                $info[$k]['attach_size']=!empty($v['attach_size'])?$v['attach_size']:'';
+                $info[$k]['created_by']=$data['created_by'];
+                $info[$k]['created_at']=$time;
+
+//                $v['grade_id']=$data['id'];
+//                $v['customer_grade']=$data['customer_grade'];
+//                $v['attach_url']=!empty($v['attach_url'])?$v['attach_url']:'';
+//                $v['attach_name']=!empty($v['attach_name'])?$v['attach_name']:'';
+//                $v['attach_size']=!empty($v['attach_size'])?$v['attach_size']:'';
+//                $v['created_by']=$data['created_by'];
+//                $v['created_at']=$time;
             }
-            $res=$this->addAll($data['attach']);
+            $res=$this->addAll($info);
         }
         if($res){
             return $res;

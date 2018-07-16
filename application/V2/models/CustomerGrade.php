@@ -556,6 +556,7 @@ class CustomerGradeModel extends PublicModel {
         $info['purchase']=floatval($info['purchase']);
         $info['income']=floatval($info['income']);
         $info['scale']=floatval($info['scale']);
+        $info['final_score']=sprintf("%.2f",$info['final_score']);  //保留2位
         if($lang=='zh'){
             $info['customer_grade']=mb_substr($info['customer_grade'],0,1);
         }else{
@@ -575,10 +576,11 @@ class CustomerGradeModel extends PublicModel {
             $info['attach']=$app;
         }else{
             $info['app_grade']='';
+            $info['attach']=[];
 
-            $info['attach']=array(
-                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
-            );
+//            $info['attach']=array(
+//                array('attach_url'=>'','attach_name'=>'','attach_size'=>'')
+//            );
         }
         return $info;
     }
