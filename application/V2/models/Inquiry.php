@@ -272,7 +272,7 @@ class InquiryModel extends PublicModel {
                         $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
                         $map2 = [];
                         $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
-                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2 ['a.country_bn'] = ['in', $condition['user_country'] ?: ['-1']];
                         $map2['_logic'] = 'and';
                         $map['_complex'] = $map2;
                     }
@@ -301,23 +301,29 @@ class InquiryModel extends PublicModel {
                     $map['_complex'] = $map1;
                     if (in_array(self::logiIssueMainRole, $role_nos) || in_array(self::logiIssueAuxiliaryRole, $role_nos)
                     ) {
+
                         $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                         !empty($orgId) ? $map[] = ['a.logi_org_id' => ['in', $orgId]] : '';
                     } elseif (!in_array(self::logiIssueMainRole, $role_nos) && in_array(self::logiIssueAuxiliaryRole, $role_nos)) {
+
+
                         $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
                         $map2 = [];
                         $map2['a.logi_org_id'] = !empty($orgId) ? ['a.logi_org_id' => ['in', $orgId]] : '-1';
-                        $map2[] = ['a.country_bn' => ['in', $condition['user_country'] ?: ['-1']]];
+                        $map2['a.country_bn'] = ['in', $condition['user_country'] ?: ['-1']];
                         $map2['_logic'] = 'and';
                         $map['_complex'] = $map2;
                     }
                     if (in_array(self::quoteCheckRole, $role_nos)) {
+
                         $map[] = ['a.check_org_id' => $condition['user_id']];
                     }
                     if (in_array(self::logiQuoterRole, $role_nos)) {
+
                         $map[] = ['a.logi_agent_id' => $condition['user_id']];
                     }
                     if (in_array(self::logiCheckRole, $role_nos)) {
+
                         $map[] = ['a.logi_check_id' => $condition['user_id']];
                     }
             }
