@@ -68,6 +68,13 @@ class GoodsModel extends PublicModel{
                             $psdM = new PriceStrategyDiscountModel();
                             $price_range = $psdM->getDisCountBySkus([$goodsInfo['sku']], 'STOCK', $stockInfo['special_id']);
                             $goodsInfo['priceAry'] = isset($price_range[$goodsInfo['sku']]) ? $price_range[$goodsInfo['sku']] : [];
+                            if(!empty($stockInfo['strategy_validity_end'])){
+                                $diff = (strtotime($stockInfo['strategy_validity_end'])-time())/86400;
+                                $goodsInfo['validity_days'] = $diff > 1 ? ceil($diff) : substr(sprintf( "%.2f ",$diff),0,-2);
+                                $stockInfo['validity_hours'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%86400/3600);
+                                $stockInfo['validity_minutes'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%3600/60);
+                                $stockInfo['validity_seconds'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%86400%60);
+                            }
                         }
                     }else{
                         return [];

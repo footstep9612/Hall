@@ -39,6 +39,13 @@ class StockController extends PublicController {
             foreach ($arr as $key => $val) {
                 if(isset($disCounts[$val['sku']]) && $val['price_strategy_type'] !='' && (empty($val['strategy_validity_start']) || $val['strategy_validity_start']<=date('Y-m-d H:i:s',time())) && (empty($val['strategy_validity_end']) || $val['strategy_validity_end']>date('Y-m-d H:i:s',time()))){
                     $val['price_range'] = $disCounts[$val['sku']];
+                    if(!empty($val['strategy_validity_end'])){
+                        $days = (strtotime($val['strategy_validity_end'])-time())/86400;
+                        $val['validity_days'] = $days > 1 ? ceil($days) : substr(sprintf( "%.2f ",$days),0,-2);
+                        $val['validity_hours'] = floor((strtotime($val['strategy_validity_end'])-time())%86400/3600);
+                        $val['validity_minutes'] = floor((strtotime($val['strategy_validity_end'])-time())%3600/60);
+                        $val['validity_seconds'] = floor((strtotime($val['strategy_validity_end'])-time())%86400%60);
+                    }
                 }else{
                     $val['price_range'] = [];
                 }
