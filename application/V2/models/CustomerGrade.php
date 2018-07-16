@@ -361,9 +361,9 @@ class CustomerGradeModel extends PublicModel {
     public function exportExcelGrade($data){
         $lang=$data['lang'];
         $info=$this->exportGradeData($data);    //获取客户分级数据
-//        if(empty($info)){
-//            return [];
-//        }
+        if(empty($info)){
+            return [];
+        }
         $packData=$this->packExcelAllData($info);
         $excelFile=$this->exportMode($packData,$lang);   //模板
         //
