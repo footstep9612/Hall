@@ -501,12 +501,12 @@ class InquiryModel extends PublicModel {
                         } else {
                             $where['country_bn'] = '-1';
                         }
-                        if (isset($condition['country_bn']) && empty($condition['country_bn'])) {
-                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
-                        } elseif (!empty($condition['country_bn']) && is_string($condition['country_bn'])) {
-                            $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : $condition['country_bn'];
+                        if (!empty($condition['country_bn']) && is_string($condition['country_bn']) && $user_id) {
+                            $where['country_bn'] = $where['country_bn'] == '-1' ? '-1' : $condition['country_bn'];
+                        } elseif (!empty($condition['country_bn']) && is_array($condition['country_bn']) && $user_id) {
+                            $where['country_bn'] = $where['country_bn'] == '-1' ? '-1' : ['in', $condition['country_bn']];    //查看事业部询单角色国家
                         } elseif (!empty($condition['market_area_bn']) && empty($condition['country_bn'])) {
-                            $where['country_bn'] = ( $where['country_bn'] == '-1') ? '-1' : ['in', $condition['country_bn']];    //查看事业部询单角色国家
+                            $where['country_bn'] = '-1';    //查看事业部询单角色国家
                         }
                     } else {
 
