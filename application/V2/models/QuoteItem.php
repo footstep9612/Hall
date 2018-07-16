@@ -66,7 +66,7 @@ class QuoteItemModel extends PublicModel {
                 . 'a.purchase_price_cur_bn,a.gross_weight_kg,'
                 . 'a.package_mode,a.package_size,a.stock_loc,a.goods_source,'
                 . 'a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,'
-                . 'c.attach_name,c.attach_url';
+                . 'c.attach_name,c.attach_url'; //,b.material_cat_no
         return $this->getSqlJoint($request)
                         ->field($fields)
                         ->page($currentPage, $pageSize)
