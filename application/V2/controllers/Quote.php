@@ -385,11 +385,12 @@ class QuoteController extends PublicController {
     public function skuAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
         $list = $this->quoteItemModel->getList($request);
+        empty($list) ? $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]) : null;
 
-        if (!$list)
-            $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]);
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id']])->getField('org_id');
+
+        $org_name = $org_id > 0 ? (new OrgModel())->getNameById($org_id, $this->lang) : '';
 
         $supplier = new SupplierModel();
 
@@ -407,13 +408,16 @@ class QuoteController extends PublicController {
             ];
             $list[$key]['historical_quote_count'] = $this->historicalSkuQuoteModel->getCount($condition);
         }
+
+
         $total_purchase_price = $this->quoteItemModel->getTotalPurchasePrice($request);
 
         $this->jsonReturn([
             'code' => 1,
+            'org_name' => $org_name,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getCount($request),
-            'total_purchase_price' => $this->quoteItemModel->getTotalPurchasePrice($request),
+            'total_purchase_price' => $total_purchase_price,
             'data' => $list
         ]);
     }
