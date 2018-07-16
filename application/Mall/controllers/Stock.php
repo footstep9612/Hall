@@ -42,6 +42,9 @@ class StockController extends PublicController {
                     if(!empty($val['strategy_validity_end'])){
                         $days = (strtotime($val['strategy_validity_end'])-time())/86400;
                         $val['validity_days'] = $days > 1 ? ceil($days) : substr(sprintf( "%.2f ",$days),0,-2);
+                        $val['validity_hours'] = floor((strtotime($val['strategy_validity_end'])-time())%86400/3600);
+                        $val['validity_minutes'] = floor((strtotime($val['strategy_validity_end'])-time())%3600/60);
+                        $val['validity_seconds'] = floor((strtotime($val['strategy_validity_end'])-time())%86400%60);
                     }
                 }else{
                     $val['price_range'] = [];
