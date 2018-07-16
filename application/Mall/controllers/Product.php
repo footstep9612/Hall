@@ -117,7 +117,7 @@ class ProductController extends PublicController {
         $stockInfo = $productModel->getSkuStockBySku($input['sku'], $input['country_bn'], $input['lang']);
 
         $promotion_price = '';
-        if($stockInfo && isset($stockInfo[$input['sku']]['price_strategy_type']) && $stockInfo[$input['sku']]['price_strategy_type']!='' && (($stockInfo[$input['sku']]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_start']==null) && ($stockInfo[$input['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_end']==null) )){
+        if($stockInfo && isset($stockInfo[$input['sku']]['price_strategy_type']) && $stockInfo[$input['sku']]['price_strategy_type']!='' && (($stockInfo[$input['sku']]['strategy_validity_start']<= date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_start']==null) && ($stockInfo[$input['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_end']==null) )){
             $psdM = new PriceStrategyDiscountModel();
             $promotion_price = $psdM->getSkuPriceByCount($input['sku'],'STOCK',$input['special_id'],$input['count']);
         }
