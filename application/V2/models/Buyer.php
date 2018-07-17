@@ -3389,7 +3389,7 @@ EOF;
     }
     //获取会员统计cond
     private function getStatisMemberCond($data,$time=false){
-        $cond=' buyer.deleted_flag=\'N\'';  //客户状态
+        $cond=' buyer.deleted_flag=\'N\' and buyer.status=\'APPROVED\'';  //客户状态
         $admin=$this->countryAdmin($data,'buyer');
         if($admin===false){ //无权限
            return false;
