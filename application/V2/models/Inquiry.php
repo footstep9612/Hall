@@ -720,6 +720,8 @@ class InquiryModel extends PublicModel {
     public function getInfo($condition = []) {
         if (!empty($condition['id'])) {
             $where['id'] = $condition['id'];
+        } elseif (!empty($condition['serial_no'])) {
+            $where['serial_no'] = $condition['serial_no'];
         } else {
             $results['code'] = '-103';
             $results['message'] = L('MISSING_PARAMETER');
@@ -728,7 +730,6 @@ class InquiryModel extends PublicModel {
 
         try {
             $info = $this->where($where)->find();
-
             if ($info) {
                 $results['code'] = '1';
                 $results['message'] = L('SUCCESS');
