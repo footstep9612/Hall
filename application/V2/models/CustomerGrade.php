@@ -72,6 +72,11 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $v['show_all']=false;
             }
+            if($v['type']==1){
+                $v['customer_grade']=$lang=='zh'?'老客户 ('.$v['customer_grade'].')':'Old customer ('.$v['customer_grade'].')';
+            }else{
+                $v['customer_grade']=$lang=='zh'?'潜在客户 ('.$v['customer_grade'].')':'Potential customer ('.$v['customer_grade'].')';
+            }
 //            $applyInfo=$this->table('erui_buyer.apply_grade')
 //                ->field('customer_grade')
 //                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
@@ -174,11 +179,11 @@ class CustomerGradeModel extends PublicModel {
                     $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
                 }
             }
-            if($lang=='zh'){
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }else{
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }
+//            if($lang=='zh'){
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }else{
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }
         }
         return $info;
     }
