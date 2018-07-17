@@ -1159,15 +1159,17 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //**************档案信息
     public function showBuyerBaseInfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        $data['admin']=$this->getUserRole();
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerInfo($data);
         if ($buerInfo===false) {
             $dataJson['code']=0;
-            $dataJson['message']='缺少参数';
+            $dataJson['message']='暂无该客户权限';
             $this->jsonReturn($dataJson);
         }elseif($buerInfo==='info'){
             $dataJson['code']=0;
@@ -1615,7 +1617,6 @@ EOF;
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
-        $lang=$this->getLang();
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
         if(!empty($data['buyer_id'])){
@@ -1654,11 +1655,10 @@ EOF;
             }
             //验证集团CRM存在,则展示数据 生产-start
             $group = $this->groupCrmCode($data['buyer_code']);
-            $msg=$lang=='zh'?'科瑞集团 CRM 系统访问异常，请稍候重试':'Exception: Attempt to access CRM system of KERUI Group, Please try again later';
             if ($group=='no') {
                 $dataJson = array(
                     'code' => 4,
-                    'message' => $msg
+                    'message' => '网络异常'
                 );
             }elseif($group=='code'){
                 $dataJson = array(
@@ -1752,7 +1752,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
-                'timeout' => 30,
+                'timeout' => 5,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap

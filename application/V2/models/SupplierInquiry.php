@@ -15,7 +15,7 @@
  */
 class SupplierInquiryModel extends PublicModel {
 
-    //put your code here
+//put your code here
     protected $tableName = 'supplier';
     protected $dbName = 'erui_supplier'; //数据库名称
     protected $areas = ['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe'];
@@ -110,7 +110,7 @@ class SupplierInquiryModel extends PublicModel {
         ];
         $this->_getCondition($condition, $where);
         $count = $this
-                // ->field('supplier_no,name as supplier_name,id as supplier_id')
+// ->field('supplier_no,name as supplier_name,id as supplier_id')
                 ->where($where)
                 ->count();
         return $count > 0 ? $count : 0;
@@ -201,7 +201,7 @@ class SupplierInquiryModel extends PublicModel {
         $map['_logic'] = 'and';
         $where['_complex'] = $map;
         $count = $this
-                // ->field('supplier_no,name as supplier_name,id as supplier_id')
+// ->field('supplier_no,name as supplier_name,id as supplier_id')
                 ->where($where)
                 ->count();
         return $count > 0 ? $count : 0;
@@ -251,7 +251,7 @@ class SupplierInquiryModel extends PublicModel {
                 //'mac.market_area_bn' => ['in', $this->areas],
         ];
 
-        //按区域筛选
+//按区域筛选
         if (!empty($condition['area_bn'])) {
             $where['mac.market_area_bn'] = ['in', [trim($condition['area_bn'])]];
         } else {
@@ -299,7 +299,7 @@ class SupplierInquiryModel extends PublicModel {
                 //'area_bn' => ['in', $this->areas]
         ];
 
-        //按区域筛选
+//按区域筛选
         if (!empty($condition['area_bn'])) {
             $where['area_bn'] = ['in', [trim($condition['area_bn'])]];
         } else {
@@ -473,6 +473,15 @@ class SupplierInquiryModel extends PublicModel {
             $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
         }
         $inquiry_model = new InquiryModel();
+        $count = $inquiry_model->alias('i')
+                ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
+                ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.inquiry_item_id=it.id', 'left')
+                ->join($final_quote_item_table . ' as fqt on fqt.deleted_flag=\'N\' and fqt.inquiry_id=i.id and fqt.inquiry_item_id=it.id and fqt.quote_item_id=qt.id', 'left')
+                ->where($where)
+                ->count('i.id');
+
+
+
         $list = $inquiry_model->alias('i')
                 ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
                 ->join($quote_item_table . ' as qt on qt.deleted_flag=\'N\' and qt.inquiry_id=i.id and qt.inquiry_item_id=it.id', 'left')
@@ -480,6 +489,8 @@ class SupplierInquiryModel extends PublicModel {
                 ->field($field)
                 ->where($where)
                 ->select();
+
+
 
         $this->_setSupplierName($list);
         $this->_setquoted_time($list);
@@ -490,7 +501,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setBizDespatching($list);
         $this->_setOilFlag($list);
         $this->_setObtainInfo($list);
-        //$this->_setClarificationTime($list);
+//$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
         $this->_setQuoteSpendTime($list);
         $this->_resetListData($list);
@@ -524,7 +535,7 @@ class SupplierInquiryModel extends PublicModel {
                 . 'WHEN \'N\' THEN \'否\' '
                 . 'else  \'否\' END ) '
                 . ' as buyer_oil,';
-        // oil_flag
+// oil_flag
         $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
         $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
                 . ' on mac.country_bn=c.bn '
@@ -618,10 +629,10 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setTotalPrice($list);
         $this->_setObtainInfo($list);
         $this->_setTotalOilFlag($list);
-        //$this->_setClarificationTime($list);
+//$this->_setClarificationTime($list);
         $this->_setClarifyTime($list);
         $this->_setQuoteSpendTime($list);
-        // $this->_setTotalCalculatePrice($list);
+// $this->_setTotalCalculatePrice($list);
         return $this->_createXls($list, '导出总行询单数据');
     }
 
@@ -829,12 +840,12 @@ class SupplierInquiryModel extends PublicModel {
         } else {
             $keys = $this->_getKeys();
         }
-        //$objSheet->setCellValue('A1', '序号');
+//$objSheet->setCellValue('A1', '序号');
         foreach ($keys as $rowname => $key) {
             $objSheet->setCellValue($rowname . '1', $key[1]);
         }
         foreach ($list as $j => $item) {
-            //$objSheet->setCellValue('A' . ($j + 2), ($j + 1));
+//$objSheet->setCellValue('A' . ($j + 2), ($j + 1));
             foreach ($keys as $rowname => $key) {
 
                 if ($key && isset($item)) {
@@ -857,7 +868,7 @@ class SupplierInquiryModel extends PublicModel {
         $file = $dirName . DS . $name . date('YmdHi') . '.xls';
         $objWriter->save($file);
         if (file_exists($file)) {
-            //把导出的文件上传到文件服务器上
+//把导出的文件上传到文件服务器上
             $server = Yaf_Application::app()->getConfig()->myhost;
             $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
             $url = $server . '/V2/Uploadfile/upload';
@@ -875,7 +886,7 @@ class SupplierInquiryModel extends PublicModel {
         return false;
     }
 
-    //产品名称、规格、价格、供应商等信息
+//产品名称、规格、价格、供应商等信息
 
     private function _setSupplierName(&$list) {
         $supplier_ids = [];
@@ -1023,33 +1034,33 @@ class SupplierInquiryModel extends PublicModel {
         }
         foreach ($list as $key => $item) {
             if ($item['inquiry_id'] && isset($clarification_times[$item['inquiry_id']])) {
-                //总澄清用时
+//总澄清用时
                 $list[$key]['clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['TOTAL'] / 3600, 2, '.', ',');
-                //事业部报价人发起的澄清用时（小时）
+//事业部报价人发起的澄清用时（小时）
                 if (isset($clarification_times[$item['inquiry_id']]['BIZ_QUOTING'])) {
                     $list[$key]['biz_quoting_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['BIZ_QUOTING'], 2, '.', ',');
                 } else {
                     $list[$key]['biz_quoting_clarification_time'] = '';
                 }
-                //物流分单员发起的澄清用时（小时）
+//物流分单员发起的澄清用时（小时）
                 if (isset($clarification_times[$item['inquiry_id']]['LOGI_DISPATCHING'])) {
                     $list[$key]['logi_dispatching_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['LOGI_DISPATCHING'], 2, '.', ',');
                 } else {
                     $list[$key]['logi_dispatching_clarification_time'] = '';
                 }
-                //物流报价人发起的澄清用时（小时）
+//物流报价人发起的澄清用时（小时）
                 if (isset($clarification_times[$item['inquiry_id']]['LOGI_QUOTING'])) {
                     $list[$key]['logi_quoting_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['LOGI_QUOTING'], 2, '.', ',');
                 } else {
                     $list[$key]['logi_quoting_clarification_time'] = '';
                 }
-                //事业部核算发起的澄清用时（小时）
+//事业部核算发起的澄清用时（小时）
                 if (isset($clarification_times[$item['inquiry_id']]['BIZ_APPROVING'])) {
                     $list[$key]['biz_approving_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['BIZ_APPROVING'], 2, '.', ',');
                 } else {
                     $list[$key]['biz_approving_clarification_time'] = '';
                 }
-                //事业部审核发起的澄清用时（小时）
+//事业部审核发起的澄清用时（小时）
                 if (isset($clarification_times[$item['inquiry_id']]['MARKET_APPROVING'])) {
                     $list[$key]['market_approving_clarification_time'] = number_format($clarification_times[$item['inquiry_id']]['MARKET_APPROVING'], 2, '.', ',');
                 } else {
@@ -1093,7 +1104,7 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($list as &$item) {
             $where['inquiry_id'] = $item['inquiry_id'];
             foreach ($clarifyMapping as $v) {
-                // 项目澄清时间初始化
+// 项目澄清时间初始化
                 $item[$v] = '';
             }
             $item['clarification_time'] = '';
@@ -1110,10 +1121,10 @@ class SupplierInquiryModel extends PublicModel {
               // 项目澄清时间的参考ID
               $referenceID = $lastEruiDispatchingID > $lastBizDispatchingID ? $lastEruiDispatchingID : $lastBizDispatchingID;
               if ($referenceID) { */
-            // 各环节的项目澄清时间列表
+// 各环节的项目澄清时间列表
             $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, [/* 'id' => ['gt', $referenceID], */ 'in_node' => 'CLARIFY', 'out_node' => ['in', /* array_diff($clarifyNode, ['BIZ_DISPATCHING', 'CC_DISPATCHING']) */ $clarifyNode]]))->order('id ASC')->select();
             foreach ($clarifyList as $clarify) {
-                // 计算各环节的项目澄清时间
+// 计算各环节的项目澄清时间
                 $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
             }
             /* // 最后一次事业部分单员的项目澄清时间
@@ -1130,8 +1141,8 @@ class SupplierInquiryModel extends PublicModel {
                               . $lastCcDispatchingClarifySql . ' AS last_cc_dispatching_clarify_time, '
                               . $totalClarifySql . ' AS total_clarify_time' */
                     )->where($where)->order('id DESC')->find();
-            //$item[$clarifyMapping['BIZ_DISPATCHING']] = $nodeData['last_biz_dispatching_clarify_time'];
-            //$item[$clarifyMapping['CC_DISPATCHING']] = $nodeData['last_cc_dispatching_clarify_time'];
+//$item[$clarifyMapping['BIZ_DISPATCHING']] = $nodeData['last_biz_dispatching_clarify_time'];
+//$item[$clarifyMapping['CC_DISPATCHING']] = $nodeData['last_cc_dispatching_clarify_time'];
             $lastClarifyTime = '';
             if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
                 $lastClarifyTime = $nowTime - $nodeData['out_time'];
@@ -1143,17 +1154,17 @@ class SupplierInquiryModel extends PublicModel {
             foreach ($clarifyMapping as $v) {
                 if ($item[$v] > 0) {
                     $item['clarification_time'] += $item[$v];
-                    // 项目澄清时间换算成小时
+// 项目澄清时间换算成小时
                     $item[$v] = number_format($item[$v] / 3600, 2);
                 }
             }
-            // 总的项目澄清时间
-            //$item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
-            //$item['clarification_time'] = $nodeData['total_clarify_time'] + $lastClarifyTime;
+// 总的项目澄清时间
+//$item['clarification_time'] = $inquiryCheckLogModel->field('SUM(UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY']))->find()['clarify_time'] + $lastClarifyTime;
+//$item['clarification_time'] = $nodeData['total_clarify_time'] + $lastClarifyTime;
             if ($item['clarification_time'] > 0) {
                 $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
             }
-            //}
+//}
         }
     }
 
@@ -1184,24 +1195,24 @@ class SupplierInquiryModel extends PublicModel {
         foreach ($list as &$item) {
             $quoteTime = [];
             foreach ($quoteMapping as $v) {
-                // 报价用时初始化
+// 报价用时初始化
                 $item[$v] = '';
             }
-            // 各环节的报价用时列表
+// 各环节的报价用时列表
             $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where([/* 'action' => ['neq', 'CLARIFY'], */ 'inquiry_id' => $item['inquiry_id'], 'in_node' => ['in', $quoteNode]])->select();
             foreach ($spendList as $spend) {
-                // 计算各环节的报价用时
+// 计算各环节的报价用时
                 $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
             }
-            // 物流报价用时
+// 物流报价用时
             $logiSpend = $quoteTime['logi_dispatching_quoted_time'] + $quoteTime['logi_quoting_quoted_time'] + $quoteTime['logi_approving_quoted_time'];
             $item['logi_quoted_time'] = number_format($logiSpend / 3600, 2);
             $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time'];
             if ($item['org_is_erui'] == 'Y') {
-                // 易瑞商务技术报价用时
+// 易瑞商务技术报价用时
                 $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;
                 $item['cc_quoted_time'] = number_format($ccSpend / 3600, 2);
-                // 事业部商务技术报价用时
+// 事业部商务技术报价用时
                 $item['biz_quoted_time'] = 0;
                 $realSpend = $ccSpend + $logiSpend;
             } else {
@@ -1210,9 +1221,9 @@ class SupplierInquiryModel extends PublicModel {
                 $item['biz_quoted_time'] = number_format($bizSpend / 3600, 2);
                 $realSpend = $bizSpend + $logiSpend;
             }
-            // 真实报价用时
+// 真实报价用时
             $item['real_quoted_time'] = $logiSpend > 0 ? number_format($realSpend / 3600, 2) : '';
-            // 整体报价用时
+// 整体报价用时
             $qsSpend = strtotime($item['qs_time']);
             $wholeSpend = ($qsSpend > 0 ? $qsSpend : $nowTime) - strtotime($item['inflow_time']);
             $item['whole_quoted_time'] = number_format($wholeSpend / 3600, 2);
@@ -1358,7 +1369,7 @@ class SupplierInquiryModel extends PublicModel {
     private function _setquoted_time(&$list) {
         foreach ($list as $key => $item) {
             $list[$key]['inflow_time'] = !empty($item['inflow_time']) ? $item['inflow_time'] : $item['inflow_time_out'];
-            //$list[$key]['max_inflow_time'] = !empty($item['max_inflow_time']) ? $item['max_inflow_time'] : $item['max_inflow_time_out'];
+//$list[$key]['max_inflow_time'] = !empty($item['max_inflow_time']) ? $item['max_inflow_time'] : $item['max_inflow_time_out'];
             if ($item['qs_time']) {
                 $list[$key]['quoted_time'] = $this->date_diff($item['qs_time'], $item['created_at']);
             } else {
@@ -1376,7 +1387,7 @@ class SupplierInquiryModel extends PublicModel {
         $exchange_rate_model = new ExchangeRateModel();
 
         foreach ($list as $key => $item) {
-            // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+// 只在市场确认、报价单已发出、报价关闭环节显示报价金额
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
@@ -1422,7 +1433,7 @@ class SupplierInquiryModel extends PublicModel {
         $exchange_rate_model = new ExchangeRateModel();
 
         foreach ($list as $key => $item) {
-            // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+// 只在市场确认、报价单已发出、报价关闭环节显示报价金额
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
@@ -1620,7 +1631,7 @@ class SupplierInquiryModel extends PublicModel {
                 $final_quoteprices[$final_quote['inquiry_id']] = $final_quote;
             }
             foreach ($arr as $key => $val) {
-                // 只在市场确认、报价单已发出、报价关闭环节显示报价金额
+// 只在市场确认、报价单已发出、报价关闭环节显示报价金额
                 if (!in_array($val['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                     $arr[$key]['quote_unit_price'] = $arr[$key]['total_quote_price'] = $arr[$key]['total_quoted_price_usd'] = '';
                 } else {
@@ -1764,7 +1775,7 @@ class SupplierInquiryModel extends PublicModel {
         if (is_null($suppliers))
             return null;
 
-        //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
+//['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
         foreach ($suppliers as &$supplier) {
             $supplier['Middle-East'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'Middle East');
             $supplier['South-America'] = $this->areaInquiryStaticsBy($supplier['supplier_id'], 'South America');
@@ -1828,6 +1839,153 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
 
         return $supplier_inquiry;
+    }
+
+    public function Inquiryexport_new($condition) {
+
+        $where = ['i.deleted_flag' => 'N',
+            'i.status' => ['neq', 'DRAFT'],
+        ];
+        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
+            $created_at_start = trim($condition['created_at_start']);
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
+        } elseif (!empty($condition['created_at_start'])) {
+
+            $created_at_start = trim($condition['created_at_start']);
+            $where['i.created_at'] = ['egt', $created_at_start];
+        } elseif (!empty($condition['created_at_end'])) {
+            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
+            $where['i.created_at'] = ['elt', $created_at_end];
+        }
+        if (!empty($condition['country_bn'])) {
+            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
+        }
+        $field = 'i.serial_no,i.buyer_oil,i.country_bn,i.proxy_no,'
+                . 'i.buyer_code,i.project_name,i.project_basic_info,i.proxy_flag,'
+                . 'i.kerui_flag,i.bid_flag,i.quote_deadline,i.check_org_id,i.org_id'
+                . ',i.id,i.created_at,'
+                . 'i.agent_id,i.quote_id,i.created_by,i.obtain_id,i.trade_terms_bn,'
+                . 'i.status,i.quote_status ,i.quote_notes';
+        $inquiry_model = new InquiryModel();
+        $list = $inquiry_model->alias('i')
+                ->field($field)
+                ->where($where)
+                ->select();
+        $this->_setUserName($list, ['agent_name' => 'agent_id',
+            'quote_name' => 'quote_id',
+            'created_by_name' => 'created_by',
+            'obtain_name' => 'obtain_id']);
+        (new CountryModel())->setCountry($list, $this->lang);
+        (new MarketAreaCountryModel())->setAreaBn($list);
+        (new MarketAreaModel())->setArea($list);
+        $this->_setOrgName($list);
+    }
+
+    private function _setUserName(&$arr, $fileds) {
+        if ($arr) {
+            $employee_model = new EmployeeModel();
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $employee_model->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed_key => $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed_key] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed_key] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setOrgName(&$arr) {
+        if ($arr) {
+            $org_model = new OrgModel();
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                !empty($val['org_id']) ? $org_ids[] = $val['check_org_id'] : '';
+                !empty($val['check_org_id']) ? $org_ids[] = $val['check_org_id'] : '';
+            }
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                $val['org_name'] = $val['org_id'] && isset($orgnames[$val['org_id']]) ? $orgnames[$val['org_id']] : '';
+                $val['check_org_name'] = $val['check_org_id'] && isset($orgnames[$val['check_org_id']]) ? $orgnames[$val['check_org_id']] : '';
+                $val['buyer_oil'] = $val['buyer_oil'] == 'Y' ? '是' : '否';
+                $val['proxy_flag'] = $val['proxy_flag'] == 'Y' ? '是' : '否';
+                $val['keruiflag'] = $val['kerui_flag'] == 'Y' ? '是' : '否';
+                $val['bidflag'] = $val['bid_flag'] == 'Y' ? '是' : '否';
+                switch ($val['quote_status']) {
+                    case 'NOT_QUOTED':$val['iquote_status'] = '未报价';
+                        break;
+                    case 'ONGOING':$val['iquote_status'] = '报价中';
+                        break;
+                    case 'QUOTED':$val['iquote_status'] = '已报价';
+                        break;
+                    case 'COMPLETED':$val['iquote_status'] = '已完成';
+                        break;
+                    default :$val['iquote_status'] = '未报价';
+                        break;
+                }
+                switch ($val['status']) {
+                    case 'BIZ_DISPATCHING':$val['istatus'] = '事业部分单员';
+                        break;
+                    case 'CLARIFY':$val['istatus'] = '项目澄清';
+                        break;
+                    case 'REJECT_MARKET':$val['istatus'] = '驳回市场';
+                        break;
+                    case 'REJECT_CLOSE':$val['istatus'] = '驳回市场关闭';
+                        break;
+                    case 'CC_DISPATCHING':$val['istatus'] = '易瑞客户中心';
+                        break;
+                    case 'BIZ_QUOTING':$val['istatus'] = '事业部报价';
+                        break;
+                    case 'LOGI_DISPATCHING':$val['istatus'] = '物流分单员';
+                        break;
+                    case 'LOGI_QUOTING':$val['istatus'] = '物流报价';
+                        break;
+                    case 'LOGI_APPROVING':$val['istatus'] = '物流审核';
+                        break;
+                    case 'BIZ_APPROVING':$val['istatus'] = '事业部核算';
+                        break;
+                    case 'MARKET_APPROVING':$val['istatus'] = '市场主管审核';
+                        break;
+                    case 'MARKET_CONFIRMING':$val['istatus'] = '市场确认';
+                        break;
+                    case 'QUOTE_SENT':$val['istatus'] = '报价单已发出';
+                        break;
+                    case 'INQUIRY_CLOSED':$val['istatus'] = '报价关闭';
+                        break;
+                    default :$val['istatus'] = '错误';
+                        break;
+                }
+                $arr[$key] = $val;
+            }
+        }
     }
 
 }

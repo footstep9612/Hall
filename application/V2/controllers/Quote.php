@@ -339,7 +339,10 @@ class QuoteController extends PublicController {
         ]);
 
         // 记录历史报价
-        $list = $this->finalQuoteItemModel->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->select();
+        $list = $this->finalQuoteItemModel
+                ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
+                ->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])
+                ->select();
         foreach ($list as &$item) {
             $item['created_by'] = $this->user['id'];
             $item['created_at'] = date('Y-m-d H:i:s');
@@ -385,17 +388,19 @@ class QuoteController extends PublicController {
     public function skuAction() {
 
         $request = $this->validateRequests('inquiry_id');
-
         $list = $this->quoteItemModel->getList($request);
+        empty($list) ? $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]) : null;
 
-        if (!$list)
-            $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]);
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id']])->getField('org_id');
+
+        $org_name = $org_id > 0 ? (new OrgModel())->getNameById($org_id, $this->lang) : '';
 
         $supplier = new SupplierModel();
-
+        $supplier->setSupplier($list);
         foreach ($list as $key => $value) {
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
-            $list[$key]['supplier_name'] = $supplier->where(['id' => $value['supplier_id']])->getField('name');
+
+            $list[$key]['material_cat_no'] = null;
             // 参考历史报价数量
             $condition = [
                 'sku' => $value['sku'],
@@ -407,13 +412,16 @@ class QuoteController extends PublicController {
             ];
             $list[$key]['historical_quote_count'] = $this->historicalSkuQuoteModel->getCount($condition);
         }
+
+
         $total_purchase_price = $this->quoteItemModel->getTotalPurchasePrice($request);
 
         $this->jsonReturn([
             'code' => 1,
+            'org_name' => $org_name,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getCount($request),
-            'total_purchase_price' => $this->quoteItemModel->getTotalPurchasePrice($request),
+            'total_purchase_price' => $total_purchase_price,
             'data' => $list
         ]);
     }

@@ -2498,6 +2498,8 @@ EOF;
         if(empty($data['buyer_id'])){
             return false;
         }
+        $access=$this->accessCountry($data);
+        $cond=$access;
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $buyerArr = array(
             'id as buyer_id', //客户id
@@ -2529,11 +2531,12 @@ EOF;
             'profile', //公司介绍
             'company_address' //公司地址
         );
-        $cond=array(
-            'id'=>$data['buyer_id'],
-            'status'=>'APPROVED',
-            'deleted_flag'=>'N'
-        );
+        $cond.=" and id=$data[buyer_id] and status='APPROVED' and deleted_flag='N'";
+//        $cond=array(
+//            'id'=>$data['buyer_id'],
+//            'status'=>'APPROVED',
+//            'deleted_flag'=>'N'
+//        );
         $reg=$this->field('id')->where($cond)->find();
         if(empty($reg)){
             return false;

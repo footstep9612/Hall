@@ -37,6 +37,10 @@ class SupplierproductController extends PublicController
             'code' => 1,
             'message' => '成功',
             'total' => (new SupplierProductModel)->getCount($request),
+            'all' => (new SupplierProductModel)->getCount(['status' => ['neq', 'DRAFT']]),
+            'approving' => (new SupplierProductModel)->getCount(['status' => 'APPROVING']),
+            'approved' => (new SupplierProductModel)->getCount(['status' => 'APPROVED']),
+            'invalid' => (new SupplierProductModel)->getCount(['status' => 'INVALID']),
             'data' => $data
         ]);
     }
@@ -61,7 +65,10 @@ class SupplierproductController extends PublicController
         $detail['goods_list'] = (new SupplierGoodsModel)->getList($detail);
 
         foreach ($detail['goods_list'] as &$good) {
-            $good = array_merge($good, (new SupplierGoodsAttrModel)->getAttr($good));
+            $attrs = (new SupplierGoodsAttrModel)->getAttr($good);
+            if ($attrs) {
+                $good = array_merge($good, $attrs);
+            }
         }
 
         $this->jsonReturn([

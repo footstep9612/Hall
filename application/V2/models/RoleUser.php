@@ -250,7 +250,7 @@ class RoleUserModel extends PublicModel {
 
     public function _userRoleList($user_id, $pid = [], $source = null) {
         if ($user_id) {
-            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`';
             $employee_model = new EmployeeModel();
             $where = [];
             if (!empty($user_id)) {
@@ -291,7 +291,7 @@ class RoleUserModel extends PublicModel {
 
     private function _TopuserRoleList($user_id, $pid = [], $source = null) {
         if ($user_id) {
-            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source';
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`';
             $employee_model = new EmployeeModel();
             $where = [];
             if (!empty($user_id)) {

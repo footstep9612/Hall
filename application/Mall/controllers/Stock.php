@@ -37,8 +37,15 @@ class StockController extends PublicController {
             $price_strategy_discount_model = new PriceStrategyDiscountModel();
             $disCounts = $price_strategy_discount_model->getDisCountBySkus($skus,'STOCK', $special_id);
             foreach ($arr as $key => $val) {
-                if(isset($disCounts[$val['sku']]) && $val['price_strategy_type'] !='' && (empty($val['strategy_validity_start']) || $val['strategy_validity_start']>date('Y-m-d H:i:s',time())) && (empty($val['strategy_validity_end']) || $val['strategy_validity_end']<date('Y-m-d H:i:s',time()))){
+                if(isset($disCounts[$val['sku']]) && $val['price_strategy_type'] !='' && (empty($val['strategy_validity_start']) || $val['strategy_validity_start']<=date('Y-m-d H:i:s',time())) && (empty($val['strategy_validity_end']) || $val['strategy_validity_end']>date('Y-m-d H:i:s',time()))){
                     $val['price_range'] = $disCounts[$val['sku']];
+                    if(!empty($val['strategy_validity_end'])){
+                        $days = (strtotime($val['strategy_validity_end'])-time())/86400;
+                        $val['validity_days'] = $days > 1 ? ceil($days) : substr(sprintf( "%.2f ",$days),0,-2);
+                        $val['validity_hours'] = floor((strtotime($val['strategy_validity_end'])-time())%86400/3600);
+                        $val['validity_minutes'] = floor((strtotime($val['strategy_validity_end'])-time())%3600/60);
+                        $val['validity_seconds'] = floor((strtotime($val['strategy_validity_end'])-time())%86400%60);
+                    }
                 }else{
                     $val['price_range'] = [];
                 }
@@ -70,7 +77,6 @@ class StockController extends PublicController {
             //$this->_setConstPrice($list, $country_bn);
             $this->_setDisCount($list,isset($condition['special_id']) ? $condition['special_id'] : '');
             jsonReturn($list);
-            $this->jsonReturn($list);
         } elseif ($list === null) {
             $this->setCode(MSG::ERROR_EMPTY);
             $this->setMessage('空数据');
