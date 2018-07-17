@@ -47,6 +47,29 @@ class OrgModel extends PublicModel {
     }
 
     /**
+     * Description of 获取组织名称
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   组织
+     */
+    public function getIsEruiById($id) {
+        if (!$id) {
+            return 'N';
+        }
+        $where['id'] = $id;
+        $where['org_node'] = ['in', ['erui', 'eub', 'elg']];
+        $count = $this->where($where)->count();
+
+
+        if ($count) {
+            return 'Y';
+        } else {
+            return 'N';
+        }
+    }
+
+    /**
      * @desc 获取询单办理部门组ID
      *
      * @param array $groupId 当前用户的全部组ID

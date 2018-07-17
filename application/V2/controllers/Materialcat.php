@@ -185,8 +185,10 @@ class MaterialcatController extends PublicController {
     public function getlistAction() {
         $lang = $this->getPut('lang', 'zh');
         $cat_no = $this->getPut('cat_no', '');
-
-        $key = 'Material_cat_getlist_' . (!empty($lang) ? '_' . $lang : '') . (!empty($cat_no) ? '_' . $cat_no : '');
+        $name = $this->getPut('name', '');
+        $key = 'Material_cat_getlist_' . (!empty($lang) ? '_' . $lang : '')
+                . (!empty($cat_no) ? '_' . $cat_no : '')
+                . (!empty($name) ? '_' . md5($name) : '');
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->get_list($cat_no, $lang);

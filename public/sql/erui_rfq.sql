@@ -17,4 +17,4 @@ ALTER TABLE `inquiry` add COLUMN logi_quote_flag char(1) DEFAULT NULL COMMENT 'N
 ALTER TABLE `inquiry` add COLUMN loss_rfq_flag char(1)  DEFAULT NULL COMMENT '失单标志 N 未失单 Y  表示失单 null 表示未确定' after logi_quote_flag;
 ALTER TABLE `inquiry` add COLUMN loss_rfq_reason text DEFAULT NULL  COMMENT '失单原因' after logi_quote_flag;
 ALTER TABLE `inquiry_item` add COLUMN material_cat_no varchar(32) DEFAULT NULL  COMMENT '物料分类编码' after category;
-
+ALTER TABLE `quote_item` add COLUMN org_id bigint(20) DEFAULT NULL  COMMENT '事业部ID' after inquiry_item_id;

@@ -571,12 +571,15 @@ class InquiryController extends PublicController {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
 
-            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, check_org_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
+            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, '
+                                    . 'check_org_id, logi_org_id, logi_agent_id, logi_check_id')
+                            ->where(['id' => $condition['inquiry_id']])->find();
             $inquiryCheckLog = $inquiryCheckLogModel->getDetail(['inquiry_id' => $condition['inquiry_id']], 'in_node, out_node');
+
 
             $error = false;
             if ($inquiryCheckLog['out_node'] == 'CLARIFY') {
-// 根据流入环节获取当前办理人
+                // 根据流入环节获取当前办理人
                 switch ($inquiryCheckLog['in_node']) {
                     case 'BIZ_DISPATCHING' :
                         $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
