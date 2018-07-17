@@ -522,6 +522,12 @@ class BuyerModel extends PublicModel {
         if(!empty($data['name'])){    //客户名称
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
+        if(!empty($data['percent_min'])){    //信息完整度
+            $cond .= " and buyer.percent >= ".$data['percent_min'];
+        }
+        if(!empty($data['percent_max'])){    //信息完整度
+            $cond .= " and buyer.percent <= ".$data['percent_max'];
+        }
         //时间
         if(!empty($data['created_start_at'])){  //创建时间
             $cond .= " and buyer.created_at >= '".$data['created_start_at']."'";
