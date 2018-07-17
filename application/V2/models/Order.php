@@ -169,7 +169,7 @@ class OrderModel extends PublicModel {
         return $this
                         ->field('order.id,order.source,is_reply,order_no,po_no,execute_no,contract_date, buyer_id,order.status,show_status,pay_status,buyer.name as buyer_id_name,buyer.buyer_no')
                         ->join('`erui_buyer`.`buyer`  on buyer.id=order.buyer_id', 'left')
-                        ->where($where)->limit($start_no, $pagesize)->order('order.created_at desc')->select();
+                        ->where($where)->limit($start_no, $pagesize)->order('order.id asc')->select();
     }
 
     /* 获取订单数量
