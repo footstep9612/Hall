@@ -72,14 +72,14 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $v['show_all']=false;
             }
-            $applyInfo=$this->table('erui_buyer.apply_grade')
-                ->field('customer_grade')
-                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
-                ->order('id')
-                ->find();
-            if(!empty($applyInfo)){
-                $v['customer_grade']=$applyInfo['customer_grade'];
-            }
+//            $applyInfo=$this->table('erui_buyer.apply_grade')
+//                ->field('customer_grade')
+//                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
+//                ->order('id')
+//                ->find();
+//            if(!empty($applyInfo)){
+//                $v['customer_grade']=$applyInfo['customer_grade'];
+//            }
             unset($v['created_by']);
             $v['change']=false; //申请变更
             $v['reply']=false;  //回复申请变更结果
@@ -654,6 +654,12 @@ class CustomerGradeModel extends PublicModel {
             if($email===1){
                 $app->saveAppGrade($data['id'],$data['created_by']);
                 $this->noticeEmail(array('id'=>$data['id']));
+                $applyInfo=$this->table('erui_buyer.apply_grade')
+                    ->field('customer_grade')
+                    ->where(array('grade_id'=>$data['id'],'status'=>'Y'))
+                    ->order('id')
+                    ->find();
+                $this->where($cond)->save(array('customer_grade'=>$applyInfo['customer_grade']));
             }
             return true;
         }else{
