@@ -73,9 +73,9 @@ class CustomerGradeModel extends PublicModel {
                 $v['show_all']=false;
             }
             if($v['type']==1){
-                $v['customer_grade']='老客户 ('.$v['customer_grade'].')';
+                $v['customer_grade']=$lang=='zh'?'老客户 ('.$v['customer_grade'].')':'Old customer ('.$v['customer_grade'].')';
             }else{
-                $v['customer_grade']='潜在客户 ('.$v['customer_grade'].')';
+                $v['customer_grade']=$lang=='zh'?'潜在客户 ('.$v['customer_grade'].')':'Potential customer ('.$v['customer_grade'].')';
             }
 //            $applyInfo=$this->table('erui_buyer.apply_grade')
 //                ->field('customer_grade')
