@@ -1761,4 +1761,37 @@ class InquiryController extends PublicController {
         }
     }
 
+    /* 询单关闭后2个月，通过待办对市场人员进行提醒，同时在询单管理页面置顶。成单、失单分析填写完成后该询单报价完成
+     *
+     */
+
+    public function SucOrFailReasonAction() {
+        $data = $this->getPut();
+
+        if (empty($data['inquiry_id']) || empty($data['loss_rfq_flag']) || empty($data['loss_rfq_reason'])) {
+            $this->setCode('-103');
+            $this->setMessage(L('MISSING_PARAMETER'));
+            $this->jsonReturn();
+        } else {
+            $data['loss_rfq_flag'] = $data['loss_rfq_flag'] == 'Y' ? 'Y' : 'N';
+            $inquiry_model = new InquiryModel();
+            $create_data = $inquiry_model->create(['loss_rfq_flag' => $data['loss_rfq_flag'] == 'Y' ?
+                'Y' : ($data['loss_rfq_flag'] == 'N' ? 'N' : null),
+                'loss_rfq_reason' => $data['loss_rfq_reason']]);
+            $ret = false;
+            if ($create_data) {
+                $ret = $inquiry_model->where(['id' => $data['inquiry_id']])
+                        ->save($create_data);
+            }
+            if ($ret !== false) {
+                $results['code'] = '1';
+                $results['message'] = L('SUCCESS');
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = L('FAIL');
+            }
+            $this->jsonReturn($results);
+        }
+    }
+
 }
