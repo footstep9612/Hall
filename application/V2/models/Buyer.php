@@ -477,7 +477,7 @@ class BuyerModel extends PublicModel {
             $data[$k]=trim($v);
         }
         if($falg==true){
-            if(!empty($data['status'])){    //状态
+            if(!empty($data['status'])){    //分配状态
                 $cond .= " And `buyer`.status='".$data['status']."'";
             }
 //            if($filter==true){
@@ -523,13 +523,13 @@ class BuyerModel extends PublicModel {
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
         //时间
-        if(!empty($data['created_start_at'])){  //分配时间
+        if(!empty($data['created_start_at'])){  //创建时间
             $cond .= " and buyer.created_at >= '".$data['created_start_at']."'";
         }
         if(!empty($data['created_end_at'])){
             $cond .= " and buyer.created_at <= '".$data['created_end_at']."'";
         }
-        if(!empty($data['level_start_at'])){  //分配时间
+        if(!empty($data['level_start_at'])){  //等级时间
             $data['level_start_at']=substr($data['level_start_at'],0,10);
             $cond .= " and buyer.level_at >= '".$data['level_start_at']."'";
         }
@@ -560,6 +560,22 @@ class BuyerModel extends PublicModel {
             }else{
                 $cond.=" and buyer.id in ('crm')";
             }
+        }
+        if(!empty($data['created_name'])){  //客户.创建人名称
+            $em=$this->table('erui_sys.employee')->field('id')
+                ->where(" deleted_flag='N' and name like '%$data[created_name]%'")
+                ->select();
+            $emStr='';
+            if(!empty($em)){
+                foreach($em as $k => $v){
+                    $emStr.=','.$v['id'];
+                }
+                $emStr=mb_substr($emStr,1);
+                $cond.=" and buyer.created_by in ($emStr)";
+            }else{
+                $cond.=" and buyer.created_by in ('crm')";
+            }
+
         }
         if(!empty($data['employee_name']) || !empty($data['agent_name'])){  //经办人
             if(!empty($data['employee_name'])){
