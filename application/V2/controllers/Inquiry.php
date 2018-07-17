@@ -725,7 +725,12 @@ class InquiryController extends PublicController {
         $inquiryStatus = $inquiry->getInquiryStatus();
 
         $results = $inquiry->getInfo($where);
+        $org_id = $results['data']['org_id'];
+        $results['data']['org_parent_id'] = '';
 
+        if ($org_id) {
+            $results['data']['org_parent_id'] = $org->getParentid($org_id);
+        }
 //BOSS编码
         if (!empty($results['data']['buyer_id'])) {
             $results['data']['buyer_no'] = $buyerModel->where(['id' => $results['data']['buyer_id']])->getField('buyer_no');

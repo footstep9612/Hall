@@ -15,9 +15,9 @@ class OrgController extends PublicController {
 
     public function listAction() {
         $condition = ['org_node' => ['ub', 'lg']];
-        $org_id = $this->getPut('org_id');
-        $parent_id = '';
         $org_model = new OrgModel();
+        $parent_id = '';
+        $org_id = $this->getPut('org_id');
         if ($org_id) {
             $parent_id = $org_model->getParentid($org_id);
         }
