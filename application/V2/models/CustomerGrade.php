@@ -179,11 +179,11 @@ class CustomerGradeModel extends PublicModel {
                     $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
                 }
             }
-            if($lang=='zh'){
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }else{
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }
+//            if($lang=='zh'){
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }else{
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }
         }
         return $info;
     }
