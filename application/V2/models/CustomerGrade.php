@@ -72,6 +72,11 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $v['show_all']=false;
             }
+            if($v['type']==1){
+                $v['customer_grade']='老客户 ('.$v['customer_grade'].')';
+            }else{
+                $v['customer_grade']='潜在客户 ('.$v['customer_grade'].')';
+            }
 //            $applyInfo=$this->table('erui_buyer.apply_grade')
 //                ->field('customer_grade')
 //                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
