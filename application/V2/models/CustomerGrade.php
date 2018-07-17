@@ -185,10 +185,13 @@ class CustomerGradeModel extends PublicModel {
     //获取客户分级数据
     public function exportGradeData($data){
         if(!empty($data['buyer_id'])){
-            $cond=array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N');
+//            $cond=array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N');
+            $cond=" grade.buyer_id=$data[buyer_id] and grade.deleted_flag='N' ";
         }else{
-            $cond=array('grade.deleted_flag'=>'N');
+//            $cond=arrray('grade.deleted_flag'=>'N');
+            $cond=" grade.deleted_flag='N' ";
         }
+        $cond.=" and (grade.status=3 or grade.status=31) ";
         $lang=$data['lang'];
         $fieldArr=array(
             'id', //
