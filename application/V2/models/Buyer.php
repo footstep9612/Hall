@@ -480,9 +480,9 @@ class BuyerModel extends PublicModel {
             if(!empty($data['status'])){    //状态
                 $cond .= " And `buyer`.status='".$data['status']."'";
             }
-            if($filter==true){
-                $cond .= " And `buyer`.status='APPROVED'";
-            }
+//            if($filter==true){
+//                $cond .= " And `buyer`.status='APPROVED'";
+//            }
         }
 
         if(!empty($data['country_search'])){    //国家搜索
