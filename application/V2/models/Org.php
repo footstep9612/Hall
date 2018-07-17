@@ -120,6 +120,30 @@ class OrgModel extends PublicModel {
         return $list;
     }
 
+    public function getParentid($org_id) {
+        $where = ['deleted_flag' => 'N'];
+
+        if ($org_id) {
+            $where = ['id' => $org_id];
+        } else {
+            return '';
+        }
+        $info = $this
+                ->field('parent_id,org_node')
+                ->where($where)
+                ->find();
+
+        if (empty($info)) {
+            return '';
+        } elseif (empty($info['parent_id']) && !empty($info['org_node'])) {
+            return in_array($info['org_node'], ['erui', 'eub', 'elg']) ? 'ERUI' : '';
+        } elseif (!empty($info['parent_id'])) {
+            return $info['parent_id'];
+        } else {
+            return '';
+        }
+    }
+
     public function getCount($condition) {
         $where = ['deleted_flag' => 'N'];
         if (!empty($condition['org_node']) && is_string($condition['org_node'])) {

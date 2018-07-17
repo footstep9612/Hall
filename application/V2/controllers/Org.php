@@ -15,15 +15,23 @@ class OrgController extends PublicController {
 
     public function listAction() {
         $condition = ['org_node' => ['ub', 'lg']];
-
+        $org_id = $this->getPut('org_id');
+        $parent_id = '';
         $org_model = new OrgModel();
+        if ($org_id) {
+            $parent_id = $org_model->getParentid($org_id);
+        }
         $data = $org_model->getList($condition);
-
-        array_push($data, ['id' => 'ERUI', 'name' => '易瑞', 'name_en' => 'ERUI', 'name_es' => 'ERUI', 'name_ru' => 'ERUI']);
+        array_push($data, ['id' => 'ERUI',
+            'name' => '易瑞',
+            'name_en' => 'ERUI',
+            'name_es' => 'ERUI',
+            'name_ru' => 'ERUI']);
         if ($data) {
             $show_data['message'] = MSG::getMessage(MSG::MSG_SUCCESS, $this->lang);
             $show_data['code'] = MSG::MSG_SUCCESS;
             $show_data['data'] = $data;
+            $show_data['parent_id'] = $parent_id;
             $show_data['count'] = $org_model->getCount($condition);
             $this->jsonReturn($show_data);
         } elseif ($data === null) {
