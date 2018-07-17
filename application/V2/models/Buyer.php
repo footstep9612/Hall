@@ -514,6 +514,11 @@ class BuyerModel extends PublicModel {
         if(!empty($data['buyer_code'])){    //客户CRM代码
             $cond .= " and buyer.buyer_code like '%".$data['buyer_code']."%'";
         }
+        if(!empty($data['buyer_no_code'])){    //客户编号-代码            2合1-------------------------------
+            $cond .= " and ( buyer.buyer_no like '%".$data['buyer_no_code']."%'";
+            $cond .= " or buyer.buyer_code like '%".$data['buyer_no_code']."%' )";
+        }
+
         if(!empty($data['name'])){    //客户名称
             $cond .= " and buyer.name like '%".$data['name']."%'";
         }
