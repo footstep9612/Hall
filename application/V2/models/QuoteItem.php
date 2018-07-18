@@ -375,9 +375,12 @@ class QuoteItemModel extends PublicModel {
     public function getQuoteFinalSku($request) {
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
-                         a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
-                         a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
+        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,'
+                . 'b.model,b.remarks,b.category,a.exw_unit_price,'
+                . 'a.quote_unit_price,c.exw_unit_price final_exw_unit_price,'
+                . 'c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,'
+                . 'a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,'
+                . 'a.goods_source,a.stock_loc,a.reason_for_no_quote,b.material_cat_no,a.org_id';
         return $this->getFinalSqlJoint($request)
                         ->field($fields)
                         ->page($currentPage, $pageSize)

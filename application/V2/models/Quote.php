@@ -52,9 +52,26 @@ class QuoteModel extends PublicModel {
     public function updateGeneralInfo(array $condition, $data) {
 
         try {
-            $this->where($condition)->save($this->create($data));
+            $this->startTrans();
+            $falg = $this->where($condition)
+                    ->save($this->create($data));
+            if ($falg) {
+                $this->rollback();
+                return [
+                    'code' => -1,
+                    'message' => '新建报价失败!'
+                ];
+            }
             //处理计算相关逻辑
-            $this->calculate($condition);
+            $flag = $this->calculate($condition);
+            if ($flag) {
+                $this->rollback();
+                return [
+                    'code' => -1,
+                    'message' => '处理计算相关逻辑失败!'
+                ];
+            }
+            $this->commit();
             return [
                 'code' => 1,
                 'message' => L('QUOTE_SUCCESS')
@@ -103,7 +120,19 @@ class QuoteModel extends PublicModel {
                             ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
                             ->order('created_at DESC')
                             ->getField('rate');
-                    $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $exchange_rate; //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
+                    if (empty($exchange_rate)) {
+                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => $value['purchase_price_cur_bn']])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                        if (empty($rate)) {
+                            return false;
+                        } else {
+                            $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $rate;
+                        }
+                    } else {
+                        $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $exchange_rate;
+                    }
+                    //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
                     $exw_unit_price = sprintf("%.8f", $exw_unit_price);
 
                     $quoteItemModel->where(['id' => $value['id']])->save([
@@ -149,7 +178,7 @@ class QuoteModel extends PublicModel {
          */
         $totalPurchase = [];
         $quoteItemsData = $quoteItemModel->where($where)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
-        var_dump($quoteItemsData);
+
         foreach ($quoteItemsData as $quote => $item) {
             switch ($item['purchase_price_cur_bn']) {
                 case 'EUR' :

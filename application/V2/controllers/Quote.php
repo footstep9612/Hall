@@ -550,8 +550,12 @@ class QuoteController extends PublicController {
         $request = $this->validateRequests('inquiry_id');
         $list = $this->quoteItemModel->getQuoteFinalSku($request);
 
+
         if (!$list)
             $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_NO_DATA')]);
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+
         $this->_setOrgName($list);
         $this->_setMaterialCatName($list);
         foreach ($list as $key => $value) {
@@ -563,6 +567,8 @@ class QuoteController extends PublicController {
 
         $this->jsonReturn([
             'code' => 1,
+            'is_erui' => $is_erui,
+            'org_id' => $org_id,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getFinalCount($request),
             'data' => $list
