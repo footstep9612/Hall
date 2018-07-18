@@ -703,7 +703,7 @@ EOF;
                 jsonReturn('', -101, L('create_email'));
             }
             $checkEmail=$buyer_account_model->field('email')
-                ->where("email=$data[email] and deleted_flag='N' and status !='REJECTED'")
+                ->where("email='$data[email]' and deleted_flag='N' and status !='REJECTED'")
                 ->find();
             if($checkEmail){
                 jsonReturn('', -101, L('email_existed'));
