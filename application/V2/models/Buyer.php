@@ -764,8 +764,8 @@ class BuyerModel extends PublicModel {
                 $info[$k]['agent_id'] = $v['created_by'];
                 $info[$k]['employee_name']=$name['name'];
             }
-//            $orderInfo=$order->statisOrder($v['id']);
-//            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
+            $orderInfo=$order->statisOrder($v['id']);
+            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
             if(!empty($v['created_by'])){
                 $employee=$this->table('erui_sys.employee')->field('name')->where(array('id'=>$v['created_by'],'deleted_flag'=>'N'))->find();
                 $v['created_name']=$employee['name'];
@@ -2107,6 +2107,7 @@ EOF;
         $level = new BuyerLevelModel();
         $country = new CountryModel();
         $agent = new BuyerAgentModel();
+        $order = new OrderModel();
         foreach($info as $k => $v){
             if(empty($v['percent'])){
                 $info[$k]['percent']='--';
@@ -2165,6 +2166,8 @@ EOF;
 
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['buyer_name'] = $info[$k]['name'];
+            $orderInfo=$order->statisOrder($v['id']);
+            $info[$k]['mem_cate'] = $orderInfo['mem_cate'];
             unset($info[$k]['created_by']);
             unset($info[$k]['name']);
         }
