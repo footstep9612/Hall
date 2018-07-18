@@ -153,11 +153,11 @@ class SuppliersController extends PublicController {
 //            if (!$hasDeveloper)
 //                jsonReturn('', -101, '开发人不能为空!');
             
-            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT']])->getField('id');
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT'], 'deleted_flag' => 'N'])->getField('id');
             if ($hasSupplierName)
                 jsonReturn('', -101, '此公司名称已经存在!');
             
-            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
+            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code'], 'deleted_flag' => 'N'])->getField('id');
             if ($hasCreditCode)
                 jsonReturn('', -101, '此营业执照编码已经存在!');
         }
