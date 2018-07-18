@@ -379,6 +379,12 @@ class BuyerVisitModel extends PublicModel {
         $data['visit_result'] = trim($_input['visit_result']);    //拜访结果
         $data['customer_note'] = trim($_input['customer_note']);    //客户痛点
         $data['is_demand'] = $_input['is_demand'];    //是否有需求
+
+        if($data['is_demand']=='N'){
+            $data['department'] = '';    //部门
+            $data['handler'] = '';    //部门
+            $data['feedback_content'] = '';    //部门
+        }
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
         if(!empty($_input['department'])){
