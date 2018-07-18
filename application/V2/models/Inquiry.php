@@ -265,13 +265,14 @@ class InquiryModel extends PublicModel {
                     $map1['a.now_agent_id'] = $condition['user_id'];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
+
                     if (in_array(self::quoteIssueMainRole, $role_nos) || in_array(self::inquiryIssueRole, $role_nos)) {
                         $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
                         !empty($orgId) ? $map[] = ['a.org_id' => ['in', $orgId]] : '';
                     } elseif (in_array(self::inquiryIssueAuxiliaryRole, $role_nos) || in_array(self::quoteIssueAuxiliaryRole, $role_nos)) {
                         $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
                         $map2 = [];
-                        $map2['a.logi_org_id'] = !empty($orgId) ? ['in', $orgId] : '-1';
+                        $map2['a.org_id'] = !empty($orgId) ? ['in', $orgId] : '-1';
                         $map2 ['a.country_bn'] = ['in', isset($condition['user_country']) ? $condition['user_country'] : ['-1']];
                         $map2['_logic'] = 'and';
                         $map['_complex'] = $map2;

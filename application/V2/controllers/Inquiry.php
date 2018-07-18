@@ -245,9 +245,6 @@ class InquiryController extends PublicController {
         $condition['user_country'] = $countryUserModel->getUserCountry(['employee_id' => $this->user['id']]) ?: [];
 
         $inquiryList = $inquiryModel->getList_($condition);
-
-
-
         $countryModel->setCountry($inquiryList, $this->lang);
         $marketAreaCountryModel->setAreaBn($inquiryList);
         $marketAreaModel->setArea($inquiryList);
