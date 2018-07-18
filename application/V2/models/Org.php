@@ -47,6 +47,29 @@ class OrgModel extends PublicModel {
     }
 
     /**
+     * Description of 获取组织名称
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc   组织
+     */
+    public function getIsEruiById($id) {
+        if (!$id) {
+            return 'N';
+        }
+        $where['id'] = $id;
+        $where['org_node'] = ['in', ['erui', 'eub', 'elg']];
+        $count = $this->where($where)->count();
+
+
+        if ($count) {
+            return 'Y';
+        } else {
+            return 'N';
+        }
+    }
+
+    /**
      * @desc 获取询单办理部门组ID
      *
      * @param array $groupId 当前用户的全部组ID
@@ -95,6 +118,30 @@ class OrgModel extends PublicModel {
                 ->where($where)
                 ->select();
         return $list;
+    }
+
+    public function getParentid($org_id) {
+        $where = ['deleted_flag' => 'N'];
+
+        if ($org_id) {
+            $where = ['id' => $org_id];
+        } else {
+            return '';
+        }
+        $info = $this
+                ->field('parent_id,org_node')
+                ->where($where)
+                ->find();
+
+        if (empty($info)) {
+            return '';
+        } elseif (empty($info['parent_id']) && !empty($info['org_node'])) {
+            return in_array($info['org_node'], ['erui', 'eub', 'elg']) ? 'ERUI' : '';
+        } elseif (!empty($info['parent_id'])) {
+            return $info['parent_id'];
+        } else {
+            return '';
+        }
     }
 
     public function getCount($condition) {
