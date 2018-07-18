@@ -3197,10 +3197,11 @@ EOF;
             'intent_product', //意向产品
             'purchase_amount' //预计年采购额
         );
-        $cond = array(
-            'buyer_code'=>$data['buyer_code'],
-            'deleted_flag'=>'N'
-        );
+//        $cond = array(
+//            'buyer_code'=>$data['buyer_code'],
+//            'deleted_flag'=>'N'
+//        );
+        $cond="buyer_code='$data[buyer_code]' and deleted_flag='N' and status!='REJECTED'";
         $info = $this->field($field)->where($cond)->find();
         return $info;
     }
