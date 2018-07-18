@@ -705,6 +705,7 @@ class BuyerModel extends PublicModel {
         $field='';
         $fieldArr = array(
             'id',
+            'percent',  //信息完整度
             'buyer_no',     //客户编号
             'buyer_code',   //客户CRM代码buy
             'name',   //客户名称buy
@@ -737,6 +738,12 @@ class BuyerModel extends PublicModel {
         $order = new OrderModel();
         $agent = new BuyerAgentModel();
         foreach($info as $k => &$v){
+            if(!empty($v['percent'])){  //信息完整度
+                $v['percent']=$v['percent'].'%';
+            }
+            $account=$this->table('erui_buyer.buyer_account')->field('email')
+                ->where(array('buyer_id'=>$v['id'],'deleted_flag'=>'N'))->find();
+            $info[$k]['account_email'] = $account['email'];
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
             }else{
