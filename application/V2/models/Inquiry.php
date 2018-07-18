@@ -13,16 +13,16 @@ class InquiryModel extends PublicModel {
     protected $tableName = 'inquiry'; //数据表表名
 
     const marketAgentRole = 'A001'; //市场经办人角色编号
-    const inquiryIssueRole = 'A002'; //易瑞主分单员角色编号
-    const quoteIssueMainRole = 'A003'; //报价主分单员角色编号
-    const quoteIssueAuxiliaryRole = 'A004'; //报价辅分单员角色编号
+    const inquiryIssueRole = 'A002'; //易瑞辅分单员角色编号
+    const quoteIssueMainRole = 'A003'; //报价辅分单员角色编号
+    const quoteIssueAuxiliaryRole = 'A004'; //报价主分单员角色编号
     const quoterRole = 'A005'; //报价人角色编号
     const quoteCheckRole = 'A006'; //报价审核人角色编号
     const logiIssueMainRole = 'A007'; //物流报价主分单员角色编号
     const logiIssueAuxiliaryRole = 'A008'; //物流报价辅分单员角色编号
     const logiQuoterRole = 'A009'; //物流报价人角色编号
     const logiCheckRole = 'A010'; //物流报价审核人角色编号
-    const inquiryIssueAuxiliaryRole = 'A011'; //易瑞辅分单员角色编号
+    const inquiryIssueAuxiliaryRole = 'A011'; //易瑞主分单员角色编号
     const viewAllRole = 'A012'; //查看全部询单角色编号
     const viewBizDeptRole = 'A013'; //查看事业部询单角色编号
     const viewCountryRole = 'A015'; //查看国家角色编号(A014被占用)

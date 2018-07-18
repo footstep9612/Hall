@@ -227,7 +227,7 @@ class QuoteItemModel extends PublicModel {
         $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        $materialcat_model->setNamesByList($list, 'zh');
+        $materialcat_model->setNamesByList($data, 'zh');
         foreach ($data as $key => $value) {
             $row++;
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
@@ -302,6 +302,7 @@ class QuoteItemModel extends PublicModel {
                 if ($value['id'] == '') {
                     $inquiryItemData['created_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
+
                     $quoteItemData['inquiry_item_id'] = $inquiryItemResult['insert_id'];
                     $quoteItemData['created_by'] = $user;
                     $quoteItemData['created_at'] = $time;
@@ -310,6 +311,7 @@ class QuoteItemModel extends PublicModel {
                     $inquiryItemData['id'] = $value['inquiry_item_id'];
                     $inquiryItemData['updated_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->updateData($inquiryItemData);
+
                     $quoteItemData['id'] = $value['id'];
                     $quoteItemData['updated_by'] = $user;
                     $quoteItemData['updated_at'] = $time;

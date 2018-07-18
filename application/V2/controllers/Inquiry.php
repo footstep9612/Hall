@@ -1497,7 +1497,9 @@ class InquiryController extends PublicController {
         $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no')->find();
 
         $employeeModel = new EmployeeModel();
-        $receiverInfo = $employeeModel->where(['id' => $inquiryInfo['now_agent_id']])->field('name,mobile,email')->find();
+        $receiverInfo = $employeeModel
+                        ->where(['id' => $inquiryInfo['now_agent_id']])
+                        ->field('name,mobile,email')->find();
 
 //QUOTE_SENT-报价单已发出 INQUIRY_CLOSED-报价关闭 状态下不发送短信
         if (!in_array($data['out_node'], ['QUOTE_SENT', 'INQUIRY_CLOSED'])) {
