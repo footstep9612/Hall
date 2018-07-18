@@ -13,6 +13,32 @@ class OrgController extends PublicController {
         parent::init();
     }
 
+    public function nameAction() {
+        $org_model = new OrgModel();
+        $org_id = $this->getPut('org_id');
+
+        if ($org_id) {
+            $name = $org_model->getNameById($org_id, $this->lang);
+            if ($name) {
+                $this->setMessage($this->lang == 'en' ? 'SUCCESS' : '获取成功!');
+                $this->jsonReturn($name);
+            } else {
+                $this->setMessage($this->lang == 'en' ? 'EMPTY' : '数据为空!');
+
+                $this->setCode(MSG::ERROR_EMPTY);
+                $this->jsonReturn();
+            }
+        } else {
+
+
+
+            $this->setMessage($this->lang == 'en' ? 'The parameter is wrong, org_id can not be empty' : '参数不对,org_id不能为空!');
+
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->jsonReturn();
+        }
+    }
+
     public function listAction() {
         $condition = ['org_node' => ['ub', 'lg']];
         $org_model = new OrgModel();
