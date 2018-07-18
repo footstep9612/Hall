@@ -330,7 +330,7 @@ class InquiryController extends PublicController {
             $data = [
                 'id' => $condition['inquiry_id'],
                 'org_id' => $condition['org_id'],
-                'now_agent_id' => $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$condition['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]),
+                'now_agent_id' => $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$condition['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]),
                 'quote_id' => NULL,
                 'status' => 'BIZ_DISPATCHING',
                 'updated_by' => $this->user['id']
@@ -360,7 +360,7 @@ class InquiryController extends PublicController {
         if ($data['is_agent'] == 'Y') {
             $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name, name_en, name_es, name_ru')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
+            $org = $orgModel->field('id, name, name_en, name_es, name_ru')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'eub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
 
 // 事业部id和名称
             $data['ub_id'] = $org['id'];
@@ -579,7 +579,7 @@ class InquiryController extends PublicController {
                 // 根据流入环节获取当前办理人
                 switch ($inquiryCheckLog['in_node']) {
                     case 'BIZ_DISPATCHING' :
-                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
                         break;
                     case 'CC_DISPATCHING' :
                         $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['erui_id']], $inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::inquiryIssueRole, 'erui');
@@ -588,7 +588,7 @@ class InquiryController extends PublicController {
                         $nowAgentId = $inquiry['quote_id'];
                         break;
                     case 'LOGI_DISPATCHING' :
-                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['logi_org_id']], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, 'lg');
+                        $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['logi_org_id']], $inquiryModel::logiIssueAuxiliaryRole, $inquiryModel::logiIssueMainRole, ['in', ['lg', 'elg']]);
                         break;
                     case 'LOGI_QUOTING' :
                         $nowAgentId = $inquiry['logi_agent_id'];
@@ -864,7 +864,7 @@ class InquiryController extends PublicController {
         $data['updated_by'] = $this->user['id'];
 
         if ($data['status'] == 'BIZ_DISPATCHING') {
-            $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+            $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         }
 
         $results = $inquiry->updateStatus($data);
@@ -1329,7 +1329,7 @@ class InquiryController extends PublicController {
                             $nowAgentIds = (new InquiryModel())
                                     ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['org_id']], ['in', [InquiryModel::inquiryIssueAuxiliaryRole,
                                     InquiryModel::quoteIssueAuxiliaryRole]], ['in', [InquiryModel::inquiryIssueRole,
-                                    InquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+                                    InquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui', 'eub']]);
 
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;
@@ -1349,7 +1349,7 @@ class InquiryController extends PublicController {
                             break;
                         case 'LOGI_DISPATCHING'://物流分单员
                             $nowAgentIds = (new InquiryModel())
-                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryMode::logiIssueMainRole, 'lg');
+                                    ->getInquiryIssueUserIds($condition['inquiry_id'], [$inquiry['logi_org_id']], InquiryModel::logiIssueAuxiliaryRole, InquiryMode::logiIssueMainRole, ['in', ['lg', 'elg']]);
 
                             !in_array(UID, $nowAgentIds) ? $res = [] : '';
                             break;

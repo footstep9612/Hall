@@ -258,7 +258,7 @@ class Rfq_InquiryModel extends PublicModel {
                 case 'issue' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui']]);
+                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'eub', 'erui']]);
 
                             if ($orgId)
                                 $map[] = ['a.org_id' => ['in', $orgId]];
@@ -281,7 +281,7 @@ class Rfq_InquiryModel extends PublicModel {
                 case 'logi' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['lg', 'elg']]);
 
                             if ($orgId)
                                 $map[] = ['a.logi_org_id' => ['in', $orgId]];
@@ -663,7 +663,7 @@ class Rfq_InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-20
      */
-    public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
+    public function getDeptOrgId($groupId = [], $orgNode = ['in', ['ub', 'eub']]) {
         $orgModel = new OrgModel();
 
         $where = [
@@ -685,7 +685,7 @@ class Rfq_InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-10-23
      */
-    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = 'ub') {
+    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = ['in', ['ub', 'eub']]) {
         $orgMemberModel = new OrgMemberModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
@@ -820,7 +820,7 @@ class Rfq_InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-27
      */
-    public function getCountryRoleUserId($country = '', $groupId = [], $roleNo = '', $orgNode = 'ub') {
+    public function getCountryRoleUserId($country = '', $groupId = [], $roleNo = '', $orgNode = ['in', ['ub', 'eub']]) {
         $countryUserModel = new CountryUserModel();
 
         $employeeId = $this->getRoleUserId($groupId, $roleNo, $orgNode);
@@ -841,14 +841,14 @@ class Rfq_InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-11-28
      */
-    public function getCountryIssueUserId($country = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+    public function getCountryIssueUserId($country = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = ['in', ['ub', 'eub']]) {
         $userId = $this->getCountryRoleUserId($country, $groupId, $roleNo1, $orgNode) ?:
                 $this->getRoleUserId($groupId, $roleNo2, $orgNode);
 
         return $userId[0];
     }
 
-    public function getInquiryIssueUserIds($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+    public function getInquiryIssueUserIds($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = ['in', ['ub', 'eub']]) {
 
         $country = $this->getInquiryCountry($id);
 
@@ -892,7 +892,7 @@ class Rfq_InquiryModel extends PublicModel {
      * @author liujf
      * @time 2017-12-14
      */
-    public function getInquiryIssueUserId($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = 'ub') {
+    public function getInquiryIssueUserId($id = '', $groupId = [], $roleNo1 = '', $roleNo2 = '', $orgNode = ['in', ['ub', 'eub']]) {
         $country = $this->getInquiryCountry($id);
 
         return $this->getCountryIssueUserId($country, $groupId, $roleNo1, $roleNo2, $orgNode);
