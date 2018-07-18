@@ -72,14 +72,19 @@ class CustomerGradeModel extends PublicModel {
             }else{
                 $v['show_all']=false;
             }
-            $applyInfo=$this->table('erui_buyer.apply_grade')
-                ->field('customer_grade')
-                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
-                ->order('id')
-                ->find();
-            if(!empty($applyInfo)){
-                $v['customer_grade']=$applyInfo['customer_grade'];
+            if($v['type']==1){
+                $v['customer_grade']=$lang=='zh'?'老客户 ('.$v['customer_grade'].')':'Old customer ('.$v['customer_grade'].')';
+            }else{
+                $v['customer_grade']=$lang=='zh'?'潜在客户 ('.$v['customer_grade'].')':'Potential customer ('.$v['customer_grade'].')';
             }
+//            $applyInfo=$this->table('erui_buyer.apply_grade')
+//                ->field('customer_grade')
+//                ->where(array('grade_id'=>$v['id'],'status'=>'Y'))
+//                ->order('id')
+//                ->find();
+//            if(!empty($applyInfo)){
+//                $v['customer_grade']=$applyInfo['customer_grade'];
+//            }
             unset($v['created_by']);
             $v['change']=false; //申请变更
             $v['reply']=false;  //回复申请变更结果
@@ -174,21 +179,24 @@ class CustomerGradeModel extends PublicModel {
                     $v['show']=true;    $v['edit']=false;  $v['delete']=false;    $v['submit']=false;
                 }
             }
-            if($lang=='zh'){
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }else{
-                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
-            }
+//            if($lang=='zh'){
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }else{
+//                $v['customer_grade']=mb_substr($v['customer_grade'],0,1);
+//            }
         }
         return $info;
     }
     //获取客户分级数据
     public function exportGradeData($data){
         if(!empty($data['buyer_id'])){
-            $cond=array('buyer_id'=>$data['buyer_id'],'deleted_flag'=>'N');
+//            $cond=array('grade.buyer_id'=>$data['buyer_id'],'grade.deleted_flag'=>'N');
+            $cond=" grade.buyer_id=$data[buyer_id] and grade.deleted_flag='N' ";
         }else{
-            $cond=array('deleted_flag'=>'N');
+//            $cond=arrray('grade.deleted_flag'=>'N');
+            $cond=" grade.deleted_flag='N' ";
         }
+        $cond.=" and (grade.status=3 or grade.status=31) ";
         $lang=$data['lang'];
         $fieldArr=array(
             'id', //
@@ -215,11 +223,26 @@ class CustomerGradeModel extends PublicModel {
             'final_score', //综合分值
             'customer_grade' //客户等级
         );
-        $info=$this->alias('grade')
-            ->field($fieldArr)
-            ->where($cond)
-            ->order('grade.id desc')
-            ->select();
+        $field='';
+        foreach($fieldArr as $k => $v){
+            $field.=",grade.".$v;
+        }
+        $field=mb_substr($field,1);
+        if(!empty($data['buyer_id'])){
+            $info=$this->alias('grade')
+                ->field($field)
+                ->where($cond)
+                ->order('grade.buyer_id desc')
+                ->select();
+        }else{
+            $info=$this->alias('grade')
+                ->join('(SELECT buyer_id FROM erui_buyer.customer_grade where deleted_flag=\'N\' GROUP BY buyer_id) main on grade.buyer_id =main.buyer_id
+','right')
+                ->field($field)
+                ->where($cond)
+                ->order('grade.buyer_id desc')
+                ->select();
+        }
         if(empty($info)){
             return [];
         }
@@ -636,6 +659,12 @@ class CustomerGradeModel extends PublicModel {
             if($email===1){
                 $app->saveAppGrade($data['id'],$data['created_by']);
                 $this->noticeEmail(array('id'=>$data['id']));
+                $applyInfo=$this->table('erui_buyer.apply_grade')
+                    ->field('customer_grade')
+                    ->where(array('grade_id'=>$data['id'],'status'=>'Y'))
+                    ->order('id')
+                    ->find();
+                $this->where($cond)->save(array('customer_grade'=>$applyInfo['customer_grade']));
             }
             return true;
         }else{

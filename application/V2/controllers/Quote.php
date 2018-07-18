@@ -339,7 +339,10 @@ class QuoteController extends PublicController {
         ]);
 
         // 记录历史报价
-        $list = $this->finalQuoteItemModel->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->select();
+        $list = $this->finalQuoteItemModel
+                ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
+                ->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])
+                ->select();
         foreach ($list as &$item) {
             $item['created_by'] = $this->user['id'];
             $item['created_at'] = date('Y-m-d H:i:s');
@@ -386,17 +389,17 @@ class QuoteController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
         $list = $this->quoteItemModel->getList($request);
+
         empty($list) ? $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]) : null;
+        $inquiry_model = new InquiryModel();
+        $org_id = $inquiry_model->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
 
-        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id']])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        ( new SupplierModel())->setSupplier($list);
+        $this->_setOrgName($list);
 
-        $org_name = $org_id > 0 ? (new OrgModel())->getNameById($org_id, $this->lang) : '';
-
-        $supplier = new SupplierModel();
-        $supplier->setSupplier($list);
         foreach ($list as $key => $value) {
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
-
             // 参考历史报价数量
             $condition = [
                 'sku' => $value['sku'],
@@ -408,18 +411,54 @@ class QuoteController extends PublicController {
             ];
             $list[$key]['historical_quote_count'] = $this->historicalSkuQuoteModel->getCount($condition);
         }
-
-
         $total_purchase_price = $this->quoteItemModel->getTotalPurchasePrice($request);
-
         $this->jsonReturn([
             'code' => 1,
-            'org_name' => $org_name,
+            'is_erui' => $is_erui,
+            'org_id' => $org_id,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getCount($request),
             'total_purchase_price' => $total_purchase_price,
             'data' => $list
         ]);
+    }
+
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setOrgName(&$arr) {
+        if ($arr) {
+            $org_model = new OrgModel();
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['org_id']) && $val['org_id']) {
+                    $org_ids[] = $val['org_id'];
+                }
+            }
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $org_model->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
+                    $val['org_name'] = $orgnames[$val['org_id']];
+                } else {
+                    $val['org_name'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
     }
 
     /**

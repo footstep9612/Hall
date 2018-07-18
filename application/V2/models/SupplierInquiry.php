@@ -480,7 +480,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->where($where)
                 ->count('i.id');
 
-        echo $count;
+
 
         $list = $inquiry_model->alias('i')
                 ->join($inquiry_item_table . ' as it on it.deleted_flag=\'N\' and it.inquiry_id=i.id', 'left')
@@ -490,9 +490,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->where($where)
                 ->select();
 
-        echo $inquiry_model->_sql();
-        Log::write($inquiry_model->_sql());
-        die;
+
 
         $this->_setSupplierName($list);
         $this->_setquoted_time($list);

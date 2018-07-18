@@ -428,7 +428,7 @@ class SupplierModel extends PublicModel {
                 }
             }
             if ($supplier_ids) {
-                $where = ['deleted_flag' => 'N', 'id' => $supplier_ids];
+                $where = ['deleted_flag' => 'N', 'id' => ['in', $supplier_ids]];
                 $map['name'] = ['neq', ''];
                 $map[] = '`name` is not null';
                 $map['_logic'] = 'and';

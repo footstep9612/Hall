@@ -571,12 +571,15 @@ class InquiryController extends PublicController {
             $inquiryModel = new InquiryModel();
             $inquiryCheckLogModel = new InquiryCheckLogModel();
 
-            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, check_org_id, logi_org_id, logi_agent_id, logi_check_id')->where(['id' => $condition['inquiry_id']])->find();
+            $inquiry = $inquiryModel->field('inflow_time, org_id, erui_id, quote_id, '
+                                    . 'check_org_id, logi_org_id, logi_agent_id, logi_check_id')
+                            ->where(['id' => $condition['inquiry_id']])->find();
             $inquiryCheckLog = $inquiryCheckLogModel->getDetail(['inquiry_id' => $condition['inquiry_id']], 'in_node, out_node');
+
 
             $error = false;
             if ($inquiryCheckLog['out_node'] == 'CLARIFY') {
-// 根据流入环节获取当前办理人
+                // 根据流入环节获取当前办理人
                 switch ($inquiryCheckLog['in_node']) {
                     case 'BIZ_DISPATCHING' :
                         $nowAgentId = $inquiryModel->getInquiryIssueUserId($condition['inquiry_id'], [$inquiry['org_id']], ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
@@ -722,7 +725,12 @@ class InquiryController extends PublicController {
         $inquiryStatus = $inquiry->getInquiryStatus();
 
         $results = $inquiry->getInfo($where);
+        $org_id = $results['data']['org_id'];
+        $results['data']['org_parent_id'] = '';
 
+        if ($org_id) {
+            $results['data']['org_parent_id'] = $org->getParentid($org_id);
+        }
 //BOSS编码
         if (!empty($results['data']['buyer_id'])) {
             $results['data']['buyer_no'] = $buyerModel->where(['id' => $results['data']['buyer_id']])->getField('buyer_no');
@@ -1758,6 +1766,39 @@ class InquiryController extends PublicController {
                 }
                 $arr[$key] = $val;
             }
+        }
+    }
+
+    /* 询单关闭后2个月，通过待办对市场人员进行提醒，同时在询单管理页面置顶。成单、失单分析填写完成后该询单报价完成
+     *
+     */
+
+    public function SucOrFailReasonAction() {
+        $data = $this->getPut();
+
+        if (empty($data['inquiry_id']) || empty($data['loss_rfq_flag']) || empty($data['loss_rfq_reason'])) {
+            $this->setCode('-103');
+            $this->setMessage(L('MISSING_PARAMETER'));
+            $this->jsonReturn();
+        } else {
+            $data['loss_rfq_flag'] = $data['loss_rfq_flag'] == 'Y' ? 'Y' : 'N';
+            $inquiry_model = new InquiryModel();
+            $create_data = $inquiry_model->create(['loss_rfq_flag' => $data['loss_rfq_flag'] == 'Y' ?
+                'Y' : ($data['loss_rfq_flag'] == 'N' ? 'N' : null),
+                'loss_rfq_reason' => $data['loss_rfq_reason']]);
+            $ret = false;
+            if ($create_data) {
+                $ret = $inquiry_model->where(['id' => $data['inquiry_id']])
+                        ->save($create_data);
+            }
+            if ($ret !== false) {
+                $results['code'] = '1';
+                $results['message'] = L('SUCCESS');
+            } else {
+                $results['code'] = '-101';
+                $results['message'] = L('FAIL');
+            }
+            $this->jsonReturn($results);
         }
     }
 
