@@ -79,71 +79,16 @@ class BuyerVisitModel extends PublicModel {
     //获取客户需求反馈的条件
     public function getDemadCond($data){
 
-        if(empty($data['admin']['role'])){
-            return false;
-        }
-        $buyer=new BuyerModel();
-        $access=$buyer->accessCountry($data);
-        if($access===false){
-            return false;
-        }
-        $condition=$access;
-        $condition.=' and visit.is_demand=\'Y\' ';
-//        print_r($condition);die;
-//        if(!in_array('CRM客户管理',$data['admin']['role'])){    //权限
-//            if(!in_array('201711242',$data['admin']['role']) && !in_array('A001',$data['admin']['role'])){  //不是国家负责人也不是经办人
-//                return false;
-//            }elseif(in_array('201711242',$data['admin']['role'])  && !in_array('A001',$data['admin']['role'])){   //国家负责人,不是经办人
-//                $condition .= ' And  `buyer`.country_bn in ('.$data['admin']['country'].')';
-//            }elseif(!in_array('201711242',$data['admin']['role'])  && in_array('A001',$data['admin']['role'])){   //不是国家负责人,是经办人
-//                $agent=new BuyerAgentModel();
-//                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $created=new BuyerModel();
-//                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $totalList=$this->validAgent($createdArr,$list);
-//                $str='';
-//                foreach($totalList as $k => $v){
-//                    $str.=','.$v['buyer_id'];
-//                }
-//                $str=substr($str,1);
-//                if(!empty($str)){
-//                    $condition.= " and buyer.id in ($str) ";
-//                }else{
-//                    $condition.= " and buyer.id in ('wangs') ";
-//                }
-//            }else{  //即使国家负责人,也是市场经办人
-//                $condition .= ' And ( `buyer`.country_bn in ('.$data['admin']['country'].')';
-//                $agent=new BuyerAgentModel();
-//                $list=$agent->field('buyer_id')->where(array('agent_id'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $created=new BuyerModel();
-//                $createdArr=$created->field('id as buyer_id')->where(array('created_by'=>$data['created_by'],'deleted_flag'=>'N'))->select();
-//                $totalList=$this->validAgent($createdArr,$list);
-//                $str='';
-//                foreach($totalList as $k => $v){
-//                    $str.=','.$v['buyer_id'];
-//                }
-//                $str=substr($str,1);
-//                if(!empty($str)){
-//                    $condition.= " or buyer.id in ($str) )";
-//                }else{
-//                    $condition.= " or buyer.id in ('wangs') )";
-//                }
-//            }
-//        }else{
-//            $condition=' visit.is_demand=\'Y\' ';
+//        if(empty($data['admin']['role'])){
+//            return false;
 //        }
-//        print_r($condition);die;
-//        if(!empty($data['country_bn'])){    //国家权限============================================
-//            $countryArr=explode(',',$data['country_bn']);
-//            $countryStr='';
-//            foreach($countryArr as $v){
-//                $countryStr.=",'".$v."'";
-//            }
-//            $countryStr=substr($countryStr,1);
-//            if($data['admin']==0){  //没有查看所有的权限
-//                $condition .= " and buyer.country_bn in ($countryStr)";
-//            }
+//        $buyer=new BuyerModel();
+//        $access=$buyer->accessCountry($data);
+//        if($access===false){
+//            return false;
 //        }
+//        $condition=$access;
+        $condition='visit.is_demand=\'Y\' ';
         if(!empty($data['reply_name'])){  //需求反馈提交人姓名
             $condition.=" and employee.name like '%$data[reply_name]%'";
         }
@@ -182,6 +127,9 @@ class BuyerVisitModel extends PublicModel {
         }
         return $condition;
     }
+//    public function AccessDepartment(){
+//        $this->field()->where()->select();
+//    }
     /**
      * 需求列表
      * @param array $_input
@@ -194,6 +142,9 @@ class BuyerVisitModel extends PublicModel {
         $total_flag=isset($_input['total_flag'])?$_input['total_flag']:false;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
+        //部门对接
+//        $access=$this->AccessDepartment();
+//        print_r($access);die;
         if($demadCond==false){
             return false;
         }
@@ -315,6 +266,12 @@ class BuyerVisitModel extends PublicModel {
                     }else{
                         $result['demand_type']='';
                     }
+//                    if(!empty($result['department'])){  //部门名称
+//                        $org=new
+//                    }
+//                    if(!empty($result['handler'])){ //对接人
+//
+//                    }
 
                     $vp_model = new VisitPositionModel();
                     $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
@@ -413,9 +370,7 @@ class BuyerVisitModel extends PublicModel {
         $data['visit_customer'] = trim($_input['visit_customer']);    //参与拜访人员(客户)
         $data['visit_result'] = trim($_input['visit_result']);    //拜访结果
         $data['customer_note'] = trim($_input['customer_note']);    //客户痛点
-        if(isset($_input['is_demand']) && !empty($_input['is_demand'])){
-            $data['is_demand'] = self::DEMAND_Y;    //是否有需求
-        }
+        $data['is_demand'] = $_input['is_demand'];    //是否有需求
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
         if(!empty($_input['department'])){
