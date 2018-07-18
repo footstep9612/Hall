@@ -127,9 +127,9 @@ class BuyerVisitModel extends PublicModel {
         }
         return $condition;
     }
-    public function AccessDepartment(){
-        $this->field()->where()->select();
-    }
+//    public function AccessDepartment(){
+//        $this->field()->where()->select();
+//    }
     /**
      * 需求列表
      * @param array $_input
@@ -143,8 +143,8 @@ class BuyerVisitModel extends PublicModel {
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
         //部门对接
-        $access=$this->AccessDepartment();
-        print_r($access);die;
+//        $access=$this->AccessDepartment();
+//        print_r($access);die;
         if($demadCond==false){
             return false;
         }
@@ -266,6 +266,12 @@ class BuyerVisitModel extends PublicModel {
                     }else{
                         $result['demand_type']='';
                     }
+//                    if(!empty($result['department'])){  //部门名称
+//                        $org=new
+//                    }
+//                    if(!empty($result['handler'])){ //对接人
+//
+//                    }
 
                     $vp_model = new VisitPositionModel();
                     $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
@@ -364,9 +370,7 @@ class BuyerVisitModel extends PublicModel {
         $data['visit_customer'] = trim($_input['visit_customer']);    //参与拜访人员(客户)
         $data['visit_result'] = trim($_input['visit_result']);    //拜访结果
         $data['customer_note'] = trim($_input['customer_note']);    //客户痛点
-        if(isset($_input['is_demand']) && !empty($_input['is_demand'])){
-            $data['is_demand'] = self::DEMAND_Y;    //是否有需求
-        }
+        $data['is_demand'] = $_input['is_demand'];    //是否有需求
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
         if(!empty($_input['department'])){
