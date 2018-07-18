@@ -227,7 +227,7 @@ class QuoteItemModel extends PublicModel {
         $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        $materialcat_model->setNamesByList($list, 'zh');
+        //  $materialcat_model->setNamesByList($data, 'zh');
         foreach ($data as $key => $value) {
             $row++;
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
@@ -302,6 +302,7 @@ class QuoteItemModel extends PublicModel {
                 if ($value['id'] == '') {
                     $inquiryItemData['created_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
+
                     $quoteItemData['inquiry_item_id'] = $inquiryItemResult['insert_id'];
                     $quoteItemData['created_by'] = $user;
                     $quoteItemData['created_at'] = $time;
@@ -310,6 +311,7 @@ class QuoteItemModel extends PublicModel {
                     $inquiryItemData['id'] = $value['inquiry_item_id'];
                     $inquiryItemData['updated_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->updateData($inquiryItemData);
+
                     $quoteItemData['id'] = $value['id'];
                     $quoteItemData['updated_by'] = $user;
                     $quoteItemData['updated_at'] = $time;
@@ -373,9 +375,12 @@ class QuoteItemModel extends PublicModel {
     public function getQuoteFinalSku($request) {
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
-                         a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
-                         a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
+        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,'
+                . 'b.model,b.remarks,b.category,a.exw_unit_price,'
+                . 'a.quote_unit_price,c.exw_unit_price final_exw_unit_price,'
+                . 'c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,'
+                . 'a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,'
+                . 'a.goods_source,a.stock_loc,a.reason_for_no_quote,b.material_cat_no,a.org_id';
         return $this->getFinalSqlJoint($request)
                         ->field($fields)
                         ->page($currentPage, $pageSize)

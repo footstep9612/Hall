@@ -267,7 +267,7 @@ class BuyerVisitModel extends PublicModel {
             'id' => $data['id'],
         ];
         try{
-            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_customer,visit_result,is_demand,created_by,created_at')->where($condition)->find();
+            $result = $this->field('id,buyer_id,name,phone,visit_at,visit_type,visit_level,visit_position,demand_type,demand_content,visit_objective,visit_personnel,visit_customer,visit_result,is_demand,department,handler,feedback_content,created_by,created_at')->where($condition)->find();
 
             if($result){
                 //产品信息
@@ -418,6 +418,15 @@ class BuyerVisitModel extends PublicModel {
         }
         $data['demand_content'] = trim($_input['demand_content']);    //需求内容
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
+        if(!empty($_input['department'])){
+            $data['department'] = trim($_input['department']);    //部门
+        }
+        if(!empty($_input['handler'])){
+            $data['handler'] = trim($_input['handler']);    //对接人员
+        }
+        if(!empty($_input['feedback_content'])){
+            $data['feedback_content'] = trim($_input['feedback_content']);    //反馈内容
+        }
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;

@@ -702,7 +702,9 @@ EOF;
             if (!isEmail($data['email'])) {
                 jsonReturn('', -101, L('create_email'));
             }
-            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->select();
+            $checkEmail=$buyer_account_model->field('email')
+                ->where("email='$data[email]' and deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkEmail){
                 jsonReturn('', -101, L('email_existed'));
             }
@@ -715,7 +717,9 @@ EOF;
 
         if (!empty($data['name'])) {    //公司名称
             $data['name']=trim($data['name'],' ');
-            $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
+            $checkcompany = $model
+                ->where("name='" . $data['name'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkcompany){
                 jsonReturn('', -103, L('name_existed'));
             }
@@ -726,7 +730,9 @@ EOF;
 
         if (!empty($data['buyer_code'])) {  //CRM代码
             $data['buyer_code']=trim($data['buyer_code'],' ');
-            $checkcrm = $model->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N'")->find();
+            $checkcrm = $model
+                ->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if ($checkcrm) {
                 jsonReturn('', -103, L('crm_existed'));
             }

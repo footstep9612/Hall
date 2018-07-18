@@ -136,7 +136,7 @@ class QuoteController extends PublicController {
 
         $condition = ['inquiry_id' => $request['inquiry_id']];
         $org_id = $inquiryModel->where(['id' => $condition['inquiry_id']])->getField('org_id', true);
-        $condition['now_agent_id'] = $inquiryModel->getInquiryIssueUserId($request['inquiry_id'], $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'erui']]);
+        $condition['now_agent_id'] = $inquiryModel->getInquiryIssueUserId($request['inquiry_id'], $org_id, ['in', [$inquiryModel::inquiryIssueAuxiliaryRole, $inquiryModel::quoteIssueAuxiliaryRole]], ['in', [$inquiryModel::inquiryIssueRole, $inquiryModel::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         $response = $result = $this->quoteModel->rejectToBiz($condition, $this->user);
 
         $this->jsonReturn($response);
@@ -200,7 +200,10 @@ class QuoteController extends PublicController {
         $quoteModel = new QuoteModel();
         $finalQuoteItemModel = new FinalQuoteItemModel();
         //验证数据
-        $quoteInfo = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])->field('id,payment_period,fund_occupation_rate,delivery_period,total_purchase,total_logi_fee,total_bank_fee,total_exw_price,total_quote_price,total_insu_fee')->find();
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])
+                        ->field('id,payment_period,fund_occupation_rate,delivery_period,'
+                                . 'total_purchase,total_logi_fee,total_bank_fee,total_exw_price,'
+                                . 'total_quote_price,total_insu_fee')->find();
 
         //判断是否存在数据，如果是退回报价更新数据，如果不是就插入一条数据
         $final = $finalQuoteModel->field('id')->where('inquiry_id=' . $request['inquiry_id'])->find();
@@ -397,6 +400,8 @@ class QuoteController extends PublicController {
         $is_erui = (new OrgModel())->getIsEruiById($org_id);
         ( new SupplierModel())->setSupplier($list);
         $this->_setOrgName($list);
+        $this->_setMaterialCatName($list);
+
 
         foreach ($list as $key => $value) {
             $list[$key]['purchase_unit_price'] = sprintf("%.4f", $list[$key]['purchase_unit_price']);
@@ -461,6 +466,48 @@ class QuoteController extends PublicController {
         }
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    private function _setMaterialCatName(&$arr) {
+        if ($arr) {
+            $material_cat_model = new MaterialCatModel();
+            $material_cat_nos = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['material_cat_no']) && $val['material_cat_no']) {
+                    $material_cat_nos[] = $val['material_cat_no'];
+                }
+            }
+            $material_cat_names = [];
+            if ($material_cat_nos) {
+                $material_cats = $material_cat_model->where(['cat_no' => ['in', $material_cat_nos],
+                            'deleted_flag' => 'N',
+                            'lang' => $this->lang
+                        ])
+                        ->field('cat_no,name')
+                        ->select();
+                foreach ($material_cats as $material_cat) {
+                    $material_cat_names[$material_cat['cat_no']] = $material_cat['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if (!empty($val['material_cat_no']) && isset($material_cat_names[$val['material_cat_no']])) {
+                    $val['material_cat_name'] = $material_cat_names[$val['material_cat_no']];
+                } else {
+                    $val['material_cat_name'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
     /**
      * 保存SKU信息，加校验
      */
@@ -503,9 +550,14 @@ class QuoteController extends PublicController {
         $request = $this->validateRequests('inquiry_id');
         $list = $this->quoteItemModel->getQuoteFinalSku($request);
 
+
         if (!$list)
             $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_NO_DATA')]);
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
 
+        $this->_setOrgName($list);
+        $this->_setMaterialCatName($list);
         foreach ($list as $key => $value) {
             $list[$key]['exw_unit_price'] = sprintf("%.4f", $list[$key]['exw_unit_price']);
             $list[$key]['quote_unit_price'] = sprintf("%.4f", $list[$key]['quote_unit_price']);
@@ -515,6 +567,8 @@ class QuoteController extends PublicController {
 
         $this->jsonReturn([
             'code' => 1,
+            'is_erui' => $is_erui,
+            'org_id' => $org_id,
             'message' => L('QUOTE_SUCCESS'),
             'count' => $this->quoteItemModel->getFinalCount($request),
             'data' => $list

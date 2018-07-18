@@ -2535,8 +2535,8 @@ EOF;
         if(empty($data['buyer_id'])){
             return false;
         }
-        $access=$this->accessCountry($data);
-        $cond=$access;
+//        $access=$this->accessCountry($data);
+//        $cond=$access;
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $buyerArr = array(
             'id as buyer_id', //客户id
@@ -2568,12 +2568,12 @@ EOF;
             'profile', //公司介绍
             'company_address' //公司地址
         );
-        $cond.=" and id=$data[buyer_id] and status='APPROVED' and deleted_flag='N'";
-//        $cond=array(
-//            'id'=>$data['buyer_id'],
+//        $cond.=" and id=$data[buyer_id] and status='APPROVED' and deleted_flag='N'";
+        $cond=array(
+            'id'=>$data['buyer_id'],
 //            'status'=>'APPROVED',
-//            'deleted_flag'=>'N'
-//        );
+            'deleted_flag'=>'N'
+        );
         $reg=$this->field('id')->where($cond)->find();
         if(empty($reg)){
             return false;
@@ -3197,10 +3197,11 @@ EOF;
             'intent_product', //意向产品
             'purchase_amount' //预计年采购额
         );
-        $cond = array(
-            'buyer_code'=>$data['buyer_code'],
-            'deleted_flag'=>'N'
-        );
+//        $cond = array(
+//            'buyer_code'=>$data['buyer_code'],
+//            'deleted_flag'=>'N'
+//        );
+        $cond="buyer_code='$data[buyer_code]' and deleted_flag='N' and status!='REJECTED'";
         $info = $this->field($field)->where($cond)->find();
         return $info;
     }

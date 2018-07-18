@@ -4,16 +4,14 @@
  * Class TemporarySupplier
  * @desc 临时供应API
  */
-class TemporarySupplierController extends PublicController
-{
+class TemporarySupplierController extends PublicController {
 
     /**
      * @var 模型
      */
     private $temporarySupplier;
 
-    public function init()
-    {
+    public function init() {
         parent::init();
         $this->temporarySupplier = new TemporarySupplierModel();
     }
@@ -23,8 +21,7 @@ class TemporarySupplierController extends PublicController
      * @author 买买提
      * @time 2018--4-16
      */
-    public function listAction()
-    {
+    public function listAction() {
 
         $request = $this->validateRequestParams();
         $list = $this->temporarySupplier->getList($request);
@@ -48,7 +45,6 @@ class TemporarySupplierController extends PublicController
                 'un_relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'N']),
             ]
         ]);
-
     }
 
     /**
@@ -56,8 +52,7 @@ class TemporarySupplierController extends PublicController
      * @author 买买提
      * @time 2018--4-16
      */
-    public function detailAction()
-    {
+    public function detailAction() {
         $request = $this->validateRequestParams('id');
         $data = $this->temporarySupplier->byId($request['id']);
         $data['created_by'] = (new EmployeeModel)->getNameByid($data['created_by'])['name'];
@@ -72,8 +67,7 @@ class TemporarySupplierController extends PublicController
      * @author 买买提
      * @time 2018--4-16
      */
-    public function relationAction()
-    {
+    public function relationAction() {
         $request = $this->validateRequestParams('id,supplier_id');
         $response = (new TemporarySupplierRelationModel)->setRelation($request, $this->user['id']);
         $this->jsonReturn($response);
@@ -85,8 +79,7 @@ class TemporarySupplierController extends PublicController
      * @author 买买提
      * @time 2018-4-23
      */
-    public function unRelationAction()
-    {
+    public function unRelationAction() {
         $request = $this->validateRequestParams('id,supplier_id,supplier_no');
         $response = (new TemporarySupplierRelationModel)->unRelation($request['id'], $this->user['id']);
         $this->jsonReturn($response);
@@ -97,11 +90,10 @@ class TemporarySupplierController extends PublicController
      * @author 买买提
      * @time 2018--4-17
      */
-    public function regularAction()
-    {
+    public function regularAction() {
         $request = $this->validateRequestParams();
 
-        $isErui = (new InquiryModel)->getDeptOrgId($this->user['group_id'], 'erui');
+        $isErui = (new InquiryModel)->getDeptOrgId($this->user['group_id'], ['in', ['erui', 'elg', 'eub']]);
         if (!$isErui) {
             // 非易瑞事业部门的看他所在事业部和易瑞的
             $orgUb = (new InquiryModel)->getDeptOrgId($this->user['group_id'], 'ub');
@@ -110,7 +102,7 @@ class TemporarySupplierController extends PublicController
 
         // 开发人
         if ($request['developer'] != '') {
-            $request['agent_ids'] = (new EmployeeModel)->getUserIdByName($request['developer']) ? : [];
+            $request['agent_ids'] = (new EmployeeModel)->getUserIdByName($request['developer']) ?: [];
         }
 
         $suppliers = $this->temporarySupplier->getRegularSupplierList($request);
@@ -127,7 +119,7 @@ class TemporarySupplierController extends PublicController
             $supplier['is_relation'] = (new TemporarySupplierRelationModel)->checkTemporaryRegularRelationBy($request['temporary_supplier_id'], $supplier['id']) ? 'Y' : 'N';
         }
 
-        if (count($suppliers)==1) {
+        if (count($suppliers) == 1) {
             $this->jsonReturn([
                 'code' => 1,
                 'message' => '成功',
@@ -142,6 +134,6 @@ class TemporarySupplierController extends PublicController
             'total' => $this->temporarySupplier->getRegularCount($request),
             'data' => $suppliers
         ]);
-
     }
+
 }
