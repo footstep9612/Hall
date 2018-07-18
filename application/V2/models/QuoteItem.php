@@ -227,7 +227,7 @@ class QuoteItemModel extends PublicModel {
         $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        $materialcat_model->setNamesByList($data, 'zh');
+        //  $materialcat_model->setNamesByList($data, 'zh');
         foreach ($data as $key => $value) {
             $row++;
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录

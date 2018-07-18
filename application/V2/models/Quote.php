@@ -85,16 +85,24 @@ class QuoteModel extends PublicModel {
           | 计算商务报出EXW单价         计算公式 : EXW单价=采购单价*毛利率/汇率
           |--------------------------------------------------------------------------
          */
-        $quoteInfo = $this->where($condition)->field('id,gross_profit_rate,exchange_rate')->find();
+        $quoteInfo = $this->where($condition)
+                ->field('id,gross_profit_rate,exchange_rate')
+                ->find();
         $gross_profit_rate = $quoteInfo['gross_profit_rate']; //毛利率
 
-        $quoteItemIds = $quoteItemModel->where($where)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
+        $quoteItemIds = $quoteItemModel
+                ->where($where)
+                ->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')
+                ->select();
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
 
-                    $exchange_rate = $exchangeRateModel->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
+                    $exchange_rate = $exchangeRateModel
+                            ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
+                            ->order('created_at DESC')
+                            ->getField('rate');
                     $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $exchange_rate; //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
                     $exw_unit_price = sprintf("%.8f", $exw_unit_price);
 
@@ -110,7 +118,10 @@ class QuoteModel extends PublicModel {
           | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
           |--------------------------------------------------------------------------
          */
-        $quoteItemExwUnitPrices = $quoteItemModel->where($where)->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
+        $quoteItemExwUnitPrices = $quoteItemModel
+                ->where($where)
+                ->field('exw_unit_price,quote_qty,gross_weight_kg')
+                ->select();
 
         $total_exw_price = [];
         foreach ($quoteItemExwUnitPrices as $price) {
@@ -138,21 +149,53 @@ class QuoteModel extends PublicModel {
          */
         $totalPurchase = [];
         $quoteItemsData = $quoteItemModel->where($where)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
+        var_dump($quoteItemsData);
         foreach ($quoteItemsData as $quote => $item) {
             switch ($item['purchase_price_cur_bn']) {
                 case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn2' => 'EUR', 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    $rate = $exchangeRateModel->where(['cur_bn2' => 'EUR', 'cur_bn1' => 'USD'])
+                            ->order('created_at DESC')
+                            ->getField('rate');
+
+                    if (empty($rate)) {
+                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => 'EUR'])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                        if (empty($rate)) {
+                            return false;
+                        } else {
+                            $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
+                        }
+                    } else {
+                        $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    }
+
+
                     break;
                 case 'USD' :
                     $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'];
                     break;
                 case 'CNY' :
-                    $rate = $exchangeRateModel->where(['cur_bn2' => 'CNY', 'cur_bn1' => 'USD'])->order('created_at DESC')->getField('rate');
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    $rate = $exchangeRateModel->where(['cur_bn2' => 'CNY', 'cur_bn1' => 'USD'])
+                            ->order('created_at DESC')
+                            ->getField('rate');
+
+                    if (empty($rate)) {
+                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => 'CNY'])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                        if (empty($rate)) {
+                            return false;
+                        } else {
+                            $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
+                        }
+                    } else {
+                        $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
+                    }
                     break;
             }
         }
+
 
         return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
     }
