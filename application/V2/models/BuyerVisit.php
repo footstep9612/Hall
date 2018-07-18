@@ -266,12 +266,20 @@ class BuyerVisitModel extends PublicModel {
                     }else{
                         $result['demand_type']='';
                     }
-//                    if(!empty($result['department'])){  //部门名称
-//                        $org=new
-//                    }
-//                    if(!empty($result['handler'])){ //对接人
-//
-//                    }
+                    if(!empty($result['department'])){  //部门名称
+                        $org=new OrgModel();
+                        $fieldPart=$lang=='zh'?'name':'name_en as name';
+                        $orgInfo=$org->field($fieldPart)
+                            ->where(array('id'=>$result['department'],'deleted_flag'=>'N'))
+                            ->find();
+                        $result['department']=$orgInfo['name'];
+                    }
+                    if(!empty($result['handler'])){ //对接人
+                        $emInfo=$this->table('erui_sys.employee')
+                            ->field('user_no,name')
+                            ->where(array('id'=>$result['handler'],'deleted_flag'=>'N'))->find();
+                        $result['handler']=$emInfo['name'].'('.$emInfo['user_no'].')';
+                    }
 
                     $vp_model = new VisitPositionModel();
                     $positionInfo = $vp_model->field('name')->where(['id'=>['in', $result['visit_position']]])->select();
