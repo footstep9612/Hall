@@ -784,7 +784,7 @@ class BuyerModel extends PublicModel {
             if($v['source']==1){
                 $v['source']='BOSS';
             }elseif($v['source']==2){
-                $v['source']='BOSS PORTAL';
+                $v['source']='PORTAL';
             }elseif($v['source']==3){
                 $v['source']='APP';
             }else{
