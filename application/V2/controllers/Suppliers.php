@@ -122,7 +122,7 @@ class SuppliersController extends PublicController {
             jsonReturn('', -101, '开户账号只能输入数字!');
 
         //if (strlenUtf8($condition['bank_account']) > 20)
-            //jsonReturn('', -101, '您输入的开户账号超过20位!');
+        //jsonReturn('', -101, '您输入的开户账号超过20位!');
 
         if (strlenUtf8($condition['bank_address']) > 100)
             jsonReturn('', -101, '开户地址最多输入100字!');
@@ -147,17 +147,17 @@ class SuppliersController extends PublicController {
 
         if (strlenUtf8($condition['stocking_place']) > 40)
             jsonReturn('', -101, '备货地点长度不超过40个字!');
-        
+
         if ($condition['status'] != 'DRAFT') {
 //            $hasDeveloper = $this->supplierAgentModel->where(['supplier_id' => $condition['supplier_id'], 'agent_type' => 'DEVELOPER'])->getField('agent_id');
 //            if (!$hasDeveloper)
 //                jsonReturn('', -101, '开发人不能为空!');
-            
-            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status'=> ['neq', 'DRAFT']])->getField('id');
+
+            $hasSupplierName = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'name' => $condition['name'], 'status' => ['neq', 'DRAFT'], 'deleted_flag' => 'N'])->getField('id');
             if ($hasSupplierName)
                 jsonReturn('', -101, '此公司名称已经存在!');
-            
-            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code']])->getField('id');
+
+            $hasCreditCode = $this->suppliersModel->where(['id' => ['neq', $condition['supplier_id']], 'social_credit_code' => $condition['social_credit_code'], 'deleted_flag' => 'N'])->getField('id');
             if ($hasCreditCode)
                 jsonReturn('', -101, '此营业执照编码已经存在!');
         }
@@ -201,29 +201,29 @@ class SuppliersController extends PublicController {
 
             if (strlenUtf8($item['remarks']) > 100)
                 jsonReturn('', -101, '您输入的负责产品大于100字!');
-            
+
             if ($count == 1 && !isset($item['id'])) {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-            
+
                 $resContact = $this->supplierContactModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-            
+
                 $contactWhere['id'] = $item['id'];
-                
+
                 // 审核通过状态下校验必填字段是否修改
                 if ($condition['status'] == 'APPROVED' && !$change) {
                     $supplierContact = $this->supplierContactModel->getDetail($contactWhere);
-                
+
                     $change = $this->_checkFieldsChange($supplierContact, $checkContactFields, $item);
                 }
-        
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-        
+
                 $resContact = $this->supplierContactModel->updateInfo($contactWhere, $item);
             }
 
@@ -266,15 +266,15 @@ class SuppliersController extends PublicController {
             $deleteAll = (new SupplierBrandModel)->where(['supplier_id' => $condition['supplier_id']])->delete();
             foreach ($condition['brand'] as $brand) {
                 (new SupplierBrandModel)->add((new SupplierBrandModel)->create([
-                    'supplier_id' => $condition['supplier_id'],
-                    'brand_id' => $brand['en']['id'],
-                    'status' => 'VALID',
-                    'created_by' => $this->user['id'],
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'brand_en' => $brand['en']['name'],
-                    'brand_zh' => $brand['zh']['name'],
-                    'brand_es' => $brand['es']['name'],
-                    'brand_ru' => $brand['ru']['name']
+                            'supplier_id' => $condition['supplier_id'],
+                            'brand_id' => $brand['en']['id'],
+                            'status' => 'VALID',
+                            'created_by' => $this->user['id'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'brand_en' => $brand['en']['name'],
+                            'brand_zh' => $brand['zh']['name'],
+                            'brand_es' => $brand['es']['name'],
+                            'brand_ru' => $brand['ru']['name']
                 ]));
             }
         }
@@ -362,32 +362,32 @@ class SuppliersController extends PublicController {
     public function getSupplierListAction() {
 
         $condition = $this->validateRequestParams();
-        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
-        
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['erui', 'eub', 'elg']]);
+
         if (!$isErui) {
             // 非易瑞事业部门的看他所在事业部和易瑞的
-            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
+            $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['ub']]);
             $condition['org_id'] = $orgUb ? array_merge($this->orgModel->where(['org_node' => 'erui', 'deleted_flag' => 'N'])->getField('id', true), $orgUb) : [];
         }
-        
+
         // 开发人
         if ($condition['developer'] != '') {
-            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ?: [];
         }
-        
+
         // 创建人
         if ($condition['created_name'] != '') {
-            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ?: [];
         }
 
         // 审核人
         if ($condition['checked_name'] != '') {
-            $condition['checked_ids'] = $this->employeeModel->getUserIdByName($condition['checked_name']) ? : [];
+            $condition['checked_ids'] = $this->employeeModel->getUserIdByName($condition['checked_name']) ?: [];
         }
-        
+
         // 供货范围
         if ($condition['cat_name'] != '') {
-            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ?: [];
         }
 
         $supplierList = $this->suppliersModel->getJoinList($condition);
@@ -404,7 +404,6 @@ class SuppliersController extends PublicController {
 
             $supplier['created_by'] = (new EmployeeModel)->getNameByid($supplier['created_by'])['name'];
             $supplier['checked_by'] = (new EmployeeModel)->getNameByid($supplier['checked_by'])['name'];
-
         }
 
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
@@ -439,8 +438,7 @@ class SuppliersController extends PublicController {
      * @author 买买提
      * @time 2018-04-12
      */
-    public function delBrandsAction()
-    {
+    public function delBrandsAction() {
         $request = $this->validateRequestParams('supplier_id,brand_id');
         $response = (new SupplierBrandModel)->delBrand($request['supplier_id'], $request['brand_id']);
         $this->jsonReturn($response);
@@ -492,7 +490,7 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierContactInfoAction() {
         $condition = $this->put_data;
-        
+
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
@@ -538,17 +536,17 @@ class SuppliersController extends PublicController {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-                
+
                 $res = $this->supplierContactModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商联系人主键id参数!');
-                
+
                 $where['id'] = $item['id'];
-                
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-                
+
                 $res = $this->supplierContactModel->updateInfo($where, $item);
             }
 
@@ -599,19 +597,19 @@ class SuppliersController extends PublicController {
 
         if ($condition['material_cat_no1'] == '')
             jsonReturn('', -101, '一级物料分类编码不能为空!');
-        
+
         if ($condition['material_cat_no2'] == '')
             jsonReturn('', -101, '二级物料分类编码不能为空!');
-        
+
         if ($condition['material_cat_name3'] == '')
             jsonReturn('', -101, '请输入三级物料分类名称!');
-        
+
         $exist = $this->supplierMaterialCatModel->Exist($condition);
 
         if (!$exist) {
             $condition['created_by'] = $this->user['id'];
             $condition['created_at'] = $this->time;
-            
+
             $res = $this->supplierMaterialCatModel->addRecord($condition);
 
             $this->jsonReturn($res);
@@ -796,7 +794,7 @@ class SuppliersController extends PublicController {
      */
     public function batchUpdateSupplierQualificationInfoAction() {
         $condition = $this->put_data;
-        
+
         if ($condition['supplier_id'] == '')
             jsonReturn('', -101, '缺少供应商id参数!');
 
@@ -847,17 +845,17 @@ class SuppliersController extends PublicController {
                 $item['supplier_id'] = $condition['supplier_id'];
                 $item['created_by'] = $this->user['id'];
                 $item['created_at'] = $this->time;
-            
+
                 $res = $this->supplierQualificationModel->addRecord($item);
             } else {
                 if ($item['id'] == '')
                     jsonReturn('', -101, '缺少供应商资质主键id参数!');
-                
+
                 $where['id'] = $item['id'];
-            
+
                 $item['updated_by'] = $this->user['id'];
                 $item['updated_at'] = $this->time;
-            
+
                 $res = $this->supplierQualificationModel->updateInfo($where, $item);
             }
 
@@ -867,10 +865,10 @@ class SuppliersController extends PublicController {
                     $flag = false;
             }
         }
-        
+
         if ($condition['status'] != 'DRAFT') {
             // 如果剩余资质过期时间大于30天，修改供应商状态为审核中
-            $expiryDateCount= $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
+            $expiryDateCount = $this->supplierQualificationModel->getExpiryDateCount($condition['supplier_id']);
             if ($expiryDateCount > 30) {
                 $this->suppliersModel->updateInfo(['id' => $condition['supplier_id']], ['status' => 'APPROVING', 'expire_status' => 'N']);
             }
@@ -918,7 +916,7 @@ class SuppliersController extends PublicController {
 
         $this->_handleList($this->supplierCheckLogsModel, $data, $condition, true);
     }
-    
+
     /**
      * @desc 获取供应商资质过期列表接口
      *
@@ -927,28 +925,28 @@ class SuppliersController extends PublicController {
      */
     public function getSupplierQualificationOverdueListAction() {
         $condition = $this->put_data;
-    
-        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'erui');
-    
+
+        $isErui = $this->inquiryModel->getDeptOrgId($this->user['group_id'], ['in', ['elg', 'eub', 'erui']]);
+
         if (!$isErui) {
             // 事业部门的看他所在事业部的
             $orgUb = $this->inquiryModel->getDeptOrgId($this->user['group_id'], 'ub');
-            $condition['org_id'] = $orgUb ? : [];
+            $condition['org_id'] = $orgUb ?: [];
         }
-        
+
         if ($condition['expiry_start_date'] != '' && $condition['expiry_end_date'] != '') {
             $condition['supplier_ids'] = $this->supplierQualificationModel->getOverduePeriodSupplierIds($condition['expiry_start_date'], $condition['expiry_end_date']);
         }
-        
+
         // 供应商状态为资质过期
         $condition['expire_status'] = 'Y';
-    
+
         $supplierList = $this->suppliersModel->getJoinList($condition);
-    
+
         foreach ($supplierList as &$supplier) {
             $supplier['expiry_date'] = $this->supplierQualificationModel->getExpiryDate($supplier['id']);
         }
-    
+
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);
     }
 
@@ -1018,8 +1016,7 @@ class SuppliersController extends PublicController {
      * @author 买买提
      * @time 2018-03-20
      */
-    public function exportAction()
-    {
+    public function exportAction() {
 
         $data = $this->getExportData($this->put_data);
 
@@ -1039,28 +1036,27 @@ class SuppliersController extends PublicController {
         }
 
         $this->jsonReturn(['code' => -1, 'message' => '失败!']);
-
     }
 
-    /**@desc 获取导出的数据
+    /*     * @desc 获取导出的数据
      * @param $condition
      * @return mixed
      */
-    private function getExportData($condition)
-    {
+
+    private function getExportData($condition) {
         // 开发人
         if ($condition['developer'] != '') {
-            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ? : [];
+            $condition['agent_ids'] = $this->employeeModel->getUserIdByName($condition['developer']) ?: [];
         }
 
         // 创建人
         if ($condition['created_name'] != '') {
-            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ? : [];
+            $condition['created_ids'] = $this->employeeModel->getUserIdByName($condition['created_name']) ?: [];
         }
 
         // 供货范围
         if ($condition['cat_name'] != '') {
-            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ? : [];
+            $condition['supplier_ids'] = $this->supplierMaterialCatModel->getSupplierIdsByCat($condition['cat_name']) ?: [];
         }
 
         $supplierList = $this->suppliersModel->getJoinListForExport($condition);
@@ -1092,20 +1088,19 @@ class SuppliersController extends PublicController {
      * @return mixed
      * @author 买买提
      */
-    private function getCountBy($model, $supplier_id, $lang='en')
-    {
+    private function getCountBy($model, $supplier_id, $lang = 'en') {
         if ($model == 'GOODS') {
             $GoodsSupplierModel = new GoodsSupplierModel();
             return $GoodsSupplierModel->alias('a')
-                ->join('erui_goods.goods b ON a.sku=b.sku', 'LEFT')
-                ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
-                ->count();
-        }else{
+                            ->join('erui_goods.goods b ON a.sku=b.sku', 'LEFT')
+                            ->where(['a.supplier_id' => $supplier_id, 'b.lang' => $lang])
+                            ->count();
+        } else {
             $ProductSupplierModel = new ProductSupplierModel();
             return $ProductSupplierModel->alias('a')
-                ->join('erui_goods.product b ON a.spu=b.spu', 'LEFT')
-                ->where(['a.supplier_id' => $supplier_id, 'b.lang'=> $lang])
-                ->count();
+                            ->join('erui_goods.product b ON a.spu=b.spu', 'LEFT')
+                            ->where(['a.supplier_id' => $supplier_id, 'b.lang' => $lang])
+                            ->count();
         }
     }
 
@@ -1114,8 +1109,7 @@ class SuppliersController extends PublicController {
      * @param $user_id
      * @return mixed
      */
-    private function setUserName($user_id)
-    {
+    private function setUserName($user_id) {
         return (new EmployeeModel)->where(['id' => $user_id])->getField('name');
     }
 
@@ -1125,10 +1119,8 @@ class SuppliersController extends PublicController {
      * @return string
      * @author 买买提
      */
-    private function setStatusName($status)
-    {
-        switch ($status)
-        {
+    private function setStatusName($status) {
+        switch ($status) {
             case 'REVIEW' :
                 return '待审核';
                 break;
@@ -1152,8 +1144,7 @@ class SuppliersController extends PublicController {
      * @desc 如果还临时供应商关联了正式供应商则返回对应正式供应商的数据，反之返回自己的数据
      * @author 买买提
      */
-    public function regularAction()
-    {
+    public function regularAction() {
         $request = $this->validateRequestParams('id');
 
         $hasRelation = (new TemporarySupplierRelationModel)->checkHasRelationBy($request['id']);
@@ -1165,8 +1156,7 @@ class SuppliersController extends PublicController {
         $this->jsonReturn((new SuppliersModel)->byIdWithSku($request['id'], $request));
     }
 
-    public function createSupplierExcelWithData($data)
-    {
+    public function createSupplierExcelWithData($data) {
         set_time_limit(0);
 
         $objPHPExcel = new PHPExcel();
@@ -1250,7 +1240,6 @@ class SuppliersController extends PublicController {
 
                 $startRow++;
             }
-
         }
 
         //4.保存文件
@@ -1263,8 +1252,7 @@ class SuppliersController extends PublicController {
      * @param $file
      * @return array|mixed
      */
-    public function upload2FastDFS($file)
-    {
+    public function upload2FastDFS($file) {
         $server = Yaf_Application::app()->getConfig()->myhost;
         $fastDFSServer = Yaf_Application::app()->getConfig()->fastDFSUrl;
         $url = $server . '/V2/Uploadfile/upload';
@@ -1284,28 +1272,27 @@ class SuppliersController extends PublicController {
      * 瑞商联盟列表
      * @author 买买提
      */
-    public function ruishangAction()
-    {
+    public function ruishangAction() {
         $request = $this->validateRequestParams();
 
         // 审核人
         if ($request['checked_name'] != '') {
-            $request['checked_ids'] = (new EmployeeModel)->getUserIdByName($request['checked_name']) ? : [];
+            $request['checked_ids'] = (new EmployeeModel)->getUserIdByName($request['checked_name']) ?: [];
         }
 
         // 供货范围
         if ($request['cat_name'] != '') {
-            $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ? : [];
+            $request['supplier_ids'] = (new SupplierMaterialCatModel)->getSupplierIdsByCat($request['cat_name']) ?: [];
         }
 
         list($data, $total, $all, $approving, $approved, $invalid, $review) = (new SuppliersModel)->ruishangList($request);
 
-        foreach ($data as &$datum){
+        foreach ($data as &$datum) {
             $datum['check_list'] = (new SupplierCheckLogModel)->getCheckListBy($datum['id']);
             $datum['goods_count'] = (new GoodsSupplierModel)->getSuppliersGoodsCountBy($datum['id']);
             $datum['contact'] = (new SupplierContactModel)->where([
-                'supplier_id' => $datum['id']
-            ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
+                        'supplier_id' => $datum['id']
+                    ])->field('contact_name user_name,phone mobile,email')->order('id desc')->find();
         }
 
         $this->jsonReturn([
@@ -1325,13 +1312,12 @@ class SuppliersController extends PublicController {
      * 瑞商审核列表
      * @author 买买提
      */
-    public function ruishangCheckListAction()
-    {
+    public function ruishangCheckListAction() {
         $request = $this->validateRequestParams();
 
         list($data, $total) = (new SuppliersModel)->ruishangCheckList($request);
 
-        foreach ($data as &$datum){
+        foreach ($data as &$datum) {
             if ($datum['check_status'] === 'INVALID') {
                 $datum['invalid_list'] = (new SupplierCheckLogModel)->getInvalidListBy($datum['id']);
             }
@@ -1343,7 +1329,6 @@ class SuppliersController extends PublicController {
             'total' => $total,
             'data' => $data
         ]);
-
     }
 
     /**
@@ -1352,8 +1337,7 @@ class SuppliersController extends PublicController {
      * @author liujf
      * @time 2017-11-11
      */
-    public function ruishangDetailAction()
-    {
+    public function ruishangDetailAction() {
         $condition = $this->validateRequestParams('id');
 
         $res = $this->suppliersModel->getRuishangJoinDetail($condition);
@@ -1366,4 +1350,5 @@ class SuppliersController extends PublicController {
 
         $this->jsonReturn($res);
     }
+
 }

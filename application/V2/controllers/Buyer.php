@@ -702,7 +702,9 @@ EOF;
             if (!isEmail($data['email'])) {
                 jsonReturn('', -101, L('create_email'));
             }
-            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->select();
+            $checkEmail=$buyer_account_model->field('email')
+                ->where("email='$data[email]' and deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkEmail){
                 jsonReturn('', -101, L('email_existed'));
             }
@@ -715,7 +717,9 @@ EOF;
 
         if (!empty($data['name'])) {    //公司名称
             $data['name']=trim($data['name'],' ');
-            $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
+            $checkcompany = $model
+                ->where("name='" . $data['name'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkcompany){
                 jsonReturn('', -103, L('name_existed'));
             }
@@ -726,7 +730,9 @@ EOF;
 
         if (!empty($data['buyer_code'])) {  //CRM代码
             $data['buyer_code']=trim($data['buyer_code'],' ');
-            $checkcrm = $model->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N'")->find();
+            $checkcrm = $model
+                ->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if ($checkcrm) {
                 jsonReturn('', -103, L('crm_existed'));
             }
@@ -1616,7 +1622,6 @@ EOF;
     public function checkBuyerCrmAction() {
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
-        $lang=$this->getLang();
         $data['created_by'] = $created_by;
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
@@ -1656,11 +1661,10 @@ EOF;
             }
             //验证集团CRM存在,则展示数据 生产-start
             $group = $this->groupCrmCode($data['buyer_code']);
-            $msg=$lang=='zh'?'科瑞集团 CRM 系统访问异常，请稍候重试':'Exception: Attempt to access CRM system of KERUI Group, Please try again later';
             if ($group=='no') {
                 $dataJson = array(
                     'code' => 4,
-                    'message' => $msg
+                    'message' => '网络异常'
                 );
             }elseif($group=='code'){
                 $dataJson = array(
@@ -1754,7 +1758,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
-                'timeout' => 30,
+                'timeout' => 5,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap

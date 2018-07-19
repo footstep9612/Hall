@@ -13,7 +13,7 @@
  * @version V2.0
  * @desc
  */
-class OrgModel extends PublicModel {
+class System_OrgModel extends PublicModel {
 
     //put your code here
     protected $dbName = 'erui_sys';
@@ -57,7 +57,6 @@ class OrgModel extends PublicModel {
         if (!$id) {
             return 'N';
         }
-
         $where['id'] = $id;
         $where['org_node'] = ['in', ['erui', 'eub', 'elg']];
         $count = $this->where($where)->count();
@@ -80,42 +79,7 @@ class OrgModel extends PublicModel {
      * @author liujf
      * @time 2017-10-20
      */
-    public function getOrgIdsById($groupId, $membership = 'ERUI', $org_node = 'ub') {
-        $where = [
-            'id' => ['in', $groupId ?: ['-1']],
-        ];
-        if ($membership === 'ERUI' && $org_node) {
-            $where['org_node'] = ['in', ['erui', $org_node]];
-        } elseif ($org_node) {
-            $where['org_node'] = $org_node;
-        } elseif ($membership === 'ERUI') {
-            $where['org_node'] = 'erui';
-        }
-        $orgList = $this->field('id')->where($where)->select();
-
-        // 用户所在部门的组ID
-        $orgIds = [];
-        foreach ($orgList as $org) {
-            $orgIds[] = $org['id'];
-        }
-        if ($orgIds) {
-            return $orgIds;
-        } else {
-            return ['-1'];
-        }
-    }
-
-    /**
-     * @desc 获取询单办理部门组ID
-     *
-     * @param array $groupId 当前用户的全部组ID
-     * @param string $membership 是否属于erui
-     * @param string $org_node 部门节点
-     * @return array
-     * @author liujf
-     * @time 2017-10-20
-     */
-    public function getOrgIdsByIdAndNode($groupId, $org_node = 'ub') {
+    public function getOrgIdsById($groupId, $org_node = 'ub') {
         $where = [
             'id' => ['in', $groupId ?: ['-1']],
         ];

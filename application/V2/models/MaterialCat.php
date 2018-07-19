@@ -197,7 +197,7 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function get_list($cat_no = '', $lang = 'en') {
+    public function get_list($cat_no = '', $lang = 'en', $name = null) {
         if ($cat_no) {
             $condition['parent_cat_no'] = $cat_no;
         } else {
@@ -205,10 +205,12 @@ class MaterialCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-
+        if ($name) {
+            $condition['name'] = ['like', '%' . trim($name) . '%'];
+        }
         try {
             return $this->where($condition)
-                            ->field('id,cat_no,lang,name,status,sort_order')
+                            ->field('id,cat_no,lang,name')
                             ->order('sort_order DESC')
                             ->select();
         } catch (Exception $ex) {
@@ -1028,6 +1030,55 @@ class MaterialCatModel extends PublicModel {
                 $re[$cat['cat_no']] = $cat['name'];
             }
 
+            return $re;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 及上级分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function setNamesByList(&$list, $lang = 'en') {
+        if (empty($list)) {
+            return[];
+        }
+        $cat_nos = [];
+        foreach ($list as $item) {
+            if (!empty($item['material_cat_no'])) {
+                $cat_nos[] = trim($item['material_cat_no']);
+            }
+        }
+        if (empty($cat_nos)) {
+            return[];
+        }
+        try {
+            $cats = $this->field('cat_no,name')
+                            ->where(['cat_no' => ['in', $cat_nos],
+                                'lang' => $lang,
+                                'status' => 'VALID',
+                                'deleted_flag' => 'N'])->select();
+            $re = [];
+            foreach ($cats as $cat) {
+
+                $re[$cat['cat_no']] = $cat['name'];
+            }
+            foreach ($list as $key => $item) {
+                if (!empty($item['material_cat_no']) && !empty($re[$item['material_cat_no']])) {
+                    $item['category'] = $re[$item['material_cat_no']];
+                }
+                $list[$key] = $item;
+            }
             return $re;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

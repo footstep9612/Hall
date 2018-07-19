@@ -8,6 +8,11 @@
 
 class TodoController extends PublicController {
 
+    const inquiryIssueRole = 'A002'; //易瑞辅分单员角色编号
+    const quoteIssueMainRole = 'A003'; //报价辅分单员角色编号
+    const quoteIssueAuxiliaryRole = 'A004'; //报价主分单员角色编号
+    const inquiryIssueAuxiliaryRole = 'A011'; //易瑞主分单员角色编号
+
     public function __init() {
         parent::init();
         ini_set("display_errors", "off");
@@ -33,12 +38,40 @@ class TodoController extends PublicController {
 
         $inquiry_model = new Rfq_InquiryModel();
         $urlPermModel = new System_UrlPermModel();
+        $org_model = new System_OrgModel();
+        $role_nos = $this->user['role_no'];
 
-        if (!empty($this->user['country_bn']) && in_array('201711242', $this->user['role_no'])) {
+        if (!empty($this->user['country_bn']) && in_array('201711242', $role_nos)) {
             $country_bns = '';
             foreach ($this->user['country_bn'] as $country_bn) {
-                $country_bns .= '\'' . $country_bn . '\',';
+                $country_bns .= '\'' . $org_model->escapeString($country_bn) . '\',';
             }
+            $sql_inquiry = '';
+            if (
+                    in_array(self::inquiryIssueRole, $role_nos) ||
+                    in_array(self::quoteIssueMainRole, $role_nos)) {
+                if ($this->user['group_id']) {
+
+                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
+                    $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
+                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\',\'REJECT_MARKET\') AND org_id in(' . implode(',', $org_ids) . ')))';
+                }
+            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+
+                if ($this->user['group_id']) {
+
+                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
+                    $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
+
+                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\',\'REJECT_MARKET\') '
+                            . 'AND org_id in(' . implode(',', $org_ids) . ')'
+                            . ' AND country_bn in(' . $country_bns . ')'
+                            . '))';
+                }
+            } else {
+                $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
+            }
+
             $country_bns = rtrim($country_bns, ',');
             $sql = ' select id,serial_no,inflow_time,status,quote_status,country_bn,type,name from ('
                     . '(SELECT `id`,\'\' as serial_no,\'\' as inflow_time,`status`,\'\' as quote_status,'
@@ -46,23 +79,50 @@ class TodoController extends PublicController {
                     . '\'BUYER\' as type ,created_at as updated_at '
                     . 'FROM erui_buyer.buyer WHERE '
                     . '`status` = \'APPROVING\' AND `country_bn` IN '
-                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\') '
+                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\' ) '
                     . 'UNION ALL (SELECT `id`,`serial_no`,`inflow_time`,`status`,`quote_status`,`country_bn`,\'\' as name,'
                     . '\'RFQ\' as type,updated_at FROM erui_rfq.inquiry'
-                    . ' WHERE `now_agent_id` = ' . $this->user['id'] . ' '
-                    . 'AND `status` '
+                    . ' WHERE `status` '
                     . 'NOT IN (\'INQUIRY_CLOSED\',\'REJECT_CLOSE\',\'QUOTE_SENT\') '
-                    . 'AND `deleted_flag` = \'N\'  )) as a order by updated_at DESC';
+                    . 'AND `deleted_flag` = \'N\' ' . $sql_inquiry . ' )) as a order by updated_at DESC';
             $sql .= ' limit ' . (($page - 1) * $pagesize) . ',' . $pagesize;
-
 
             $list = $inquiry_model->db()->query($sql);
         } else {
             $where_inquiry = [
-                'now_agent_id' => $this->user['id'],
                 'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
                 'deleted_flag' => 'N'
             ];
+            if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    if ($this->user['country_bn']) {
+                        $map1['country_bn'] = ['in', $this->user['country_bn']];
+                    } else {
+                        $map1['country_bn'] = '-1';
+                    }
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } else {
+                $where_inquiry['now_agent_id'] = $this->user['id'];
+            }
             $list = $inquiry_model->where($where_inquiry)
                     ->order('updated_at DESC')
                     ->field('id,serial_no,inflow_time,status,quote_status,country_bn,\'\' as name,\'RFQ\' as type')
@@ -152,22 +212,53 @@ class TodoController extends PublicController {
 
     public function countAction() {
         $where_inquiry = [
-            'now_agent_id' => $this->user['id'],
             'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
             'deleted_flag' => 'N'
         ];
+        $role_nos = $this->user['role_no'];
         $inquiry_model = new Rfq_InquiryModel();
+        $org_model = new System_OrgModel();
         if (!empty($this->user['country_bn']) && in_array('201711242', $this->user['role_no'])) {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
                 , 'deleted_flag' => 'N'];
+            if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    if ($this->user['country_bn']) {
+                        $map1['country_bn'] = ['in', $this->user['country_bn']];
+                    } else {
+                        $map1['country_bn'] = '-1';
+                    }
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } else {
+                $where_inquiry['now_agent_id'] = $this->user['id'];
+            }
             $list = $inquiry_model->field('COUNT(id) AS tp_count')
                     ->where($where_inquiry)
                     ->union(['field' => 'COUNT(id) AS tp_count',
                         'table' => (new Buyer_BuyerModel())->getTableName(), 'where' => $where], true)
                     ->select();
-            $count = 0;
+
 
             if ($list) {
                 foreach ($list as $val) {
@@ -175,11 +266,38 @@ class TodoController extends PublicController {
                 }
             }
         } else {
-            $where_inquiry = [
-                'now_agent_id' => $this->user['id'],
-                'status' => ['not in', ['INQUIRY_CLOSED', 'REJECT_CLOSE', 'QUOTE_SENT']],
-                'deleted_flag' => 'N'
-            ];
+
+            if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+                if ($this->user['group_id']) {
+                    $map1 = [];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    if ($this->user['country_bn']) {
+                        $map1['country_bn'] = ['in', $this->user['country_bn']];
+                    } else {
+                        $map1['country_bn'] = '-1';
+                    }
+                    $map1['_logic'] = 'and';
+                    $map['_complex'] = $map1;
+                    $map['now_agent_id'] = $this->user['id'];
+                    $map['_logic'] = 'or';
+                    $where_inquiry['_complex'] = $map;
+                }
+            } else {
+                $where_inquiry['now_agent_id'] = $this->user['id'];
+            }
+
 
             $count = $inquiry_model->where($where_inquiry)->count('id') ?: 0;
         }
