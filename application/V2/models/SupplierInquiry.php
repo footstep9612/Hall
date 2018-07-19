@@ -494,7 +494,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $this->_setMaterialCat($list, 'zh');
 
-        // $this->_setCalculatePrice($list);
+        $this->_setCalculatePrice($list);
 
         $this->_setBizDespatching($list);
 
@@ -713,7 +713,7 @@ class SupplierInquiryModel extends PublicModel {
             'BK' => ['quote_unit_price', '报价单价（元）'],
             'BL' => ['quote_price_cur_bn', '币种'],
             'BM' => ['total_quote_price', '报价总价（元）'],
-            'BN' => ['quote_price_cur_bn', '币种'],
+            'BN' => ['total_quote_price_cur_bn', '币种'],
             'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
             'BP' => ['gross_weight_kg', '单重(kg)'],
             'BQ' => ['total_kg', '总重(kg)'],
@@ -1311,6 +1311,7 @@ class SupplierInquiryModel extends PublicModel {
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
+            $item['total_quote_price_cur_bn'] = $item['quote_price_cur_bn'];
             $item['quote_price_cur_bn'] = 'USD';
             $newList[] = $item;
         }
