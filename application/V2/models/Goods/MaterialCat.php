@@ -129,11 +129,15 @@ class Goods_MaterialCatModel extends PublicModel {
                 }
             }
             foreach ($ret1 as $cat_no1 => $item1) {
+                $item1['label'] = $item1['label'] . '-' . $item1['value'];
                 if (!empty($ret2[$cat_no1])) {
                     foreach ($ret2[$cat_no1] as $cat_no2 => $item2) {
+
+                        $item2['label'] = $item2['label'] . '-' . $item2['value'];
                         if (!empty($ret3[$cat_no2]) && !$is_two) {
                             foreach ($ret3[$cat_no2] as $item3) {
                                 unset($item3['parent_cat_no'], $item3['level_no']);
+                                $item3['label'] = $item3['label'] . '-' . $item3['value'];
                                 $item2['children'][] = $item3;
                             }
                         }
