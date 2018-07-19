@@ -408,12 +408,18 @@ class BuyerVisitModel extends PublicModel {
         //$data['visit_reply'] = trim($_input['visit_reply']);    //需求答复
         if(!empty($_input['department'])){
             $data['department'] = trim($_input['department']);    //部门
+        }else{
+            $data['department'] ='';    //部门
         }
         if(!empty($_input['handler'])){
             $data['handler'] = trim($_input['handler']);    //对接人员
+        }else{
+            $data['handler'] = '';    //对接人员
         }
         if(!empty($_input['feedback_content'])){
             $data['feedback_content'] = trim($_input['feedback_content']);    //反馈内容
+        }else{
+            $data['feedback_content'] = '';    //反馈内容
         }
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
