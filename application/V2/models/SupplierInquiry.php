@@ -483,6 +483,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
 
 
+
         $this->_setSupplierName($list);
 
         $this->_setquoted_time($list);
@@ -493,7 +494,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $this->_setMaterialCat($list, 'zh');
 
-        $this->_setCalculatePrice($list);
+        // $this->_setCalculatePrice($list);
 
         $this->_setBizDespatching($list);
 
@@ -1147,17 +1148,18 @@ class SupplierInquiryModel extends PublicModel {
             $clarification[$inquiry_id] = $item;
         }
 
-        foreach ($list as &$item) {
-            if (!empty($item['inquiry_id']) && !empty($clarification[$item['inquiry_id']])) {
+        foreach ($list as $key => $item) {
 
+            if (!empty($item['inquiry_id']) && !empty($clarification[$item['inquiry_id']])) {
                 foreach ($clarifyMapping as $v) {
                     $item[$v] = !empty($clarification[$item['inquiry_id']][$v]) ? $clarification[$item['inquiry_id']][$v] : '';
                 }
-            } else {
+            } elseif (!empty($item['inquiry_id'])) {
                 foreach ($clarifyMapping as $v) {
                     $item[$v] = '';
                 }
             }
+            $list[$key] = $item;
         }
     }
 
@@ -1257,6 +1259,7 @@ class SupplierInquiryModel extends PublicModel {
         $inquiryItemModel = new InquiryItemModel();
         $tmpList = $newList = $serialNoList = [];
         $i = 0;
+        $inquiry_ids = [];
         foreach ($list as &$item) {
             if (!empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids)) {
                 $inquiry_ids[] = $item['inquiry_id'];
@@ -1278,7 +1281,8 @@ class SupplierInquiryModel extends PublicModel {
 
 
         foreach ($list as $item) {
-            $serialNo = $item['serial_no'];
+            $serialNo = $item['inquiry_id'];
+
             $tmpData = $tmpList[$serialNo];
             $tmpList[$serialNo] = $item;
             $tmpList[$serialNo]['name_zh'] = $item['project_name'];
@@ -1301,14 +1305,17 @@ class SupplierInquiryModel extends PublicModel {
             $tmpList[$serialNo]['package_mode'] = '';
         }
         foreach ($list as $item) {
-            $serialNo = $item['serial_no'];
+            $serialNo = $item['inquiry_id'];
             if (!in_array($serialNo, $serialNoList)) {
                 $tmpList[$serialNo]['sequence_no'] = ++$i;
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
+            $item['quote_price_cur_bn'] = 'USD';
             $newList[] = $item;
         }
+
+
         $list = $newList;
     }
 
@@ -1321,10 +1328,17 @@ class SupplierInquiryModel extends PublicModel {
      * @time 2018-05-16
      */
     private function _getRateUSD($cur) {
+
+
         if (empty($cur)) {
             return 1;
+        } elseif (redisExist('RateUSD_' . $cur)) {
+
         } else {
-            return $this->_getRate('USD', $cur);
+
+            $Rate = $this->_getRate('USD', $cur);
+            redisSet('RateUSD_' . $cur, $Rate, 180);
+            return $Rate;
         }
     }
 

@@ -1049,25 +1049,32 @@ class InquiryModel extends PublicModel {
         // 会员管理国家负责人
         $isCountryAgent = 'N';
 
-        foreach ($roleNoArr as $roleNo) {
-            if ($roleNo == self::marketAgentRole) {
-                $isAgent = 'Y';
-            }
-            if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
-                $isErui = 'Y';
-            }
-            if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole || $roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole || $roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                $isIssue = 'Y';
-            }
-            if ($roleNo == self::quoterRole || $roleNo == self::logiQuoterRole) {
-                $isQuote = 'Y';
-            }
-            if ($roleNo == self::quoteCheckRole || $roleNo == self::logiCheckRole) {
-                $isCheck = 'Y';
-            }
-            if ($roleNo == self::buyerCountryAgent) {
-                $isCountryAgent = 'Y';
-            }
+        if (in_array(self::marketAgentRole, $roleNoArr)) {
+            $isAgent = 'Y';
+        }
+        if (in_array(self::inquiryIssueRole, $roleNoArr) ||
+                in_array(self::inquiryIssueAuxiliaryRole, $roleNoArr)) {
+            $isErui = 'Y';
+        }
+
+        if (in_array(self::inquiryIssueRole, $roleNoArr) ||
+                in_array(self::inquiryIssueAuxiliaryRole, $roleNoArr) ||
+                in_array(self::quoteIssueMainRole, $roleNoArr) ||
+                in_array(self::quoteIssueAuxiliaryRole, $roleNoArr) ||
+                in_array(self::logiIssueMainRole, $roleNoArr) ||
+                in_array(self::logiIssueAuxiliaryRole, $roleNoArr)) {
+            $isIssue = 'Y';
+        }
+        if (in_array(self::quoterRole, $roleNoArr) ||
+                in_array(self::logiQuoterRole, $roleNoArr)) {
+            $isQuote = 'Y';
+        }
+        if (in_array(self::quoteCheckRole, $roleNoArr) ||
+                in_array(self::logiCheckRole, $roleNoArr)) {
+            $isCheck = 'Y';
+        }
+        if (in_array(self::buyerCountryAgent, $roleNoArr)) {
+            $isCountryAgent = 'Y';
         }
 
         $data['is_agent'] = $isAgent;

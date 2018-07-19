@@ -1,12 +1,12 @@
 <?php
 /**
- * 专题
+ * 品类管理
  * Created by PhpStorm.
  * User: linkai
- * Date: 2018/6/6
+ * Date: 2018/07/18
  * Time: 11:50
  */
-class SpecialController extends PublicController{
+class SpecialgroupController extends PublicController{
     public function init(){
         parent::init();
     }
@@ -16,7 +16,7 @@ class SpecialController extends PublicController{
      */
     public function listAction(){
         $input = $this->getPut();
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = $model->getList($input);
         if($rel===false){
             jsonReturn('', MSG::MSG_FAILED);
@@ -30,7 +30,7 @@ class SpecialController extends PublicController{
      */
     public function infoAction(){
         $id = $this->getPut('id','');
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = $model->getInfo($id);
         if($rel){
             jsonReturn($rel);
@@ -43,7 +43,7 @@ class SpecialController extends PublicController{
      * 增
      */
     public function createAction(){
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = $model->createData($this->getPut());
         if($rel){
             jsonReturn($rel);
@@ -56,7 +56,7 @@ class SpecialController extends PublicController{
      * 改
      */
     public function updateAction(){
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = $model->updateData($this->getPut());
         if($rel){
             jsonReturn($rel);
@@ -70,8 +70,21 @@ class SpecialController extends PublicController{
      */
     public function editAction(){
         $input = $this->getPut();
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = isset($input['id']) ? $model->updateData($this->getPut()) : $model->createData($this->getPut());
+        if($rel){
+            jsonReturn($rel);
+        }else{
+            jsonReturn('', MSG::MSG_FAILED);
+        }
+    }
+
+    /**
+     * 排序
+     */
+    public function sortorderAction(){
+        $model = new SpecialGroupModel();
+        $rel = $model->sortOrder($this->getPut());
         if($rel){
             jsonReturn($rel);
         }else{
@@ -83,7 +96,7 @@ class SpecialController extends PublicController{
      * 删
      */
     public function deleteAction(){
-        $model = new SpecialModel();
+        $model = new SpecialGroupModel();
         $rel = $model->deleteData($this->getPut());
         if($rel){
             jsonReturn($rel);

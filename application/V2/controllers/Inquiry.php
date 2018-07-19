@@ -354,14 +354,19 @@ class InquiryController extends PublicController {
      */
     public function getInquiryUserRoleAction() {
         $inquiryModel = new InquiryModel();
+        $org_model = new OrgModel();
 
         $data = $inquiryModel->getUserRoleByNo($this->user['role_no']);
-
+//        if ($data['is_erui'] == 'N' && !empty($this->user['group_id'])) {
+//            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
+//        }
         if ($data['is_agent'] == 'Y') {
-            $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name, name_en, name_es, name_ru')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'eub', 'erui']], 'deleted_flag' => 'N'])->order('id DESC')->find();
 
+            $org = $orgModel->field('id, name, name_en, name_es, name_ru')
+                            ->where(['id' => ['in', $this->user['group_id'] ?: ['-1']],
+                                'org_node' => ['in', ['ub', 'eub', 'erui']],
+                                'deleted_flag' => 'N'])->order('id DESC')->find();
 // 事业部id和名称
             $data['ub_id'] = $org['id'];
             switch ($this->lang) {
