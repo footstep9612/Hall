@@ -5,15 +5,12 @@
  * @desc   InquiryController
  * @Author 买买提
  */
-class InquiryController extends PublicController
-{
+class InquiryController extends PublicController {
 
     private $inquiryModel;
-
     private $listAuth = [];
 
-    public function init()
-    {
+    public function init() {
         parent::init();
 
         $this->inquiryModel = new InquiryModel();
@@ -24,29 +21,26 @@ class InquiryController extends PublicController
             'user_id' => $this->user['id'],
             'list_type' => 'inquiry'
         ];
-
     }
-
 
     /**
      * 首页信息(统计，轮播，列表[最新3条数据])
      */
-    public function homeAction()
-    {
+    public function homeAction() {
 
         //$request = $this->validateRequestParams();
 
         $data = [];
 
         $data['statistics'] = [
-            'todayCount'  => $this->inquiryModel->getStatisticsByType('TODAY', $this->listAuth),
-            'totalCount'  => $this->inquiryModel->getStatisticsByType('TOTAL', $this->listAuth),
+            'todayCount' => $this->inquiryModel->getStatisticsByType('TODAY', $this->listAuth),
+            'totalCount' => $this->inquiryModel->getStatisticsByType('TOTAL', $this->listAuth),
             'quotedCount' => $this->inquiryModel->getStatisticsByType('QUOTED', $this->listAuth)
         ];
 
-        $data['carousel'] = $this->inquiryModel->getList($this->listAuth,"id,buyer_code,status,quote_status",['quote_status'=>'QUOTED']);
+        $data['carousel'] = $this->inquiryModel->getList($this->listAuth, "id,buyer_code,status,quote_status", ['quote_status' => 'QUOTED']);
 
-        $data['list'] = $this->inquiryModel->getNewItems($this->listAuth,"id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
+        $data['list'] = $this->inquiryModel->getNewItems($this->listAuth, "id,serial_no,buyer_name,created_at,quote_status,status,now_agent_id");
 
         $this->jsonReturn($data);
     }
@@ -55,43 +49,38 @@ class InquiryController extends PublicController
      * 创建询价单流程编码
      */
 
-    public function createSerialNoAction()
-    {
+    public function createSerialNoAction() {
 
         $data['serial_no'] = InquirySerialNo::getInquirySerialNo();
         $data['created_by'] = $this->user['id'];
         $this->jsonReturn($this->inquiryModel->addData($data));
-
     }
 
     /**
      * 创建询单
      */
-    public function updateAction()
-    {
+    public function updateAction() {
 
         $data = $this->validateRequestParams();
         $data['updated_by'] = $this->user['id'];
         $data['status'] = 'BIZ_DISPATCHING';
         $this->jsonReturn($this->inquiryModel->updateData($data));
-
     }
 
-    public function editAction()
-    {
+    public function editAction() {
 
         $request = $this->validateRequestParams('id');
-        $where = ['inquiry_id'=>$request['id']];
+        $where = ['inquiry_id' => $request['id']];
 
         //驳回信息
         $inquiryCheck = new InquiryCheckLogModel();
         $checkInfo = $inquiryCheck->where($where)->order('created_at DESC')->field('created_at,created_by,op_note')->find();
         $employeeModel = new EmployeeModel();
-        $checkInfo['rejecter'] = $employeeModel->where(['id'=>$checkInfo['created_by']])->getField('name');
+        $checkInfo['rejecter'] = $employeeModel->where(['id' => $checkInfo['created_by']])->getField('name');
 
         //询单信息
         $fields = "id,buyer_name,quote_deadline,quote_notes,trade_terms_bn,payment_mode,trans_mode_bn,to_country,to_port,destination";
-        $inquiryInfo = $this->inquiryModel->getDetail($request,$fields);
+        $inquiryInfo = $this->inquiryModel->getDetail($request, $fields);
 
         //附件信息
         $inquiryAttach = new InquiryAttachModel();
@@ -104,44 +93,40 @@ class InquiryController extends PublicController
                 'reject_note' => $checkInfo['op_note'],
             ],
             'basic' => [
-                'buyer_name'     => $inquiryInfo['buyer_name'],
+                'buyer_name' => $inquiryInfo['buyer_name'],
                 'quote_deadline' => $inquiryInfo['quote_deadline'],
-                'quote_notes'    => $inquiryInfo['quote_notes'],
+                'quote_notes' => $inquiryInfo['quote_notes'],
             ],
             'sku' => $attachList,
             'logistics' => [
                 'trade_terms_bn' => $inquiryInfo['trade_terms_bn'],
-                'payment_mode'   => $inquiryInfo['payment_mode'],
-                'trans_mode_bn'  => $inquiryInfo['trans_mode_bn'],
-                'to_country'     => $inquiryInfo['to_country'],
-                'to_port'        => $inquiryInfo['to_port'],
-                'destination'    => $inquiryInfo['destination'],
+                'payment_mode' => $inquiryInfo['payment_mode'],
+                'trans_mode_bn' => $inquiryInfo['trans_mode_bn'],
+                'to_country' => $inquiryInfo['to_country'],
+                'to_port' => $inquiryInfo['to_port'],
+                'destination' => $inquiryInfo['destination'],
             ]
         ];
 
         $this->jsonReturn($response);
-
     }
 
     /**
      * 文件上传接口测试
      */
-    public function uploadAction()
-    {
+    public function uploadAction() {
         $this->display('upload');
     }
-
 
     /**
      * 询单列表
      */
-    public function listAction()
-    {
+    public function listAction() {
         $condition = $this->validateRequestParams();
 
         $employeeModel = new EmployeeModel();
 
-        $condition = array_merge($condition,$this->listAuth);
+        $condition = array_merge($condition, $this->listAuth);
 
         $inquiryList = $this->inquiryModel->getList_($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status,trade_terms_bn,quote_deadline,created_at');
 
@@ -150,7 +135,6 @@ class InquiryController extends PublicController
             $inquiry['name'] = $employeeModel->where(['id' => $inquiry['now_agent_id']])->getField('name');
             $inquiry['quantity'] = $this->getInquirySkuCountBy($inquiry['id']);
             unset($inquiry['now_agent_id']);
-
         }
 
         if ($inquiryList) {
@@ -161,23 +145,21 @@ class InquiryController extends PublicController
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn([
-                'code'    => -1,
+                'code' => -1,
                 'message' => '暂无数据!'
             ]);
         }
     }
 
-    private function getInquirySkuCountBy($inquiry)
-    {
-        $qtys = (new InquiryItemModel)->where(['inquiry_id'=>$inquiry, 'deleted_flag'=>'N'])->getField('qty', true);
+    private function getInquirySkuCountBy($inquiry) {
+        $qtys = (new InquiryItemModel)->where(['inquiry_id' => $inquiry, 'deleted_flag' => 'N'])->getField('qty', true);
         return array_sum($qtys);
     }
 
     /**
      * 询单SKU列表(包含所有状态的询单)
      */
-    public function sku_listAction()
-    {
+    public function sku_listAction() {
         $condition = $this->validateRequestParams('id');
 
         //询单信息
@@ -197,25 +179,23 @@ class InquiryController extends PublicController
         $inquiry['contact'] = (new InquiryContactModel)->where(['inquiry_id' => $condition['id']])->field('name,company,country_bn,phone,email')->find();
 
         $this->jsonReturn([
-            'code'    => 1,
+            'code' => 1,
             'message' => '成功',
-            'data'    => $inquiry
+            'data' => $inquiry
         ]);
-
     }
 
     /**
      * 下载询单价
      */
-    public function downListAction()
-    {
+    public function downListAction() {
 
         $condition = $this->validateRequestParams();
         $condition['quote_status'] = 'COMPLETED';
 
         $employeeModel = new EmployeeModel();
 
-        $condition = array_merge($condition,$this->listAuth);
+        $condition = array_merge($condition, $this->listAuth);
 
         $inquiryList = $this->inquiryModel->getList($condition, 'id,serial_no,buyer_name,now_agent_id,created_at,quote_status,status');
 
@@ -224,7 +204,6 @@ class InquiryController extends PublicController
             $nowAgent = $employeeModel->field('name')->where(['id' => $inquiry['now_agent_id']])->find();
             $inquiry['name'] = $nowAgent['name'];
             unset($inquiry['now_agent_id']);
-
         }
 
         if ($inquiryList) {
@@ -235,7 +214,7 @@ class InquiryController extends PublicController
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn([
-                'code'    => -1,
+                'code' => -1,
                 'message' => '暂无数据!'
             ]);
         }
@@ -244,20 +223,19 @@ class InquiryController extends PublicController
     /**
      * 询单查看接口
      */
-    public function detailAction()
-    {
+    public function detailAction() {
 
         $request = $this->validateRequestParams('id');
 
         $inquiryFields = 'id,serial_no,buyer_name,quote_status,quote_id,logi_agent_id,now_agent_id,from_country,from_port,to_country,to_port';
-        $inquiryDetail = $this->inquiryModel->getDetail($request,$inquiryFields);
+        $inquiryDetail = $this->inquiryModel->getDetail($request, $inquiryFields);
 
         $employeeModel = new EmployeeModel();
-        $inquiryDetail['quote_agent'] = $employeeModel->where(['id'=>$inquiryDetail['quote_id']])->getField('name');
-        $inquiryDetail['logi_agent'] = $employeeModel->where(['id'=>$inquiryDetail['logi_agent_id']])->getField('name');
-        $inquiryDetail['now_agent'] = $employeeModel->where(['id'=>$inquiryDetail['now_agent_id']])->getField('name');
+        $inquiryDetail['quote_agent'] = $employeeModel->where(['id' => $inquiryDetail['quote_id']])->getField('name');
+        $inquiryDetail['logi_agent'] = $employeeModel->where(['id' => $inquiryDetail['logi_agent_id']])->getField('name');
+        $inquiryDetail['now_agent'] = $employeeModel->where(['id' => $inquiryDetail['now_agent_id']])->getField('name');
 
-        $condition = ['inquiry_id'=>$request['id']];
+        $condition = ['inquiry_id' => $request['id']];
 
         $quoteInfo = $this->getQuoteDetail($condition);
 
@@ -266,8 +244,8 @@ class InquiryController extends PublicController
         $logiDetail = $this->getQuoteLogiFeeDetail($condition);
 
         $quoteItemModel = new QuoteItemModel();
-        $inquiryDetail['totalCount']= $quoteItemModel->where($condition)->count('id');
-        $inquiryDetail['quotedCount'] = $quoteItemModel->where($condition)->where(['status'=>'QUOTED'])->count('id');
+        $inquiryDetail['totalCount'] = $quoteItemModel->where($condition)->count('id');
+        $inquiryDetail['quotedCount'] = $quoteItemModel->where($condition)->where(['status' => 'QUOTED'])->count('id');
 
         //询单联系人
         $inquiryContact = (new InquiryContactModel)->where($condition)->field('name,company,country_bn,phone,email')->find();
@@ -276,33 +254,31 @@ class InquiryController extends PublicController
             'code' => 1,
             'message' => '成功!',
             'data' => [
-                'inquiry'    => $inquiryDetail,
-                'quote'      => $quoteDetail,
-                'logistics'  => $logiDetail,
-                'contact'    => $inquiryContact
+                'inquiry' => $inquiryDetail,
+                'quote' => $quoteDetail,
+                'logistics' => $logiDetail,
+                'contact' => $inquiryContact
             ]
         ]);
-
     }
-
 
     /**
      * 获取报价详情
      * @param $condition 条件
      * @return array 结果
      */
-    private function getQuoteDetail ($condition){
+    private function getQuoteDetail($condition) {
 
         $quote = new QuoteModel();
-        $quoteFields = 'id,serial_no,fund_occupation_rate,payment_period,gross_profit_rate,bank_interest,total_bank_fee,total_purchase,'.
-            'total_logi_fee,total_exw_price,total_quote_price,package_mode,total_weight,package_volumn,period_of_validity,'.
-            'payment_mode,trade_terms_bn,delivery_period,premium_rate,trans_mode_bn,dispatch_place,quote_remarks';
+        $quoteFields = 'id,serial_no,fund_occupation_rate,payment_period,gross_profit_rate,bank_interest,total_bank_fee,total_purchase,' .
+                'total_logi_fee,total_exw_price,total_quote_price,package_mode,total_weight,package_volumn,period_of_validity,' .
+                'payment_mode,trade_terms_bn,delivery_period,premium_rate,trans_mode_bn,dispatch_place,quote_remarks';
 
-        $data = $quote->getGeneralInfo($condition,$quoteFields);
+        $data = $quote->getGeneralInfo($condition, $quoteFields);
 
         //汇率
         $exchangeRate = new ExchangeRateModel();
-        $data['exchange_rate'] = $exchangeRate->where(['cur_bn2'=>'CNY','cur_bn1'=>'USD'])->getField('rate');
+        $data['exchange_rate'] = $exchangeRate->where(['cur_bn2' => 'CNY', 'cur_bn1' => 'USD'])->getField('rate');
 
         //市场报EXW合计 市场报贸易合计
         $finalQuote = new FinalQuoteModel();
@@ -312,17 +288,14 @@ class InquiryController extends PublicController
         $data['final_total_quote_price'] = $finalData['total_quote_price'];
 
         return $data;
-
     }
-
 
     /**
      * 重组APP需要格式的报价详情
      * @param $data 数据
      * @return array 结果
      */
-    private function getRecombineQuoteDetail ($data)
-    {
+    private function getRecombineQuoteDetail($data) {
 
         $recombine = [
             '赊销比例', $data['fund_occupation_rate'],
@@ -353,15 +326,13 @@ class InquiryController extends PublicController
         return $recombine;
     }
 
-
     /**
      * 获取物流信息
      * @param $condition
      *
      * @return array
      */
-    private function getQuoteLogiFeeDetail($condition)
-    {
+    private function getQuoteLogiFeeDetail($condition) {
 
         $logi = new LogisticsController();
         $data = $logi->getQuoteLogiFeeDetailAction($condition);
@@ -386,14 +357,12 @@ class InquiryController extends PublicController
         ];
 
         return $logiDetail;
-
     }
 
     /**
      * 商品列表
      */
-    public function skuAction()
-    {
+    public function skuAction() {
 
         $request = $this->validateRequestParams('id');
 
@@ -401,14 +370,13 @@ class InquiryController extends PublicController
         $data = $inquiryItem->getItemWithQuote($request);
 
         $this->jsonReturn([
-            'code'    => 1,
+            'code' => 1,
             'message' => '成功!',
-            'data'    => [
+            'data' => [
                 'count' => $inquiryItem->getCountItemWithQuote($request),
-                'data'  => $data
+                'data' => $data
             ]
         ]);
-
     }
 
     /**
@@ -457,13 +425,12 @@ class InquiryController extends PublicController
             if ($roleNo == $inquiry::buyerCountryAgent) {
                 $isCountryAgent = 'Y';
             }
-
         }
 
         if ($isAgent == 'Y') {
             $orgModel = new OrgModel();
 
-            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui']]])->order('id DESC')->find();
+            $org = $orgModel->field('id, name')->where(['id' => ['in', $this->user['group_id'] ?: ['-1']], 'org_node' => ['in', ['ub', 'erui', 'eub']]])->order('id DESC')->find();
 
             // 事业部id和名称
             $data['ub_id'] = $org['id'];
@@ -484,4 +451,3 @@ class InquiryController extends PublicController
     }
 
 }
-
