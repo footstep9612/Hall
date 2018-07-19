@@ -290,6 +290,7 @@ class UserController extends PublicController {
         } else {
             $userId = $this->user['id'];
         }
+
         $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         if (!empty($data)) {
             $datajson['code'] = 1;
