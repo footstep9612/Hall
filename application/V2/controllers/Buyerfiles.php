@@ -84,7 +84,7 @@ class BuyerfilesController extends PublicController
         $data['admin']=$this->getUserRole();   //=1市场专员
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
-        $ststisInfo = $model->buyerStatisList($data);
+        $ststisInfo = $model->buyerStatisList($data,false,true);
         if($ststisInfo===false){
             $dataJson = array(
                 'code' => 1,
