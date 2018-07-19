@@ -1311,6 +1311,7 @@ class SupplierInquiryModel extends PublicModel {
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
+            $item['quote_price_cur_bn'] = 'USD';
             $newList[] = $item;
         }
 
