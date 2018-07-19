@@ -87,8 +87,6 @@ class TodoController extends PublicController {
                     . 'AND `deleted_flag` = \'N\' ' . $sql_inquiry . ' )) as a order by updated_at DESC';
             $sql .= ' limit ' . (($page - 1) * $pagesize) . ',' . $pagesize;
 
-            echo $sql;
-            die;
             $list = $inquiry_model->db()->query($sql);
         } else {
             $where_inquiry = [

@@ -106,17 +106,17 @@ class NotificationController extends PublicController {
             'deleted_flag' => 'N'
         ];
         $role_nos = $this->user['role_no'];
-        $inquiry_model = new Rfq_InquiryModel();
-        $org_model = new System_OrgModel();
+        $inquiry_model = new InquiryModel();
+        $org_model = new OrgModel();
         if (!empty($this->user['country_bn']) && in_array('201711242', $this->user['role_no'])) {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
                 , 'deleted_flag' => 'N'];
-            if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
+            if (in_array(InquiryModel::inquiryIssueRole, $role_nos) || in_array(InquiryModel::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
-                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
                     $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
@@ -124,10 +124,10 @@ class NotificationController extends PublicController {
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
                 }
-            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+            } elseif (in_array(InquiryModel::quoteIssueAuxiliaryRole, $role_nos) || in_array(InquiryModel::inquiryIssueAuxiliaryRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
-                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
                     $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
@@ -146,7 +146,7 @@ class NotificationController extends PublicController {
             $list = $inquiry_model->field('COUNT(id) AS tp_count')
                     ->where($where_inquiry)
                     ->union(['field' => 'COUNT(id) AS tp_count',
-                        'table' => (new Buyer_BuyerModel())->getTableName(), 'where' => $where], true)
+                        'table' => (new BuyerModel())->getTableName(), 'where' => $where], true)
                     ->select();
 
 
@@ -157,10 +157,10 @@ class NotificationController extends PublicController {
             }
         } else {
 
-            if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
+            if (in_array(InquiryModel::inquiryIssueRole, $role_nos) || in_array(InquiryModel::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
-                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
                     $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
@@ -168,10 +168,10 @@ class NotificationController extends PublicController {
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
                 }
-            } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
+            } elseif (in_array(InquiryModel::quoteIssueAuxiliaryRole, $role_nos) || in_array(InquiryModel::inquiryIssueAuxiliaryRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
-                    $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
+                    $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
                     $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
