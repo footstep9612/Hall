@@ -494,7 +494,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $this->_setMaterialCat($list, 'zh');
 
-        // $this->_setCalculatePrice($list);
+        $this->_setCalculatePrice($list);
 
         $this->_setBizDespatching($list);
 
