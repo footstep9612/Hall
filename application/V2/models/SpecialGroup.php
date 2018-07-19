@@ -1,14 +1,21 @@
 <?php
+
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
 /**
- * 专题
+ * 专题关键词
  * @author  link
  * @date    2018-05-17 13:38:48
- * @version V1.0
+ * @version V2.0
  * @desc
  */
-class SpecialModel extends PublicModel {
+class SpecialGroupModel extends PublicModel {
     protected $dbName = 'erui_mall';
-    protected $tableName = 'special';
+    protected $tableName = 'special_group';
 
     public function __construct() {
         parent::__construct();
@@ -16,20 +23,14 @@ class SpecialModel extends PublicModel {
 
     public function getList($condition){
         $where =['deleted_at'=>['exp', 'is null']];
-        if(isset($condition['type'])){
-            $where['type'] = intval($condition['type']);
-        }
-        if(isset($condition['country_bn'])){
-            $where['country_bn'] = trim($condition['country_bn']);
+        if(isset($condition['group_no'])){
+            $where['group_no'] = trim($condition['group_no']);
         }
         if(isset($condition['lang'])){
             $where['lang'] = trim($condition['lang']);
         }
-        if(isset($condition['status'])){
-            $where['status'] = trim($condition['status']);
-        }
-        if(isset($condition['name'])){
-            $where['name'] = ['like', '%' . trim($condition['name']) . '%'];
+        if(isset($condition['group_name'])){
+            $where['group_name'] = ['like', '%' . trim($condition['group_name']) . '%'];
         }
         if(isset($condition['created_at_start']) && isset($condition['created_at_end'])){
             $where['created_at'] = ['between', trim($condition['created_at_start']).','.trim($condition['created_at_end'])];
@@ -42,7 +43,7 @@ class SpecialModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field('id,country_bn,lang,name,remark,type,status,sort_order,show_flag,created_at,created_by,updated_by,updated_at,settings')->where($where)
+            $rel = $this->field('id,group_no,group_name,sort_order,special_count,lang,show_flag,created_at,created_by,updated_by,updated_at')->where($where)->order('sort_order DESC')
                 ->limit($from, $size)
                 ->select();
             if($rel){
@@ -77,12 +78,13 @@ class SpecialModel extends PublicModel {
      * @param $id
      * @return bool|mixed
      */
-    public function getInfo($id){
+    public function getInfo($id,$field=''){
         if(!$id || !is_numeric($id)){
             jsonReturn('', MSG::MSG_FAILED,'id不存在');
         }
         try{
-            return $this->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
+            $field = empty($field) ? 'id,group_no,group_name,sort_order,special_count,lang,show_flag,created_at,created_by,updated_by,updated_at' : $field;
+            return $this->field("$field")->where(['id'=>$id,'deleted_at'=>['exp', 'is null']])->find();
         }catch (Exception $e){
             return false;
         }
@@ -94,28 +96,34 @@ class SpecialModel extends PublicModel {
      * @return bool|mixed
      */
     public function createData($input=[]){
-        if(!isset($input['name']) || empty($input['name'])){
+        if(!isset($input['group_name']) || empty($input['group_name'])){
             jsonReturn('', MSG::MSG_FAILED,'请输入名称');
         }
+        if(!isset($input['lang']) || !in_array(trim($input['lang']),['zh','en','es','ru'])){
+            jsonReturn('', MSG::MSG_FAILED,'请选择语言');
+        }
         try{
+            $no = $this->_getNo();
+            if($no === false){
+                jsonReturn('', MSG::MSG_FAILED,'编码生成失败，请稍后重试');
+            }
             $data = [
-                'name' => trim($input['name']),
-                'lang' => (isset($input['lang']) && in_array($input['lang'],['zh','en','ru','es'])) ? $input['lang'] : 'en',
-                'country_bn' => isset($input['country_bn']) ? $input['country_bn'] : null,
-                'remark' => isset($input['remark']) ? trim($input['remark']) : '',
-                'type' => (isset($input['type']) && $input['type']==1) ? 1 : 0,
-                'settings' => (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '',
+                'group_no' => $no,
+                'group_name' => trim($input['group_name']),
+                'lang' => trim($input['lang']),
                 'show_flag' => (isset($input['show_flag']) && (trim($input['show_flag'])=='Y' || trim($input['show_flag'])===true || trim($input['show_flag'])==1)) ? 'Y' : 'N',
+                'sort_order' => isset($input['sort_order']) ? intval($input['sort_order']) : 0,
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
             $where = [
-                'name' => $data['name'],
                 'lang' => $data['lang'],
+                'group_name' => $data['group_name'],
                 'deleted_at' => ['exp', 'is null']
             ];
             if(!self::exist($where)){
-                return $this->add($data);
+                $id = $this->add($data);
+                return $id ? $id : false;
             }else{
                 jsonReturn('', MSG::MSG_FAILED,'已经存在');
             }
@@ -133,9 +141,11 @@ class SpecialModel extends PublicModel {
         if(empty($input)){
             jsonReturn('', MSG::MSG_FAILED,'没有信息');
         }
+        if(!isset($input['id']) || empty($input['id'])){
+            jsonReturn('', MSG::MSG_FAILED,'请选择品类');
+        }
         try{
             $id = isset($input['id']) ? intval($input['id']) : 0;
-            $lang = (isset($input['lang']) && in_array($input['lang'],['zh','en','ru','es'])) ? $input['lang'] : 'en';
             if(!$id){
                 jsonReturn('', MSG::MSG_FAILED,'没有id');
             }
@@ -145,42 +155,60 @@ class SpecialModel extends PublicModel {
             ];
             $where = [
                 'id' => ['neq', $id],
-                'lang' => $lang,
                 'deleted_at' => ['exp', 'is null']
             ];
-            if(isset($input['name'])){
-                $data['name'] = trim($input['name']);
-                $where['name'] = $data['name'];
+            if(isset($input['group_name'])){
+                $data['group_name'] = trim($input['group_name']);
+                $where['group_name'] = trim($input['group_name']);
             }
             if(isset($input['lang'])){
                 $data['lang'] = trim($input['lang']);
-                $where['lang'] = $data['lang'];
+                $where['lang'] = trim($input['lang']);
             }
-            if(isset($input['name']) && self::exist($where)){
+            if(isset($input['group_name']) && self::exist($where)){
                 jsonReturn('', MSG::MSG_FAILED,'已经存在');
             }
-            if(isset($input['country_bn'])){
-                $data['country_bn'] = trim($input['country_bn']);
-            }
-            if(isset($input['remark'])){
-                $data['remark'] = trim($input['remark']);
-            }
-            if(isset($input['type'])){
-                $data['type'] = (isset($input['type']) && $input['type']==1) ? 1 : 0;
-            }
+
             if(isset($input['show_flag'])){
                 $data['show_flag'] = (isset($input['show_flag']) && (trim($input['show_flag'])=='Y' || trim($input['show_flag'])===true || trim($input['show_flag'])==1)) ? 'Y' : 'N';
+            }
+            if(isset($input['special_count'])){
+                $data['special_count'] = intval($input['special_count']);
             }
             if(isset($input['sort_order'])){
                 $data['sort_order'] = intval($input['sort_order']);
             }
-            if(isset($input['status']) && in_array(strtoupper($input['status']),['VALID','CHECKING','INVALID','CLOSED'])){
-                $data['status'] = strtoupper($input['status']);
-            }
-            if(isset($input['settings'])){
-                $data['settings'] = (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '';
-            }
-            return $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
+            $rel = $this->where(['id' => $id, 'deleted_at' => ['exp','is null']])->save($data);
+            return $rel ? $rel : false;
+        }catch (Exception $e){
+            return false;
+        }
+    }
+
+    /**
+     * 排序
+     * @param array $input
+     * @return bool
+     */
+    public function sortOrder($input=[]){
+        if(empty($input)){
+            jsonReturn('', MSG::MSG_FAILED,'没有信息');
+        }
+        if(!isset($input['id']) || empty($input['id'])){
+            jsonReturn('', MSG::MSG_FAILED,'请选择品类');
+        }
+        if(!isset($input['sort_order'])){
+            jsonReturn('', MSG::MSG_FAILED,'请输入排序数');
+        }
+        try{
+            $data = [
+                'sort_order' => intval($input['sort_order']),
+                'updated_by' => defined('UID') ? UID : 0,
+                'updated_at' => date('Y-m-d H:i:s', time())
+            ];
+
+            $rel = $this->where(['id' => intval($input['id'])])->save($data);
+            return $rel ? $rel : false;
         }catch (Exception $e){
             return false;
         }
@@ -201,10 +229,17 @@ class SpecialModel extends PublicModel {
             }else{
                 $where['id'] = intval($input['id']);
             }
-            $data=[
-                'deleted_by' => defined('UID') ? UID : 0,
-                'deleted_at' => date('Y-m-d H:i:s', time())
-            ];
+            if(isset($input['type']) && $input['type']=='UNDELETE'){
+                $data = [
+                    'deleted_by' => 0,
+                    'deleted_at' => null
+                ];
+            }else{
+                $data=[
+                    'deleted_by' => defined('UID') ? UID : 0,
+                    'deleted_at' => date('Y-m-d H:i:s', time())
+                ];
+            }
             return $this->where($where)->save($data);
         }catch (Exception $e){
             return false;
@@ -227,4 +262,20 @@ class SpecialModel extends PublicModel {
         };
     }
 
+    /**
+     * 获取编码
+     * @return bool|int|string
+     */
+    protected function _getNo(){
+        try{
+            $groupInfo = $this->field('group_no')->order('group_no DESC')->find();
+            if($groupInfo){
+                return intval($groupInfo['group_no'])+1;
+            }else{
+                return '10000000';
+            }
+        }catch (Exception $e){
+            return false;
+        }
+    }
 }
