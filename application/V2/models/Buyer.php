@@ -746,9 +746,10 @@ class BuyerModel extends PublicModel {
             $info[$k]['account_email'] = $account['email'];
             if(!empty($v['buyer_level'])){ //客户等级
                 $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
-            }else{
-                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
             }
+//            else{
+//                $info[$k]['buyer_level']=$lang=='zh'?'注册客户':'Registered customer';
+//            }
             if(!empty($v['country_bn'])){ //国家
                 $area = $country->getCountryAreaByBn($v['country_bn'],$lang);
                 $info[$k]['area'] = $area['area'];
