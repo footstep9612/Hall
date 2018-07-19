@@ -235,6 +235,11 @@ class QuoteItemModel extends PublicModel {
                     $quoteItemResult = $this->delItem($value['inquiry_item_id']);
                 }
             } else {
+                if (empty($value['supplier_name'])) {
+                    // 匹配供应商失败列表
+                    $supplierFailList[] = $row;
+                    continue;
+                }
                 $supplierId = $suppliersModel->where(['name' => $value['supplier_name'], 'deleted_flag' => 'N'])->getField('id');
                 if (!is_numeric($supplierId)) {
                     // 匹配供应商失败列表
