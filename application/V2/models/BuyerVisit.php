@@ -127,9 +127,6 @@ class BuyerVisitModel extends PublicModel {
         }
         return $condition;
     }
-//    public function AccessDepartment(){
-//        $this->field()->where()->select();
-//    }
     /**
      * 需求列表
      * @param array $_input
@@ -142,9 +139,15 @@ class BuyerVisitModel extends PublicModel {
         $total_flag=isset($_input['total_flag'])?$_input['total_flag']:false;
         $offset=($current_no-1)*$length;
         $demadCond=$this->getDemadCond($_input);
-        //部门对接
-//        $access=$this->AccessDepartment();
-//        print_r($access);die;
+//        部门对接
+//        $org=$_input['admin']['group_id'];
+//        $handler=$_input['created_by'];
+//        if(empty($org)){
+//            return false;
+//        }
+//        $accessStr=implode(',',$org);
+//        $demadCond.=" and (visit.department in ($accessStr)";    //部门
+//        $demadCond.=" or visit.handler=$handler)";    //对接人员
         if($demadCond==false){
             return false;
         }
