@@ -79,12 +79,13 @@ $left=array(
 
     public function listallAction() {
         $data = $this->getPut();
-
         $data['lang'] = $this->getPut('lang', 'zh');
         $data['deleted_flag'] = 'N';
+        if($this->getPut('bn')){
+            $data['bn'] = explode(',',$this->getPut('bn'));
+        }
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
-
         if (!empty($arr)) {
             $this->setCode(MSG::MSG_SUCCESS);
         } elseif ($arr === null) {
