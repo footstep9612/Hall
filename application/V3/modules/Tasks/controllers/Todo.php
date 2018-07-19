@@ -40,7 +40,7 @@ class TodoController extends PublicController {
         $urlPermModel = new System_UrlPermModel();
         $org_model = new System_OrgModel();
         $role_nos = $this->user['role_no'];
-        $this->user['country_bn'][] = 'China\'TaiWan';
+
         if (!empty($this->user['country_bn']) && in_array('201711242', $role_nos)) {
             $country_bns = '';
             foreach ($this->user['country_bn'] as $country_bn) {
@@ -87,6 +87,8 @@ class TodoController extends PublicController {
                     . 'AND `deleted_flag` = \'N\' ' . $sql_inquiry . ' )) as a order by updated_at DESC';
             $sql .= ' limit ' . (($page - 1) * $pagesize) . ',' . $pagesize;
 
+            echo $sql;
+            die;
             $list = $inquiry_model->db()->query($sql);
         } else {
             $where_inquiry = [
@@ -258,7 +260,7 @@ class TodoController extends PublicController {
                     ->union(['field' => 'COUNT(id) AS tp_count',
                         'table' => (new Buyer_BuyerModel())->getTableName(), 'where' => $where], true)
                     ->select();
-            $count = 0;
+
 
             if ($list) {
                 foreach ($list as $val) {
