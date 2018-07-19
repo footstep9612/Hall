@@ -57,6 +57,7 @@ class OrgModel extends PublicModel {
         if (!$id) {
             return 'N';
         }
+
         $where['id'] = $id;
         $where['org_node'] = ['in', ['erui', 'eub', 'elg']];
         $count = $this->where($where)->count();
