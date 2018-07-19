@@ -136,7 +136,7 @@ class BuyervisitController extends PublicController {
      */
     public function demadListAction(){
         $data = $this->getPut();
-        $data['admin']=$this->getUserRole();
+        $data['admin']=$this->user;
         $data['created_by']=$this->user['id'];
         $visit_model = new BuyerVisitModel();
         $res = $visit_model->getDemadList($data,$this->getLang());

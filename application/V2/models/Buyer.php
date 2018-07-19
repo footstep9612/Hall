@@ -687,7 +687,7 @@ class BuyerModel extends PublicModel {
         $info=$this->query($sql);
         return $info[0]['name'];
     }
-    public function buyerStatisList($data,$excel=false){
+    public function buyerStatisList($data,$excel=false,$status=false){
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
@@ -781,6 +781,26 @@ class BuyerModel extends PublicModel {
             }
             $info[$k]['created_at'] = substr($info[$k]['created_at'],0,10);
             $info[$k]['checked_at'] = substr($info[$k]['checked_at'],0,10);
+            if($v['source']==1){
+                $v['source']='BOSS';
+            }elseif($v['source']==2){
+                $v['source']='PORTAL';
+            }elseif($v['source']==3){
+                $v['source']='APP';
+            }else{
+                $v['source']='';
+            }
+            if($status==true){  ///APPROVING,已分配经办人:APPROVED,驳回关闭:REJECTED,建立档案信息PASS',
+                if($v['status']=='APPROVING'){
+                    $v['status']=$lang=='zh'?'待分配':'APPROVING';
+                }elseif($v['status']=='APPROVED'){
+                    $v['status']=$lang=='zh'?'已分配':'APPROVED';
+                }elseif($v['status']=='REJECTED'){
+                    $v['status']=$lang=='zh'?'已关闭':'REJECTED';
+                }else{
+                    $v['status']='';
+                }
+            }
         }
         if(empty($info)){
             $info=[];
