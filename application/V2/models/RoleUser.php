@@ -313,12 +313,13 @@ class RoleUserModel extends PublicModel {
                     ->field($fields)
                     ->where($where)
                     ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
-                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id')
+                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id and r.deleted_flag=\'N\'')
                     ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
                     ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
                     ->group('fp.id')
                     ->order('`fp`.`sort` asc')
                     ->select();
+
             return $data;
         }
     }

@@ -65,20 +65,29 @@ class StorageGoodsModel extends PublicModel{
     public function deleteData( $input = [] )
     {
         try{
-            if(empty($input) || (empty($input['storage_id']) && empty($input['sku']))){
-                return false;
-            }
             $where = [];
-            if(isset($input['storage_id'])){
-                $where["storage_id"] = intval(trim($input['storage_id']));
-            }
-            if(isset($input['sku'])){
-                if(is_array($input['sku'])){
-                    $where['sku'] = ['in',$input['sku']];
+            if(!isset($input['id']) || empty($input['id'])){
+                if(empty($input) || (empty($input['storage_id']) && empty($input['sku']))){
+                    return false;
+                }
+                if(isset($input['storage_id'])){
+                    $where["storage_id"] = intval(trim($input['storage_id']));
+                }
+                if(isset($input['sku'])){
+                    if(is_array($input['sku'])){
+                        $where['sku'] = ['in',$input['sku']];
+                    }else{
+                        $where['sku'] = trim($input['sku']);
+                    }
+                }
+            }else{
+                if(is_array($input['id'])){
+                    $where['id'] = ['in',$input['id']];
                 }else{
-                    $where['sku'] = trim($input['sku']);
+                    $where['id'] = trim($input['id']);
                 }
             }
+
             $data = [
                 "deleted_by" => defined('UID') ? UID : 0,
                 "deleted_at" => date('Y-m-d H:i:s',time())
@@ -114,7 +123,7 @@ class StorageGoodsModel extends PublicModel{
 
             $data = [];
             $join = "(SELECT show_name,sku,lang,country_bn,MAX(sort_order),deleted_at,status FROM $stockTable WHERE country_bn='".$storageInfo['country_bn']."' AND lang='".$storageInfo["lang"]."' AND deleted_at is null AND status='VALID' GROUP BY sku) as s ON s.sku=".$thisTable.".sku";
-            $list = $this->field($field)->join($join,'LEFT')->where($where)
+            $list = $this->field($field)->join($join,'RIGHT')->where($where)
                 ->limit($from,$size)
                 ->select();
             if($list){

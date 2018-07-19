@@ -193,6 +193,13 @@ class GroupController extends PublicController {
         if (!empty($data['name'])) {
             $where['org.name'] = array('like', "%" . $data['name'] . "%");
         }
+        if (!empty($data['org_node']) && $data['org_node'] == 'ub') {
+            $data['org_node'] = 'ub,eub';
+        } elseif (!empty($data['org_node']) && $data['org_node'] == 'lg') {
+            $data['org_node'] = 'lg,elg';
+        } elseif (!empty($data['org_node']) && $data['org_node'] == 'erui') {
+            $data['org_node'] = 'erui,eub,elg';
+        }
         if (!empty($data['org_node'])) {
             $pieces = explode(",", $data['org_node']);
             for ($i = 0; $i < count($pieces); $i++) {

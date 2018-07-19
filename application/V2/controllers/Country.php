@@ -38,7 +38,7 @@ class CountryController extends PublicController {
 $left=array(
     'value'=>'',
     'label'=>'全部',
-    'children'=>['value'=>'','label'=>'全部']
+    'children'=>[['value'=>'','label'=>'全部']]
 );
         array_unshift($arr,$left);
         $dataJson = array(
