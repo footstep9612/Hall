@@ -494,7 +494,7 @@ class SupplierInquiryModel extends PublicModel {
 
         $this->_setMaterialCat($list, 'zh');
 
-        // $this->_setCalculatePrice($list);
+        $this->_setCalculatePrice($list);
 
         $this->_setBizDespatching($list);
 
@@ -713,7 +713,7 @@ class SupplierInquiryModel extends PublicModel {
             'BK' => ['quote_unit_price', '报价单价（元）'],
             'BL' => ['quote_price_cur_bn', '币种'],
             'BM' => ['total_quote_price', '报价总价（元）'],
-            'BN' => ['quote_price_cur_bn', '币种'],
+            'BN' => ['total_quote_price_cur_bn', '币种'],
             'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
             'BP' => ['gross_weight_kg', '单重(kg)'],
             'BQ' => ['total_kg', '总重(kg)'],
@@ -1105,7 +1105,7 @@ class SupplierInquiryModel extends PublicModel {
         $clarifyNode = array_keys($clarifyMapping);
 
         $inquiry_ids = [];
-        foreach ($list as &$item) {
+        foreach ($list as $item) {
             if (!empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids)) {
                 $inquiry_ids[] = $item['inquiry_id'];
             }
@@ -1187,7 +1187,7 @@ class SupplierInquiryModel extends PublicModel {
         $quoteNode = array_keys($quoteMapping);
 
         $inquiry_ids = [];
-        foreach ($list as &$item) {
+        foreach ($list as $item) {
             if (!empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids)) {
                 $inquiry_ids[] = $item['inquiry_id'];
             }
@@ -1256,6 +1256,8 @@ class SupplierInquiryModel extends PublicModel {
      * @time 2018-05-16
      */
     private function _resetListData(&$list) {
+
+
         $inquiryItemModel = new InquiryItemModel();
         $tmpList = $newList = $serialNoList = [];
         $i = 0;
@@ -1265,20 +1267,22 @@ class SupplierInquiryModel extends PublicModel {
                 $inquiry_ids[] = $item['inquiry_id'];
             }
         }
-        $category_lists = $inquiryItemModel
-                ->field('COUNT(id) AS count, category,inquiry_id')
-                ->where(['inquiry_id' => ['in', $inquiry_ids], 'category' => ['neq', ''], 'deleted_flag' => 'N'])
-                ->group('inquiry_id,category')->order('count DESC')
-                ->select();
-        $categorys = [];
-        foreach ($category_lists as $category) {
-            if (empty($categorys[$category['inquiry_id']])) {
-                $categorys[$category['inquiry_id']] = $category['category'];
-            } else {
-                continue;
+        if ($inquiry_ids) {
+            $category_lists = $inquiryItemModel
+                    ->field('COUNT(id) AS count, category,inquiry_id')
+                    ->where(['inquiry_id' => ['in', $inquiry_ids], 'category' => ['neq', ''], 'deleted_flag' => 'N'])
+                    ->group('inquiry_id,category')->order('count DESC')
+                    ->select();
+
+            $categorys = [];
+            foreach ($category_lists as $category) {
+                if (empty($categorys[$category['inquiry_id']])) {
+                    $categorys[$category['inquiry_id']] = $category['category'];
+                } else {
+                    continue;
+                }
             }
         }
-
 
         foreach ($list as $item) {
             $serialNo = $item['inquiry_id'];
@@ -1297,7 +1301,7 @@ class SupplierInquiryModel extends PublicModel {
             $tmpList[$serialNo]['total'] = '';
             $tmpList[$serialNo]['quote_unit_price'] = '';
             $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
-            $tmpList[$serialNo]['total_quote_price'] = $tmpData['total_quote_price'] + round($item['total_quote_price'] / $this->_getRateUSD($item['purchase_price_cur_bn']), 2);
+            $tmpList[$serialNo]['total_quote_price'] = $tmpData['total_quote_price'] + round($item['total_quote_price'] / $this->_getRateUSD($item['quote_price_cur_bn']), 2);
             $tmpList[$serialNo]['total_quoted_price_usd'] += $tmpData['total_quoted_price_usd'];
             $tmpList[$serialNo]['gross_weight_kg'] = '';
             $tmpList[$serialNo]['total_kg'] += $tmpData['total_kg'];
@@ -1311,7 +1315,8 @@ class SupplierInquiryModel extends PublicModel {
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
-            $item['quote_price_cur_bn'] = 'USD';
+            $item['total_quote_price_cur_bn'] = $item['quote_price_cur_bn'];
+
             $newList[] = $item;
         }
 
@@ -1334,9 +1339,10 @@ class SupplierInquiryModel extends PublicModel {
             return 1;
         } elseif (redisExist('RateUSD_' . $cur)) {
 
+            return redisGet('RateUSD_' . $cur);
         } else {
-
             $Rate = $this->_getRate('USD', $cur);
+
             redisSet('RateUSD_' . $cur, $Rate, 180);
             return $Rate;
         }
@@ -1353,9 +1359,9 @@ class SupplierInquiryModel extends PublicModel {
      */
     private function _getRate($holdCur, $exchangeCur = 'CNY') {
         if (!empty($holdCur)) {
-            if ($holdCur == $exchangeCur)
+            if ($holdCur == $exchangeCur) {
                 return 1;
-
+            }
             $exchangeRateModel = new ExchangeRateModel();
             $exchangeRate = $exchangeRateModel->field('rate')
                             ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
@@ -1369,7 +1375,7 @@ class SupplierInquiryModel extends PublicModel {
 
             return $exchangeRate['rate'];
         } else {
-            return false;
+            return 1;
         }
     }
 
@@ -1442,46 +1448,11 @@ class SupplierInquiryModel extends PublicModel {
      */
 
     private function _setCalculatePrice(&$list) {
-        $exchange_rate_model = new ExchangeRateModel();
-        $purchase_price_cur_bns = [];
 
-        foreach ($list as $key => $item) {
-            if (in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭']) && $item['purchase_price_cur_bn'] != 'USD' && !$item['exchange_rate']) {
-                $purchase_price_cur_bns[$item['purchase_price_cur_bn']] = $item['purchase_price_cur_bn'];
-            }
-        }
+
+
         $exchange_rates = [];
-        if ($purchase_price_cur_bns) {
-            foreach ($purchase_price_cur_bns as $key => $purchase_price_cur_bn) {
-                $exchange_rate_1 = $exchange_rate_model
-                        ->where([
-                            'cur_bn1' => $purchase_price_cur_bn,
-                            'cur_bn2' => 'USD',
-                            'effective_date' => ['egt', date('Y-m')],
-                        ])
-                        ->field('rate,cur_bn1')
-                        ->order('created_at DESC')
-                        ->group('cur_bn1')
-                        ->select();
-                if (!$exchange_rate_1) {
-                    $exchange_rates[$purchase_price_cur_bn] = $exchange_rate_1;
-                } else {
-                    $exchange_rate_2 = $exchange_rate_model
-                            ->where([
-                                'cur_bn2' => $purchase_price_cur_bn,
-                                'cur_bn1' => 'USD',
-                                'effective_date' => ['egt', date('Y-m')],
-                            ])
-                            ->field('rate,cur_bn2')
-                            ->order('created_at DESC')
-                            ->group('cur_bn2')
-                            ->select();
-                    if (!$exchange_rate_2) {
-                        $exchange_rates[$purchase_price_cur_bn] = 1 / $exchange_rate_2;
-                    }
-                }
-            }
-        }
+
 
 
         foreach ($list as $key => $item) {
@@ -1489,11 +1460,21 @@ class SupplierInquiryModel extends PublicModel {
             if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
                 $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
             } else {
-                $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
-                $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
-                $list[$key]['quote_unit_price'] = $item['quote_unit_price'] > 0 ? $item['quote_unit_price'] : $gross_profit_rate * $item['purchase_unit_price'];
-                $list[$key]['total_quote_price'] = $item['total_quote_price'] > 0 ? $item['total_quote_price'] : $gross_profit_rate * $item['total'];
 
+                $gross_profit_rate = $item['gross_profit_rate'] / 100 + 1;
+                if ($item['total_quote_price'] > 0) {
+                    $list[$key]['quote_price_cur_bn'] = 'USD';
+                    $list[$key]['total_quoted_price_usd'] = $item['total_quote_price'];
+                    continue;
+                } elseif ($item['quote_unit_price'] > 0) {
+                    $list[$key]['quote_price_cur_bn'] = 'USD';
+                    $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quoted_price'] = $item['quote_unit_price'] * $item['quote_qty'];
+                    continue;
+                } else {
+                    $list[$key]['quote_unit_price'] = $gross_profit_rate * $item['purchase_unit_price'];
+                    $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
+                    $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
+                }
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {
@@ -1504,6 +1485,9 @@ class SupplierInquiryModel extends PublicModel {
                     } else {
 
                         if (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
+                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
+                        } else {
+                            $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
                             $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
                         }
                     }
