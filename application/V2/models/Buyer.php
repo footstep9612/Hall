@@ -4228,6 +4228,7 @@ EOF;
     }
     public function getOrder($buyer_code,$page){
         $field=array(
+            'id', //销售合同号
             'contract_no', //销售合同号
             'project_no', //项目号
             'inquiry_no', //询单号
@@ -4309,7 +4310,7 @@ EOF;
         return $arr;
     }
     public function getInquiry($buyer_id,$lang='zh',$page){
-        $field='serial_no,status,created_at';
+        $field='id as visit_id,serial_no,status,created_at';
         $field.=",(select name from erui_dict.country country where country.bn=country_bn and lang='$lang' and deleted_flag='N')  as country_name";
         $field.=',(select name from erui_sys.employee employee where id=now_agent_id and deleted_flag=\'N\') as operator';
         $pageSize=10;
