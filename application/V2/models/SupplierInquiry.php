@@ -482,7 +482,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->where($where)
                 ->select();
 
-        $time = microtime(true);
+
         $this->_setSupplierName($list);
 
         $this->_setquoted_time($list);
@@ -506,6 +506,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setQuoteSpendTime($list);
 
         $this->_resetListData($list);
+
 
         return $this->_createXls($list);
     }
@@ -1448,7 +1449,7 @@ class SupplierInquiryModel extends PublicModel {
                         ->order('created_at DESC')
                         ->group('cur_bn1')
                         ->select();
-                if (!$exchange_rates_1) {
+                if (!$exchange_rate_1) {
                     $exchange_rates[$purchase_price_cur_bn] = $exchange_rate_1;
                 } else {
                     $exchange_rate_2 = $exchange_rate_model
