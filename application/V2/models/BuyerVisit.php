@@ -421,6 +421,7 @@ class BuyerVisitModel extends PublicModel {
         }else{
             $data['feedback_content'] = '';    //反馈内容
         }
+        
         try{
             if(isset($_input['id']) && !empty($_input['id'])) {
                 //$data['deleted_flag'] = self::DELETED_N;
