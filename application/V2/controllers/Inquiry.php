@@ -357,9 +357,9 @@ class InquiryController extends PublicController {
         $org_model = new OrgModel();
 
         $data = $inquiryModel->getUserRoleByNo($this->user['role_no']);
-        if ($data['is_erui'] == 'N' && !empty($this->user['group_id'])) {
-            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
-        }
+//        if ($data['is_erui'] == 'N' && !empty($this->user['group_id'])) {
+//            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
+//        }
         if ($data['is_agent'] == 'Y') {
 
 
