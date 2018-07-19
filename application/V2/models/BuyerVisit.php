@@ -258,6 +258,25 @@ class BuyerVisitModel extends PublicModel {
                 $result['demand_type'] = json_decode( $result['demand_type']);
                 $result['visit_reply'] = $replyInfo['visit_reply'];
                 $result['product_info'] = $product;     //产品信息
+
+                if(!empty($result['department'])){  //部门名称
+                    $org=new OrgModel();
+                    $fieldPart=$lang=='zh'?'name':'name_en as name';
+                    $orgInfo=$org->field($fieldPart)
+                        ->where(array('id'=>$result['department'],'deleted_flag'=>'N'))
+                        ->find();
+                    $result['department_name']=$orgInfo['name'];
+                }else{
+                    $result['department_name']='';
+                }
+                if(!empty($result['handler'])){ //对接人
+                    $emInfo=$this->table('erui_sys.employee')
+                        ->field('user_no,name')
+                        ->where(array('id'=>$result['handler'],'deleted_flag'=>'N'))->find();
+                    $result['handler_name']=$emInfo['name'].'('.$emInfo['user_no'].')';
+                }else{
+                    $result['handler_name']='';
+                }
                 if($is_show_name){
                     $vdt_model = new VisitDemadTypeModel();
                     if(!empty($result['demand_type'])){
