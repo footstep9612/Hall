@@ -296,8 +296,19 @@ class QuoteItemModel extends PublicModel {
 
                 if (empty($value['material_cat_no'])) {
                     $value['material_cat_no'] = '';
-                } elseif (!empty($value['material_cat_no'])) {
+                } elseif (!empty($value['material_cat_no']) && is_numeric($value['material_cat_no'])) {
                     $value['material_cat_no'] = trim($value['material_cat_no']);
+                } elseif (!empty($value['material_cat_no']) && is_string($value['material_cat_no'])) {
+                    $material_cat_no = [];
+                    preg_match('/(.*?)-(\d+)$/', $value['material_cat_no'], $material_cat_no);
+                    $value['material_cat_no'] = isset($material_cat_no[2]) ? $material_cat_no[2] : '';
+                    if (empty($value['material_cat_no']) && !empty($material_cat_no[1])) {
+                        $value['material_cat_no'] = $materialcat_model->getCatNoByRealName($material_cat_no[1]);
+                    }
+                } elseif (!empty($value['material_cat_no']) && is_array($value['material_cat_no'])) {
+                    preg_match('/.*?-(\d+)$/', $value['material_cat_no'][count($value['material_cat_no']) - 1], $material_cat_no);
+                    unset($value['material_cat_no']);
+                    $value['material_cat_no'] = isset($material_cat_no[1]) ? $material_cat_no[1] : '';
                 }
                 $inquiryItemData = $quoteItemData = $value;
                 unset($inquiryItemData['id'], $quoteItemData['id']);
