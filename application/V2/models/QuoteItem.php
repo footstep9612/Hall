@@ -287,25 +287,28 @@ class QuoteItemModel extends PublicModel {
                     return ['code' => '-104', 'message' => L('QUOTE_QQ_NUMBER')];
                 }
                 $time = date('Y-m-d H:i:s');
-                $inquiryItemData = $quoteItemData = $value;
-                unset($inquiryItemData['id'], $quoteItemData['id']);
-                $inquiryItemData['brand'] = $value['inquiry_brand'];
-
                 if (empty($value['org_id'])) {
                     $value['org_id'] = 0;
                 } else {
                     $value['org_id'] = intval($value['org_id']);
                 }
 
+
                 if (empty($value['material_cat_no'])) {
                     $value['material_cat_no'] = '';
                 } elseif (!empty($value['material_cat_no'])) {
                     $value['material_cat_no'] = trim($value['material_cat_no']);
                 }
+                $inquiryItemData = $quoteItemData = $value;
+                unset($inquiryItemData['id'], $quoteItemData['id']);
+                $inquiryItemData['brand'] = $value['inquiry_brand'];
+
+
 
                 $quoteItemData['quote_qty'] = $value['qty'];
                 $quoteItemData['quote_unit'] = $value['unit'];
                 $quoteItemData = $this->create($quoteItemData);
+
                 if ($value['id'] == '') {
                     $inquiryItemData['created_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
