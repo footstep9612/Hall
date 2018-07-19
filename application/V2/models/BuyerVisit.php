@@ -189,6 +189,7 @@ class BuyerVisitModel extends PublicModel {
      */
     public function getDemadList($_input = [],$lang='zh'){
 //        $length = isset($_input['pagesize']) ? intval($_input['pagesize']) : 10;
+        $admin=$_input['admin']['role_no'];
         $length = 10;
         $current_no = isset($_input['current_no']) ? intval($_input['current_no']) : 1;
         $total_flag=isset($_input['total_flag'])?$_input['total_flag']:false;
@@ -197,6 +198,20 @@ class BuyerVisitModel extends PublicModel {
         if($demadCond==false){
             return false;
         }
+//        部门对接
+        if(in_array('CRM客户管理',$admin)){    //CRM客户管理-所有数据
+
+        }else{
+            $org=$_input['admin']['group_id'];
+            $handler=$_input['created_by'];
+            if(empty($org)){
+                return false;
+            }
+            $accessStr=implode(',',$org);
+            $demadCond.=" and (visit.department in ($accessStr)";    //部门
+            $demadCond.=" or visit.handler=$handler)";    //对接人员
+        }
+        
         //总条数
         $total_sql='select count(*) as total';
         $total_sql.=' from erui_buyer.buyer_visit visit ';
