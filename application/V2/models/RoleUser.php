@@ -319,7 +319,7 @@ class RoleUserModel extends PublicModel {
                     ->group('fp.id')
                     ->order('`fp`.`sort` asc')
                     ->select();
-            echo $employee_model->_sql();
+
             return $data;
         }
     }
