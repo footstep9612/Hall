@@ -32,7 +32,11 @@ class CountryModel extends PublicModel {
         $data = ['c.deleted_flag' => 'N'];
         getValue($data, $condition, 'lang', 'string', 'c.lang');
         if (isset($condition['bn']) && $condition['bn']) {
-            $data['c.bn'] = $condition['bn'];
+            if (is_string($condition['bn'])) {
+                $data['c.bn'] = $condition['bn'];
+            } elseif (is_array($condition['bn'])) {
+                $data['c.bn'] = ['in', $condition['bn']];
+            }
         }
 
 
