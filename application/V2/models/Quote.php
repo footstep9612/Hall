@@ -57,7 +57,7 @@ class QuoteModel extends PublicModel {
                     ->save($this->create($data));
 
 
-            if (!$falg) {
+            if ($falg !== false) {
                 $this->rollback();
                 return [
                     'code' => -1,
@@ -67,7 +67,7 @@ class QuoteModel extends PublicModel {
             //处理计算相关逻辑
             $flag = $this->calculate($condition);
 
-            if (!$flag) {
+            if ($flag !== false) {
                 $this->rollback();
                 return [
                     'code' => -1,
