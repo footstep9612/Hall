@@ -119,7 +119,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -130,7 +130,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
@@ -163,7 +163,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -174,7 +174,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
