@@ -227,11 +227,14 @@ class QuoteItemModel extends PublicModel {
         $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        //  $materialcat_model->setNamesByList($data, 'zh');
+
+
         foreach ($data as $key => $value) {
             $row++;
+
+
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['category'] == '' || $value['category'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '') {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && empty($value['category']) && empty($value['org_id']))) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -239,7 +242,6 @@ class QuoteItemModel extends PublicModel {
                     $quoteItemResult = $this->delItem($value['inquiry_item_id']);
                 }
             } else {
-
 
                 if (empty($value['supplier_name'])) {
                     $supplierFailList[] = $row;
