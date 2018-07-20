@@ -55,7 +55,9 @@ class QuoteModel extends PublicModel {
             $this->startTrans();
             $falg = $this->where($condition)
                     ->save($this->create($data));
-            if ($falg) {
+
+
+            if (!$falg) {
                 $this->rollback();
                 return [
                     'code' => -1,
@@ -64,7 +66,8 @@ class QuoteModel extends PublicModel {
             }
             //处理计算相关逻辑
             $flag = $this->calculate($condition);
-            if ($flag) {
+
+            if (!$flag) {
                 $this->rollback();
                 return [
                     'code' => -1,
@@ -77,6 +80,7 @@ class QuoteModel extends PublicModel {
                 'message' => L('QUOTE_SUCCESS')
             ];
         } catch (Exception $exception) {
+
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()

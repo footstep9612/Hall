@@ -116,8 +116,9 @@ class QuoteController extends PublicController {
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition, $request);
 
-        if (!$result['code'])
+        if (!$result['code']) {
             $this->jsonReturn($result);
+        }
 
         $this->jsonReturn([
             'code' => 1,
