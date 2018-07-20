@@ -57,8 +57,11 @@ class QuoteModel extends PublicModel {
                     ->save($this->create($data));
 
 
-            if ($falg !== false) {
+
+
+            if ($falg === false) {
                 $this->rollback();
+
                 return [
                     'code' => -1,
                     'message' => '新建报价失败!'
@@ -67,8 +70,9 @@ class QuoteModel extends PublicModel {
             //处理计算相关逻辑
             $flag = $this->calculate($condition);
 
-            if ($flag !== false) {
+            if ($flag === false) {
                 $this->rollback();
+
                 return [
                     'code' => -1,
                     'message' => '处理计算相关逻辑失败!'
