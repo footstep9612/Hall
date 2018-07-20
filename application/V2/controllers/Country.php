@@ -19,12 +19,14 @@ class CountryController extends PublicController {
     public function areaCountryAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
+        $lang='en';
         $area=new CountryModel();
         $arr=$area->table('erui_operation.market_area')
             ->field('bn as value,name as label')
             ->where("deleted_flag='N' and lang='$lang'")
             ->select();
-        $left=array('value'=>'','label'=>'全部');
+        $enLabel=$lang=='zh'?'全部':'All';
+        $left=array('value'=>'','label'=>$enLabel);
         foreach($arr as $k => &$v){
             $info=$area->table('erui_operation.market_area_country country_bn')
                 ->join('erui_dict.country country on country_bn.country_bn=country.bn')
@@ -37,8 +39,8 @@ class CountryController extends PublicController {
         }
 $left=array(
     'value'=>'',
-    'label'=>'全部',
-    'children'=>[['value'=>'','label'=>'全部']]
+    'label'=>$enLabel,
+    'children'=>[['value'=>'','label'=>$enLabel]]
 );
         array_unshift($arr,$left);
         $dataJson = array(
