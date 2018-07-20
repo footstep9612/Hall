@@ -227,11 +227,14 @@ class QuoteItemModel extends PublicModel {
         $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        //  $materialcat_model->setNamesByList($data, 'zh');
+
+
         foreach ($data as $key => $value) {
             $row++;
+
+
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['category'] == '' || $value['category'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '') {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && empty($value['category']) && empty($value['org_id']))) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -239,7 +242,6 @@ class QuoteItemModel extends PublicModel {
                     $quoteItemResult = $this->delItem($value['inquiry_item_id']);
                 }
             } else {
-
 
                 if (empty($value['supplier_name'])) {
                     $supplierFailList[] = $row;
@@ -289,6 +291,12 @@ class QuoteItemModel extends PublicModel {
                 $time = date('Y-m-d H:i:s');
                 if (empty($value['org_id'])) {
                     $value['org_id'] = 0;
+                } elseif (!empty($value['org_id']) && is_numeric($value['org_id'])) {
+                    $value['org_id'] = intval($value['org_id']);
+                } elseif (!empty($value['org_id']) && is_string($value['org_id'])) {
+                    preg_match('/.*?-(\d+)$/', $value['org_id'], $org_id);
+                    unset($value['org_id']);
+                    $value['org_id'] = isset($org_id[1]) ? $org_id[1] : 0;
                 } else {
                     $value['org_id'] = intval($value['org_id']);
                 }
@@ -296,8 +304,19 @@ class QuoteItemModel extends PublicModel {
 
                 if (empty($value['material_cat_no'])) {
                     $value['material_cat_no'] = '';
-                } elseif (!empty($value['material_cat_no'])) {
+                } elseif (!empty($value['material_cat_no']) && is_numeric($value['material_cat_no'])) {
                     $value['material_cat_no'] = trim($value['material_cat_no']);
+                } elseif (!empty($value['material_cat_no']) && is_string($value['material_cat_no'])) {
+                    $material_cat_no = [];
+                    preg_match('/(.*?)-(\d+)$/', $value['material_cat_no'], $material_cat_no);
+                    $value['material_cat_no'] = isset($material_cat_no[2]) ? $material_cat_no[2] : '';
+                    if (empty($value['material_cat_no']) && !empty($material_cat_no[1])) {
+                        $value['material_cat_no'] = $materialcat_model->getCatNoByRealName($material_cat_no[1]);
+                    }
+                } elseif (!empty($value['material_cat_no']) && is_array($value['material_cat_no'])) {
+                    preg_match('/.*?-(\d+)$/', $value['material_cat_no'][count($value['material_cat_no']) - 1], $material_cat_no);
+                    unset($value['material_cat_no']);
+                    $value['material_cat_no'] = isset($material_cat_no[1]) ? $material_cat_no[1] : '';
                 }
                 $inquiryItemData = $quoteItemData = $value;
                 unset($inquiryItemData['id'], $quoteItemData['id']);

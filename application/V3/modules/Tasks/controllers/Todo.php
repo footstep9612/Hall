@@ -79,7 +79,7 @@ class TodoController extends PublicController {
                     . '\'BUYER\' as type ,created_at as updated_at '
                     . 'FROM erui_buyer.buyer WHERE '
                     . '`status` = \'APPROVING\' AND `country_bn` IN '
-                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\' ) '
+                    . '(' . $country_bns . ') AND `deleted_flag` = \'N\' and `name` is not null and `name`<>\'\') '
                     . 'UNION ALL (SELECT `id`,`serial_no`,`inflow_time`,`status`,`quote_status`,`country_bn`,\'\' as name,'
                     . '\'RFQ\' as type,updated_at FROM erui_rfq.inquiry'
                     . ' WHERE `status` '
@@ -181,6 +181,7 @@ class TodoController extends PublicController {
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
             $where = ['status' => 'APPROVING',
+                '`name` is not null and `name`<>\'\'',
                 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
             $buyerList = $buyerModel
                     ->field('id, status, country_bn, name')
@@ -222,7 +223,7 @@ class TodoController extends PublicController {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
-                , 'deleted_flag' => 'N'];
+                , '`name` is not null and `name`<>\'\'', 'deleted_flag' => 'N'];
             if (in_array(self::inquiryIssueRole, $role_nos) || in_array(self::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
