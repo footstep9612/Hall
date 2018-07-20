@@ -357,7 +357,8 @@ class OrderModel extends PublicModel {
 //        $orderCount=count($orderArr['count']); //order count
 //print_r($orderYear);die;
         $sqlNewOrder="select `order`.id as order_id,order.currency_bn,order.total_price as amount,order.create_time as created_at,`order`.order_belongs from erui_new_order.order `order`";
-        $sqlNewOrder.=" where crm_code=(SELECT buyer_code from erui_buyer.buyer where id=$buyer_id)";
+//        $sqlNewOrder.=" where crm_code=(SELECT buyer_code from erui_buyer.buyer where id=$buyer_id)";
+        $sqlNewOrder.=" where buyer_id=$buyer_id";
         $sqlNewOrder.=" and `order`.delete_flag=0";
 
         $newOrder=$this->query($sqlNewOrder);
