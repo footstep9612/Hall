@@ -361,9 +361,9 @@ class InquiryController extends PublicController {
 //            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
 //        }
         if ($data['is_agent'] == 'Y') {
-
-
-            $org = $orgModel->field('id, name, name_en, name_es, name_ru')
+//
+//
+            $org = $org_model->field('id, name, name_en, name_es, name_ru')
                             ->where(['id' => ['in', $this->user['group_id'] ?: ['-1']],
                                 'org_node' => ['in', ['ub', 'eub', 'erui']],
                                 'deleted_flag' => 'N'])->order('id DESC')->find();
