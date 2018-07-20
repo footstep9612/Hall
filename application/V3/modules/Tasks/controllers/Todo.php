@@ -54,7 +54,7 @@ class TodoController extends PublicController {
 
                     $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
                     $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
-                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\',\'REJECT_MARKET\') AND org_id in(' . implode(',', $org_ids) . ')))';
+                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\') AND org_id in(' . implode(',', $org_ids) . ')))';
                 }
             } elseif (in_array(self::quoteIssueAuxiliaryRole, $role_nos) || in_array(self::inquiryIssueAuxiliaryRole, $role_nos)) {
 
@@ -63,7 +63,7 @@ class TodoController extends PublicController {
                     $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
                     $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
 
-                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\',\'REJECT_MARKET\') '
+                    $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\') '
                             . 'AND org_id in(' . implode(',', $org_ids) . ')'
                             . ' AND country_bn in(' . $country_bns . ')'
                             . '))';
@@ -97,7 +97,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -108,7 +108,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
@@ -228,7 +228,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -239,7 +239,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
@@ -272,7 +272,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -283,7 +283,7 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
