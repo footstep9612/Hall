@@ -19,7 +19,6 @@ class CountryController extends PublicController {
     public function areaCountryAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
-        $lang='en';
         $area=new CountryModel();
         $arr=$area->table('erui_operation.market_area')
             ->field('bn as value,name as label')
