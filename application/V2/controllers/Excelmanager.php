@@ -421,15 +421,17 @@ class ExcelmanagerController extends PublicController {
         }
         //遍历重组
         foreach ($data as $k => $v) {
-            $sku[$k]['sku'] = $v[1]; //sku编码|订货号
-            $sku[$k]['name'] = $v[2]; //外文品名
-            $sku[$k]['name_zh'] = $v[3]; //中文品名
-            $sku[$k]['buy_number'] = $v[4]; //数量
-            $sku[$k]['price'] = $v[5]; //数量
-            $sku[$k]['department'] = $v[6]; //数量
-            $sku[$k]['nude_cargo_unit'] = $v[7]; //单位
-            $sku[$k]['brand'] = $v[8]; //品牌
-            $sku[$k]['model'] = $v[9]; //型号
+            if($v[1]||$v[2]||$v[3]||$v[4]||$v[5]||$v[6]||$v[7]||$v[8]||$v[9]){
+                $sku[$k]['sku'] = $v[1]; //sku编码|订货号
+                $sku[$k]['name'] = $v[2]; //外文品名
+                $sku[$k]['name_zh'] = $v[3]; //中文品名
+                $sku[$k]['buy_number'] = $v[4]; //数量
+                $sku[$k]['price'] = $v[5]; //数量
+                $sku[$k]['department'] = $v[6]; //数量
+                $sku[$k]['nude_cargo_unit'] = $v[7]; //单位
+                $sku[$k]['brand'] = $v[8]; //品牌
+                $sku[$k]['model'] = $v[9]; //型号
+            }
         }
         //删除本地临时文件
         if (file_exists($localFile)) {
