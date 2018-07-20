@@ -289,6 +289,12 @@ class QuoteItemModel extends PublicModel {
                 $time = date('Y-m-d H:i:s');
                 if (empty($value['org_id'])) {
                     $value['org_id'] = 0;
+                } elseif (!empty($value['org_id']) && is_numeric($value['org_id'])) {
+                    $value['org_id'] = intval($value['org_id']);
+                } elseif (!empty($value['org_id']) && is_string($value['org_id'])) {
+                    preg_match('/.*?-(\d+)$/', $value['org_id'], $org_id);
+                    unset($value['org_id']);
+                    $value['org_id'] = isset($org_id[1]) ? $org_id[1] : 0;
                 } else {
                     $value['org_id'] = intval($value['org_id']);
                 }
