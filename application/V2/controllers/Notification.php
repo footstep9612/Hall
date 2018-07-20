@@ -71,7 +71,9 @@ class NotificationController extends PublicController {
             $urlPermModel = new UrlPermModel();
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
-            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
+            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']],
+                'and `name` is not null and `name`<>\'\'',
+                'deleted_flag' => 'N'];
             $buyerList = $buyerModel
                     ->field('id, status, country_bn, name')
                     ->where($where)
@@ -112,7 +114,7 @@ class NotificationController extends PublicController {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
-                , 'deleted_flag' => 'N'];
+                , 'and `name` is not null and `name`<>\'\'', 'deleted_flag' => 'N'];
             if (in_array(InquiryModel::inquiryIssueRole, $role_nos) || in_array(InquiryModel::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
