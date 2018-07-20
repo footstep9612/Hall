@@ -884,6 +884,36 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据分类名称获取分类编码
+     * 模糊查询
+     * @author link 2017-06-26
+     * @param string $cat_name 分类名称
+     * @return array
+     */
+    public function getCatNoByRealName($cat_name = '') {
+        if (empty($cat_name)) {
+            return '';
+        }
+        if (redisGet('Material_real', md5($cat_name))) {
+            return redisGet('Material_real', md5($cat_name));
+        }
+        try {
+            $cat_no = $this->where(['name' => $cat_name,
+                                'deletd_flag' => 'N', 'level_no' => 3])
+                            ->order('sort_order DESC')->getfield('cat_no');
+            if ($cat_no) {
+                redisSet('Material_real', md5($cat_name), $cat_no, 180);
+            }
+
+            return $cat_no ? $cat_no : '';
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return '';
+        }
+    }
+
     /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_no // 物料分类编码数组3f
