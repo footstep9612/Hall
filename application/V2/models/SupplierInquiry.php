@@ -1122,6 +1122,8 @@ class SupplierInquiryModel extends PublicModel {
             $item['clarification_time'] = '';
 // 各环节的项目澄清时间列表
             $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => ['in', $clarifyNode]]))->order('id ASC')->select();
+
+
             foreach ($clarifyList as $clarify) {
 // 计算各环节的项目澄清时间
                 $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
@@ -1129,6 +1131,7 @@ class SupplierInquiryModel extends PublicModel {
             $nodeData = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time'
                     )->where($where)->order('id DESC')->find();
 
+            Log::write($inquiryCheckLogModel->_sql());
             $lastClarifyTime = '';
             if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
                 $lastClarifyTime = $nowTime - $nodeData['out_time'];
@@ -1147,6 +1150,7 @@ class SupplierInquiryModel extends PublicModel {
 //}
             $clarification[$inquiry_id] = $item;
         }
+
 
         foreach ($list as $key => $item) {
 
@@ -1187,9 +1191,15 @@ class SupplierInquiryModel extends PublicModel {
         $quoteNode = array_keys($quoteMapping);
 
         $inquiry_ids = [];
+        $real_items = [];
         foreach ($list as $item) {
             if (!empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids)) {
                 $inquiry_ids[] = $item['inquiry_id'];
+                $real_items [$item['inquiry_id']] = [
+                    'qs_time' => $item['qs_time'],
+                    'org_is_erui' => $item['org_is_erui'],
+                    'inflow_time' => $item['inflow_time'],
+                ];
             }
         }
         $quoted_times = [];
@@ -1213,7 +1223,7 @@ class SupplierInquiryModel extends PublicModel {
             $logiSpend = $quoteTime['logi_dispatching_quoted_time'] + $quoteTime['logi_quoting_quoted_time'] + $quoteTime['logi_approving_quoted_time'];
             $item['logi_quoted_time'] = number_format($logiSpend / 3600, 2);
             $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time'];
-            if ($item['org_is_erui'] == 'Y') {
+            if ($real_items[$inquiry_id]['org_is_erui'] == 'Y') {
 // 易瑞商务技术报价用时
                 $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;
                 $item['cc_quoted_time'] = number_format($ccSpend / 3600, 2);
@@ -1229,22 +1239,34 @@ class SupplierInquiryModel extends PublicModel {
 // 真实报价用时
             $item['real_quoted_time'] = $logiSpend > 0 ? number_format($realSpend / 3600, 2) : '';
 // 整体报价用时
-            $qsSpend = strtotime($item['qs_time']);
-            $wholeSpend = ($qsSpend > 0 ? $qsSpend : $nowTime) - strtotime($item['inflow_time']);
+            $qsSpend = strtotime($real_items[$inquiry_id]['qs_time']);
+            $wholeSpend = ($qsSpend > 0 ? $qsSpend : $nowTime) - strtotime($real_items[$inquiry_id]['inflow_time']);
             $item['whole_quoted_time'] = number_format($wholeSpend / 3600, 2);
             $quoted_times[$inquiry_id] = $item;
         }
-        foreach ($list as &$item) {
+
+        $inquiry_quoted_time_keys = [
+            'whole_quoted_time',
+            'real_quoted_time',
+            'biz_quoted_time',
+            'logi_quoted_time',
+            'cc_quoted_time'];
+        foreach ($list as $key => $item) {
             if (!empty($item['inquiry_id']) && !empty($quoted_times[$item['inquiry_id']])) {
 
-                foreach ($quoteMapping as $v) {
+                foreach ($inquiry_quoted_time_keys as $v) {
+
                     $item[$v] = !empty($quoted_times[$item['inquiry_id']][$v]) ? $quoted_times[$item['inquiry_id']][$v] : '';
                 }
             } else {
-                foreach ($quoteMapping as $v) {
-                    $item[$v] = '';
+                foreach ($inquiry_quoted_time_keys as $v) {
+                    $item[$v] = 0;
                 }
             }
+
+
+
+            $list[$key] = $item;
         }
     }
 
