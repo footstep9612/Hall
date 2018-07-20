@@ -117,6 +117,7 @@ class QuoteModel extends PublicModel {
                 ->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')
                 ->select();
 
+
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
