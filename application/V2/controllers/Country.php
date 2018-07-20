@@ -24,7 +24,8 @@ class CountryController extends PublicController {
             ->field('bn as value,name as label')
             ->where("deleted_flag='N' and lang='$lang'")
             ->select();
-        $left=array('value'=>'','label'=>'全部');
+        $enLabel=$lang=='zh'?'全部':'All';
+        $left=array('value'=>'','label'=>$enLabel);
         foreach($arr as $k => &$v){
             $info=$area->table('erui_operation.market_area_country country_bn')
                 ->join('erui_dict.country country on country_bn.country_bn=country.bn')
@@ -37,8 +38,8 @@ class CountryController extends PublicController {
         }
 $left=array(
     'value'=>'',
-    'label'=>'全部',
-    'children'=>[['value'=>'','label'=>'全部']]
+    'label'=>$enLabel,
+    'children'=>[['value'=>'','label'=>$enLabel]]
 );
         array_unshift($arr,$left);
         $dataJson = array(
