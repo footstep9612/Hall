@@ -56,9 +56,6 @@ class QuoteModel extends PublicModel {
             $falg = $this->where($condition)
                     ->save($this->create($data));
 
-
-
-
             if ($falg === false) {
                 $this->rollback();
 
