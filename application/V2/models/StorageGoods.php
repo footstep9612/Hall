@@ -129,7 +129,7 @@ class StorageGoodsModel extends PublicModel{
             if($list){
                 $this->_setUser($list);
                 $data['data'] = $list;
-                $data['count'] = $this->getCount($where,$join);
+                $data['count'] = $this->getCount($where,$join,'RIGHT');
                 $data['current_no'] = isset($condition['current_no']) ? $condition['current_no'] : 1;
                 $data['pagesize'] = $size;
             }
@@ -139,8 +139,8 @@ class StorageGoodsModel extends PublicModel{
         }
     }
 
-    public function getCount($where,$join) {
-        return $this->join($join,'LEFT')->where($where)->count();
+    public function getCount($where,$join,$type='LEFT') {
+        return $this->join($join,$type)->where($where)->count();
     }
 
     /**
