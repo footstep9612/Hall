@@ -817,6 +817,49 @@ class BuyercreditController extends PublicController {
     }
 
     /**
+     * java订单授信金额
+     */
+    public function getCreditInfoByCrmCodeAction() {
+        $data = $this->getPut();
+        if(empty($data['crm_code']) && empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编码缺失!');
+        }
+        $buyer_no = '';
+        if(isset($data['crm_code']) && !empty($data['crm_code'])){
+            $buyer_model = new BuyerModel();
+            $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
+            if(!$buyerInfo){
+                jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+            }
+            $buyer_no = $buyerInfo['buyer_no'];
+        }
+        if(isset($data['buyer_no']) && !empty($data['buyer_no'])){
+            $buyer_no = $data['buyer_no'];
+        }
+        $buyer_credit_model = new BuyerCreditModel();
+        $buyer_credit_Info = $buyer_credit_model->getInfo($buyer_no);
+        if(!$buyer_credit_Info){
+            jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
+        }
+        if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
+        }
+        if($buyer_credit_Info['status']!='APPROVED'){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
+        }
+        if (!empty($buyer_credit_Info)) {
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $buyer_credit_Info;
+            $datajson['message'] = '成功!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
      * 获取订单授信待办事项
      */
     public function getBuyerCreditToDoListAction() {
@@ -844,5 +887,6 @@ class BuyercreditController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
 
 }

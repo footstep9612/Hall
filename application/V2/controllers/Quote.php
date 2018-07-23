@@ -72,6 +72,9 @@ class QuoteController extends PublicController {
         $info['org_id'] = $logiInfo['org_id'];
         $info['status'] = $logiInfo['status'];
 
+        if (empty($info['package_volumn'])) {
+            $info['package_volumn'] = (new QuoteLogiQwvModel())->GetTotal($request['inquiry_id']);
+        }
         $finalQuoteModel = new FinalQuoteModel();
         $finalQuote = $finalQuoteModel->where($condition)->field('total_exw_price,total_quote_price')->find();
         if ($finalQuote) {
