@@ -1814,7 +1814,9 @@ class InquiryController extends PublicController {
             $inquiry_model = new InquiryModel();
             $create_data = $inquiry_model->create(['loss_rfq_flag' => $data['loss_rfq_flag'] == 'Y' ?
                 'Y' : ($data['loss_rfq_flag'] == 'N' ? 'N' : null),
-                'loss_rfq_reason' => $data['loss_rfq_reason']]);
+                'loss_rfq_reason' => $data['loss_rfq_reason'],
+                'loss_rfq_reason_analysis' => $data['loss_rfq_reason_analysis'],
+            ]);
             $ret = false;
             if ($create_data) {
                 $ret = $inquiry_model->where(['id' => $data['inquiry_id']])
