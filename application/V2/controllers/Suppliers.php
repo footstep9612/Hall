@@ -404,6 +404,8 @@ class SuppliersController extends PublicController {
 
             $supplier['created_by'] = (new EmployeeModel)->getNameByid($supplier['created_by'])['name'];
             $supplier['checked_by'] = (new EmployeeModel)->getNameByid($supplier['checked_by'])['name'];
+
+            $supplier['source'] = $supplier['source'] == 'BOSS' ? 'BOSS' : '门户';
         }
 
         $this->_handleList($this->suppliersModel, $supplierList, $condition, true);

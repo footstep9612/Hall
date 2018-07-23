@@ -812,6 +812,7 @@ class InquiryModel extends PublicModel {
         $data['updated_at'] = $time;
 
         try {
+
             $id = $this->where($where)->save($data);
             if ($id) {
                 $results['code'] = 1;

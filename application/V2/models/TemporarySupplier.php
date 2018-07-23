@@ -106,8 +106,13 @@ class TemporarySupplierModel extends PublicModel
     {
         //公司名称
         if (!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $where['a.id'] = $condition['name'];
+            }else {
+                $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            }
         }
+
         //状态
         if (!empty($condition['is_relation']) && $condition['is_relation'] !='ALL') {
             $where['a.is_relation'] = $condition['is_relation'];

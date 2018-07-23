@@ -852,11 +852,7 @@ class InquiryController extends PublicController {
 
         $data['inquiry_no'] = $data['inquiry_no'] == L('NOTHING') ? null : $data['inquiry_no'];
         $data['dispatch_place'] = $data['dispatch_place'] == L('NOTHING') ? null : $data['dispatch_place'];
-        if (empty($data['org_id'])) {
-            $this->setCode(MSG::ERROR_PARAM);
-            $this->setMessage($this->lang == 'en' ? 'Please choose the business department!' : '请选择事业部!');
-            $this->jsonReturn();
-        } elseif ($data['org_id'] == 'ERUI') {
+        if (!empty($data['org_id']) && $data['org_id'] == 'ERUI') {
             $this->setCode(MSG::ERROR_PARAM);
             $this->setMessage($this->lang == 'en' ? 'Please choose the business department By Erui!' : '请选择易瑞下的事业部!');
             $this->jsonReturn();
@@ -877,7 +873,15 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
-
+        if (empty($data['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage($this->lang == 'en' ? 'Please choose the business department!' : '请选择事业部!');
+            $this->jsonReturn();
+        } elseif (!empty($data['org_id']) && $data['org_id'] == 'ERUI') {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage($this->lang == 'en' ? 'Please choose the business department By Erui!' : '请选择易瑞下的事业部!');
+            $this->jsonReturn();
+        }
         if ($data['status'] == 'BIZ_DISPATCHING') {
             $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         }
