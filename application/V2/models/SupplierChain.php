@@ -151,7 +151,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where, false);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,source,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
+        $data = $this->field('id,source,org_id,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
                         . 'created_at')
                 ->limit($offset, $size)
                 ->where($where)

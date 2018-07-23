@@ -1267,4 +1267,62 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setMaterialCat(&$arr, $lang) {
+        if ($arr) {
+
+            $catnos = [];
+            foreach ($arr as $key => $val) {
+                if (!empty($val['material_cat_no'])) {
+                    $catnos[] = $val['material_cat_no'];
+                }
+            }
+            $catnames = $this->getNameByCatNos($catnos, $lang);
+            foreach ($arr as $key => $val) {
+                if ($val['category'] && !empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
+                    $val['material_cat_name'] = $catnames[$val['material_cat_no']];
+                } else {
+                    $val['material_cat_name'] = '';
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /*
+     * Description of 获取物料分类名称
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setMaterialCatAndNo(&$arr, $lang) {
+        if ($arr) {
+
+            $catnos = [];
+            foreach ($arr as $key => $val) {
+                if (!empty($val['material_cat_no'])) {
+                    $catnos[] = $val['material_cat_no'];
+                }
+            }
+            $catnames = $this->getNameByCatNos($catnos, $lang);
+            foreach ($arr as $key => $val) {
+                if (!empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
+                    $val['material_cat_no'] = $catnames[$val['material_cat_no']] . '-' . $val['material_cat_no'];
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }
