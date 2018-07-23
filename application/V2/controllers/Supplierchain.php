@@ -87,6 +87,7 @@ class SupplierchainController extends PublicController {
 
         foreach ($data as &$datum) {
             $datum['source'] = $datum['source'] == 'BOSS' ? 'BOSS' : '门户';
+            $datum['org_name'] = (new OrgModel)->getNameById($datum['org_id'], '');
         }
 
         if ($data) {
