@@ -39,10 +39,10 @@ class TemporarySupplierController extends PublicController {
             'code' => 1,
             'message' => '成功',
             'data' => [
-                'data' => $list,
                 'total' => $this->temporarySupplier->getCount($request),
                 'relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'Y']),
                 'un_relations_count' => $this->temporarySupplier->getCount(['is_relation' => 'N']),
+                'data' => $list,
             ]
         ]);
     }
