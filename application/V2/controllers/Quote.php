@@ -116,8 +116,10 @@ class QuoteController extends PublicController {
         //这个操作设计到计算
         $result = $this->quoteModel->updateGeneralInfo($condition, $request);
 
-        if (!$result['code'])
+
+        if ($result['code']) {
             $this->jsonReturn($result);
+        }
 
         $this->jsonReturn([
             'code' => 1,
@@ -392,12 +394,20 @@ class QuoteController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
         $list = $this->quoteItemModel->getList($request);
-
-        empty($list) ? $this->jsonReturn(['code' => -104, 'message' => L('QUOTE_NO_DATA')]) : null;
         $inquiry_model = new InquiryModel();
         $org_id = $inquiry_model->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
 
         $is_erui = (new OrgModel())->getIsEruiById($org_id);
+
+
+        empty($list) ? $this->jsonReturn(['code' => -104,
+                            'message' => L('QUOTE_NO_DATA'),
+                            'is_erui' => $is_erui,
+                            'org_id' => $org_id,
+                        ]) : null;
+
+
+
         ( new SupplierModel())->setSupplier($list);
         $this->_setOrgName($list);
         $this->_setMaterialCatName($list);
@@ -549,12 +559,16 @@ class QuoteController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
         $list = $this->quoteItemModel->getQuoteFinalSku($request);
-
-
-        if (!$list)
-            $this->jsonReturn(['code' => '-104', 'message' => L('QUOTE_NO_DATA')]);
         $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
         $is_erui = (new OrgModel())->getIsEruiById($org_id);
+
+        if (!$list) {
+            $this->jsonReturn(['code' => '-104',
+                'message' => L('QUOTE_NO_DATA'),
+                'is_erui' => $is_erui,
+                'org_id' => $org_id,]);
+        }
+
 
         $this->_setOrgName($list);
         $this->_setMaterialCatName($list);

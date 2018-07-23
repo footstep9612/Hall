@@ -361,9 +361,9 @@ class InquiryController extends PublicController {
 //            $data['is_erui'] = $org_model->getIsEruiById(['in', $this->user['group_id']]);
 //        }
         if ($data['is_agent'] == 'Y') {
-
-
-            $org = $orgModel->field('id, name, name_en, name_es, name_ru')
+//
+//
+            $org = $org_model->field('id, name, name_en, name_es, name_ru')
                             ->where(['id' => ['in', $this->user['group_id'] ?: ['-1']],
                                 'org_node' => ['in', ['ub', 'eub', 'erui']],
                                 'deleted_flag' => 'N'])->order('id DESC')->find();
@@ -849,8 +849,14 @@ class InquiryController extends PublicController {
     public function updateAction() {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
+
         $data['inquiry_no'] = $data['inquiry_no'] == L('NOTHING') ? null : $data['inquiry_no'];
         $data['dispatch_place'] = $data['dispatch_place'] == L('NOTHING') ? null : $data['dispatch_place'];
+        if (!empty($data['org_id']) && $data['org_id'] == 'ERUI') {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage($this->lang == 'en' ? 'Please choose the business department By Erui!' : '请选择易瑞下的事业部!');
+            $this->jsonReturn();
+        }
         $data['updated_by'] = $this->user['id'];
         unset($data['agent_id']);
 
@@ -867,7 +873,15 @@ class InquiryController extends PublicController {
         $inquiry = new InquiryModel();
         $data = $this->put_data;
         $data['updated_by'] = $this->user['id'];
-
+        if (empty($data['org_id'])) {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage($this->lang == 'en' ? 'Please choose the business department!' : '请选择事业部!');
+            $this->jsonReturn();
+        } elseif (!empty($data['org_id']) && $data['org_id'] == 'ERUI') {
+            $this->setCode(MSG::ERROR_PARAM);
+            $this->setMessage($this->lang == 'en' ? 'Please choose the business department By Erui!' : '请选择易瑞下的事业部!');
+            $this->jsonReturn();
+        }
         if ($data['status'] == 'BIZ_DISPATCHING') {
             $data['now_agent_id'] = $inquiry->getInquiryIssueUserId($data['id'], [$data['org_id']], ['in', [$inquiry::inquiryIssueAuxiliaryRole, $inquiry::quoteIssueAuxiliaryRole]], ['in', [$inquiry::inquiryIssueRole, $inquiry::quoteIssueMainRole]], ['in', ['ub', 'eub', 'erui']]);
         }

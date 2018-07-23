@@ -71,7 +71,9 @@ class NotificationController extends PublicController {
             $urlPermModel = new UrlPermModel();
             $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
             $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
-            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']], 'deleted_flag' => 'N'];
+            $where = ['status' => 'APPROVING', 'country_bn' => ['in', $this->user['country_bn'] ?: ['-1']],
+                '`name` is not null and `name`<>\'\'',
+                'deleted_flag' => 'N'];
             $buyerList = $buyerModel
                     ->field('id, status, country_bn, name')
                     ->where($where)
@@ -112,12 +114,12 @@ class NotificationController extends PublicController {
             $where = ['status' => 'APPROVING',
                 'country_bn' => ['in',
                     $this->user['country_bn']]
-                , 'deleted_flag' => 'N'];
+                , '`name` is not null and `name`<>\'\'', 'deleted_flag' => 'N'];
             if (in_array(InquiryModel::inquiryIssueRole, $role_nos) || in_array(InquiryModel::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -128,7 +130,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {
@@ -161,7 +163,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
                     $map['now_agent_id'] = $this->user['id'];
@@ -172,7 +174,7 @@ class NotificationController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsByIdAndNode($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = ['in', ['BIZ_DISPATCHING', 'REJECT_MARKET']];
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     if ($this->user['country_bn']) {
                         $map1['country_bn'] = ['in', $this->user['country_bn']];
                     } else {

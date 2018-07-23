@@ -48,7 +48,7 @@ class OrgController extends PublicController {
             $parent_id = $org_model->getParentid($org_id);
         }
         $data = $org_model->getList($condition);
-        array_push($data, ['id' => 'ERUI',
+        array_unshift($data, ['id' => 'ERUI',
             'name' => '易瑞',
             'name_en' => 'ERUI',
             'name_es' => 'ERUI',

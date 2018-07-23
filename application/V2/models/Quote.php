@@ -55,8 +55,10 @@ class QuoteModel extends PublicModel {
             $this->startTrans();
             $falg = $this->where($condition)
                     ->save($this->create($data));
-            if ($falg) {
+
+            if ($falg === false) {
                 $this->rollback();
+
                 return [
                     'code' => -1,
                     'message' => '新建报价失败!'
@@ -64,8 +66,10 @@ class QuoteModel extends PublicModel {
             }
             //处理计算相关逻辑
             $flag = $this->calculate($condition);
-            if ($flag) {
+
+            if ($flag === false) {
                 $this->rollback();
+
                 return [
                     'code' => -1,
                     'message' => '处理计算相关逻辑失败!'
@@ -77,6 +81,7 @@ class QuoteModel extends PublicModel {
                 'message' => L('QUOTE_SUCCESS')
             ];
         } catch (Exception $exception) {
+
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
@@ -111,6 +116,7 @@ class QuoteModel extends PublicModel {
                 ->where($where)
                 ->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')
                 ->select();
+
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
