@@ -874,14 +874,15 @@ class BuyercreditController extends PublicController {
             ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
             ->getField('buyer_no', true) ? : [];
         $data['buyer_no_arr'] = array_unique($buyerNoArr);
+        //$data['status'] = ['APPROVING','ERUI_APPROVING'];
         $res = $model->getlist($data);
 
         if (!empty($res)) {
-            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['code'] = MSG::MSG_SUCCESS;
             $datajson['data'] = $res;
             $datajson['message'] = '成功!';
         } else {
-            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['code'] = MSG::MSG_FAILED;
             $datajson['data'] = "";
             $datajson['message'] = '数据为空!';
         }
