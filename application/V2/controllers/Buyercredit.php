@@ -821,16 +821,23 @@ class BuyercreditController extends PublicController {
      */
     public function getCreditInfoByCrmCodeAction() {
         $data = $this->getPut();
-        if(!isset($data['crm_code']) || empty($data['crm_code'])) {
-            jsonReturn(null, -110, '客户crm编号缺失!');
+        if(empty($data['crm_code']) && empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编码缺失!');
         }
-        $buyer_model = new BuyerModel();
-        $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
-        if(!$buyerInfo){
-            jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+        $buyer_no = '';
+        if(isset($data['crm_code']) && !empty($data['crm_code'])){
+            $buyer_model = new BuyerModel();
+            $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
+            if(!$buyerInfo){
+                jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+            }
+            $buyer_no = $buyerInfo['buyer_no'];
+        }
+        if(isset($data['buyer_no']) && !empty($data['buyer_no'])){
+            $buyer_no = $data['buyer_no'];
         }
         $buyer_credit_model = new BuyerCreditModel();
-        $buyer_credit_Info = $buyer_credit_model->getInfo($buyerInfo['buyer_no']);
+        $buyer_credit_Info = $buyer_credit_model->getInfo($buyer_no);
         if(!$buyer_credit_Info){
             jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
         }
