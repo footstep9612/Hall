@@ -274,4 +274,30 @@ class OrgMemberModel extends PublicModel {
         return $this->where(['employee_id' => $user_id])->getField('org_id', true);
     }
 
+    Public function getSmsUserByOrgId($org_id) {
+        if (!$org_id) {
+            return [];
+        }
+        $role_member_table = (new RoleMemberModel)->getTableName();
+        $role_table = (new RoleModel())->getTableName();
+        $emploee_table = (new EmployeeModel())->getTableName();
+        $user = $this->alias('om')
+                ->field('e.name,e.mobile,e.email')
+                ->join($role_member_table . ' rm on rm.employee_id=om.employee_id')
+                ->join($role_table . ' r on r.id=rm.role_id')
+                ->join($emploee_table . ' e on e.id=om.employee_id')
+                ->where(['om.org_id' => $org_id, 'r.deleted_flag' => 'N', 'r.role_no' => 'SMS'])
+                ->find();
+        if (!$user) {
+            $user = $this->alias('om')
+                    ->field('e.name,e.mobile,e.email')
+                    ->join($role_member_table . ' rm on rm.employee_id=om.employee_id')
+                    ->join($role_table . ' r on r.id=rm.role_id')
+                    ->join($emploee_table . ' e on e.id=om.employee_id')
+                    ->where(['om.org_id' => $org_id, 'r.deleted_flag' => 'N'])
+                    ->find();
+        }
+        return !empty($user) ? $user : [];
+    }
+
 }
