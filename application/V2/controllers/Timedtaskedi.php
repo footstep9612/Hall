@@ -259,6 +259,40 @@ class TimedtaskediController extends PublicController{
         }
     }
 
+    //v2/Edi/checkEdiValid    定时任务：每天04:00:00执行一次
+    public function checkEdiValidAction(){
+        $check_credit = $this->buyerCreditModel->field('status,account_settle,approved_date,buyer_no,nolc_deadline,lc_deadline')->where(['status'=>'APPROVED'])->select();
+        if (!empty($check_credit)) {
+            foreach($check_credit as $item) {
+                if(!empty($item['approved_date']) && $item['status']=='APPROVED'){
+                    if($item['account_settle'] == "OA"){
+                        $deadline = $item['nolc_deadline'];
+                    }else {
+                        $deadline = $item['lc_deadline'];
+                    }
+                    $time = strtotime(date('Y-m-d H:i:s',strtotime($item['approved_date'])+$deadline*24*60*60));
+                    $current_time = strtotime('now');
+
+                    if($time <= $current_time) {
+                        $item['status'] = 'INVALID';
+                        $status['status'] = 'INVALID';
+                        $this->buyerCreditModel->where(['buyer_no' => $item['buyer_no']])->save($status);
+
+                        //记录
+                        $note_time = date('Y-m-d h:i:s',time());
+                        $start="time:".$note_time."\r\n"."Edi/checkEdiValidAction:"."\r\n"."---------- check start ----------"."\r\n";
+                        $end ="\r\n"."---------- check end ----------"."\r\n\n";
+                        $content=$start."客户:".$item['buyer_no'].' ,结算方式:'.$item['account_settle'].' ,时间:'.$note_time."检测,授信到期失效记录".$end;
+                        LOG::write($content, LOG::INFO);
+                    }
+                    unset($note_time);
+                    unset($time);
+                    unset($current_time);
+                }
+            }
+        }
+    }
+
     public function exception($e,$msg){
         LOG::write('CLASS:' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
         LOG::write($msg, LOG::ERR);

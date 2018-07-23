@@ -588,6 +588,12 @@ class BuyercreditController extends PublicController {
         if(!$buyer_credit_Info){
             jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
         }
+        if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
+        }
+        if($buyer_credit_Info['status']!='APPROVED'){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
+        }
 
         if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $money){
             jsonReturn('',MSG::MSG_FAILED,'可用授信额度已不足!');
@@ -793,6 +799,9 @@ class BuyercreditController extends PublicController {
         if(!isset($data['buyer_no']) || empty($data['buyer_no'])) {
             jsonReturn(null, -110, '客户编号缺失!');
         }
+        if(!isset($data['crm_code']) || empty($data['crm_code'])) {
+            jsonReturn(null, -110, '客户crm编号缺失!');
+        }
         $res = $buyer_credit_order_log_model->getlist($data);
         $count = $buyer_credit_order_log_model->getCount($data);
         if (!empty($res)) {
@@ -802,7 +811,36 @@ class BuyercreditController extends PublicController {
         } else {
             $datajson['code'] = ShopMsg::CUSTOM_FAILED;
             $datajson['data'] = "";
-            $datajson['message'] = 'Data is empty!';
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 获取订单授信待办事项
+     */
+    public function getBuyerCreditToDoListAction() {
+        $data = $this->getPut();
+        $model = new BuyerCreditModel();
+        // 权限控制，只获取客户经办人是自己的数据
+        $buyerAgentModel = new BuyerAgentModel();
+        $buyerModel = new BuyerModel();
+        $buyerTableName = $buyerModel->getTableName();
+        $buyerNoArr = $buyerAgentModel->alias('a')
+            ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+            ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
+            ->getField('buyer_no', true) ? : [];
+        $data['buyer_no_arr'] = array_unique($buyerNoArr);
+        $res = $model->getlist($data);
+
+        if (!empty($res)) {
+            $datajson['code'] = ShopMsg::CUSTOM_SUCCESS;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功!';
+        } else {
+            $datajson['code'] = ShopMsg::CUSTOM_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
         }
         $this->jsonReturn($datajson);
     }
