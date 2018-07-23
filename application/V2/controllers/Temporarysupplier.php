@@ -56,13 +56,14 @@ class TemporarySupplierController extends PublicController {
         $request = $this->validateRequestParams('id');
         $data = $this->temporarySupplier->byId($request['id']);
         $data['created_by'] = (new EmployeeModel)->getNameByid($data['created_by'])['name'];
-        $sku = $this->temporarySupplier->skuById($request['id'], $request);
+        list($sku, $total) = $this->temporarySupplier->skuById($request['id'], $request);
 
         $this->jsonReturn([
             'code' => 1,
             'message' => '成功',
             'data' => $data,
-            'sku' => $sku
+            'sku' => $sku,
+            'total' => $total
         ]);
     }
 
