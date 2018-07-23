@@ -234,54 +234,36 @@ class ExcelmanagerController extends PublicController {
      * @desc 执行报价sku导入操作
      *
      * @param string $localFile
-     * @param array $data
+     * @param array $import_data
      * @param int $inquiryId
      * @param string $fileName
      * @return array
      * @author liujf
      * @time 2018-04-16
      */
-    private function _importQuoteSkuHandler($localFile, $data, $inquiryId, $fileName) {
+    private function _importQuoteSkuHandler($localFile, $import_data, $inquiryId, $fileName) {
         $quoteModel = new QuoteModel();
         $inquiryItemModel = new InquiryItemModel();
         $quoteItemModel = new QuoteItemModel();
-        $suppliersModel = new SuppliersModel();
-        $inquiryItemModel = new InquiryItemModel();
-        array_shift($data); //去掉第一行数据(excel文件的标题)
-        if (empty($data)) {
+        $quoteitem_model = new Rfq_QuoteItemModel();
+
+        array_shift($import_data); //去掉第一行数据(excel文件的标题)
+        if (empty($import_data)) {
             return ['code' => '-104', 'message' => L('EXCEL_NO_DATA')];
         }
-        $data = dataTrim($data);
+        $inquiry_model = new InquiryModel();
+        $org_id = $inquiry_model->where(['id' => $inquiryId, 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        $data = dataTrim($import_data);
         $quoteId = $quoteModel->where(['inquiry_id' => $inquiryId, 'deleted_flag' => 'N'])->getField('id');
-        //遍历重组
-        foreach ($data as $k => $v) {
-            $sku[$k]['inquiry_id'] = $inquiryId; //询单id
-            $sku[$k]['quote_id'] = $quoteId; //报价单id
-            $sku[$k]['sku'] = $v[1]; //平台sku
-            $sku[$k]['buyer_goods_no'] = $v[2]; //客户商品号
-            $sku[$k]['category'] = $v[3]; //产品分类
-            $sku[$k]['name'] = $v[4]; //外文品名
-            $sku[$k]['name_zh'] = $v[5]; //中文品名
-            $sku[$k]['qty'] = $v[6]; //数量
-            $sku[$k]['unit'] = $v[7]; //单位
-            $sku[$k]['brand'] = $v[8]; //品牌
-            $sku[$k]['model'] = $v[9]; //型号
-            $sku[$k]['remarks'] = $v[10]; //客户需求描述
-            $sku[$k]['supplier_id'] = $suppliersModel->where(['name' => $v[11], 'deleted_flag' => 'N'])->getField('id');
-            $sku[$k]['quote_brand'] = $v[12]; //品牌(报价)
-            $sku[$k]['pn'] = $v[13]; //商品供应商PN码
-            $sku[$k]['purchase_unit_price'] = strpos($v[14], ',') !== false ? str_replace('，', '', str_replace(',', '', $v[14])) : $v[14]; //采购单价
-            $sku[$k]['purchase_price_cur_bn'] = $v[15]; //采购币种
-            $sku[$k]['gross_weight_kg'] = $v[16]; //毛重
-            $sku[$k]['package_mode'] = $v[17]; //包装方式
-            $sku[$k]['package_size'] = $v[18]; //包装体积
-            $sku[$k]['stock_loc'] = $v[19]; //存放地
-            $sku[$k]['goods_source'] = $v[20]; //产品来源
-            $sku[$k]['delivery_days'] = $v[21]; //交货周期
-            $sku[$k]['period_of_validity'] = $v[22]; //报价有效期
-            $sku[$k]['reason_for_no_quote'] = $v[23]; //未报价分析
-            $sku[$k]['created_at'] = date('Y-m-d H:i:s'); //添加时间
+        if ($is_erui == 'Y') {
+            $sku = $quoteitem_model->getSkusByErui($data, $inquiryId, $quoteId);
+        } else {
+            $sku = $quoteitem_model->getSkusByOtherOrg($data, $inquiryId, $quoteId);
         }
+
+
+        //遍历重组
         // 总数
         $totalCount = count($sku);
         // 成功数
@@ -297,9 +279,18 @@ class ExcelmanagerController extends PublicController {
                 'sku_name' => $this->lang == 'zh' ? $value['name_zh'] : $value['name'],
                 'status' => L('EXCEL_FAILD')
             ];
-            if ($value['category'] == '') {
+
+            if ($value['category'] == '' && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
-            } elseif (!in_array($value['category'], $category)) {
+            } elseif ($value['material_cat_no'] == '' && $is_erui === 'Y') {
+                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+            } elseif (!is_numeric($value['material_cat_no']) && $is_erui === 'Y') {
+                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+            } elseif ($value['org_id'] == '' && $is_erui === 'Y') {
+                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+            } elseif (!is_numeric($value['org_id']) && $is_erui === 'Y') {
+                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+            } elseif (!in_array($value['category'], $category) && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_NOT_EXIST');
             } elseif ($value['name'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
@@ -346,9 +337,14 @@ class ExcelmanagerController extends PublicController {
                         'brand' => $value['brand'],
                         'model' => $value['model'],
                         'remarks' => $value['remarks'],
-                        'category' => $value['category'],
                         'created_at' => $value['created_at']
                     ];
+
+                    if ($is_erui == 'Y') {
+                        $inquiryItemData['material_cat_no'] = $value['material_cat_no'];
+                    } else {
+                        $inquiryItemData['category'] = $value['category'];
+                    }
                     $inquiryItemId = $inquiryItemModel->add($inquiryItemData);
                     // 新增报价SKU记录
                     $quoteItemData = [
@@ -373,6 +369,9 @@ class ExcelmanagerController extends PublicController {
                         'reason_for_no_quote' => $value['reason_for_no_quote'],
                         'created_at' => $value['created_at']
                     ];
+                    if ($is_erui == 'Y') {
+                        $quoteItemData['org_id'] = intval($value['org_id']);
+                    }
                     $quoteItemId = $quoteItemModel->add($quoteItemData);
                     if ($inquiryItemId && $quoteItemId) {
                         $successCount++;
@@ -421,7 +420,7 @@ class ExcelmanagerController extends PublicController {
         }
         //遍历重组
         foreach ($data as $k => $v) {
-            if($v[1]||$v[2]||$v[3]||$v[4]||$v[5]||$v[6]||$v[7]||$v[8]||$v[9]){
+            if ($v[1] || $v[2] || $v[3] || $v[4] || $v[5] || $v[6] || $v[7] || $v[8] || $v[9]) {
                 $sku[$k]['sku'] = $v[1]; //sku编码|订货号
                 $sku[$k]['name'] = $v[2]; //外文品名
                 $sku[$k]['name_zh'] = $v[3]; //中文品名

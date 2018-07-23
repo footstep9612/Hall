@@ -69,13 +69,21 @@ class TemporarySupplierModel extends PublicModel
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
         $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
 
-        return $this->alias('a')
+        $sku = $this->alias('a')
             ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
             ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
             ->field($fields)
             ->where($where)
             ->page($currentPage, $pageSize)
             ->select();
+        $total = $this->alias('a')
+            ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
+            ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
+            ->field($fields)
+            ->where($where)
+            ->count('a.id');
+
+        return [$sku, $total];
     }
 
     public function getList(array $condition=[])
