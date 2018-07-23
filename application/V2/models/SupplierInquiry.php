@@ -456,6 +456,7 @@ class SupplierInquiryModel extends PublicModel {
         /*         * **最终报价单明细** */
 
         $where = ['i.deleted_flag' => 'N',
+            //  'i.id' => ['in', [3225, 4656, 5363, 5839, 5855, 6188, 6463, 6524, 6537, 6605, 6608, 6609, 6610, 6611, 6612, 6615, 6626, 6645, 6647, 6648, 6663, 6664, 6665, 6667, 6679, 6682, 6684, 6692, 6698, 6702, 6717, 6726, 6727, 6728, 6729, 6747, 6769, 6770, 6771, 6772, 6784, 6788, 6800, 6805, 6808, 6869, 6886, 6891, 6899, 6930, 6934, 6937, 6955, 6975, 6985, 6987, 6988, 7033, 7095, 7122, 7163, 7167, 7172, 7173, 7175, 7176, 7185, 7189, 7281, 7285, 7287, 7301, 7332, 7345, 7419, 7455, 7490, 7491, 7509, 7517, 7551, 7561, 7591, 7594, 7611, 7652, 7653, 7677, 7686, 7697, 7700, 7707, 7747, 7750, 7752, 7753, 7755, 7756, 7766, 7779, 7811, 7839, 7894, 7923]],
             'i.status' => ['neq', 'DRAFT'],
         ];
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
@@ -483,17 +484,25 @@ class SupplierInquiryModel extends PublicModel {
                 ->where($where)
                 ->select();
         $this->_setSupplierName($list);
+
         $this->_setquoted_time($list);
         $this->_setProductName($list);
+
         $this->_setConstPrice($list);
+
         $this->_setMaterialCat($list, 'zh');
+
         $this->_setCalculatePrice($list);
         $this->_setBizDespatching($list);
         $this->_setOilFlag($list);
         $this->_setObtainInfo($list);
+
         $this->_setClarifyTime($list);
+
         $this->_setQuoteSpendTime($list);
+
         $this->_resetListData($list);
+
         return $this->_createXls($list);
     }
 
@@ -1106,6 +1115,8 @@ class SupplierInquiryModel extends PublicModel {
                 ])
                 ->order('id ASC')
                 ->select();
+
+
         $clarifyList = [];
         foreach ($clarifys as $clarify) {
             $clarifyList[$clarify['inquiry_id']][] = $clarify;
@@ -1118,7 +1129,7 @@ class SupplierInquiryModel extends PublicModel {
                 ->select();
         $node_ids = [];
         foreach ($node_datas as $node_data) {
-            $node_ids = $node_data['max_id'];
+            $node_ids[] = $node_data['max_id'];
         }
         $nodeDatas = [];
         $nodes = $inquiryCheckLogModel
@@ -1128,8 +1139,10 @@ class SupplierInquiryModel extends PublicModel {
                 ->order('id DESC')
                 ->select();
         foreach ($nodes as $nodedata) {
-            $nodeDatas[$nodedata['inquiry_id']] = $nodedata;
+            $nodeDatas[$nodedata['inquiry_id']][] = $nodedata;
         }
+
+
 
         foreach ($inquiry_ids as $inquiry_id) {
             $item = [];
@@ -1140,26 +1153,30 @@ class SupplierInquiryModel extends PublicModel {
             }
             $item['clarification_time'] = '';
 
-
-
-            foreach ($clarifyList[$inquiry_id] as $clarify) {
-// 计算各环节的项目澄清时间
-                $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
+            if (!empty($clarifyList[$inquiry_id])) {
+                foreach ($clarifyList[$inquiry_id] as $clarify) {// 计算各环节的项目澄清时间
+                    if (!empty($item[$clarifyMapping[$clarify['out_node']]])) {
+                        $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
+                    } else {
+                        $item[$clarifyMapping[$clarify['out_node']]] = $clarify['clarify_time'];
+                    }
+                }
             }
-
-            $nodeData = $nodeDatas[$inquiry_id];
+            $nodeData = !empty($nodeDatas[$inquiry_id]) ? $nodeDatas[$inquiry_id] : [];
 
             $lastClarifyTime = '';
-            if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
+            if (!empty($nodeData['out_node']) && $nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
                 $lastClarifyTime = $nowTime - $nodeData['out_time'];
                 $item[$clarifyMapping[$nodeData['in_node']]] += $lastClarifyTime;
             }
             foreach ($clarifyMapping as $v) {
-                if ($item[$v] > 0) {
-                    $item['clarification_time'] += $item[$v];
+                if (!empty($item[$v]) && $item[$v] > 0) {
+                    $item['clarification_time'] = isset($item['clarification_time']) ? ($item['clarification_time'] + $item[$v]) : $item[$v];
                     $item[$v] = number_format($item[$v] / 3600, 2);
                 }
             }
+
+
 // 总的项目澄清时间
             if ($item['clarification_time'] > 0) {
                 $item['clarification_time'] = number_format($item['clarification_time'] / 3600, 2);
@@ -1169,16 +1186,20 @@ class SupplierInquiryModel extends PublicModel {
         }
 
 
+
         foreach ($list as $key => $item) {
 
             if (!empty($item['inquiry_id']) && !empty($clarification[$item['inquiry_id']])) {
                 foreach ($clarifyMapping as $v) {
                     $item[$v] = !empty($clarification[$item['inquiry_id']][$v]) ? $clarification[$item['inquiry_id']][$v] : '';
                 }
+
+                $item['clarification_time'] = !empty($clarification[$item['inquiry_id']]['clarification_time']) ? $clarification[$item['inquiry_id']]['clarification_time'] : 0;
             } elseif (!empty($item['inquiry_id'])) {
                 foreach ($clarifyMapping as $v) {
                     $item[$v] = '';
                 }
+                $item['clarification_time'] = '';
             }
             $list[$key] = $item;
         }
@@ -1225,7 +1246,7 @@ class SupplierInquiryModel extends PublicModel {
                             'in_node' => ['in', $quoteNode]])->select();
         $spendList = [];
         foreach ($nodes as $nodedata) {
-            $spendList[$nodedata['inquiry_id']] = $nodedata;
+            $spendList[$nodedata['inquiry_id']][] = $nodedata;
         }
         $quoted_times = [];
 
@@ -1241,12 +1262,18 @@ class SupplierInquiryModel extends PublicModel {
 
             foreach ($spendList[$inquiry_id] as $spend) {
 // 计算各环节的报价用时
-                $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
+                if (!empty($quoteTime[$quoteMapping[$spend['in_node']]])) {
+                    $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
+                } else {
+                    $quoteTime[$quoteMapping[$spend['in_node']]] = $spend['quote_time'];
+                }
             }
+
+
 // 物流报价用时
-            $logiSpend = $quoteTime['logi_dispatching_quoted_time'] + $quoteTime['logi_quoting_quoted_time'] + $quoteTime['logi_approving_quoted_time'];
+            $logiSpend = intval($quoteTime['logi_dispatching_quoted_time']) + intval($quoteTime['logi_quoting_quoted_time']) + intval($quoteTime['logi_approving_quoted_time']);
             $item['logi_quoted_time'] = number_format($logiSpend / 3600, 2);
-            $tmpDispatchingSpend = $quoteTime['biz_quoting_quoted_time'] + $quoteTime['biz_approving_quoted_time'] + $quoteTime['market_approving_quoted_time'];
+            $tmpDispatchingSpend = intval($quoteTime['biz_quoting_quoted_time']) + intval($quoteTime['biz_approving_quoted_time']) + intval($quoteTime['market_approving_quoted_time']);
             if ($real_items[$inquiry_id]['org_is_erui'] == 'Y') {
 // 易瑞商务技术报价用时
                 $ccSpend = $quoteTime['cc_dispatching_quoted_time'] + $quoteTime['biz_dispatching_quoted_time'] + $tmpDispatchingSpend;
@@ -1818,11 +1845,13 @@ class SupplierInquiryModel extends PublicModel {
             $material_cat_model = new MaterialCatModel();
             $catnos = [];
             foreach ($arr as $key => $val) {
-                $catnos[] = $val['material_cat_no'];
+                if (!empty($val['material_cat_no'])) {
+                    $catnos[] = $val['material_cat_no'];
+                }
             }
             $catnames = $material_cat_model->getNameByCatNos($catnos, $lang);
             foreach ($arr as $key => $val) {
-                if ($val['category'] && isset($catnames[$val['material_cat_no']])) {
+                if ($val['category'] && !empty($val['material_cat_no']) && !empty($catnames[$val['material_cat_no']])) {
                     $val['material_cat_name'] = $catnames[$val['material_cat_no']];
                 } else {
                     $val['material_cat_name'] = '';

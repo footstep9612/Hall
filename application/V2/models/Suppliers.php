@@ -58,23 +58,27 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
-        $where['a.source'] = 'BOSS';
+        //$where['a.source'] = 'BOSS';
 
         $where['a.status'] = ['neq', 'DRAFT'];
         //$where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
-
-        if (!empty($condition['id'])) {
-            $where['a.id'] = $condition['id'];
-        }
 
         if (!empty($condition['supplier_no'])) {
             $where['a.supplier_no'] = ['like', '%' . $condition['supplier_no'] . '%'];
         }
 
         if (!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $where['a.id'] = $condition['name'];
+            }else {
+                $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            }
         }
-        
+
+        if (!empty($condition['source'])) {
+            $where['a.source'] = $condition['source'];
+        }
+
         if (!empty($condition['supplier_level'])) {
             $where['a.supplier_level'] = $condition['supplier_level'];
         }
