@@ -28,28 +28,34 @@ class RoleModel extends PublicModel {
         $count = $this->where($data)->count('id');
         return $count;
     }
-    public function moveRole($data){
-        if(empty($data['attr_id']) || empty($data['role_ids'])){
+
+    public function moveRole($data) {
+        if (empty($data['attr_id']) || empty($data['role_ids'])) {
             return false;
         }
-        $this->where("id in ($data[role_ids])")->save(array('attr_id'=>$data['attr_id']));
+        $this->where("id in ($data[role_ids])")->save(array('attr_id' => $data['attr_id']));
         return true;
     }
-    public function sortRole($attr_id=0){
-        $info=$this->field('id,name')->where(array('attr_id'=>$attr_id,'deleted_flag'=>'N'))->select();
+
+    public function sortRole($attr_id = 0) {
+        $info = $this->field('id,name')->where(array('attr_id' => $attr_id, 'deleted_flag' => 'N'))
+                ->order('sort desc')
+                ->select();
         return $info;
     }
-    public function getRoleList($data){
-        $info=$this->sortRole();
-        foreach($info as $k => $v){
-            $list=$this->sortRole($v['id']);
-            if(empty($list)){
-                $list=[];
+
+    public function getRoleList($data) {
+        $info = $this->sortRole();
+        foreach ($info as $k => $v) {
+            $list = $this->sortRole($v['id']);
+            if (empty($list)) {
+                $list = [];
             }
-            $info[$k]['child']=$list;
+            $info[$k]['child'] = $list;
         }
         return $info;
     }
+
     /**
      * 获取列表
      * @param data $data;
@@ -178,6 +184,14 @@ class RoleModel extends PublicModel {
             $data['created_at'] = date("Y-m-d H:i:s");
         }
         return $this->add($data);
+    }
+
+    public function getRoleNossByRoleIds($ids) {
+        if ($ids) {
+            return $this->where(['id' => ['in', $ids], 'deleted_flag' => 'N'])->getField('role_no', true);
+        } else {
+            return [];
+        }
     }
 
 }

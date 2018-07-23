@@ -21,19 +21,17 @@ class QuoteModel extends PublicModel {
     const INQUIRY_MARKET_CONFIRMING = 'MARKET_CONFIRMING'; //市场确认
     const INQUIRY_QUOTE_SENT = 'QUOTE_SENT'; //报价单已发出
     const INQUIRY_INQUIRY_CLOSED = 'INQUIRY_CLOSED'; //报价关闭
-
     const QUOTE_NOT_QUOTED = 'NOT_QUOTED'; //未报价
     const QUOTE_ONGOING = 'ONGOING'; //报价中
     const QUOTE_QUOTED = 'QUOTED'; //已报价
     const QUOTE_COMPLETED = 'COMPLETED'; //已完成
 
-
     public function __construct() {
         parent::__construct();
     }
 
-    public function getQuoteIdByInQuiryId($inquiry_id){
-        return $this->where(['inquiry_id'=>$inquiry_id])->getField('id');
+    public function getQuoteIdByInQuiryId($inquiry_id) {
+        return $this->where(['inquiry_id' => $inquiry_id])->getField('id');
     }
 
     /**
@@ -42,7 +40,7 @@ class QuoteModel extends PublicModel {
      * @param string $field    筛选字段
      * @return array
      */
-    public function getGeneralInfo(array $condition,$field="*"){
+    public function getGeneralInfo(array $condition, $field = "*") {
         return $this->where($condition)->field($field)->find();
     }
 
@@ -51,41 +49,38 @@ class QuoteModel extends PublicModel {
      * @param array $data    数据
      * @return array|bool
      */
-    public function updateGeneralInfo(array $condition,$data){
+    public function updateGeneralInfo(array $condition, $data) {
 
-        try{
+        try {
             $this->where($condition)->save($this->create($data));
             //处理计算相关逻辑
             $this->calculate($condition);
             return true;
-
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             return [
                 'code' => $exception->getCode(),
                 'message' => $exception->getMessage()
             ];
         }
-
     }
-
 
     /**
      * 处理所有计算相关逻辑
      * @param $condition    条件
      * @return bool
      */
-    private function calculate($condition){
+    private function calculate($condition) {
 
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
 
         /*
-        |--------------------------------------------------------------------------
-        | 计算商务报出EXW单价         计算公式 : EXW单价=采购单价*毛利率/汇率
-        |--------------------------------------------------------------------------
-        */
+          |--------------------------------------------------------------------------
+          | 计算商务报出EXW单价         计算公式 : EXW单价=采购单价*毛利率/汇率
+          |--------------------------------------------------------------------------
+         */
         $quoteInfo = $this->where($condition)->field('id,gross_profit_rate,exchange_rate')->find();
-        $gross_profit_rate = $quoteInfo['gross_profit_rate'];//毛利率
+        $gross_profit_rate = $quoteInfo['gross_profit_rate']; //毛利率
 
         $quoteItemIds = $quoteItemModel->where($condition)->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')->select();
 
@@ -103,10 +98,10 @@ class QuoteModel extends PublicModel {
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
-        |--------------------------------------------------------------------------
-        */
+          |--------------------------------------------------------------------------
+          | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
+          |--------------------------------------------------------------------------
+         */
         $quoteItemExwUnitPrices = $quoteItemModel->where($condition)->field('exw_unit_price,quote_qty,gross_weight_kg')->select();
 
         $total_exw_price = [];
@@ -121,7 +116,7 @@ class QuoteModel extends PublicModel {
         }
         $total_gross_weight_kg = array_sum($total_gross_weight_kg);
 
-       $this->where($condition)->save([
+        $this->where($condition)->save([
             //总重
             'total_weight' => $total_gross_weight_kg,
             //exw合计
@@ -129,10 +124,10 @@ class QuoteModel extends PublicModel {
         ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | 采购合计          计算公式 : 采购总价=采购单价*条数
-        |--------------------------------------------------------------------------
-        */
+          |--------------------------------------------------------------------------
+          | 采购合计          计算公式 : 采购总价=采购单价*条数
+          |--------------------------------------------------------------------------
+         */
         $totalPurchase = [];
         $quoteItemsData = $quoteItemModel->where($condition)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
         foreach ($quoteItemsData as $quote => $item) {
@@ -152,39 +147,36 @@ class QuoteModel extends PublicModel {
         }
 
         return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
-
     }
 
     /**
      * @param array $condition
      * @return array
      */
-    public function rejectToBiz(array $condition){
+    public function rejectToBiz(array $condition) {
 
         $this->startTrans();
-        $quoteResult = $this->where($condition)->save(['status'=>self::INQUIRY_BIZ_DISPATCHING]);
+        $quoteResult = $this->where($condition)->save(['status' => self::INQUIRY_BIZ_DISPATCHING]);
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
         $inquiryResult = $inquiry->where([
-            'id' => $condition['inquiry_id']
-        ])->save([
+                    'id' => $condition['inquiry_id']
+                ])->save([
             'status' => self::INQUIRY_BIZ_DISPATCHING,
             'quote_status' => self::QUOTE_NOT_QUOTED
         ]);
 
-        if ($quoteResult && $inquiryResult){
+        if ($quoteResult && $inquiryResult) {
             $this->commit();
             $inquiry->commit();
-            return ['code'=>'1','message'=>'退回成功!'];
-        }else{
+            return ['code' => '1', 'message' => '退回成功!'];
+        } else {
             $this->rollback();
             $inquiry->rollback();
-            return ['code'=>'-104','message'=>'不能重复退回!'];
+            return ['code' => '-104', 'message' => '不能重复退回!'];
         }
-
     }
-
 
     /**
      * 提交物流分单员
@@ -192,13 +184,13 @@ class QuoteModel extends PublicModel {
      * @param $user 操作用户id
      * @return array
      */
-    public function sendLogisticsHandler($request,$user){
+    public function sendLogisticsHandler($request, $user) {
 
         $inquiry = new InquiryModel();
         $inquiry->startTrans();
 
         $org = new OrgModel();
-        $orgList = $org->field('id')->where(['org_node' => 'lg'])->select();
+        $orgList = $org->field('id')->where(['org_node' => ['in', ['lg', 'elg']]])->select();
         $orgId = [];
         foreach ($orgList as $org) {
             $orgId[] = $org['id'];
@@ -207,7 +199,7 @@ class QuoteModel extends PublicModel {
         $inquiryResult = $inquiry->where(['id' => $request['inquiry_id']])->save([
             'status' => self::INQUIRY_LOGI_DISPATCHING,
             'logi_org_id' => $orgId[0],
-            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, 'lg')
+            'now_agent_id' => $inquiry->getRoleUserId([$orgId[0]], $inquiry::logiIssueMainRole, ['in', ['lg', 'elg']])
         ]);
 
         $this->startTrans();
@@ -221,16 +213,16 @@ class QuoteModel extends PublicModel {
             //防止重复提交
             $hasFlag = $quoteLogiFeeModel->where(['inquiry_id' => $request['inquiry_id']])->find();
 
-            if (!$hasFlag){
+            if (!$hasFlag) {
 
                 $quoteInfo = $this->where(['inquiry_id' => $request['inquiry_id']])->field('id,premium_rate')->find();
 
                 $quoteLogiFeeModel->add($quoteLogiFeeModel->create([
-                    'quote_id' => $quoteInfo['id'],
-                    'inquiry_id' => $request['inquiry_id'],
-                    'created_at' => date('Y-m-d H:i:s'),
-                    'created_by' => $user['id'],
-                    'premium_rate' => $quoteInfo['premium_rate']
+                            'quote_id' => $quoteInfo['id'],
+                            'inquiry_id' => $request['inquiry_id'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                            'created_by' => $user['id'],
+                            'premium_rate' => $quoteInfo['premium_rate']
                 ]));
 
                 //给物流报价单项形成记录
@@ -240,11 +232,11 @@ class QuoteModel extends PublicModel {
                 $quoteItemLogiModel = new QuoteItemLogiModel();
                 foreach ($quoteItemIds as $quoteItemId) {
                     $quoteItemLogiModel->add($quoteItemLogiModel->create([
-                        'inquiry_id' => $request['inquiry_id'],
-                        'quote_id' => $quoteInfo['id'],
-                        'quote_item_id' => $quoteItemId,
-                        'created_at' => date('Y-m-d H:i:s'),
-                        'created_by' => $user['id']
+                                'inquiry_id' => $request['inquiry_id'],
+                                'quote_id' => $quoteInfo['id'],
+                                'quote_item_id' => $quoteItemId,
+                                'created_at' => date('Y-m-d H:i:s'),
+                                'created_by' => $user['id']
                     ]));
                 }
             }
@@ -253,7 +245,6 @@ class QuoteModel extends PublicModel {
             $this->commit();
 
             return ['code' => '1', 'message' => '提交成功!'];
-
         } else {
 
             $inquiry->rollback();
@@ -261,7 +252,6 @@ class QuoteModel extends PublicModel {
 
             return ['code' => '-104', 'message' => '不能重复提交!'];
         }
-
     }
 
 }

@@ -21,27 +21,26 @@ class UrlPermModel extends PublicModel {
         parent::__construct($str = '');
     }
 
-
     /**
      * 获取列表
      * @param data $data;
      * @return array
      * @author jhw
      */
-    public function getlist($data,$limit,$order='sort') {
-        if(!empty($limit)){
+    public function getlist($data, $limit, $order = 'sort') {
+        if (!empty($limit)) {
             //,'false' as check
             return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")
                             ->where($data)
                             ->limit($limit['page'] . ',' . $limit['num'])
                             ->order($order)
                             ->select();
-        }else{
+        } else {
             //,'false' as `check`
             return $this->field("id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,url,remarks,sort,parent_id,grant_flag,created_by,created_at,source")
-                ->where($data)
-                ->order($order)
-                ->select();
+                            ->where($data)
+                            ->order($order)
+                            ->select();
         }
     }
 
@@ -53,12 +52,30 @@ class UrlPermModel extends PublicModel {
      */
     public function detail($id = '') {
         $where['id'] = $id;
-        if(!empty($where['id'])){
+        if (!empty($where['id'])) {
             $row = $this->where($where)
-                ->field('id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
-                ->find();
+                    ->field('id,fn,fn_en,fn_es,fn_ru,fn_group,show_name,show_name_en,show_name_es,show_name_ru,logo_name,logo_url,url,sort,remarks,parent_id,grant_flag,created_by,created_at')
+                    ->find();
             return $row;
-        }else{
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * 获取详情
+     * @param  int  $url
+     * @return array
+     * @author jhw
+     */
+    public function getfnByUrl($url = '') {
+        $where['url'] = $url;
+        if (!empty($where['url'])) {
+            $row = $this->where($where)
+                    ->field('id,fn,fn_en,fn_es,fn_ru')
+                    ->find();
+            return $row;
+        } else {
             return false;
         }
     }
@@ -71,10 +88,10 @@ class UrlPermModel extends PublicModel {
      */
     public function delete_data($id = '') {
         $where['id'] = $id;
-        if(!empty($where['id'])){
+        if (!empty($where['id'])) {
             return $this->where($where)
-                ->delete();
-        }else{
+                            ->delete();
+        } else {
             return false;
         }
     }
@@ -85,29 +102,51 @@ class UrlPermModel extends PublicModel {
      * @return bool
      * @author jhw
      */
-    public function update_data($data,$where) {
+    public function update_data($data, $where) {
         $arr = $this->create($data);
-        if(!empty($where)){
+        if (!empty($data['parent_id']) && $data['parent_id'] != $data['id']) {
+            $arr['top_parent_id'] = $this->getOneLevelMenuId($data['parent_id']);
+        } elseif (!empty($data['parent_id']) && $data['parent_id'] == $data['id']) {
+            $arr['top_parent_id'] = $data['id'];
+        } elseif (!empty($data['id'])) {
+            $arr['top_parent_id'] = $this->getOneLevelMenuId($data['id']);
+        }
+        if (!empty($where)) {
             return $this->where($where)->save($arr);
-        }else{
+        } else {
             return false;
         }
     }
 
-
-
     /**
      * 新增数据
-     * @param  mix $createcondition 新增条件
+     * @param  mix $create 新增条件
      * @return bool
      * @author jhw
      */
-    public function create_data($create= []) {
+    public function create_data($create = []) {
         $data = $this->create($create);
+        if (!empty($data['parent_id'])) {
+            $data['top_parent_id'] = $this->getOneLevelMenuId($data['parent_id']);
+        }
+
         $data['created_at'] = date("Y-m-d H:i:s");
-        return $this->add($data);
+        $this->startTrans();
+        $insertId = $this->add($data);
+        if ($insertId && empty($data['parent_id'])) {
+            $flag = $this->where(['id' => $insertId])->save(['top_parent_id' => $insertId]);
+            if (!$flag) {
+                $this->rollback();
+                return false;
+            }
+        } elseif (!$insertId) {
+            $this->rollback();
+            return false;
+        }
+        $this->commit();
+        return $insertId;
     }
-    
+
     /**
      * @desc 获取指定菜单的一级父类菜单ID
      *
@@ -124,7 +163,7 @@ class UrlPermModel extends PublicModel {
             return $menuId;
         }
     }
-    
+
     /**
      * @desc 根据菜单名称获取菜单ID
      *
@@ -134,7 +173,7 @@ class UrlPermModel extends PublicModel {
      * @time 2018-06-25
      */
     public function getMenuIdByName($name) {
-        return $this->where(['fn' => $name, 'parent_id' => '0'])->getField('id') ? : 0;
+        return $this->where(['fn' => $name, 'parent_id' => '0'])->getField('id') ?: 0;
     }
 
 }

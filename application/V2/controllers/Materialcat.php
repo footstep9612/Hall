@@ -52,6 +52,35 @@ class MaterialcatController extends PublicController {
      * 获取分类树形数据
      */
 
+    public function TreesAction() {
+        $lang = $this->getPut('lang', 'zh');
+
+        $jsondata = ['lang' => $lang];
+
+        $redis_key = 'Material_cat_trees_' . $lang;
+        $data = json_decode(redisGet($redis_key), true);
+        if (!$data) {
+            $arr = (new Goods_MaterialCatModel())->tree($jsondata);
+            if ($arr) {
+
+                redisSet($redis_key, json_encode($arr), 86400);
+                $this->setCode(MSG::MSG_SUCCESS);
+
+                $this->jsonReturn($arr);
+            } else {
+                $this->setCode(MSG::MSG_FAILED);
+                $this->jsonReturn();
+            }
+        }
+        $this->setCode(MSG::MSG_SUCCESS);
+
+        $this->jsonReturn($data);
+    }
+
+    /*
+     * 获取分类树形数据
+     */
+
     public function twotreeAction() {
         $lang = $this->getPut('lang', 'zh');
 
@@ -60,7 +89,7 @@ class MaterialcatController extends PublicController {
         $redis_key = 'Material_cat_twotree_' . $lang;
         $data = json_decode(redisGet($redis_key), true);
         if (!$data) {
-            $arr = $this->_model->tree($jsondata);
+            $arr = $this->_model->tree($jsondata, true);
             if ($arr) {
                 $this->setCode(MSG::MSG_SUCCESS);
                 redisSet($redis_key, json_encode($arr), 86400);
@@ -185,8 +214,10 @@ class MaterialcatController extends PublicController {
     public function getlistAction() {
         $lang = $this->getPut('lang', 'zh');
         $cat_no = $this->getPut('cat_no', '');
-
-        $key = 'Material_cat_getlist_' . (!empty($lang) ? '_' . $lang : '') . (!empty($cat_no) ? '_' . $cat_no : '');
+        $name = $this->getPut('name', '');
+        $key = 'Material_cat_getlist_' . (!empty($lang) ? '_' . $lang : '')
+                . (!empty($cat_no) ? '_' . $cat_no : '')
+                . (!empty($name) ? '_' . md5($name) : '');
         $data = json_decode(redisGet($key), true);
         if (!$data) {
             $arr = $this->_model->get_list($cat_no, $lang);
@@ -481,11 +512,14 @@ class MaterialcatController extends PublicController {
         $cat_no = $this->getPut('cat_no');
         $lang = $this->getPut('lang');
         $product_model = new ProductModel();
-        $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])
-                ->find();
+        /**
+         * 更新于2018-07-16
+         * $data = $product_model->where(['material_cat_no' => ['like', $cat_no . '%']])->find();
+         */
+        $data = $product_model->where(['material_cat_no' => $cat_no])->find();
+
         if ($data) {
             $this->setCode(MSG::DELETE_MATERIAL_CAT_ERR);
-
             $this->jsonReturn();
         }
         $result = $this->_model->delete_data($cat_no, $lang);

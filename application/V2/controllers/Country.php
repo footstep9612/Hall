@@ -16,7 +16,39 @@ class CountryController extends PublicController {
 
         $this->es = new ESClient();
     }
+    public function areaCountryAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $area=new CountryModel();
+        $arr=$area->table('erui_operation.market_area')
+            ->field('bn as value,name as label')
+            ->where("deleted_flag='N' and lang='$lang'")
+            ->select();
+        $enLabel=$lang=='zh'?'全部':'All';
+        $left=array('value'=>'','label'=>$enLabel);
+        foreach($arr as $k => &$v){
+            $info=$area->table('erui_operation.market_area_country country_bn')
+                ->join('erui_dict.country country on country_bn.country_bn=country.bn')
+                ->field('country_bn.country_bn as value,country.name as label')
+                ->where("country_bn.market_area_bn='$v[value]' and country.lang='$lang' and country.deleted_flag='N'")
+                ->select();
+            array_unshift($info,$left);
+            $v['children']=$info;
 
+        }
+$left=array(
+    'value'=>'',
+    'label'=>$enLabel,
+    'children'=>[['value'=>'','label'=>$enLabel]]
+);
+        array_unshift($arr,$left);
+        $dataJson = array(
+            'code'=>1,
+            'message'=>'地区国家权限列表',
+            'data'=>$arr
+        );
+        $this->jsonReturn($dataJson);
+    }
     /*
      * 营销区域列表
      */
@@ -51,6 +83,9 @@ class CountryController extends PublicController {
 
         $data['lang'] = $this->getPut('lang', 'zh');
         $data['deleted_flag'] = 'N';
+        if($this->getPut('bn')){
+            $data['bn'] = explode(',',$this->getPut('bn'));
+        }
         $country_model = new CountryModel();
         $arr = $country_model->getlistBycodition($data, 'c.bn ASC', false);
 

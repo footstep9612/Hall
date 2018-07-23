@@ -291,19 +291,21 @@ class StockFloorAdsModel extends PublicModel {
 
     /**
      * Description of 删除广告
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  现货国家
+     * @author  link
+     * @date    2017-07-04
      */
-    public function DeletedData($id) {
-
+    public function deletedData($condition) {
+        if(isset($condition['id'])){
+            $where['id'] = is_array($condition['id']) ? ['in',$condition['id']] : trim($condition['id']);
+        }elseif(isset($condition['floor_id'])){
+            $where['floor_id'] = is_array($condition['floor_id']) ? ['in',$condition['floor_id']] : trim($condition['floor_id']);
+        }
 
         $data['deleted_flag'] = 'Y';
         $data['deleted_at'] = date('Y-m-d H:i:s');
         $data['deleted_by'] = defined('UID') ? UID : 0;
 
-        return $this->where(['id' => $id])->save($data);
+        return $this->where($where)->save($data);
     }
 
 }

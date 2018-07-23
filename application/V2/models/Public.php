@@ -125,7 +125,11 @@ class PublicModel extends Model {
         if (!$field) {
             $field = $name;
         }
-        if ($type === 'string') {
+        if($type === 'int') {
+            if (isset($condition[$name]) && $condition[$name]!='') {
+                $where[$field] = intval($condition[$name]);
+            }
+        }elseif ($type === 'string') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $where[$field] = trim($condition[$name]);
             } elseif ($default) {

@@ -64,11 +64,12 @@ class BuyerfilesController extends PublicController
     /*
      * 客户管理列表搜索展示
      * */
-    public function buyerListAction()
+    public function buyerList1Action()
     {
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $data['lang'] = $this->getLang();
         $data['admin']=$this->getUserRole();
         $model = new BuyerModel();
         $arr = $model->buyerList($data);
@@ -77,10 +78,55 @@ class BuyerfilesController extends PublicController
         $dataJson['data'] = $arr;
         $this -> jsonReturn($dataJson);
     }
+    public function buyerListAction() {
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['created_by'] = $this->user['id'];;
+        $data['admin']=$this->getUserRole();   //=1市场专员
+        $data['lang'] = $this->getLang();
+        $model = new BuyerModel();
+        $ststisInfo = $model->buyerStatisList($data,false,true);
+        if($ststisInfo===false){
+            $dataJson = array(
+                'code' => 1,
+                'message' => '返回数据',
+                'total_status' => 0,
+                'approved_status' => 0,
+                'approving_status' => 0,
+                'rejected_status' => 0,
+                'currentPage' => 1,
+                'data' => []
+            );
+            $this->jsonReturn($dataJson);
+        }
+        $cond = $model->getBuyerStatisListCond($data,false);  //获取条件
+        $totalCount=$model->crmGetBuyerTotal($cond); //获取总条数
+        $statusCount=$model->crmGetBuyerStatusCount($cond);    //获取各个状态的总
+        $dataJson = array(
+            'code' => 1,
+            'message' => '返回数据',
+            'total_status' => intval($totalCount),
+            'approved_status' => intval($statusCount['APPROVED']),
+            'approving_status' => intval($statusCount['APPROVING']),
+            'rejected_status' => intval($statusCount['REJECTED']),
+            'currentPage' => $ststisInfo['currentPage'],
+        );
+        if(empty($data['status'])){
+            $dataJson['count']=intval($ststisInfo['totalCount']);
+        }elseif($data['status']=='APPROVED'){
+            $dataJson['count']=intval($statusCount['APPROVED']);
+        }elseif($data['status']=='APPROVING'){
+            $dataJson['count']=intval($statusCount['APPROVING']);
+        }elseif($data['status']=='REJECTED'){
+            $dataJson['count']=intval($statusCount['REJECTED']);
+        }
+        $dataJson['data']= $ststisInfo['info'];
+        $this->jsonReturn($dataJson);
+    }
     /**
      * 客户管理列表excel导出
      */
     public function exportBuyerExcelAction(){
+        set_time_limit(0);
         $created_by = $this -> user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;

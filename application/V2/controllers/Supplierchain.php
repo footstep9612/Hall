@@ -74,7 +74,22 @@ class SupplierchainController extends PublicController {
             $this->jsonReturn();
         }
         */
+        if (!empty($condition['supplier_name'])) {
+            if(preg_match("/^\d*$/",$condition['supplier_name'])) {
+                $condition['id'] = $condition['supplier_name'];
+                unset($condition['supplier_name']);
+            }else {
+                $condition['supplier_name'] = $condition['supplier_name'];
+            }
+        }
+
         $data = $supplier_model->getList($condition);
+
+        foreach ($data as &$datum) {
+            $datum['source'] = $datum['source'] == 'BOSS' ? 'BOSS' : '门户';
+            $datum['org_name'] = (new OrgModel)->getNameById($datum['org_id'], '');
+        }
+
         if ($data) {
             $this->setvalue('count', $supplier_model->getCount($condition));
             $this->jsonReturn($data);

@@ -21,10 +21,10 @@ class StorageController extends PublicController {
         $storageModel = new StorageModel();
         $result = $storageModel->getList($condition);
 
-        if ($result) {
-            jsonReturn($result);
-        } elseif ($result === false) {
+        if ($result === false) {
             jsonReturn('',MSG::MSG_FAILED);
+        } else {
+            jsonReturn($result);
         }
     }
 
@@ -56,6 +56,10 @@ class StorageController extends PublicController {
         if (empty($country_bn)) {
             jsonReturn('',MSG::ERROR_PARAM,'请选择国家！');
         }
+        $lang = $this->getPut('lang');
+        if (empty($lang)) {
+            jsonReturn('',MSG::ERROR_PARAM,'请选择语言！');
+        }
         $storage_name = $this->getPut('storage_name');
         if (empty($storage_name)) {
             jsonReturn('',MSG::ERROR_PARAM,'请输入仓库名称！');
@@ -83,6 +87,10 @@ class StorageController extends PublicController {
             $country_bn = $this->getPut('country_bn');
             if (empty($country_bn)) {
                 jsonReturn('',MSG::ERROR_PARAM,'请选择国家！');
+            }
+            $lang = $this->getPut('lang');
+            if (empty($lang)) {
+                jsonReturn('',MSG::ERROR_PARAM,'请选择语言！');
             }
             $storage_name = $this->getPut('storage_name');
             if (empty($storage_name)) {

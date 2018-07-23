@@ -63,8 +63,9 @@ class BuyertestController extends PublicController
         echo count($arr);
     }
     public function percentTestAction(){
+        set_time_limit(0);
         $buyer=new BuyerModel();
-        $info=$buyer->field('id as buyer_id')->where(array('is_build'=>1,'deleted_flag'=>'N'))->select();
+        $info=$buyer->field('id as buyer_id')->where(array('deleted_flag'=>'N'))->select();
         $arr=[];
         foreach($info as $k => $v){
             $res=$this->percentInfo(array('buyer_id'=>$v['buyer_id']));
@@ -111,7 +112,7 @@ class BuyertestController extends PublicController
             echo 0;
         }
     }
-    private function percentInfo($data=[]){
+    public function percentInfo($data){
         if(empty($data['buyer_id'])){
             $dataJson=array(
                 'code'=>0,
@@ -122,7 +123,7 @@ class BuyertestController extends PublicController
         //客户基本信息
         $base = new BuyerModel();
         $baseInfo=$base->percentBuyer($data);
-        if(empty($baseInfo['buyer_no'])){
+        if(empty($baseInfo)){
             $dataJson=array(
                 'code'=>0,
                 'message'=>'暂无信息'

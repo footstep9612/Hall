@@ -20,21 +20,20 @@ class StorageModel extends PublicModel{
      * @param array $condition
      * @return bool|mixed
      */
-    public function getInfo($condition=[])
+    public function getInfo($condition)
     {
         if ( !isset( $condition[ 'id' ] ) ) {
             jsonReturn( '' , MSG::MSG_PARAM_ERROR , '请传递仓库id' );
         }
 
         try {
-            $result = $this->field( 'id,country_bn,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ), 'deleted_at' => ['exp', 'is null']] )->find();
+            $result = $this->field( 'id,country_bn,lang,storage_name,keyword,description,remark,contact,content,created_at,created_by,updated_by,updated_at' )->where( [ 'id' => intval( $condition[ 'id' ] ), 'deleted_at' => ['exp', 'is null']] )->find();
             if($result){
                 $this->_setUser($result);
                 jsonDecode($result,'contact');
                 return $result;
             }
         } catch ( Exception $e ) {
-            jsonReturn($e);
             return false;
         }
     }
@@ -50,13 +49,19 @@ class StorageModel extends PublicModel{
         if(isset($condition['id'])){
             $where['id'] = intval($condition['id']);
         }
+        if(isset($condition['country_bn'])){
+            $where['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['lang'])){
+            $where['lang'] = trim($condition['lang']);
+        }
         if(isset($condition['storage_name'])){
             $where['storage_name'] = ['like', '%'.trim($condition['storage_name']).'%'];
         }
         list($from ,$size) = $this->_getPage($condition);
         try{
             $data = [];
-            $rel = $this->field(empty($field) ? '' : $field)->where($where)
+            $rel = $this->field(empty($field) ? '*' : $field)->where($where)
                 ->limit($from,$size)->select();
             if($rel){
                 $this->_setUser($rel);
@@ -95,6 +100,7 @@ class StorageModel extends PublicModel{
         }
         try{
             $data =[
+                'lang' => trim($input['lang']),
                 'country_bn' => ucfirst(trim($input['country_bn'])),
                 'storage_name' => trim($input['storage_name']),
                 'keyword' => trim($input['keyword']),
@@ -103,7 +109,7 @@ class StorageModel extends PublicModel{
                 'content' => trim($input['content']),
                 'contact' => $input['contact'] ? json_encode($input['contact'],JSON_UNESCAPED_UNICODE) : '[]'
             ];
-            if($this->getExit(['country_bn'=>$data['country_bn'],'storage_name'=>$data['storage_name'],'deleted_at' => ['exp', 'is null']])===false){
+            if($this->getExit(['country_bn'=>$data['country_bn'],'lang'=>$data['lang'],'storage_name'=>$data['storage_name'],'deleted_at' => ['exp', 'is null']])===false){
                 $data['created_at'] = date('Y-m-d H:i:s',time());
                 $data['created_by'] = defined('UID') ? UID : 0;
                 $flag = $this->add($data);
@@ -130,7 +136,7 @@ class StorageModel extends PublicModel{
                 if($k=='contact'){
                     $v = $v ? json_encode($v,JSON_UNESCAPED_UNICODE ) : '[]';
                 }
-                if(in_array($k,['country_bn','storage_name','keyword','description','remark','content','status','contact'])){
+                if(in_array($k,['country_bn','storage_name','lang','keyword','description','remark','content','status','contact'])){
                     $v = (trim($k)=='country_bn') ? ucfirst(trim($v)) : trim($v);
                     $data[$k] = $v;
                 }

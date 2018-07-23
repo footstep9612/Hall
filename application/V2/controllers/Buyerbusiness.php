@@ -416,7 +416,7 @@ class BuyerbusinessController extends PublicController
         if(is_array($res)){
             $dataJson['code']=1;
             $dataJson['message']='客户分级列表数据';
-            if(in_array('客户管理员',$data['role']) || in_array('201711242',$data['role'])){
+            if(!in_array('customer_agent',$data['role'])){
                 $dataJson['old_button']=false;
                 $dataJson['new_button']=false;
             }else{
@@ -430,6 +430,182 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    public function exportGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $data['lang']=$this->getLang();
+        $data['role']=$this->user['role_no'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->exportExcelGrade($data);
+        if(count($res)==0){
+            $dataJson['code']=4;
+            $dataJson['message']='暂无数据';
+        }elseif(count($res)>0){
+            $dataJson['code']=1;
+            $dataJson['message']='客户分级导出';
+            $dataJson['url']=$res['url'];
+            $dataJson['name']=$res['name'];
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='导出失败';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+
+    //客户历史成单金额1-----------------------------------------------
+    public function amountAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->amount($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='客户历史成单金额';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //易瑞产品采购量占客户总需求量地位2
+    public function positionAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->position($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='易瑞产品采购量占客户总需求量地位';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //连续N年及以上履约状况良好3
+    public function yearKeepAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->yearKeep($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='连续N年及以上履约状况良好';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //年复购次数4
+    public function repurchaseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->repurchase($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='年复购次数';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //客户资信等级5
+    public function creditGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->creditGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='客户资信等级';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //零配件年采购额6
+    public function purchaseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->purchase($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='零配件年采购额';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //企业性质7
+    public function enterpriseAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->enterprise($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='企业性质';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //营业收入8
+    public function incomeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->income($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='营业收入';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //资产规模9
+    public function scaleAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->scale($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='资产规模';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //分级结果10
+    public function customerGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();
+        $res=$model->customerGrade($data);
+        if($res){
+            $dataJson['code']=1;
+            $dataJson['message']='综合分值&客户等级';
+            $dataJson['data']=$res;
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='参数错误';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //---------------------------------------------------------------
+
+
+
+
     public function editGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();
@@ -510,6 +686,38 @@ class BuyerbusinessController extends PublicController
         $data['created_by']=$this->user['id'];
         $model = new CustomerGradeModel();  //结算方式
         $res=$model->checkedGrade($data);
+        if($res===true){
+            $dataJson['code']=1;
+            $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']=$lang=='zh'?'参数错误':'ERROR';
+        }
+        $this -> jsonReturn($dataJson);
+    }
+    //发送邮件通知客户分级申请变更通过
+    public function noticeEmailAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $model = new CustomerGradeModel();  //结算方式
+        $info=$model->noticeEmail($data);
+        if($info){
+            $dataJson['code']=1;
+            $dataJson['message']='Success';
+        }else{
+            $dataJson['code']=0;
+            $dataJson['message']='Error';
+        }
+        $this->jsonReturn($dataJson);
+    }
+
+
+    //申请变更
+    public function applyGradeAction(){
+        $data = json_decode(file_get_contents("php://input"), true);
+        $lang=$this->getLang();
+        $data['created_by']=$this->user['id'];
+        $model = new CustomerGradeModel();  //结算方式
+        $res=$model->applyGrade($data);
         if($res){
             $dataJson['code']=1;
             $dataJson['message']=$lang=='zh'?'成功':'SUCCESS';
@@ -519,7 +727,7 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
-    //申请变更
+    //确认变更
     public function changeGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $lang=$this->getLang();

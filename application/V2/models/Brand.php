@@ -69,23 +69,24 @@ class BrandModel extends PublicModel {
 
         if (!empty($condition['name']) && $lang) {
             $name = trim($condition['name']);
-            $map1[$brand_table . '.`brand`'] = ['like', '%"lang":"' . $lang . '"%'];
-            $map1['brand'] = ['like', '%"lang": "' . $lang . '"%'];
+            $map1[] = 'locate(\'"lang":"' . $lang . '"\',`brand`)';
+            $map1[] = 'locate(\'"lang": "' . $lang . '"\',`brand`)';
+
             $map1['_logic'] = 'or';
             $where[]['_complex'] = $map1;
-            $map2[$brand_table . '.`brand`'] = ['like', '%"name":"' . $name . '"%'];
-            $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+            $map2[] = 'locate(\'"name":"' . $name . '\',`brand`)';
+            $map2[] = 'locate(\'"name": "' . $name . '\',`brand`)';
             $map2['_logic'] = 'or';
             $where[]['_complex'] = $map2;
         } elseif ($lang) {
-            $map1['brand.brand'] = ['like', '%"lang":"' . $lang . '"%'];
-            $map1['brand'] = ['like', '%"lang": "' . $lang . '"%'];
+            $map1[] = 'locate(\'"lang":"' . $lang . '"\',`brand`)';
+            $map1[] = 'locate(\'"lang": "' . $lang . '"\',`brand`)';
             $map1['_logic'] = 'or';
             $where[]['_complex'] = $map1;
         } elseif (!empty($condition['name'])) {
             $name = trim($condition['name']);
-            $map2['brand.brand'] = ['like', '%"name":"' . $name . '"%'];
-            $map2['brand'] = ['like', '%"name": "' . $name . '"%'];
+            $map2[] = 'locate(\'"name":"' . $name . '\',`brand`)';
+            $map2[] = 'locate(\'"name": "' . $name . '\',`brand`)';
             $map2['_logic'] = 'or';
             $where[]['_complex'] = $map2;
         }

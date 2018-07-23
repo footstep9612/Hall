@@ -34,13 +34,17 @@ class StockCountryModel extends PublicModel {
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
         $this->_getValue($where, $condition, 'country_bn');
-        if(isset($condition['country_name'])){
+        if(isset($condition['country_name']) && $condition['country_name'] !=''){
             $countryModel = new CountryModel();
             $data = $countryModel->field('bn')->where(['deleted_flag'=>'N','status'=>'VALID','name'=>['like',"%".trim($condition['country_name'])."%"]])->select();
-            foreach($data as $r){
-                $condition['country_bn'][]= $r['bn'];
+            if($data){
+                foreach($data as $r){
+                    $condition['country_bn'][]= $r['bn'];
+                }
+                $this->_getValue($where, $condition, 'country_bn','array');
+            }else{
+                return false;
             }
-            $this->_getValue($where, $condition, 'country_bn','array');
         }
         $this->_getValue($where, $condition, 'lang');
         $this->_getValue($where, $condition, 'created_at', 'between');
@@ -82,6 +86,9 @@ class StockCountryModel extends PublicModel {
      */
     public function getList($condition) {
         $where = $this->_getCondition($condition);
+        if($where===false){
+            return null;
+        }
         list($row_start, $pagesize) = $this->_getPage($condition);
         return $this->where($where)
                         ->order('id desc')
@@ -155,6 +162,7 @@ class StockCountryModel extends PublicModel {
             $where['id'] = intval($condition['id']);
         }elseif(isset($condition['country_bn'])){
             $where['country_bn'] = $condition['country_bn'];
+            $where['lang'] = $condition['lang'];
         }else{
             jsonReturn('', MSG::ERROR_PARAM, '请传递id或country_bn');
         }

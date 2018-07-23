@@ -181,7 +181,8 @@ class MarketAreaCountryModel extends PublicModel {
      * @author  zhanguliang
      *  @date    2018-3-3 13:39:16
      */
-    public function getCountryBn($Areabn, $lang = 'zh'){
+
+    public function getCountryBn($Areabn, $lang = 'zh') {
 
         try {
             $where = [];
@@ -197,7 +198,7 @@ class MarketAreaCountryModel extends PublicModel {
 
             $country_bn = $this->field('country_bn')->where($where)->select();
 
-            foreach($country_bn as $val){
+            foreach ($country_bn as $val) {
                 $countrybns[] = $val['country_bn'];
             }
 
@@ -208,4 +209,47 @@ class MarketAreaCountryModel extends PublicModel {
             return [];
         }
     }
+
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setAreaBn(&$arr) {
+        if ($arr) {
+
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+
+                if (isset($val['country_bn']) && $val['country_bn']) {
+                    $country_bns[] = trim($val['country_bn']);
+                }
+            }
+            if ($country_bns) {
+                $area_bns = $this->field('country_bn,market_area_bn')
+                                ->where(['country_bn' => ['in', $country_bns]])->select();
+
+
+                $countrytoarea_bns = [];
+                foreach ($area_bns as $item) {
+                    $countrytoarea_bns[$item['country_bn']] = $item['market_area_bn'];
+                }
+
+                foreach ($arr as $key => $val) {
+                    if (trim($val['country_bn']) && isset($countrytoarea_bns[trim($val['country_bn'])])) {
+                        $val['area_bn'] = $countrytoarea_bns[trim($val['country_bn'])];
+                    } else {
+                        $val['area_bn'] = '';
+                    }
+
+                    $arr[$key] = $val;
+                }
+            }
+        }
+    }
+
 }

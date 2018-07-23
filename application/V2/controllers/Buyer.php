@@ -16,33 +16,12 @@ class BuyerController extends PublicController {
     public function __init() {
         parent::init();
     }
-    //获取用户的角色
+//    获取用户的角色
     public function getUserRole(){
-        $config = \Yaf_Application::app()->getConfig();
-        $ssoServer=$config['ssoServer'];
-        $token=$_COOKIE['eruitoken'];
-        $opt = array(
-            'http'=>array(
-                'method'=>"POST",
-                'header'=>"Content-Type: application/json\r\n" .
-                    "Cookie: ".$_COOKIE."\r\n",
-                'content' =>json_encode(array('token'=>$token))
-
-            )
-        );
-        $context = stream_context_create($opt);
-        $json = file_get_contents($ssoServer,false,$context);
-        $info=json_decode($json,true);
-
-        $arr['role']=$info['role_no'];
-        if(!empty($info['country_bn'])){
-            $countryArr=[];
-            foreach($info['country_bn'] as $k => $v){
-                $countryArr[]="'".$v."'";
-            }
-            $countryStr=implode(',',$countryArr);
-        }
-        $arr['country']=$countryStr;
+        $arr=[];
+        $data=$this->user;
+        $arr['role']=$data['role_no'];
+        $arr['country']=$data['country_bn'];
         return $arr;
     }
     /*
@@ -723,7 +702,9 @@ EOF;
             if (!isEmail($data['email'])) {
                 jsonReturn('', -101, L('create_email'));
             }
-            $checkEmail=$buyer_account_model->field('email')->where(array('email'=>$data['email'],'deleted_flag'=>'N'))->select();
+            $checkEmail=$buyer_account_model->field('email')
+                ->where("email='$data[email]' and deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkEmail){
                 jsonReturn('', -101, L('email_existed'));
             }
@@ -736,7 +717,9 @@ EOF;
 
         if (!empty($data['name'])) {    //公司名称
             $data['name']=trim($data['name'],' ');
-            $checkcompany = $model->where("name='" . $data['name'] . "' AND deleted_flag='N'")->find();
+            $checkcompany = $model
+                ->where("name='" . $data['name'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if($checkcompany){
                 jsonReturn('', -103, L('name_existed'));
             }
@@ -747,7 +730,9 @@ EOF;
 
         if (!empty($data['buyer_code'])) {  //CRM代码
             $data['buyer_code']=trim($data['buyer_code'],' ');
-            $checkcrm = $model->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N'")->find();
+            $checkcrm = $model
+                ->where("buyer_code='" . $data['buyer_code'] . "' AND deleted_flag='N' and status !='REJECTED'")
+                ->find();
             if ($checkcrm) {
                 jsonReturn('', -103, L('crm_existed'));
             }
@@ -1180,15 +1165,17 @@ EOF;
         }
         $this->jsonReturn($dataJson);
     }
+    //**************档案信息
     public function showBuyerBaseInfoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $this->user['id'];
+        $data['admin']=$this->getUserRole();
         $data['lang'] = $this->getLang();
         $model = new BuyerModel();
         $buerInfo = $model->showBuyerInfo($data);
         if ($buerInfo===false) {
             $dataJson['code']=0;
-            $dataJson['message']='缺少参数';
+            $dataJson['message']='暂无该客户权限';
             $this->jsonReturn($dataJson);
         }elseif($buerInfo==='info'){
             $dataJson['code']=0;
@@ -1205,9 +1192,9 @@ EOF;
         $accountInfo = $account->getBuyerAccount($data['buyer_id']);
         $buerInfo['buyer_account'] = $accountInfo['email'];
         //客户订单分类
-//        $order = new OrderModel();
-//        $orderInfo = $order->statisOrder($data['buyer_id']);
-//        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
+        $order = new OrderModel();
+        $orderInfo = $order->statisOrder($data['buyer_id']);
+        $buerInfo['mem_cate'] = $orderInfo['mem_cate'];
         //获取服务经理经办人，调用市场经办人方法
         $agent = new BuyerAgentModel();
         $agentInfo = $agent->getBuyerAgentList($data['buyer_id']);

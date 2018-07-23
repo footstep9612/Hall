@@ -109,6 +109,8 @@ class MaterialCatModel extends PublicModel {
         if ($is_two) {
             $where['level_no'] = ['in', [1, 2]];
         }
+
+
         try {
             $data = $this->where($where)
                     ->order('sort_order DESC')
@@ -133,17 +135,23 @@ class MaterialCatModel extends PublicModel {
                 }
             }
             foreach ($ret1 as $cat_no1 => $item1) {
-                unset($item1['parent_cat_no'], $item1['level_no']);
+                if (!$is_two) {
+                    unset($item1['parent_cat_no'], $item1['level_no']);
+                }
+
                 if (!empty($ret2[$cat_no1])) {
                     foreach ($ret2[$cat_no1] as $cat_no2 => $item2) {
 
-                        if (!empty($ret3[$cat_no2])) {
+                        if (!empty($ret3[$cat_no2]) && !$is_two) {
                             foreach ($ret3[$cat_no2] as $item3) {
                                 unset($item3['parent_cat_no'], $item3['level_no']);
                                 $item2['children'][] = $item3;
                             }
                         }
-                        unset($item2['parent_cat_no'], $item2['level_no']);
+
+                        if (!$is_two) {
+                            unset($item2['parent_cat_no'], $item2['level_no']);
+                        }
                         $item1['children'][] = $item2;
                     }
                 }
@@ -189,7 +197,7 @@ class MaterialCatModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function get_list($cat_no = '', $lang = 'en') {
+    public function get_list($cat_no = '', $lang = 'en', $name = null) {
         if ($cat_no) {
             $condition['parent_cat_no'] = $cat_no;
         } else {
@@ -197,10 +205,12 @@ class MaterialCatModel extends PublicModel {
         }
         $condition['status'] = self::STATUS_VALID;
         $condition['lang'] = $lang;
-
+        if ($name) {
+            $condition['name'] = ['like', '%' . trim($name) . '%'];
+        }
         try {
             return $this->where($condition)
-                            ->field('id,cat_no,lang,name,status,sort_order')
+                            ->field('id,cat_no,lang,name')
                             ->order('sort_order DESC')
                             ->select();
         } catch (Exception $ex) {
@@ -874,6 +884,36 @@ class MaterialCatModel extends PublicModel {
         }
     }
 
+    /**
+     * 根据分类名称获取分类编码
+     * 模糊查询
+     * @author link 2017-06-26
+     * @param string $cat_name 分类名称
+     * @return array
+     */
+    public function getCatNoByRealName($cat_name = '') {
+        if (empty($cat_name)) {
+            return '';
+        }
+        if (redisGet('Material_real', md5($cat_name))) {
+            return redisGet('Material_real', md5($cat_name));
+        }
+        try {
+            $cat_no = $this->where(['name' => $cat_name,
+                                'deletd_flag' => 'N', 'level_no' => 3])
+                            ->order('sort_order DESC')->getfield('cat_no');
+            if ($cat_no) {
+                redisSet('Material_real', md5($cat_name), $cat_no, 180);
+            }
+
+            return $cat_no ? $cat_no : '';
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return '';
+        }
+    }
+
     /*
      * 根据物料分类编码搜索物料分类 和上级分类信息 顶级分类信息
      * @param mix $cat_no // 物料分类编码数组3f
@@ -1020,6 +1060,55 @@ class MaterialCatModel extends PublicModel {
                 $re[$cat['cat_no']] = $cat['name'];
             }
 
+            return $re;
+        } catch (Exception $ex) {
+            LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
+            LOG::write($ex->getMessage(), LOG::ERR);
+            return [];
+        }
+    }
+
+    /*
+     * 根据物料分类编码搜索物料分类 及上级分类信息
+     * @param mix $cat_nos // 物料分类编码数组
+     * @param string $lang // 语言 zh en ru es
+     * @return mix  物料分类及上级和顶级信息
+     * @author  zhongyg
+     * @date    2017-8-1 16:50:09
+     * @version V2.0
+     * @desc   ES 产品
+     */
+
+    public function setNamesByList(&$list, $lang = 'en') {
+        if (empty($list)) {
+            return[];
+        }
+        $cat_nos = [];
+        foreach ($list as $item) {
+            if (!empty($item['material_cat_no'])) {
+                $cat_nos[] = trim($item['material_cat_no']);
+            }
+        }
+        if (empty($cat_nos)) {
+            return[];
+        }
+        try {
+            $cats = $this->field('cat_no,name')
+                            ->where(['cat_no' => ['in', $cat_nos],
+                                'lang' => $lang,
+                                'status' => 'VALID',
+                                'deleted_flag' => 'N'])->select();
+            $re = [];
+            foreach ($cats as $cat) {
+
+                $re[$cat['cat_no']] = $cat['name'];
+            }
+            foreach ($list as $key => $item) {
+                if (!empty($item['material_cat_no']) && !empty($re[$item['material_cat_no']])) {
+                    $item['category'] = $re[$item['material_cat_no']];
+                }
+                $list[$key] = $item;
+            }
             return $re;
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);

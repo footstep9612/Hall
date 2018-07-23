@@ -35,9 +35,9 @@ class SpecialCategoryModel extends PublicModel {
         if(isset($condition['created_at_start']) && isset($condition['created_at_end'])){
             $where['created_at'] = ['between', trim($condition['created_at_start']).','.trim($condition['created_at_end'])];
         }elseif(isset($condition['created_at_start'])){
-            $where['created_at_start'] = ['egt', trim($condition['created_at_start'])];
+            $where['created_at'] = ['egt', trim($condition['created_at_start'])];
         }elseif(isset($condition['created_at_end'])){
-            $where['created_at_start'] = ['elt', trim($condition['created_at_end'])];
+            $where['created_at'] = ['elt', trim($condition['created_at_end'])];
         }
 
         try{

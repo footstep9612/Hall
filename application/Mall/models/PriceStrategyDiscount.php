@@ -17,6 +17,70 @@ class PriceStrategyDiscountModel extends PublicModel {
     }
 
     /**
+     * 根据专题id和SKU获取折扣
+     * @author link
+     * @param array $skus
+     * @param string $country_bn
+     * @return array
+     */
+    public function getDisCountBySkus($skus = [], $group, $special_id = '') {
+        if (empty($skus) || empty($special_id)) {
+            return [];
+        }
+        $condition = [
+            'group' => $group,
+            'group_id' => $special_id,
+            'sku' => ['in', $skus],
+            'deleted_at' => ['exp', 'is null'],
+            /*'validity_start' => [['exp', 'is null'], ['elt', date('Y-m-d H:i:s', time())], 'or'],
+            'validity_end' => [['exp', 'is null'], ['gt', date('Y-m-d H:i:s', time())], 'or']*/
+        ];
+        $order = 'min_purchase_qty ASC';
+        $discounts = $this->field('sku,promotion_price,discount,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->select();
+        $ret = [];
+        if ($discounts) {
+            foreach ($discounts as $discount) {
+                $ret[$discount['sku']][] = $discount;
+            }
+        }
+        return !empty($ret) ? $ret : [];
+    }
+
+    /**
+     * 获取当前价格
+     * @param $sku
+     * @param $group
+     * @param string $special_id
+     * @param $count
+     * @return array|bool
+     */
+    public function getSkuPriceByCount($sku, $group, $special_id = '',$count){
+        try {
+            $condition = [
+                'group'=>$group,
+                'group_id'=>$special_id,
+                'sku'=>$sku,
+                'min_purchase_qty' =>['elt',$count],
+                'max_purchase_qty' =>[['egt',$count],['exp','is null'],'or'],
+                'deleted_at' => ['exp', 'is null'],
+            ];
+            $result = $this->field('promotion_price')->where($condition)->order('min_purchase_qty DESC')->find();
+            return $result ? $result['promotion_price'] : '';
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+    /**
      * 根据id获取价格折扣
      * @param $id
      */
@@ -109,32 +173,5 @@ class PriceStrategyDiscountModel extends PublicModel {
         return $discount ? $discount : [];
     }
 
-    /**
-     * 根据国家和SKU获取折扣
-     * @param array $skus
-     * @param string $country_bn
-     * @return array
-     */
-    public function getDisCountBySkus($skus = [], $country_bn = '') {
-        if (empty($skus) || empty($country_bn)) {
-            return [];
-        }
-        $condition = [
-            'country_bn' => $country_bn,
-            'sku' => ['in', $skus],
-            'deleted_at' => ['exp', 'is null'],
-            'validity_start' => [['exp', 'is null'], ['elt', date('Y-m-d H:i:s', time())], 'or'],
-            'validity_end' => [['exp', 'is null'], ['gt', date('Y-m-d H:i:s', time())], 'or']
-        ];
-        $order = 'min_purchase_qty DESC';
-        $discounts = $this->field('sku,discount,min_purchase_qty,max_purchase_qty')->where($condition)->order($order)->select();
-        $ret = [];
-        if ($discounts) {
-            foreach ($discounts as $discount) {
-                $ret[$discount['sku']] = $discount;
-            }
-        }
-        return !empty($ret) ? $ret : [];
-    }
 
 }

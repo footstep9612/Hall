@@ -16,19 +16,20 @@ class UrlpermController extends PublicController {
     public function init() {
         parent::init();
     }
+
     //递归获取子记录
-    function get_urlperm_children($a,$pid =null,$employee=null){
-        if(!$pid){
-            $pid =$a[0]['parent_id'];
+    function get_urlperm_children($a, $pid = null, $employee = null) {
+        if (!$pid) {
+            $pid = $a[0]['parent_id'];
         }
         $tree = array();
-        $limit =[];
+        $limit = [];
         $model_group = new UrlPermModel();
-        foreach($a as $v){
-            $v['check']= false;
-            if($v['parent_id'] == $pid){
-                $v['children'] = $this->get_urlperm_children($model_group->getlist(['parent_id'=> $v['id']],$limit),$v['id'],$employee); //递归获取子记录
-                if($v['children'] == null ){
+        foreach ($a as $v) {
+            $v['check'] = false;
+            if ($v['parent_id'] == $pid) {
+                $v['children'] = $this->get_urlperm_children($model_group->getlist(['parent_id' => $v['id']], $limit), $v['id'], $employee); //递归获取子记录
+                if ($v['children'] == null) {
                     unset($v['children']);
                 }
                 $tree[] = $v;
@@ -41,15 +42,15 @@ class UrlpermController extends PublicController {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist(['parent_id'=>0],$limit); //($this->put_data);
+        $data = $model_url_perm->getlist(['parent_id' => 0], $limit); //($this->put_data);
         $count = count($data);
-        $res = $this -> get_urlperm_children($data);
+        $res = $this->get_urlperm_children($data);
 
-        if(!empty($data)){
+        if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['count'] = $count;
             $datajson['data'] = $res;
-        }else{
+        } else {
             $datajson['code'] = -104;
             $datajson['data'] = $data;
             $datajson['message'] = L('NO_DATA');
@@ -57,15 +58,16 @@ class UrlpermController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+
     public function listallAction() {
         //$data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
         $model_url_perm = new UrlPermModel();
-        $data = $model_url_perm->getlist([],$limit); //($this->put_data);
-        if(!empty($data)){
+        $data = $model_url_perm->getlist([], $limit); //($this->put_data);
+        if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
-        }else{
+        } else {
             $datajson['code'] = -104;
             $datajson['data'] = $data;
             $datajson['message'] = L('NO_DATA');
@@ -73,21 +75,44 @@ class UrlpermController extends PublicController {
 
         $this->jsonReturn($datajson);
     }
+
     public function infoAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
-        if(empty($id)){
+        if (empty($id)) {
             $datajson['code'] = -101;
             $datajson['message'] = L('URL_PERM_ID_NOT_EMPTY');
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
         $data = $model_url_perm->detail($id);
-        if(!empty($data)){
+        if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
             $datajson['message'] = L('SUCCESS');
-        }else{
+        } else {
+            $datajson['code'] = -104;
+            $datajson['data'] = $data;
+            $datajson['message'] = L('NO_DATA');
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    public function UrlAction() {
+        $url = $this->getPut('url');
+
+        if (empty($url)) {
+            $datajson['code'] = -101;
+            $datajson['message'] = L('URL_PERM_LINK_URL_NOT_EMPTY');
+            $this->jsonReturn($datajson);
+        }
+        $model_url_perm = new UrlPermModel();
+        $data = $model_url_perm->getfnByUrl($url);
+        if (!empty($data)) {
+            $datajson['code'] = 1;
+            $datajson['data'] = $data;
+            $datajson['message'] = L('SUCCESS');
+        } else {
             $datajson['code'] = -104;
             $datajson['data'] = $data;
             $datajson['message'] = L('NO_DATA');
@@ -122,11 +147,11 @@ class UrlpermController extends PublicController {
 
         $response = (new UrlPermModel)->create_data($request);
 
-        if($response){
+        if ($response) {
             $datajson['code'] = 1;
             $datajson['message'] = L('SUCCESS');
             $datajson['data']['id'] = $response;
-        }else{
+        } else {
             $datajson['code'] = -104;
             $datajson['message'] = L('FAIL');
         }
@@ -155,40 +180,39 @@ class UrlpermController extends PublicController {
                 'code' => -101,
                 'message' => L('URL_PERM_ID_NOT_EMPTY')
             ]);
-        }else{
+        } else {
             $where['id'] = $data['id'];
         }
 
         $model_url_perm = new UrlPermModel();
-        $id = $model_url_perm->update_data($data,$where);
-        if($id > 0){
+        $id = $model_url_perm->update_data($data, $where);
+        if ($id >= 0) {
             $datajson['code'] = 1;
             $datajson['message'] = L('SUCCESS');
-        }else{
+        } else {
             $datajson['code'] = -104;
             $datajson['message'] = L('FAIL');
         }
         $this->jsonReturn($datajson);
     }
 
-    public function deleteAction(){
+    public function deleteAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = $data['id'];
-        if(empty($id)){
+        if (empty($id)) {
             $datajson['code'] = -101;
             $datajson['message'] = L('URL_PERM_ID_NOT_EMPTY');
             $this->jsonReturn($datajson);
         }
         $model_url_perm = new UrlPermModel();
         $re = $model_url_perm->delete_data($id);
-        if($re > 0){
+        if ($re > 0) {
             $datajson['code'] = 1;
-        }else{
+        } else {
             $datajson['code'] = -104;
             $datajson['message'] = L('NO_DATA');
         }
         $this->jsonReturn($datajson);
     }
-
 
 }

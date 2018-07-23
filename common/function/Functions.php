@@ -2003,6 +2003,6 @@ function jsonDecode(&$arr, $field = ''){
  */
 function  ynTotruefalse(&$arr, $field = ''){
     if(!empty($field)){
-        $arr[$field] = ($arr[$field] || $arr[$field]=='1' || $arr[$field]=='Y') ? true : false;
+        $arr[$field] = ( $arr[$field]=='1' || $arr[$field]=='Y') ? true : false;
     }
 }

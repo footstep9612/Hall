@@ -49,17 +49,18 @@ class SupplierChainModel extends PublicModel {
             $where = [
                 'deleted_flag' => 'N',
                 'status' => 'APPROVED',
-                'source' => 'BOSS'
+                //'source' => 'BOSS'
             ];
         } else {
             $where = [
                 'deleted_flag' => 'N',
                 //'status' => ['in', ['APPROVED', 'INVALID', 'APPROVING']]
                 'status' => 'APPROVING',
-                'source' => 'BOSS'
+                //'source' => 'BOSS'
             ];
         }
         $this->_getValue($where, $condition, 'id');
+        $this->_getValue($where, $condition, 'source');
         $this->_getValue($where, $condition, 'supplier_no');
         $this->_getValue($where, $condition, 'supplier_name', 'like', 'name');
         if (!empty($condition['created_at_end'])) {
@@ -150,7 +151,7 @@ class SupplierChainModel extends PublicModel {
         $where = [];
         $this->_getcondition($condition, $where, false);
         list($offset, $size) = $this->_getPage($condition);
-        $data = $this->field('id,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
+        $data = $this->field('id,source,org_id,supplier_no,serial_no,name,status,checked_at,checked_by,created_by,'
                         . 'created_at')
                 ->limit($offset, $size)
                 ->where($where)

@@ -123,7 +123,7 @@ class OrderModel extends PublicModel {
             if($result){
                 //添加订单商品信息
                 if(isset($data['skuAry']) && !empty($data['skuAry'])){
-                    if(!$this->addGoods($orerNo,$data['skuAry'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
+                    if(!$this->addGoods($orerNo,$data['skuAry'],$data['special_id'],$data['country_bn'],$data['lang'],$data['buyer_id'])){
                         $this->rollback();
                         jsonReturn('', MSG::MSG_FAILED, '订单商品添加失败');
                     }
@@ -164,12 +164,13 @@ class OrderModel extends PublicModel {
      * @author link
      * @param $order_no
      * @param $data
+     * @param $special_id
      * @param $country_bn
      * @param $lang
      * @param $buyer_id
      * @return bool
      */
-    public function addGoods($order_no,$data,$country_bn,$lang,$buyer_id){
+    public function addGoods($order_no,$data,$special_id,$country_bn,$lang,$buyer_id){
         if(empty($data)){
             return false;
         }
@@ -198,20 +199,14 @@ class OrderModel extends PublicModel {
                 jsonReturn('', 1044, '已经下架');
             }
             //获取价格信息
-            switch($stockInfo[$sku]['price_strategy_type']){
-                case 1:
-                    $priceInfo = $productModel->getSkuPriceByCount($sku, $country_bn, $number);
-                    break;
-                case 2:
-                    $psdM = new PriceStrategyDiscountModel();
-                    $priceInfo = $psdM->getPrice($sku, $country_bn, $number, $stockInfo[$sku]['price']);
-                    $stockPrice = $stockInfo[$sku];
-                    unset($stockPrice['price']);
-                    $priceInfo = array_merge($priceInfo,$stockPrice);
-                    break;
+            $promotion_price = '';
+            if (isset($stockInfo[$sku]['price_strategy_type']) && $stockInfo[$sku]['price_strategy_type']!='' && (($stockInfo[$sku]['strategy_validity_start']< date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_start']==null) && ($stockInfo[$sku]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$sku]['strategy_validity_end']==null) )) {
+                $psdM = new PriceStrategyDiscountModel();
+                $promotion_price = $psdM->getSkuPriceByCount($sku,'STOCK',$special_id,$number);
             }
-            //$priceInfo = $productModel->getSkuPriceByCount($sku,$country_bn,$number);
-            $currency_bn = $priceInfo ? $priceInfo['price_cur_bn'] : null;
+            $promotion_price = $promotion_price ? $promotion_price : ($stockInfo[$sku]['price'] ? $stockInfo[$sku]['price'] : null);
+
+            $currency_bn = $stockInfo[$sku]['price_cur_bn'] ? $stockInfo[$sku]['price_cur_bn'] : null;
 
             //获取商品基本信息
             $goodsInfo = $goodsModel->getInfoBySku($sku,$lang);
@@ -224,8 +219,8 @@ class OrderModel extends PublicModel {
                 'sku' => $sku,
                 'name' => $goodsInfo[$sku]['show_name'] ? $goodsInfo[$sku]['show_name'] : ($goodsInfo[$sku]['name'] ? $goodsInfo[$sku]['name'] : ($goodsInfo[$sku]['spu_show_name'] ? $goodsInfo[$sku]['spu_show_name'] :($goodsInfo[$sku]['spu_name'] ? $goodsInfo[$sku]['spu_name'] : ''))),    //商品名称
                 'spec_attrs' => $goodsInfo[$sku]['spec_attrs'],    //规格属性
-                'symbol' => $priceInfo ? $priceInfo['price_symbol'] : null,
-                'price' => $priceInfo ? $priceInfo['price'] : null,
+                'symbol' => $stockInfo[$sku]['price_symbol'] ? $stockInfo[$sku]['price_symbol'] : null,
+                'price' => $promotion_price,
                 'buy_number' => $number,
                 'lang' => $lang,    //语言
                 'model' => $goodsInfo[$sku]['model'] ? $goodsInfo[$sku]['model'] : null,    //型号

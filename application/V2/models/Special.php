@@ -42,13 +42,15 @@ class SpecialModel extends PublicModel {
         try{
             $data = [];
             list($from, $size) = $this->_getPage($condition);
-            $rel = $this->field('id,country_bn,lang,name,remark,type,status,created_at,created_by,updated_by,updated_at,settings')->where($where)
+            $rel = $this->field('id,country_bn,lang,name,remark,type,status,sort_order,show_flag,created_at,created_by,updated_by,updated_at,settings')->where($where)
                 ->limit($from, $size)
                 ->select();
             if($rel){
                 $data['data'] = $rel;
                 $count = $this->getCount($where);
                 $data['count'] = $count ? $count : 0;
+                $data['pagesize'] = $size;
+                $data['current_no'] = isset($condition['current_no']) ? intval($condition['current_no']) : 1;
             }
             return $data;
         }catch (Exception $e){
@@ -103,6 +105,7 @@ class SpecialModel extends PublicModel {
                 'remark' => isset($input['remark']) ? trim($input['remark']) : '',
                 'type' => (isset($input['type']) && $input['type']==1) ? 1 : 0,
                 'settings' => (isset($input['settings']) && (is_array($input['settings']) || is_object($input['settings']))) ? json_encode($input['settings'],320) : '',
+                'show_flag' => (isset($input['show_flag']) && (trim($input['show_flag'])=='Y' || trim($input['show_flag'])===true || trim($input['show_flag'])==1)) ? 'Y' : 'N',
                 'created_by' => defined('UID') ? UID : 0,
                 'created_at' => date('Y-m-d H:i:s', time())
             ];
@@ -149,11 +152,12 @@ class SpecialModel extends PublicModel {
                 $data['name'] = trim($input['name']);
                 $where['name'] = $data['name'];
             }
-            if(self::exist($where)){
-                jsonReturn('', MSG::MSG_FAILED,'已经存在');
-            }
             if(isset($input['lang'])){
                 $data['lang'] = trim($input['lang']);
+                $where['lang'] = $data['lang'];
+            }
+            if(isset($input['name']) && self::exist($where)){
+                jsonReturn('', MSG::MSG_FAILED,'已经存在');
             }
             if(isset($input['country_bn'])){
                 $data['country_bn'] = trim($input['country_bn']);
@@ -163,6 +167,12 @@ class SpecialModel extends PublicModel {
             }
             if(isset($input['type'])){
                 $data['type'] = (isset($input['type']) && $input['type']==1) ? 1 : 0;
+            }
+            if(isset($input['show_flag'])){
+                $data['show_flag'] = (isset($input['show_flag']) && (trim($input['show_flag'])=='Y' || trim($input['show_flag'])===true || trim($input['show_flag'])==1)) ? 'Y' : 'N';
+            }
+            if(isset($input['sort_order'])){
+                $data['sort_order'] = intval($input['sort_order']);
             }
             if(isset($input['status']) && in_array(strtoupper($input['status']),['VALID','CHECKING','INVALID','CLOSED'])){
                 $data['status'] = strtoupper($input['status']);

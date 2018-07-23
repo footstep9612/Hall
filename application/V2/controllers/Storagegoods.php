@@ -46,10 +46,13 @@ class StoragegoodsController extends PublicController {
      * @desc   现货仓库
      */
     public function deleteAction(){
-        $storage_id = $this->getPut('storage_id',0);
-        $sku = $this->getPut('sku','');
-        if(empty($storage_id) && empty($sku)){
-            jsonReturn('',MSG::ERROR_PARAM,'storage_id或sku不能全为空');
+        $id = $this->getPut('sku','');
+        if(empty($id)){
+            $storage_id = $this->getPut('storage_id',0);
+            $sku = $this->getPut('sku','');
+            if(empty($storage_id) && empty($sku)){
+                jsonReturn('',MSG::ERROR_PARAM,'storage_id或sku不能全为空');
+            }
         }
 
         $storagegoodsModel = new StorageGoodsModel();
@@ -58,6 +61,20 @@ class StoragegoodsController extends PublicController {
             $this->jsonReturn($flag);
         } else{
             $this->jsonReturn('',MSG::MSG_FAILED);
+        }
+    }
+
+    public function listAction(){
+        $condition = $this->getPut();
+        if(!isset($condition['storage_id'])){
+            jsonReturn('',MSG::ERROR_PARAM,'storage_id不能为空');
+        }
+        $model = new StorageGoodsModel();
+        $result = $model->getList($condition);
+        if ($result===false) {
+            jsonReturn('',MSG::MSG_FAILED);
+        } else{
+            jsonReturn($result);
         }
     }
 

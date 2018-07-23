@@ -28,7 +28,7 @@ class CountryMemberModel extends PublicModel {
             $org_member_table = (new OrgMemberModel)->getTableName();
             $condition = [
                 'cm.country_bn' => $country_bn,
-                'o.org_node' => ['in', ['ub', 'lg', 'erui']],
+                'o.org_node' => ['in', ['ub','erui','eub']],
                 'o.deleted_flag' => 'N',
                 'om.leader_flag' => 'Y'
             ];

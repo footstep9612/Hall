@@ -333,7 +333,7 @@ class MarketAreaModel extends PublicModel {
             return [];
         }
     }
-    
+
     /**
      * @desc 通过区域简称获取名称
      *
@@ -345,6 +345,39 @@ class MarketAreaModel extends PublicModel {
      */
     public function getAreaNameByBn($bn, $lang = 'zh') {
         return $this->where(['bn' => $bn, 'lang' => $lang, 'deleted_flag' => 'N'])->getField('name');
+    }
+
+    /*
+     * Description of 获取营销区域
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setArea(&$arr) {
+        if ($arr) {
+
+            $area_bns = [];
+            foreach ($arr as $key => $val) {
+
+                if (isset($val['area_bn']) && $val['area_bn']) {
+                    $area_bns[] = trim($val['area_bn']);
+                }
+            }
+            if ($area_bns) {
+                $area_names = $this->getNamesBybns($area_bns);
+                foreach ($arr as $key => $val) {
+                    if (trim($val['area_bn']) && isset($area_names[trim($val['area_bn'])])) {
+                        $val['area_name'] = $area_names[trim($val['area_bn'])];
+                    } else {
+                        $val['area_name'] = '';
+                    }
+                    $arr[$key] = $val;
+                }
+            }
+        }
     }
 
 }

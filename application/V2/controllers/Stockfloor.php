@@ -56,7 +56,7 @@ class StockfloorController extends PublicController {
                 $adsAry[$ad['floor_id']][] = $ad;
             }
             foreach($list as $k=>$v){
-                $list[$k]['ads'] = $adsAry[$v['id']];
+                $list[$k]['ads'] = empty($adsAry[$v['id']]) ? [] : $adsAry[$v['id']];
             }
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -211,42 +211,27 @@ class StockfloorController extends PublicController {
      * @desc  现货楼层
      */
     public function OnshelfAction() {
-
-        $id = $this->getPut('id');
+        $condition = $this->getPut();
+        $id = $condition['id'];
         if (empty($id)) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择楼层!');
             $this->jsonReturn();
         }
-        $onshelf_flag = $this->getPut('onshelf_flag');
-        if (empty($onshelf_flag)) {
+        if (!isset($condition['onshelf_flag'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('楼层上下架状态不能为空!');
             $this->jsonReturn();
         }
 
-        if (!in_array($onshelf_flag, ['N', 'Y'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('楼层上下架状态不正确!');
-            $this->jsonReturn();
-        }
         $stock_floor_model = new StockFloorModel();
-
-
-        $list = $stock_floor_model->onshelfData($id, $onshelf_flag);
+        $list = $stock_floor_model->onshelfData($id, $condition['onshelf_flag']);
         if ($list) {
-            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '成功!';
-            $this->setMessage($message);
-            $this->jsonReturn();
+            jsonReturn('', MSG::MSG_SUCCESS);
         } elseif ($list === false) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $message = ($onshelf_flag == 'Y' ? '上架' : '下架') . '失败!';
-            $this->setMessage($message);
-            $this->jsonReturn(null);
+            jsonReturn('', MSG::MSG_FAILED);
         } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+            jsonReturn('', MSG::MSG_FAILED, '系统错误');
         }
     }
 
@@ -259,23 +244,23 @@ class StockfloorController extends PublicController {
     {
         $condition = $this->getPut();
         if ( empty( $condition['floor_id'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择楼层!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层!');
         }
         if ( empty( $condition['country_bn'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择国家!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择国家!');
         }else{
             $condition['country_bn'] = ucfirst(strtolower($condition['country_bn']));
         }
         if ( empty( $condition['lang'] ) ) {
-            jsonReturn('', Msg::ERROR_PARAM, '请选择语言!');
+            jsonReturn('', MSG::ERROR_PARAM, '请选择语言!');
         }
 
         $stock = new StockModel();
         $list = $stock->getList($condition);
-        if($list){
-            jsonReturn($list);
-        }else{
+        if($list===false){
             jsonReturn('', MSG::MSG_FAILED, '');
+        }else{
+            jsonReturn($list);
         }
     }
 
@@ -460,6 +445,40 @@ class StockfloorController extends PublicController {
             $this->setCode(MSG::MSG_FAILED);
             $this->setMessage('系统错误!');
             $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 删除楼层
+     * @author link
+     * @date 2018-07-04
+     */
+    public function deleteAction(){
+        $input = $this->getPut();
+        if(!isset($input['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        $model = new StockFloorModel();;
+        $model->startTrans();
+        try{
+            $rel = $model->deleteData($input);
+            if($rel){
+                //删除楼层广告
+                $sfaModel = new StockFloorAdsModel();
+                $sfaModel->deletedData(['floor_id'=>$input['id']]);
+
+                //还原楼层商品
+                $stockModel = new StockModel();
+                $stockModel->clearFloor(['floor_id'=>$input['id']]);
+            }else{
+                $model->rollback();
+                jsonReturn(false, MSG::MSG_FAILED, '操作失败!');
+            }
+            $model->commit();
+            jsonReturn('', MSG::MSG_SUCCESS, '操作成功');
+        }catch (Exception $e){
+            $model->rollback();
+            jsonReturn(false, MSG::MSG_FAILED, '系统错误!');
         }
     }
 

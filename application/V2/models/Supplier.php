@@ -409,4 +409,48 @@ class SupplierModel extends PublicModel {
         }
     }
 
+    /*
+     * Description of 获取国家
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setSupplier(&$arr) {
+        if ($arr) {
+
+            $supplier_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['supplier_id']) && $val['supplier_id']) {
+                    $supplier_ids[] = trim($val['supplier_id']);
+                }
+            }
+            if ($supplier_ids) {
+                $where = ['deleted_flag' => 'N', 'id' => ['in', $supplier_ids]];
+                $map['name'] = ['neq', ''];
+                $map[] = '`name` is not null';
+                $map['_logic'] = 'and';
+                $where['_complex'] = $map;
+                $supplier_ret = $this
+                                ->field('id,name')
+                                ->where($where)->select();
+
+                $suppliers = [];
+                foreach ($supplier_ret as $supplier) {
+                    $suppliers[$supplier['id']] = $supplier['name'];
+                }
+                foreach ($arr as $key => $val) {
+                    if (trim($val['supplier_id']) && isset($suppliers[trim($val['supplier_id'])])) {
+                        $val['supplier_name'] = $suppliers[trim($val['supplier_id'])];
+                    } else {
+                        $val['supplier_name'] = '';
+                    }
+                    $arr[$key] = $val;
+                }
+            }
+        }
+    }
+
 }

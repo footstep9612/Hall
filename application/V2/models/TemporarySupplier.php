@@ -56,7 +56,7 @@ class TemporarySupplierModel extends PublicModel
         return $this->where(['id' => $id, 'deleted_flag' => 'N'])->find();
     }
 
-    public function skuById($id)
+    public function skuById($id, $request)
     {
         $fields = 'i.name,i.name_zh,i.qty,i.unit,i.brand,i.model,i.remarks,q.purchase_unit_price';
         $where = [
@@ -66,11 +66,15 @@ class TemporarySupplierModel extends PublicModel
             'i.deleted_flag' => 'N',
         ];
 
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
+
         return $this->alias('a')
             ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
             ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
             ->field($fields)
             ->where($where)
+            ->page($currentPage, $pageSize)
             ->select();
     }
 
@@ -106,8 +110,13 @@ class TemporarySupplierModel extends PublicModel
     {
         //公司名称
         if (!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $where['a.id'] = $condition['name'];
+            }else {
+                $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            }
         }
+
         //状态
         if (!empty($condition['is_relation']) && $condition['is_relation'] !='ALL') {
             $where['a.is_relation'] = $condition['is_relation'];

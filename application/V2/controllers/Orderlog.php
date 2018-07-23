@@ -56,20 +56,16 @@ class OrderlogController extends PublicController{
         $OrderLog = new OrderLogModel();
         $orderattach = new OrderAttachModel();
         $where = $this->put_data;
-
         $results = $OrderLog->getInfo($where);
-
         if($results['code'] == 1) {
             //查找有没有附件
             $attachwhere['order_id'] = $results['data']['order_id'];
             $attachwhere['attach_group'] = $results['data']['Log_group'];
             $attachwhere['log_id'] = $results['data']['id'];
-
             $attach = $orderattach->getlist($attachwhere);
             if($attach['code'] == 1) {
                 $results['data']['attach_array'] = $attach['data'];
             }
-
             $this->jsonReturn($results);
         }else{
 
@@ -85,7 +81,6 @@ class OrderlogController extends PublicController{
     public function addAction() {
         $OrderLog = new OrderLogModel();
         $order_model = new OrderModel();
-
         $data = $this->put_data;
         $data['created_by'] = $this->user['id'];
         $where = ['id' => $data['order_id'], 'deleted_flag' => 'N'];

@@ -18,11 +18,11 @@ class RoleUserModel extends PublicModel {
     Protected $autoCheckFields = true;
     protected $table_name = 'role_member';
 
-    public function __construct($str = '') {
-        parent::__construct($str = '');
+    public function __construct() {
+        parent::__construct();
     }
 
-    public function userRoleList($user_id, $pid = '',$where=null) {
+    public function userRoleList($user_id, $pid = '', $where = null) {
         if ($user_id) {
             $sql = 'SELECT  `func_perm`.`id` as func_perm_id,`func_perm`.`logo_name`,`func_perm`.`logo_url`,`func_perm`.`url`,`func_perm`.`sort`,`func_perm`.`fn`,`func_perm`.`fn_en`,`func_perm`.`fn_es`,`func_perm`.`fn_ru`,`func_perm`.`show_name`,`func_perm`.`show_name_en`,`func_perm`.`show_name_es`,`func_perm`.`show_name_ru`,`func_perm`.`parent_id` ,`func_perm`.`source` ';
             $sql .= ' FROM employee';
@@ -37,8 +37,8 @@ class RoleUserModel extends PublicModel {
             if ($pid !== '') {
                 $sql .= ' and `func_perm`.`parent_id` = ' . $pid;
             }
-            if($where['source']){
-                $sql .= " and `func_perm`.`source` = '"  . $where['source']."'";
+            if ($where['source']) {
+                $sql .= " and `func_perm`.`source` = '" . $where['source'] . "'";
             }
             $sql .= ' group by func_perm_id';
             $sql .= ' order by `func_perm`.`sort`';
@@ -64,26 +64,28 @@ class RoleUserModel extends PublicModel {
             return $this->query($sql);
         }
     }
+
     public function getUserRole($user_id) {
-        $role=new RoleModel();
-        $roleInfo=$role->field('id,name')->where(array('attr_id'=>0,'deleted_flag'=>'N'))->select();
-        $mem=$this->field('role_id')->where(array('employee_id'=>$user_id))->select();
-        $str='';
-        foreach($mem as $k => $v){
-            $str.=','.$v['role_id'];
+        $role = new RoleModel();
+        $roleInfo = $role->field('id,name')->where(array('attr_id' => 0, 'deleted_flag' => 'N'))->select();
+        $mem = $this->field('role_id')->where(array('employee_id' => $user_id))->select();
+        $str = '';
+        foreach ($mem as $k => $v) {
+            $str .= ',' . $v['role_id'];
         }
-        $str=substr($str,1);
-        foreach($roleInfo as $k => $v){
-            $res=$role->field('id,name')
-                ->where("id in ($str) and attr_id=$v[id] and deleted_flag='N'")
-                ->select();
-            if(empty($res)){
-                $res=[];
+        $str = substr($str, 1);
+        foreach ($roleInfo as $k => $v) {
+            $res = $role->field('id,name')
+                    ->where("id in ($str) and attr_id=$v[id] and deleted_flag='N'")
+                    ->select();
+            if (empty($res)) {
+                $res = [];
             }
-            $roleInfo[$k]['child']=$res;
+            $roleInfo[$k]['child'] = $res;
         }
         return $roleInfo;
     }
+
     /**
      * 获取列表
      * @param data $data;
@@ -173,58 +175,153 @@ class RoleUserModel extends PublicModel {
         $data = $this->create($arr);
         return $this->add($data);
     }
+
     //crm 获取登录用户的角色-wangs
-    public function crmGetUserRole($user_id){
-        $role=$this->alias('role_member')
-            ->join('erui_sys.role as role on role_member.role_id=role.id','left')
-            ->field('role.role_no')
-            ->where(array('employee_id'=>$user_id))
-            ->select();
-        $arr=array();
-        foreach($role as $k => $v){
-            $arr[]=$v['role_no'];
+    public function crmGetUserRole($user_id) {
+        $role = $this->alias('role_member')
+                ->join('erui_sys.role as role on role_member.role_id=role.id', 'left')
+                ->field('role.role_no')
+                ->where(array('employee_id' => $user_id))
+                ->select();
+        $arr = array();
+        foreach ($role as $k => $v) {
+            $arr[] = $v['role_no'];
         }
         return $arr;
     }
-    
+
     /**
      * @desc 获取用户菜单
-     * 
+     *
      * @param array $userId
      * @param array $condition
      * @return array
      * @author liujf
      * @time 2018-06-19
      */
-    public function getUserMenu($userId, $condition = []) {
-        $where['source'] = $condition['source'];
+    public function getUserMenu($userId, $condition = [], $lang = 'zh') {
+
         $parentId = isDecimal($condition['parent_id']) ? $condition['parent_id'] : 0;
-        $data = $this->userRoleList($userId, $parentId, $where);
-        $count = count($data);
-        $childrencount = 0;
-        for ($i = 0; $i < $count; $i++) {
-            $data[$i]['check'] = false;
-            $data[$i]['lang'] = $this->lang;
-            // 是否只显示第一层级
-            if ($condition['only_one_level'] == 'Y') {
-                continue;
-            }
-            $data[$i]['children'] = $this->userRoleList($userId, $data[$i]['func_perm_id'], $where);
-            $childrencount = count($data[$i]['children']);
-            if ($childrencount > 0) {
-                for ($j = 0; $j < $childrencount; $j++) {
-                    $data[$i]['children'][$j]['lang'] = $this->lang;
-                    $data[$i]['children'][$j]['check'] = false;
-                    $data[$i]['children'][$j]['children'] = $this->userRoleList($userId, $data[$i]['children'][$j]['func_perm_id'], $where);
-                    if (!$data[$i]['children'][$j]['children']) {
-                        unset($data[$i]['children'][$j]['children']);
+        $data = $this->_TopuserRoleList($userId, $parentId, $condition['source'], $condition['only_one_level']);
+
+        return $this->_funcChildren($userId, $data, $condition['source'], $lang, $condition['only_one_level']);
+    }
+
+    private function _funcChildren($userId, $data, $source, $lang, $only_one_level = null) {
+        $pids = [];
+        foreach ($data as $key => $val) {
+            $data[$key]['check'] = false;
+            $data[$key]['lang'] = $lang;
+            $pids[] = $val['func_perm_id'];
+        }
+
+        if ($only_one_level == 'Y') {
+            return $data;
+        } else {
+            $list = $this->_userRoleList($userId, $pids, $source);
+
+            if (!empty($list)) {
+                $pids = [];
+                foreach ($list as $childrens) {
+                    foreach ($childrens as $children) {
+                        $pids[] = $children['func_perm_id'];
                     }
                 }
-            } else {
-                unset($data[$i]['children']);
+                unset($childrens, $children);
+                $children_childrens = $this->_userRoleList($userId, $pids, $source);
             }
+            foreach ($data as $key => $val) {
+                if (!empty($list[$val['func_perm_id']])) {
+                    foreach ($list[$val['func_perm_id']] as $k => $children) {
+                        $children['lang'] = $lang;
+                        $children['check'] = false;
+                        if (!empty($children_childrens[$children['func_perm_id']])) {
+                            $children['children'] = $children_childrens[$children['func_perm_id']];
+                        }
+                        $list[$val['func_perm_id']][$k] = $children;
+                    }
+                    $val['children'] = $list[$val['func_perm_id']];
+                }
+                $data[$key] = $val;
+            }
+            return $data;
         }
-        return $data;
+    }
+
+    public function _userRoleList($user_id, $pid = [], $source = null) {
+        if ($user_id) {
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`';
+            $employee_model = new EmployeeModel();
+            $where = [];
+            if (!empty($user_id)) {
+                $where['rm.employee_id'] = $user_id;
+            }
+            if (!empty($pid) && is_string($pid)) {
+                $where['fp.parent_id'] = $pid;
+            } elseif (!empty($pid) && is_array($pid)) {
+                $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
+            }
+            if ($source) {
+                $where['fp.source'] = $source;
+            }
+            $where[] = '`fp`.`id` is not null';
+            $data = $employee_model
+                    ->alias('u')
+                    ->field($fields)
+                    ->where($where)
+                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
+                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id')
+                    ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
+                    ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
+                    ->group('fp.id')
+                    ->order('`fp`.`sort` asc')
+                    ->select();
+            $ret = [];
+
+            if (!empty($data)) {
+                foreach ($data as $val) {
+                    $ret[$val['parent_id']][] = $val;
+                }
+            }
+            return $ret;
+        }
+    }
+
+    private function _TopuserRoleList($user_id, $pid = [], $source = null) {
+        if ($user_id) {
+            $fields = '`fp`.`id` as func_perm_id,`fp`.`fn`,`fp`.`parent_id`,`fp`.`url`,fp.top_parent_id,fp.source,`fp`.`fn_en`,`fp`.`fn_es`,`fp`.`fn_ru`';
+            $employee_model = new EmployeeModel();
+            $where = [];
+            if (!empty($user_id)) {
+                $where['rm.employee_id'] = $user_id;
+            }
+            if (!empty($pid) && is_string($pid)) {
+                $where['fp.parent_id'] = $pid;
+            } elseif (!empty($pid) && is_array($pid)) {
+                $where['fp.parent_id'] = ['in', $pid];
+            } elseif (empty($pid) && $pid === 0) {
+                $where['fp.parent_id'] = 0;
+            }
+            if ($source) {
+                $where['fp.source'] = $source;
+            }
+            $where[] = '`fp`.`id` is not null';
+            $data = $employee_model
+                    ->alias('u')
+                    ->field($fields)
+                    ->where($where)
+                    ->join($this->getTableName() . ' rm on rm.employee_id=u.id')
+                    ->join((new RoleModel())->getTableName() . ' r on r.id=rm.role_id and r.deleted_flag=\'N\'')
+                    ->join((new RoleAccessPermModel())->getTableName() . ' rap on rap.role_id=rm.role_id')
+                    ->join('erui_sys.func_perm fp on fp.id=rap.func_perm_id')
+                    ->group('fp.id')
+                    ->order('`fp`.`sort` asc')
+                    ->select();
+
+            return $data;
+        }
     }
 
 }

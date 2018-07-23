@@ -47,7 +47,7 @@ class GoodsModel extends PublicModel{
 
                 if($stock && $country_bn){    //现货处理
                     $stockModel = new StockModel();
-                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol";
+                    $field_stock = "name,show_name,stock,price,price_strategy_type,price_cur_bn,price_symbol,special_id,strategy_validity_start,strategy_validity_end";
                     $condition_stock = [
                         'sku'=>$goodsInfo['sku'],
                         'country_bn'=>$country_bn,
@@ -63,18 +63,18 @@ class GoodsModel extends PublicModel{
                         $goodsInfo['name'] = empty($stockInfo['name']) ? $goodsInfo['name'] : $stockInfo['name'];
                         $goodsInfo['show_name'] = empty($stockInfo['show_name']) ? $goodsInfo['show_name'] : $stockInfo['show_name'];
                         $goodsInfo['price'] = $stockInfo['price'];
-                        switch($stockInfo['price_strategy_type']){
-                            case 1:    //阶梯价
-                                $scpriceM = new StockCostPriceModel();
-                                $goodsInfo['priceList'] = $scpriceM->getSkuPriceBySku($goodsInfo['sku'],$country_bn);
-                                $goodsPrice = $this->my_array_multisort($goodsInfo['priceList'],'price');
-                                $goodsInfo['priceAry'] = $goodsPrice[0];
-                                break;
-                            case 2:    //折扣
-                                $psdM = new PriceStrategyDiscountModel();
-                                $priceAry = $psdM->getPrice($goodsInfo['sku'],$country_bn,'MIN',$goodsInfo['price']);
-                                $goodsInfo['priceAry'] =$priceAry;
-                            break;
+                        $goodsInfo['priceAry'] = [];
+                        if($stockInfo['price_strategy_type']!='' && (empty($stockInfo['strategy_validity_start']) || $stockInfo['strategy_validity_start']<=date('Y-m-d H:i:s',time())) && (empty($stockInfo['strategy_validity_end']) || $stockInfo['strategy_validity_end']>date('Y-m-d H:i:s',time()))){
+                            $psdM = new PriceStrategyDiscountModel();
+                            $price_range = $psdM->getDisCountBySkus([$goodsInfo['sku']], 'STOCK', $stockInfo['special_id']);
+                            $goodsInfo['priceAry'] = isset($price_range[$goodsInfo['sku']]) ? $price_range[$goodsInfo['sku']] : [];
+                            if(!empty($stockInfo['strategy_validity_end'])){
+                                $diff = (strtotime($stockInfo['strategy_validity_end'])-time())/86400;
+                                $goodsInfo['validity_days'] = $diff > 1 ? ceil($diff) : substr(sprintf( "%.2f ",$diff),0,-2);
+                                $stockInfo['validity_hours'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%86400/3600);
+                                $stockInfo['validity_minutes'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%3600/60);
+                                $stockInfo['validity_seconds'] = floor((strtotime($stockInfo['strategy_validity_end'])-time())%86400%60);
+                            }
                         }
                     }else{
                         return [];

@@ -279,7 +279,7 @@ class StockFloorModel extends PublicModel {
      */
     public function onshelfData($id, $onshelf_flag) {
 
-        $condition['onshelf_flag'] = trim($onshelf_flag) == 'Y' ? 'Y' : 'N';
+        $condition['onshelf_flag'] = (trim($onshelf_flag) == 'Y' || $onshelf_flag===true) ? 'Y' : 'N';
         $condition['deleted_flag'] = 'N';
         $data = $this->create($condition);
         $data['updated_at'] = date('Y-m-d H:i:s');
@@ -317,7 +317,7 @@ class StockFloorModel extends PublicModel {
         foreach ($skus as $sku) {
             $flag = $stock_model->where(['lang' => $lang,
                         'country_bn' => $country_bn,
-                        'sku' => $sku['sku']])->save(['floor_id' => $floor_id, 'sort_order'=>(isset($sku['sort_order']) && $sku['sort_order']) ? intval($sku['sort_order']) : 0, 'recommend_home'=>(isset($sku['recommend_home']) && $sku['recommend_home']) ? 1 : 0,
+                        'sku' => $sku['sku']])->save(['floor_id' => $floor_id, 'sort_order'=>(isset($sku['sort_order']) && $sku['sort_order']) ? intval($sku['sort_order']) : 0, 'recommend_home'=>(isset($sku['recommend_home']) && ($sku['recommend_home']===true || $sku['recommend_home']=='Y' || $sku['recommend_home']==1)) ? 'Y' : 'N',
                 'updated_at' => date('Y-m-d H:i:s'),
                 'updated_by' => defined('UID') ? UID : 0
             ]);
@@ -329,6 +329,22 @@ class StockFloorModel extends PublicModel {
         }
         $this->commit();
         return true;
+    }
+
+    /**
+     * 删除
+     * @author link
+     */
+    public function deleteData($condition){
+        if(!isset($condition['id'])){
+            jsonReturn('', MSG::ERROR_PARAM, '请选择楼层ＩＤ');
+        }
+        if(is_array($condition['id'])){
+            $where['id'] = ['in', $condition['id']];
+        }else{
+            $where['id'] = trim($condition['id']);
+        }
+        return $this->where($where)->save(['deleted_at'=>date('Y-m-d H:i:s',time()), 'deleted_by'=> defined("UID") ? UID : 0, "deleted_flag"=>"Y"]);
     }
 
 }

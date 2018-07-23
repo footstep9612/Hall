@@ -56,6 +56,9 @@ class ProductController extends PublicController {
         }
     }
 
+    /**
+     * 购物车提交
+     */
     public function getSkusAction(){
         $input = $this->getPut();
         if (!isset($input['skus']) || empty($input['skus']) || !is_array($input['skus'])) {
@@ -99,6 +102,10 @@ class ProductController extends PublicController {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'Country_bn 不能为空');
         }
 
+        if (!isset($input['special_id']) || empty($input['special_id'])) {
+            jsonReturn('', ErrorMsg::ERROR_PARAM, 'special_id 不能为空');
+        }
+
         if (!isset($input['count']) || empty($input['count'])) {
             jsonReturn('', ErrorMsg::ERROR_PARAM, 'Count 不能为空');
         }
@@ -108,18 +115,15 @@ class ProductController extends PublicController {
 
         $productModel = new ProductModel();
         $stockInfo = $productModel->getSkuStockBySku($input['sku'], $input['country_bn'], $input['lang']);
-        switch($stockInfo[$input['sku']]['price_strategy_type']){
-            case 1:
-                $priceInfo = $productModel->getSkuPriceByCount($input['sku'], $input['country_bn'], $input['count'],($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']] : []);
-                break;
-            case 2:
-                $psdM = new PriceStrategyDiscountModel();
-                $priceInfo = $psdM->getPrice($input['sku'], $input['country_bn'],$input['count'],$stockInfo[$input['sku']]['price']);
-                break;
+
+        $promotion_price = '';
+        if($stockInfo && isset($stockInfo[$input['sku']]['price_strategy_type']) && $stockInfo[$input['sku']]['price_strategy_type']!='' && (($stockInfo[$input['sku']]['strategy_validity_start']<= date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_start']==null) && ($stockInfo[$input['sku']]['strategy_validity_end']> date('Y-m-d H:i:s',time()) || $stockInfo[$input['sku']]['strategy_validity_end']==null) )){
+            $psdM = new PriceStrategyDiscountModel();
+            $promotion_price = $psdM->getSkuPriceByCount($input['sku'],'STOCK',$input['special_id'],$input['count']);
         }
 
         $data = [
-            'price' => $priceInfo ? $priceInfo['price'] : '',
+            'price' => $promotion_price ? $promotion_price : ($stockInfo[$input['sku']]['price'] ? $stockInfo[$input['sku']]['price'] : ''),
             'price_cur_bn' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_cur_bn'])) ? $stockInfo[$input['sku']]['price_cur_bn'] : (isset($priceInfo['price_cur_bn']) ? $priceInfo['price_cur_bn'] : ''),
             'price_symbol' => ($stockInfo && isset($stockInfo[$input['sku']]) && !empty($stockInfo[$input['sku']]['price_symbol'])) ? $stockInfo[$input['sku']]['price_symbol'] : (isset($priceInfo['price_symbol']) ? $priceInfo['price_symbol'] : ''),
             'stock' => ($stockInfo && isset($stockInfo[$input['sku']])) ? $stockInfo[$input['sku']]['stock'] : 0

@@ -18,10 +18,10 @@ class SpecialController extends PublicController{
         $input = $this->getPut();
         $model = new SpecialModel();
         $rel = $model->getList($input);
-        if($rel){
-            jsonReturn($rel);
-        }else{
+        if($rel===false){
             jsonReturn('', MSG::MSG_FAILED);
+        }else{
+            jsonReturn($rel);
         }
     }
 
@@ -58,6 +58,20 @@ class SpecialController extends PublicController{
     public function updateAction(){
         $model = new SpecialModel();
         $rel = $model->updateData($this->getPut());
+        if($rel){
+            jsonReturn($rel);
+        }else{
+            jsonReturn('', MSG::MSG_FAILED);
+        }
+    }
+
+    /**
+     * 新增/修改
+     */
+    public function editAction(){
+        $input = $this->getPut();
+        $model = new SpecialModel();
+        $rel = isset($input['id']) ? $model->updateData($this->getPut()) : $model->createData($this->getPut());
         if($rel){
             jsonReturn($rel);
         }else{

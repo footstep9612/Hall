@@ -4,14 +4,13 @@
  * @desc   询单模型
  * @Author 买买提
  */
-class InquiryModel extends PublicModel
-{
+class InquiryModel extends PublicModel {
 
     protected $dbName = 'erui_rfq';
     protected $tableName = 'inquiry';
 
-    const  marketAgentRole = 'A001'; //市场经办人角色编号
-    const  inquiryIssueRole = 'A002'; //易瑞主分单员角色编号
+    const marketAgentRole = 'A001'; //市场经办人角色编号
+    const inquiryIssueRole = 'A002'; //易瑞主分单员角色编号
     const quoteIssueMainRole = 'A003'; //报价主分单员角色编号
     const quoteIssueAuxiliaryRole = 'A004'; //报价辅分单员角色编号
     const quoterRole = 'A005'; //报价人角色编号
@@ -51,19 +50,17 @@ class InquiryModel extends PublicModel
      * @param $type 类型
      * @return mixed
      */
-    public function getStatisticsByType($type,$auth)
-    {
-        switch ($type)
-        {
+    public function getStatisticsByType($type, $auth) {
+        switch ($type) {
             case 'TODAY' :
-                $where= "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
-                $data = $this->getListCount($auth,$this->listFields,$where);
+                $where = "DATE_FORMAT(created_at,'%Y-%m-%d') = DATE_FORMAT(NOW(),'%Y-%m-%d')";
+                $data = $this->getListCount($auth, $this->listFields, $where);
                 break;
             case 'TOTAL' :
-                $data = $this->getListCount($auth,$this->listFields);
+                $data = $this->getListCount($auth, $this->listFields);
                 break;
             case 'QUOTED' :
-                $data = $data = $this->getListCount($auth,$this->listFields,['quote_status'=>'QUOTED']);
+                $data = $data = $this->getListCount($auth, $this->listFields, ['quote_status' => 'QUOTED']);
                 break;
         }
         return $data;
@@ -75,13 +72,12 @@ class InquiryModel extends PublicModel
      *
      * @return mixed
      */
-    public function getNewItems($auth,$field)
-    {
-        $data = array_slice($this->getList($auth,$field),0,3);
+    public function getNewItems($auth, $field) {
+        $data = array_slice($this->getList($auth, $field), 0, 3);
 
         $employee = new EmployeeModel();
-        foreach ($data  as $key=>$value) {
-            $data[$key]['name'] = $employee->where(['id'=>$value['now_agent_id']])->getField('name');
+        foreach ($data as $key => $value) {
+            $data[$key]['name'] = $employee->where(['id' => $value['now_agent_id']])->getField('name');
             unset($data[$key]['now_agent_id']);
         }
 
@@ -93,8 +89,7 @@ class InquiryModel extends PublicModel
      * @param array $condition 数据
      * @return array
      */
-    public function addData($condition = [])
-    {
+    public function addData($condition = []) {
 
         $data = $this->create($condition);
         $time = $this->getTime();
@@ -105,9 +100,9 @@ class InquiryModel extends PublicModel
 
         try {
             $id = $this->add($data);
-            if($id){
-                $results = ['id'=>$id,'serial_no'=>$data['serial_no']];
-            }else{
+            if ($id) {
+                $results = ['id' => $id, 'serial_no' => $data['serial_no']];
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '添加失败!';
             }
@@ -117,87 +112,85 @@ class InquiryModel extends PublicModel
             $results['message'] = $e->getMessage();
             return $results;
         }
-
     }
 
-    public function updateData($data = [])
-    {
+    public function updateData($data = []) {
 
-        if (!empty($data['status'])) $data['inflow_time'] = $this->getTime();
-        if (!empty($data['agent_id'])) $data['now_agent_id'] = $data['agent_id'];
+        if (!empty($data['status']))
+            $data['inflow_time'] = $this->getTime();
+        if (!empty($data['agent_id']))
+            $data['now_agent_id'] = $data['agent_id'];
         $data['updated_at'] = $this->getTime();
 
-        try{
+        try {
             $id = $this->save($this->create($data));
-            if($id){
+            if ($id) {
 
                 //处理附件
-                if (isset($data['attach_list']) && !empty($data['attach_list'])){
+                if (isset($data['attach_list']) && !empty($data['attach_list'])) {
 
                     $inquiryAttach = new InquiryAttachModel();
 
                     foreach ($data['attach_list'] as $v) {
 
-                        $flag = $inquiryAttach->where(['inquiry_id'=>$data['id'],'attach_name'=>$v['attach_name']])->find();
-                        if ($flag){
+                        $flag = $inquiryAttach->where(['inquiry_id' => $data['id'], 'attach_name' => $v['attach_name']])->find();
+                        if ($flag) {
                             $inquiryAttach->save($inquiryAttach->create([
-                                'inquiry_id' => $data['id'],
-                                'attach_group' => 'INQUIRY_SKU',
-                                'attach_name' => $v['attach_name'],
-                                'attach_url' => $v['attach_url'],
-                                'created_by' => $data['updated_by'],
-                                'created_at' => $this->getTime()
+                                        'inquiry_id' => $data['id'],
+                                        'attach_group' => 'INQUIRY_SKU',
+                                        'attach_name' => $v['attach_name'],
+                                        'attach_url' => $v['attach_url'],
+                                        'created_by' => $data['updated_by'],
+                                        'created_at' => $this->getTime()
                             ]));
-                        }else{
+                        } else {
                             $inquiryAttach->add($inquiryAttach->create([
-                                'inquiry_id' => $data['id'],
-                                'attach_group' => 'INQUIRY_SKU',
-                                'attach_name' => $v['attach_name'],
-                                'attach_url' => $v['attach_url'],
-                                'created_by' => $data['updated_by'],
-                                'created_at' => $this->getTime()
+                                        'inquiry_id' => $data['id'],
+                                        'attach_group' => 'INQUIRY_SKU',
+                                        'attach_name' => $v['attach_name'],
+                                        'attach_url' => $v['attach_url'],
+                                        'created_by' => $data['updated_by'],
+                                        'created_at' => $this->getTime()
                             ]));
                         }
-
                     }
                 }
 
                 //处理sku信息
-                if (isset($data['sku_list']) && !empty($data['sku_list'])){
+                if (isset($data['sku_list']) && !empty($data['sku_list'])) {
 
                     $inquiryItem = new InquiryItemModel();
 
                     foreach ($data['sku_list'] as $v) {
 
-                        $flag = $inquiryItem->where(['inquiry_id'=>$data['id'],'sku'=>$v['sku']])->find();
-                        if ($flag){
+                        $flag = $inquiryItem->where(['inquiry_id' => $data['id'], 'sku' => $v['sku']])->find();
+                        if ($flag) {
                             $inquiryItem->save($inquiryItem->create([
-                                'sku'        => $v['sku'],
-                                'qty'        => $v['qty'],
-                                'name'       => $v['name'],
-                                'unit'       => $v['unit'],
-                                'brand'      => $v['brand'],
-                                'model'      => $v['model'],
-                                'name_zh'    => $v['name_zh'],
-                                'remarks'    => $v['remarks'],
-                                'inquiry_id' => $data['id'],
-                                'created_at' => $this->getTime()
+                                        'sku' => $v['sku'],
+                                        'qty' => $v['qty'],
+                                        'name' => $v['name'],
+                                        'unit' => $v['unit'],
+                                        'brand' => $v['brand'],
+                                        'model' => $v['model'],
+                                        'name_zh' => $v['name_zh'],
+                                        'remarks' => $v['remarks'],
+                                        'inquiry_id' => $data['id'],
+                                        'created_at' => $this->getTime()
                             ]));
-                        }else{
+                        } else {
                             $inquiryItem->add($inquiryItem->create([
-                                'sku'        => $v['sku'],
-                                'qty'        => $v['qty'],
-                                'name'       => $v['name'],
-                                'unit'       => $v['unit'],
-                                'brand'      => $v['brand'],
-                                'model'      => $v['model'],
-                                'name_zh'    => $v['name_zh'],
-                                'remarks'    => $v['remarks'],
-                                'inquiry_id' => $data['id'],
-                                'created_at' => $this->getTime()
+                                        'sku' => $v['sku'],
+                                        'qty' => $v['qty'],
+                                        'name' => $v['name'],
+                                        'unit' => $v['unit'],
+                                        'brand' => $v['brand'],
+                                        'model' => $v['model'],
+                                        'name_zh' => $v['name_zh'],
+                                        'remarks' => $v['remarks'],
+                                        'inquiry_id' => $data['id'],
+                                        'created_at' => $this->getTime()
                             ]));
                         }
-
                     }
                 }
 
@@ -205,36 +198,33 @@ class InquiryModel extends PublicModel
                 if (isset($data['contact'])) {
                     $inquiryContact = new InquiryContactModel();
                     $inquiryContact->add($inquiryContact->create([
-                        'inquiry_id' => $data['id'],
-                        'name' => $data['contact']['name'],
-                        'company' => $data['contact']['company'],
-                        'country_bn' => $data['contact']['country_bn'],
-                        'phone' => $data['contact']['phone'],
-                        'email' => $data['contact']['email'],
-                        'created_by' => $data['updated_by'],
-                        'created_at' => date('Y-m-d H:i:s')
+                                'inquiry_id' => $data['id'],
+                                'name' => $data['contact']['name'],
+                                'company' => $data['contact']['company'],
+                                'country_bn' => $data['contact']['country_bn'],
+                                'phone' => $data['contact']['phone'],
+                                'email' => $data['contact']['email'],
+                                'created_by' => $data['updated_by'],
+                                'created_at' => date('Y-m-d H:i:s')
                     ]));
                 }
 
                 $results['code'] = 1;
                 $results['message'] = '成功！';
-
-            }else{
+            } else {
                 $results['code'] = -1;
                 $results['message'] = '修改失败!';
             }
-        }catch (Exception $exception){
+        } catch (Exception $exception) {
             //$results['code'] = $exception->getCode();
             $results['code'] = -1; //兼容APP端
             $results['message'] = $exception->getMessage();
         }
 
         return $results;
-
     }
 
-    public function getDetail($condition,$field="*")
-    {
+    public function getDetail($condition, $field = "*") {
         return $this->where($condition)->field($field)->find();
     }
 
@@ -247,30 +237,29 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-18
      */
-    public function getList($condition = [], $field = '*',$where1=[]) {
+    public function getList($condition = [], $field = '*', $where1 = []) {
 
         $where = $this->getWhere($condition);
         //$where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         return $this->field($field)
-            ->where($where)
-            ->where($where1)
-            ->page($currentPage, $pageSize)
-            ->order('id DESC')
-            ->select();
+                        ->where($where)
+                        ->where($where1)
+                        ->page($currentPage, $pageSize)
+                        ->order('id DESC')
+                        ->select();
     }
 
-    public function getListCount($condition = [], $field = '*',$where1=[]) {
+    public function getListCount($condition = [], $field = '*', $where1 = []) {
 
         $where = $this->getWhere($condition);
 
-        $count =  $this->where($where)->where($where1)->count('id');
+        $count = $this->where($where)->where($where1)->count('id');
 
         return $count > 0 ? $count : 0;
-
     }
 
     public function getList_($condition = [], $field = '*') {
@@ -280,13 +269,13 @@ class InquiryModel extends PublicModel
         //$where[]="updated_by is NOT NULL";
 
         $currentPage = empty($condition['currentPage']) ? 1 : $condition['currentPage'];
-        $pageSize =  empty($condition['pageSize']) ? 10 : $condition['pageSize'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         return $this->field($field)
-            ->where($where)
-            ->page($currentPage, $pageSize)
-            ->order('id DESC')
-            ->select();
+                        ->where($where)
+                        ->page($currentPage, $pageSize)
+                        ->order('id DESC')
+                        ->select();
     }
 
     public function getCount_($condition = []) {
@@ -346,7 +335,7 @@ class InquiryModel extends PublicModel
 
         if (!empty($condition['buyer_name'])) {
             //$where['buyer_name'] = $condition['buyer_name'];  //客户名称
-            $where['buyer_name'] = ['like' , '%'.$condition['buyer_name'].'%'];
+            $where['buyer_name'] = ['like', '%' . $condition['buyer_name'] . '%'];
         }
 
         if (!empty($condition['agent_id'])) {
@@ -378,12 +367,14 @@ class InquiryModel extends PublicModel
                         if ($roleNo == self::inquiryIssueRole || $roleNo == self::inquiryIssueAuxiliaryRole) {
                             $orgId = $this->getDeptOrgId($condition['group_id'], 'erui');
 
-                            if ($orgId) $map[] = ['erui_id' => ['in', $orgId]];
+                            if ($orgId)
+                                $map[] = ['erui_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoteIssueMainRole || $roleNo == self::quoteIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub','erui']]);
+                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['ub', 'erui', 'eub']]);
 
-                            if ($orgId) $map[] = ['org_id' => ['in', $orgId]];
+                            if ($orgId)
+                                $map[] = ['org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::quoterRole) {
                             $map[] = ['quote_id' => $condition['user_id']];
@@ -396,9 +387,10 @@ class InquiryModel extends PublicModel
                 case 'logi' :
                     foreach ($condition['role_no'] as $roleNo) {
                         if ($roleNo == self::logiIssueMainRole || $roleNo == self::logiIssueAuxiliaryRole) {
-                            $orgId = $this->getDeptOrgId($condition['group_id'], 'lg');
+                            $orgId = $this->getDeptOrgId($condition['group_id'], ['in', ['lg', 'elg']]);
 
-                            if ($orgId) $map[] = ['logi_org_id' => ['in', $orgId]];
+                            if ($orgId)
+                                $map[] = ['logi_org_id' => ['in', $orgId]];
                         }
                         if ($roleNo == self::logiQuoterRole) {
                             $map[] = ['logi_agent_id' => $condition['user_id']];
@@ -427,10 +419,11 @@ class InquiryModel extends PublicModel
      * @return Array
      * @author zhangyuliang
      */
-    public function checkSerialNo($condition = []){
-        if(!empty($condition['serial_no'])){
+
+    public function checkSerialNo($condition = []) {
+        if (!empty($condition['serial_no'])) {
             $where['serial_no'] = $condition['serial_no'];
-        }else{
+        } else {
             $results['code'] = '-103';
             $results['message'] = '没有流程编码!';
             return $results;
@@ -438,10 +431,10 @@ class InquiryModel extends PublicModel
 
         try {
             $id = $this->field('id')->where($where)->find();
-            if($id){
+            if ($id) {
                 $results['code'] = '1';
                 $results['message'] = '成功！';
-            }else{
+            } else {
                 $results['code'] = '-101';
                 $results['message'] = '没有找到相关信息!';
             }
@@ -457,9 +450,8 @@ class InquiryModel extends PublicModel
      * 格式化返回当前时间
      * @return false|string
      */
-    private function getTime()
-    {
-        return date('Y-m-d H:i:s',time());
+    private function getTime() {
+        return date('Y-m-d H:i:s', time());
     }
 
     /**
@@ -471,11 +463,11 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-20
      */
-    public function getDeptOrgId($groupId = [], $orgNode = 'ub') {
+    public function getDeptOrgId($groupId = [], $orgNode = ['in', ['ub', 'eub']]) {
         $orgModel = new OrgModel();
 
         $where = [
-            'id' => ['in', $groupId ? : ['-1']],
+            'id' => ['in', $groupId ?: ['-1']],
             'org_node' => $orgNode
         ];
         $orgList = $orgModel->field('id')->where($where)->select();
@@ -499,7 +491,7 @@ class InquiryModel extends PublicModel
      * @author liujf
      * @time 2017-10-23
      */
-    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = 'ub') {
+    public function getRoleUserId($groupId = [], $roleNo = '', $orgNode = ['in', ['ub', 'eub']]) {
         $orgMemberModel = new OrgMemberModel();
         $roleModel = new RoleModel();
         $roleUserModel = new RoleUserModel();
@@ -516,8 +508,9 @@ class InquiryModel extends PublicModel
             $employeeId[] = $roleUser['employee_id'];
         }
 
-        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ? : ['-1']], 'employee_id' => ['in', $employeeId ? : ['-1']]])->find();
+        $orgMember = $orgMemberModel->field('employee_id')->where(['org_id' => ['in', $orgId ?: ['-1']], 'employee_id' => ['in', $employeeId ?: ['-1']]])->find();
 
         return $orgMember['employee_id'];
     }
+
 }

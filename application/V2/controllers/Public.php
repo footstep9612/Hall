@@ -24,28 +24,53 @@ abstract class PublicController extends Yaf_Controller_Abstract {
 
         $this->headers = getHeaders();
         $this->put_data = $this->getPut();
+        $user_id = $GLOBALS['SSO_USER']['id'];
+        $erui_token = $GLOBALS['SSO_TOKEN'];
+        if ($user_id && !redisExist('user.' . $user_id . '.' . $erui_token)) {
+            $this->user = $this->getUserInfo($user_id);
+            redisSet('user.' . $user_id . '.' . $erui_token, json_encode($this->user), 18000);
+        } else if ($user_id) {
+            $user = redisGet('user.' . $user_id . '.' . $erui_token);
 
-        if ($this->getRequest()->getModuleName() == 'V1' &&
-                $this->getRequest()->getControllerName() == 'User' &&
-                in_array($this->getRequest()->getActionName(), ['login', 'register', 'es', 'kafka', 'excel'])) {
-            $this->setLang($this->getPut('lang', 'en'));
-        } else {
-            $this->user = $GLOBALS['SSO_USER'];
-            $this->_setUid($this->user);
-            if (isset($this->user['id']) && $this->user['id'] > 0) {
-                // 加载php公共配置文件
-                $this->loadCommonConfig();
-                // 语言检查
-                $this->checkLanguage();
-                // 设置语言
-                $this->setLang(LANG_SET);
-            } else {
-                header("Content-Type: application/json");
-                exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
-            }
+            $this->user = json_decode($user, true);
+
+            unset($user);
         }
+        $this->_setUid($this->user);
+        if (isset($this->user['id']) && $this->user['id'] > 0) {
+            // 加载php公共配置文件
+            $this->loadCommonConfig();
+            // 语言检查
+            $this->checkLanguage();
+            // 设置语言
+            $this->setLang(LANG_SET);
+        } else {
+            header("Content-Type: application/json");
+            exit(json_encode(['code' => 403, 'message' => 'Token Expired.']));
+        }
+
         $esoplog = new ESOpLogModel();
         $esoplog->Created($this->getRequest(), $this->put_data, $this->getLang(), $this->user);
+    }
+
+    /**
+     * 获取SSO Token
+     * 默认由Cookie读取，其次从Http header读取，token变量名称为eruitoken
+     * @author: zhengkq
+     * @return string $sso_token 返回sso token
+     * */
+    protected function getUserInfo($user_id) {
+        $user_model = new EmployeeModel();
+        $user['id'] = $user_id;
+        $user['token'] = $GLOBALS['SSO_TOKEN'];
+
+        $user['name'] = $user_model->getUserNameById($user_id);
+        $user['group_org'] = $user['group_id'] = (new OrgMemberModel())->getOrgIdsByUserid($user_id);
+
+        $user['role_id'] = (new RoleMemberModel())->getRoleIdsByUserid($user_id);
+        $user['role_no'] = (new RoleModel())->getRoleNossByRoleIds($user['role_id']);
+        $user['country_bn'] = (new CountryUserModel())->getCountryBnsByUserid($user_id);
+        return $user;
     }
 
     /*
@@ -142,6 +167,8 @@ abstract class PublicController extends Yaf_Controller_Abstract {
                 $this->send['data'] = $data;
             } elseif ($data === null) {
                 $this->send['data'] = null;
+            } elseif ($data === 0) {
+                $this->send['data'] = 0;
             }
             $this->send['code'] = $this->getCode();
             if ($this->send['code'] == "1" && !$this->getMessage()) {

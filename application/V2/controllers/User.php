@@ -14,7 +14,7 @@
 class UserController extends PublicController {
 
     public function __init() {
-        //   parent::__init();
+        parent::__init();
     }
 
     /*
@@ -24,7 +24,7 @@ class UserController extends PublicController {
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
-        if(!empty($data['deleted_flag'])){
+        if (!empty($data['deleted_flag'])) {
             $where['deleted_flag'] = $data['deleted_flag'];
         }
         $where['lang'] = $this->lang;
@@ -39,7 +39,7 @@ class UserController extends PublicController {
             $where['role_id'] = trim($data['role_id']);
         }
         if (!empty($data['role_no'])) {
-           //$where['role_no'] = trim($data['role_no']);
+            //$where['role_no'] = trim($data['role_no']);
             $role_no = explode(",", $data['role_no']);
             for ($i = 0; $i < count($role_no); $i++) {
                 $where['role_no'] = $where['role_no'] . "'" . $role_no[$i] . "',";
@@ -112,17 +112,18 @@ class UserController extends PublicController {
         $datajson['data'] = $res;
         $this->jsonReturn($datajson);
     }
+
     public function userredislistAction() {
-        if(!redisExist(user_redis_list)){
+        if (!redisExist(user_redis_list)) {
             $user_modle = new UserModel();
             $data = $user_modle->getlist();
             $user_arr = [];
-            foreach ($data as $k => $value){
-                $user_arr[$value['id']] =  $value['name'];
+            foreach ($data as $k => $value) {
+                $user_arr[$value['id']] = $value['name'];
             }
-            redisSet('user_redis_list',json_encode($user_arr), 600);
-        }else{
-            $user_arr = json_decode(redisGet("user_redis_list"),true);
+            redisSet('user_redis_list', json_encode($user_arr), 600);
+        } else {
+            $user_arr = json_decode(redisGet("user_redis_list"), true);
         }
         if (!empty($user_arr)) {
             $datajson['code'] = 1;
@@ -136,16 +137,16 @@ class UserController extends PublicController {
     }
 
     public function usercountrybnredislistAction() {
-        if(!redisExist(user_country_bn_redis_list)){
+        if (!redisExist(user_country_bn_redis_list)) {
             $user_modle = new UserModel();
             $data = $user_modle->getlist();
             $user_arr = [];
-            foreach ($data as $k => $value){
-                $user_arr[$value['id']] =  $value['country'];
+            foreach ($data as $k => $value) {
+                $user_arr[$value['id']] = $value['country'];
             }
-            redisSet('user_country_bn_redis_list',json_encode($user_arr), 600);
-        }else{
-            $user_arr = json_decode(redisGet("user_country_bn_redis_list"),true);
+            redisSet('user_country_bn_redis_list', json_encode($user_arr), 600);
+        } else {
+            $user_arr = json_decode(redisGet("user_country_bn_redis_list"), true);
         }
         if (!empty($user_arr)) {
             $datajson['code'] = 1;
@@ -157,6 +158,7 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
     /*
      * 用户角色列表
      *
@@ -181,6 +183,7 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
     public function getUserRoleAction() {       //ww
         $data = json_decode(file_get_contents("php://input"), true);
         if ($data['user_id']) {
@@ -200,6 +203,7 @@ class UserController extends PublicController {
         }
         $this->jsonReturn($datajson);
     }
+
     /*
      * 用户国家列表
      *
@@ -262,7 +266,7 @@ class UserController extends PublicController {
             $where['source'] = trim($data['source']);
         }
         $role_user_modle = new RoleUserModel();
-        $data = $role_user_modle->userRoleList($this->user['id'],'',$where);
+        $data = $role_user_modle->userRoleList($this->user['id'], '', $where);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -286,7 +290,8 @@ class UserController extends PublicController {
         } else {
             $userId = $this->user['id'];
         }
-        $data = $roleUserModel->getUserMenu($userId, $condition);
+
+        $data = $roleUserModel->getUserMenu($userId, $condition, $this->lang);
         if (!empty($data)) {
             $datajson['code'] = 1;
             $datajson['data'] = $data;
@@ -306,17 +311,14 @@ class UserController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $arr['id'] = $this->user['id'];
         $arr['password_hash'] = md5($data['old_password']);
-        $new_passwoer['password_hash'] = md5($data['password']);
+        $pwd = md5($data['password']);
         $user_modle = new UserModel();
         $data = $user_modle->infoList($arr);
         if ($data) {
-            $res = $user_modle->update_data($new_passwoer, $arr);
-            if ($res !== false) {
-                $datajson['code'] = 1;
-            } else {
-                $datajson['code'] = -104;
-                $datajson['message'] = '修改失败!';
-            }
+//            $res = $user_modle->update_data($new_passwoer, $arr);
+            $user_modle->where(array('id' => $data['id']))->save(array('password_hash' => $pwd));
+            $datajson['code'] = 1;
+            $datajson['message'] = '修改成功';
         } else {
             $datajson['code'] = -104;
             $datajson['message'] = '原密码错误!';
@@ -511,8 +513,8 @@ class UserController extends PublicController {
             $arr['mobile'] = $data['mobile'];
             /* 去掉手机格式验证 修改于2018-2-24 19:55 张玉良
              * if (!isMobile($arr['mobile'])) {
-                $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
-            }*/
+              $this->jsonReturn(array("code" => "-101", "message" => "手机格式不正确"));
+              } */
         }
         if (!empty($data['show_name'])) {
             $arr['show_name'] = $data['show_name'];
@@ -556,6 +558,8 @@ class UserController extends PublicController {
 
         $model = new UserModel();
         $res = $model->update_data($arr, $where);
+
+
         if ($res !== false) {
             if (isset($data['role_ids'])) {
                 $model_role_user = new RoleUserModel();
@@ -578,6 +582,10 @@ class UserController extends PublicController {
             // $body = $this->getView()->render('login/email.html', $email_arr);
         }
         if ($res !== false) {
+            redisExist('user_fastentrance_' . $where['id']) ? redisDel('user_fastentrance_' . $where['id']) : '';
+            $this->delcache();
+        }
+        if ($res !== false) {
             $datajson['code'] = 1;
             $datajson['message'] = '成功';
         } else {
@@ -586,6 +594,14 @@ class UserController extends PublicController {
             $datajson['message'] = '数据操作失败!';
         }
         $this->jsonReturn($datajson);
+    }
+
+    private function delcache() {
+        $redis = new phpredis();
+        $user_id = $GLOBALS['SSO_USER']['id'];
+        $keys = $redis->getKeys('user.' . $user_id . '.*');
+
+        $redis->delete($keys);
     }
 
     public function getRoleAction() {
@@ -622,7 +638,6 @@ class UserController extends PublicController {
         $this->jsonReturn($results);
     }
 
-
     /**
      * 根据地理区域获取国家
      * @return mixed
@@ -630,31 +645,28 @@ class UserController extends PublicController {
      * @author 买买提
      * @time 2018-01-12 11:42:46
      */
-    public function areaCountryAction()
-    {
+    public function areaCountryAction() {
 
         $this->validateRequestParams();
 
-        $where = ['deleted_flag' => 'N','status'=> 'VALID','lang' => 'zh'];
+        $where = ['deleted_flag' => 'N', 'status' => 'VALID', 'lang' => 'zh'];
         $field = 'bn,name';
         $region = (new MarketAreaModel)->where($where)->field($field)->select();
 
-        foreach ($region as &$item){
+        foreach ($region as & $item) {
             $item['country_list'] = (new MarketAreaCountryModel)->alias('a')
-                                    ->join('erui_dict.country b ON a.country_bn=b.bn')
-                                    ->where(['market_area_bn'=>$item['bn'],'b.lang'=>'zh', 'b.deleted_flag'=>'N'])
-                                    ->field('b.name,b.bn')
-                                    ->select();
+                    ->join('erui_dict.country b ON a.country_bn=b.bn')
+                    ->where(['market_area_bn' => $item['bn'], 'b.lang' => 'zh', 'b.deleted_flag' => 'N'])
+                    ->field('b.name,b.bn')
+                    ->select();
         }
 
         $this->jsonReturn([
-            'code'    => 1,
+            'code' => 1,
             'message' => '成功',
-            'data'    => $region
+            'data' => $region
         ]);
-
     }
-
 
     /**
      * 根据国家简称获取国家名称
@@ -663,32 +675,30 @@ class UserController extends PublicController {
      * @author 买买提
      * @time 2018-01-12 11:42:46
      */
-    public function countryNameAction()
-    {
+    public function countryNameAction() {
 
         $condition = $this->validateRequestParams();
 
         if (!empty($condition['country_bns'])) {
             $countryNames = [];
-            foreach (explode(',',$condition['country_bns']) as $country_bn){
-                $countryNames[] = (new CountryModel)->where(['bn'=>$country_bn,'lang'=>'zh'])->getField('name');
+            foreach (explode(',', $condition['country_bns']) as $country_bn) {
+                $countryNames[] = (new CountryModel)->where(['bn' => $country_bn, 'lang' => 'zh'])->getField('name');
             }
 
             $this->jsonReturn([
-                'code'    => 1,
+                'code' => 1,
                 'message' => '成功',
-                'data'    => $countryNames
+                'data' => $countryNames
             ]);
         }
 
         $this->jsonReturn([
-            'code'    => 1,
+            'code' => 1,
             'message' => '成功',
-            'data'    => ''
+            'data' => ''
         ]);
-
     }
-    
+
     /**
      * @desc 项目获取用户列表
      *
@@ -706,12 +716,13 @@ class UserController extends PublicController {
         $originForeign = L('ORIGIN_FOREIGN');
         $field = 'id, user_no, name AS username, IF(citizenship = \'china\', \'' . $originChina . '\', \'' . $originForeign . '\') AS citizenship';
         $userList = $userModel->getList_($condition, $field);
-        foreach ($userList as &$user) {
+        foreach ($userList as & $user) {
             $countryBnList = $countryUserModel->getUserCountry(['employee_id' => $user['id']]);
             $countryList = [];
             foreach ($countryBnList as $countryBn) {
                 $countryName = $countryModel->where(['bn' => $countryBn, 'lang' => $this->lang, 'deleted_flag' => 'N'])->getField('name');
-                if ($countryName) $countryList[] = $countryName;
+                if ($countryName)
+                    $countryList[] = $countryName;
             }
             $user['country_name'] = implode(',', $countryList);
             $orgIdList = $orgMemberModel->where(['employee_id' => $user['id']])->getField('org_id', true);
@@ -751,7 +762,7 @@ class UserController extends PublicController {
             $this->jsonReturn();
         }
     }
-    
+
     /**
      * @desc 首页快捷入口
      *
@@ -759,32 +770,42 @@ class UserController extends PublicController {
      * @time 2018-06-19
      */
     public function fastEntranceAction() {
-        $roleUserModel = new RoleUserModel();
-        $menu = $roleUserModel->getUserMenu($this->user['id']);
-        $mapping = [
-            'show_create_inquiry' => '询单管理',
-            'show_create_order' => '订单列表',
-            'show_create_buyer' => '客户信息管理',
-            'show_create_visit' => '客户信息管理',
-            'show_demand_feedback' => '客户需求反馈',
-            'show_request_permission' => '授信管理',
-            'show_supplier_check' => '供应商审核',
-            'show_goods_check' => 'SPU审核'
-        ];
-        foreach ($mapping as $k => $v) {
-            $data[$k]['show'] = 'N';
+
+        $redis_key = 'user_fastentrance_' . $this->user['id'];
+        $data = null;
+        if (!redisExist($redis_key)) {
+
+            $roleUserModel = new RoleUserModel();
+            $menu = $roleUserModel->getUserMenu($this->user['id']);
+            $mapping = [
+                'show_create_inquiry' => '询单管理',
+                'show_create_order' => '订单列表',
+                'show_create_buyer' => '客户信息管理',
+                'show_create_visit' => '客户信息管理',
+                'show_demand_feedback' => '客户需求反馈',
+                'show_request_permission' => '授信管理',
+                'show_supplier_check' => '供应商审核',
+                'show_goods_check' => 'SPU审核'
+            ];
+            foreach ($mapping as $k => $v) {
+                $data[$k]['show'] = 'N';
+            }
+            $this->_scanMenu($menu, $mapping, $data);
+            redisSet($redis_key, json_encode($data), 360);
+        } else {
+
+            $data = json_decode(redisGet($redis_key), true);
         }
-        $this->_scanMenu($menu, $mapping, $data);
         $this->jsonReturn([
             'code' => 1,
             'message' => L('SUCCESS'),
             'data' => $data
         ]);
     }
-    
+
     /**
      * @desc 扫描菜单
-     * 
+     *
      * @param array $menu 菜单数据
      * @param array $mapping 菜单映射
      * @param array $data 需处理的数据
@@ -806,13 +827,12 @@ class UserController extends PublicController {
         }
     }
 
-    public function quickStartMenuAction()
-    {
+    public function quickStartMenuAction() {
         $request = $this->validateRequestParams();
 
         $user_id = isset($request['user_id']) ? $request['user_id'] : $this->user['id'];
         $data = (new RoleUserModel)->userRoleList($user_id, 0, $where);
-        //p($data);
+//p($data);
         $response = $this->restoreUserRoleSource($data);
         $this->jsonReturn([
             'code' => 1,
@@ -829,8 +849,7 @@ class UserController extends PublicController {
      * @return int
      * @author 买买提
      */
-    private function restoreUserRoleSource(array $data)
-    {
+    private function restoreUserRoleSource(array $data) {
 
         $restoredData = [];
         foreach ($data as $item) {
@@ -839,18 +858,26 @@ class UserController extends PublicController {
 
         sort($restoredData);
 
-        //BOSS DATA_REPORT ORDER
+//BOSS DATA_REPORT ORDER
         $string = implode(',', array_unique($restoredData));
 
         switch ($string) {
-            case 'BOSS' : return [1]; break;
-            case 'DATA_REPORT' : return [2]; break;
-            case 'ORDER' : return [3]; break;
-            case 'BOSS,DATA_REPORT' : return [1,2]; break;
-            case 'BOSS,ORDER' : return [1,3]; break;
-            case 'DATA_REPORT,ORDER' : return [2,3]; break;
-            case 'BOSS,DATA_REPORT,ORDER' : return [1,2,3]; break;
-            default : return []; break;
+            case 'BOSS' : return [1];
+                break;
+            case 'DATA_REPORT' : return [2];
+                break;
+            case 'ORDER' : return [3];
+                break;
+            case 'BOSS,DATA_REPORT' : return [1, 2];
+                break;
+            case 'BOSS,ORDER' : return [1, 3];
+                break;
+            case 'DATA_REPORT,ORDER' : return [2, 3];
+                break;
+            case 'BOSS,DATA_REPORT,ORDER' : return [1, 2, 3];
+                break;
+            default : return [];
+                break;
         }
     }
 

@@ -172,16 +172,24 @@ class BrandController extends PublicController {
         }
         $brand_model = new BrandModel();
         $result = $brand_model->info($id);
+
         $brands = json_decode($result['brand'], true);
         foreach ($this->langs as $lang) {
             $result[$lang] = [];
         }
-        foreach ($brands as $val) {
-            $result[$val['lang']] = $val;
+
+        if (empty($brands['name'])) {
+            foreach ($brands as $val) {
+                $result[$val['lang']] = $val;
+            }
+        } else {
+            $result[$brands['lang']] = $brands;
         }
+
         unset($result['brand']);
         if ($result) {
             $this->setCode(MSG::MSG_SUCCESS);
+
             $this->jsonReturn($result);
         } elseif ($result === null) {
             $this->setCode(MSG::ERROR_EMPTY);
@@ -189,7 +197,6 @@ class BrandController extends PublicController {
             $this->jsonReturn();
         } else {
             $this->setCode(MSG::MSG_FAILED);
-
             $this->jsonReturn();
         }
         exit;

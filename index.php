@@ -18,7 +18,7 @@ preg_match('/\/([a-zA-Z0-9\.]+)\/([a-zA-Z0-9\_\-]+)([\/|\?].*?)?$/ie', $uri, $ou
 
 $module = ucfirst($out[1]);
 
-if (!in_array(strtolower($module), ['v2', 'api2', 'app', 'api3', 'mall', 'api', 'mobile'])) {
+if (!in_array(strtolower($module), ['v2', 'v3', 'api2', 'app', 'api3', 'mall', 'api', 'mobile'])) {
     die('{"code":"-1","message":"模块不存在!"}');
 }
 
@@ -54,7 +54,7 @@ define('CONTROLLER_NAME', ucfirst($out[2]));
 $application = new Yaf_Application($application_path);
 
 #SSO登陆验证 added by zhengkq
-if ($module == 'V2' || $module == 'App') {
+if ($module == 'V2' || $module == 'App' || $module == 'V3') {
     $config = $application->getConfig();
     require_once('common/library/Erui/Common/SSOClient.php');
     Erui\Common\SSOClient::Start($config->ssoServer);

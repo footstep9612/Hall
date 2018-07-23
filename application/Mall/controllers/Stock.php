@@ -21,6 +21,73 @@ class StockController extends PublicController {
         parent::init();
     }
 
+    /*
+     * Description of 价格策略
+     * @param array $arr
+     * @author  link
+     * @date    2018-07-09
+     * @desc
+     */
+    private function _setDisCount(&$arr, $special_id) {
+        if ($arr) {
+            $skus = [];
+            foreach ($arr as $key => $val) {
+                $skus[] = $val['sku'];
+            }
+            $price_strategy_discount_model = new PriceStrategyDiscountModel();
+            $disCounts = $price_strategy_discount_model->getDisCountBySkus($skus,'STOCK', $special_id);
+            foreach ($arr as $key => $val) {
+                if(isset($disCounts[$val['sku']]) && $val['price_strategy_type'] !='' && (empty($val['strategy_validity_start']) || $val['strategy_validity_start']<=date('Y-m-d H:i:s',time())) && (empty($val['strategy_validity_end']) || $val['strategy_validity_end']>date('Y-m-d H:i:s',time()))){
+                    $val['price_range'] = $disCounts[$val['sku']];
+                    if(!empty($val['strategy_validity_end'])){
+                        $days = (strtotime($val['strategy_validity_end'])-time())/86400;
+                        $val['validity_days'] = $days > 1 ? ceil($days) : substr(sprintf( "%.2f ",$days),0,-2);
+                        $val['validity_hours'] = floor((strtotime($val['strategy_validity_end'])-time())%86400/3600);
+                        $val['validity_minutes'] = floor((strtotime($val['strategy_validity_end'])-time())%3600/60);
+                        $val['validity_seconds'] = floor((strtotime($val['strategy_validity_end'])-time())%86400%60);
+                    }
+                }else{
+                    $val['price_range'] = [];
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    /**
+     * Description of 获取现货列表
+     * @author  zhongyg
+     * @date    2017-12-6 9:12:49
+     * @version V2.0
+     * @desc  现货
+     */
+    public function ListAction() {
+        $condition = $this->getPut();
+        if(!isset($condition['special_id'])){
+            jsonReturn('',MSG::ERROR_PARAM, '请选择现货');
+        }
+        if(!isset($condition['floor_id'])){
+            jsonReturn('',MSG::ERROR_PARAM, '请选择楼层');
+        }
+
+        $stock_model = new StockModel();
+        $list = $stock_model->getList($condition);
+        if ($list) {
+            $this->_setImage($list);
+            //$this->_setConstPrice($list, $country_bn);
+            $this->_setDisCount($list,isset($condition['special_id']) ? $condition['special_id'] : '');
+            jsonReturn($list);
+        } elseif ($list === null) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('空数据');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
     /**
      * Description of 获取现货列表
      * @author  zhongyg
@@ -30,18 +97,11 @@ class StockController extends PublicController {
      */
     public function ListByKeywordAction() {
         $condition = $this->getPut();
-        if (empty($condition['country_bn'])) {
+        if (empty($condition['special_id'])) {
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('请选择现货!');
             $this->jsonReturn();
         }
-
-        if (empty($condition['lang'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
-
 
         $stock_model = new StockModel();
         $list = $stock_model->getListByKeyword($condition);
@@ -49,8 +109,8 @@ class StockController extends PublicController {
             $this->_setImage($list);
             $count = $stock_model->getCountByKeyword($condition);
             $this->setvalue('count', $count);
-            $this->_setConstPrice($list, $condition['country_bn']);
-            $this->_setDisCount($list, $condition['country_bn']);
+            //$this->_setConstPrice($list, $condition['country_bn']);
+            $this->_setDisCount($list, $condition['special_id']);
             $this->_SetProductInfo($list, $condition['lang']);
             $this->jsonReturn($list);
         } elseif ($list === null) {
@@ -64,49 +124,24 @@ class StockController extends PublicController {
         }
     }
 
-    /**
-     * Description of 获取现货列表
-     * @author  zhongyg
-     * @date    2017-12-6 9:12:49
-     * @version V2.0
-     * @desc  现货
-     */
-    public function ListAction() {
-        $country_bn = $this->getPut('country_bn');
-        if (empty($country_bn)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
-        $lang = $this->getPut('lang');
-        if (empty($lang)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
-        $floor_id = $this->getPut('floor_id');
-        if (empty($floor_id)) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('楼层ID不能为空!');
-            $this->jsonReturn();
-        }
-        $stock_model = new StockModel();
-        $list = $stock_model->getList($country_bn, $lang, $floor_id);
-        if ($list) {
-            $this->_setImage($list);
-            $this->_setConstPrice($list, $country_bn);
-            $this->_setDisCount($list, $country_bn);
-            $this->jsonReturn($list);
-        } elseif ($list === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据');
-            $this->jsonReturn(null);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     /*
      * Description of 获取图片
@@ -144,43 +179,11 @@ class StockController extends PublicController {
         }
     }
 
-    /*
-     * Description of 获取图片
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
 
-    private function _setDisCount(&$arr, $country_bn) {
-        if ($arr) {
 
-            $skus = [];
-            foreach ($arr as $key => $val) {
-                $skus[] = $val['sku'];
-            }
 
-            $price_strategy_discount_model = new PriceStrategyDiscountModel();
-            $disCounts = $price_strategy_discount_model->getDisCountBySkus($skus, $country_bn);
 
-            foreach ($arr as $key => $val) {
 
-                if ($val['sku'] && isset($disCounts[$val['sku']])) {
-                    if (isset($disCounts[$val['sku']])) {
-                        $val['discount'] = $disCounts[$val['sku']]['discount'];
-                        $val['min_purchase_qty'] = $disCounts[$val['sku']]['min_purchase_qty'];
-                        $val['max_purchase_qty'] = $disCounts[$val['sku']]['max_purchase_qty'];
-                    }
-                } else {
-                    $val['discount'] = '';
-                    $val['min_purchase_qty'] = '';
-                    $val['max_purchase_qty'] = '';
-                }
-                $arr[$key] = $val;
-            }
-        }
-    }
 
     /*
      * Description of 获取价格属性
@@ -193,7 +196,6 @@ class StockController extends PublicController {
 
     private function _setConstPrice(&$arr, $country_bn) {
         if ($arr) {
-
             $skus = [];
             foreach ($arr as $key => $val) {
                 $skus[] = $val['sku'];

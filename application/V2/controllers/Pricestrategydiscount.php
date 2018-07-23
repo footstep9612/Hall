@@ -19,7 +19,7 @@ class PricestrategydiscountController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货
      */
-    public function createAction() {
+/*    public function createAction() {
         $sku = $this->getPut('sku');
         if (empty($sku)) {
             jsonReturn('',MSG::ERROR_PARAM,'请输入sku！');
@@ -39,7 +39,7 @@ class PricestrategydiscountController extends PublicController {
         } else {
             $this->jsonReturn($flag);
         }
-    }
+    }*/
 
     /**
      * 更新
@@ -47,7 +47,7 @@ class PricestrategydiscountController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货仓库
      */
-    public function updateAction(){
+    /*public function updateAction(){
         $sku = $this->getPut('sku');
         if (empty($sku)) {
             jsonReturn('',MSG::ERROR_PARAM,'sku不能为空！');
@@ -63,7 +63,7 @@ class PricestrategydiscountController extends PublicController {
         } elseif ($flag === false) {
             $this->jsonReturn('',MSG::MSG_FAILED);
         }
-    }
+    }*/
 
     /**
      * 删除
@@ -71,7 +71,7 @@ class PricestrategydiscountController extends PublicController {
      * @date    2017-12-6 9:12:49
      * @desc   现货仓库
      */
-    public function deleteAction(){
+    /*public function deleteAction(){
         if (empty($this->getPut('sku'))) {
             jsonReturn('',MSG::ERROR_PARAM,'sku不能为空！');
         }
@@ -86,6 +86,6 @@ class PricestrategydiscountController extends PublicController {
         } elseif ($flag === false) {
             $this->jsonReturn('',MSG::MSG_FAILED);
         }
-    }
+    }*/
 
 }

@@ -58,23 +58,27 @@ class SuppliersModel extends PublicModel {
     public function getJoinWhere($condition = []) {
 
         $where['a.deleted_flag'] = 'N';
-        $where['a.source'] = 'BOSS';
+        //$where['a.source'] = 'BOSS';
 
         $where['a.status'] = ['neq', 'DRAFT'];
         //$where['a.status'] = ['in', ['APPROVED', 'REVIEW', 'APPROVING', 'INVALID']];
-
-        if (!empty($condition['id'])) {
-            $where['a.id'] = $condition['id'];
-        }
 
         if (!empty($condition['supplier_no'])) {
             $where['a.supplier_no'] = ['like', '%' . $condition['supplier_no'] . '%'];
         }
 
         if (!empty($condition['name'])) {
-            $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $where['a.id'] = $condition['name'];
+            }else {
+                $where['a.name'] = ['like', '%' . $condition['name'] . '%'];
+            }
         }
-        
+
+        if (!empty($condition['source'])) {
+            $where['a.source'] = $condition['source'];
+        }
+
         if (!empty($condition['supplier_level'])) {
             $where['a.supplier_level'] = $condition['supplier_level'];
         }
@@ -555,7 +559,15 @@ class SuppliersModel extends PublicModel {
 
         $total = $this->alias('a')->where($condition)->count();
 
-        return [$data, $total];
+        $where = ['a.deleted_flag' => 'N', 'a.source' => 'Portal'];
+        $all = $this->alias('a')->where(array_merge(['status' => ['neq', 'REVIEW']], $where))->count();
+        $approving = $this->alias('a')->where(array_merge(['status' => 'APPROVING'], $where))->count();
+        $approved = $this->alias('a')->where(array_merge(['status' => 'APPROVED'], $where))->count();
+        $invalid = $this->alias('a')->where(array_merge(['status' => 'INVALID'], $where))->count();
+        $review = $this->alias('a')->where(array_merge(['status' => 'REVIEW'], $where))->count();
+
+
+        return [$data, $total, $all, $approving, $approved, $invalid, $review];
 
     }
 

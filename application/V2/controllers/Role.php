@@ -16,37 +16,41 @@ class RoleController extends PublicController {
     public function __init() {
         //   parent::__init();
     }
-    public function roleListAction(){
+
+    public function roleListAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $model=new RoleModel();
-        $res=$model->getRoleList($data);
+        $model = new RoleModel();
+        $res = $model->getRoleList($data);
         $dataJson['code '] = 1;
         $dataJson['message'] = '角色数据';
         $dataJson['data'] = $res;
         $this->jsonReturn($dataJson);
     }
-    public function moveRoleAction(){
+
+    public function moveRoleAction() {
         $data = json_decode(file_get_contents("php://input"), true);
-        $model=new RoleModel();
-        $res=$model->moveRole($data);
-        if($res){
+        $model = new RoleModel();
+        $res = $model->moveRole($data);
+        if ($res) {
             $dataJson['code '] = 1;
             $dataJson['message'] = '成功';
-        }else{
+        } else {
             $dataJson['code '] = 0;
             $dataJson['message'] = '失败';
         }
         $this->jsonReturn($dataJson);
     }
-    public function roleConfAction(){
+
+    public function roleConfAction() {
 //        $data = json_decode(file_get_contents("php://input"), true);
-        $model=new RoleModel();
-        $res=$model->sortRole();
+        $model = new RoleModel();
+        $res = $model->sortRole();
         $dataJson['code'] = 1;
         $dataJson['message'] = '角色配置列表';
         $dataJson['data'] = $res;
         $this->jsonReturn($dataJson);
     }
+
     public function listAction() {
         $data = json_decode(file_get_contents("php://input"), true);
         $limit = [];
@@ -80,7 +84,7 @@ class RoleController extends PublicController {
             }
         }
         $where['role.deleted_flag'] = "N";
-        $where['role.attr_id'] = ['neq',0];
+        $where['role.attr_id'] = ['neq', 0];
         $model_rolo = new RoleModel();
         $data = $model_rolo->getlist($where, $limit);
 
@@ -244,10 +248,10 @@ class RoleController extends PublicController {
             $this->jsonReturn($datajson);
         }
         if (empty($data['attr_id'])) {  //属性id
-            $datajson['code'] =0;
+            $datajson['code'] = 0;
             $datajson['message'] = '请选择角色的归属分类';
             $this->jsonReturn($datajson);
-        }else{
+        } else {
             $role_arr['attr_id'] = $data['attr_id'];
         }
         $model_rolo = new RoleModel();
@@ -299,6 +303,7 @@ class RoleController extends PublicController {
                 $role_user_arr['role_ids'] = $data['role_ids'];
                 $model_role_user->update_role_datas($role_user_arr);
             }
+            $this->delcache();
             $datajson['code'] = 1;
             $datajson['message'] = "成功";
         } else {
@@ -325,10 +330,10 @@ class RoleController extends PublicController {
             $role_arr['role_id'] = $data['id'];
         }
         if (empty($data['attr_id'])) {  //属性id
-            $datajson['code'] =0;
+            $datajson['code'] = 0;
             $datajson['message'] = '请选择角色的归属分类';
             $this->jsonReturn($datajson);
-        }else{
+        } else {
             $role_arr['attr_id'] = $data['attr_id'];
         }
         $model_rolo = new RoleModel();
@@ -351,9 +356,17 @@ class RoleController extends PublicController {
 //            $role_user_arr['role_user_ids'] = $data['role_user_ids'];
 //            $model_role_user->update_datas($role_user_arr);
 //        }
+
+        $this->delcache();
         $datajson['code'] = 1;
         $datajson['message'] = '操作完成!';
         $this->jsonReturn($datajson);
+    }
+
+    private function delcache() {
+        $redis = new phpredis();
+        $keys = $redis->getKeys('user.');
+        $redis->delete($keys);
     }
 
     public function deleteAction() {
@@ -367,6 +380,7 @@ class RoleController extends PublicController {
         $model_rolo = new RoleModel();
         $re = $model_rolo->delete_data($id);
         if ($re > 0) {
+            $this->delcache();
             $datajson['code'] = 1;
         } else {
             $datajson['code'] = -104;

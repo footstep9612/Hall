@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @desc 报价单明细模型
  * @author 买买提
@@ -18,23 +19,23 @@ class QuoteItemModel extends PublicModel {
      * @return bool True|False
      * @author mmt、liujf
      */
-    public function delItem($ids){
-        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ? : ['-1']]])->save(['deleted_flag'=>'Y']);
+    public function delItem($ids) {
+        return $this->where(['inquiry_item_id' => ['in', explode(',', $ids) ?: ['-1']]])->save(['deleted_flag' => 'Y']);
     }
-    
+
     /**
      * @desc 获取记录总数
- 	 * 
-     * @param array $request 
+     *
+     * @param array $request
      * @return int
-     * @author liujf 
+     * @author liujf
      * @time 2018-04-13
      */
     public function getCount($request) {
-    	$count = $this->getSqlJoint($request)->count('a.id');
-    	return $count > 0 ? $count : 0;
+        $count = $this->getSqlJoint($request)->count('a.id');
+        return $count > 0 ? $count : 0;
     }
-    
+
     /**
      * @desc 获取采购总价
      *
@@ -44,12 +45,9 @@ class QuoteItemModel extends PublicModel {
      * @time 2018-06-27
      */
     public function getTotalPurchasePrice($request) {
-        $list = $this->getSqlJoint($request)->field('a.purchase_unit_price * b.qty AS total_purchase_price')->select();
-        $totalPurchasePrice = 0;
-        foreach ($list as $item) {
-            $totalPurchasePrice += $item['total_purchase_price'];
-        }
-        return $totalPurchasePrice;
+        $re = $this->getSqlJoint($request)->field('sum(a.purchase_unit_price * b.qty ) as totalPurchasePrice')->find();
+
+        return isset($re['totalPurchasePrice']) ? $re['totalPurchasePrice'] : 0;
     }
 
     /**
@@ -58,17 +56,24 @@ class QuoteItemModel extends PublicModel {
      * @return mixed 数据
      * @author mmt、liujf
      */
-    public function getList($request){
+    public function getList($request) {
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
-        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'a.id,b.id inquiry_item_id,b.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,b.remarks,b.category,a.supplier_id,a.brand,a.purchase_unit_price,b.qty*a.purchase_unit_price AS total_purchase_price,a.purchase_price_cur_bn,a.gross_weight_kg,a.package_mode,a.package_size,a.stock_loc,a.goods_source,a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,c.attach_name,c.attach_url';
+        $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
+        $fields = 'a.id,b.id inquiry_item_id,b.sku,b.buyer_goods_no,'
+                . 'b.name,b.name_zh,b.qty,b.unit,b.brand inquiry_brand,b.model,'
+                . 'b.remarks,b.category,a.supplier_id,a.brand,'
+                . 'a.purchase_unit_price,b.qty*a.purchase_unit_price AS total_purchase_price,'
+                . 'a.purchase_price_cur_bn,a.gross_weight_kg,'
+                . 'a.package_mode,a.package_size,a.stock_loc,a.goods_source,'
+                . 'a.delivery_days,a.period_of_validity,a.reason_for_no_quote,a.pn,'
+                . 'c.attach_name,c.attach_url,b.material_cat_no,a.org_id'; //
         return $this->getSqlJoint($request)
-                            ->field($fields)
-                            ->page($currentPage, $pageSize)
-                            ->order('a.id ASC')
-                            ->select();
+                        ->field($fields)
+                        ->page($currentPage, $pageSize)
+                        ->order('a.id ASC')
+                        ->select();
     }
-    
+
     /**
      * @desc 获取组装sql后的对象
      *
@@ -85,20 +90,20 @@ class QuoteItemModel extends PublicModel {
         $where['a.inquiry_id'] = $request['inquiry_id'];
         $where['a.deleted_flag'] = 'N';
         return $this->alias('a')
-                            ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id', 'LEFT')
-                            ->join($inquiryItemAttachTableName . ' c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
-                            ->where($where);
+                        ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id', 'LEFT')
+                        ->join($inquiryItemAttachTableName . ' c ON a.inquiry_item_id = c.inquiry_item_id', 'LEFT')
+                        ->where($where);
     }
 
-    public function updateSupplier($data){
-        foreach ($data as $key=>$value){
-            if(empty($value['period_of_validity'])){
+    public function updateSupplier($data) {
+        foreach ($data as $key => $value) {
+            if (empty($value['period_of_validity'])) {
                 $value['period_of_validity'] = null;
             }
             $value['updated_at'] = date('Y-m-d H:i:s');
-            try{
+            try {
                 $this->save($this->create($value));
-            }catch (Exception $exception){
+            } catch (Exception $exception) {
                 return [
                     'code' => $exception->getCode(),
                     'message' => $exception->getMessage()
@@ -115,18 +120,18 @@ class QuoteItemModel extends PublicModel {
      *
      * @return array|bool
      */
-    public function updateItem($data,$user){
+    public function updateItem($data, $user) {
 
-        foreach ($data as $key=>$value){
+        foreach ($data as $key => $value) {
 
             $value['updated_at'] = date('Y-m-d H:i:s');
             $value['updated_by'] = $user;
 
             //如果输填写了未报价分析原因
-            if (!empty($value['reason_for_no_quote'])){
-                try{
+            if (!empty($value['reason_for_no_quote'])) {
+                try {
                     $this->save($this->create($value));
-                }catch (Exception $exception){
+                } catch (Exception $exception) {
                     return [
                         'code' => $exception->getCode(),
                         'message' => $exception->getMessage()
@@ -137,69 +142,68 @@ class QuoteItemModel extends PublicModel {
                  * 如果是选择了供应商，一下信息是必填字段
                  * 报价产品描述，采购单价，采购币种，毛重，包装体积，包装方式，产品来源，存放地，交货期(天)，报价有效期
                  */
-
                 //采购单价
-                if (empty($value['purchase_unit_price'])){
-                    return ['code'=>'-104','message'=>'采购单价必填'];
+                if (empty($value['purchase_unit_price'])) {
+                    return ['code' => '-104', 'message' => '采购单价必填'];
                 }
-                if (!is_numeric($value['purchase_unit_price'])){
-                    return ['code'=>'-104','message'=>'采购单价必须是数字'];
+                if (!is_numeric($value['purchase_unit_price'])) {
+                    return ['code' => '-104', 'message' => '采购单价必须是数字'];
                 }
                 //采购币种
-                if (empty($value['purchase_price_cur_bn'])){
-                    return ['code'=>'-104','message'=>'采购币种必选'];
+                if (empty($value['purchase_price_cur_bn'])) {
+                    return ['code' => '-104', 'message' => '采购币种必选'];
                 }
                 //毛重
-                if (empty($value['gross_weight_kg'])){
-                    return ['code'=>'-104','message'=>'毛重必填'];
+                if (empty($value['gross_weight_kg'])) {
+                    return ['code' => '-104', 'message' => '毛重必填'];
                 }
-                if (!is_numeric($value['gross_weight_kg'])){
-                    return ['code'=>'-104','message'=>'毛重必须是数字'];
+                if (!is_numeric($value['gross_weight_kg'])) {
+                    return ['code' => '-104', 'message' => '毛重必须是数字'];
                 }
                 //包装体积
-                if (empty($value['package_size'])){
-                    return ['code'=>'-104','message'=>'包装体积必填'];
+                if (empty($value['package_size'])) {
+                    return ['code' => '-104', 'message' => '包装体积必填'];
                 }
-                if (!is_numeric($value['package_size'])){
-                    return ['code'=>'-104','message'=>'包装体积必须是数字'];
+                if (!is_numeric($value['package_size'])) {
+                    return ['code' => '-104', 'message' => '包装体积必须是数字'];
                 }
                 //包装方式
-                if (empty($value['package_mode'])){
-                    return ['code'=>'-104','message'=>'包装方式必填'];
+                if (empty($value['package_mode'])) {
+                    return ['code' => '-104', 'message' => '包装方式必填'];
                 }
                 //产品来源
-                if (empty($value['goods_source'])){
-                    return ['code'=>'-104','message'=>'产品来源必填'];
+                if (empty($value['goods_source'])) {
+                    return ['code' => '-104', 'message' => '产品来源必填'];
                 }
                 //存放地
-                if (empty($value['stock_loc'])){
-                    return ['code'=>'-104','message'=>'存放地必填'];
+                if (empty($value['stock_loc'])) {
+                    return ['code' => '-104', 'message' => '存放地必填'];
                 }
                 //交货期(天)，报价有效期
-                if (empty($value['delivery_days'])){
-                    return ['code'=>'-104','message'=>'交货期必填'];
+                if (empty($value['delivery_days'])) {
+                    return ['code' => '-104', 'message' => '交货期必填'];
                 }
-                if (!is_numeric($value['delivery_days'])){
-                    return ['code'=>'-104','message'=>'交货期必须是数字'];
+                if (!is_numeric($value['delivery_days'])) {
+                    return ['code' => '-104', 'message' => '交货期必须是数字'];
                 }
                 //报价有效期
-                if (empty($value['period_of_validity'])){
-                    return ['code'=>'-104','message'=>'报价有效期必填'];
+                if (empty($value['period_of_validity'])) {
+                    return ['code' => '-104', 'message' => '报价有效期必填'];
                 }
+                //报价有效期
+
 
                 $value['status'] = 'QUOTED';
                 $value['quote_qty'] = $value['qty'];
                 $value['quote_unit'] = $value['unit'];
 
                 $this->save($this->create($value));
-
             }
         }
         return [
             'code' => 1,
             'message' => L('QUOTE_SUCCESS')
         ];
-
     }
 
     /**
@@ -212,24 +216,25 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      * @author mmt、liujf
      */
-    public function updateItemBatch($data,$user,$currentPage,$pageSize){
+    public function updateItemBatch($data, $user, $currentPage, $pageSize) {
         $inquiryItemModel = new InquiryItemModel();
         $suppliersModel = new SuppliersModel();
+        $materialcat_model = new MaterialCatModel();
         $data = dataTrim($data);
         $supplierFailList = [];
         $i = 0;
-        $currentPage = intval($currentPage) ? : 1;
-        $pageSize = intval($pageSize) ? : 10;
+        $currentPage = intval($currentPage) ?: 1;
+        $pageSize = intval($pageSize) ?: 10;
         $row = ($currentPage - 1) * $pageSize;
         $this->startTrans();
-        foreach ($data as $key=>$value){
+
+
+        foreach ($data as $key => $value) {
             $row++;
+
+
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == ''
-                || $value['category'] == '' || $value['category'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == ''
-                || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == ''
-                || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == ''
-                || $value['delivery_days'] == '' || $value['period_of_validity'] == '') {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && empty($value['category']) && empty($value['org_id']))) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -237,7 +242,15 @@ class QuoteItemModel extends PublicModel {
                     $quoteItemResult = $this->delItem($value['inquiry_item_id']);
                 }
             } else {
-                $supplierId = $suppliersModel->where(['name' => $value['supplier_name'], 'deleted_flag' => 'N'])->getField('id');
+
+                if (empty($value['supplier_name'])) {
+                    $supplierFailList[] = $row;
+                    continue;
+                }
+                $supplierId = $suppliersModel
+                        ->where(['name' => $value['supplier_name'],
+                            'deleted_flag' => 'N'])
+                        ->getField('id');
                 if (!is_numeric($supplierId)) {
                     // 匹配供应商失败列表
                     $supplierFailList[] = $row;
@@ -245,23 +258,23 @@ class QuoteItemModel extends PublicModel {
                 } else {
                     $value['supplier_id'] = $supplierId;
                 }
-                if (!is_numeric($value['purchase_unit_price'])){
+                if (!is_numeric($value['purchase_unit_price'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
-                    return ['code'=>'-104','message'=> L('QUOTE_PUP_NUMBER') ];
+                    return ['code' => '-104', 'message' => L('QUOTE_PUP_NUMBER')];
                 }
                 if (!is_numeric($value['gross_weight_kg'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
-                    return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER') ];
+                    return ['code' => '-104', 'message' => L('QUOTE_GW_NUMBER')];
                 }
                 if (!is_numeric($value['package_size'])) {
                     if ($i > 0) {
                         $this->rollback();
                     }
-                    return ['code'=>'-104','message'=> L('QUOTE_PS_NUMBER')];
+                    return ['code' => '-104', 'message' => L('QUOTE_PS_NUMBER')];
                 }
                 if (!is_numeric($value['delivery_days'])) {
                     if ($i > 0) {
@@ -276,15 +289,49 @@ class QuoteItemModel extends PublicModel {
                     return ['code' => '-104', 'message' => L('QUOTE_QQ_NUMBER')];
                 }
                 $time = date('Y-m-d H:i:s');
+                if (empty($value['org_id'])) {
+                    $value['org_id'] = 0;
+                } elseif (!empty($value['org_id']) && is_numeric($value['org_id'])) {
+                    $value['org_id'] = intval($value['org_id']);
+                } elseif (!empty($value['org_id']) && is_string($value['org_id'])) {
+                    preg_match('/.*?-(\d+)$/', $value['org_id'], $org_id);
+                    unset($value['org_id']);
+                    $value['org_id'] = isset($org_id[1]) ? $org_id[1] : 0;
+                } else {
+                    $value['org_id'] = intval($value['org_id']);
+                }
+
+
+                if (empty($value['material_cat_no'])) {
+                    $value['material_cat_no'] = '';
+                } elseif (!empty($value['material_cat_no']) && is_numeric($value['material_cat_no'])) {
+                    $value['material_cat_no'] = trim($value['material_cat_no']);
+                } elseif (!empty($value['material_cat_no']) && is_string($value['material_cat_no'])) {
+                    $material_cat_no = [];
+                    preg_match('/(.*?)-(\d+)$/', $value['material_cat_no'], $material_cat_no);
+                    $value['material_cat_no'] = isset($material_cat_no[2]) ? $material_cat_no[2] : '';
+                    if (empty($value['material_cat_no']) && !empty($material_cat_no[1])) {
+                        $value['material_cat_no'] = $materialcat_model->getCatNoByRealName($material_cat_no[1]);
+                    }
+                } elseif (!empty($value['material_cat_no']) && is_array($value['material_cat_no'])) {
+                    preg_match('/.*?-(\d+)$/', $value['material_cat_no'][count($value['material_cat_no']) - 1], $material_cat_no);
+                    unset($value['material_cat_no']);
+                    $value['material_cat_no'] = isset($material_cat_no[1]) ? $material_cat_no[1] : '';
+                }
                 $inquiryItemData = $quoteItemData = $value;
                 unset($inquiryItemData['id'], $quoteItemData['id']);
                 $inquiryItemData['brand'] = $value['inquiry_brand'];
+
+
+
                 $quoteItemData['quote_qty'] = $value['qty'];
                 $quoteItemData['quote_unit'] = $value['unit'];
                 $quoteItemData = $this->create($quoteItemData);
+
                 if ($value['id'] == '') {
                     $inquiryItemData['created_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->addData($inquiryItemData);
+
                     $quoteItemData['inquiry_item_id'] = $inquiryItemResult['insert_id'];
                     $quoteItemData['created_by'] = $user;
                     $quoteItemData['created_at'] = $time;
@@ -293,6 +340,7 @@ class QuoteItemModel extends PublicModel {
                     $inquiryItemData['id'] = $value['inquiry_item_id'];
                     $inquiryItemData['updated_by'] = $user;
                     $inquiryItemResult = $inquiryItemModel->updateData($inquiryItemData);
+
                     $quoteItemData['id'] = $value['id'];
                     $quoteItemData['updated_by'] = $user;
                     $quoteItemData['updated_at'] = $time;
@@ -309,35 +357,33 @@ class QuoteItemModel extends PublicModel {
         return ['code' => '1', 'message' => L('SUCCESS'), 'supplier_fail_list' => implode(',', $supplierFailList)];
     }
 
-    public function syncSku($request,$user){
+    public function syncSku($request, $user) {
 
         $quoteModel = new QuoteModel();
         $inquiryItemModel = new InquiryItemModel();
         //查询所有已经添加过的，后面判断是添加还是修改
-        $quoteItems = $this->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->getField('inquiry_item_id',true);
+        $quoteItems = $this->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('inquiry_item_id', true);
         $quoteId = $quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
 
-        $inquiryItems = $inquiryItemModel->where(['inquiry_id'=>$request['inquiry_id'],'deleted_flag'=>'N'])->select();
+        $inquiryItems = $inquiryItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->select();
 
-        foreach ($inquiryItems as $inquiry=>$item){
+        foreach ($inquiryItems as $inquiry => $item) {
             //判断是添加还是修改
-            if (!in_array($item['id'],$quoteItems)){
+            if (!in_array($item['id'], $quoteItems)) {
                 $this->add($this->create([
-                    'quote_id' => $quoteId,
-                    'inquiry_id' => $item['inquiry_id'],
-                    'inquiry_item_id' => $item['id'],
-                    'sku' => $item['sku'],
-                    'quote_qty' => $item['qty'],
-                    'quote_unit' => $item['unit'],
-                    'created_by' => $user,
-                    'created_at' => date('Y-m-d H:i:s')
+                            'quote_id' => $quoteId,
+                            'inquiry_id' => $item['inquiry_id'],
+                            'inquiry_item_id' => $item['id'],
+                            'sku' => $item['sku'],
+                            'quote_qty' => $item['qty'],
+                            'quote_unit' => $item['unit'],
+                            'created_by' => $user,
+                            'created_at' => date('Y-m-d H:i:s')
                 ]));
             }
-
         }
-
     }
-    
+
     /**
      * @desc 获取报价审核人SKU记录总数
      *
@@ -355,19 +401,22 @@ class QuoteItemModel extends PublicModel {
      * 获取SKU关联信息
      * author:张玉良、刘俊飞
      */
-    public function getQuoteFinalSku($request){
+    public function getQuoteFinalSku($request) {
         $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
-        $pageSize =  empty($request['pageSize']) ? 10 : $request['pageSize'];
-        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,b.model,b.remarks,b.category,a.exw_unit_price,
-                         a.quote_unit_price,c.exw_unit_price final_exw_unit_price,c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,
-                         a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,a.goods_source,a.stock_loc,a.reason_for_no_quote';
+        $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
+        $fields = 'c.id,c.sku,b.buyer_goods_no,b.name,b.name_zh,b.qty,b.unit,b.brand,'
+                . 'b.model,b.remarks,b.category,a.exw_unit_price,'
+                . 'a.quote_unit_price,c.exw_unit_price final_exw_unit_price,'
+                . 'c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,'
+                . 'a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,'
+                . 'a.goods_source,a.stock_loc,a.reason_for_no_quote,b.material_cat_no,a.org_id';
         return $this->getFinalSqlJoint($request)
-                            ->field($fields)
-                            ->page($currentPage, $pageSize)
-                            ->order('a.id ASC')
-                            ->select();
+                        ->field($fields)
+                        ->page($currentPage, $pageSize)
+                        ->order('a.id ASC')
+                        ->select();
     }
-    
+
     /**
      * @desc 获取报价审核人SKU组装sql后的对象
      *
@@ -384,11 +433,11 @@ class QuoteItemModel extends PublicModel {
         $where['a.inquiry_id'] = $request['inquiry_id'];
         $where['a.deleted_flag'] = 'N';
         return $this->alias('a')
-                            ->join($inquiryItemTableName . ' b ON b.id = a.inquiry_item_id', 'LEFT')
-                            ->join($finalQuoteItemTableName . ' c ON c.quote_item_id = a.id', 'LEFT')
-                            ->where($where);
+                        ->join($inquiryItemTableName . ' b ON b.id = a.inquiry_item_id', 'LEFT')
+                        ->join($finalQuoteItemTableName . ' c ON c.quote_item_id = a.id', 'LEFT')
+                        ->where($where);
     }
-    
+
     /**
      * @desc 根据报价单ID删除SKU记录
      *
