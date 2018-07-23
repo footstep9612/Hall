@@ -19,6 +19,7 @@ class SupplierInquiryModel extends PublicModel {
     protected $tableName = 'supplier';
     protected $dbName = 'erui_supplier'; //数据库名称
     protected $areas = ['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe'];
+    protected $RateUSD = [];
 
     public function __construct() {
 
@@ -409,7 +410,7 @@ class SupplierInquiryModel extends PublicModel {
         $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
         $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
         /*         * *************-----------询单项明细结束------------------- */
-        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,qt.inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
+        $field .= 'i.created_at,it.category,qt.reason_for_no_quote,i.id as inquiry_id,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
 
         $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
         $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
@@ -481,34 +482,18 @@ class SupplierInquiryModel extends PublicModel {
                 ->field($field)
                 ->where($where)
                 ->select();
-
-
-
         $this->_setSupplierName($list);
-
         $this->_setquoted_time($list);
-
         $this->_setProductName($list);
-
         $this->_setConstPrice($list);
-
         $this->_setMaterialCat($list, 'zh');
-
         $this->_setCalculatePrice($list);
-
         $this->_setBizDespatching($list);
-
         $this->_setOilFlag($list);
-
         $this->_setObtainInfo($list);
-
         $this->_setClarifyTime($list);
-
         $this->_setQuoteSpendTime($list);
-
         $this->_resetListData($list);
-
-
         return $this->_createXls($list);
     }
 
@@ -1111,27 +1096,59 @@ class SupplierInquiryModel extends PublicModel {
             }
         }
         $clarification = [];
+
+        // 各环节的项目澄清时间列表
+        $clarifys = $inquiryCheckLogModel
+                ->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time,inquiry_id')
+                ->where(['in_node' => 'CLARIFY',
+                    'out_node' => ['in', $clarifyNode],
+                    'inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']]
+                ])
+                ->order('id ASC')
+                ->select();
+        $clarifyList = [];
+        foreach ($clarifys as $clarify) {
+            $clarifyList[$clarify['inquiry_id']][] = $clarify;
+        }
+        $node_datas = $inquiryCheckLogModel
+                ->field('max(id) as max_id')
+                ->where(['inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']]])
+                ->group('inquiry_id')
+                ->order('id DESC')
+                ->select();
+        $node_ids = [];
+        foreach ($node_datas as $node_data) {
+            $node_ids = $node_data['max_id'];
+        }
+        $nodeDatas = [];
+        $nodes = $inquiryCheckLogModel
+                ->field('inquiry_id,in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time')
+                ->where(['id' => ['in', !empty($node_ids) ? $node_ids : ['-1']]])
+                ->group('inquiry_id')
+                ->order('id DESC')
+                ->select();
+        foreach ($nodes as $nodedata) {
+            $nodeDatas[$nodedata['inquiry_id']] = $nodedata;
+        }
+
         foreach ($inquiry_ids as $inquiry_id) {
             $item = [];
-            $where['inquiry_id'] = $inquiry_id;
 
             foreach ($clarifyMapping as $v) {
 // 项目澄清时间初始化
                 $item[$v] = '';
             }
             $item['clarification_time'] = '';
-// 各环节的项目澄清时间列表
-            $clarifyList = $inquiryCheckLogModel->field('out_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS clarify_time')->where(array_merge($where, ['in_node' => 'CLARIFY', 'out_node' => ['in', $clarifyNode]]))->order('id ASC')->select();
 
 
-            foreach ($clarifyList as $clarify) {
+
+            foreach ($clarifyList[$inquiry_id] as $clarify) {
 // 计算各环节的项目澄清时间
                 $item[$clarifyMapping[$clarify['out_node']]] += $clarify['clarify_time'];
             }
-            $nodeData = $inquiryCheckLogModel->field('in_node, out_node, UNIX_TIMESTAMP(out_at) AS out_time'
-                    )->where($where)->order('id DESC')->find();
 
-            Log::write($inquiryCheckLogModel->_sql());
+            $nodeData = $nodeDatas[$inquiry_id];
+
             $lastClarifyTime = '';
             if ($nodeData['out_node'] == 'CLARIFY' && in_array($nodeData['in_node'], $clarifyNode)) {
                 $lastClarifyTime = $nowTime - $nodeData['out_time'];
@@ -1202,6 +1219,14 @@ class SupplierInquiryModel extends PublicModel {
                 ];
             }
         }
+
+        $nodes = $inquiryCheckLogModel->field('inquiry_id,in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')
+                        ->where(['inquiry_id' => ['in', !empty($inquiry_ids) ? $inquiry_ids : ['-1']],
+                            'in_node' => ['in', $quoteNode]])->select();
+        $spendList = [];
+        foreach ($nodes as $nodedata) {
+            $spendList[$nodedata['inquiry_id']] = $nodedata;
+        }
         $quoted_times = [];
 
         foreach ($inquiry_ids as $inquiry_id) {
@@ -1213,9 +1238,8 @@ class SupplierInquiryModel extends PublicModel {
                 $item[$v] = '';
             }
 // 各环节的报价用时列表
-            $spendList = $inquiryCheckLogModel->field('in_node, (UNIX_TIMESTAMP(out_at) - UNIX_TIMESTAMP(into_at)) AS quote_time')->where(['inquiry_id' => $inquiry_id,
-                        'in_node' => ['in', $quoteNode]])->select();
-            foreach ($spendList as $spend) {
+
+            foreach ($spendList[$inquiry_id] as $spend) {
 // 计算各环节的报价用时
                 $quoteTime[$quoteMapping[$spend['in_node']]] += $spend['quote_time'];
             }
@@ -1359,13 +1383,13 @@ class SupplierInquiryModel extends PublicModel {
 
         if (empty($cur)) {
             return 1;
-        } elseif (redisExist('RateUSD_' . $cur)) {
+        } elseif ($this->RateUSD[$cur]) {
 
-            return redisGet('RateUSD_' . $cur);
+            return $this->RateUSD[$cur];
         } else {
             $Rate = $this->_getRate('USD', $cur);
 
-            redisSet('RateUSD_' . $cur, $Rate, 180);
+            $this->RateUSD[$cur] = $Rate;
             return $Rate;
         }
     }
