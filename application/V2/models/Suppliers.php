@@ -388,6 +388,7 @@ class SuppliersModel extends PublicModel {
     public function getJoinDetail($condition = []) {
 
         $where = $this->getJoinWhere($condition);
+        $where['a.id'] = $condition['id'];
 
         // 去掉删除条件
         unset($where['a.deleted_flag']);
