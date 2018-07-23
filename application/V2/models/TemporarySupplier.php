@@ -56,7 +56,7 @@ class TemporarySupplierModel extends PublicModel
         return $this->where(['id' => $id, 'deleted_flag' => 'N'])->find();
     }
 
-    public function skuById($id)
+    public function skuById($id, $request)
     {
         $fields = 'i.name,i.name_zh,i.qty,i.unit,i.brand,i.model,i.remarks,q.purchase_unit_price';
         $where = [
@@ -66,12 +66,24 @@ class TemporarySupplierModel extends PublicModel
             'i.deleted_flag' => 'N',
         ];
 
-        return $this->alias('a')
+        $currentPage = empty($request['currentPage']) ? 1 : $request['currentPage'];
+        $pageSize = empty($request['pageSize']) ? 10 : $request['pageSize'];
+
+        $sku = $this->alias('a')
             ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
             ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
             ->field($fields)
             ->where($where)
+            ->page($currentPage, $pageSize)
             ->select();
+        $total = $this->alias('a')
+            ->join('erui_rfq.quote_item q ON a.id=q.supplier_id')
+            ->join('erui_rfq.inquiry_item i ON q.inquiry_item_id=i.id')
+            ->field($fields)
+            ->where($where)
+            ->count('a.id');
+
+        return [$sku, $total];
     }
 
     public function getList(array $condition=[])

@@ -1524,17 +1524,17 @@ class InquiryController extends PublicController {
         if (!in_array($data['out_node'], ['QUOTE_SENT', 'INQUIRY_CLOSED'])) {
 
 //
-//            if ($data['out_node'] == 'BIZ_DISPATCHING' && !empty($inquiryInfo['org_id'])) {
-//
-//                $user = (new OrgMemberModel())->getSmsUserByOrgId($inquiryInfo['org_id']);
-//                if (!empty($user)) {
-//                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $user['name'], $data['in_node'], $data['out_node']);
-//                } else {
-//                    $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
-//                }
-//            } else {
-            $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
-            //  }
+            if ($data['out_node'] == 'BIZ_DISPATCHING' && !empty($inquiryInfo['org_id'])) {
+
+                $user = (new OrgMemberModel())->getSmsUserByOrgId($inquiryInfo['org_id']);
+                if (!empty($user)) {
+                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $user['name'], $data['in_node'], $data['out_node']);
+                } else {
+                    $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
+                }
+            } else {
+                $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
+            }
 //发送邮件通知
 //            $role_name = $inquiryModel->setRoleName($inquiryModel->getUserRoleById($this->user['id']));
 //

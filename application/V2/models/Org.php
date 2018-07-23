@@ -197,4 +197,59 @@ class OrgModel extends PublicModel {
         return $count;
     }
 
+    public function setOrgName(&$arr) {
+        if ($arr) {
+
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['org_id']) && $val['org_id']) {
+                    $org_ids[] = $val['org_id'];
+                }
+            }
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $this->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
+                    $val['org_name'] = $orgnames[$val['org_id']];
+                } else {
+                    $val['org_name'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
+    public function setOrgidAndName(&$arr) {
+        if ($arr) {
+
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['org_id']) && $val['org_id']) {
+                    $org_ids[] = $val['org_id'];
+                }
+            }
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $this->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
+                    $val['org_id'] = $orgnames[$val['org_id']] . '-' . $val['org_id'];
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }
