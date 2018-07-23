@@ -1,16 +1,18 @@
 <?php
+
 /*
  * @desc 导入和导出EXCL
  *
  * @author liujf
  * @time 2017-12-21
  */
+
 class ExcelimportandexportController extends PublicController {
 
     public function init() {
         ini_set('display_errors', 'On');
         error_reporting(E_ERROR | E_STRICT);
-        
+
         $this->inquiryModel = new InquiryModel();
         $this->inquiryCheckLogModel = new InquiryCheckLogModel();
         $this->inquiryItemModel = new InquiryItemModel();
@@ -29,14 +31,14 @@ class ExcelimportandexportController extends PublicController {
         $this->productModel = new ProductModel();
         $this->goodsModel = new GoodsModel();
         $this->sinosurePolicyModel = new SinosurePolicyModel();
-        
+
         $this->time = date('Y-m-d H:i:s');
-        
+
         $this->_getRequestUrl();
         $this->_getFastDFSUrl();
         $this->_getExcelDir();
     }
-    
+
     /**
      * @desc 导入订单基本信息
      *
@@ -45,20 +47,21 @@ class ExcelimportandexportController extends PublicController {
      */
     public function importOrderBaseInfoAction() {
         $condition = $this->_trim($this->_getPut());
-        
-        if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
-        
+
+        if ($condition['floder'] == '')
+            jsonReturn('', -101, '缺少文件夹参数!');
+
         $classify = $this->_getTempletAndAttach($condition['floder']);
-        
+
         // 获取订单模板数据
         $templet = $classify['templet'][0];
         $templetBaseData = $this->_trim(ExcelHelperTrait::ready2import($templet));
         $templetDeliveryData = $this->_trim(ExcelHelperTrait::ready2import($templet, 1));
         $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
-        /*$templetAddressData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
-        $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 3));*/
-        
-        /* 批量导入数据*/
+        /* $templetAddressData = $this->_trim(ExcelHelperTrait::ready2import($templet, 2));
+          $templetPaymentData = $this->_trim(ExcelHelperTrait::ready2import($templet, 3)); */
+
+        /* 批量导入数据 */
         $baseDataIndex = $deliveryDataIndex = $addressDataIndex = $paymentDataIndex = 0;
         $importOrderList = $importBuyerContactList = $importOrderContactList = $importDeliveryList = $importAddressList = $importPaymentList = $executeNoArr = $orderIdMapping = $attachNameMapping = [];
         // 没有客户的订单执行单号
@@ -70,26 +73,26 @@ class ExcelimportandexportController extends PublicController {
                 // 记录没有客户的订单执行单号
                 if (!$buyerId) {
                     $noBuyerExecuteNoArr[] = $executeNo;
-                    /*$baseDataIndex++;
-                    continue;*/
+                    /* $baseDataIndex++;
+                      continue; */
                 }
                 $orderData = [
                     'po_no' => $baseInfo[0],
                     'execute_no' => $executeNo,
                     'contract_date' => $baseInfo[2] == '' ? null : $this->_getStorageDate($baseInfo[2]),
                     'buyer_id' => $buyerId == '' ? null : $buyerId,
-                    'order_agent' => $this->employeeModel->getUserIdByNo($baseInfo[5]) ? : null,
+                    'order_agent' => $this->employeeModel->getUserIdByNo($baseInfo[5]) ?: null,
                     'execute_date' => $baseInfo[6] == '' ? null : $this->_getStorageDate($baseInfo[6]),
                     //'agent_id' => $this->employeeModel->getUserIdByNo($baseInfo[10]) ? : null,
-                    'amount' => $baseInfo[14] == '' ? null : str_replace(',' , '', $baseInfo[14]),
+                    'amount' => $baseInfo[14] == '' ? null : str_replace(',', '', $baseInfo[14]),
                     'currency_bn' => $baseInfo[15],
                     'trade_terms_bn' => $baseInfo[16],
-                    /*'trans_mode_bn' => $baseInfo[17],
-                    'from_country_bn' => $baseInfo[18],
-                    'from_port_bn' => $baseInfo[19],
-                    'to_country_bn' => $baseInfo[20],
-                    'to_port_bn' => $baseInfo[21],
-                    'address' => $baseInfo[22],*/
+                    /* 'trans_mode_bn' => $baseInfo[17],
+                      'from_country_bn' => $baseInfo[18],
+                      'from_port_bn' => $baseInfo[19],
+                      'to_country_bn' => $baseInfo[20],
+                      'to_port_bn' => $baseInfo[21],
+                      'address' => $baseInfo[22], */
                     // 订单状态为进行中
                     'show_status' => 'GOING',
                     'deleted_flag' => 'N',
@@ -98,35 +101,35 @@ class ExcelimportandexportController extends PublicController {
                 // 需要导入的订单执行单号和数据
                 $executeNoArr[] = $executeNo;
                 $importOrderList[] = $orderData;
-                /*// 需要导入的采购商联系人数据
-                $buyerContactData = [
-                    'execute_no' => $executeNo,
-                    'name' => $baseInfo[7],
-                    'phone' => $baseInfo[8], 
-                    'email' => $baseInfo[9],
-                    'created_at' => $this->time
-                ];
-                $importBuyerContactList[] = $buyerContactData;
-                // 需要导入的订单联系人数据
-                $orderContactData = [
-                    'name' => $baseInfo[11],
-                    'company' => '易瑞',
-                    'phone' => $baseInfo[12],
-                    'email' => $baseInfo[13],
-                    'created_at' => $this->time
-                ];
-                $importOrderContactList[] = $orderContactData;
-                // 需要导入的附件名称和执行单号的映射(非必填)
-                if ($baseInfo[23] != '') {
-                    $attachNameMapping[$executeNo] = $baseInfo[23];
-                }
-                // 需要导入的交货信息数据(非必填)
-                if ($baseInfo[24] != '') {
-                    $deliveryData = json_decode($baseInfo[24], true);
-                    $deliveryData['execute_no'] = $executeNo;
-                    $deliveryData['created_at'] = $this->time;
-                    $importDeliveryList[] = $deliveryData;
-                }*/
+                /* // 需要导入的采购商联系人数据
+                  $buyerContactData = [
+                  'execute_no' => $executeNo,
+                  'name' => $baseInfo[7],
+                  'phone' => $baseInfo[8],
+                  'email' => $baseInfo[9],
+                  'created_at' => $this->time
+                  ];
+                  $importBuyerContactList[] = $buyerContactData;
+                  // 需要导入的订单联系人数据
+                  $orderContactData = [
+                  'name' => $baseInfo[11],
+                  'company' => '易瑞',
+                  'phone' => $baseInfo[12],
+                  'email' => $baseInfo[13],
+                  'created_at' => $this->time
+                  ];
+                  $importOrderContactList[] = $orderContactData;
+                  // 需要导入的附件名称和执行单号的映射(非必填)
+                  if ($baseInfo[23] != '') {
+                  $attachNameMapping[$executeNo] = $baseInfo[23];
+                  }
+                  // 需要导入的交货信息数据(非必填)
+                  if ($baseInfo[24] != '') {
+                  $deliveryData = json_decode($baseInfo[24], true);
+                  $deliveryData['execute_no'] = $executeNo;
+                  $deliveryData['created_at'] = $this->time;
+                  $importDeliveryList[] = $deliveryData;
+                  } */
                 // 需要导入的收货人地址数据
                 if ($baseInfo[25] != '') {
                     $addressData = [
@@ -137,18 +140,18 @@ class ExcelimportandexportController extends PublicController {
                     ];
                     $importAddressList[] = $addressData;
                 }
-                /*// 需要导入的结算方式数据(非必填)
-                if ($baseInfo[26] != '') {
-                    $paymentData = json_decode($baseInfo[26], true);
-                    $paymentData['execute_no'] = $executeNo;
-                    $paymentData['created_at'] = $this->time;
-                    $importPaymentList[] = $paymentData;
-                }*/
+                /* // 需要导入的结算方式数据(非必填)
+                  if ($baseInfo[26] != '') {
+                  $paymentData = json_decode($baseInfo[26], true);
+                  $paymentData['execute_no'] = $executeNo;
+                  $paymentData['created_at'] = $this->time;
+                  $importPaymentList[] = $paymentData;
+                  } */
             }
             $baseDataIndex++;
         }
-        /*// 打印没有客户的订单执行单号
-        print_r($noBuyerExecuteNoArr);exit; */
+        /* // 打印没有客户的订单执行单号
+          print_r($noBuyerExecuteNoArr);exit; */
         // 需要导入的订单数据列表中加入订单编号
         $listCount = count($importOrderList);
         $orderNoArr = $this->_getOrderNoArr($listCount);
@@ -158,7 +161,8 @@ class ExcelimportandexportController extends PublicController {
         if ($importOrderList) {
             // 导入订单数据
             $importOrderResult = $this->orderModel->addAll($importOrderList);
-            if (!$importOrderResult) jsonReturn('', -101, '订单数据导入失败!');
+            if (!$importOrderResult)
+                jsonReturn('', -101, '订单数据导入失败!');
             // 订单执行单号和订单ID的映射关系
             foreach ($executeNoArr as $executeNo) {
                 $orderIdMapping[$executeNo] = $this->_getOrderIdByExecuteNo($executeNo);
@@ -180,30 +184,30 @@ class ExcelimportandexportController extends PublicController {
                 }
                 $deliveryDataIndex++;
             }
-            /*foreach ($templetAddressData as $addressInfo) {
-                if ($addressDataIndex > 1 && $addressInfo[0] != '') {
-                    $executeNo = strtoupper($addressInfo[0]);
-                    $orderId = $orderIdMapping[$executeNo];
-                    if ($orderId) {
-                        // 需要导入的收货人地址数据
-                        $addressData = [
-                            'order_id' => $orderId,
-                            'name' => $addressInfo[1],
-                            'tel_number' => $addressInfo[2],
-                            'area_bn' => $addressInfo[3],
-                            'country' => $addressInfo[4],
-                            'city' => $addressInfo[5],
-                            'zipcode' => $addressInfo[6],
-                            'fax' => $addressInfo[7],
-                            'address' => $addressInfo[8],
-                            'email' => $addressInfo[9],
-                            'created_at' => $this->time
-                        ];
-                        $importAddressList[] = $addressData;
-                    }
-                }
-                $addressDataIndex++;
-            }*/
+            /* foreach ($templetAddressData as $addressInfo) {
+              if ($addressDataIndex > 1 && $addressInfo[0] != '') {
+              $executeNo = strtoupper($addressInfo[0]);
+              $orderId = $orderIdMapping[$executeNo];
+              if ($orderId) {
+              // 需要导入的收货人地址数据
+              $addressData = [
+              'order_id' => $orderId,
+              'name' => $addressInfo[1],
+              'tel_number' => $addressInfo[2],
+              'area_bn' => $addressInfo[3],
+              'country' => $addressInfo[4],
+              'city' => $addressInfo[5],
+              'zipcode' => $addressInfo[6],
+              'fax' => $addressInfo[7],
+              'address' => $addressInfo[8],
+              'email' => $addressInfo[9],
+              'created_at' => $this->time
+              ];
+              $importAddressList[] = $addressData;
+              }
+              }
+              $addressDataIndex++;
+              } */
             foreach ($templetPaymentData as $paymentInfo) {
                 if ($paymentDataIndex > 1 && $paymentInfo[0] != '') {
                     $executeNo = strtoupper($paymentInfo[0]);
@@ -213,7 +217,7 @@ class ExcelimportandexportController extends PublicController {
                         $paymentData = [
                             'order_id' => $orderId,
                             'name' => $paymentInfo[1],
-                            'amount' => $paymentInfo[2] == '' ? null : str_replace(',' , '', $paymentInfo[2]),
+                            'amount' => $paymentInfo[2] == '' ? null : str_replace(',', '', $paymentInfo[2]),
                             'payment_mode' => $paymentInfo[3],
                             'payment_at' => $paymentInfo[4] == '' ? null : $this->_getStorageDate($paymentInfo[4]),
                             'created_at' => $this->time
@@ -223,37 +227,38 @@ class ExcelimportandexportController extends PublicController {
                 }
                 $paymentDataIndex++;
             }
-            /*// 导入采购商联系人数据
-            foreach ($importBuyerContactList as &$importBuyerContact) {
-                $importBuyerContact['order_id'] = $orderIdMapping[$importBuyerContact['execute_no']];
-                unset($importBuyerContact['execute_no']);
-            }
-            if ($importBuyerContactList) {
-                $importBuyerContactResult = $this->orderBuyerContactModel->addAll($importBuyerContactList);
-                if (!$importBuyerContactResult) jsonReturn('', -101, '采购商联系人数据导入失败!');
-            }
-            // 更新订单表中的采购商联系人ID
-            foreach ($importBuyerContactList as $importBuyerContact) {
-                $buyerContactId = $this->orderBuyerContactModel->where(['order_id' => $importBuyerContact['order_id']])->getField('id');
-                $this->orderModel->where(['id' => $importBuyerContact['order_id']])->save(['order_contact_id' => $buyerContactId, 'buyer_contact_id' => $buyerContactId]);
-            }
-            // 导入订单联系人数据
-            foreach ($importOrderContactList as &$importOrderContact) {
-                $importOrderContact['order_id'] = $orderIdMapping[$importOrderContact['execute_no']];
-                unset($importOrderContact['execute_no']);
-            }
-            if ($importOrderContactList) {
-                $importOrderContactResult = $this->orderContactModel->addAll($importOrderContactList);
-                if (!$importOrderContactResult) jsonReturn('', -101, '订单联系人数据导入失败!');
-            }
-            // 导入交货信息数据
-            foreach ($importDeliveryList as &$importDelivery) {
-                $importDelivery['order_id'] = $orderIdMapping[$importDelivery['execute_no']];
-                unset($importDelivery['execute_no']);
-            }*/
+            /* // 导入采购商联系人数据
+              foreach ($importBuyerContactList as &$importBuyerContact) {
+              $importBuyerContact['order_id'] = $orderIdMapping[$importBuyerContact['execute_no']];
+              unset($importBuyerContact['execute_no']);
+              }
+              if ($importBuyerContactList) {
+              $importBuyerContactResult = $this->orderBuyerContactModel->addAll($importBuyerContactList);
+              if (!$importBuyerContactResult) jsonReturn('', -101, '采购商联系人数据导入失败!');
+              }
+              // 更新订单表中的采购商联系人ID
+              foreach ($importBuyerContactList as $importBuyerContact) {
+              $buyerContactId = $this->orderBuyerContactModel->where(['order_id' => $importBuyerContact['order_id']])->getField('id');
+              $this->orderModel->where(['id' => $importBuyerContact['order_id']])->save(['order_contact_id' => $buyerContactId, 'buyer_contact_id' => $buyerContactId]);
+              }
+              // 导入订单联系人数据
+              foreach ($importOrderContactList as &$importOrderContact) {
+              $importOrderContact['order_id'] = $orderIdMapping[$importOrderContact['execute_no']];
+              unset($importOrderContact['execute_no']);
+              }
+              if ($importOrderContactList) {
+              $importOrderContactResult = $this->orderContactModel->addAll($importOrderContactList);
+              if (!$importOrderContactResult) jsonReturn('', -101, '订单联系人数据导入失败!');
+              }
+              // 导入交货信息数据
+              foreach ($importDeliveryList as &$importDelivery) {
+              $importDelivery['order_id'] = $orderIdMapping[$importDelivery['execute_no']];
+              unset($importDelivery['execute_no']);
+              } */
             if ($importDeliveryList) {
                 $importDeliveryResult = $this->orderDeliveryModel->addAll($importDeliveryList);
-                if (!$importDeliveryResult) jsonReturn('', -101, '交货信息数据导入失败!');
+                if (!$importDeliveryResult)
+                    jsonReturn('', -101, '交货信息数据导入失败!');
             }
             // 导入收货人地址数据
             foreach ($importAddressList as &$importAddress) {
@@ -262,27 +267,29 @@ class ExcelimportandexportController extends PublicController {
             }
             if ($importAddressList) {
                 $importAddressResult = $this->orderAddressModel->addAll($importAddressList);
-                if (!$importAddressResult) jsonReturn('', -101, '收货人地址数据导入失败!');
+                if (!$importAddressResult)
+                    jsonReturn('', -101, '收货人地址数据导入失败!');
             }
-            /*// 导入结算方式数据
-            foreach ($importPaymentList as &$importPayment) {
-                $importPayment['order_id'] = $orderIdMapping[$importPayment['execute_no']];
-                unset($importPayment['execute_no']);
-            }*/
+            /* // 导入结算方式数据
+              foreach ($importPaymentList as &$importPayment) {
+              $importPayment['order_id'] = $orderIdMapping[$importPayment['execute_no']];
+              unset($importPayment['execute_no']);
+              } */
             if ($importPaymentList) {
                 $importPaymentResult = $this->orderPaymentModel->addAll($importPaymentList);
-                if (!$importPaymentResult) jsonReturn('', -101, '结算方式数据导入失败!');
+                if (!$importPaymentResult)
+                    jsonReturn('', -101, '结算方式数据导入失败!');
             }
-            
-            /* 批量上传和导入附件*/
+
+            /* 批量上传和导入附件 */
             $this->_batchImportOrderAttach($classify['attach'], 'PO', $orderIdMapping, $attachNameMapping);
-            
-            /* 导入成功，返回没有客户的订单执行单号(如果存在)*/
+
+            /* 导入成功，返回没有客户的订单执行单号(如果存在) */
             $this->jsonReturn($noBuyerExecuteNoArr ? ['execute_no' => $noBuyerExecuteNoArr] : true);
-            
-        } else jsonReturn('', -101, '没有可导入的数据!');
+        } else
+            jsonReturn('', -101, '没有可导入的数据!');
     }
-    
+
     /**
      * @desc 导入订单日志信息
      *
@@ -291,19 +298,21 @@ class ExcelimportandexportController extends PublicController {
      */
     public function importOrderLogInfoAction() {
         $condition = $this->_trim($this->_getPut());
-    
-        if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
-    
+
+        if ($condition['floder'] == '')
+            jsonReturn('', -101, '缺少文件夹参数!');
+
         $classify = $this->_getTempletAndAttach($condition['floder']);
         $logGroup = strtoupper($condition['log_group']);
         $logGroupArr = ['OUTBOUND', 'LOGISTICS', 'DELIVERY', 'COLLECTION', 'CREDIT'];
-        
-        if (!in_array($logGroup, $logGroupArr)) jsonReturn('', -101, '需要正确的日志分组类别!');
-    
+
+        if (!in_array($logGroup, $logGroupArr))
+            jsonReturn('', -101, '需要正确的日志分组类别!');
+
         // 获取模板数据
         $templetData = $this->_trim(ExcelHelperTrait::ready2import($classify['templet'][0]));
-    
-        /* 批量导入数据*/
+
+        /* 批量导入数据 */
         $dataIndex = 0;
         $importOrderLogList = $orderIdMapping = $attachNameMapping = [];
         foreach ($templetData as $data) {
@@ -326,10 +335,10 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
                             // 更新订单状态为已出库
                             $this->_setOrderStatus($where, 'OUTGOING');
-                            /*// 需要导入的附件名称和执行单号的映射(非必填)
-                             if ($data[4] != '') {
-                             $attachNameMapping[$data[0]] = $data[4];
-                            }*/
+                            /* // 需要导入的附件名称和执行单号的映射(非必填)
+                              if ($data[4] != '') {
+                              $attachNameMapping[$data[0]] = $data[4];
+                              } */
                             break;
                         case 'LOGISTICS' :
                             $orderLogData['waybill_no'] = $data[1];
@@ -337,30 +346,30 @@ class ExcelimportandexportController extends PublicController {
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
                             // 更新订单状态为已发运
                             $this->_setOrderStatus($where, 'DISPATCHED');
-                            /*if ($data[4] != '') {
-                             $attachNameMapping[$data[0]] = $data[4];
-                             }*/
+                            /* if ($data[4] != '') {
+                              $attachNameMapping[$data[0]] = $data[4];
+                              } */
                             break;
                         case 'DELIVERY' :
                             $orderLogData['content'] = $data[1];
                             $orderLogData['log_at'] = $data[2] == '' ? null : $this->_getStorageDate($data[2]);
-                            /*if ($data[3] != '') {
-                             $attachNameMapping[$data[0]] = $data[3];
-                             }*/
+                            /* if ($data[3] != '') {
+                              $attachNameMapping[$data[0]] = $data[3];
+                              } */
                             break;
                         case 'CREDIT' :
                             $orderLogData['type'] = $this->_getCreditTypeByName($data[1]);
-                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
+                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',', '', $data[2]);
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
                             $orderLogData['content'] = $data[4];
                             break;
                         case 'COLLECTION' :
                             $orderLogData['content'] = $data[1];
-                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',' , '', $data[2]);
+                            $orderLogData['amount'] = $data[2] == '' ? null : str_replace(',', '', $data[2]);
                             $orderLogData['log_at'] = $data[3] == '' ? null : $this->_getStorageDate($data[3]);
-                           /* // 更新订单状态为已完成
-                            $hasDelivery = $this->orderLogModel->where(['order_id' => $orderId, 'deleted_flag' => 'N'])->getField('id');
-                            if ($hasDelivery && $data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED');*/
+                            /* // 更新订单状态为已完成
+                              $hasDelivery = $this->orderLogModel->where(['order_id' => $orderId, 'deleted_flag' => 'N'])->getField('id');
+                              if ($hasDelivery && $data[4] == '是') $this->_setOrderStatus($where, 'COMPLETED'); */
                             // 更新订单的收款状态
                             $this->orderModel->where($where)->setField('pay_status', $this->_getPayStatusByWhether($data[4]));
                     }
@@ -373,17 +382,18 @@ class ExcelimportandexportController extends PublicController {
         if ($importOrderLogList) {
             // 导入订单日志信息数据
             $importOrderLogResult = $this->orderLogModel->addAll($importOrderLogList);
-            if (!$importOrderLogResult) jsonReturn('', -101, '订单日志信息数据导入失败!');
-    
-            /* 批量上传和导入附件*/
+            if (!$importOrderLogResult)
+                jsonReturn('', -101, '订单日志信息数据导入失败!');
+
+            /* 批量上传和导入附件 */
             //$this->_batchImportOrderAttach($classify['attach'], $logGroup, $orderIdMapping, $attachNameMapping);
-    
-            /* 导入成功*/
+
+            /* 导入成功 */
             $this->jsonReturn(true);
-            
-        } else jsonReturn('', -101, '没有可导入的数据!');
+        } else
+            jsonReturn('', -101, '没有可导入的数据!');
     }
-    
+
     /**
      * @desc 导入信保政策信息
      *
@@ -392,11 +402,12 @@ class ExcelimportandexportController extends PublicController {
      */
     public function importSinosurePolicyInfoAction() {
         $condition = $this->_trim($this->_getPut());
-        
-        if ($condition['floder'] == '') jsonReturn('', -101, '缺少文件夹参数!');
-        
+
+        if ($condition['floder'] == '')
+            jsonReturn('', -101, '缺少文件夹参数!');
+
         $classify = $this->_getTempletAndAttach($condition['floder']);
-        
+
         // 获取信保政策模板数据
         $templet = $classify['templet'][0];
         $templetSinosurePolicyKeruiData = $this->_trim(ExcelHelperTrait::ready2import($templet));
@@ -454,9 +465,10 @@ class ExcelimportandexportController extends PublicController {
             // 数据导入
             $importSinosurePolicyResult = $this->sinosurePolicyModel->addAll($importSinosurePolicyList);
             $this->jsonReturn($importSinosurePolicyResult);
-        } else jsonReturn('', -101, '没有可导入的数据!');
+        } else
+            jsonReturn('', -101, '没有可导入的数据!');
     }
-    
+
     /**
      * @desc 获取模板和附件
      *
@@ -467,10 +479,10 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getTempletAndAttach($floder) {
         // 导入路径
-        $path = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $floder;
+        $path = $this->_addSlash($this->excelDir ?: $this->_getExcelDir()) . $floder;
         return $this->_fileClassify($path);
     }
-    
+
     /**
      * @desc 获取excel文件存放目录
      *
@@ -483,7 +495,7 @@ class ExcelimportandexportController extends PublicController {
         $this->_createDir($excelDir);
         return $this->excelDir = $excelDir;
     }
-    
+
     /**
      * @desc 对需要导入目录下的文件进行分类
      *
@@ -504,7 +516,7 @@ class ExcelimportandexportController extends PublicController {
         }
         return $data;
     }
-    
+
     /**
      * @desc 扫描目录下所有文件
      *
@@ -516,14 +528,16 @@ class ExcelimportandexportController extends PublicController {
     private function _scanDir($path, &$files) {
         if (is_dir($path)) {
             $dp = dir($path);
-            while($file = $dp->read()) {
-                if($file != '.' && $file != '..') $this->_scanDir($this->_addSlash($path) . $file, $files);
+            while ($file = $dp->read()) {
+                if ($file != '.' && $file != '..')
+                    $this->_scanDir($this->_addSlash($path) . $file, $files);
             }
             $dp->close();
         }
-        if(is_file($path)) $files[] = $path;
+        if (is_file($path))
+            $files[] = $path;
     }
-    
+
     /**
      * @desc 获取附件的执行单号
      *
@@ -535,12 +549,13 @@ class ExcelimportandexportController extends PublicController {
     private function _getAttachExecuteNo($attach) {
         $name = pathinfo($attach, PATHINFO_BASENAME);
         $dotpos = strrpos($name, '.');
-        if (is_int($dotpos)) $name = substr($name, 0, $dotpos);
+        if (is_int($dotpos))
+            $name = substr($name, 0, $dotpos);
         $tmp = $this->_trim(explode('PO', $name));
-        $no = $tmp[0] ? : $tmp[1];
+        $no = $tmp[0] ?: $tmp[1];
         return $this->_trim(trim($no, '-'));
     }
-    
+
     /**
      * @desc 批量上传和导入订单相关附件
      *
@@ -551,11 +566,11 @@ class ExcelimportandexportController extends PublicController {
      * @author liujf
      * @time 2017-12-26
      */
-    private  function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
+    private function _batchImportOrderAttach(&$attachList, $attachGroup, &$orderIdMapping, &$attachNameMapping) {
         $importAttachList = [];
         foreach ($attachList as $attach) {
             $attachExecuteNo = strtoupper($this->_getAttachExecuteNo($attach));
-            $orderId = $orderIdMapping[$attachExecuteNo] ? : $this->_getOrderIdByExecuteNo($attachExecuteNo);
+            $orderId = $orderIdMapping[$attachExecuteNo] ?: $this->_getOrderIdByExecuteNo($attachExecuteNo);
             if ($orderId) {
                 // 执行附件上传
                 $fileInfo = $this->_uploadToFastDFS($attach);
@@ -563,7 +578,7 @@ class ExcelimportandexportController extends PublicController {
                     $attachData = [
                         'order_id' => $orderId,
                         'attach_group' => $attachGroup,
-                        'attach_name' => $attachNameMapping[$attachExecuteNo] ? : ($fileInfo['name'] ? : $attachGroup),
+                        'attach_name' => $attachNameMapping[$attachExecuteNo] ?: ($fileInfo['name'] ?: $attachGroup),
                         'attach_url' => $fileInfo['url'],
                         'created_at' => $this->time
                     ];
@@ -574,10 +589,11 @@ class ExcelimportandexportController extends PublicController {
         // 导入附件数据
         if ($importAttachList) {
             $importAttachResult = $this->orderAttachModel->addAll($importAttachList);
-            if (!$importAttachResult) jsonReturn('', -101, '附件数据导入失败!');
+            if (!$importAttachResult)
+                jsonReturn('', -101, '附件数据导入失败!');
         }
     }
-    
+
     /**
      * @desc 上传文件到FastDFS
      *
@@ -588,7 +604,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _uploadToFastDFS($file) {
         // 本地和测试调用接口上传
-        if (parse_url($this->requestUrl ? : $this->_getRequestUrl(), PHP_URL_HOST) == '172.18.18.196') {
+        if (parse_url($this->requestUrl ?: $this->_getRequestUrl(), PHP_URL_HOST) == '172.18.18.196') {
             // 上传文件的接口地址
             $url = $this->requestUrl . '/V2/Uploadfile/upload';
             // 上传的文件信息
@@ -605,7 +621,7 @@ class ExcelimportandexportController extends PublicController {
             return $result['fileId'] ? ['code' => '1', 'url' => $result['fileId'], 'name' => $result['file']['name']] : ['code' => '-103', 'message' => 'error'];
         }
     }
-    
+
     /**
      * @desc 获取需要导入的订单编号组
      *
@@ -615,7 +631,8 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-24
      */
     private function _getOrderNoArr($size) {
-        if (!is_int($size)) return false;
+        if (!is_int($size))
+            return false;
         $orderNoArr = [];
         if ($size > 0) {
             $orderNo = $this->_getNewOrderNo();
@@ -628,7 +645,7 @@ class ExcelimportandexportController extends PublicController {
         }
         return $orderNoArr;
     }
-    
+
     /**
      * @desc 获取最新的订单编号
      *
@@ -642,7 +659,7 @@ class ExcelimportandexportController extends PublicController {
         $no = $orderNo ? intval(substr($orderNo, 8)) + 1 : 1;
         return $this->_jointMark($today, $no);
     }
-    
+
     /**
      * @desc 根据授信类型名称获取存储值
      *
@@ -657,11 +674,11 @@ class ExcelimportandexportController extends PublicController {
                 return 'SPENDING';
             case '还款' :
                 return 'REFUND';
-            default : 
+            default :
                 return '';
         }
     }
-    
+
     /**
      * @desc 获取是否全部付款的收款状态存储值
      *
@@ -680,7 +697,7 @@ class ExcelimportandexportController extends PublicController {
                 return '';
         }
     }
-    
+
     /**
      * @desc 获取转换后的存储日期
      *
@@ -692,7 +709,7 @@ class ExcelimportandexportController extends PublicController {
     private function _getStorageDate($date) {
         return date('Y-m-d', strtotime($date));
     }
-    
+
     /**
      * @desc 获取请求地址
      *
@@ -703,7 +720,7 @@ class ExcelimportandexportController extends PublicController {
     private function _getRequestUrl() {
         return $this->requestUrl = Yaf_Application::app()->getConfig()->myhost;
     }
-    
+
     /**
      * @desc 获取FastDFS地址
      *
@@ -714,7 +731,7 @@ class ExcelimportandexportController extends PublicController {
     private function _getFastDFSUrl() {
         return $this->fastDFSUrl = Yaf_Application::app()->getConfig()->fastDFSUrl;
     }
-    
+
     /**
      * @desc 设置订单状态
      *
@@ -727,7 +744,7 @@ class ExcelimportandexportController extends PublicController {
     private function _setOrderStatus($where, $status) {
         return $this->orderModel->where($where)->setField('show_status', $status);
     }
-    
+
     /**
      * @desc 通过订单执行单号获取订单ID
      *
@@ -739,7 +756,7 @@ class ExcelimportandexportController extends PublicController {
     private function _getOrderIdByExecuteNo($executeNo) {
         return $this->orderModel->where(['execute_no' => $executeNo, 'deleted_flag' => 'N'])->order('id DESC')->getField('id');
     }
-    
+
     /**
      * @desc 设置信保政策类型
      *
@@ -749,15 +766,15 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-03-26
      */
     private function _setSinosurePolicyType($index, &$data) {
-        if ($index > 1 && $index <7) {
+        if ($index > 1 && $index < 7) {
             $data['type'] = 'L/C';
-        } else if ($index > 6 && $index <12) {
+        } else if ($index > 6 && $index < 12) {
             $data['type'] = 'D/P';
-        } else if ($index > 11 && $index <17) {
+        } else if ($index > 11 && $index < 17) {
             $data['type'] = 'D/A&OA';
         }
     }
-    
+
     /**
      * @desc 设置信保政策账期
      *
@@ -768,7 +785,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _setSinosurePolicySettlePeriod($index, &$data) {
         switch (($index - 2) % 5) {
-            case 0 : 
+            case 0 :
                 $data['start_settle_period'] = 0;
                 $data['end_settle_period'] = 30;
                 break;
@@ -790,8 +807,8 @@ class ExcelimportandexportController extends PublicController {
         }
     }
 
-    /*----------------------------------------------------------------------导入和导出及文件生成代码界线----------------------------------------------------------------------*/
-    
+    /* ----------------------------------------------------------------------导入和导出及文件生成代码界线---------------------------------------------------------------------- */
+
     /**
      * @desc 导出询单sku数据
      *
@@ -805,10 +822,10 @@ class ExcelimportandexportController extends PublicController {
             'inquiry_id' => $condition['inquiry_id']
         ];
         $inquiryItemList = $this->inquiryItemModel
-                                                 ->field('sku, buyer_goods_no, name, name_zh, qty, unit, brand, model, remarks')
-                                                 ->where($where)
-                                                 ->order('id')
-                                                 ->select();
+                ->field('sku, buyer_goods_no, name, name_zh, qty, unit, brand, model, remarks')
+                ->where($where)
+                ->order('id')
+                ->select();
         $date = date('YmdHi');
         $fileName = "inquiry_sku-$date.xlsx";
         $sheetTitle = '询单sku数据';
@@ -845,7 +862,7 @@ class ExcelimportandexportController extends PublicController {
         }
         $this->_handleExportExcelFile($fileName, $titleList, $outData, $sheetTitle, $outPath);
     }
-    
+
     /**
      * @desc 导出报价sku数据
      *
@@ -854,87 +871,26 @@ class ExcelimportandexportController extends PublicController {
      */
     public function exportQuoteSkuDataAction() {
         $condition = $this->_init();
-        $where = [
-            'a.deleted_flag' => 'N',
-            'a.inquiry_id' => $condition['inquiry_id']
-        ];
-        $inquiryItemTableName = $this->inquiryItemModel->getTableName();
-        $supplierTableName = $this->supplierModel->getTableName();
-        $quoteItemList = $this->quoteItemModel
-                                                 ->alias('a')
-                                                 ->field('a.brand AS quote_brand, a.pn, a.purchase_unit_price, a.purchase_price_cur_bn, a.gross_weight_kg, a.package_mode, a.package_size, a.stock_loc, a.goods_source, a.delivery_days, a.period_of_validity, a.reason_for_no_quote,
-                                                               b.sku, b.buyer_goods_no, b.category, b.name, b.name_zh, b.qty, b.unit, b.brand, b.model, b.remarks,
-                                                               c.name AS supplier_name')
-                                                 ->join($inquiryItemTableName . ' b ON a.inquiry_item_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
-                                                 ->join($supplierTableName . ' c ON a.supplier_id = c.id AND c.deleted_flag = \'N\'', 'LEFT')
-                                                 ->where($where)
-                                                 ->order('a.id')
-                                                 ->select();
+
+        $quoteitem_model = new Rfq_QuoteItemModel();
         $date = date('YmdHi');
         $fileName = "quote_sku-$date.xlsx";
         $sheetTitle = '报价sku数据';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
-        $titleList = [
-            '序号',
-            '平台sku',
-            '客户商品号',
-            '产品分类（必填）',
-            '外文品名（必填）',
-            '中文品名（必填）',
-            '数量（必填）',
-            '单位（必填）',
-            '品牌',
-            '型号',
-            '客户需求描述',
-            '供应商名称',
-            '品牌（必填）',
-            'PN码',
-            '采购单价（必填）',
-            '采购币种（必填）',
-            '单件毛重（kg）（必填）',
-            '包装方式（必填）',
-            '包装体积（m³）（必填）',
-            '存放地（必填）',
-            '产品来源（必填）',
-            '交货期（必填）',
-            '报价有效期（必填）',
-            '未报价分析',
-        ];
-        $i = 1;
-        $outData = [];
-        foreach ($quoteItemList as $quoteItem) {
-            $outData[] = [
-                ['value' => $i],
-                ['value' => $quoteItem['sku']],
-                ['value' => $quoteItem['buyer_goods_no']],
-                ['value' => $quoteItem['category']],
-                ['value' => $quoteItem['name']],
-                ['value' => $quoteItem['name_zh']],
-                ['value' => $quoteItem['qty']],
-                ['value' => $quoteItem['unit']],
-                ['value' => $quoteItem['brand']],
-                ['value' => $quoteItem['model']],
-                ['value' => $quoteItem['remarks']],
-                ['value' => $quoteItem['supplier_name']],
-                ['value' => $quoteItem['quote_brand']],
-                ['value' => $quoteItem['pn']],
-                ['value' => $quoteItem['purchase_unit_price']],
-                ['value' => $quoteItem['purchase_price_cur_bn']],
-                ['value' => $quoteItem['gross_weight_kg']],
-                ['value' => $quoteItem['package_mode']],
-                ['value' => $quoteItem['package_size']],
-                ['value' => $quoteItem['stock_loc']],
-                ['value' => $quoteItem['goods_source']],
-                ['value' => $quoteItem['delivery_days']],
-                ['value' => $quoteItem['period_of_validity']],
-                ['value' => $quoteItem['reason_for_no_quote']],
-            ];
-            $i++;
+        $inquiry_model = new InquiryModel();
+        $org_id = $inquiry_model->where(['id' => $condition['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        if ($is_erui == 'Y') {
+            $titleList = $quoteitem_model->getTitleListByErui();
+            $outData = $quoteitem_model->getListByErui($condition);
+        } else {
+            $titleList = $quoteitem_model->getTitleListByOtherOrg();
+            $outData = $quoteitem_model->getListByOtherOrg($condition);
         }
         $this->_handleExportExcelFile($fileName, $titleList, $outData, $sheetTitle, $outPath);
     }
-    
+
     /**
      * @desc 生成或导出数据文件页面
      *
@@ -945,7 +901,7 @@ class ExcelimportandexportController extends PublicController {
         $this->getView()->assign("title", "生成或导出数据文件");
         $this->display('createorexport');
     }
-    
+
     /**
      * @desc 导出报价分析数据
      *
@@ -959,13 +915,13 @@ class ExcelimportandexportController extends PublicController {
         $lang = 'zh';
         $inquiryStatus = $this->inquiryModel->getInquiryStatus();
         $inquiryList = $this->inquiryModel->alias('a')
-                                                                     ->field('a.id, a.serial_no, a.created_at, a.buyer_code, b.name AS country_name, c.name AS area_name, d.name AS org_name')
-                                                                     ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
-                                                                     ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
-                                                                     ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
-                                                                     ->where($where)
-                                                                     ->order('a.id DESC')
-                                                                     ->select();
+                ->field('a.id, a.serial_no, a.created_at, a.buyer_code, b.name AS country_name, c.name AS area_name, d.name AS org_name')
+                ->join('erui_dict.country b ON a.country_bn = b.bn AND b.lang = \'' . $lang . '\' AND b.deleted_flag = \'N\'', 'LEFT')
+                ->join('erui_operation.market_area c ON a.area_bn = c.bn AND c.lang = \'' . $lang . '\' AND c.deleted_flag = \'N\'', 'LEFT')
+                ->join('erui_sys.org d ON a.org_id = d.id', 'LEFT')
+                ->where($where)
+                ->order('a.id DESC')
+                ->select();
         $date = date("Ymd");
         $fileName = "quote_analysis-$date.xlsx";
         $titleList = [
@@ -1024,7 +980,7 @@ class ExcelimportandexportController extends PublicController {
         }
         $this->_exportExcel($fileName, $titleList, $outData);
     }
-    
+
     /**
      * @desc 导出供应商数据
      *
@@ -1036,12 +992,12 @@ class ExcelimportandexportController extends PublicController {
         $where['a.deleted_flag'] = 'N';
         $where['a.status'] = 'APPROVED';
         $supplierList = $this->supplierModel->alias('a')
-                                                                        ->field('a.id, a.name, a.social_credit_code, a.created_at, a.created_by, a.erui_status, a.checked_by, b.material_cat_name3')
-                                                                        //->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
-                                                                        ->join('erui_supplier.supplier_material_cat b ON a.id = b.supplier_id', 'LEFT')
-                                                                        ->where($where)
-                                                                        ->order('a.id DESC')
-                                                                        ->select();
+                ->field('a.id, a.name, a.social_credit_code, a.created_at, a.created_by, a.erui_status, a.checked_by, b.material_cat_name3')
+                //->join('erui_sys.org b ON a.org_id = b.id', 'LEFT')
+                ->join('erui_supplier.supplier_material_cat b ON a.id = b.supplier_id', 'LEFT')
+                ->where($where)
+                ->order('a.id DESC')
+                ->select();
         $date = date("Ymd");
         $fileName = "supplier-$date.xlsx";
         $titleList = [
@@ -1082,7 +1038,7 @@ class ExcelimportandexportController extends PublicController {
         }
         $this->_exportExcel($fileName, $titleList, $outData);
     }
-    
+
     /**
      * @desc 获取供应商SPU数量
      *
@@ -1099,12 +1055,12 @@ class ExcelimportandexportController extends PublicController {
             'b.deleted_flag' => 'N',
         ];
         $count = $this->productModel->alias('a')
-                                                               ->join('erui_goods.product_supplier b ON a.spu = b.spu', 'LEFT')
-                                                               ->where($where)
-                                                               ->count('a.id');
+                ->join('erui_goods.product_supplier b ON a.spu = b.spu', 'LEFT')
+                ->where($where)
+                ->count('a.id');
         return $count > 0 ? $count : 0;
     }
-    
+
     /**
      * @desc 获取供应商SKU数量
      *
@@ -1121,12 +1077,12 @@ class ExcelimportandexportController extends PublicController {
             'b.deleted_flag' => 'N',
         ];
         $count = $this->goodsModel->alias('a')
-                                                            ->join('erui_goods.goods_supplier b ON a.sku = b.sku', 'LEFT')
-                                                            ->where($where)
-                                                            ->count('a.id');
+                ->join('erui_goods.goods_supplier b ON a.sku = b.sku', 'LEFT')
+                ->where($where)
+                ->count('a.id');
         return $count > 0 ? $count : 0;
     }
-    
+
     /**
      * @desc 生成土猫商品文件集
      *
@@ -1143,7 +1099,7 @@ class ExcelimportandexportController extends PublicController {
         // 商品介绍图片文件夹名称
         $introduceImgFolder = $this->_utf8ToGbk('技术参数 中文');
         // 土猫商品生成目录
-        $toolMallDir = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $toolMallFolder;
+        $toolMallDir = $this->_addSlash($this->excelDir ?: $this->_getExcelDir()) . $toolMallFolder;
         $this->_createDir($toolMallDir);
         // 获取模板文件
         $templetFiles = $this->_getTempletFiles($toolMallDir);
@@ -1169,7 +1125,7 @@ class ExcelimportandexportController extends PublicController {
                     // 商品介绍图片目录
                     $introduceImgDir = $this->_addSlash($goodsDir) . $introduceImgFolder;
                     // 商品文件
-                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' .  $this->_utf8ToGbk('中文') . '.xlsx';
+                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' . $this->_utf8ToGbk('中文') . '.xlsx';
                     // 将生成的spu数据
                     $spuDataList[0] = [
                         ['value' => ''],
@@ -1218,20 +1174,21 @@ class ExcelimportandexportController extends PublicController {
                         ['value' => ''],
                         ['value' => ''],
                     ];
-                    
-                    /* 下载商品图片*/
+
+                    /* 下载商品图片 */
                     $goodsImgUrlList = $this->_trim(explode(',', $data[8]));
                     $this->_downloadImg($goodsImgUrlList, $goodsImgDir, $goodsFolder, 'http:');
-    
-                    /* 下载商品介绍图片*/
+
+                    /* 下载商品介绍图片 */
                     preg_match_all('/<img src="([^"]*)"/i', $data[11], $imgMatch);
                     $introduceImgUrlList = $this->_trim($imgMatch[1]);
                     $this->_downloadImg($introduceImgUrlList, $introduceImgDir, $goodsFolder, 'http:');
-                    
-                    /* 生成模板文件*/
+
+                    /* 生成模板文件 */
                     $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
                     // 记录哪些生成失败
-                    if (!$result) $faile[] = $count;
+                    if (!$result)
+                        $faile[] = $count;
                     $count++;
                 }
             }
@@ -1239,7 +1196,7 @@ class ExcelimportandexportController extends PublicController {
         // 生成完成，返回失败的记录
         $this->jsonReturn($faile ? ['faile' => $faile] : true);
     }
-    
+
     /**
      * @desc 生成云防爆商品文件集
      *
@@ -1254,7 +1211,7 @@ class ExcelimportandexportController extends PublicController {
         // 商品图片文件夹名称
         $goodsImgFolder = 'jpg';
         // 云防爆商品生成目录
-        $yunFangBaoDir = $this->_addSlash($this->excelDir ? : $this->_getExcelDir()) . $yunFangBaoFolder;
+        $yunFangBaoDir = $this->_addSlash($this->excelDir ?: $this->_getExcelDir()) . $yunFangBaoFolder;
         $this->_createDir($yunFangBaoDir);
         // 获取模板文件
         $templetFiles = $this->_getTempletFiles($yunFangBaoDir);
@@ -1278,13 +1235,13 @@ class ExcelimportandexportController extends PublicController {
                     // 商品图片目录
                     $goodsImgDir = $this->_addSlash($goodsDir) . $goodsImgFolder;
                     // 商品文件
-                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' .  $this->_utf8ToGbk('中文') . '.xlsx';
+                    $goodsFile = $this->_addSlash($goodsDir) . $goodsFolder . '_' . $this->_utf8ToGbk('中文') . '.xlsx';
                     // 质保期
                     preg_match('/(质保期[^月年]+(月|年))/', $data[3], $periodMatch);
                     $guaranteePeriod = $periodMatch[1];
                     // 供货周期
                     preg_match('/\|供货周期:(\d+)天\|/', $data[6], $supplyMatch);
-                    $supplyCycle = intval($supplyMatch[1]) ? : '';
+                    $supplyCycle = intval($supplyMatch[1]) ?: '';
                     // 将生成的spu数据
                     $spuDataList[0] = [
                         ['value' => ''],
@@ -1333,15 +1290,16 @@ class ExcelimportandexportController extends PublicController {
                         ['value' => ''],
                         ['value' => ''],
                     ];
-    
-                    /* 下载商品图片*/
+
+                    /* 下载商品图片 */
                     $goodsImgUrlList = $this->_trim(explode(',', $data[4]));
                     $this->_downloadImg($goodsImgUrlList, $goodsImgDir, $goodsFolder, 'http://image.ex12580.com');
-    
-                    /* 生成模板文件*/
+
+                    /* 生成模板文件 */
                     $result = $this->_createGoodsToolFile($goodsFile, $spuDataList, $skuDataList);
                     // 记录哪些生成失败
-                    if (!$result) $faile[] = $count;
+                    if (!$result)
+                        $faile[] = $count;
                     $count++;
                 }
             }
@@ -1349,13 +1307,13 @@ class ExcelimportandexportController extends PublicController {
         // 生成完成，返回失败的记录
         $this->jsonReturn($faile ? ['faile' => $faile] : true);
     }
-    
+
     /**
      * @desc 生成商品数据导入小工具所需的模板文件
      *
      * @param string $file 文件路径
-     * @param array $titleArr 表格标题
-     * @param array $dataArr 表格数据
+     * @param array $spuDataList 表格标题
+     * @param array $skuDataList 表格数据
      * @author liujf
      * @time 2018-01-06
      */
@@ -1382,7 +1340,7 @@ class ExcelimportandexportController extends PublicController {
         // 生成文件
         return $this->_createExcelFile($objPHPExcel, $file);
     }
-    
+
     /**
      * @desc 获取产品模板标题
      *
@@ -1405,7 +1363,7 @@ class ExcelimportandexportController extends PublicController {
             '关键字',
         ];
     }
-    
+
     /**
      * @desc 获取商品模板标题
      *
@@ -1448,7 +1406,7 @@ class ExcelimportandexportController extends PublicController {
             '用途',
         ];
     }
-    
+
     /**
      * @desc 获取商品模板生成的第一条数据
      *
@@ -1465,7 +1423,7 @@ class ExcelimportandexportController extends PublicController {
         }
         return $tmpArr;
     }
-    
+
     /**
      * @desc 下载图片
      *
@@ -1482,16 +1440,17 @@ class ExcelimportandexportController extends PublicController {
             $i = 1;
             foreach ($imgUrlList as $imgUrl) {
                 if ($imgUrl != '') {
-                    if (!preg_match('/^https?:\/\/.*/i', $imgUrl)) $imgUrl = $prefix . $imgUrl;
+                    if (!preg_match('/^https?:\/\/.*/i', $imgUrl))
+                        $imgUrl = $prefix . $imgUrl;
                     // 保存的图片名称
-                    $saveName =  $this->_jointMark($imgName, $i, 2, '_') . '.jpg';
+                    $saveName = $this->_jointMark($imgName, $i, 2, '_') . '.jpg';
                     $i++;
                     $this->_downloadFile($imgUrl, $saveDir, $saveName);
                 }
             }
         }
     }
-    
+
     /**
      * @desc 生成excel文件
      *
@@ -1524,16 +1483,17 @@ class ExcelimportandexportController extends PublicController {
         $files = [];
         if (is_dir($path)) {
             $dp = dir($path);
-            while($file = $dp->read()) {
-                if($file != '.' && $file != '..') {
-                    if($this->_isTemplet($file)) $files[] = $this->_addSlash($path) . $file;
+            while ($file = $dp->read()) {
+                if ($file != '.' && $file != '..') {
+                    if ($this->_isTemplet($file))
+                        $files[] = $this->_addSlash($path) . $file;
                 }
             }
             $dp->close();
         }
         return $files;
     }
-    
+
     /**
      * @desc 判断是否为模板文件
      *
@@ -1545,7 +1505,7 @@ class ExcelimportandexportController extends PublicController {
     private function _isTemplet($file) {
         return preg_match('/^.*templet(_\d+|\d*)\.xls(x)?$/i', $file) ? true : false;
     }
-    
+
     /**
      * @desc 处理导出的excel文件
      *
@@ -1569,7 +1529,7 @@ class ExcelimportandexportController extends PublicController {
         }
         $this->jsonReturn(false);
     }
-    
+
     /**
      * @desc 导出excel
      *
@@ -1587,16 +1547,16 @@ class ExcelimportandexportController extends PublicController {
         $objPHPExcel = new PHPExcel();
         // Set document properties
         $objPHPExcel->getProperties()
-                                ->setCreator('liujf')
-                                ->setLastModifiedBy('liujf')
-                                ->setTitle('Office 2007 XLSX Test Document')
-                                ->setSubject('Office 2007 XLSX Test Document')
-                                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
-                                ->setKeywords('office 2007 openxml php')
-                                ->setCategory('Test result file');
+                ->setCreator('liujf')
+                ->setLastModifiedBy('liujf')
+                ->setTitle('Office 2007 XLSX Test Document')
+                ->setSubject('Office 2007 XLSX Test Document')
+                ->setDescription('Test document for Office 2007 XLSX, generated using PHP classes.')
+                ->setKeywords('office 2007 openxml php')
+                ->setCategory('Test result file');
         $titleCount = count($titleList);
         $wordArr = $this->_getWordArr($titleCount);
-         // 设置excel表格的标题
+        // 设置excel表格的标题
         $this->_setExcelTitle($objPHPExcel, $titleList, $wordArr);
         // 填充excel表格的数据
         $this->_setExcelData($objPHPExcel, $dataList, $wordArr);
@@ -1613,9 +1573,9 @@ class ExcelimportandexportController extends PublicController {
         $tableNo = "A1:{$wordArr[$titleCount - 1]}" . (count($dataList) + 1);
         $objSheet->getStyle($tableNo)->applyFromArray($styleArray);
         // 设置字体变小以适应宽
-        $objSheet->getStyle($tableNo)->getAlignment()->setShrinkToFit(true); 
+        $objSheet->getStyle($tableNo)->getAlignment()->setShrinkToFit(true);
         // 设置自动换行
-        $objSheet->getStyle($tableNo)->getAlignment()->setWrapText(true); 
+        $objSheet->getStyle($tableNo)->getAlignment()->setWrapText(true);
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
         if (strtolower(trim($outType)) == 'file') {
             $file = $this->_addSlash($outPath) . $fileName;
@@ -1629,7 +1589,7 @@ class ExcelimportandexportController extends PublicController {
             $objWriter->save('php://output');
         }
     }
-    
+
     /**
      * @desc 设置excel表格的标题
      *
@@ -1645,12 +1605,12 @@ class ExcelimportandexportController extends PublicController {
         $objSheet = $objPHPExcel->getActiveSheet();
         $titleCount = count($titleList);
         $wordArr = is_array($wordArr) && !empty($wordArr) ? $wordArr : $this->_getWordArr($titleCount);
-        for($i = 0; $i < $titleCount; $i++) {
+        for ($i = 0; $i < $titleCount; $i++) {
             $objSheet->setCellValue("$wordArr[$i]1", $titleList[$i]);
             $objSheet->getColumnDimension($wordArr[$i])->setAutoSize(true);
         }
     }
-    
+
     /**
      * @desc 填充excel表格的数据
      *
@@ -1669,13 +1629,14 @@ class ExcelimportandexportController extends PublicController {
         for ($i = 2; $i <= $dataCount + 1; $i++) {
             $j = 0;
             foreach ($dataList[$i - 2] as $data) {
-                $objSheet->setCellValueExplicit("$wordArr[$j]$i", $data['value'], $typeArr[$data['type']] ? : $typeArr['string']);
-                if($data['type'] == 'int') $objSheet->getStyle("$wordArr[$j]$i")->getNumberFormat()->setFormatCode('#,##0.00');
+                $objSheet->setCellValueExplicit("$wordArr[$j]$i", $data['value'], $typeArr[$data['type']] ?: $typeArr['string']);
+                if ($data['type'] == 'int')
+                    $objSheet->getStyle("$wordArr[$j]$i")->getNumberFormat()->setFormatCode('#,##0.00');
                 $j++;
             }
         }
     }
-    
+
     /**
      * @desc 获取数组中下一个元素值
      *
@@ -1692,10 +1653,11 @@ class ExcelimportandexportController extends PublicController {
             $tmp = key($arr);
             $res = next($arr);
         } while ($arr[$tmp] != $val && $res);
-        if ($res) $next = key($arr);
+        if ($res)
+            $next = key($arr);
         return $arr[$next];
     }
-    
+
     /**
      * @desc 获取下一个字词
      *
@@ -1706,7 +1668,8 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _getNextWord($prev = '') {
         $next = strtoupper(trim($prev));
-        if ($next == '') return 'A';
+        if ($next == '')
+            return 'A';
         $letterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
         $flag = true; //是否全是A的标记
         for ($i = strlen($next) - 1; $i >= 0; $i--) {
@@ -1717,11 +1680,12 @@ class ExcelimportandexportController extends PublicController {
                     $flag = false;
                     break;
                 }
-            } else return false;
+            } else
+                return false;
         }
         return $flag ? $next . 'A' : $next;
     }
-    
+
     /**
      * @desc 获取字词数组
      *
@@ -1731,7 +1695,8 @@ class ExcelimportandexportController extends PublicController {
      * @time 2017-12-20
      */
     private function _getWordArr($size = 1) {
-        if (!is_int($size)) return false;
+        if (!is_int($size))
+            return false;
         $wordArr = [];
         $word = '';
         for ($i = 0; $i < $size; $i++) {
@@ -1740,7 +1705,7 @@ class ExcelimportandexportController extends PublicController {
         }
         return $wordArr;
     }
-    
+
     /**
      * @desc 下载远程文件到指定目录
      *
@@ -1754,19 +1719,20 @@ class ExcelimportandexportController extends PublicController {
         $saveDir = $this->_trim($saveDir);
         if ($this->_createDir($saveDir)) {
             $saveFile = $this->_addSlash($saveDir) . $fileName;
-            $file = fopen ($url, 'rb');
+            $file = fopen($url, 'rb');
             if ($file) {
                 $newf = fopen($saveFile, 'wb');
                 if ($newf) {
                     $size = 1024 * 8;
-                    while (!feof($file)) fwrite($newf, fread($file, $size), $size);
+                    while (!feof($file))
+                        fwrite($newf, fread($file, $size), $size);
                     fclose($newf);
                 }
                 fclose($file);
             }
         }
     }
-    
+
     /**
      * @desc 给字符串连接数字
      *
@@ -1781,9 +1747,9 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-08
      */
     private function _jointMark($str, $input, $length = 4, $mark = '', $pad = '0', $type = STR_PAD_LEFT) {
-       return $str . $mark . str_pad($input, $length, $pad, $type);
+        return $str . $mark . str_pad($input, $length, $pad, $type);
     }
-    
+
     /**
      * @desc 加上目录连接斜线
      *
@@ -1793,10 +1759,11 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-08
      */
     private function _addSlash($dir) {
-        if (!preg_match('/.*[\\\\\/]$/s', $dir)) $dir .= DS;
+        if (!preg_match('/.*[\\\\\/]$/s', $dir))
+            $dir .= DS;
         return $dir;
     }
-    
+
     /**
      * @desc 替换空格和非目录字符为下划线
      *
@@ -1808,7 +1775,7 @@ class ExcelimportandexportController extends PublicController {
     private function _replaceToline($str) {
         return preg_replace('/[\\\\\/:*?"<>|\s\r\n]/', '_', $str);
     }
-    
+
     /**
      * @desc 编码UTF-8转GBK
      *
@@ -1821,7 +1788,7 @@ class ExcelimportandexportController extends PublicController {
     private function _utf8ToGbk($str, $ignore = false) {
         return iconv('UTF-8', 'GBK//' . ($ignore === true ? 'IGNORE' : 'TRANSLIT'), $str);
     }
-    
+
     /**
      * @desc GBK编码从左端开始截取字符串,如果长度不够原样返回
      *
@@ -1834,7 +1801,7 @@ class ExcelimportandexportController extends PublicController {
     private function _leftSubGbk($str, $length) {
         return is_string($str) && is_int($length) && mb_strlen($str, 'GBK') > $length ? mb_substr($str, 0, $length, 'GBK') : $str;
     }
-    
+
     /**
      * @desc 创建目录
      *
@@ -1844,9 +1811,9 @@ class ExcelimportandexportController extends PublicController {
      * @time 2018-01-07
      */
     private function _createDir($path) {
-        return is_dir($path) ?  true : mkdir($path, 0777, true);
+        return is_dir($path) ? true : mkdir($path, 0777, true);
     }
-    
+
     /**
      * @desc 去掉数据两侧的空格
      *
@@ -1857,10 +1824,12 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _trim($data) {
         if (is_array($data)) {
-            foreach ($data as $k => $v) $data[$k] = $this->_trim($v);
+            foreach ($data as $k => $v)
+                $data[$k] = $this->_trim($v);
             return $data;
         } else if (is_object($data)) {
-            foreach ($data as $k => $v) $data->$k = $this->_trim($v);
+            foreach ($data as $k => $v)
+                $data->$k = $this->_trim($v);
             return $data;
         } else if (is_string($data)) {
             return trim($data);
@@ -1868,7 +1837,7 @@ class ExcelimportandexportController extends PublicController {
             return $data;
         }
     }
-    
+
     /**
      * @desc 调用父类init方法
      *
@@ -1880,7 +1849,7 @@ class ExcelimportandexportController extends PublicController {
         parent::init();
         return $this->put_data;
     }
-    
+
     /**
      * @desc 安全验证
      *
@@ -1898,9 +1867,9 @@ class ExcelimportandexportController extends PublicController {
             $this->setMessage('验证失败!');
             parent::jsonReturn();
         }
-        return json_decode($param['input'], true) ? : $param['input'];
+        return json_decode($param['input'], true) ?: $param['input'];
     }
-    
+
     /**
      * @desc 重写jsonReturn方法
      *
