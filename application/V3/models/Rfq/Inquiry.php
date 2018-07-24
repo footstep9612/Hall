@@ -94,14 +94,14 @@ class Rfq_InquiryModel extends PublicModel {
             $where['country_bn'] = $condition['country_bn'];    //国家
         }
         if (!empty($condition['serial_no'])) {
-            $where['serial_no'] = $condition['serial_no'];  //流程编码
+            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%']; //流程编码
         }
         if (!empty($condition['buyer_no'])) {
             $buyer_ids = (new Buyer_BuyerModel())->getBuyerIdByBuyerNo($condition['buyer_no']);
             $where['buyer_id'] = ['in', !empty($buyer_ids) ? $buyer_ids : [-1]];
         }
         if (!empty($condition['buyer_code'])) {
-            $where['a.buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
         }
         if (!empty($condition['agent_name'])) {
             $agent_ids = (new System_EmployeeModel())->getUserIdByName($condition['agent_name']);
