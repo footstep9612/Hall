@@ -86,7 +86,7 @@ class DictController extends PublicController {
     public function CityListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = trim($data['country_bn']);
         }
@@ -137,6 +137,7 @@ class DictController extends PublicController {
 
     public function TransModeAction() {
         $condition = $this->getPut();
+        $condition['deleted_flag'] = 'N';
         if (!empty($condition['terms'])) {
             $where['terms'] = $condition['terms'];
         } else {
@@ -166,7 +167,7 @@ class DictController extends PublicController {
     public function TradeTermsListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
@@ -213,7 +214,7 @@ class DictController extends PublicController {
     public function TransModeListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
@@ -404,7 +405,6 @@ class DictController extends PublicController {
 //        }
 //    }
 
-
     /**
      * 展示所有定制信息详情
      * @param mix $condition
@@ -416,29 +416,29 @@ class DictController extends PublicController {
         $lang = $data['lang'] ? $data['lang'] : 'en';
         $catModel = new CustomCatModel();
         $itemModel = new CustomCatItemModel();
-        $catInfo = $catModel->info($lang,'');
-        if($catInfo) {
-            foreach ($catInfo as $k =>$v) {
-                $itemInfo = $itemModel->info($lang, $v['id'],'');
+        $catInfo = $catModel->info($lang, '');
+        if ($catInfo) {
+            foreach ($catInfo as $k => $v) {
+                $itemInfo = $itemModel->info($lang, $v['id'], '');
                 $catInfo[$k]['item'] = $itemInfo;
             }
             jsonReturn($catInfo, ShopMsg::CUSTOM_SUCCESS, 'success!');
         } else {
-            jsonReturn('', ShopMsg::CUSTOM_FAILED ,'failed!');
+            jsonReturn('', ShopMsg::CUSTOM_FAILED, 'failed!');
         }
-
     }
 
     /**
      * 获取国家联系信息
      */
-    public function getContactAction(){
+    public function getContactAction() {
         $data = $this->getPut();
         $contact = new CountryContactModel();
         $result = $contact->getInfo($data);
-        if($result && $result!==false){
+        if ($result && $result !== false) {
             jsonReturn($result);
         }
-        jsonReturn('',MSG::MSG_FAILED);
+        jsonReturn('', MSG::MSG_FAILED);
     }
+
 }

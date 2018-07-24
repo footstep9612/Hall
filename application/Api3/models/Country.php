@@ -83,6 +83,8 @@ class CountryModel extends PublicModel {
         try {
             $data = ['country.name' => $name,
                 'country.lang' => 'zh',
+                'country.deleted_flag' => 'N',
+                'c.deleted_flag' => 'N',
                 'c.status' => 'VALID',
                 'country.status' => 'VALID',
                 'c.lang' => $lang
@@ -112,7 +114,8 @@ class CountryModel extends PublicModel {
     public function getMarketArea($country, $lang) {
         $where = array(
             'name' => $country,
-            'lang' => $lang
+            'lang' => $lang,
+            'deleted_flag' => 'N',
         );
         $country_bn = $this->field('bn')->where($where)->find();
 
@@ -137,14 +140,15 @@ class CountryModel extends PublicModel {
     public function getInfoSort($lang) {
         $condition = array(
             'lang' => $lang,
-            'status' => 'VALID'
+            'status' => 'VALID',
+            'deleted_flag' => 'N'
         );
         $result = $this->where($condition)->select();
         if ($result) {
             $data = array();
             foreach ($result as $val) {
                 $sname = $val['name'];
-                $firstChar = $this->_getFirstCharter($sname,$lang); //取出第一个汉字或者单词的首字母
+                $firstChar = $this->_getFirstCharter($sname, $lang); //取出第一个汉字或者单词的首字母
                 $data[$firstChar][] = $val; //以这个首字母作为key
             }
             ksort($data); //对数据进行ksort排序，以key的值以升序对关联数组进行排序
@@ -161,40 +165,94 @@ class CountryModel extends PublicModel {
      * @return string|null
      * @author klp
      */
-    public function _getFirstCharter($str,$lang) {
+    public function _getFirstCharter($str, $lang) {
         if (empty($str)) {
             return '';
         }
-        if($lang == 'ru') {
-            $fchar =  mb_substr($str, 0, 1, 'gb2312');
+        if ($lang == 'ru') {
+            $fchar = mb_substr($str, 0, 1, 'gb2312');
             $asc = $this->_ruasc($fchar);
-            if ($asc == -12144 || $asc == 4294955152) {  return 'А'; }
-            if ($asc == -12143 || $asc == 4294955153) {  return 'Б'; }
-            if ($asc == -12142 || $asc == 4294955154) {  return 'В'; }
-            if ($asc == -12141 || $asc == 4294955155) {  return 'Г'; }
-            if ($asc == -12140 || $asc == 4294955156) {  return 'Д'; }
-            if ($asc == -12139 || $asc == 4294955157) {  return 'Е'; }
-            if ($asc == -12137 || $asc == 4294955159) {  return 'З'; }
-            if ($asc == -12136 || $asc == 4294955160) {  return 'И'; }
-            if ($asc == -12135 || $asc == 4294955161) {  return 'Й'; }
-            if ($asc == -12134 || $asc == 4294955162) {  return 'К'; }
-            if ($asc == -12133 || $asc == 4294955163) {  return 'Л'; }
-            if ($asc == -12132 || $asc == 4294955164) {  return 'М'; }
-            if ($asc == -12131 || $asc == 4294955165) {  return 'Н'; }
-            if ($asc == -12130 || $asc == 4294955166) {  return 'О'; }
-            if ($asc == -12129 || $asc == 4294955167) {  return 'П'; }
-            if ($asc == -12128 || $asc == 4294955168) {  return 'Р'; }
-            if ($asc == -12127 || $asc == 4294955169) {  return 'С'; }
-            if ($asc == -12126 || $asc == 4294955170) {  return 'Т'; }
-            if ($asc == -12125 || $asc == 4294955171) {  return 'У'; }
-            if ($asc == -12124 || $asc == 4294955172) {  return 'Ф'; }
-            if ($asc == -12123 || $asc == 4294955173) {  return 'Х'; }
-            if ($asc == -12122 || $asc == 4294955174) {  return 'Ц'; }
-            if ($asc == -12121 || $asc == 4294955175) {  return 'Ч'; }
-            if ($asc == -12120 || $asc == 4294955176) {  return 'Ш'; }
-            if ($asc == -12115 || $asc == 4294955181) {  return 'Э'; }
-            if ($asc == -12114 || $asc == 4294955182) {  return 'Ю'; }
-            if ($asc == -12113 || $asc == 4294955183) {  return 'Я'; }
+            if ($asc == -12144 || $asc == 4294955152) {
+                return 'А';
+            }
+            if ($asc == -12143 || $asc == 4294955153) {
+                return 'Б';
+            }
+            if ($asc == -12142 || $asc == 4294955154) {
+                return 'В';
+            }
+            if ($asc == -12141 || $asc == 4294955155) {
+                return 'Г';
+            }
+            if ($asc == -12140 || $asc == 4294955156) {
+                return 'Д';
+            }
+            if ($asc == -12139 || $asc == 4294955157) {
+                return 'Е';
+            }
+            if ($asc == -12137 || $asc == 4294955159) {
+                return 'З';
+            }
+            if ($asc == -12136 || $asc == 4294955160) {
+                return 'И';
+            }
+            if ($asc == -12135 || $asc == 4294955161) {
+                return 'Й';
+            }
+            if ($asc == -12134 || $asc == 4294955162) {
+                return 'К';
+            }
+            if ($asc == -12133 || $asc == 4294955163) {
+                return 'Л';
+            }
+            if ($asc == -12132 || $asc == 4294955164) {
+                return 'М';
+            }
+            if ($asc == -12131 || $asc == 4294955165) {
+                return 'Н';
+            }
+            if ($asc == -12130 || $asc == 4294955166) {
+                return 'О';
+            }
+            if ($asc == -12129 || $asc == 4294955167) {
+                return 'П';
+            }
+            if ($asc == -12128 || $asc == 4294955168) {
+                return 'Р';
+            }
+            if ($asc == -12127 || $asc == 4294955169) {
+                return 'С';
+            }
+            if ($asc == -12126 || $asc == 4294955170) {
+                return 'Т';
+            }
+            if ($asc == -12125 || $asc == 4294955171) {
+                return 'У';
+            }
+            if ($asc == -12124 || $asc == 4294955172) {
+                return 'Ф';
+            }
+            if ($asc == -12123 || $asc == 4294955173) {
+                return 'Х';
+            }
+            if ($asc == -12122 || $asc == 4294955174) {
+                return 'Ц';
+            }
+            if ($asc == -12121 || $asc == 4294955175) {
+                return 'Ч';
+            }
+            if ($asc == -12120 || $asc == 4294955176) {
+                return 'Ш';
+            }
+            if ($asc == -12115 || $asc == 4294955181) {
+                return 'Э';
+            }
+            if ($asc == -12114 || $asc == 4294955182) {
+                return 'Ю';
+            }
+            if ($asc == -12113 || $asc == 4294955183) {
+                return 'Я';
+            }
             return null;
         } else {
             $fchar = ord($str{0});
@@ -252,11 +310,11 @@ class CountryModel extends PublicModel {
                 return 'Z';
             return null;
         }
-
     }
 
-    private  function _ruasc($s) {
-        if(ord($s) < 128) return ord($s);
+    private function _ruasc($s) {
+        if (ord($s) < 128)
+            return ord($s);
         return current(unpack('N', "\xff\xff$s"));
     }
 
