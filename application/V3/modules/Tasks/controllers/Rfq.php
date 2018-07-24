@@ -14,6 +14,42 @@ class RfqController extends PublicController {
         error_reporting(E_ERROR | E_STRICT);
     }
 
+    public function inquiryListAction() {
+        if ($this->getMethod() === 'GET') {
+            $condition = $this->getParam();
+
+            $condition['lang'] = $this->getParam('lang', 'zh');
+        } else {
+            $condition = $this->getPut();
+            $condition['lang'] = $this->getPut('lang', 'zh');
+        }
+
+        $inquiry_model = new Rfq_InquiryModel();
+        $list = $inquiry_model->getList($condition);
+        //  (new Common_MarketAreaCountryModel())->setAreaBn($list);
+        //  (new Common_MarketAreaModel())->setArea($list);
+        (new Common_CountryModel())->setCountry($list, $this->lang);
+        (new System_EmployeeModel())->setUserName($list, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
+            'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
+
+        (new Buyer_BuyerModel())->setBuyerNo($list);
+        //(new Rfq_QuoteModel())->setLogiQuoteFlag($list);
+        (new System_OrgModel())->setOrgName($list);
+        //  (new Common_TransModeModel())->setTransModeName($list);
+        //  (new Rfq_InquiryOrderModel())->setContractNo($list);
+        if ($list) {
+            $res['code'] = 1;
+            $res['message'] = L('SUCCESS');
+            $res['data'] = $list;
+            $res['count'] = $inquiry_model->getCount($condition);
+            $this->jsonReturn($res);
+        } else {
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
+
     /*
      * 询报价的任务清单
      */
@@ -96,10 +132,10 @@ class RfqController extends PublicController {
 
     private function _setInflowTime($start_time, $end_time = '') {
 
-        $end_time = $end_time ? $end_time : time();
-        $start_time = strtotime($start_time);
+        $real_end_time = $end_time ? $end_time : time();
+        $real_start_time = strtotime($start_time);
 
-        $distance = $end_time - $start_time;
+        $distance = $real_end_time - $real_start_time;
 
         $day = floor($distance / 86400);
         $hour = floor($distance % 86400 / 3600);
