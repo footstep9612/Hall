@@ -47,14 +47,13 @@ class TodoController extends PublicController {
                 $country_bns .= '\'' . $org_model->escapeString($country_bn) . '\',';
             }
             $country_bns = rtrim($country_bns, ',');
-            $confirm_sql = ' OR(`agent_id`=' . $this->user['id'] . ' and `status`=\'INQUIRY_CONFIRM\')';
             $sql_inquiry = '';
             if (
                     in_array(self::inquiryIssueRole, $role_nos) ||
                     in_array(self::quoteIssueMainRole, $role_nos)) {
                 if ($this->user['group_id']) {
 
-                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'' . $confirm_sql;
+                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
                     $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
                     $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\') AND org_id in(' . implode(',', $org_ids) . ')))';
                 }
@@ -62,7 +61,7 @@ class TodoController extends PublicController {
 
                 if ($this->user['group_id']) {
 
-                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'' . $confirm_sql;
+                    $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'';
                     $org_ids = $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']]);
 
                     $sql_inquiry .= ' OR (`status` in(\'BIZ_DISPATCHING\') '
@@ -71,7 +70,7 @@ class TodoController extends PublicController {
                             . '))';
                 }
             } else {
-                $sql_inquiry .= ' AND (`now_agent_id`=\'' . $this->user['id'] . '\'' . $confirm_sql . ')';
+                $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
             }
 
 
@@ -99,17 +98,9 @@ class TodoController extends PublicController {
                 if ($this->user['group_id']) {
                     $map1 = [];
                     $map1['org_id'] = ['in', $org_model->getOrgIdsById($this->user['group_id'], ['in', ['erui', 'eub']])];
-                    $map1['status'] = 'BIZ_DISPATCHING';
+                    $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-
-                    $map2 = [];
-                    $map2['agent_id'] = $this->user['id'];
-                    $map2['status'] = 'INQUIRY_CONFIRM';
-                    $map2['_logic'] = 'and';
-                    $map['_complex'] = $map2;
-
-
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
@@ -126,24 +117,12 @@ class TodoController extends PublicController {
                     }
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
-                    $map2 = [];
-                    $map2['agent_id'] = $this->user['id'];
-                    $map2['status'] = 'INQUIRY_CONFIRM';
-                    $map2['_logic'] = 'and';
-                    $map['_complex'] = $map2;
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
                 }
             } else {
-                $map2 = [];
-                $map2['agent_id'] = $this->user['id'];
-                $map2['status'] = 'INQUIRY_CONFIRM';
-                $map2['_logic'] = 'and';
-                $map['_complex'] = $map2;
-                $map['now_agent_id'] = $this->user['id'];
-                $map['_logic'] = 'or';
-                $where_inquiry['_complex'] = $map;
+                $where_inquiry['now_agent_id'] = $this->user['id'];
             }
             $list = $inquiry_model->where($where_inquiry)
                     ->order('updated_at DESC')
