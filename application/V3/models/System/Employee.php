@@ -257,4 +257,38 @@ class System_EmployeeModel extends PublicModel {
         return $ret;
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setUserName(&$arr, $fileds) {
+        if ($arr) {
+
+            $userids = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $userids[] = $val[$filed];
+                    }
+                }
+            }
+            $usernames = $this->getUserNamesByUserids($userids);
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed_key => $filed) {
+                    if ($val[$filed] && isset($usernames[$val[$filed]])) {
+                        $val[$filed_key] = $usernames[$val[$filed]];
+                    } else {
+                        $val[$filed_key] = '';
+                    }
+                }
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }
