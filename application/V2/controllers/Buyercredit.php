@@ -559,13 +559,19 @@ class BuyercreditController extends PublicController {
      */
     public function buyerCreditPaymentByOrderAction(){
         $data = $this->getPut();
-        $money = '100.00';
+
 
         if(!isset($data['contract_no']) || empty($data['contract_no'])){
-            jsonReturn('',MSG::MSG_FAILED,'');
+            jsonReturn('',MSG::MSG_FAILED,'缺少销售合同号!');
+        }
+        if(!isset($data['order_money']) || empty($data['order_money'])){
+            jsonReturn('',MSG::MSG_FAILED,'缺少订单金额!');
+        }
+        if(!isset($data['order_type']) || empty($data['order_type'])){
+            jsonReturn('',MSG::MSG_FAILED,'缺少订单操作类型!');                //1-支出  2-还款  3-回滚
         }
         if(!isset($data['crm_code']) || empty($data['crm_code'])){
-            jsonReturn('',MSG::MSG_FAILED,'');
+            jsonReturn('',MSG::MSG_FAILED,'缺少crm客户编码!');
         }
 
         $lockKey = MYPATH . '/public/tmp/orderpay_' . $data['contract_no'] . '.lock';
@@ -595,7 +601,7 @@ class BuyercreditController extends PublicController {
             jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
         }
 
-        if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $money){
+        if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $data['order_money']){
             jsonReturn('',MSG::MSG_FAILED,'可用授信额度已不足!');
         }
         $buyer_credit_model->startTrans();
@@ -604,8 +610,17 @@ class BuyercreditController extends PublicController {
             $handle_res = $this->getLock($lockKey);
 
             if($handle_res[0] && $handle_res[1]){
-
-                $left = $buyer_credit_Info['credit_available'] - $money;  //余额
+                if($data['order_type'] == 1){
+                    $left = $buyer_credit_Info['credit_available'] - $data['order_money'];  //余额
+                    $type = 'SPENDING';    //SPENDING-支出；
+                    $money = '-'.$data['order_money'];
+                } elseif($data['order_type'] == 2){
+                    $left = $buyer_credit_Info['credit_available'] + $data['order_money'];  //余额
+                    $type = 'REFUND';    //REFUND-还款
+                    $money = '+'.$data['order_money'];
+                }else {
+                    jsonReturn('',MSG::MSG_FAILED,'订单操作类型错误!');
+                }
                 $dataCredit['credit_available'] = $left;
                 $dataCredit['buyer_no'] = $buyerInfo['buyer_no'];
                 $dataCredit['crm_code'] = $data['crm_code'];
@@ -614,12 +629,11 @@ class BuyercreditController extends PublicController {
                     $buyer_credit_model->rollback();
                 }
                 //授信使用明细
-                $type = ($money<0)? 'SPENDING' : 'REFUND';    //SPENDING-支出；REFUND-还款
                 $creditLogArr = [
                     'buyer_no'=> $buyerInfo['buyer_no'],
                     'credit_type'=> $buyer_credit_Info['account_settle'],
                     'credit_cur_bn'=> $buyer_credit_Info['credit_cur_bn'],
-                    'use_credit_granted'=> '-'.$money,//使用额度
+                    'use_credit_granted'=> $money,//使用额度
                     'credit_available'=> $left,//剩余可用额度(使用后)
                     'content'=> '', //备注内容
                    // 'order_id'=> '',
@@ -650,8 +664,14 @@ class BuyercreditController extends PublicController {
             $this->releaseLock($handle_res[0]);
 
             if($res){
+                $suc = [
+                    'contract_no'=> $data['contract_no'],
+                    'credit_available'=> $left,
+                    'buyer_no'=> $buyerInfo['buyer_no'],
+                    'account_settle'=> $buyer_credit_Info['account_settle']
+                ];
                 $this->setCode(MSG::MSG_SUCCESS);
-                $datajson['data'] = '操作成功!';
+                $datajson['data'] = $suc;
                 $this->jsonReturn($datajson);
             }else{
                 $this->setCode(MSG::MSG_FAILED);
@@ -694,11 +714,18 @@ class BuyercreditController extends PublicController {
     public function buyerCreditPaymentByOrderRollbackAction(){
         $data = $this->getPut();
         if(!isset($data['contract_no']) || empty($data['contract_no'])){
-            jsonReturn('',MSG::MSG_FAILED,'');
+            jsonReturn('',MSG::MSG_FAILED,'缺少销售合同号!');
+        }
+        if(!isset($data['order_money']) || empty($data['order_money'])){
+            jsonReturn('',MSG::MSG_FAILED,'缺少订单金额!');
+        }
+        if(!isset($data['order_type']) || empty($data['order_type'])){
+            jsonReturn('',MSG::MSG_FAILED,'订单操作类型错误!');                // 3-回滚
         }
         if(!isset($data['crm_code']) || empty($data['crm_code'])){
-            jsonReturn('',MSG::MSG_FAILED,'');
+            jsonReturn('',MSG::MSG_FAILED,'缺少crm客户编码!');
         }
+
 
         $lockKey = MYPATH . '/public/tmp/orderpayrollback_' . $data['contract_no'] . '.lock';
         if(!file_exists($lockKey)){
@@ -721,15 +748,26 @@ class BuyercreditController extends PublicController {
             jsonReturn('',MSG::MSG_FAILED,'没有此合同操作日志!');
         }
         $buyer_credit_model = new BuyerCreditModel();
-
+        $buyer_credit_Info = $buyer_credit_model->getInfo($data['crm_code']);
+        if(!$buyer_credit_Info){
+            jsonReturn('',MSG::MSG_FAILED,'未进行订单授信操作,回滚操作错误!');
+        }
         $buyer_credit_model->startTrans();
         try{
             //上锁
             $handle_res = $this->getLock($lockKey);
 
             if($handle_res[0] && $handle_res[1]){
+                if($data['order_type'] == 1){                     //1-支出  2-还款
+                    $rollback_left = $buyer_credit_Info['credit_available'] + $data['order_money'];
+                    $money = '+'.$data['order_money'];
+                } elseif($data['order_type'] == 2){
+                    $rollback_left = $buyer_credit_Info['credit_available'] - $data['order_money'];
+                    $money = '-'.$data['order_money'];
+                }else {
+                    jsonReturn('',MSG::MSG_FAILED,'订单操作类型错误!');
+                }
 
-                $rollback_left = $buyerCreditOrderLogInfo['credit_available'] - $buyerCreditOrderLogInfo['use_credit_granted'];  //余额
                 $dataCreditRollback['credit_available'] = $rollback_left;
                 $dataCreditRollback['buyer_no'] = $buyerCreditOrderLogInfo['buyer_no'];
                 $dataCreditRollback['crm_code'] = $data['crm_code'];
@@ -742,9 +780,9 @@ class BuyercreditController extends PublicController {
                     'buyer_no'=> $buyerCreditOrderLogInfo['buyer_no'],
                     'credit_type'=> $buyerCreditOrderLogInfo['credit_type'],
                     'credit_cur_bn'=> $buyerCreditOrderLogInfo['credit_cur_bn'],
-                    'use_credit_granted'=> -$buyerCreditOrderLogInfo['use_credit_granted'],//使用额度
+                    'use_credit_granted'=> $money,//使用额度
                     'credit_available'=> $rollback_left,//剩余可用额度(使用后)
-                    'content'=> '回滚,合同号:'.$data['contract_no'].',合同金额:'.-$buyerCreditOrderLogInfo['use_credit_granted'], //备注内容
+                    'content'=> '回滚,合同号:'.$data['contract_no'].',合同金额:'.$money, //备注内容
                     // 'order_id'=> '',
                     'contract_no'=> $data['contract_no'], //销售合同号
                     'crm_code'=> $data['crm_code'], //crm
