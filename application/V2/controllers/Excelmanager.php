@@ -182,7 +182,7 @@ class ExcelmanagerController extends PublicController {
         $successCount = 0;
         // 失败的数据列
         $failList = [];
-
+//        $inquiryItem->delByInquiryId($inquiry_id);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
@@ -272,6 +272,8 @@ class ExcelmanagerController extends PublicController {
         $failList = [];
         // 产品分类
         $category = array_merge($inquiryItemModel->isOil, $inquiryItemModel->noOil);
+        //        $inquiryItem->delByInquiryId($inquiry_id);
+        //        $quoteItemModel->delQuoteByInquiryId($inquiry_id);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
