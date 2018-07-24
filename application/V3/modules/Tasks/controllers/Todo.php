@@ -46,6 +46,7 @@ class TodoController extends PublicController {
             foreach ($this->user['country_bn'] as $country_bn) {
                 $country_bns .= '\'' . $org_model->escapeString($country_bn) . '\',';
             }
+            $country_bns = rtrim($country_bns, ',');
             $sql_inquiry = '';
             if (
                     in_array(self::inquiryIssueRole, $role_nos) ||
@@ -72,7 +73,7 @@ class TodoController extends PublicController {
                 $sql_inquiry .= ' AND `now_agent_id`=\'' . $this->user['id'] . '\'';
             }
 
-            $country_bns = rtrim($country_bns, ',');
+
             $sql = ' select id,serial_no,inflow_time,status,quote_status,country_bn,type,name from ('
                     . '(SELECT `id`,\'\' as serial_no,\'\' as inflow_time,`status`,\'\' as quote_status,'
                     . '`country_bn`,`name`,'
