@@ -83,6 +83,8 @@ class CountryModel extends PublicModel {
         try {
             $data = ['country.name' => $name,
                 'country.lang' => 'zh',
+                'country.deleted_flag' => 'N',
+                'c.deleted_flag' => 'N',
                 'c.status' => 'VALID',
                 'country.status' => 'VALID',
                 'c.lang' => $lang
@@ -114,7 +116,8 @@ class CountryModel extends PublicModel {
     public function getInfoSort($lang) {
         $condition = array(
             'lang' => $lang,
-            'status' => 'VALID'
+            'status' => 'VALID',
+            'deleted_flag' => 'N'
         );
         $result = $this->where($condition)->select();
         if ($result) {

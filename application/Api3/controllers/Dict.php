@@ -23,7 +23,7 @@ class DictController extends PublicController {
         $data = $this->getPut();
 
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['bn'])) {
             $where['bn'] = $data['bn'];
         }
@@ -86,14 +86,15 @@ class DictController extends PublicController {
 
     public function TransModeAction() {
         $condition = $this->getPut();
+        $condition['deleted_flag'] = 'N';
         if (!empty($condition['terms'])) {
             $where['terms'] = $condition['terms'];
-        } else{
-            jsonReturn('',MSG::MSG_FAILED,'[terms]缺少!');
+        } else {
+            jsonReturn('', MSG::MSG_FAILED, '[terms]缺少!');
         }
         if (!empty($condition['lang'])) {
             $where['lang'] = $condition['lang'];
-        } else{
+        } else {
             $where['lang'] = 'en';
         }
         $trade_terms = new TradeTermsModel();
@@ -101,20 +102,21 @@ class DictController extends PublicController {
             $field = 'id,trans_mode_bn,lang';
 
             $result = $trade_terms->field($field)->where($where)->select();
-            if($result){
+            if ($result) {
                 jsonReturn($result);
             }
-            jsonReturn('',MSG::MSG_FAILED,'');
+            jsonReturn('', MSG::MSG_FAILED, '');
         } catch (Exception $ex) {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return [];
         }
     }
+
     public function TradeTermsListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
@@ -133,13 +135,13 @@ class DictController extends PublicController {
             }
 
             $where['lang'] = $lang;
-            if (redisHashExist('TradeTerms', 'TradeTerms'.$lang)) {
+            if (redisHashExist('TradeTerms', 'TradeTerms' . $lang)) {
 //                $arr = json_decode(redisHashGet('TradeTerms', 'TradeTerms'.$lang), true);
 //                return $arr;
             }
             $arr = $trade_terms->getlist($where, $limit); //($this->put_data);
             if ($arr) {
-                redisHashSet('TradeTerms', 'TradeTerms'.$lang, json_encode($arr));
+                redisHashSet('TradeTerms', 'TradeTerms' . $lang, json_encode($arr));
             }
         } else {
             if (!empty($data['lang'])) {
@@ -161,7 +163,7 @@ class DictController extends PublicController {
     public function TransModeListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
@@ -292,10 +294,10 @@ class DictController extends PublicController {
         $data = json_decode(file_get_contents("php://input"), true);
         $lang = $data['lang'] ? strtolower($data['lang']) : 'ru';
 
-       /* if (redisHashExist('CountryList', $lang)) {
-            $result = json_decode(redisHashGet('CountryList', $lang), true);
-            jsonReturn($result);
-        }*/
+        /* if (redisHashExist('CountryList', $lang)) {
+          $result = json_decode(redisHashGet('CountryList', $lang), true);
+          jsonReturn($result);
+          } */
 
         $countryModel = new CountryModel();
         $result = $countryModel->getInfoSort($lang);
@@ -326,7 +328,7 @@ class DictController extends PublicController {
         $this->input['lang'] = isset($this->input['lang']) ? $this->input['lang'] : 'en';
         $ddlModel = new DestDeliveryLogiModel();
         $data = $ddlModel->getList($this->input['country'], $this->input['lang']);
-        if ($data  || empty($data)) {
+        if ($data || empty($data)) {
             jsonReturn(array('data' => $data));
         } else {
             jsonReturn('', '400', '失败');
@@ -346,5 +348,4 @@ class DictController extends PublicController {
 //            jsonReturn('', '400', '失败');
 //        }
 //    }
-
 }
