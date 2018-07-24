@@ -161,4 +161,42 @@ class System_OrgModel extends PublicModel {
         return $count;
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setOrgName(&$arr) {
+        if ($arr) {
+
+            $org_ids = [];
+            foreach ($arr as $key => $val) {
+                if (isset($val['org_id']) && $val['org_id']) {
+                    $org_ids[] = $val['org_id'];
+                }
+            }
+            $orgnames = [];
+            if ($org_ids) {
+                $orgs = $this->where(['id' => ['in', $org_ids], 'deleted_flag' => 'N'])
+                                ->field('id,name')->select();
+                foreach ($orgs as $org) {
+                    $orgnames[$org['id']] = $org['name'];
+                }
+            }
+            foreach ($arr as $key => $val) {
+                if ($val['org_id'] && isset($orgnames[$val['org_id']])) {
+                    $val['org_name'] = $orgnames[$val['org_id']];
+                } else {
+                    $val['org_name'] = '';
+                }
+
+                $arr[$key] = $val;
+            }
+        }
+    }
+
 }
