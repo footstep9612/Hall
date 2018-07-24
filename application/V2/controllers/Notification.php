@@ -122,6 +122,11 @@ class NotificationController extends PublicController {
                     $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
+                    $map2 = [];
+                    $map2['agent_id'] = $this->user['id'];
+                    $map2['status'] = 'INQUIRY_CONFIRM';
+                    $map2['_logic'] = 'and';
+                    $map['_complex'] = $map2;
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
@@ -138,12 +143,24 @@ class NotificationController extends PublicController {
                     }
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
+                    $map2 = [];
+                    $map2['agent_id'] = $this->user['id'];
+                    $map2['status'] = 'INQUIRY_CONFIRM';
+                    $map2['_logic'] = 'and';
+                    $map['_complex'] = $map2;
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
                 }
             } else {
-                $where_inquiry['now_agent_id'] = $this->user['id'];
+                $map2 = [];
+                $map2['agent_id'] = $this->user['id'];
+                $map2['status'] = 'INQUIRY_CONFIRM';
+                $map2['_logic'] = 'and';
+                $map['_complex'] = $map2;
+                $map['now_agent_id'] = $this->user['id'];
+                $map['_logic'] = 'or';
+                $where_inquiry['_complex'] = $map;
             }
             $list = $inquiry_model->field('COUNT(id) AS tp_count')
                     ->where($where_inquiry)
@@ -166,6 +183,11 @@ class NotificationController extends PublicController {
                     $map1['status'] = ['in', ['BIZ_DISPATCHING']];
                     $map1['_logic'] = 'and';
                     $map['_complex'] = $map1;
+                    $map2 = [];
+                    $map2['agent_id'] = $this->user['id'];
+                    $map2['status'] = 'INQUIRY_CONFIRM';
+                    $map2['_logic'] = 'and';
+                    $map['_complex'] = $map2;
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
@@ -181,13 +203,26 @@ class NotificationController extends PublicController {
                         $map1['country_bn'] = '-1';
                     }
                     $map1['_logic'] = 'and';
+
                     $map['_complex'] = $map1;
+                    $map2 = [];
+                    $map2['agent_id'] = $this->user['id'];
+                    $map2['status'] = 'INQUIRY_CONFIRM';
+                    $map2['_logic'] = 'and';
+                    $map['_complex'] = $map2;
                     $map['now_agent_id'] = $this->user['id'];
                     $map['_logic'] = 'or';
                     $where_inquiry['_complex'] = $map;
                 }
             } else {
-                $where_inquiry['now_agent_id'] = $this->user['id'];
+                $map2 = [];
+                $map2['agent_id'] = $this->user['id'];
+                $map2['status'] = 'INQUIRY_CONFIRM';
+                $map2['_logic'] = 'and';
+                $map['_complex'] = $map2;
+                $map['now_agent_id'] = $this->user['id'];
+                $map['_logic'] = 'or';
+                $where_inquiry['_complex'] = $map;
             }
 
 
