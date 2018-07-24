@@ -37,7 +37,7 @@ class BuyerCreditOrderLogModel extends PublicModel
         //$condition['current_no'] = $condition['currentPage'];
 
         //list($start_no, $pagesize) = $this->_getPage($condition);
-        $field = 'id,buyer_no,credit_type,credit_cur_bn,use_credit_granted,credit_available,content,order_id,contract_no,type,credit_at';
+        $field = 'id,buyer_no,credit_type,credit_cur_bn,use_credit_granted,credit_available,content,order_id,contract_no,type,credit_at,crm_code';
         return $this->field($field)
             ->where($where)
             //->limit($start_no, $pagesize)

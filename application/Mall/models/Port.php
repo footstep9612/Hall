@@ -29,6 +29,7 @@ class PortModel extends PublicModel {
     public function getPort($lang = '', $country = '') {
         $condition = array(
             'lang' => $lang,
+            'deleted_flag' => 'N'
         );
         if (!empty($country)) {
             $condition['country_bn'] = $country;

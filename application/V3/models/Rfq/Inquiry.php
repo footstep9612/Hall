@@ -113,6 +113,11 @@ class Rfq_InquiryModel extends PublicModel {
             $where['agent_id'] = ['in', !empty($agent_ids) ? $agent_ids : [-1]];
         }
 
+        if (!empty($condition['quote_name'])) {
+            $quote_ids = (new System_EmployeeModel())->getUserIdByName($condition['quote_name']);
+            $where['quote_id'] = ['in', !empty($quote_ids) ? $quote_ids : [-1]];
+        }
+
         if (!empty($condition['pm_id'])) {
             $where['pm_id'] = $condition['pm_id'];  //项目经理
         }
