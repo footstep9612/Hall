@@ -32,9 +32,9 @@ class RfqController extends PublicController {
         (new System_EmployeeModel())->setUserName($list, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
             'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id']);
 
-        (new Buyer_BuyerModel())->setBuyerNo($list);
+        // (new Buyer_BuyerModel())->setBuyerNo($list);
         //(new Rfq_QuoteModel())->setLogiQuoteFlag($list);
-        (new System_OrgModel())->setOrgName($list);
+        // (new System_OrgModel())->setOrgName($list);
         //  (new Common_TransModeModel())->setTransModeName($list);
         //  (new Rfq_InquiryOrderModel())->setContractNo($list);
         if ($list) {

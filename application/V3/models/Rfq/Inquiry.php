@@ -93,25 +93,6 @@ class Rfq_InquiryModel extends PublicModel {
         if (!empty($condition['country_bn'])) {
             $where['country_bn'] = $condition['country_bn'];    //国家
         }
-        if (!empty($condition['serial_no'])) {
-            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%']; //流程编码
-        }
-        if (!empty($condition['buyer_no'])) {
-            $buyer_ids = (new Buyer_BuyerModel())->getBuyerIdByBuyerNo($condition['buyer_no']);
-            $where['buyer_id'] = ['in', !empty($buyer_ids) ? $buyer_ids : [-1]];
-        }
-        if (!empty($condition['buyer_code'])) {
-            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
-        }
-        if (!empty($condition['agent_name'])) {
-            $agent_ids = (new System_EmployeeModel())->getUserIdByName($condition['agent_name']);
-            $where['agent_id'] = ['in', !empty($agent_ids) ? $agent_ids : [-1]];
-        }
-
-
-        if (!empty($condition['pm_id'])) {
-            $where['pm_id'] = $condition['pm_id'];  //项目经理
-        }
 
         if (!empty($condition['start_time']) && !empty($condition['end_time'])) {   //询价时间
             $where['created_at'] = array(
@@ -120,6 +101,27 @@ class Rfq_InquiryModel extends PublicModel {
             );
         }
         $where['deleted_flag'] = !empty($condition['deleted_flag']) ? $condition['deleted_flag'] : 'N'; //删除状态
+
+
+        if (!empty($condition['buyer_no'])) {
+            $buyer_ids = (new Buyer_BuyerModel())->getBuyerIdByBuyerNo($condition['buyer_no']);
+            $where['buyer_id'] = ['in', !empty($buyer_ids) ? $buyer_ids : [-1]];
+        }
+
+        if (!empty($condition['agent_name'])) {
+            $agent_ids = (new System_EmployeeModel())->getUserIdByName($condition['agent_name']);
+            $where['agent_id'] = ['in', !empty($agent_ids) ? $agent_ids : [-1]];
+        }
+
+        if (!empty($condition['pm_id'])) {
+            $where['pm_id'] = $condition['pm_id'];  //项目经理
+        }
+        if (!empty($condition['serial_no'])) {
+            $where['serial_no'] = ['like', '%' . $condition['serial_no'] . '%']; //流程编码
+        }
+        if (!empty($condition['buyer_code'])) {
+            $where['buyer_code'] = ['like', '%' . $condition['buyer_code'] . '%'];  //客户编码
+        }
         return $where;
     }
 
