@@ -1759,7 +1759,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
-                'timeout' => 5,
+                'timeout' => 20,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap
