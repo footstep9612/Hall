@@ -430,11 +430,19 @@ class BuyerbusinessController extends PublicController
         }
         $this -> jsonReturn($dataJson);
     }
+    public function getUserRole(){
+        $arr=[];
+        $data=$this->user;
+        $arr['role']=$data['role_no'];
+        $arr['country']=$data['country_bn'];
+        return $arr;
+    }
     public function exportGradeAction(){
         $data = json_decode(file_get_contents("php://input"), true);
         $data['lang']=$this->getLang();
-        $data['role']=$this->user['role_no'];
-        $model = new CustomerGradeModel();  //结算方式
+//        $data['role']=$this->user['role_no'];
+        $model = new CustomerGradeModel();  //结
+        $data['admin']=$this->getUserRole();   //=1市场专员算方式
         $res=$model->exportExcelGrade($data);
         if(count($res)==0){
             $dataJson['code']=4;
