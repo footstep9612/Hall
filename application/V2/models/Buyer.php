@@ -426,6 +426,7 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
+    //cond
     public function getBuyerStatisListCond($data,$falg=true,$filter=false){
 //        $data=array(
 //            'created_by'=>37850,
