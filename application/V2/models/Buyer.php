@@ -833,7 +833,7 @@ class BuyerModel extends PublicModel {
 //            ZipHelper::removeDir(dirname($excelName));    //清除目录
         }
         if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer .'/'. $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
         }
     }
     /**
