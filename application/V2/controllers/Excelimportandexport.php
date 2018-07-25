@@ -874,7 +874,7 @@ class ExcelimportandexportController extends PublicController {
 
         $quoteitem_model = new Rfq_QuoteItemModel();
         $date = date('YmdHi');
-        $fileName = "quote_sku-$date.xlsx";
+        $fileName = 'quote_sku-' . $condition['inquiry_id'] . '-' . $date . '.xlsx';
         $sheetTitle = '报价sku数据';
         $outPath = $this->_addSlash($this->excelDir) . date('YmdH');
         $this->_createDir($outPath);
@@ -1527,7 +1527,7 @@ class ExcelimportandexportController extends PublicController {
             $fileInfo = $this->_uploadToFastDFS($file);
             if ($fileInfo['code'] == '1') {
                 unlink($file);
-                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'], 'name' => $fileName]);
+                $this->jsonReturn(['url' => $this->_addSlash($this->fastDFSUrl) . $fileInfo['url'] . '?filename=' . $fileName, 'name' => $fileName]);
             }
         }
         $this->jsonReturn(false);
