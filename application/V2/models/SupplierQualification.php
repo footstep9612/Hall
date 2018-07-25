@@ -73,7 +73,7 @@ class SupplierQualificationModel extends PublicModel {
     	return $this->field($field)
     	                   ->where($where)
     	                   //->page($currentPage, $pageSize)
-    	                   ->order('id DESC')
+    	                   //->order('id DESC')
     	                   ->select();
     }   
     
