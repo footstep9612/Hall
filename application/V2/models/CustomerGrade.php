@@ -194,7 +194,9 @@ class CustomerGradeModel extends PublicModel {
             $cond=" grade.buyer_id=$data[buyer_id] and grade.deleted_flag='N' ";
         }else{
 //            $cond=arrray('grade.deleted_flag'=>'N');
-            $cond=" grade.deleted_flag='N' ";
+            $buyer=new BuyerModel();
+            $cond=$buyer->getBuyerStatisListCond($data);
+            $cond.=" and grade.deleted_flag='N' ";
         }
         $cond.=" and (grade.status=3 or grade.status=31) ";
         $lang=$data['lang'];
@@ -236,6 +238,7 @@ class CustomerGradeModel extends PublicModel {
                 ->select();
         }else{
             $info=$this->alias('grade')
+                ->join('erui_buyer.buyer buyer on grade.buyer_id=buyer.id','right')
                 ->join('(SELECT buyer_id FROM erui_buyer.customer_grade where deleted_flag=\'N\' GROUP BY buyer_id) main on grade.buyer_id =main.buyer_id
 ','right')
                 ->field($field)
