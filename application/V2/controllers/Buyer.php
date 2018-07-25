@@ -1624,6 +1624,7 @@ EOF;
         $created_by = $this->user['id'];
         $data = json_decode(file_get_contents("php://input"), true);
         $data['created_by'] = $created_by;
+        $lang=$this->getLang();
         $model = new BuyerModel();
         $info = $model->checkBuyerCrm($data);
         if(!empty($data['buyer_id'])){
@@ -1662,10 +1663,11 @@ EOF;
             }
             //验证集团CRM存在,则展示数据 生产-start
             $group = $this->groupCrmCode($data['buyer_code']);
+            $msg=$lang=='zh'?'科瑞集团 CRM 系统访问异常，请稍候重试':'Exception: Attempt to access CRM system of KERUI Group, Please try again later';
             if ($group=='no') {
                 $dataJson = array(
                     'code' => 4,
-                    'message' => '网络异常'
+                    'message' => $msg
                 );
             }elseif($group=='code'){
                 $dataJson = array(
@@ -1681,63 +1683,6 @@ EOF;
             }
             $this->jsonReturn($dataJson); //生产-end
         }
-
-        //==========================================================================================
-        if (!empty($info)) {
-            $dataJson = array(
-                'code' => 0,
-                'message' => L('crm_existed')
-            );
-
-            $this->jsonReturn($dataJson);
-        }
-//        test-start
-        else{
-            $dataJson = array(
-                'code'=>2,
-                'message'=>L('Normal_customer') //正常录入客户信息流程
-            );
-            $this->jsonReturn($dataJson);
-        }
-//        test-end
-
-        //验证集团CRM存在,则展示数据 生产-start
-        $group = $this->groupCrmCode($data['buyer_code']);
-        if ($group=='no') {
-            $dataJson = array(
-                'code' => 4,
-                'message' => '网络异常'
-            );
-        }elseif($group=='code'){
-            $dataJson = array(
-                'code' => 2,
-                'message' => L('Normal_customer') //正常录入客户信息流程
-            );
-        }else {
-            $dataJson = array(
-                'code' => 1,
-                'message' => L('Group_crm'), //集团CRM客户信息
-                'data' => $group
-            );
-        }
-        $this->jsonReturn($dataJson); //生产-end
-//        if (!empty($group) && $group!='code') {
-//            $dataJson = array(
-//                'code' => 1,
-//                'message' => L('Group_crm'), //集团CRM客户信息
-//                'data' => $group
-//            );
-//        }elseif($group=='code'){
-//            $dataJson = array(
-//                'code' => 2,
-//                'message' => L('Normal_customer') //正常录入客户信息流程
-//            );
-//        }else {
-//            $dataJson = array(
-//                'code' => 0,
-//                'message' => '网络异常' //正常录入客户信息流程
-//            );
-//        }==================================================================================================
     }
 
     /**
@@ -1759,7 +1704,7 @@ EOF;
 EOF;
         $opt = array(
             'http' => array(
-                'timeout' => 5,
+                'timeout' => 20,
                 'method' => "POST",
                 'header' => "Content-Type: text/xml",
                 'content' => $soap

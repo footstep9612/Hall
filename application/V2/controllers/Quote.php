@@ -687,7 +687,7 @@ class QuoteController extends PublicController {
         $this->inquiryItemModel->startTrans();
         $res1 = $this->inquiryItemModel->delByInquiryId($inquiryId);
         $res2 = $this->quoteItemModel->delByQuoteId($request['quote_id']);
-        if ($res1 && $res2) {
+        if ($res1 !== false && $res2 !== false) {
             $this->inquiryItemModel->commit();
             $res = true;
         } else {

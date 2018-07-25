@@ -350,7 +350,7 @@ class ExcelmanagerController extends PublicController {
                     $inquiryItemId = $inquiryItemModel->add($inquiryItemData);
                     // 新增报价SKU记录
                     $quoteItemData = [
-                        'quote_id' => $value['inquiry_id'],
+                        'quote_id' => $quoteId,
                         'inquiry_id' => $value['inquiry_id'],
                         'inquiry_item_id' => $inquiryItemId,
                         'sku' => $value['sku'],
