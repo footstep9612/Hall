@@ -881,6 +881,7 @@ class ExcelimportandexportController extends PublicController {
         $inquiry_model = new InquiryModel();
         $org_id = $inquiry_model->where(['id' => $condition['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
         $is_erui = (new OrgModel())->getIsEruiById($org_id);
+
         if ($is_erui == 'Y') {
             $titleList = $quoteitem_model->getTitleListByErui();
             $outData = $quoteitem_model->getListByErui($condition);
@@ -888,6 +889,8 @@ class ExcelimportandexportController extends PublicController {
             $titleList = $quoteitem_model->getTitleListByOtherOrg();
             $outData = $quoteitem_model->getListByOtherOrg($condition);
         }
+
+
         $this->_handleExportExcelFile($fileName, $titleList, $outData, $sheetTitle, $outPath);
     }
 
