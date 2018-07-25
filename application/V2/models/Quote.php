@@ -121,11 +121,15 @@ class QuoteModel extends PublicModel {
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+                    if ($value['purchase_unit_price'] == 'USD') {
+                        $exchange_rate = 1;
+                    } else {
+                        $exchange_rate = $exchangeRateModel
+                                ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                    }
 
-                    $exchange_rate = $exchangeRateModel
-                            ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
-                            ->order('created_at DESC')
-                            ->getField('rate');
                     if (empty($exchange_rate)) {
                         $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => $value['purchase_price_cur_bn']])
                                 ->order('created_at DESC')

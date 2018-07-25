@@ -692,6 +692,7 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
+//        print_r($cond);die;
         if($cond==false){   //无角色,无数据
             return false;
         }
@@ -3009,7 +3010,7 @@ EOF;
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
-        $cond .= " and buyer.status='APPROVED' ";
+//        $cond .= " and buyer.status='APPROVED' ";
 //        $cond = $this->getBuyerManageCond($data);
         if($cond==false){
             return false;
