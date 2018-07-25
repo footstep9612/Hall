@@ -410,8 +410,10 @@ class TemporaryGoodsModel extends PublicModel {
      * @author zhangyuliang
      */
     public function deleteData($condition) {
-        if (isset($condition['id'])) {
+        if (!empty($condition['id'])) {
             $where['inquiry_item_id'] = array('in', explode(',', $condition['id']));
+        } elseif (!empty($condition['inquiry_id'])) {
+            $where['inquiry_id'] = $condition['inquiry_id'];
         } else {
             return false;
         }

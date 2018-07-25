@@ -450,4 +450,18 @@ class QuoteItemModel extends PublicModel {
         return $this->where(['quote_id' => $quoteId])->setField('deleted_flag', 'Y');
     }
 
+    /**
+     * @desc 根据询单ID删除SKU记录
+     *
+     * @param int $inquiryId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function delQuoteByInquiryId($inquiryId) {
+        $flag = $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
+
+        return $flag;
+    }
+
 }

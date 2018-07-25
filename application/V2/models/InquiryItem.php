@@ -445,7 +445,12 @@ class InquiryItemModel extends PublicModel {
      * @time 2018-04-09
      */
     public function delByInquiryId($inquiryId) {
-        return $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
+        $flag = $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
+
+        if ($flag) {
+            (new TemporaryGoodsModel)->deleteData(['inquiry_id' => $inquiryId]);
+        }
+        return $flag;
     }
 
 }

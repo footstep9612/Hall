@@ -177,6 +177,7 @@ class BuyerCreditModel extends PublicModel
         } else {
             $where['id'] = '-1';
         }
+
         if (isset($condition['name']) && !empty($condition['name'])) {
             $where['name'] = $condition['name'];                  //名称
         }
@@ -193,6 +194,9 @@ class BuyerCreditModel extends PublicModel
             $where['status'] = strtoupper($condition['status']);
         } else{
             $where['status'] = array('neq', 'DRAFT');
+        }
+        if (isset($condition['status_arr']) && !empty($condition['status_arr'])) {
+            $where['status']  = ['in', $condition['status_arr']];
         }
 
         /*if (isset($condition['tel']) && $condition['tel']) {
