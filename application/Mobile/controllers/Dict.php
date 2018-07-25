@@ -23,7 +23,7 @@ class DictController extends PublicController {
         $data = $this->getPut();
 
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['bn'])) {
             $where['bn'] = $data['bn'];
         }
@@ -84,7 +84,7 @@ class DictController extends PublicController {
     public function CityListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['country_bn'])) {
             $where['country_bn'] = trim($data['country_bn']);
         }
@@ -135,6 +135,7 @@ class DictController extends PublicController {
 
     public function TransModeAction() {
         $condition = $this->getPut();
+        $condition['deleted_flag'] = 'N';
         if (!empty($condition['terms'])) {
             $where['terms'] = $condition['terms'];
         } else {
@@ -164,7 +165,8 @@ class DictController extends PublicController {
     public function TradeTermsListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }
@@ -211,7 +213,7 @@ class DictController extends PublicController {
     public function TransModeListAction() {
         $data = $this->getPut();
         $limit = [];
-        $where = [];
+        $where = ['deleted_flag' => 'N'];
         if (!empty($data['page'])) {
             $limit['page'] = $data['page'];
         }

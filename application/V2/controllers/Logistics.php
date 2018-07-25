@@ -11,6 +11,7 @@ class LogisticsController extends PublicController {
 
     public function init() {
         parent::init();
+
         $this->put_data = dataTrim($this->put_data);
 
         $this->inquiryModel = new InquiryModel();
@@ -890,6 +891,8 @@ class LogisticsController extends PublicController {
                     $data['now_agent_id'] = $inquiry['quote_id'];
                     // 清除物流报价SKU
                     $logiRes = $this->quoteItemLogiModel->where($where)->delete();
+
+
                     break;
                 case 'quote' :
                     $status = 'LOGI_DISPATCHING';
@@ -906,6 +909,7 @@ class LogisticsController extends PublicController {
             // 更改询单状态
             $res1 = $this->inquiryModel->updateData($data);
 
+
             // 更改报价单状态
             $quoteData = [
                 'status' => $status,
@@ -916,7 +920,7 @@ class LogisticsController extends PublicController {
 
             if ($res1['code'] == 1 && $res2) {
                 if ($condition['current_node'] == 'issue') {
-                    if ($logiRes) {
+                    if ($logiRes !== false) {
                         $res = true;
                     } else {
                         $res = false;

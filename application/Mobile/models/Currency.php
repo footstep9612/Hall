@@ -19,10 +19,10 @@ class CurrencyModel extends PublicModel {
      */
     public function getCurrency() {
         if (redisHashExist('Currency', 'currency')) {
-            //return json_decode(redisHashGet('Currency', 'currency'), true);
+            return json_decode(redisHashGet('Currency', 'currency'), true);
         }
         try {
-            $where = ['status' => 'VALID', 'deleted_flag' => 'N'];
+
 
             $field = 'bn,symbol,name,en_name';
             $result = $this->field($field)
@@ -31,7 +31,7 @@ class CurrencyModel extends PublicModel {
                     ->group('bn')
                     ->select();
             if ($result) {
-                // redisHashSet('Currency', 'currency', json_encode($result));
+                redisHashSet('Currency', 'currency', json_encode($result));
                 return $result;
             }
         } catch (Exception $e) {
