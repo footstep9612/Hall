@@ -42,7 +42,7 @@ class FinalquoteController extends PublicController {
             }
             //获取综合报价信息
             $quoteModel = new Rfq_QuoteModel();
-            $quoteinfo = $quoteModel->info($where);
+            $quoteinfo = $quoteModel->info($where, $results['data']);
 
             unset($quoteModel);
             if ($quoteinfo) {

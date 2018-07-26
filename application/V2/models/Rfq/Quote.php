@@ -58,7 +58,7 @@ class Rfq_QuoteModel extends PublicModel {
             $quoteinfo['payment_mode'] = $quotedata['payment_mode'];    //付款方式
             $quoteinfo['quote_remarks'] = $quotedata['quote_remarks'];    //报价备注
             $quoteinfo['trade_terms_bn'] = $quotedata['trade_terms_bn'];    //贸易术语
-            $quoteinfo['payment_period'] = $results['data']['payment_period'];    //回款周期
+
             $quoteinfo['dispatch_place'] = $quotedata['dispatch_place'];    //起始发运地
             $quoteinfo['delivery_addr'] = $quotedata['delivery_addr'];    //交货地点
             $quoteinfo['from_country'] = $quotedata['from_country'];    //起运国
@@ -71,22 +71,38 @@ class Rfq_QuoteModel extends PublicModel {
             $quoteinfo['to_port_name'] = $portModel->getPortNameByBn($quotedata['to_country'], $quotedata['to_port'], $this->lang);
             $quoteinfo['trans_mode_bn'] = $quotedata['trans_mode_bn'];    //运输方式
             $quoteinfo['trans_mode_name'] = $transModeModel->getTransModeByBn($quotedata['trans_mode_bn'], $this->lang);
-            $quoteinfo['delivery_period'] = $results['data']['delivery_period'];    //交货周期
-            $quoteinfo['fund_occupation_rate'] = $results['data']['fund_occupation_rate'];    //占用资金比例
+
             $quoteinfo['bank_interest'] = $quotedata['bank_interest'];    //银行利息
-            $quoteinfo['total_bank_fee'] = $results['data']['total_bank_fee'];    //银行费用
+            //银行费用
             $quoteinfo['period_of_validity'] = $quotedata['period_of_validity'];    //报价有效期
             $quoteinfo['exchange_rate'] = $quotedata['exchange_rate'];    //汇率
-            $quoteinfo['total_logi_fee'] = $results['data']['total_logi_fee'];    //物流合计
+
             $quoteinfo['total_quote_price'] = $quotedata['total_quote_price'];    //商务报出贸易价格合计
             $quoteinfo['total_exw_price'] = $quotedata['total_exw_price'];    //商务报出EXW价格
-            $quoteinfo['final_total_quote_price'] = $results['data']['total_quote_price'];    //市场报出贸易价格合计
-            $quoteinfo['final_total_exw_price'] = $results['data']['total_exw_price'];    //市场报出EWX价格
+
             $quoteinfo['gross_profit_rate'] = $quotedata['gross_profit_rate'];
             //毛利率
             $quoteinfo['premium_rate'] = $quotedata['premium_rate'];    //保险税率
             $quoteinfo['certification_fee'] = $quotedata['certification_fee'];
 
+
+            if (in_array($results['status'], ['INQUIRY_CONFIRM', 'INQUIRY_CLOSE', 'MARKET_CONFIRMING', 'MARKET_APPROVING', 'BIZ_APPROVING', 'LOGI_APPROVING', 'LOGI_QUOTING', 'LOGI_DISPATCHING'])) {
+                $quoteinfo['total_logi_fee'] = $results['total_logi_fee'];    //物流合计
+                $quoteinfo['total_bank_fee'] = $results['total_bank_fee'];
+                $quoteinfo['delivery_period'] = $results['delivery_period'];    //交货周期
+                $quoteinfo['fund_occupation_rate'] = $results['fund_occupation_rate'];    //占用资金比例
+                $quoteinfo['final_total_quote_price'] = $results['total_quote_price'];    //市场报出贸易价格合计
+                $quoteinfo['final_total_exw_price'] = $results['total_exw_price'];    //市场报出EWX价格
+                $quoteinfo['payment_period'] = $results['payment_period'];    //回款周期
+            } else {
+                $quoteinfo['total_logi_fee'] = $quotedata['total_logi_fee'];    //物流合计
+                $quoteinfo['total_bank_fee'] = $quotedata['total_bank_fee'];
+                $quoteinfo['delivery_period'] = $quotedata['delivery_period'];    //交货周期
+                $quoteinfo['fund_occupation_rate'] = $quotedata['fund_occupation_rate'];    //占用资金比例
+                $quoteinfo['final_total_quote_price'] = $quotedata['total_quote_price'];    //市场报出贸易价格合计
+                $quoteinfo['final_total_exw_price'] = $quotedata['total_exw_price'];    //市场报出EWX价格
+                $quoteinfo['payment_period'] = $quotedata['payment_period'];    //回款周期
+            }
             return $quoteinfo;
         } else {
             return [];
