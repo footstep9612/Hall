@@ -8,7 +8,9 @@ class BrandController extends PublicController {
     protected $langs = ['en', 'es', 'ru', 'zh'];
 
     public function init() {
+
         parent::init();
+        error_reporting(E_ALL);
     }
 
     public function listAction() {
@@ -96,6 +98,23 @@ class BrandController extends PublicController {
         $ret = [];
         foreach ($arr as $item) {
             $brands = json_decode($item['brand'], true);
+            if (isset($brands['lang'])) {
+                $val = $brands;
+                $name = strtoupper($name);
+                if ($val['lang'] === $lang && $item['id'] != $id && strpos(strtoupper($val['name']), $name) !== false) {
+                    $ret[trim($val['name'])] = ['name' => trim($val['name'])];
+                }
+            } else {
+                foreach ($brands as $val) {
+                    if (empty($val['lang'])) {
+                        continue;
+                    }
+                    $name = strtoupper($name);
+                    if ($val['lang'] === $lang && $item['id'] != $id && strpos(strtoupper($val['name']), $name) !== false) {
+                        $ret[trim($val['name'])] = ['name' => trim($val['name'])];
+                    }
+                }
+            }
             foreach ($brands as $val) {
                 $name = strtoupper($name);
                 if ($val['lang'] === $lang && $item['id'] != $id && strpos(strtoupper($val['name']), $name) !== false) {
@@ -129,19 +148,29 @@ class BrandController extends PublicController {
     public function ListAllAction() {
 
         $condition = $this->getPut();
-        $lang = $this->getPut('lang', '');
+        $lang = $this->getLang();
 
         $brand_model = new BrandModel();
         $arr = $brand_model->listall($condition, $lang);
+        echo $brand_model->_sql();
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
             $brand = [];
             foreach ($this->langs as $lang) {
                 $brand[$lang] = [];
             }
-            foreach ($brands as $val) {
+            if (isset($brands['lang'])) {
+                $val = $brands;
                 $brand[$val['lang']] = $val;
                 $brand[$val['lang']]['id'] = $item['id'];
+            } else {
+                foreach ($brands as $val) {
+                    if (empty($val['lang'])) {
+                        continue;
+                    }
+                    $brand[$val['lang']] = $val;
+                    $brand[$val['lang']]['id'] = $item['id'];
+                }
             }
             $arr[$key] = $brand;
         }
