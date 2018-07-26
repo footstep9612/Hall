@@ -152,7 +152,7 @@ class BrandController extends PublicController {
 
         $brand_model = new BrandModel();
         $arr = $brand_model->listall($condition, $lang);
-        echo $brand_model->_sql();
+
         foreach ($arr as $key => $item) {
             $brands = json_decode($item['brand'], true);
             $brand = [];
