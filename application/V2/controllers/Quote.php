@@ -542,8 +542,9 @@ class QuoteController extends PublicController {
      */
     public function updateSkuBatchAction() {
         $request = $this->validateRequests();
-
-        $response = $this->quoteItemModel->updateItemBatch($request['data'], $this->user['id'], $request['currentPage'], $request['pageSize']);
+        $org_id = (new InquiryModel())->where(['id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('org_id');
+        $is_erui = (new OrgModel())->getIsEruiById($org_id);
+        $response = $this->quoteItemModel->updateItemBatch($request['data'], $this->user['id'], $request['currentPage'], $request['pageSize'], $is_erui);
         $this->jsonReturn($response);
     }
 
@@ -687,7 +688,7 @@ class QuoteController extends PublicController {
         $this->inquiryItemModel->startTrans();
         $res1 = $this->inquiryItemModel->delByInquiryId($inquiryId);
         $res2 = $this->quoteItemModel->delByQuoteId($request['quote_id']);
-        if ($res1 && $res2) {
+        if ($res1 !== false && $res2 !== false) {
             $this->inquiryItemModel->commit();
             $res = true;
         } else {

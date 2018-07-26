@@ -133,8 +133,8 @@ class SuppliersController extends PublicController {
         if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == '')
             jsonReturn('', -101, '是否签订合作协议不能为空!');
 
-        if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == 'Y' && $condition['sign_agreement_time'] == '')
-            jsonReturn('', -101, '签订协议时间不能为空!');
+        //if ($condition['status'] != 'DRAFT' && $condition['sign_agreement_flag'] == 'Y' && $condition['sign_agreement_time'] == '')
+            //jsonReturn('', -101, '签订协议时间不能为空!');
 
         if ($condition['status'] != 'DRAFT' && $condition['providing_sample_flag'] == '')
             jsonReturn('', -101, '是否提供样品不能为空!');

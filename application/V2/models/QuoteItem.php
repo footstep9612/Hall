@@ -216,7 +216,7 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      * @author mmt、liujf
      */
-    public function updateItemBatch($data, $user, $currentPage, $pageSize) {
+    public function updateItemBatch($data, $user, $currentPage, $pageSize, $is_erui = 'N') {
         $inquiryItemModel = new InquiryItemModel();
         $suppliersModel = new SuppliersModel();
         $materialcat_model = new MaterialCatModel();
@@ -229,12 +229,13 @@ class QuoteItemModel extends PublicModel {
         $this->startTrans();
 
 
+
         foreach ($data as $key => $value) {
             $row++;
 
 
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && empty($value['category']) && empty($value['org_id']))) {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && $is_erui == 'N')) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -448,6 +449,20 @@ class QuoteItemModel extends PublicModel {
      */
     public function delByQuoteId($quoteId) {
         return $this->where(['quote_id' => $quoteId])->setField('deleted_flag', 'Y');
+    }
+
+    /**
+     * @desc 根据询单ID删除SKU记录
+     *
+     * @param int $inquiryId
+     * @return mixed
+     * @author liujf
+     * @time 2018-04-09
+     */
+    public function delQuoteByInquiryId($inquiryId) {
+        $flag = $this->where(['inquiry_id' => $inquiryId])->setField('deleted_flag', 'Y');
+
+        return $flag;
     }
 
 }

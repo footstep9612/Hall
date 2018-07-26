@@ -182,7 +182,7 @@ class ExcelmanagerController extends PublicController {
         $successCount = 0;
         // 失败的数据列
         $failList = [];
-
+//        $inquiryItem->delByInquiryId($inquiry_id);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
@@ -272,6 +272,8 @@ class ExcelmanagerController extends PublicController {
         $failList = [];
         // 产品分类
         $category = array_merge($inquiryItemModel->isOil, $inquiryItemModel->noOil);
+        //        $inquiryItem->delByInquiryId($inquiry_id);
+        //        $quoteItemModel->delQuoteByInquiryId($inquiry_id);
         foreach ($sku as $item => $value) {
             $failData = [
                 'file_name' => $fileName,
@@ -282,15 +284,18 @@ class ExcelmanagerController extends PublicController {
 
             if ($value['category'] == '' && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
-            } elseif ($value['material_cat_no'] == '' && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
-            } elseif (!is_numeric($value['material_cat_no']) && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
-            } elseif ($value['org_id'] == '' && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
-            } elseif (!is_numeric($value['org_id']) && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
-            } elseif (!in_array($value['category'], $category) && $is_erui === 'N') {
+            }
+
+//            elseif ($value['material_cat_no'] == '' && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+//            } elseif (!is_numeric($value['material_cat_no']) && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+//            } elseif ($value['org_id'] == '' && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+//            } elseif (!is_numeric($value['org_id']) && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+//            }
+            elseif (!in_array($value['category'], $category) && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_NOT_EXIST');
             } elseif ($value['name'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
@@ -348,7 +353,7 @@ class ExcelmanagerController extends PublicController {
                     $inquiryItemId = $inquiryItemModel->add($inquiryItemData);
                     // 新增报价SKU记录
                     $quoteItemData = [
-                        'quote_id' => $value['inquiry_id'],
+                        'quote_id' => $quoteId,
                         'inquiry_id' => $value['inquiry_id'],
                         'inquiry_item_id' => $inquiryItemId,
                         'sku' => $value['sku'],

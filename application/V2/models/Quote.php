@@ -64,15 +64,16 @@ class QuoteModel extends PublicModel {
                     'message' => '新建报价失败!'
                 ];
             }
+            $error = '';
             //处理计算相关逻辑
-            $flag = $this->calculate($condition);
+            $flag = $this->calculate($condition, $error);
 
             if ($flag === false) {
                 $this->rollback();
 
                 return [
                     'code' => -1,
-                    'message' => '处理计算相关逻辑失败!'
+                    'message' => '处理计算相关逻辑失败!' . $error
                 ];
             }
             $this->commit();
@@ -94,7 +95,7 @@ class QuoteModel extends PublicModel {
      * @param $condition    条件
      * @return bool
      */
-    private function calculate($condition) {
+    private function calculate($condition, &$error = null) {
 
         $quoteItemModel = new QuoteItemModel();
         $exchangeRateModel = new ExchangeRateModel();
@@ -121,16 +122,21 @@ class QuoteModel extends PublicModel {
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+                    if ($value['purchase_unit_price'] == 'USD') {
+                        $exchange_rate = 1;
+                    } else {
+                        $exchange_rate = $exchangeRateModel
+                                ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                    }
 
-                    $exchange_rate = $exchangeRateModel
-                            ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
-                            ->order('created_at DESC')
-                            ->getField('rate');
                     if (empty($exchange_rate)) {
                         $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => $value['purchase_price_cur_bn']])
                                 ->order('created_at DESC')
                                 ->getField('rate');
                         if (empty($rate)) {
+                            $error = $value['purchase_unit_price'] . '兑USD汇率不存在';
                             return false;
                         } else {
                             $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $rate;
@@ -141,9 +147,13 @@ class QuoteModel extends PublicModel {
                     //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
                     $exw_unit_price = sprintf("%.8f", $exw_unit_price);
 
-                    $quoteItemModel->where(['id' => $value['id']])->save([
+                    $flag = $quoteItemModel->where(['id' => $value['id']])->save([
                         'exw_unit_price' => $exw_unit_price
                     ]);
+                    if ($flag === false) {
+                        $error = '计算报出EXW价格失败!';
+                        return false;
+                    }
                 }
             }
         }
@@ -157,26 +167,33 @@ class QuoteModel extends PublicModel {
                 ->where($where)
                 ->field('exw_unit_price,quote_qty,gross_weight_kg')
                 ->select();
+        if (!empty($quoteItemExwUnitPrices)) {
+            $total_exw_price_arr = [];
+            foreach ($quoteItemExwUnitPrices as $price) {
+                $total_exw_price_arr[] = $price['exw_unit_price'] * $price['quote_qty'];
+            }
+            $total_exw_price = array_sum($total_exw_price_arr);
 
-        $total_exw_price = [];
-        foreach ($quoteItemExwUnitPrices as $price) {
-            $total_exw_price[] = $price['exw_unit_price'] * $price['quote_qty'];
+            $total_gross_weight_kg_arr = [];
+            foreach ($quoteItemExwUnitPrices as $price) {
+                $total_gross_weight_kg_arr[] = $price['gross_weight_kg'] * $price['quote_qty'];
+            }
+            $total_gross_weight_kg = array_sum($total_gross_weight_kg_arr);
+        } else {
+            $total_exw_price = 0;
+            $total_gross_weight_kg = 0;
         }
-        $total_exw_price = array_sum($total_exw_price);
-
-        $total_gross_weight_kg = [];
-        foreach ($quoteItemExwUnitPrices as $price) {
-            $total_gross_weight_kg[] = $price['gross_weight_kg'] * $price['quote_qty'];
-        }
-        $total_gross_weight_kg = array_sum($total_gross_weight_kg);
-
-        $this->where($condition)->save([
+        $flag = $this->where($condition)->save([
             //总重
             'total_weight' => $total_gross_weight_kg,
             //exw合计
             'total_exw_price' => $total_exw_price
         ]);
 
+        if ($flag === false) {
+            $error = '计算商务报出EXW价格合计 和 总重出错!';
+            return false;
+        }
         /*
           |--------------------------------------------------------------------------
           | 采购合计          计算公式 : 采购总价=采购单价*条数
@@ -197,6 +214,10 @@ class QuoteModel extends PublicModel {
                                 ->order('created_at DESC')
                                 ->getField('rate');
                         if (empty($rate)) {
+                            if ($flag === false) {
+                                $error = 'EUR兑USD汇率不存在!';
+                                return false;
+                            }
                             return false;
                         } else {
                             $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
@@ -220,6 +241,10 @@ class QuoteModel extends PublicModel {
                                 ->order('created_at DESC')
                                 ->getField('rate');
                         if (empty($rate)) {
+                            if ($flag === false) {
+                                $error = 'CNY兑USD汇率不存在!';
+                                return false;
+                            }
                             return false;
                         } else {
                             $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
@@ -228,6 +253,9 @@ class QuoteModel extends PublicModel {
                         $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
                     }
                     break;
+                default :
+                    $error = '币种错误!';
+                    return false;
             }
         }
 

@@ -426,6 +426,7 @@ class BuyerModel extends PublicModel {
         }
         return $cond;
     }
+    //cond
     public function getBuyerStatisListCond($data,$falg=true,$filter=false){
 //        $data=array(
 //            'created_by'=>37850,
@@ -691,6 +692,7 @@ class BuyerModel extends PublicModel {
         set_time_limit(0);
         $lang=!empty($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
+//        print_r($cond);die;
         if($cond==false){   //无角色,无数据
             return false;
         }
@@ -831,7 +833,7 @@ class BuyerModel extends PublicModel {
 //            ZipHelper::removeDir(dirname($excelName));    //清除目录
         }
         if ($fileId) {
-            return array('url' => $fastDFSServer . $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
+            return array('url' => $fastDFSServer .'/'. $fileId['url'] . '?filename=' . $fileId['name'], 'name' => $fileId['name']);
         }
     }
     /**
@@ -3008,14 +3010,14 @@ EOF;
     public function getBuyerManageDataByCond($data,$i=0,$pageSize,$excel=false){
         $lang=isset($data['lang'])?$data['lang']:'zh';
         $cond = $this->getBuyerStatisListCond($data);
-        $cond .= " and buyer.status='APPROVED' ";
+//        $cond .= " and buyer.status='APPROVED' ";
 //        $cond = $this->getBuyerManageCond($data);
         if($cond==false){
             return false;
         }
         $totalCount = $this->alias('buyer')
-            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
-            ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
+//            ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
+//            ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
             ->where($cond)
             ->count();
 
@@ -3023,7 +3025,7 @@ EOF;
             return false;   //空数据
         }
         if($excel==true){
-            $pageSize=1000;
+            $pageSize=$totalCount;
         }
         //开始----------------------------------------------------------------------------
         do{
@@ -3060,20 +3062,19 @@ EOF;
             foreach($fieldBusiness as $v){
                 $field .= ',business.'.$v;
             }
-            $field .= ',employee.name as created_name';
+            $field .= ',(select name from erui_sys.employee where id=buyer.created_by and deleted_flag=\'N\') as created_name';
             $field .= ',credit.credit_level'; //采购商信用等级
             $field .= ',credit.credit_type';  //授信类型
             $field .= ',credit.line_of_credit';   //授信额度
             $info = $this->alias('buyer')
                 ->join('erui_buyer.buyer_business business on buyer.id=business.buyer_id','left')
                 ->join('erui_buyer.customer_credit credit on buyer.id=credit.buyer_id and credit.deleted_flag=\'N\'','left')
-                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
+//                ->join('erui_sys.employee employee on buyer.created_by=employee.id and employee.deleted_flag=\'N\'','left')
                 ->field($field)
                 ->where($cond)
                 ->order('buyer.build_modify_time desc')
                 ->limit($i,$pageSize)
                 ->select();
-//            print_r($info);die;
             if(!empty($info)){
                 $country = new CountryModel();
                 $level = new BuyerLevelModel();
