@@ -161,14 +161,14 @@ class BrandController extends PublicController {
             }
             if (isset($brands['lang'])) {
                 $val = $brands;
-                $brand[$val['lang']] = $val;
+                $brand[$val['lang']]['name'] = $val['name'];
                 $brand[$val['lang']]['id'] = $item['id'];
             } else {
                 foreach ($brands as $val) {
                     if (empty($val['lang'])) {
                         continue;
                     }
-                    $brand[$val['lang']] = $val;
+                    $brand[$val['lang']]['name'] = $val['name'];
                     $brand[$val['lang']]['id'] = $item['id'];
                 }
             }
