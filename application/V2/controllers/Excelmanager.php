@@ -284,15 +284,18 @@ class ExcelmanagerController extends PublicController {
 
             if ($value['category'] == '' && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_REQUIRED');
-            } elseif ($value['material_cat_no'] == '' && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
-            } elseif (!is_numeric($value['material_cat_no']) && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
-            } elseif ($value['org_id'] == '' && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
-            } elseif (!is_numeric($value['org_id']) && $is_erui === 'Y') {
-                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
-            } elseif (!in_array($value['category'], $category) && $is_erui === 'N') {
+            }
+
+//            elseif ($value['material_cat_no'] == '' && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+//            } elseif (!is_numeric($value['material_cat_no']) && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_MATERIAL_CAT_NOT_EXIST');
+//            } elseif ($value['org_id'] == '' && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+//            } elseif (!is_numeric($value['org_id']) && $is_erui === 'Y') {
+//                $failData['reason'] = L('EXCEL_SKU_ORG_NOT_EXIST');
+//            }
+            elseif (!in_array($value['category'], $category) && $is_erui === 'N') {
                 $failData['reason'] = L('EXCEL_SKU_CATEGORY_NOT_EXIST');
             } elseif ($value['name'] == '') {
                 $failData['reason'] = L('EXCEL_SKU_NAME_REQUIRED');
