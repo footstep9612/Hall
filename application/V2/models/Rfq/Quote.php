@@ -87,7 +87,7 @@ class Rfq_QuoteModel extends PublicModel {
             $quoteinfo['certification_fee'] = $quotedata['certification_fee'];
 
 
-            if (in_array($results['status'], ['INQUIRY_CONFIRM', 'INQUIRY_CLOSE', 'MARKET_CONFIRMING', 'MARKET_APPROVING', 'BIZ_APPROVING', 'LOGI_APPROVING', 'LOGI_QUOTING', 'LOGI_DISPATCHING'])) {
+            if (in_array($results['status'], ['INQUIRY_CONFIRM', 'INQUIRY_CLOSE', 'MARKET_CONFIRMING', 'MARKET_APPROVING', 'QUOTE_SENT'])) {
                 $quoteinfo['total_logi_fee'] = $results['total_logi_fee'];    //物流合计
                 $quoteinfo['total_bank_fee'] = $results['total_bank_fee'];
                 $quoteinfo['delivery_period'] = $results['delivery_period'];    //交货周期
