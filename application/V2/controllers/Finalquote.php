@@ -41,7 +41,7 @@ class FinalquoteController extends PublicController {
                 $results['data'] = array_merge($results['data'], $inquiryinfo);
             }
             //获取综合报价信息
-            $quoteModel = new RFQ_QuoteModel();
+            $quoteModel = new Rfq_QuoteModel();
             $quoteinfo = $quoteModel->info($where);
 
             unset($quoteModel);
