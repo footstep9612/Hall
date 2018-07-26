@@ -102,7 +102,9 @@ class ESOpLogModel {
         $body['module'] = 'V2';
         $body['controller'] = $requst->getControllerName();
         $body['action'] = $requst->getActionName();
-
+        if ($data['token']) {
+            unset($data['token']);
+        }
         $body['uri'] = $requst->getRequestUri();
         $body['data'] = json_encode($data, 256);
 
@@ -124,9 +126,11 @@ class ESOpLogModel {
     public function getList($condition) {
         $es = new ESClient();
         $body = [];
-        if (!empty($condition['controller']) && is_string($body)) {
+        if (!empty($condition['controller']) && $condition['controller']) {
             $condition['controller'] = explode(',', $condition['controller']);
         }
+
+
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
         ESClient::getQureyByArr($condition, $body, ESClient::TERMS, 'controller', 'controller');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
