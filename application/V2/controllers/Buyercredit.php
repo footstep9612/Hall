@@ -624,7 +624,8 @@ class BuyercreditController extends PublicController {
                 $dataCredit['credit_available'] = $left;
                 $dataCredit['buyer_no'] = $buyerInfo['buyer_no'];
                 $dataCredit['crm_code'] = $data['crm_code'];
-                $updateRes = $buyer_credit_model->update_data($dataCredit);
+                //$updateRes = $buyer_credit_model->update_data($dataCredit);
+                $updateRes = $buyer_credit_model->where(['buyer_no' => $buyerInfo['buyer_no']])->save($dataCredit);
                 if(!$updateRes){
                     $buyer_credit_model->rollback();
                 }
@@ -771,7 +772,8 @@ class BuyercreditController extends PublicController {
                 $dataCreditRollback['credit_available'] = $rollback_left;
                 $dataCreditRollback['buyer_no'] = $buyerCreditOrderLogInfo['buyer_no'];
                 $dataCreditRollback['crm_code'] = $data['crm_code'];
-                $updateRollback = $buyer_credit_model->update_data($dataCreditRollback);
+                //$updateRollback = $buyer_credit_model->update_data($dataCreditRollback);
+                $updateRollback = $buyer_credit_model->where(['buyer_no' => $buyerCreditOrderLogInfo['buyer_no']])->save($dataCreditRollback);
                 if(!$updateRollback){
                     $buyer_credit_model->rollback();
                 }
