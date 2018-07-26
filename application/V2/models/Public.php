@@ -125,11 +125,11 @@ class PublicModel extends Model {
         if (!$field) {
             $field = $name;
         }
-        if($type === 'int') {
-            if (isset($condition[$name]) && $condition[$name]!='') {
+        if ($type === 'int') {
+            if (isset($condition[$name]) && $condition[$name] != '') {
                 $where[$field] = intval($condition[$name]);
             }
-        }elseif ($type === 'string') {
+        } elseif ($type === 'string') {
             if (isset($condition[$name]) && trim($condition[$name])) {
                 $where[$field] = trim($condition[$name]);
             } elseif ($default) {
@@ -217,54 +217,6 @@ class PublicModel extends Model {
         }
     }
 
-// 插入数据前的回调方法
-    protected function _before_insert(&$data, $options) {
-        if (isset($data['id']) && empty($data['id'])) {
-            unset($data['id']);
-        }
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-
-        $uid = defined('UID') ? UID : 0;
-
-        self::$op_log_id = $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始新增!', 'N');
-    }
-
-    // 插入成功后的回调方法
-    protected function _after_insert($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('CREATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '新增成功!', 'Y');
-    }
-
-    // 更新数据前的回调方法
-    protected function _before_update(&$data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-
-        self::$op_log_id = $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '开始更新!', 'N');
-    }
-
-    // 更新成功后的回调方法
-    protected function _after_update($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('UPDATE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '更新成功!', 'Y');
-    }
-
-    // 删除数据前的回调方法
-    protected function _before_delete($options) {
-        $obj_id = isset($options['id']) && $options['id'] ? $options['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        self::$op_log_id = $this->_addlog('DELETE', $obj_id, $uid, $options, date('Y-m-d H:i:s') . '开始删除', 'N');
-    }
-
-    // 更新成功后的回调方法
-    protected function _after_delete($data, $options) {
-        $obj_id = isset($data['id']) && $data['id'] ? $data['id'] : 0;
-        $uid = defined('UID') ? UID : 0;
-        $this->_addlog('DELETE', $obj_id, $uid, [$data, $options], date('Y-m-d H:i:s') . '删除成功', 'Y');
-    }
-
     /**
      * 新增日志文件
      * @param  string $action 操作 CREATE、UPDATE、DELETE、CHECK
@@ -311,27 +263,27 @@ class PublicModel extends Model {
      */
     public function _setUser(&$arr) {
         $user_ids = [];
-        if(count($arr) == count($arr,1)){
+        if (count($arr) == count($arr, 1)) {
             foreach ($arr as $key => $item) {
-                if ($key == 'created_by' && $item!=0) {
+                if ($key == 'created_by' && $item != 0) {
                     $user_ids[] = $item;
                 }
-                if ($key == 'updated_by' && $item!=0) {
+                if ($key == 'updated_by' && $item != 0) {
                     $user_ids[] = $item;
                 }
-                if ($key == 'deleted_by' && $item!=0) {
+                if ($key == 'deleted_by' && $item != 0) {
                     $user_ids[] = $item;
                 }
             }
-        }else{
+        } else {
             foreach ($arr as $key => $item) {
-                if ($item['created_by'] && $item['created_by']!=0) {
+                if ($item['created_by'] && $item['created_by'] != 0) {
                     $user_ids[] = $item['created_by'];
                 }
-                if ($item['updated_by'] && $item['updated_by']!=0) {
+                if ($item['updated_by'] && $item['updated_by'] != 0) {
                     $user_ids[] = $item['updated_by'];
                 }
-                if ($item['deleted_by'] && $item['deleted_by']!=0) {
+                if ($item['deleted_by'] && $item['deleted_by'] != 0) {
                     $user_ids[] = $item['deleted_by'];
                 }
             }
@@ -339,37 +291,37 @@ class PublicModel extends Model {
 
         $employee_model = new EmployeeModel();
         $usernames = $employee_model->getUserNamesByUserids($user_ids);
-        if($usernames){
-            if(count($arr) == count($arr,1)){
-                foreach ( $arr as $key => $val ) {
-                    if ( $key == 'created_by' ) {
-                        $arr[ 'created_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val ] : '';
+        if ($usernames) {
+            if (count($arr) == count($arr, 1)) {
+                foreach ($arr as $key => $val) {
+                    if ($key == 'created_by') {
+                        $arr['created_by_name'] = isset($usernames[$val]) ? $usernames[$val] : '';
                     }
-                    if ( $key == 'updated_by' ) {
-                        $arr[ 'updated_by_name' ] = isset( $usernames[ $val ] ) ? $usernames[ $val] : '';
+                    if ($key == 'updated_by') {
+                        $arr['updated_by_name'] = isset($usernames[$val]) ? $usernames[$val] : '';
                     }
-                    if ( $key == 'deleted_by' ) {
-                        $arr[ 'deleted_by_name' ] = isset( $usernames[ $val ] )  ? $usernames[ $val] : '';
+                    if ($key == 'deleted_by') {
+                        $arr['deleted_by_name'] = isset($usernames[$val]) ? $usernames[$val] : '';
                     }
                 }
-            }else {
-                foreach ( $arr as $key => $val ) {
-                    if ( $val[ 'created_by' ] && isset( $usernames[ $val[ 'created_by' ] ] ) ) {
-                        $val[ 'created_by_name' ] = $usernames[ $val[ 'created_by' ] ];
+            } else {
+                foreach ($arr as $key => $val) {
+                    if ($val['created_by'] && isset($usernames[$val['created_by']])) {
+                        $val['created_by_name'] = $usernames[$val['created_by']];
                     } else {
-                        $val[ 'created_by_name' ] = '';
+                        $val['created_by_name'] = '';
                     }
-                    if ( $val[ 'updated_by' ] && isset( $usernames[ $val[ 'updated_by' ] ] ) ) {
-                        $val[ 'updated_by_name' ] = $usernames[ $val[ 'updated_by' ] ];
+                    if ($val['updated_by'] && isset($usernames[$val['updated_by']])) {
+                        $val['updated_by_name'] = $usernames[$val['updated_by']];
                     } else {
-                        $val[ 'updated_by_name' ] = '';
+                        $val['updated_by_name'] = '';
                     }
-                    if ( $val[ 'deleted_by' ] && isset( $usernames[ $val[ 'deleted_by' ] ] ) ) {
-                        $val[ 'deleted_by_name' ] = $usernames[ $val[ 'deleted_by' ] ];
+                    if ($val['deleted_by'] && isset($usernames[$val['deleted_by']])) {
+                        $val['deleted_by_name'] = $usernames[$val['deleted_by']];
                     } else {
-                        $val[ 'deleted_by_name' ] = '';
+                        $val['deleted_by_name'] = '';
                     }
-                    $arr[ $key ] = $val;
+                    $arr[$key] = $val;
                 }
             }
         }
