@@ -160,4 +160,122 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         return $where;
     }
 
+    /**
+     * @desc 获取人民币兑换汇率
+     *
+     * @param string $cur 币种
+     * @return float
+     * @author liujf
+     * @time 2017-08-03
+     */
+    private function _getRateCNY($cur) {
+
+        if (empty($cur)) {
+            return 1;
+        } else {
+            return $this->_getRate('CNY', $cur);
+        }
+    }
+
+    /**
+     * @desc 获取美元兑换汇率
+     *
+     * @param string $cur 币种
+     * @return float
+     * @author liujf
+     * @time 2017-08-03
+     */
+    private function _getRateUSD($cur) {
+
+        if (empty($cur)) {
+            return 1;
+        } else {
+            return $this->_getRate('USD', $cur);
+        }
+    }
+
+    /**
+     * @desc 获取币种兑换汇率
+     *
+     * @param string $holdCur 持有币种
+     * @param string $exchangeCur 兑换币种
+     * @return float
+     * @author liujf
+     * @time 2017-08-03
+     */
+    private function _getRate($holdCur, $exchangeCur = 'CNY') {
+
+        if (!empty($holdCur)) {
+            if ($holdCur == $exchangeCur)
+                return 1;
+
+            $exchangeRateModel = new ExchangeRateModel();
+            $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
+
+            return $exchangeRate['rate'];
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @desc 获取陆运险费用
+     *
+     * @param float $totalExwPrice exw价格合计
+     * @param float $overlandInsuRate 陆运险率
+     * @return float
+     * @author liujf
+     * @time 2017-09-20
+     */
+    private function _getOverlandInsuFee($totalExwPrice = 0, $overlandInsuRate = 0) {
+        // 美元兑人民币汇率
+        $rate = $this->_getRateUSD('CNY');
+
+        $tmpPrice = $totalExwPrice * $overlandInsuRate / 100;
+
+        $overlandInsuCNY = round($tmpPrice * $rate, 8);
+
+        if ($overlandInsuCNY > 0 && $overlandInsuCNY < 50) {
+            $overlandInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+            $overlandInsuCNY = 50;
+        } else if ($overlandInsuCNY >= 50) {
+            $overlandInsuUSD = round($tmpPrice, 8);
+        } else {
+            $overlandInsuCNY = 0;
+            $overlandInsuUSD = 0;
+        }
+
+        return ['USD' => $overlandInsuUSD, 'CNY' => $overlandInsuCNY];
+    }
+
+    /**
+     * @desc 获取国际运输险费用
+     *
+     * @param float $totalExwPrice exw价格合计
+     * @param float $shippingInsuRate 国际运输险率
+     * @return float
+     * @author liujf
+     * @time 2017-09-20
+     */
+    private function _getShippingInsuFee($totalExwPrice = 0, $shippingInsuRate = 0) {
+        // 美元兑人民币汇率
+        $rate = $this->_getRateUSD('CNY');
+
+        $tmpPrice = $totalExwPrice * 1.1 * $shippingInsuRate / 100;
+
+        $shippingInsuCNY = round($tmpPrice * $rate, 8);
+
+        if ($shippingInsuCNY > 0 && $shippingInsuCNY < 50) {
+            $shippingInsuUSD = round($rate > 0 ? 50 / $rate : 0, 8);
+            $shippingInsuCNY = 50;
+        } else if ($shippingInsuCNY >= 50) {
+            $shippingInsuUSD = round($tmpPrice, 8);
+        } else {
+            $shippingInsuCNY = 0;
+            $shippingInsuUSD = 0;
+        }
+
+        return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];
+    }
+
 }
