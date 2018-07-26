@@ -36,7 +36,8 @@ class Rfq_QuoteModel extends PublicModel {
                 . 'payment_mode,trade_terms_bn,payment_period,from_country,to_country,'
                 . 'from_port,to_port,trans_mode_bn,bank_interest,period_of_validity,'
                 . 'exchange_rate,total_quote_price,total_exw_price,dispatch_place,delivery_addr,'
-                . 'logi_quote_flag,certification_fee,gross_profit_rate,premium_rate';
+                . 'logi_quote_flag,certification_fee,gross_profit_rate,premium_rate,'
+                . 'total_logi_fee,total_exw_price,total_quote_price,total_bank_fee,delivery_period,fund_occupation_rate,payment_period';
         $quotewhere = [];
         $quotewhere['inquiry_id'] = $where['id'];
         $quotedata = $this
