@@ -3020,11 +3020,12 @@ EOF;
 //            ->join('erui_sys.employee employee on buyer.created_by=employee.id','left')
             ->where($cond)
             ->count();
+
         if($totalCount <= 0){
             return false;   //空数据
         }
         if($excel==true){
-            $pageSize=1000;
+            $pageSize=$totalCount;
         }
         //开始----------------------------------------------------------------------------
         do{
@@ -3043,6 +3044,9 @@ EOF;
                 'level_at',   //等级设置时间
                 'reg_capital',   //注册资金
                 'reg_capital_cur',   //货币
+//                'credit_level',   //采购商信用等级   X
+//                'credit_type',   //授信类型   X
+//                'line_of_credit',   //授信额度    X
             );
             foreach($fieldBuyerArr as $v){
                 $field .= ',buyer.'.$v;
@@ -3058,8 +3062,7 @@ EOF;
             foreach($fieldBusiness as $v){
                 $field .= ',business.'.$v;
             }
-//            $field .= ',employee.name as created_name';
-            $field .= ',(select name from erui_sys.employee where id=buyer.created_by) as created_name';
+            $field .= ',(select name from erui_sys.employee where id=buyer.created_by and deleted_flag=\'N\') as created_name';
             $field .= ',credit.credit_level'; //采购商信用等级
             $field .= ',credit.credit_type';  //授信类型
             $field .= ',credit.line_of_credit';   //授信额度
@@ -3081,6 +3084,12 @@ EOF;
                     if(!empty($info[$k]['buyer_level']) && is_numeric($info[$k]['buyer_level'])){
                         $info[$k]['buyer_level'] = $level->getBuyerLevelById($v['buyer_level'],$lang);
                     }
+//                    if(empty($v['build_time'])){
+//                        $info[$k]['build_time']=$v['created_at'];
+//                    }
+//                    if(empty($v['level_at'])){
+//                        $info[$k]['level_at']=substr($v['created_at'],0,10);
+//                    }
                     if(!empty($info[$k]['credit_level']) && is_numeric($info[$k]['credit_level'])){
                         $info[$k]['credit_level'] = $credit->getCreditNameById($v['credit_level'],$lang);
                     }
