@@ -100,7 +100,8 @@ class Rfq_QuoteModel extends PublicModel {
                 $quoteinfo['total_bank_fee'] = $quotedata['total_bank_fee'];
                 $quoteinfo['delivery_period'] = $quotedata['delivery_period'];    //交货周期
                 $quoteinfo['fund_occupation_rate'] = $quotedata['fund_occupation_rate'];    //占用资金比例
-                $quoteinfo['final_total_quote_price'] = $quotedata['total_quote_price'];    //市场报出贸易价格合计
+                $quoteinfo['total_quote_price'] = $quoteinfo['final_total_quote_price'] = null;    //市场报出贸易价格合计
+
                 $quoteinfo['final_total_exw_price'] = $quotedata['total_exw_price'];    //市场报出EWX价格
                 $quoteinfo['payment_period'] = $quotedata['payment_period'];    //回款周期
             }
