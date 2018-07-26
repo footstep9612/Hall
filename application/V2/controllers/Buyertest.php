@@ -190,4 +190,50 @@ class BuyertestController extends PublicController
         );
         return $dataJson;
     }
+    //2-buyer_code
+    public function buyerCodeAction(){
+        set_time_limit(0);
+        $sql="SELECT id,count(buyer_code) as hh ,buyer_code from erui_buyer.buyer";
+        $sql.=" GROUP BY buyer_code  HAVING hh BETWEEN 2 and 10  ORDER BY id desc";
+        $model=new BuyerModel();
+        $info=$model->query($sql);
+        $count=0;
+        foreach($info as $k => $v){
+            $a=$model->query("select id from erui_buyer.buyer where buyer_code='$v[buyer_code]' and id !=$v[id]");
+            $strId='';
+            foreach($a as $ka => $va){
+                $strId.=','.$va['id'];
+            }
+            $strId=mb_substr($strId,1);
+            //订单
+            $sqlOrder="update erui_new_order.order set buyer_id=$v[id] WHERE  crm_code='$v[buyer_code]'";
+            $model->query($sqlOrder);
+            //询单
+            $sqlInquiry="update erui_rfq.inquiry set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlInquiry);
+            //账号
+            $sqlAccount="update erui_buyer.buyer_account set deleted_flag='Y' WHERE  buyer_id in ($strId)";
+            $model->query($sqlAccount);
+            //采购计划
+            $sqlP="update erui_buyer.buyer_purchasing set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlP);
+            $sqlAttach="update erui_buyer.purchasing_attach set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlAttach);
+            //上下游
+            $sqlUp="update erui_buyer.industry_chain set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlUp);
+            //拜访
+            $sqlVisit="update erui_buyer.buyer_visit set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlVisit);
+            //联系人
+            $sqlCon="update erui_buyer.buyer_contact set buyer_id=$v[id] WHERE  buyer_id in ($strId)";
+            $model->query($sqlCon);
+            //客户
+            $sqlC="update erui_buyer.buyer set deleted_flag='Y' WHERE  id in ($strId)";
+            $model->query($sqlC);
+            $count++;
+            sleep(1);
+        }
+        echo $count;
+    }
 }
