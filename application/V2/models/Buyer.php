@@ -3025,7 +3025,7 @@ EOF;
             return false;   //空数据
         }
         if($excel==true){
-            $pageSize=$totalCount;
+            $pageSize=1000;
         }
         //开始----------------------------------------------------------------------------
         do{
@@ -3133,6 +3133,8 @@ EOF;
             $excelArr[] = $excel;
             $i=$i+$pageSize;
             $totalCount=$totalCount-$pageSize;
+
+            sleep(1);
         }while($totalCount>0);   //结束-----------------------------------------------------------------------------------
         return $excelArr;  //文件数组
     }
