@@ -962,7 +962,7 @@ class BuyercreditController extends PublicController {
     /**
      * 修改授信订单日志接口
      */
-    public function updateBuyerCreditOrderLogByOrderInfo(){
+    public function updateBuyerCreditOrderLogByOrderInfoAction(){
         $data = $this->getPut();
         if(!isset($data['log_id']) || empty($data['log_id'])){
             jsonReturn(null, -110, '日志ID缺失!');
@@ -998,7 +998,7 @@ class BuyercreditController extends PublicController {
     /**
      * 软删除授信订单日志接口
      */
-    public function deleteBuyerCreditOrderLogByOrderInfo(){
+    public function deleteBuyerCreditOrderLogByOrderInfoAction(){
         $data = $this->getPut();
         if(!isset($data['log_id']) || empty($data['log_id'])){
             jsonReturn(null, -110, '日志ID缺失!');
