@@ -122,7 +122,7 @@ class QuoteModel extends PublicModel {
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
-                    if ($value['purchase_unit_price'] == 'USD') {
+                    if ($value['purchase_price_cur_bn'] == 'USD') {
                         $exchange_rate = 1;
                     } else {
                         $exchange_rate = $exchangeRateModel
@@ -136,7 +136,7 @@ class QuoteModel extends PublicModel {
                                 ->order('created_at DESC')
                                 ->getField('rate');
                         if (empty($rate)) {
-                            $error = $value['purchase_unit_price'] . '兑USD汇率不存在';
+                            $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
                             return false;
                         } else {
                             $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $rate;
