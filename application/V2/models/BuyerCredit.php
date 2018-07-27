@@ -473,4 +473,19 @@ class BuyerCreditModel extends PublicModel
         return false;
     }
 
+    /**
+     * @desc 修改信息
+     * @param array $where , $condition
+     * @return bool
+     */
+    public function updateInfo($where = [], $condition = []) {
+
+        $data = $this->create($condition);
+
+        $res = $this->where($where)->save($data);
+        if ($res !== false) {
+            return true;
+        }
+        return false;
+    }
 }
