@@ -52,7 +52,7 @@ class FinalquoteController extends PublicController {
 
             //获取物流报价信息
             $quotetlogifee_model = new Rfq_QuoteLogiFeeModel();
-            $quoteLogiFee = $quotetlogifee_model->info($quotewhere);
+            $quoteLogiFee = $quotetlogifee_model->info($where);
             unset($quotetlogifee_model);
             if ($quoteLogiFee) {
                 $results['logidata'] = $quoteLogiFee;
