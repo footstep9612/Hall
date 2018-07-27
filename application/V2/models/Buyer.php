@@ -422,7 +422,8 @@ class BuyerModel extends PublicModel {
                 $cond.= " and buyer.id in ('error') ";
             }
         }else{
-            return false;
+            $cond .= " And  `buyer`.country_bn in ($countryStr)";
+//            return false;
         }
         return $cond;
     }
