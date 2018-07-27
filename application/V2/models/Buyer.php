@@ -3133,6 +3133,8 @@ EOF;
             $excelArr[] = $excel;
             $i=$i+$pageSize;
             $totalCount=$totalCount-$pageSize;
+
+            sleep(1);
         }while($totalCount>0);   //结束-----------------------------------------------------------------------------------
         return $excelArr;  //文件数组
     }
