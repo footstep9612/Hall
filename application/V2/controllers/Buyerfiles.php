@@ -133,7 +133,12 @@ class BuyerfilesController extends PublicController
         $data['lang'] = $this->getLang();
         $data['admin']=$this->getUserRole();
         $model = new BuyerModel();
-        $res = $model->exportBuyerExcel($data);
+//        $res = $model->exportBuyerExcel($data);
+        try{
+            $res = $model->exportBuyerExcel($data);
+        }catch (Exception $e){
+            print_r($e->getMessage());exit;
+        }
         if($res['code'] == 1){
             $excel = new BuyerExcelModel();
             $excel->saveExcel($res['name'],$res['url'],$created_by);
