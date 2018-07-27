@@ -102,7 +102,9 @@ class ESOpLogModel {
         $body['module'] = 'V2';
         $body['controller'] = $requst->getControllerName();
         $body['action'] = $requst->getActionName();
-
+        if ($data['token']) {
+            unset($data['token']);
+        }
         $body['uri'] = $requst->getRequestUri();
         $body['data'] = json_encode($data, 256);
 
@@ -124,10 +126,15 @@ class ESOpLogModel {
     public function getList($condition) {
         $es = new ESClient();
         $body = [];
+        if (!empty($condition['controller']) && $condition['controller']) {
+            $condition['controller'] = explode(',', $condition['controller']);
+        }
+
+
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
-        ESClient::getQurey($condition, $body, ESClient::TERM, 'controller', 'controller');
+        ESClient::getQureyByArr($condition, $body, ESClient::TERMS, 'controller', 'controller');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
-        ESClient::getQurey($condition, $body, ESClient::WILDCARD, 'data', 'data.ik');
+        ESClient::getQurey($condition, $body, ESClient::WILDCARD, 'data', 'data.all');
         ESClient::getQurey($condition, $body, ESClient::RANGE, 'created_at');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'lang', 'lang');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'created_name', 'created_name.ik');
