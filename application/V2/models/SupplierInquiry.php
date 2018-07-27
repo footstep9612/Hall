@@ -456,7 +456,6 @@ class SupplierInquiryModel extends PublicModel {
         /*         * **最终报价单明细** */
 
         $where = ['i.deleted_flag' => 'N',
-            //  'i.id' => ['in', [3225, 4656, 5363, 5839, 5855, 6188, 6463, 6524, 6537, 6605, 6608, 6609, 6610, 6611, 6612, 6615, 6626, 6645, 6647, 6648, 6663, 6664, 6665, 6667, 6679, 6682, 6684, 6692, 6698, 6702, 6717, 6726, 6727, 6728, 6729, 6747, 6769, 6770, 6771, 6772, 6784, 6788, 6800, 6805, 6808, 6869, 6886, 6891, 6899, 6930, 6934, 6937, 6955, 6975, 6985, 6987, 6988, 7033, 7095, 7122, 7163, 7167, 7172, 7173, 7175, 7176, 7185, 7189, 7281, 7285, 7287, 7301, 7332, 7345, 7419, 7455, 7490, 7491, 7509, 7517, 7551, 7561, 7591, 7594, 7611, 7652, 7653, 7677, 7686, 7697, 7700, 7707, 7747, 7750, 7752, 7753, 7755, 7756, 7766, 7779, 7811, 7839, 7894, 7923]],
             'i.status' => ['neq', 'DRAFT'],
         ];
         if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
@@ -1403,20 +1402,25 @@ class SupplierInquiryModel extends PublicModel {
                 $tmpList[$serialNo]['sequence_no'] = ++$i;
 
                 if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
-                    $tmpList[$serialNo]['quote_unit_price'] = $tmpList[$serialNo]['total_quote_price'] = $tmpList[$serialNo]['total_quoted_price_usd'] = '';
+                    $tmpList[$serialNo]['quote_unit_price'] = '';
+                    $tmpList[$serialNo]['total_quote_price'] = '';
+                    $tmpList[$serialNo]['total_quoted_price_usd'] = '';
                 } else {
                     if (isset($final_quoteprices[$serialNo]['total_quote_price'])) {
                         $tmpList[$serialNo]['total_quote_price'] = $final_quoteprices[$serialNo]['total_quote_price'];
-                        $tmpList[$serialNo]['purchase_price_cur_bn'] = 'USD';
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                         $tmpList[$serialNo]['total_quoted_price_usd'] = $final_quoteprices[$serialNo]['total_quote_price'];
+                        $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     } elseif (isset($quoteprices[$serialNo]['total_quote_price'])) {
                         $tmpList[$serialNo]['total_quote_price'] = $quoteprices[$serialNo]['total_quote_price'];
-                        $tmpList[$serialNo]['purchase_price_cur_bn'] = 'USD';
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                         $tmpList[$serialNo]['total_quoted_price_usd'] = $quoteprices[$serialNo]['total_quote_price'];
+                        $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     } else {
                         $tmpList[$serialNo]['total_quote_price'] = '';
-                        $tmpList[$serialNo]['purchase_price_cur_bn'] = '';
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                         $tmpList[$serialNo]['total_quoted_price_usd'] = '';
+                        $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     }
                 }
 
