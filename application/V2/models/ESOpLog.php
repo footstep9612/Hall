@@ -157,6 +157,8 @@ class ESOpLogModel {
             $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
         }
         $from = ($current_no - 1) * $pagesize;
+        $es->setbody($body)
+                ->setsort('created_at', 'desc');
         return $es->search($this->index, 'logs', $from, $pagesize);
     }
 
