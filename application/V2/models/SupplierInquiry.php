@@ -1355,11 +1355,27 @@ class SupplierInquiryModel extends PublicModel {
                     continue;
                 }
             }
+            $where = ['deleted_flag' => 'N', 'inquiry_id' => ['in', $inquiry_ids]];
+            $quote_model = new QuoteModel();
+            $final_quote_model = new FinalQuoteModel();
+            $quotes = $quote_model->field('inquiry_id,total_logi_fee,total_quote_price,total_weight,package_volumn,package_mode,delivery_period,period_of_validity')
+                    ->where($where)
+                    ->select();
+            $final_quotes = $final_quote_model->field('inquiry_id,total_logi_fee,total_quote_price')
+                    ->where($where)
+                    ->select();
+            $quoteprices = [];
+            $final_quoteprices = [];
+            foreach ($quotes as $quote) {
+                $quoteprices[$quote['inquiry_id']] = $quote;
+            }
+            foreach ($final_quotes as $final_quote) {
+                $final_quoteprices[$final_quote['inquiry_id']] = $final_quote;
+            }
         }
 
         foreach ($list as $item) {
             $serialNo = $item['inquiry_id'];
-
             $tmpData = $tmpList[$serialNo];
             $tmpList[$serialNo] = $item;
             $tmpList[$serialNo]['name_zh'] = $item['project_name'];
@@ -1374,8 +1390,8 @@ class SupplierInquiryModel extends PublicModel {
             $tmpList[$serialNo]['total'] = '';
             $tmpList[$serialNo]['quote_unit_price'] = '';
             $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
-            $tmpList[$serialNo]['total_quote_price'] = $tmpData['total_quote_price'] + round($item['total_quote_price'] / $this->_getRateUSD($item['quote_price_cur_bn']), 2);
-            $tmpList[$serialNo]['total_quoted_price_usd'] += $tmpData['total_quoted_price_usd'];
+            $tmpList[$serialNo]['total_quote_price'] = '';
+            $tmpList[$serialNo]['total_quoted_price_usd'] = '';
             $tmpList[$serialNo]['gross_weight_kg'] = '';
             $tmpList[$serialNo]['total_kg'] += $tmpData['total_kg'];
             $tmpList[$serialNo]['package_size'] += $tmpData['package_size'];
@@ -1385,6 +1401,25 @@ class SupplierInquiryModel extends PublicModel {
             $serialNo = $item['inquiry_id'];
             if (!in_array($serialNo, $serialNoList)) {
                 $tmpList[$serialNo]['sequence_no'] = ++$i;
+
+                if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
+                    $tmpList[$serialNo]['quote_unit_price'] = $tmpList[$serialNo]['total_quote_price'] = $tmpList[$serialNo]['total_quoted_price_usd'] = '';
+                } else {
+                    if (isset($final_quoteprices[$serialNo]['total_quote_price'])) {
+                        $tmpList[$serialNo]['total_quote_price'] = $final_quoteprices[$serialNo]['total_quote_price'];
+                        $tmpList[$serialNo]['purchase_price_cur_bn'] = 'USD';
+                        $tmpList[$serialNo]['total_quoted_price_usd'] = $final_quoteprices[$serialNo]['total_quote_price'];
+                    } elseif (isset($quoteprices[$serialNo]['total_quote_price'])) {
+                        $tmpList[$serialNo]['total_quote_price'] = $quoteprices[$serialNo]['total_quote_price'];
+                        $tmpList[$serialNo]['purchase_price_cur_bn'] = 'USD';
+                        $tmpList[$serialNo]['total_quoted_price_usd'] = $quoteprices[$serialNo]['total_quote_price'];
+                    } else {
+                        $tmpList[$serialNo]['total_quote_price'] = '';
+                        $tmpList[$serialNo]['purchase_price_cur_bn'] = '';
+                        $tmpList[$serialNo]['total_quoted_price_usd'] = '';
+                    }
+                }
+
                 $newList[] = $tmpList[$serialNo];
                 $serialNoList[] = $serialNo;
             }
