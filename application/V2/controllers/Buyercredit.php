@@ -669,7 +669,8 @@ class BuyercreditController extends PublicController {
                     'contract_no'=> $data['contract_no'],
                     'credit_available'=> $left,
                     'buyer_no'=> $buyerInfo['buyer_no'],
-                    'account_settle'=> $buyer_credit_Info['account_settle']
+                    'account_settle'=> $buyer_credit_Info['account_settle'],
+                    'log_id'=> $log_res,
                 ];
                 $this->setCode(MSG::MSG_SUCCESS);
                 $datajson['data'] = $suc;
@@ -852,6 +853,166 @@ class BuyercreditController extends PublicController {
             $datajson['code'] = ShopMsg::CUSTOM_FAILED;
             $datajson['data'] = "";
             $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * java订单授信金额
+     */
+    public function getCreditInfoByCrmCodeAction() {
+        $data = $this->getPut();
+        if(empty($data['crm_code']) && empty($data['buyer_no'])) {
+            jsonReturn(null, -110, '客户编码缺失!');
+        }
+        $buyer_no = '';
+        if(isset($data['crm_code']) && !empty($data['crm_code'])){
+            $buyer_model = new BuyerModel();
+            $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
+            if(!$buyerInfo){
+                jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+            }
+            $buyer_no = $buyerInfo['buyer_no'];
+        }
+        if(isset($data['buyer_no']) && !empty($data['buyer_no'])){
+            $buyer_no = $data['buyer_no'];
+        }
+        $buyer_credit_model = new BuyerCreditModel();
+        $buyer_credit_Info = $buyer_credit_model->getInfo($buyer_no);
+        if(!$buyer_credit_Info){
+            jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
+        }
+        if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
+        }
+        if($buyer_credit_Info['status']!='APPROVED'){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
+        }
+        if (!empty($buyer_credit_Info)) {
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $buyer_credit_Info;
+            $datajson['message'] = '成功!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+    /**
+     * 获取订单授信待办事项
+     */
+    public function getBuyerCreditToDoListAction() {
+        $data = $this->getPut();
+        $model = new BuyerCreditModel();
+        // 权限控制，只获取客户经办人是自己的数据
+        $buyerAgentModel = new BuyerAgentModel();
+        $buyerModel = new BuyerModel();
+        $buyerTableName = $buyerModel->getTableName();
+        $buyerNoArr = $buyerAgentModel->alias('a')
+            ->join($buyerTableName . ' b ON a.buyer_id = b.id AND b.deleted_flag = \'N\'', 'LEFT')
+            ->where(['a.agent_id' => UID, 'a.deleted_flag' => 'N'])
+            ->getField('buyer_no', true) ? : [];
+        $data['buyer_no_arr'] = array_unique($buyerNoArr);
+        //$data['status'] = ['APPROVING','ERUI_APPROVING'];
+        $res = $model->getlist($data);
+
+        if (!empty($res)) {
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['data'] = $res;
+            $datajson['message'] = '成功!';
+        } else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['data'] = "";
+            $datajson['message'] = '数据为空!';
+        }
+        $this->jsonReturn($datajson);
+    }
+
+
+    /**
+     * 修改授信接口--可用金额
+     */
+    public function updateBuyerCreditByOrderInfoAction(){
+        $data = $this->getPut();
+        if(!isset($data['crm_code']) || empty($data['crm_code'])){
+            jsonReturn(null, -110, '客户编码缺失!');
+        }
+        if(!isset($data['credit_available']) || empty($data['credit_available'])){
+            jsonReturn(null, -110, '额度金额缺失!');
+        }
+        $buyer_credit_model = new BuyerCreditModel();
+        $buyer_credit_Info = $buyer_credit_model->field('status')->where(['deleted_flag'=>'N','crm_code'=>$data['crm_code']])->find();
+        if(!$buyer_credit_Info || $buyer_credit_Info['status']!='APPROVED'){
+            jsonReturn(null, -110, '没有客户授信额度或额度已失效!');
+        }
+        $where = ['crm_code'=>$data['crm_code'],'deleted_flag'=>'N'];
+        $update = ['credit_available'=>$data['credit_available']];
+        $buyer_credit_update = $buyer_credit_model->updateInfo($where,$update);
+        if($buyer_credit_update){
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['message'] = '成功!';
+        }else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    /**
+     * 修改授信订单日志接口
+     */
+    public function updateBuyerCreditOrderLogByOrderInfoAction(){
+        $data = $this->getPut();
+        if(!isset($data['log_id']) || empty($data['log_id'])){
+            jsonReturn(null, -110, '日志ID缺失!');
+        }
+        if(!isset($data['use_credit_granted']) || empty($data['use_credit_granted'])){
+            jsonReturn(null, -110, '授信修改额度缺失!');
+        }
+        if(!isset($data['credit_available']) || empty($data['credit_available'])){
+            jsonReturn(null, -110, '可用额度金额缺失!');
+        }
+        $buyer_credit_log_model = new BuyerCreditOrderLogModel();
+        $buyer_credit_log_Info = $buyer_credit_log_model->field('id,content,use_credit_granted')->where(['deleted_flag'=>'N','log_id'=>$data['log_id']])->find();
+        if(!$buyer_credit_log_Info){
+            jsonReturn(null, -110, '没有此条记录!');
+        }
+         $where_log = ['log_id'=>$data['log_id'],'deleted_flag'=>'N'];
+        $update_log = [
+            'use_credit_granted'=>$data['use_credit_granted'],
+            'credit_available'=>$data['credit_available'],
+            'content'=>'此前纪录'.$buyer_credit_log_Info['content'].';修改前使用授信金额为:'.$buyer_credit_log_Info['use_credit_granted'].',修改时间为:'.date('Y-m-d H:i:s', time()).',修改后使用金额:'.$data['use_credit_granted'].',修改后可用金额:'.$data['credit_available']
+        ];
+        $buyer_credit_log_update = $buyer_credit_log_model->updateInfo($where_log,$update_log);
+        if($buyer_credit_log_update){
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['message'] = '成功!';
+        }else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['message'] = '失败!';
+        }
+        $this->jsonReturn($datajson);
+    }
+    
+    /**
+     * 软删除授信订单日志接口
+     */
+    public function deleteBuyerCreditOrderLogByOrderInfoAction(){
+        $data = $this->getPut();
+        if(!isset($data['log_id']) || empty($data['log_id'])){
+            jsonReturn(null, -110, '日志ID缺失!');
+        }
+        $buyer_credit_log_model = new BuyerCreditOrderLogModel();
+        $where_log = ['id'=>$data['log_id']];
+        $delete_log = ['deleted_flag'=>'Y'];
+        $buyer_credit_log_update = $buyer_credit_log_model->updateInfo($where_log,$delete_log);
+        if($buyer_credit_log_update){
+            $datajson['code'] = MSG::MSG_SUCCESS;
+            $datajson['message'] = '成功!';
+        }else {
+            $datajson['code'] = MSG::MSG_FAILED;
+            $datajson['message'] = '失败!';
         }
         $this->jsonReturn($datajson);
     }

@@ -411,11 +411,15 @@ class QuoteItemModel extends PublicModel {
                 . 'c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,'
                 . 'a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,'
                 . 'a.goods_source,a.stock_loc,a.reason_for_no_quote,b.material_cat_no,a.org_id';
-        return $this->getFinalSqlJoint($request)
-                        ->field($fields)
-                        ->page($currentPage, $pageSize)
-                        ->order('a.id ASC')
-                        ->select();
+        $this->getFinalSqlJoint($request)
+                ->field($fields)
+                ->order('a.id ASC');
+        if (!empty($request['currentPage'])) {
+            $this->page($currentPage, $pageSize);
+        }
+        $data = $this->select();
+
+        return$data;
     }
 
     /**
