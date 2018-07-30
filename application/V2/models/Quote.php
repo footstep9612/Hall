@@ -267,7 +267,7 @@ class QuoteModel extends PublicModel {
         }
 
 
-        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase), 'purchase_cur_bn' => 'USD']);
     }
 
     /**
