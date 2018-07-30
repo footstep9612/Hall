@@ -26,8 +26,8 @@ class RfqController extends PublicController {
 
         $inquiry_model = new Rfq_InquiryModel();
         $list = $inquiry_model->getList($condition);
-        //  (new Common_MarketAreaCountryModel())->setAreaBn($list);
-        //  (new Common_MarketAreaModel())->setArea($list);
+        (new Common_MarketAreaCountryModel())->setAreaBn($list);
+        (new Common_MarketAreaModel())->setArea($list);
         (new Common_CountryModel())->setCountrys($list, $this->lang, ['country_name' => 'country_bn', 'toCountry' => 'to_country', 'fromCountry' => 'from_country']);
 
         (new System_EmployeeModel())->setUserName($list, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
