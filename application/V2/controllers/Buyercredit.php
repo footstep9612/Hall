@@ -600,14 +600,7 @@ class BuyercreditController extends PublicController {
         if($buyer_credit_Info['status']!='APPROVED'){
             jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
         }
-        if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
-            jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
-        }
-        if($buyer_credit_Info['status']!='APPROVED'){
-            jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
-
-        }
-
+      
         if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $data['order_money']){
             jsonReturn('',MSG::MSG_FAILED,'可用授信额度已不足!');
         }
