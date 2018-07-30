@@ -112,7 +112,16 @@ class QuoteController extends PublicController {
         if ($request['dispatch_place'] == L('NOTHING')) {
             unset($request['dispatch_place']);
         }
+        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 1)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须大于等于零小于1!'
+            ]);
+        }
+
+
         $condition = ['inquiry_id' => $request['inquiry_id']];
+
 
         unset($request['total_bank_fee']);
 
