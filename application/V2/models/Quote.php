@@ -121,7 +121,14 @@ class QuoteModel extends PublicModel {
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
+
+
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+
+                    if (!in_array($value['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                        $error = 'SKU 币种选择错误,请重新选择!';
+                        return false;
+                    }
                     if ($value['purchase_price_cur_bn'] == 'USD') {
                         $exchange_rate = 1;
                     } else {
