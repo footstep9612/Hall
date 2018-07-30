@@ -100,10 +100,12 @@ class ESOpLogModel {
         $es = new ESClient();
         $this->Deleted();
         $body['module'] = 'V2';
-        $body['controller'] = $requst->getControllerName();
-        $body['action'] = $requst->getActionName();
-
-        $body['uri'] = $requst->getRequestUri();
+        $body['controller'] = strtolower($requst->getControllerName());
+        $body['action'] = strtolower($requst->getActionName());
+        if ($data['token']) {
+            unset($data['token']);
+        }
+        $body['uri'] = strtolower($requst->getRequestUri());
         $body['data'] = json_encode($data, 256);
 
         $body['lang'] = $lang;
@@ -124,10 +126,22 @@ class ESOpLogModel {
     public function getList($condition) {
         $es = new ESClient();
         $body = [];
+        if (!empty($condition['controller']) && $condition['controller']) {
+            $condition['controller'] = explode(',', $condition['controller']);
+            foreach ($condition['controller'] as $key => $controller) {
+                $condition['controller'][$key] = strtolower(trim($controller));
+            }
+        }
+        if (!empty($condition['uri']) && $condition['uri']) {
+            $condition['uri'] = strtolower(trim($condition['uri']));
+        }
+        if (!empty($condition['action']) && $condition['action']) {
+            $condition['action'] = strtolower(trim($condition['action']));
+        }
         ESClient::getQurey($condition, $body, ESClient::TERM, 'uri', 'uri');
-        ESClient::getQurey($condition, $body, ESClient::TERM, 'controller', 'controller');
+        ESClient::getQureyByArr($condition, $body, ESClient::TERMS, 'controller', 'controller');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'action', 'action');
-        ESClient::getQurey($condition, $body, ESClient::WILDCARD, 'data', 'data.ik');
+        ESClient::getQurey($condition, $body, ESClient::WILDCARD, 'data', 'data.all');
         ESClient::getQurey($condition, $body, ESClient::RANGE, 'created_at');
         ESClient::getQurey($condition, $body, ESClient::TERM, 'lang', 'lang');
         ESClient::getQurey($condition, $body, ESClient::MATCH, 'created_name', 'created_name.ik');
@@ -143,6 +157,8 @@ class ESOpLogModel {
             $pagesize = intval($condition['pagesize']) > 0 ? intval($condition['pagesize']) : 10;
         }
         $from = ($current_no - 1) * $pagesize;
+        $es->setbody($body)
+                ->setsort('created_at', 'desc');
         return $es->search($this->index, 'logs', $from, $pagesize);
     }
 

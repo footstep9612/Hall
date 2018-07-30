@@ -216,7 +216,7 @@ class QuoteItemModel extends PublicModel {
      * @return array|bool
      * @author mmt、liujf
      */
-    public function updateItemBatch($data, $user, $currentPage, $pageSize) {
+    public function updateItemBatch($data, $user, $currentPage, $pageSize, $is_erui = 'N') {
         $inquiryItemModel = new InquiryItemModel();
         $suppliersModel = new SuppliersModel();
         $materialcat_model = new MaterialCatModel();
@@ -229,12 +229,13 @@ class QuoteItemModel extends PublicModel {
         $this->startTrans();
 
 
+
         foreach ($data as $key => $value) {
             $row++;
 
 
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
-            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && empty($value['category']) && empty($value['org_id']))) {
+            if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && $is_erui == 'N')) {
                 if ($value['id'] == '') {
                     continue;
                 } else {
@@ -410,11 +411,15 @@ class QuoteItemModel extends PublicModel {
                 . 'c.quote_unit_price final_quote_unit_price,a.gross_weight_kg,'
                 . 'a.package_mode,a.package_size,a.delivery_days,a.period_of_validity,'
                 . 'a.goods_source,a.stock_loc,a.reason_for_no_quote,b.material_cat_no,a.org_id';
-        return $this->getFinalSqlJoint($request)
-                        ->field($fields)
-                        ->page($currentPage, $pageSize)
-                        ->order('a.id ASC')
-                        ->select();
+        $this->getFinalSqlJoint($request)
+                ->field($fields)
+                ->order('a.id ASC');
+        if (!empty($request['currentPage'])) {
+            $this->page($currentPage, $pageSize);
+        }
+        $data = $this->select();
+
+        return$data;
     }
 
     /**
