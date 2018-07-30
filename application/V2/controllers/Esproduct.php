@@ -112,7 +112,6 @@ class EsproductController extends PublicController {
 
         $this->_handleCondition($condition);
         $ret = $model->getProducts($condition, null, $lang);
-
         if ($ret) {
             $data = $ret[0];
             $list = $this->_getdata($data, $lang);
@@ -192,6 +191,15 @@ class EsproductController extends PublicController {
                 $condition['checked_at_start'] = isset($condition['date_start']) ? trim($condition['date_start']) : null;
                 $condition['checked_at_end'] = isset($condition['date_end']) ? trim($condition['date_end']) : null;
                 break;
+        }
+
+        if (!empty($condition['name'])) {
+            if(preg_match("/^\d*$/",$condition['name'])) {
+                $condition['spu'] = $condition['name'];
+                unset($condition['name']);
+            }else {
+                $condition['name'] = $condition['name'];
+            }
         }
     }
 
