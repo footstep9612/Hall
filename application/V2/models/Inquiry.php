@@ -814,7 +814,7 @@ class InquiryModel extends PublicModel {
         try {
 
             $id = $this->where($where)->save($data);
-            if ($id) {
+            if ($id !== false) {
                 $results['code'] = 1;
                 $results['message'] = L('SUCCESS');
             } else {

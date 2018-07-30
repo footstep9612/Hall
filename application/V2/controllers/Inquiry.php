@@ -494,10 +494,12 @@ class InquiryController extends PublicController {
             ];
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 
+
+
 // 更改市场报价单状态
             $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
 
-            if ($res1['code'] == 1 && $res2 && $res3['code'] == 1) {
+            if ($res1['code'] == 1 && $res2 !== false && $res3['code'] == 1) {
                 $inquiryModel->commit();
                 $res = true;
             } else {

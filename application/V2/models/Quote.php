@@ -121,7 +121,14 @@ class QuoteModel extends PublicModel {
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
+
+
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+
+                    if (!in_array($value['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                        $error = '报价商品币种选择错误,请重新选择!';
+                        return false;
+                    }
                     if ($value['purchase_price_cur_bn'] == 'USD') {
                         $exchange_rate = 1;
                     } else {
@@ -260,7 +267,7 @@ class QuoteModel extends PublicModel {
         }
 
 
-        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase), 'purchase_cur_bn' => 'USD']);
     }
 
     /**

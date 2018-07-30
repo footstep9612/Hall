@@ -112,7 +112,18 @@ class QuoteController extends PublicController {
         if ($request['dispatch_place'] == L('NOTHING')) {
             unset($request['dispatch_place']);
         }
+
+
+        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须小于1且大于等于零!'
+            ]);
+        }
+
+
         $condition = ['inquiry_id' => $request['inquiry_id']];
+
 
         unset($request['total_bank_fee']);
 
@@ -366,6 +377,195 @@ class QuoteController extends PublicController {
             $this->inquiryModel->rollback();
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 确认报价(审核人)
+     * @author mmt、liujf
+     */
+    public function calconfirmAction() {
+
+        $request = $this->validateRequests('inquiry_id');
+
+        $request = $this->quoteModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->find();
+        if (empty($request)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '报价不存在!'
+            ]);
+        }
+        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须小于1且大于等于零!'
+            ]);
+        }
+
+
+
+        $condition = ['inquiry_id' => $request['inquiry_id']];
+        unset($request['total_bank_fee']);
+        //这个操作设计到计算
+        $result = $this->quoteModel->updateGeneralInfo($condition, $request);
+        if ($result['code'] !== 1) {
+            $this->jsonReturn($result);
+        }
+        $now_agent_id = $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('agent_id');
+        $this->inquiryModel->startTrans();
+        $res1 = $this->inquiryModel->updateData([
+            'id' => $request['inquiry_id'],
+            'now_agent_id' => $now_agent_id,
+            'inflow_time' => date('Y-m-d H:i:s', time()),
+            'status' => 'MARKET_CONFIRMING',
+            'quote_status' => 'QUOTED',
+            'updated_by' => $this->user['id'],
+            'updated_at' => date('Y-m-d H:i:s', time())
+        ]);
+
+
+        if ($res1['code'] != 1) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . __LINE__);
+            $this->jsonReturn();
+        }
+
+        $this->quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
+
+        $finalQuoteModel = new FinalQuoteModel();
+        $quoteModel = new QuoteModel();
+        $finalQuoteItemModel = new FinalQuoteItemModel();
+        //验证数据
+        $quoteInfo = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])
+                        ->field('id,payment_period,fund_occupation_rate,delivery_period,'
+                                . 'total_purchase,total_logi_fee,total_bank_fee,total_exw_price,'
+                                . 'total_quote_price,total_insu_fee')->find();
+
+
+        //判断是否存在数据，如果是退回报价更新数据，如果不是就插入一条数据
+        $final = $finalQuoteModel->field('id')->where('inquiry_id=' . $request['inquiry_id'])->find();
+
+        if (empty($final)) {
+            $flag = $finalQuoteModel->add($finalQuoteModel->create([
+                        'inquiry_id' => $request['inquiry_id'],
+                        'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
+                        'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                        'payment_period' => $quoteInfo['payment_period'],
+                        'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
+                        'delivery_period' => $quoteInfo['delivery_period'],
+                        'total_purchase' => $quoteInfo['total_purchase'],
+                        'total_logi_fee' => $quoteInfo['total_logi_fee'],
+                        'total_bank_fee' => $quoteInfo['total_bank_fee'],
+                        'total_exw_price' => $quoteInfo['total_exw_price'],
+                        'total_quote_price' => $quoteInfo['total_quote_price'],
+                        'total_insu_fee' => $quoteInfo['total_insu_fee'],
+                        'created_by' => $this->user['id'],
+                        'created_at' => date('Y-m-d H:i:s')
+            ]));
+            if (!$flag) {
+                $this->inquiryModel->rollback();
+                $this->setCode('-101');
+                $this->setMessage(L('FAIL') . __LINE__);
+                $this->jsonReturn();
+            }
+        } else {
+            $flag = $finalQuoteModel->where('inquiry_id=' . $request['inquiry_id'])->save($finalQuoteModel->create([
+                        'inquiry_id' => $request['inquiry_id'],
+                        'buyer_id' => $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('buyer_id'),
+                        'quote_id' => $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']),
+                        'payment_period' => $quoteInfo['payment_period'],
+                        'fund_occupation_rate' => $quoteInfo['fund_occupation_rate'],
+                        'delivery_period' => $quoteInfo['delivery_period'],
+                        'total_purchase' => $quoteInfo['total_purchase'],
+                        'total_logi_fee' => $quoteInfo['total_logi_fee'],
+                        'total_bank_fee' => $quoteInfo['total_bank_fee'],
+                        'total_exw_price' => $quoteInfo['total_exw_price'],
+                        'total_quote_price' => $quoteInfo['total_quote_price'],
+                        'total_insu_fee' => $quoteInfo['total_insu_fee'],
+                        'created_by' => $this->user['id'],
+                        'created_at' => date('Y-m-d H:i:s')
+            ]));
+
+            if (!$flag) {
+                $this->inquiryModel->rollback();
+                $this->setCode('-101');
+                $this->setMessage(L('FAIL') . __LINE__);
+                $this->jsonReturn();
+            }
+        }
+
+        $quoteItems = $this->quoteItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->field('id,inquiry_id,inquiry_item_id,sku,supplier_id,quote_unit_price,exw_unit_price')->select();
+
+        $finalItems = $finalQuoteItemModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->getField('quote_item_id', true);
+        $quote_id = $this->quoteModel->getQuoteIdByInQuiryId($request['inquiry_id']);
+
+        foreach ($quoteItems as $quote => $item) {
+            if (!in_array($item['id'], $finalItems)) {
+                $flag = $finalQuoteItemModel->add($finalQuoteItemModel->create([
+                            'quote_id' => $quote_id,
+                            'inquiry_id' => $request['inquiry_id'],
+                            'inquiry_item_id' => $item['inquiry_item_id'],
+                            'quote_item_id' => $item['id'],
+                            'sku' => $item['sku'],
+                            'supplier_id' => $item['supplier_id'],
+                            'quote_unit_price' => $item['quote_unit_price'],
+                            'exw_unit_price' => $item['exw_unit_price'],
+                            'created_by' => $this->user['id'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                ]));
+                if ($flag === false) {
+                    $this->inquiryModel->rollback();
+                    $this->setCode('-101');
+                    $this->setMessage(L('FAIL') . __LINE__);
+                    $this->jsonReturn();
+                }
+            } else {
+                $flag = $finalQuoteItemModel->where('id=' . $item['id'])->save($finalQuoteItemModel->create([
+                            'quote_id' => $quote_id,
+                            'inquiry_id' => $request['inquiry_id'],
+                            'inquiry_item_id' => $item['inquiry_item_id'],
+                            'quote_item_id' => $item['id'],
+                            'sku' => $item['sku'],
+                            'supplier_id' => $item['supplier_id'],
+                            'quote_unit_price' => $item['quote_unit_price'],
+                            'exw_unit_price' => $item['exw_unit_price'],
+                            'created_by' => $this->user['id'],
+                            'created_at' => date('Y-m-d H:i:s'),
+                ]));
+
+                if ($flag === false) {
+                    $this->inquiryModel->rollback();
+                    $this->setCode('-101');
+                    $this->setMessage(L('FAIL') . __LINE__);
+                    $this->jsonReturn();
+                }
+            }
+        }
+
+
+        //更新当前办理人
+        // 记录历史报价
+        $list = $this->finalQuoteItemModel
+                ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
+                ->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])
+                ->select();
+        foreach ($list as &$item) {
+            $item['created_by'] = $this->user['id'];
+            $item['created_at'] = date('Y-m-d H:i:s');
+        }
+        $res2 = $this->historicalSkuQuoteModel->addAll($list);
+
+        if ($res2) {
+            $this->inquiryModel->commit();
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn(true);
+        } else {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . __LINE__);
             $this->jsonReturn();
         }
     }
