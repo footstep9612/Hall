@@ -151,8 +151,9 @@ class InquiryItemModel extends PublicModel {
             $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
-        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
         $data = $this->create($condition);
+        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
+        unset($data['id']);
         $data['created_at'] = $this->getTime();
 
         try {

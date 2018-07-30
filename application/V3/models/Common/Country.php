@@ -174,4 +174,40 @@ class Common_CountryModel extends PublicModel {
         }
     }
 
+    /*
+     * Description of 获取创建人姓名
+     * @param array $arr
+     * @author  zhongyg
+     * @date    2017-8-2 13:07:21
+     * @version V2.0
+     * @desc
+     */
+
+    public function setCountrys(&$arr, $lang, $fileds = ['country_name' => 'country_bn']) {
+        if ($arr) {
+
+            $country_bns = [];
+            foreach ($arr as $key => $val) {
+                foreach ($fileds as $filed) {
+                    if (isset($val[$filed]) && $val[$filed]) {
+                        $country_bns[] = $val[$filed];
+                    }
+                }
+            }
+            if ($country_bns) {
+                $countrynames = $this->getNamesBybns($country_bns, $lang);
+                foreach ($arr as $key => $val) {
+                    foreach ($fileds as $filed_key => $filed) {
+                        if ($val[$filed] && isset($countrynames[$val[$filed]])) {
+                            $val[$filed_key] = $countrynames[$val[$filed]];
+                        } else {
+                            $val[$filed_key] = '';
+                        }
+                    }
+                    $arr[$key] = $val;
+                }
+            }
+        }
+    }
+
 }
