@@ -973,12 +973,13 @@ class BuyercreditController extends PublicController {
         if(!isset($data['credit_available']) || empty($data['credit_available'])){
             jsonReturn(null, -110, '可用额度金额缺失!');
         }
+
         $buyer_credit_log_model = new BuyerCreditOrderLogModel();
-        $buyer_credit_log_Info = $buyer_credit_log_model->field('id,content,use_credit_granted')->where(['deleted_flag'=>'N','log_id'=>$data['log_id']])->find();
+        $buyer_credit_log_Info = $buyer_credit_log_model->field('id,content,use_credit_granted')->where(['deleted_flag'=>'N','id'=>$data['log_id']])->find();
         if(!$buyer_credit_log_Info){
             jsonReturn(null, -110, '没有此条记录!');
         }
-         $where_log = ['log_id'=>$data['log_id'],'deleted_flag'=>'N'];
+         $where_log = ['id'=>$data['log_id'],'deleted_flag'=>'N'];
         $update_log = [
             'use_credit_granted'=>$data['use_credit_granted'],
             'credit_available'=>$data['credit_available'],
@@ -1004,6 +1005,10 @@ class BuyercreditController extends PublicController {
             jsonReturn(null, -110, '日志ID缺失!');
         }
         $buyer_credit_log_model = new BuyerCreditOrderLogModel();
+        $buyer_credit_log_Info = $buyer_credit_log_model->field('id')->where(['deleted_flag'=>'N','id'=>$data['log_id']])->find();
+        if(!$buyer_credit_log_Info){
+            jsonReturn(null, -110, '没有此条记录!');
+        }
         $where_log = ['id'=>$data['log_id']];
         $delete_log = ['deleted_flag'=>'Y'];
         $buyer_credit_log_update = $buyer_credit_log_model->updateInfo($where_log,$delete_log);
