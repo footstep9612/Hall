@@ -270,7 +270,7 @@ class BuyerCreditModel extends PublicModel
         }
         $buyer_model = new BuyerModel();
         $agent_model = new BuyerAgentModel();
-        $buyer_id = $buyer_model->field('id')->where(['buyer_no'=>$data['buyer_no']])->find();
+        $buyer_id = $buyer_model->field('id,buyer_code')->where(['buyer_no'=>$data['buyer_no'],'deleted_flag'=>'N'])->find();
         $agent_id = $agent_model->field('agent_id')->where(['buyer_id'=>$buyer_id['id']])->find();
         if($agent_id){
             $dataInfo['agent_id'] = $agent_id['agent_id'];
@@ -279,6 +279,7 @@ class BuyerCreditModel extends PublicModel
             $dataInfo['agent_id'] = UID;
             $dataInfo['status'] = 'APPROVING';
         }
+        $dataInfo['crm_code'] = $buyer_id['buyer_code']?$buyer_id['buyer_code']:'';
         $result = $this->add($this->create($dataInfo));
         if($result){
             return true;
@@ -409,6 +410,7 @@ class BuyerCreditModel extends PublicModel
                 jsonReturn(null, -110, '请填写信用证额度或额度值过大!');
             } else {
                 $dataArr['nolc_granted'] = intval($data['nolc_granted']);
+                $dataArr['credit_available'] = $dataArr['nolc_granted'];
             }
             if (!isset($data['nolc_deadline']) || empty($data['nolc_deadline']) || intval($data['nolc_deadline']) > 90) {
                 jsonReturn(null, -110, '请填写信用证有效期限或期限值过大!');
@@ -420,6 +422,7 @@ class BuyerCreditModel extends PublicModel
                 jsonReturn(null, -110, '请填写非信用证额度或额度值过大!');
             } else {
                 $dataArr['lc_granted'] = intval($data['lc_granted']);
+                $dataArr['credit_available'] = $dataArr['lc_granted'];
             }
             if (!isset($data['lc_deadline']) || empty($data['lc_deadline']) || intval($data['lc_deadline']) > 90) {
                 jsonReturn(null, -110, '请填写非信用证有效期限或期限值过大!');
