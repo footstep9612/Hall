@@ -605,6 +605,7 @@ class BuyercreditController extends PublicController {
         }
         if($buyer_credit_Info['status']!='APPROVED'){
             jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
+
         }
 
         if(empty($buyer_credit_Info['credit_available']) || $buyer_credit_Info['credit_available'] < $data['order_money']){
