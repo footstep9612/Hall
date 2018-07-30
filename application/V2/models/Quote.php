@@ -121,7 +121,22 @@ class QuoteModel extends PublicModel {
 
         if (!empty($quoteItemIds)) {
             foreach ($quoteItemIds as $key => $value) {
+
+
                 if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+                    if ($value['purchase_price_cur_bn'] == 'USD') {
+                        $exchange_rate = 1;
+                    } else {
+                        $exchange_rate = $exchangeRateModel
+                                ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
+                                ->order('created_at DESC')
+                                ->getField('rate');
+                    }
+
+                    if (!in_array($value['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                        $error = '报价商品币种选择错误,请重新选择!';
+                        return false;
+                    }
                     if ($value['purchase_price_cur_bn'] == 'USD') {
                         $exchange_rate = 1;
                     } else {

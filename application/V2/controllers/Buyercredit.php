@@ -592,7 +592,13 @@ class BuyercreditController extends PublicController {
         $buyer_credit_model = new BuyerCreditModel();
         $buyer_credit_Info = $buyer_credit_model->getInfo($buyerInfo['buyer_no']);
         if(!$buyer_credit_Info){
-            jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
+            jsonReturn('',-401,'客户没有进行授信申请或已被删除!');
+        }
+        if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
+        }
+        if($buyer_credit_Info['status']!='APPROVED'){
+            jsonReturn('',MSG::MSG_FAILED,'客户授信额度已失效!');
         }
         if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
             jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
@@ -870,7 +876,7 @@ class BuyercreditController extends PublicController {
             $buyer_model = new BuyerModel();
             $buyerInfo = $buyer_model->field('buyer_no')->where(['buyer_code'=>$data['crm_code'],'deleted_flag'=>'N'])->find();
             if(!$buyerInfo){
-                jsonReturn('',MSG::MSG_FAILED,'客户信息不存在或已被删除!');
+                jsonReturn('',-301,'客户信息不存在或已被删除!');
             }
             $buyer_no = $buyerInfo['buyer_no'];
         }
@@ -880,7 +886,7 @@ class BuyercreditController extends PublicController {
         $buyer_credit_model = new BuyerCreditModel();
         $buyer_credit_Info = $buyer_credit_model->getInfo($buyer_no);
         if(!$buyer_credit_Info){
-            jsonReturn('',MSG::MSG_FAILED,'客户没有进行授信申请或已被删除!');
+            jsonReturn('',-401,'客户没有进行授信申请或已被删除!');
         }
         if(empty($buyer_credit_Info['approved_date']) || empty($buyer_credit_Info['credit_valid_date'])){
             jsonReturn('',MSG::MSG_FAILED,'客户授信还未分配!');
