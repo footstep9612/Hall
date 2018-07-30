@@ -485,7 +485,7 @@ class InquiryController extends PublicController {
             ];
 
             $res1 = $inquiryModel->updateData($data);
-
+            var_dump($res1);
 // 更改报价单状态
             $quoteData = [
                 'status' => 'BIZ_QUOTING',
@@ -493,7 +493,7 @@ class InquiryController extends PublicController {
                 'updated_at' => $this->time
             ];
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
-
+            var_dump($res1);
 // 更改市场报价单状态
             $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
 

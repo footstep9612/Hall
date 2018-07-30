@@ -1523,6 +1523,7 @@ class ExcelimportandexportController extends PublicController {
      */
     private function _handleExportExcelFile($fileName, $titleList, $dataList, $sheetTitle, $outPath) {
         $file = $this->_exportExcel($fileName, $titleList, $dataList, $sheetTitle, $outPath, 'file');
+
         if (file_exists($file)) {
             $fileInfo = $this->_uploadToFastDFS($file);
             if ($fileInfo['code'] == '1') {
