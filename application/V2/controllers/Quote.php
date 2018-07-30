@@ -389,6 +389,29 @@ class QuoteController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
+        $request = $this->quoteModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->find();
+        if (empty($request)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '报价不存在!'
+            ]);
+        }
+        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须小于1且大于等于零!'
+            ]);
+        }
+
+
+
+        $condition = ['inquiry_id' => $request['inquiry_id']];
+        unset($request['total_bank_fee']);
+        //这个操作设计到计算
+        $result = $this->quoteModel->updateGeneralInfo($condition, $request);
+        if ($result['code'] !== 1) {
+            $this->jsonReturn($result);
+        }
         $now_agent_id = $this->inquiryModel->where(['id' => $request['inquiry_id']])->getField('agent_id');
         $this->inquiryModel->startTrans();
         $res1 = $this->inquiryModel->updateData([
@@ -464,6 +487,7 @@ class QuoteController extends PublicController {
                         'created_by' => $this->user['id'],
                         'created_at' => date('Y-m-d H:i:s')
             ]));
+
             if (!$flag) {
                 $this->inquiryModel->rollback();
                 $this->setCode('-101');
@@ -491,7 +515,7 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
-                if (!$flag) {
+                if ($flag === false) {
                     $this->inquiryModel->rollback();
                     $this->setCode('-101');
                     $this->setMessage(L('FAIL') . __LINE__);
@@ -510,7 +534,8 @@ class QuoteController extends PublicController {
                             'created_by' => $this->user['id'],
                             'created_at' => date('Y-m-d H:i:s'),
                 ]));
-                if (!$flag) {
+
+                if ($flag === false) {
                     $this->inquiryModel->rollback();
                     $this->setCode('-101');
                     $this->setMessage(L('FAIL') . __LINE__);
