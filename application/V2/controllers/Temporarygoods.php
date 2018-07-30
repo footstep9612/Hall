@@ -96,13 +96,15 @@ class TemporarygoodsController extends PublicController {
         }
         if (!empty($inquiry_ids)) {
             $inquiry_model = new InquiryModel();
-            $inquirys = $inquiry_model->field('id')
-                    ->where(['id' => ['in', $inquiry_ids, 'deleted_flag' => 'N', 'quote_status' => ['in', ['QUOTED', 'COMPLETED']]]])
-                    ->select();
-            $inquiry_ids = array_values($inquirys);
+            $inquirys = $inquiry_model
+                    ->where([
+                        'id' => ['in', $inquiry_ids],
+                        'deleted_flag' => 'N',
+                        'quote_status' => ['in', ['QUOTED', 'COMPLETED']]
+                    ])
+                    ->getField('id', true);
             foreach ($response as $key => $val) {
-
-                if (!empty($val['inquiry_id']) && in_array($val['inquiry_id'], $inquiry_ids)) {
+                if (!empty($val['inquiry_id']) && in_array($val['inquiry_id'], $inquirys)) {
                     $val['quote_flag'] = 'Y';
                 } else {
                     $val['quote_flag'] = 'N';
