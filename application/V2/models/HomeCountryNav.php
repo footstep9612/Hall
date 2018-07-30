@@ -33,7 +33,15 @@ class HomeCountryNavModel extends PublicModel {
 
     private function _getCondition($condition) {
         $where = ['deleted_flag' => 'N'];
-        $this->_getValue($where, $condition, 'country_bn');
+        if(isset($condition['group'])){
+            $where['group'] = strtoupper($condition['group']);
+        }
+        if(isset($condition['group_id'])){
+            $where['group_id'] = trim($condition['group_id']);
+        }
+        if(isset($condition['country_bn'])){
+            $where['country_bn'] = trim($condition['country_bn']);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between');
         $this->_getValue($where, $condition, 'nav_name', 'like');
         $this->_getValue($where, $condition, 'created_by');
@@ -72,15 +80,22 @@ class HomeCountryNavModel extends PublicModel {
      * @desc  导航
      */
     public function getExit($condition, $id = null) {
-
-        $where['country_bn'] = trim($condition['country_bn']);
+        $where['group'] = strtoupper($condition['group']);
         $where['nav_name'] = trim($condition['nav_name']);
         $where['nav_url'] = trim($condition['nav_url']);
         $where['lang'] = trim($condition['lang']);
+        if(isset($condition['country_bn'])){
+            $where['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['group_id'])){
+            $where['group_id'] = trim($condition['group_id']);
+        }
         $this->_getValue($where, $condition, 'created_at', 'between');
+        $where['deleted_at'] = ['exp','is null'];
         if ($id) {
             $where['id'] = ['neq', $id];
         }
+
         switch ($condition['show_type']) {
             case 'P':
                 $where['show_type'] = ['in', ['APM', 'P', 'PM', 'AP']];
@@ -105,12 +120,25 @@ class HomeCountryNavModel extends PublicModel {
      * @desc  导航
      */
     public function getList($condition) {
-        $where = $this->_getCondition($condition);
-        list($from, $size) = $this->_getPage($condition);
+        try{
+            $where = $this->_getCondition($condition);
+            list($from, $size) = $this->_getPage($condition);
 
-        return $this->where($where)
-                        ->limit($from, $size)
-                        ->select();
+            $list = $this->where($where)->order('sort_order DESC')
+                ->limit($from, $size)
+                ->select();
+            $data = [];
+            if($list){
+                $data['data']=$list;
+                $count = $this->getCont($condition);
+                $data['count'] = $count ? $count : 0;
+                $data['current_no'] = isset($condition['current_no']) ? intval($condition['current_no']) : 1;
+                $data['pagesize'] = $size;
+            }
+            return $data;
+        }catch (Exception $e){
+            return false;
+        }
     }
 
     /**
@@ -147,7 +175,13 @@ class HomeCountryNavModel extends PublicModel {
      * @desc  导航
      */
     public function createData($condition) {
-        $condition['country_bn'] = trim($condition['country_bn']);
+        $condition['group'] = strtoupper($condition['group']);
+        if(isset($condition['country_bn'])){
+            $condition['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['group_id'])){
+            $condition['group_id'] = trim($condition['group_id']);
+        }
         $condition['nav_name'] = trim($condition['nav_name']);
         $condition['nav_url'] = trim($condition['nav_url']);
         $condition['sort_order'] = intval($condition['sort_order']);
@@ -192,8 +226,13 @@ class HomeCountryNavModel extends PublicModel {
      * @desc  导航
      */
     public function updateData($condition, $id) {
-        $condition['country_bn'] = trim($condition['country_bn']);
-
+        $condition['group'] = strtoupper($condition['group']);
+        if(isset($condition['country_bn'])){
+            $condition['country_bn'] = trim($condition['country_bn']);
+        }
+        if(isset($condition['group_id'])){
+            $condition['group_id'] = trim($condition['group_id']);
+        }
         $condition['sort_order'] = intval($condition['sort_order']);
         $condition['nav_name'] = trim($condition['nav_name']);
         $condition['nav_url'] = trim($condition['nav_url']);
