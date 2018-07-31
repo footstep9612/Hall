@@ -420,7 +420,7 @@ class SupplierInquiryModel extends PublicModel {
 
 
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
-        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
+        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,fqt.total_exw_price,fqt.exw_unit_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
         $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,';
         $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
@@ -705,7 +705,7 @@ class SupplierInquiryModel extends PublicModel {
             'BK' => ['gross_profit_rate', '利润率',],
             'BL' => ['quote_unit_price', '报价单价',],
             'BM' => ['quote_price_cur_bn', '币种',],
-            'BN' => ['total_quote_price', '商务报出EXW价格合计',],
+            'BN' => ['total_exw_price', '商务报出EXW价格合计',],
             'BO' => ['total_quote_price_cur_bn', '币种',],
             'BP' => ['total_quoted_price_usd', '商务技术报价',],
             'BQ' => ['gross_weight_kg', '单重(kg]',],
@@ -1414,7 +1414,7 @@ class SupplierInquiryModel extends PublicModel {
                         $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     }
                     if (isset($final_quoteprices[$serialNo]['total_exw_price'])) {
-                        $tmpList[$serialNo]['total_quote_price'] = $final_quoteprices[$serialNo]['total_exw_price'];
+                        $tmpList[$serialNo]['total_exw_price'] = $final_quoteprices[$serialNo]['total_exw_price'];
                         $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                     } elseif (isset($quoteprices[$serialNo]['total_exw_price'])) {
                         $tmpList[$serialNo]['total_exw_price'] = $quoteprices[$serialNo]['total_exw_price'];
@@ -1588,6 +1588,11 @@ class SupplierInquiryModel extends PublicModel {
                     $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                     $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
+
+                if (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
+                    $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
+                }
+
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {
