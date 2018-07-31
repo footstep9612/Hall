@@ -1515,7 +1515,7 @@ class InquiryController extends PublicController {
 
 //发送短信
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+        $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no,org_id')->find();
 
         $employeeModel = new EmployeeModel();
         $receiverInfo = $employeeModel
@@ -1529,6 +1529,7 @@ class InquiryController extends PublicController {
             if ($data['out_node'] == 'BIZ_DISPATCHING' && !empty($inquiryInfo['org_id'])) {
 
                 $user = (new OrgMemberModel())->getSmsUserByOrgId($inquiryInfo['org_id']);
+
                 if (!empty($user)) {
                     $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $user['name'], $data['in_node'], $data['out_node']);
                 } else {
