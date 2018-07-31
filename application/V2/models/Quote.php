@@ -129,27 +129,15 @@ class QuoteModel extends PublicModel {
                         $error = '报价商品币种选择错误,请重新选择!';
                         return false;
                     }
-                    if ($value['purchase_price_cur_bn'] == 'USD') {
-                        $exchange_rate = 1;
-                    } else {
-                        $exchange_rate = $exchangeRateModel
-                                ->where(['cur_bn2' => $value['purchase_price_cur_bn'], 'cur_bn1' => 'USD'])
-                                ->order('created_at DESC')
-                                ->getField('rate');
-                    }
-                    
+
+                    $exchange_rate = $exchangeRateModel->getRateToUSD($value['purchase_price_cur_bn'], $error);
+
+
                     if (empty($exchange_rate)) {
-                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => $value['purchase_price_cur_bn']])
-                                ->order('created_at DESC')
-                                ->getField('rate');
-                        if (empty($rate)) {
-                            $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
-                            return false;
-                        } else {
-                            $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $rate;
-                        }
+                        $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                        return false;
                     } else {
-                        $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) / $exchange_rate;
+                        $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) * $exchange_rate;
                     }
                     //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
                     $exw_unit_price = sprintf("%.8f", $exw_unit_price);
@@ -210,64 +198,21 @@ class QuoteModel extends PublicModel {
         $quoteItemsData = $quoteItemModel->where($where)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
 
         foreach ($quoteItemsData as $quote => $item) {
-            switch ($item['purchase_price_cur_bn']) {
-                case 'EUR' :
-                    $rate = $exchangeRateModel->where(['cur_bn2' => 'EUR', 'cur_bn1' => 'USD'])
-                            ->order('created_at DESC')
-                            ->getField('rate');
-
-                    if (empty($rate)) {
-                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => 'EUR'])
-                                ->order('created_at DESC')
-                                ->getField('rate');
-                        if (empty($rate)) {
-                            if ($flag === false) {
-                                $error = 'EUR兑USD汇率不存在!';
-                                return false;
-                            }
-                            return false;
-                        } else {
-                            $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
-                        }
-                    } else {
-                        $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
-                    }
-
-
-                    break;
-                case 'USD' :
-                    $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'];
-                    break;
-                case 'CNY' :
-                    $rate = $exchangeRateModel->where(['cur_bn2' => 'CNY', 'cur_bn1' => 'USD'])
-                            ->order('created_at DESC')
-                            ->getField('rate');
-
-                    if (empty($rate)) {
-                        $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => 'CNY'])
-                                ->order('created_at DESC')
-                                ->getField('rate');
-                        if (empty($rate)) {
-                            if ($flag === false) {
-                                $error = 'CNY兑USD汇率不存在!';
-                                return false;
-                            }
-                            return false;
-                        } else {
-                            $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] * $rate;
-                        }
-                    } else {
-                        $totalPurchase[] = $item['purchase_unit_price'] * $item['quote_qty'] / $rate;
-                    }
-                    break;
-                default :
-                    $error = '币种错误!';
-                    return false;
+            if (!in_array($item['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                $error = '币种错误!';
+                return false;
+            }
+            $exchange_rate = $exchangeRateModel->getRateToUSD($item['purchase_price_cur_bn'], $error);
+            if (empty($exchange_rate)) {
+                $error = $item['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                return false;
+            } else {
+                $totalPurchase[] = round($item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rate, 16);
             }
         }
 
 
-        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase), 'purchase_cur_bn' => 'USD']);
     }
 
     /**

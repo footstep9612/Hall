@@ -86,4 +86,70 @@ class Rfq_InquiryModel extends PublicModel {
         return $inquiryinfo;
     }
 
+    /**
+     * 更新数据
+     * @param  Array $condition
+     * @return Array
+     * @author zhangyuliang
+     */
+    public function updateData($condition = []) {
+        $data = $this->create($condition);
+        if (!empty($condition['id'])) {
+            $where['id'] = $condition['id'];
+        } else {
+            $results['code'] = '-103';
+            $results['message'] = L('MISSING_PARAMETER');
+            return $results;
+        }
+
+        $time = $this->getTime();
+
+        if (!empty($condition['status'])) {
+            $data['inflow_time'] = $time;
+        }
+
+        $data['updated_at'] = $time;
+
+        try {
+
+            $id = $this->where($where)->save($data);
+            if ($id !== false) {
+                $results['code'] = 1;
+                $results['message'] = L('SUCCESS');
+            } else {
+                $results['code'] = -101;
+                $results['message'] = L('FAIL');
+            }
+            return $results;
+        } catch (Exception $e) {
+            $results['code'] = $e->getCode();
+            $results['message'] = $e->getMessage();
+            return $results;
+        }
+    }
+
+    /**
+     * 返回格式化时间
+     * @author zhangyuliang
+     */
+    public function getTime() {
+        return date('Y-m-d H:i:s', time());
+    }
+
+    public function submit($inquiry_id) {
+
+
+        $check_org_id = $this->where(['id' => $inquiry_id])->getField('check_org_id');
+
+        return $this->updateData([
+                    'id' => $inquiry_id,
+                    'now_agent_id' => $check_org_id,
+                    'inflow_time' => date('Y-m-d H:i:s', time()),
+                    'status' => 'MARKET_APPROVING',
+                    'quote_status' => 'QUOTED',
+                    'updated_by' => defined(UID) ? UID : 0,
+                    'updated_at' => date('Y-m-d H:i:s', time())
+        ]);
+    }
+
 }
