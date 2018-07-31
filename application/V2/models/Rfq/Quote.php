@@ -30,6 +30,10 @@ class Rfq_QuoteModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getQuoteIdByInQuiryId($inquiry_id) {
+        return $this->where(['inquiry_id' => $inquiry_id])->getField('id');
+    }
+
     public function info($where, $results) {
 
         $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,'
@@ -109,6 +113,177 @@ class Rfq_QuoteModel extends PublicModel {
         } else {
             return [];
         }
+    }
+
+    public function Detail($inquiry_id) {
+
+        return $this->where(['inquiry_id' => $inquiry_id, 'deleted_flag' => 'N'])->find();
+    }
+
+    public function updateGeneralInfo(array $condition, $data) {
+
+        try {
+            $this->startTrans();
+            $falg = $this->where($condition)
+                    ->save($this->create($data));
+
+            if ($falg === false) {
+                $this->rollback();
+
+                return [
+                    'code' => -1,
+                    'message' => '新建报价失败!'
+                ];
+            }
+            $error = '';
+            //处理计算相关逻辑
+            $flag = $this->calculate($condition, $error);
+
+            if ($flag === false) {
+                $this->rollback();
+
+                return [
+                    'code' => -1,
+                    'message' => '处理计算相关逻辑失败!' . $error
+                ];
+            }
+            $this->commit();
+            return [
+                'code' => 1,
+                'message' => L('QUOTE_SUCCESS')
+            ];
+        } catch (Exception $exception) {
+
+            return [
+                'code' => $exception->getCode(),
+                'message' => $exception->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * 处理所有计算相关逻辑
+     * @param $condition    条件
+     * @return bool
+     */
+    private function calculate($condition, &$error = null) {
+
+        $quoteItemModel = new QuoteItemModel();
+        $exchangeRateModel = new ExchangeRateModel();
+
+        $where = $condition;
+        $where['deleted_flag'] = 'N';
+
+        /*
+          |--------------------------------------------------------------------------
+          | 计算商务报出EXW单价         计算公式 : EXW单价=采购单价*毛利率/汇率
+          |--------------------------------------------------------------------------
+         */
+        $quoteInfo = $this->where($condition)
+                ->field('id,gross_profit_rate,exchange_rate')
+                ->find();
+        $gross_profit_rate = $quoteInfo['gross_profit_rate']; //毛利率
+
+        $quoteItemIds = $quoteItemModel
+                ->where($where)
+                ->field('id,purchase_unit_price,purchase_price_cur_bn,reason_for_no_quote')
+                ->select();
+
+
+        if (!empty($quoteItemIds)) {
+            foreach ($quoteItemIds as $key => $value) {
+
+
+                if (empty($value['reason_for_no_quote']) && !empty($value['purchase_unit_price'])) {
+
+                    if (!in_array($value['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                        $error = '报价商品币种选择错误,请重新选择!';
+                        return false;
+                    }
+
+                    $exchange_rate = $exchangeRateModel->getRateToUSD($value['purchase_price_cur_bn'], $error);
+
+
+                    if (empty($exchange_rate)) {
+                        $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                        return false;
+                    } else {
+                        $exw_unit_price = $value['purchase_unit_price'] * (($gross_profit_rate / 100) + 1) * $exchange_rate;
+                    }
+                    //毛利率改为：$gross_profit_rate->(($gross_profit_rate/100)+1)
+                    $exw_unit_price = sprintf("%.8f", $exw_unit_price);
+
+                    $flag = $quoteItemModel->where(['id' => $value['id']])->save([
+                        'exw_unit_price' => $exw_unit_price
+                    ]);
+                    if ($flag === false) {
+                        $error = '计算报出EXW价格失败!';
+                        return false;
+                    }
+                }
+            }
+        }
+
+        /*
+          |--------------------------------------------------------------------------
+          | 计算商务报出EXW总价        计算公式 : EXW总价=EXW单价*条数*数量
+          |--------------------------------------------------------------------------
+         */
+        $quoteItemExwUnitPrices = $quoteItemModel
+                ->where($where)
+                ->field('exw_unit_price,quote_qty,gross_weight_kg')
+                ->select();
+        if (!empty($quoteItemExwUnitPrices)) {
+            $total_exw_price_arr = [];
+            foreach ($quoteItemExwUnitPrices as $price) {
+                $total_exw_price_arr[] = $price['exw_unit_price'] * $price['quote_qty'];
+            }
+            $total_exw_price = array_sum($total_exw_price_arr);
+
+            $total_gross_weight_kg_arr = [];
+            foreach ($quoteItemExwUnitPrices as $price) {
+                $total_gross_weight_kg_arr[] = $price['gross_weight_kg'] * $price['quote_qty'];
+            }
+            $total_gross_weight_kg = array_sum($total_gross_weight_kg_arr);
+        } else {
+            $total_exw_price = 0;
+            $total_gross_weight_kg = 0;
+        }
+        $flag = $this->where($condition)->save([
+            //总重
+            'total_weight' => $total_gross_weight_kg,
+            //exw合计
+            'total_exw_price' => $total_exw_price
+        ]);
+
+        if ($flag === false) {
+            $error = '计算商务报出EXW价格合计 和 总重出错!';
+            return false;
+        }
+        /*
+          |--------------------------------------------------------------------------
+          | 采购合计          计算公式 : 采购总价=采购单价*条数
+          |--------------------------------------------------------------------------
+         */
+        $totalPurchase = [];
+        $quoteItemsData = $quoteItemModel->where($where)->field('purchase_unit_price,purchase_price_cur_bn,quote_qty')->select();
+
+        foreach ($quoteItemsData as $quote => $item) {
+            if (!in_array($item['purchase_price_cur_bn'], ['CNY', 'USD', 'EUR'])) {
+                $error = '币种错误!';
+                return false;
+            }
+            $exchange_rate = $exchangeRateModel->getRateToUSD($item['purchase_price_cur_bn'], $error);
+            if (empty($exchange_rate)) {
+                $error = $item['purchase_price_cur_bn'] . '兑USD汇率不存在';
+                return false;
+            } else {
+                $totalPurchase[] = round($item['purchase_unit_price'] * $item['quote_qty'] * $exchange_rate, 16);
+            }
+        }
+
+
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase), 'purchase_cur_bn' => 'USD']);
     }
 
 }
