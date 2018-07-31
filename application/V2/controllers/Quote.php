@@ -385,7 +385,7 @@ class QuoteController extends PublicController {
      * 确认报价(审核人)
      * @author mmt、liujf
      */
-    public function quotetoconfirmAction() {
+    public function quotetosubmitAction() {
 
         error_reporting(E_ALL);
         $request = $this->validateRequests('inquiry_id');
@@ -414,15 +414,22 @@ class QuoteController extends PublicController {
             $inquiryModel->rollback();
             $this->jsonReturn($result);
         }
-        $res1 = $inquiryModel->confirm($inquiry_id);
+        $res1 = $inquiryModel->submit($inquiry_id);
         if ($res1['code'] != 1) {
             $this->inquiryModel->rollback();
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
+        $flag = $quoteModel->where(['inquiry_id' => $inquiry_id])->save(['status' => 'BIZ_APPROVING']);
+        if ($flag === false) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
         $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
-        $flag = $quote_logi_fee_Model->confirm($inquiry_id);
+        $flag = $quote_logi_fee_Model->submit($inquiry_id);
         if ($flag === false) {
             $this->inquiryModel->rollback();
             $this->setCode('-101');
@@ -430,30 +437,16 @@ class QuoteController extends PublicController {
             $this->jsonReturn();
         }
         $FinalQuoteModel = new Rfq_FinalQuoteModel();
-        $res2 = $FinalQuoteModel->confirm($inquiry_id);
+        $res2 = $FinalQuoteModel->submit($inquiry_id);
         if ($res2 === false) {
             $this->inquiryModel->rollback();
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
             $this->jsonReturn();
         }
-
-
-
-
-        //更新当前办理人
-        // 记录历史报价
-        $list = $this->finalQuoteItemModel
-                ->field('quote_id, inquiry_id, inquiry_item_id, quote_item_id')
-                ->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])
-                ->select();
-        foreach ($list as &$item) {
-            $item['created_by'] = $this->user['id'];
-            $item['created_at'] = date('Y-m-d H:i:s');
-        }
-        $res3 = $this->historicalSkuQuoteModel->addAll($list);
-
-        if ($res3) {
+        $check_log_model = new Rfq_CheckLogModel();
+        $falg = $check_log_model->AddQuoteToSubmitLog($inquiry_id, $this->user);
+        if (isset($falg['code']) && $falg['code'] == 1) {
             $this->inquiryModel->commit();
             $this->setCode('1');
             $this->setMessage(L('SUCCESS'));
