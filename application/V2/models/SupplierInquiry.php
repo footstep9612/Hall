@@ -420,9 +420,9 @@ class SupplierInquiryModel extends PublicModel {
 
 
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
-        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,fqt.total_exw_price,fqt.exw_unit_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
+        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,fqt.total_exw_price,fqt.exw_unit_price,fqt.exw_cur_bn,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
-        $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,';
+        $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,qt.total_exw_price as qt_total_exw_price,qt.exw_unit_price as qt_exw_unit_price,qt.exw_cur_bn as qt_exw_cur_bn,';
         $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
                 . 'WHEN \'CLARIFY\' THEN \'项目澄清\' '
                 . 'WHEN \'REJECT_MARKET\' THEN \'驳回市场\' '
@@ -853,9 +853,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:CA' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . $name . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -1588,10 +1588,16 @@ class SupplierInquiryModel extends PublicModel {
                     $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                     $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
-
-                if (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
+                if (!empty($item['total_exw_price'])) {
+                    $list[$key]['total_exw_price'] = $item['total_exw_price'];
+                } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
                     $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
+                } elseif (!empty($item['qt_total_exw_price'])) {
+                    $list[$key]['total_exw_price'] = $item['qt_total_exw_price'];
+                } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
+                    $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'];
                 }
+
 
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
