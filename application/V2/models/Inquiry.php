@@ -234,10 +234,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['submit_start_time']) && !empty($condition['submit_end_time'])) {   //报出日期
             $check_model = new InquiryCheckLogModel();
             $check_table = $check_model->getTableName();
-            $start_time = date('Y-m-d H:i:s', $condition['start_time']);
-            $end_time = date('Y-m-d H:i:s', $condition['end_time'] + 86399);
-            $where[] = 'id in (select inquiry_id from ' . $check_table
-                    . ' where out_node=\'QUOTE_SENT\' and out_at beteen \'' . $start_time . '\' and \'' . $end_time . '\')';
+            $start_time = date('Y-m-d H:i:s', $condition['submit_start_time']);
+            $end_time = date('Y-m-d H:i:s', $condition['submit_end_time'] + 86399);
+            $where[] = 'a.`status` in(\'QUOTE_SENT\',\'INQUIRY_CONFIRM\',\'INQUIRY_CLOSED\') and a.id in (select inquiry_id from ' . $check_table
+                    . ' where out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
         }
         if (!empty($condition['list_type'])) {
             $map = [];
@@ -434,10 +434,10 @@ class InquiryModel extends PublicModel {
         if (!empty($condition['submit_start_time']) && !empty($condition['submit_end_time'])) {   //报出日期
             $check_model = new InquiryCheckLogModel();
             $check_table = $check_model->getTableName();
-            $start_time = date('Y-m-d H:i:s', $condition['start_time']);
-            $end_time = date('Y-m-d H:i:s', $condition['end_time'] + 86399);
-            $where[] = 'id in (select inquiry_id from ' . $check_table
-                    . ' where out_node=\'QUOTE_SENT\' and out_at beteen \'' . $start_time . '\' and \'' . $end_time . '\')';
+            $start_time = date('Y-m-d H:i:s', $condition['submit_start_time']);
+            $end_time = date('Y-m-d H:i:s', $condition['submit_end_time'] + 86399);
+            $where[] = '`status` in(\'QUOTE_SENT\',\'INQUIRY_CONFIRM\',\'INQUIRY_CLOSED\') and id in (select inquiry_id from ' . $check_table
+                    . ' where out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
         }
 
 
