@@ -16,7 +16,7 @@ class Rfq_FinalQuoteModel extends PublicModel {
         parent::__construct();
     }
 
-    public function confirm($inquiry_id) {
+    public function submit($inquiry_id) {
         $quoteModel = new Rfq_QuoteModel();
         $inquiryModel = new Rfq_InquiryModel();
         $finalQuoteItemModel = new FinalQuoteItemModel();

@@ -136,14 +136,16 @@ class Rfq_InquiryModel extends PublicModel {
         return date('Y-m-d H:i:s', time());
     }
 
-    public function confirm($inquiry_id) {
-        $now_agent_id = $this->where(['id' => $inquiry_id])->getField('agent_id');
+    public function submit($inquiry_id) {
+
+
+        $check_org_id = $this->where(['id' => $inquiry_id])->getField('check_org_id');
 
         return $this->updateData([
                     'id' => $inquiry_id,
-                    'now_agent_id' => $now_agent_id,
+                    'now_agent_id' => $check_org_id,
                     'inflow_time' => date('Y-m-d H:i:s', time()),
-                    'status' => 'MARKET_CONFIRMING',
+                    'status' => 'MARKET_APPROVING',
                     'quote_status' => 'QUOTED',
                     'updated_by' => defined(UID) ? UID : 0,
                     'updated_at' => date('Y-m-d H:i:s', time())
