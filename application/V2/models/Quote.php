@@ -131,6 +131,9 @@ class QuoteModel extends PublicModel {
                     }
 
                     $exchange_rate = $exchangeRateModel->getRateToUSD($value['purchase_price_cur_bn'], $error);
+
+                    echo $exchange_rate;
+                    die;
                     if (empty($exchange_rate)) {
                         $error = $value['purchase_price_cur_bn'] . '兑USD汇率不存在';
                         return false;

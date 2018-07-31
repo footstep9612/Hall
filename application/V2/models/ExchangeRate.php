@@ -278,12 +278,14 @@ class ExchangeRateModel extends PublicModel {
             $exchangeRate = $exchangeRateModel
                             ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
                             ->order('created_at DESC')->getfield('rate');
+            echo $exchangeRate;
             if (empty($exchangeRate)) {
                 $exchangeRate = $exchangeRateModel
                                 ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])
                                 ->order('created_at DESC')->getfield('rate');
                 if ($exchangeRate) {
-                    return round(1 / $exchangeRate, 8);
+                    echo $exchangeRate;
+                    return round(1 / $exchangeRate, 16);
                 } else {
                     $error = '汇率不存在!';
                     return false;
