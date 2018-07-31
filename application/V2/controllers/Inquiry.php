@@ -1531,7 +1531,7 @@ class InquiryController extends PublicController {
                 $user = (new OrgMemberModel())->getSmsUserByOrgId($inquiryInfo['org_id']);
 
                 if (!empty($user)) {
-                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $user['name'], $data['in_node'], $data['out_node']);
+                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
                 } else {
                     $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
                 }

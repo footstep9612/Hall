@@ -1450,7 +1450,7 @@ class SupplierInquiryModel extends PublicModel {
 
         if (empty($cur)) {
             return 1;
-        } elseif ($this->RateUSD[$cur]) {
+        } elseif (!empty($this->RateUSD[$cur])) {
 
             return $this->RateUSD[$cur];
         } else {
