@@ -137,7 +137,7 @@ class QuoteModel extends PublicModel {
                                 ->order('created_at DESC')
                                 ->getField('rate');
                     }
-                    
+
                     if (empty($exchange_rate)) {
                         $rate = $exchangeRateModel->where(['cur_bn2' => 'USD', 'cur_bn1' => $value['purchase_price_cur_bn']])
                                 ->order('created_at DESC')
@@ -267,7 +267,7 @@ class QuoteModel extends PublicModel {
         }
 
 
-        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase)]);
+        return $this->where($condition)->save(['total_purchase' => array_sum($totalPurchase), 'purchase_cur_bn' => 'USD']);
     }
 
     /**
