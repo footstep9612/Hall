@@ -1481,7 +1481,7 @@ class SupplierInquiryModel extends PublicModel {
                             ->order('created_at DESC')->find();
             if (empty($exchangeRate)) {
                 $exchangeRate = $exchangeRateModel->field('rate')
-                                ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
+                                ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])
                                 ->order('created_at DESC')->find();
                 return 1 / $exchangeRate['rate'];
             }

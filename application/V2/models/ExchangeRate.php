@@ -17,6 +17,7 @@ class ExchangeRateModel extends PublicModel {
     //put your code here
     protected $dbName = 'erui_config';
     protected $tableName = 'exchange_rate';
+    protected $RateUSD = [];
 
     public function __construct() {
         parent::__construct();
@@ -256,6 +257,67 @@ class ExchangeRateModel extends PublicModel {
             LOG::write('CLASS' . __CLASS__ . PHP_EOL . ' LINE:' . __LINE__, LOG::EMERG);
             LOG::write($ex->getMessage(), LOG::ERR);
             return array();
+        }
+    }
+
+    /**
+     * @desc 获取币种兑换汇率
+     *
+     * @param string $holdCur 持有币种
+     * @param string $exchangeCur 兑换币种
+     * @return float
+     * @author liujf
+     * @time 2018-05-16
+     */
+    public function getRate($holdCur, $exchangeCur = 'CNY', &$error = null) {
+        if (!empty($holdCur)) {
+            if ($holdCur == $exchangeCur) {
+                return 1;
+            }
+            $exchangeRateModel = new ExchangeRateModel();
+            $exchangeRate = $exchangeRateModel
+                            ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
+                            ->order('created_at DESC')->getfield('rate');
+            echo $exchangeRate;
+            if (empty($exchangeRate)) {
+                $exchangeRate = $exchangeRateModel
+                                ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])
+                                ->order('created_at DESC')->getfield('rate');
+                if ($exchangeRate) {
+                    echo $exchangeRate;
+                    return round(1 / $exchangeRate, 16);
+                } else {
+                    $error = '汇率不存在!';
+                    return false;
+                }
+            }
+            return $exchangeRate;
+        } else {
+            $error = '持有币种不能为空!';
+            return false;
+        }
+    }
+
+    /**
+     * @desc 获取美元兑换汇率
+     *
+     * @param string $cur 币种
+     * @return float
+     * @author liujf
+     * @time 2018-05-16
+     */
+    public function getRateToUSD($cur, &$error = null) {
+
+
+        if (empty($cur)) {
+            return 1;
+        } elseif ($this->RateUSD[$cur]) {
+
+            return $this->RateUSD[$cur];
+        } else {
+            $Rate = $this->getRate($cur, 'USD', $error);
+            $this->RateUSD[$cur] = $Rate;
+            return $Rate;
         }
     }
 
