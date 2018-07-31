@@ -104,19 +104,19 @@ class HomecountryController extends PublicController {
      * @desc  广告
      */
     public function getNavAction() {
-
         $condition = $this->getPut();
+        if (empty($condition['group'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择应用!');
+            $this->jsonReturn();
+        }
+
         if (empty($condition['lang'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('请选择语言!');
             $this->jsonReturn();
         }
 
-        if (empty($condition['country_bn'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
-            $this->jsonReturn();
-        }
         $home_country_nav_model = new HomeCountryNavModel();
         $list = $home_country_nav_model->getList($condition);
         if ($list) {
