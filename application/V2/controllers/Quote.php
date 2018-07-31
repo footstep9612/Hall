@@ -112,7 +112,18 @@ class QuoteController extends PublicController {
         if ($request['dispatch_place'] == L('NOTHING')) {
             unset($request['dispatch_place']);
         }
+
+
+        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须小于1且大于等于零!'
+            ]);
+        }
+
+
         $condition = ['inquiry_id' => $request['inquiry_id']];
+
 
         unset($request['total_bank_fee']);
 
@@ -358,6 +369,84 @@ class QuoteController extends PublicController {
         $res2 = $this->historicalSkuQuoteModel->addAll($list);
 
         if ($res1 && $res2) {
+            $this->inquiryModel->commit();
+            $this->setCode('1');
+            $this->setMessage(L('SUCCESS'));
+            $this->jsonReturn(true);
+        } else {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+    }
+
+    /**
+     * 确认报价(审核人)
+     * @author mmt、liujf
+     */
+    public function quotetosubmitAction() {
+
+        error_reporting(E_ALL);
+        $request = $this->validateRequests('inquiry_id');
+
+        $condition = ['inquiry_id' => $request['inquiry_id']];
+        unset($request['total_bank_fee']);
+        //这个操作设计到计算
+        $inquiryModel = new Rfq_InquiryModel();
+        $quoteModel = new Rfq_QuoteModel();
+        $quote = $quoteModel->Detail($request['inquiry_id']);
+        if (empty($quote)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '报价不存在!'
+            ]);
+        } elseif (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+            $this->jsonReturn([
+                'code' => -1,
+                'message' => '保险税率必须小于1且大于等于零!'
+            ]);
+        }
+        $inquiryModel->startTrans();
+        $inquiry_id = $request['inquiry_id'];
+        $result = $quoteModel->updateGeneralInfo($condition, $request);
+        if ($result['code'] !== 1) {
+            $inquiryModel->rollback();
+            $this->jsonReturn($result);
+        }
+        $res1 = $inquiryModel->submit($inquiry_id);
+        if ($res1['code'] != 1) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+        $flag = $quoteModel->where(['inquiry_id' => $inquiry_id])->save(['status' => 'BIZ_APPROVING']);
+        if ($flag === false) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+        $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
+        $flag = $quote_logi_fee_Model->submit($inquiry_id);
+        if ($flag === false) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+        $FinalQuoteModel = new Rfq_FinalQuoteModel();
+        $res2 = $FinalQuoteModel->submit($inquiry_id);
+        if ($res2 === false) {
+            $this->inquiryModel->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL'));
+            $this->jsonReturn();
+        }
+        $check_log_model = new Rfq_CheckLogModel();
+        $falg = $check_log_model->AddQuoteToSubmitLog($inquiry_id, $this->user);
+        if (isset($falg['code']) && $falg['code'] == 1) {
             $this->inquiryModel->commit();
             $this->setCode('1');
             $this->setMessage(L('SUCCESS'));

@@ -231,7 +231,14 @@ class InquiryModel extends PublicModel {
                 ['elt', date('Y-m-d H:i:s', $condition['end_time'] + 24 * 3600 - 1)]
             ];
         }
-
+        if (!empty($condition['submit_start_time']) && !empty($condition['submit_end_time'])) {   //报出日期
+            $check_model = new InquiryCheckLogModel();
+            $check_table = $check_model->getTableName();
+            $start_time = date('Y-m-d H:i:s', $condition['submit_start_time']);
+            $end_time = date('Y-m-d H:i:s', $condition['submit_end_time'] + 86399);
+            $where[] = 'a.`status` in(\'QUOTE_SENT\',\'INQUIRY_CONFIRM\',\'INQUIRY_CLOSED\') and a.id in (select inquiry_id from ' . $check_table
+                    . ' where out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
+        }
         if (!empty($condition['list_type'])) {
             $map = [];
             $role_nos = $condition['role_no'];
@@ -424,6 +431,15 @@ class InquiryModel extends PublicModel {
                 ['elt', date('Y-m-d H:i:s', $condition['end_time'] + 24 * 3600 - 1)]
             ];
         }
+        if (!empty($condition['submit_start_time']) && !empty($condition['submit_end_time'])) {   //报出日期
+            $check_model = new InquiryCheckLogModel();
+            $check_table = $check_model->getTableName();
+            $start_time = date('Y-m-d H:i:s', $condition['submit_start_time']);
+            $end_time = date('Y-m-d H:i:s', $condition['submit_end_time'] + 86399);
+            $where[] = '`status` in(\'QUOTE_SENT\',\'INQUIRY_CONFIRM\',\'INQUIRY_CLOSED\') and id in (select inquiry_id from ' . $check_table
+                    . ' where out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
+        }
+
 
         $this->_getRolesWhere($where, $condition, $role_nos, $user_id, $group_id);
         return $where;
@@ -713,6 +729,24 @@ class InquiryModel extends PublicModel {
     }
 
     /**
+     * @desc 获取列表
+     *
+     * @param array $condition
+     * @param string $field
+     * @return array
+     * @author liujf
+     * @time 2017-11-02
+     */
+    public function getExportList($condition = [], $role_nos = [], $user_id = null, $group_id = null) {
+
+        $where = $this->getViewWhere($condition, $role_nos, $user_id, $group_id);
+
+        return $this->where($where)
+                        ->order('updated_at DESC,created_at DESC')
+                        ->getField('id', true);
+    }
+
+    /**
      * 获取详情信息
      * @param Array $condition
      * @return Array
@@ -814,7 +848,7 @@ class InquiryModel extends PublicModel {
         try {
 
             $id = $this->where($where)->save($data);
-            if ($id) {
+            if ($id !== false) {
                 $results['code'] = 1;
                 $results['message'] = L('SUCCESS');
             } else {

@@ -58,29 +58,14 @@ class TemporarygoodsController extends PublicController {
      */
 
     private function _setUname(&$response) {
-        foreach ($response as $item) {
-            if ($item['checked_by']) {
-                $user_ids[] = $item['checked_by'];
-            }
-        }
-        if (!empty($user_ids)) {
-            $employee_model = new EmployeeModel();
-            $usernames = $employee_model->getUserNamesByUserids($user_ids);
-            foreach ($response as $key => $val) {
 
-                if ($val['checked_by'] && isset($usernames[$val['checked_by']])) {
-                    $val['checked_by_name'] = $usernames[$val['checked_by']];
-                } else {
-                    $val['checked_by_name'] = '';
-                }
+        $inquiry = new InquiryModel();
+        $employye = new EmployeeModel();
 
-                $response[$key] = $val;
-            }
-        } else {
-            foreach ($response as $key => $val) {
-                $val['checked_by_name'] = '';
-                $response[$key] = $val;
-            }
+        foreach ($response as $key=>$val) {
+            $check_org_id = $inquiry->where(['id' => $val['inquiry_id']])->getField('check_org_id');
+            $val['checked_by_name'] = $employye->getNameByid($check_org_id)['name'];
+            $response[$key] = $val;
         }
     }
 
@@ -96,13 +81,15 @@ class TemporarygoodsController extends PublicController {
         }
         if (!empty($inquiry_ids)) {
             $inquiry_model = new InquiryModel();
-            $inquirys = $inquiry_model->field('id')
-                    ->where(['id' => ['in', $inquiry_ids, 'deleted_flag' => 'N', 'quote_status' => ['in', ['QUOTED', 'COMPLETED']]]])
-                    ->select();
-            $inquiry_ids = array_values($inquirys);
+            $inquirys = $inquiry_model
+                    ->where([
+                        'id' => ['in', $inquiry_ids],
+                        'deleted_flag' => 'N',
+                        'quote_status' => ['in', ['QUOTED', 'COMPLETED']]
+                    ])
+                    ->getField('id', true);
             foreach ($response as $key => $val) {
-
-                if (!empty($val['inquiry_id']) && in_array($val['inquiry_id'], $inquiry_ids)) {
+                if (!empty($val['inquiry_id']) && in_array($val['inquiry_id'], $inquirys)) {
                     $val['quote_flag'] = 'Y';
                 } else {
                     $val['quote_flag'] = 'N';

@@ -494,10 +494,12 @@ class InquiryController extends PublicController {
             ];
             $res2 = $quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save($quoteData);
 
+
+
 // 更改市场报价单状态
             $res3 = $finalQuoteModel->updateFinal(['inquiry_id' => $condition['inquiry_id'], 'status' => 'BIZ_QUOTING', 'updated_by' => $this->user['id']]);
 
-            if ($res1['code'] == 1 && $res2 && $res3['code'] == 1) {
+            if ($res1['code'] == 1 && $res2 !== false && $res3['code'] == 1) {
                 $inquiryModel->commit();
                 $res = true;
             } else {
@@ -1513,7 +1515,7 @@ class InquiryController extends PublicController {
 
 //发送短信
         $inquiryModel = new InquiryModel();
-        $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no')->find();
+        $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no,org_id')->find();
 
         $employeeModel = new EmployeeModel();
         $receiverInfo = $employeeModel
@@ -1527,8 +1529,9 @@ class InquiryController extends PublicController {
             if ($data['out_node'] == 'BIZ_DISPATCHING' && !empty($inquiryInfo['org_id'])) {
 
                 $user = (new OrgMemberModel())->getSmsUserByOrgId($inquiryInfo['org_id']);
+
                 if (!empty($user)) {
-                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $user['name'], $data['in_node'], $data['out_node']);
+                    $this->sendSms($user['mobile'], $data['action'], $user['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
                 } else {
                     $this->sendSms($receiverInfo['mobile'], $data['action'], $receiverInfo['name'], $inquiryInfo['serial_no'], $this->user['name'], $data['in_node'], $data['out_node']);
                 }
@@ -1744,9 +1747,11 @@ class InquiryController extends PublicController {
             }
             $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
                             ->field('inquiry_id,contract_no')->select();
+
+
             $contract_nos = [];
             foreach ($inquiry_orders as $inquiry_order) {
-                $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['logi_quote_flag'];
+                $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['contract_no'];
             }
             foreach ($arr as $key => $val) {
                 if ($val['id'] && isset($contract_nos[$val['id']])) {

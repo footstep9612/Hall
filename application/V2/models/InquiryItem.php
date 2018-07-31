@@ -151,8 +151,12 @@ class InquiryItemModel extends PublicModel {
             $results['message'] = L('MISSING_PARAMETER');
             return $results;
         }
-        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
         $data = $this->create($condition);
+
+        if (empty($data['sku'])) {
+            $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
+        }
+        unset($data['id']);
         $data['created_at'] = $this->getTime();
 
         try {
@@ -237,8 +241,11 @@ class InquiryItemModel extends PublicModel {
             $condition['brand'] = $condition['inquiry_brand'];
         }
 
-        $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
+
         $data = $this->create($condition);
+        if (empty($data['sku'])) {
+            $data['sku'] = (new TemporaryGoodsModel)->getSku($condition);
+        }
         $data['status'] = !empty($condition['status']) ? $condition['status'] : 'VALID';
         $data['updated_at'] = $this->getTime();
 

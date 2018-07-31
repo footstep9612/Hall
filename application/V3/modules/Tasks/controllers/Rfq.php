@@ -26,15 +26,16 @@ class RfqController extends PublicController {
 
         $inquiry_model = new Rfq_InquiryModel();
         $list = $inquiry_model->getList($condition);
-        //  (new Common_MarketAreaCountryModel())->setAreaBn($list);
-        //  (new Common_MarketAreaModel())->setArea($list);
-        (new Common_CountryModel())->setCountry($list, $this->lang);
+        (new Common_MarketAreaCountryModel())->setAreaBn($list);
+        (new Common_MarketAreaModel())->setArea($list);
+        (new Common_CountryModel())->setCountrys($list, $this->lang, ['country_name' => 'country_bn', 'toCountry' => 'to_country', 'fromCountry' => 'from_country']);
+
         (new System_EmployeeModel())->setUserName($list, ['agent_name' => 'agent_id', 'quote_name' => 'quote_id',
             'now_agent_name' => 'now_agent_id', 'created_name' => 'created_by', 'obtain_name' => 'obtain_id', 'logi_agent_name' => 'logi_agent_id']);
 
         // (new Buyer_BuyerModel())->setBuyerNo($list);
         //(new Rfq_QuoteModel())->setLogiQuoteFlag($list);
-        // (new System_OrgModel())->setOrgName($list);
+        (new System_OrgModel())->setOrgName($list);
         //  (new Common_TransModeModel())->setTransModeName($list);
         //  (new Rfq_InquiryOrderModel())->setContractNo($list);
         if ($list) {

@@ -1450,7 +1450,7 @@ class SupplierInquiryModel extends PublicModel {
 
         if (empty($cur)) {
             return 1;
-        } elseif ($this->RateUSD[$cur]) {
+        } elseif (!empty($this->RateUSD[$cur])) {
 
             return $this->RateUSD[$cur];
         } else {
@@ -1481,7 +1481,7 @@ class SupplierInquiryModel extends PublicModel {
                             ->order('created_at DESC')->find();
             if (empty($exchangeRate)) {
                 $exchangeRate = $exchangeRateModel->field('rate')
-                                ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
+                                ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])
                                 ->order('created_at DESC')->find();
                 return 1 / $exchangeRate['rate'];
             }
