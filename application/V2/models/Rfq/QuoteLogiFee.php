@@ -173,7 +173,8 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('CNY', $cur);
+            $rate_model = new ExchangeRateModel();
+            return $rate_model->getRate($cur, 'CNY');
         }
     }
 
@@ -190,31 +191,8 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('USD', $cur);
-        }
-    }
-
-    /**
-     * @desc 获取币种兑换汇率
-     *
-     * @param string $holdCur 持有币种
-     * @param string $exchangeCur 兑换币种
-     * @return float
-     * @author liujf
-     * @time 2017-08-03
-     */
-    private function _getRate($holdCur, $exchangeCur = 'CNY') {
-
-        if (!empty($holdCur)) {
-            if ($holdCur == $exchangeCur)
-                return 1;
-
-            $exchangeRateModel = new ExchangeRateModel();
-            $exchangeRate = $exchangeRateModel->field('rate')->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])->order('created_at DESC')->find();
-
-            return $exchangeRate['rate'];
-        } else {
-            return false;
+            $rate_model = new ExchangeRateModel();
+            return $rate_model->getRate($cur, 'USD');
         }
     }
 
@@ -228,7 +206,7 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
      * @time 2017-09-20
      */
     private function _getOverlandInsuFee($totalExwPrice = 0, $overlandInsuRate = 0) {
-        // 美元兑人民币汇率
+// 美元兑人民币汇率
         $rate = $this->_getRateUSD('CNY');
 
         $tmpPrice = $totalExwPrice * $overlandInsuRate / 100;
@@ -258,7 +236,7 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
      * @time 2017-09-20
      */
     private function _getShippingInsuFee($totalExwPrice = 0, $shippingInsuRate = 0) {
-        // 美元兑人民币汇率
+// 美元兑人民币汇率
         $rate = $this->_getRateUSD('CNY');
 
         $tmpPrice = $totalExwPrice * 1.1 * $shippingInsuRate / 100;
@@ -276,6 +254,291 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
         }
 
         return ['USD' => $shippingInsuUSD, 'CNY' => $shippingInsuCNY];
+    }
+
+    /**
+     * @desc 获取详情
+     *
+     * @param array $condition
+     * @return array
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function getDetail($condition = []) {
+
+        $where = $this->getWhere($condition);
+
+        return $this->where($where)->find();
+    }
+
+    public function submit($inquiry_id) {
+
+
+        $where['inquiry_id'] = $inquiry_id;
+        $quoteModel = new Rfq_QuoteModel();
+        $quoteLogiCostModel = new QuoteLogiCostModel();
+
+
+        $quote = $quoteModel->where($where)->find();
+        $data = $this->where($where)->find();
+
+        $data['premium_rate'] = $quote['premium_rate'];
+        $data['trade_terms_bn'] = $quote['trade_terms_bn'];
+        $data['payment_period'] = $quote['payment_period'];
+        $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
+        $data['bank_interest'] = $quote['bank_interest'];
+        $data['total_exw_price'] = $quote['total_exw_price'];
+        $data['certification_fee'] = $quote['certification_fee'];
+        $data['certification_fee_cur'] = $quote['certification_fee_cur'];
+        $data['port_surcharge_cur'] = $data['inter_shipping_cur'] = 'USD';
+
+        //计算并保存港杂费和国际运费数据
+        if (!in_array($data['trade_terms_bn'], ['EXW', 'FCA', 'FAS'])) {
+            if (empty($data['port_surcharge_items'])) {
+                return false;
+            } else {
+
+
+                $data['port_surcharge'] = $data['inter_shipping'] = 0;
+                $data['port_surcharge_items'] = $quoteLogiCostModel
+                        ->getList(['inquiry_id' => $inquiry_id, 'type' => 'port_surcharge'], 'price,qty,cur_bn');
+                $data['inter_shipping_items'] = $quoteLogiCostModel
+                        ->getList(['inquiry_id' => $inquiry_id, 'type' => 'inter_shipping'], 'price,qty,cur_bn');
+                foreach ($data['port_surcharge_items'] as $portSurchargeItem) {
+
+                    $data['port_surcharge'] += round($portSurchargeItem['price'] * $portSurchargeItem['qty'] / $this->_getRateUSD($portSurchargeItem['cur_bn']), 8);
+                }
+                if ($data['trade_terms_bn'] != 'FOB') {
+                    if (empty($data['inter_shipping_items'])) {
+                        return false;
+                    } else {
+                        foreach ($data['inter_shipping_items'] as $interShippingItem) {
+                            $data['inter_shipping'] += round($interShippingItem['price'] * $interShippingItem['qty'] / $this->_getRateUSD($interShippingItem['cur_bn']), 8);
+                        }
+                    }
+                }
+            }
+        }
+
+        $data = $this->calcuTotalLogiFee($data);
+// 去掉暂无的数据
+        $data['logi_from_port'] = $data['logi_from_port'] == L('NOTHING') ? null : $data['logi_from_port'];
+        $data['logi_to_port'] = $data['logi_to_port'] == L('NOTHING') ? null : $data['logi_to_port'];
+        $data['logi_trans_mode_bn'] = $data['logi_trans_mode_bn'] == L('NOTHING') ? null : $data['logi_trans_mode_bn'];
+        $data['logi_box_type_bn'] = $data['logi_box_type_bn'] == L('NOTHING') ? null : $data['logi_box_type_bn'];
+
+        $data['updated_by'] = defined(UID) ? UID : 0;
+        $data['updated_at'] = date('Y-m-d H:i:s');
+
+
+        $quoteData['quote_remarks'] = $quote['quote_remarks'];
+        $quoteData['total_logi_fee'] = $data['total_logi_fee'];
+        $quoteData['total_quote_price'] = $data['total_quote_price'];
+        $quoteData['total_bank_fee'] = $data['total_bank_fee'];
+        $quoteData['total_insu_fee'] = $data['total_insu_fee'];
+        $quoteData['updated_by'] = defined(UID) ? UID : 0;
+        $quoteData['updated_at'] = date('Y-m-d H:i:s');
+        $res2 = $quoteModel->where($where)->save($quoteData);
+
+        unset($quoteModel, $quoteLogiCostModel);
+        $res3 = $this->_updateQuoteUnitPrice($inquiry_id, $data);
+
+
+
+        if ($res2 !== false && $res3) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @desc 计算物流合计
+     *
+     * @param array $condition
+     * --------------------------------------------------------------
+     *     trade_terms_bn 贸易术语简称
+     *     total_exw_price 报出EXW合计
+     *     premium_rate 保险税率
+     *     payment_period 回款周期(天)
+     *     bank_interest 银行利息
+     *     fund_occupation_rate 资金占用比例
+     *     certification_fee 商品检测费（如第三方检验费、认证费等）
+     *     certification_fee_cur 商品检测费（如第三方检验费、认证费等）币种
+     *     inspection_fee 商检费
+     *     inspection_fee_cur 商检费币种
+     *     land_freight 陆运费
+     *     land_freight_cur 陆运费币种
+     *     port_surcharge 港杂费
+     *     port_surcharge_cur 港杂费币种
+     *     inter_shipping 国际运费
+     *     inter_shipping_cur 国际运费币种
+     *     dest_delivery_fee 目的地配送费
+     *     dest_delivery_fee_cur 目的地配送费币种
+     *     dest_clearance_fee 目的地清关费
+     *     dest_clearance_fee_cur 目的地清关费币种
+     *     overland_insu_rate 陆运险率
+     *     shipping_insu_rate 国际运输险率
+     *     dest_tariff_rate 目的地关税税率
+     *     dest_va_tax_rate 目的地增值税率
+     * --------------------------------------------------------------
+     * @return mixed
+     * @author liujf
+     * @time 2017-08-18
+     */
+    public function calcuTotalLogiFee($condition = []) {
+        if (empty($condition['trade_terms_bn'])) {
+            return false;
+        } else {
+            $trade = $condition['trade_terms_bn'];
+        }
+
+        $data = $condition;
+
+        $data['land_freight'] = 0;
+        $data['port_surcharge'] = 0;
+        $data['inter_shipping'] = 0;
+        $data['dest_delivery_fee'] = 0;
+        $data['dest_clearance_fee'] = 0;
+        $data['overland_insu_rate'] = 0;
+        $data['shipping_insu_rate'] = 0;
+        $data['dest_tariff_rate'] = 0;
+        $data['dest_va_tax_rate'] = 0;
+
+        $data['certification_fee'] = isset($condition['certification_fee']) && $condition['certification_fee'] > 0 ? $condition['certification_fee'] : 0;
+        $data['inspection_fee'] = isset($condition['inspection_fee']) && $condition['inspection_fee'] > 0 ? $condition['inspection_fee'] : 0;
+
+        switch (true) {
+            case $trade == 'EXW' :
+                break;
+            case $trade == 'FCA' || $trade == 'FAS' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                break;
+            case $trade == 'FOB' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+                break;
+            case $trade == 'CPT' || $trade == 'CFR' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+                break;
+            case $trade == 'CIF' || $trade == 'CIP' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
+                break;
+            case $trade == 'DAP' || $trade == 'DAT' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
+                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
+                break;
+            case $trade == 'DDP' || $trade == '快递' :
+                $data['land_freight'] = $condition['land_freight'] > 0 ? $condition['land_freight'] : 0;
+                $data['overland_insu_rate'] = $condition['overland_insu_rate'] > 0 ? $condition['overland_insu_rate'] : 0;
+                $data['port_surcharge'] = $condition['port_surcharge'] > 0 ? $condition['port_surcharge'] : 0;
+                $data['inter_shipping'] = $condition['inter_shipping'] > 0 ? $condition['inter_shipping'] : 0;
+                $data['shipping_insu_rate'] = $condition['shipping_insu_rate'] > 0 ? $condition['shipping_insu_rate'] : 0;
+                $data['dest_delivery_fee'] = $condition['dest_delivery_fee'] > 0 ? $condition['dest_delivery_fee'] : 0;
+                $data['dest_clearance_fee'] = $condition['dest_clearance_fee'] > 0 ? $condition['dest_clearance_fee'] : 0;
+                $data['dest_tariff_rate'] = $condition['dest_tariff_rate'] > 0 ? $condition['dest_tariff_rate'] : 0;
+                $data['dest_va_tax_rate'] = $condition['dest_va_tax_rate'] > 0 ? $condition['dest_va_tax_rate'] : 0;
+        }
+
+        $certificationFeeUSD = round($data['certification_fee'] / $this->_getRateUSD($data['certification_fee_cur']), 8);
+        $inspectionFeeUSD = round($data['inspection_fee'] / $this->_getRateUSD($data['inspection_fee_cur']), 8);
+        $landFreightUSD = round($data['land_freight'] / $this->_getRateUSD($data['land_freight_cur']), 8);
+        $overlandInsuFee = $this->_getOverlandInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
+        $overlandInsuUSD = $overlandInsuFee['USD'];
+        $portSurchargeUSD = round($data['port_surcharge'] / $this->_getRateUSD($data['port_surcharge_cur']), 8);
+        $interShippingUSD = round($data['inter_shipping'] / $this->_getRateUSD($data['inter_shipping_cur']), 8);
+        $destDeliveryFeeUSD = round($data['dest_delivery_fee'] / $this->_getRateUSD($data['dest_delivery_fee_cur']), 8);
+        $destClearanceFeeUSD = round($data['dest_clearance_fee'] / $this->_getRateUSD($data['dest_clearance_fee_cur']), 8);
+        $sumUSD = $data['total_exw_price'] + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $inspectionFeeUSD + $interShippingUSD;
+        $destTariffUSD = round($sumUSD * $data['dest_tariff_rate'] / 100, 8);
+        $destVaTaxUSD = round($sumUSD * (1 + $data['dest_tariff_rate'] / 100) * $data['dest_va_tax_rate'] / 100, 8);
+
+        $tmpRate1 = 1 - $data['premium_rate'] - round($data['payment_period'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360, 8);
+        $tmpRate2 = $tmpRate1 - 1.1 * $data['shipping_insu_rate'] / 100;
+
+        switch (true) {
+            case $trade == 'EXW' :
+                $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD) / $tmpRate1, 8) : 0;
+                break;
+            case $trade == 'FCA' || $trade == 'FAS' :
+                $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD) / $tmpRate1, 8) : 0;
+                break;
+            case $trade == 'FOB' :
+                $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD) / $tmpRate1, 8) : 0;
+                break;
+            case $trade == 'CPT' || $trade == 'CFR' :
+                $totalQuotePrice = $tmpRate1 > 0 ? round(($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) / $tmpRate1, 8) : 0;
+                break;
+            case $trade == 'CIF' || $trade == 'CIP' :
+                $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD;
+                $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2) : 0;
+                break;
+            case $trade == 'DAP' || $trade == 'DAT' :
+                $tmpCaFee = $data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $destDeliveryFeeUSD;
+                $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
+                break;
+            case $trade == 'DDP' || $trade == '快递' :
+                $tmpCaFee = ($data['total_exw_price'] + $certificationFeeUSD + $inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD) * (1 + $data['dest_tariff_rate'] / 100) * (1 + $data['dest_va_tax_rate'] / 100) + $destDeliveryFeeUSD + $destClearanceFeeUSD;
+                $totalQuotePrice = $tmpRate2 > 0 ? $this->_getTotalQuotePrice($tmpCaFee, $data['shipping_insu_rate'], $tmpRate2, $trade, $tmpRate1) : 0;
+        }
+
+        $shippingInsuFee = $this->_getShippingInsuFee($data['total_exw_price'], $data['overland_insu_rate']);
+        $shippingInsuUSD = $shippingInsuFee['USD'];
+        $totalBankFeeUSD = round($totalQuotePrice * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_period'] / 360, 8);
+        $totalInsuFeeUSD = round($totalQuotePrice * $data['premium_rate'], 8);
+
+        $data['overland_insu'] = $overlandInsuUSD;
+        $data['shipping_insu'] = $shippingInsuUSD;
+        $data['dest_tariff_fee'] = $destTariffUSD;
+        $data['dest_va_tax_fee'] = $destVaTaxUSD;
+
+        // 物流费用合计
+        $data['total_logi_fee'] = round($inspectionFeeUSD + $landFreightUSD + $overlandInsuUSD + $portSurchargeUSD + $interShippingUSD + $shippingInsuUSD + $destDeliveryFeeUSD + $destClearanceFeeUSD + $destTariffUSD + $destVaTaxUSD, 8);
+
+        $data['shipping_charge_cny'] = round(($data['inspection_fee_cur'] == 'CNY' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'CNY' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'CNY' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'CNY' ? $data['inter_shipping'] : 0) + ($data['dest_delivery_fee_cur'] == 'CNY' ? $data['dest_delivery_fee'] : 0), 8);
+        $data['shipping_charge_ncny'] = round(($data['inspection_fee_cur'] == 'USD' ? $data['inspection_fee'] : 0) + ($data['land_freight_cur'] == 'USD' ? $data['land_freight'] : 0) + ($data['port_surcharge_cur'] == 'USD' ? $data['port_surcharge'] : 0) + ($data['inter_shipping_cur'] == 'USD' ? $data['inter_shipping'] : 0) + ($data['dest_delivery_fee_cur'] == 'USD' ? $data['dest_delivery_fee'] : 0), 8);
+
+        $data['total_quote_price'] = $totalQuotePrice;
+        $data['total_bank_fee'] = $totalBankFeeUSD;
+        $data['total_insu_fee'] = $totalInsuFeeUSD;
+
+        return $data;
+    }
+
+    /**
+     * @desc 更新商务报出贸易单价
+     *
+     * @param int $inquiryId 询单ID
+     * @param array $data
+     * @return bool
+     * @author liujf
+     * @time 2018-05-29
+     */
+    private function _updateQuoteUnitPrice($inquiryId, $data) {
+        $quoteItemModel = new Rfq_QuoteItemModel();
+
+        $quoteItemList = $quoteItemModel->where(['inquiry_id' => $inquiryId])->select();
+        foreach ($quoteItemList as $quoteItem) {
+            $quoteUnitPrice = $data['total_exw_price'] > 0 ? round($data['total_quote_price'] * $quoteItem['exw_unit_price'] / $data['total_exw_price'], 8) : 0;
+            $res = $quoteItemModel->where(['id' => $quoteItem['id']])->save(['quote_unit_price' => $quoteUnitPrice, 'updated_by' => $this->user['id'], 'updated_at' => $this->time]);
+            if ($res === false) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

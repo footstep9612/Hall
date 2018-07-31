@@ -233,6 +233,12 @@ class QuoteItemModel extends PublicModel {
         foreach ($data as $key => $value) {
             $row++;
 
+            if ($is_erui == 'N' && $value['id']) {
+
+                $inquiry_id = $this->where(['id' => $value['id'], 'deleted_flag' => 'N'])->getField('inquiry_id');
+                $org_id = (new InquiryModel())->where(['id' => $inquiry_id, 'deleted_flag' => 'N'])->getField('org_id');
+                $is_erui = (new OrgModel())->getIsEruiById($org_id);
+            }
 
             // 校验必填字段，如果有未填项且主键id为空就跳过，否则删除该记录
             if ($value['name'] == '' || $value['name_zh'] == '' || $value['qty'] == '' || $value['unit'] == '' || $value['brand'] == '' || $value['purchase_unit_price'] == '' || $value['purchase_price_cur_bn'] == '' || $value['gross_weight_kg'] == '' || $value['package_mode'] == '' || $value['package_size'] == '' || $value['stock_loc'] == '' || $value['goods_source'] == '' || $value['delivery_days'] == '' || $value['period_of_validity'] == '' || (empty($value['category']) && $is_erui == 'N')) {
