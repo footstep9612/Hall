@@ -339,7 +339,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function Inquiryexport($condition) {
+    public function Inquiryexport($where) {
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName(); //国家表
         $market_area_country_model = new MarketAreaCountryModel();
@@ -355,11 +355,7 @@ class SupplierInquiryModel extends PublicModel {
         $quote_model = new QuoteModel();
         $quote_table = $quote_model->getTableName(); //最终报价单明细
 
-        /*         * **报价单** */
 
-        /*         * **报价单** */
-        $final_quote_model = new FinalQuoteModel();
-        $final_quote_table = $final_quote_model->getTableName(); //最终报价单明细
 
         /*         * **报价单** */
         $field = 'i.serial_no,qt.sku,';
@@ -390,8 +386,8 @@ class SupplierInquiryModel extends PublicModel {
         /*         * *************-----------询单项明细结束------------------- */
 
         /*         * *************-----------询单项明细开始------------------- */
-        $inquiry_check_log_model = new InquiryCheckLogModel();
-        $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
+
+        $inquiry_check_log_table = ( new InquiryCheckLogModel())->getTableName(); //询单项明细表
         $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
 
         $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
@@ -446,34 +442,17 @@ class SupplierInquiryModel extends PublicModel {
                 . 'WHEN \'COMPLETED\' THEN \'已完成\' '
                 . ' END) as iquote_status,i.quote_notes';
         /*         * ****报价单明细** */
-        $quote_item_model = new QuoteItemModel();
-        $quote_item_table = $quote_item_model->getTableName(); //报价单明细表
+
+        $quote_item_table = (new QuoteItemModel())->getTableName(); //报价单明细表
         /*         * ****报价单明细** */
 
         /*         * **最终报价单明细** */
-        $final_quote_item_model = new FinalQuoteItemModel();
-        $final_quote_item_table = $final_quote_item_model->getTableName(); //最终报价单明细
+
+        $final_quote_item_table = (new FinalQuoteItemModel())->getTableName(); //最终报价单明细
 
         /*         * **最终报价单明细** */
 
-        $where = ['i.deleted_flag' => 'N',
-            'i.status' => ['neq', 'DRAFT'],
-        ];
-        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
-        } elseif (!empty($condition['created_at_start'])) {
 
-            $created_at_start = trim($condition['created_at_start']);
-            $where['i.created_at'] = ['egt', $created_at_start];
-        } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['elt', $created_at_end];
-        }
-        if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
-        }
         $inquiry_model = new InquiryModel();
 
         $list = $inquiry_model->alias('i')
