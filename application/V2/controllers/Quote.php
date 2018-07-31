@@ -389,26 +389,27 @@ class QuoteController extends PublicController {
 
         $request = $this->validateRequests('inquiry_id');
 
-        $request = $this->quoteModel->where(['inquiry_id' => $request['inquiry_id'], 'deleted_flag' => 'N'])->find();
-        if (empty($request)) {
+        $condition = ['inquiry_id' => $request['inquiry_id']];
+        unset($request['total_bank_fee']);
+        //这个操作设计到计算
+
+        $quoteModel = new Rfq_QuoteModel();
+        $quote = $quoteModel->Info($request['inquiry_id']);
+        if (empty($quote)) {
             $this->jsonReturn([
                 'code' => -1,
                 'message' => '报价不存在!'
             ]);
-        }
-        if (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
+        } elseif (isset($request['premium_rate']) && ($request['premium_rate'] >= 1 || $request['premium_rate'] < 0)) {
             $this->jsonReturn([
                 'code' => -1,
                 'message' => '保险税率必须小于1且大于等于零!'
             ]);
         }
+        $result = $quoteModel->updateGeneralInfo($condition, $request);
 
 
 
-        $condition = ['inquiry_id' => $request['inquiry_id']];
-        unset($request['total_bank_fee']);
-        //这个操作设计到计算
-        $result = $this->quoteModel->updateGeneralInfo($condition, $request);
         if ($result['code'] !== 1) {
             $this->jsonReturn($result);
         }
@@ -435,7 +436,7 @@ class QuoteController extends PublicController {
         $this->quoteModel->where(['inquiry_id' => $request['inquiry_id']])->save(['status' => 'BIZ_APPROVING']);
 
         $finalQuoteModel = new FinalQuoteModel();
-        $quoteModel = new QuoteModel();
+
         $finalQuoteItemModel = new FinalQuoteItemModel();
         //验证数据
         $quoteInfo = $quoteModel->where(['inquiry_id' => $request['inquiry_id']])
