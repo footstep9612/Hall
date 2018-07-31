@@ -34,17 +34,11 @@ class HomecountrynavController extends PublicController {
 
         $list = $home_country_nav_model->getList($condition);
 
-        if ($list) {
-            $this->_setCountry($list);
-            $this->jsonReturn($list);
-        } elseif ($list === null) {
-            $this->setCode(MSG::ERROR_EMPTY);
-            $this->setMessage('空数据');
-            $this->jsonReturn(null);
-        } else {
-            $this->setCode(MSG::MSG_FAILED);
-            $this->setMessage('系统错误!');
-            $this->jsonReturn();
+        if ($list===false) {
+            jsonReturn('',MSG::MSG_FAILED);
+        } else{
+            $this->_setCountry($list['data']);
+            jsonReturn($list);
         }
     }
 
@@ -125,9 +119,15 @@ class HomecountrynavController extends PublicController {
      */
     public function CreateAction() {
         $condition = $this->getPut();
-        if (empty($condition['country_bn'])) {
+        if (empty($condition['group'])) {
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('请选择应用!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
             $this->jsonReturn();
         }
 
@@ -136,16 +136,13 @@ class HomecountrynavController extends PublicController {
             $this->setMessage('导航名称不能为空!');
             $this->jsonReturn();
         }
-        if (empty($condition['lang'])) {
-            $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择语言!');
-            $this->jsonReturn();
-        }
+
         if (empty($condition['nav_url'])) {
             $this->setCode(MSG::MSG_EXIST);
             $this->setMessage('导航名称链接不能为空!');
             $this->jsonReturn();
         }
+
         $home_country_nav_model = new HomeCountryNavModel();
 
         if ($home_country_nav_model->getExit($condition)) {
@@ -184,9 +181,9 @@ class HomecountrynavController extends PublicController {
             $this->jsonReturn();
         }
         $condition = $this->getPut();
-        if (empty($condition['country_bn'])) {
+        if (empty($condition['group'])) {
             $this->setCode(MSG::MSG_EXIST);
-            $this->setMessage('请选择国家!');
+            $this->setMessage('请选择应用!');
             $this->jsonReturn();
         }
 
@@ -217,6 +214,66 @@ class HomecountrynavController extends PublicController {
 
 
         $list = $home_country_nav_model->updateData($condition, $id);
+        if ($list) {
+            $this->jsonReturn($list);
+        } elseif ($list === false) {
+            $this->setCode(MSG::ERROR_EMPTY);
+            $this->setMessage('更新失败!');
+            $this->jsonReturn(null);
+        } else {
+            $this->setCode(MSG::MSG_FAILED);
+            $this->setMessage('系统错误!');
+            $this->jsonReturn();
+        }
+    }
+
+    public function editAction() {
+        $condition = $this->getPut();
+        if (empty($condition['group'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择应用!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['nav_name'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('导航名称不能为空!');
+            $this->jsonReturn();
+        }
+
+        if (empty($condition['nav_url'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('导航名称链接不能为空!');
+            $this->jsonReturn();
+        }
+        if (empty($condition['lang'])) {
+            $this->setCode(MSG::MSG_EXIST);
+            $this->setMessage('请选择语言!');
+            $this->jsonReturn();
+        }
+        $home_country_nav_model = new HomeCountryNavModel();
+        if(isset($condition['id'])){
+            $id = $this->getPut('id');
+            if (empty($id)) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('ID不能为空!');
+                $this->jsonReturn();
+            }
+            if ($home_country_nav_model->getExit($condition, $id)) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('您选择国家已经存在,请您重新选择!');
+                $this->jsonReturn();
+            }
+            $list = $home_country_nav_model->updateData($condition, $id);
+        }else{
+            if ($home_country_nav_model->getExit($condition)) {
+                $this->setCode(MSG::MSG_EXIST);
+                $this->setMessage('您选择国家已经存在,请您重新选择!');
+                $this->jsonReturn();
+            }
+            $list = $home_country_nav_model->createData($condition);
+        }
+
         if ($list) {
             $this->jsonReturn($list);
         } elseif ($list === false) {

@@ -420,9 +420,9 @@ class SupplierInquiryModel extends PublicModel {
 
 
         $field .= ' qt.brand,qt.quote_unit,qt.purchase_unit_price,qt.purchase_unit_price*qt.quote_qty as total,'; //total厂家总价（元）
-        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
+        $field .= ' fqt.quote_unit_price,fqt.total_quote_price,fqt.total_exw_price,fqt.exw_unit_price,fqt.exw_cur_bn,(fqt.total_quote_price+fqt.total_logi_fee+fqt.total_bank_fee+fqt.total_insu_fee) as total_quoted_price,'; //报价总金额（美金）
         $field .= 'qt.gross_weight_kg,(qt.gross_weight_kg*qt.quote_qty) as total_kg,qt.package_size,qt.package_mode,qt.quote_qty,';
-        $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,';
+        $field .= 'qt.delivery_days,qt.period_of_validity,i.trade_terms_bn,qt.total_exw_price as qt_total_exw_price,qt.exw_unit_price as qt_exw_unit_price,qt.exw_cur_bn as qt_exw_cur_bn,';
         $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
                 . 'WHEN \'CLARIFY\' THEN \'项目澄清\' '
                 . 'WHEN \'REJECT_MARKET\' THEN \'驳回市场\' '
@@ -640,91 +640,85 @@ class SupplierInquiryModel extends PublicModel {
      */
 
     private function _getKeys() {
-        return [
-            'A' => ['sequence_no', '序号'],
-            'B' => ['serial_no', '报价单号'],
-            'C' => ['country_name', '询价单位'],
-            'D' => ['market_area_name', '所属地区部'],
-            'E' => ['org_name', '事业部'],
-            'F' => ['ie_erui', '是否走易瑞'],
-            'G' => ['buyer_code', '客户名称或代码'],
-            'H' => ['proxy_flag', '是否代理商获取'],
-            'I' => ['proxy_no', '代理商代码'],
-            'J' => ['project_basic_info', '客户及项目背景描述'],
-            'K' => ['name_zh', '品名中文'],
-            'L' => ['name', '品名外文'],
-            'M' => ['product_name', '产品名称'],
-            'N' => ['supplier_name', '供应商'],
-            'O' => ['model', '规格'],
-            'P' => [null, '图号'],
-            'Q' => ['qty', '数量'],
-            'R' => ['unit', '单位'],
-            'S' => ['buyer_oil', '是否油气客户'],
-            'T' => ['oil_flag', '油气/非油气'],
-            'U' => [null, '平台产品分类'],
-            'V' => ['category', '产品分类'],
-            'W' => ['keruiflag', '是否科瑞设备用配件'],
-            'X' => ['bidflag', '是否投标'],
-            'Y' => ['inflow_time', '转入日期'],
-            'Z' => ['quote_deadline', '需用日期'],
-            'AA' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
-            'AB' => ['max_inflow_time', '澄清完成日期'],
-            'AC' => ['bq_time', '事业部报出日期'],
-            'AD' => ['ld_time', '物流接收日期'],
-            'AE' => ['la_time', '物流报出日期'],
-            'AF' => ['qs_time', '报出日期'],
-            'AG' => ['cc_dispatching_clarification_time', '易瑞分单员发起的澄清用时（小时）'], //易瑞分单员发起的澄清用时（小时）
-            'AH' => ['biz_dispatching_clarification_time', '事业部分单员发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
-            'AI' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AJ' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AK' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AL' => ['logi_approving_clarification_time', '物流审核发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
-            'AM' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AN' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
-            'AO' => ['clarification_time', '项目澄清时间(小时)'],
-            //'AO' => ['quoted_time', '最终报价用时(小时)'],
-            'AP' => ['real_quoted_time', '真实报价用时(去处澄清时间)(小时)'],
-            'AQ' => ['whole_quoted_time', '整体报价时间(小时)'],
-            'AR' => ['cc_quoted_time', '易瑞商务技术报价用时(小时)'],
-            'AS' => ['biz_quoted_time', '事业部商务技术报价用时(小时)'],
-            'AT' => ['logi_quoted_time', '物流报价时间(小时)'],
-            'AU' => ['obtain_org_name', '获单主体单位)'],
-            'AV' => ['obtain_name', '获取人)'],
-            'AW' => ['created_by_name', '询单创建人'],
-            'AX' => ['agent_name', '市场负责人'],
-            'AY' => ['biz_despatching', '事业部分单人'],
-            'AZ' => ['quote_name', '商务技术部报价人'],
-            'BA' => ['check_org_name', '事业部负责人'],
-            'BB' => ['brand', '产品品牌'],
-            'BC' => ['supplier_name', '报价单位'],
-            'BD' => [null, '供应商报价人'],
-            'BE' => [null, '报价人联系方式'],
-            'BF' => ['purchase_unit_price', '厂家单价（元）'],
-            'BG' => ['purchase_price_cur_bn', '币种'],
-            'BH' => ['total', '厂家总价（元）'],
-            'BI' => ['purchase_price_cur_bn', '币种'],
-            'BJ' => ['gross_profit_rate', '利润率'],
-            'BK' => ['quote_unit_price', '报价单价（元）'],
-            'BL' => ['quote_price_cur_bn', '币种'],
-            'BM' => ['total_quote_price', '报价总价（元）'],
-            'BN' => ['total_quote_price_cur_bn', '币种'],
-            'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'BP' => ['gross_weight_kg', '单重(kg)'],
-            'BQ' => ['total_kg', '总重(kg)'],
-            'BR' => ['package_size', '包装体积(mm)'],
-            'BS' => ['package_mode', '包装方式'],
-            'BT' => ['delivery_days', '交货期（天）'],
-            'BU' => ['period_of_validity', '有效期（天）'],
-            'BV' => ['trade_terms_bn', '贸易术语'],
-            'BW' => ['istatus', '最新进度及解决方案'],
-            'BX' => ['iquote_status', '报价后状态'],
-            'BY' => ['quote_notes', '备注'],
-            'BZ' => ['reason_for_no_quote', '未报价分析'],
-//            'BA' => [null, '报价超48小时原因类型'],
-//            'BB' => [null, '报价超48小时分析'],
-//            'BC' => [null, '成单或失单'],
-//            'BD' => [null, '失单原因类型'],
-//            'BE' => [null, '失单原因分析'],
+        return ['A' => ['sequence_no', '序号',],
+            'B' => ['serial_no', '报价单号',],
+            'C' => ['country_name', '询价单位',],
+            'D' => ['market_area_name', '所属地区部',],
+            'E' => ['org_name', '事业部',],
+            'F' => ['ie_erui', '是否走易瑞',],
+            'G' => ['buyer_code', '客户名称或代码',],
+            'H' => ['proxy_flag', '是否代理商获取',],
+            'I' => ['proxy_no', '代理商代码',],
+            'J' => ['project_basic_info', '客户及项目背景描述',],
+            'K' => ['name_zh', '品名中文',],
+            'L' => ['name', '品名外文',],
+            'M' => ['product_name', '产品名称',],
+            'N' => ['supplier_name', '供应商',],
+            'O' => ['model', '规格',],
+            'P' => [NULL, '图号',],
+            'Q' => ['qty', '数量',],
+            'R' => ['unit', '单位',],
+            'S' => ['buyer_oil', '是否油气客户',],
+            'T' => ['oil_flag', '油气/非油气',],
+            'U' => [NULL, '平台产品分类',],
+            'V' => ['category', '产品分类',],
+            'W' => ['keruiflag', '是否科瑞设备用配件',],
+            'X' => ['bidflag', '是否投标',],
+            'Y' => ['created_at', '新建询单日期',],
+            'Z' => ['inflow_time', '转入日期',],
+            'AA' => ['quote_deadline', '需用日期',],
+            'AB' => ['max_inflow_time_out', '最后一次流入事业部分单员时间',],
+            'AC' => ['max_inflow_time', '澄清完成日期',],
+            'AD' => ['bq_time', '事业部报出日期',],
+            'AE' => ['ld_time', '物流接收日期',],
+            'AF' => ['la_time', '物流报出日期',],
+            'AG' => ['qs_time', '报出日期',],
+            'AH' => ['cc_dispatching_clarification_time', '易瑞分单员发起的澄清用时（小时）',],
+            'AI' => ['biz_dispatching_clarification_time', '事业部分单员发起的澄清用时（小时）',],
+            'AJ' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）',],
+            'AK' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）',],
+            'AL' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）',],
+            'AM' => ['logi_approving_clarification_time', '物流审核发起的澄清用时（小时）',],
+            'AN' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）',],
+            'AO' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）',],
+            'AP' => ['clarification_time', '项目澄清时间(小时]',],
+            'AQ' => ['real_quoted_time', '真实报价用时(去处澄清时间](小时]',],
+            'AR' => ['whole_quoted_time', '整体报价时间(小时]',],
+            'AS' => ['cc_quoted_time', '易瑞商务技术报价用时(小时]',],
+            'AT' => ['biz_quoted_time', '事业部商务技术报价用时(小时]',],
+            'AU' => ['logi_quoted_time', '物流报价时间(小时]',],
+            'AV' => ['obtain_org_name', '获单主体单位]',],
+            'AW' => ['obtain_name', '获取人]',],
+            'AX' => ['created_by_name', '询单创建人',],
+            'AY' => ['agent_name', '市场负责人',],
+            'AZ' => ['biz_despatching', '事业部分单人',],
+            'BA' => ['quote_name', '商务技术部报价人',],
+            'BB' => ['check_org_name', '事业部负责人',],
+            'BC' => ['brand', '产品品牌',],
+            'BD' => ['supplier_name', '报价单位',],
+            'BE' => [NULL, '供应商报价人',],
+            'BF' => [NULL, '报价人联系方式',],
+            'BG' => ['purchase_unit_price', '厂家单价',],
+            'BH' => ['purchase_price_cur_bn', '币种',],
+            'BI' => ['total', '厂家总价',],
+            'BJ' => ['purchase_price_cur_bn', '币种',],
+            'BK' => ['gross_profit_rate', '利润率',],
+            'BL' => ['quote_unit_price', '报价单价',],
+            'BM' => ['quote_price_cur_bn', '币种',],
+            'BN' => ['total_exw_price', '商务报出EXW价格合计',],
+            'BO' => ['total_quote_price_cur_bn', '币种',],
+            'BP' => ['total_quoted_price_usd', '商务技术报价',],
+            'BQ' => ['gross_weight_kg', '单重(kg]',],
+            'BR' => ['total_kg', '总重(kg]',],
+            'BS' => ['package_size', '包装体积(mm]',],
+            'BT' => ['package_mode', '包装方式',],
+            'BU' => ['delivery_days', '交货期（天）',],
+            'BV' => ['period_of_validity', '有效期（天）',],
+            'BW' => ['trade_terms_bn', '贸易术语',],
+            'BX' => ['istatus', '最新进度及解决方案',],
+            'BY' => ['iquote_status', '报价后状态',],
+            'BZ' => ['quote_notes', '备注',],
+            'CA' => ['reason_for_no_quote', '未报价分析',],
         ];
     }
 
@@ -859,9 +853,9 @@ class SupplierInquiryModel extends PublicModel {
         }
         $objSheet->freezePaneByColumnAndRow(2, 2);
         $styleArray = ['borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THICK, 'style' => PHPExcel_Style_Border::BORDER_THIN, 'color' => array('argb' => '00000000'),],],];
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->applyFromArray($styleArray);
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
-        $objSheet->getStyle('A1:BZ' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
+        $objSheet->getStyle('A1:CA' . ($j + 2))->applyFromArray($styleArray);
+        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setShrinkToFit(true); //字体变小以适应宽
+        $objSheet->getStyle('A1:CA' . ($j + 2))->getAlignment()->setWrapText(true); //自动换行
         $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, "Excel5");
         $file = $dirName . DS . $name . date('YmdHi') . '.xls';
         $objWriter->save($file);
@@ -1358,10 +1352,10 @@ class SupplierInquiryModel extends PublicModel {
             $where = ['deleted_flag' => 'N', 'inquiry_id' => ['in', $inquiry_ids]];
             $quote_model = new QuoteModel();
             $final_quote_model = new FinalQuoteModel();
-            $quotes = $quote_model->field('inquiry_id,total_logi_fee,total_quote_price,total_weight,package_volumn,package_mode,delivery_period,period_of_validity')
+            $quotes = $quote_model->field('inquiry_id,total_logi_fee,total_quote_price,total_weight,total_exw_price,package_volumn,package_mode,delivery_period,period_of_validity')
                     ->where($where)
                     ->select();
-            $final_quotes = $final_quote_model->field('inquiry_id,total_logi_fee,total_quote_price')
+            $final_quotes = $final_quote_model->field('inquiry_id,total_logi_fee,total_quote_price,total_exw_price')
                     ->where($where)
                     ->select();
             $quoteprices = [];
@@ -1408,20 +1402,26 @@ class SupplierInquiryModel extends PublicModel {
                     $tmpList[$serialNo]['total_quoted_price_usd'] = '';
                 } else {
                     if (isset($final_quoteprices[$serialNo]['total_quote_price'])) {
-                        $tmpList[$serialNo]['total_quote_price'] = $final_quoteprices[$serialNo]['total_quote_price'];
-                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                         $tmpList[$serialNo]['total_quoted_price_usd'] = $final_quoteprices[$serialNo]['total_quote_price'];
                         $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     } elseif (isset($quoteprices[$serialNo]['total_quote_price'])) {
-                        $tmpList[$serialNo]['total_quote_price'] = $quoteprices[$serialNo]['total_quote_price'];
-                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+
                         $tmpList[$serialNo]['total_quoted_price_usd'] = $quoteprices[$serialNo]['total_quote_price'];
                         $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
                     } else {
-                        $tmpList[$serialNo]['total_quote_price'] = '';
-                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+
                         $tmpList[$serialNo]['total_quoted_price_usd'] = '';
                         $tmpList[$serialNo]['total_quote_price_cur_bn'] = 'USD';
+                    }
+                    if (isset($final_quoteprices[$serialNo]['total_exw_price'])) {
+                        $tmpList[$serialNo]['total_exw_price'] = $final_quoteprices[$serialNo]['total_exw_price'];
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+                    } elseif (isset($quoteprices[$serialNo]['total_exw_price'])) {
+                        $tmpList[$serialNo]['total_exw_price'] = $quoteprices[$serialNo]['total_exw_price'];
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
+                    } else {
+                        $tmpList[$serialNo]['total_exw_price'] = '';
+                        $tmpList[$serialNo]['quote_price_cur_bn'] = 'USD';
                     }
                 }
 
@@ -1450,7 +1450,7 @@ class SupplierInquiryModel extends PublicModel {
 
         if (empty($cur)) {
             return 1;
-        } elseif ($this->RateUSD[$cur]) {
+        } elseif (!empty($this->RateUSD[$cur])) {
 
             return $this->RateUSD[$cur];
         } else {
@@ -1481,7 +1481,7 @@ class SupplierInquiryModel extends PublicModel {
                             ->order('created_at DESC')->find();
             if (empty($exchangeRate)) {
                 $exchangeRate = $exchangeRateModel->field('rate')
-                                ->where(['cur_bn1' => $holdCur, 'cur_bn2' => $exchangeCur])
+                                ->where(['cur_bn2' => $holdCur, 'cur_bn1' => $exchangeCur])
                                 ->order('created_at DESC')->find();
                 return 1 / $exchangeRate['rate'];
             }
@@ -1588,6 +1588,17 @@ class SupplierInquiryModel extends PublicModel {
                     $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
                     $list[$key]['total_quote_price'] = $gross_profit_rate * $item['purchase_unit_price'] * $item['quote_qty'];
                 }
+                if (!empty($item['total_exw_price'])) {
+                    $list[$key]['total_exw_price'] = $item['total_exw_price'];
+                } elseif (empty($item['total_exw_price']) && $item['exw_unit_price'] > 0) {
+                    $list[$key]['total_exw_price'] = $item['exw_unit_price'] * $item['quote_qty'];
+                } elseif (!empty($item['qt_total_exw_price'])) {
+                    $list[$key]['total_exw_price'] = $item['qt_total_exw_price'];
+                } elseif (empty($item['qt_total_exw_price']) && $item['qt_exw_unit_price'] > 0) {
+                    $list[$key]['total_exw_price'] = $item['qt_exw_unit_price'] * $item['quote_qty'];
+                }
+
+
                 if ($item['purchase_price_cur_bn'] == 'USD') {
                     $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
                 } else {

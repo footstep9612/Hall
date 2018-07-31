@@ -1148,8 +1148,8 @@ function logistics($data) {
     if ($data['trade_terms'] == 'EXW') {
         $arr['code'] = 1;
         $arr['total_logi_fee'] = $data['inspection_fee'];
-        $arr['total_quote_price'] = round(($data['inspection_fee'] + $data['total_exw_price']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_quote_price'] = round(($data['inspection_fee'] + $data['total_exw_price']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['land_freight'])) {
@@ -1166,8 +1166,8 @@ function logistics($data) {
         $arr['code'] = 1;
         $arr['inland_marine_insurance'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insurance'] + $data['land_freight'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['port_surcharge'])) {
@@ -1179,8 +1179,8 @@ function logistics($data) {
         $arr['code'] = 1;
         $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['inter_shipping'])) {
@@ -1192,8 +1192,8 @@ function logistics($data) {
         $arr['code'] = 1;
         $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
-        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_quote_price'] = round(($data['total_exw_price'] + $arr['total_logi_fee']) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360), 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['cargo_insurance_rate'])) {
@@ -1204,16 +1204,16 @@ function logistics($data) {
     if ($data['trade_terms'] == 'CIF' || $data['trade_terms'] == 'CIP') {
         $arr['code'] = 1;
         $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
-        $denominator = (1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365);
+        $denominator = (1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360);
         $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
-            $arr['total_quote_price'] = round(($numerator + 8) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365), 8);
+            $arr['total_quote_price'] = round(($numerator + 8) / (1 - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360), 8);
         } else {
             $arr['total_quote_price'] = round($numerator / $denominator, 8);
         }
         $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['dest_delivery_charge'])) {
@@ -1225,7 +1225,7 @@ function logistics($data) {
         $arr['code'] = 1;
         $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $data['dest_delivery_charge'];
-        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
+        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360, 8);
         if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
             $arr['total_quote_price'] = round(($numerator + 8) / $denominator, 8);
         } else {
@@ -1233,7 +1233,7 @@ function logistics($data) {
         }
         $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'] + $data['dest_delivery_charge'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
     if (empty($data['dest_delivery_charge'])) {
@@ -1261,7 +1261,7 @@ function logistics($data) {
         $arr['inland_marine_insu'] = inlandMarineInsurance(['overland_insu_rate' => $data['overland_insu_rate'], 'total_exw_price' => $data['total_exw_price']]);
         $numerator = $data['total_exw_price'] + $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'];
         $numerator = $numerator * (1 + $data['dest_tariff_rate']) * (1 + $data['dest_va_tax_rate']) + $data['dest_delivery_charge'] + $data['dest_clearance_fee'];
-        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 365, 8);
+        $denominator = round(1 - 1.1 * $data['cargo_insurance_rate'] - $data['premium_rate'] - $data['payment_received_days'] * $data['bank_interest'] * $data['fund_occupation_rate'] / 360, 8);
         if ($numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator < 8 && $numerator * 1.1 * $data['cargo_insurance_rate'] / $denominator != 0) {
             $arr['total_quote_price'] = round(($numerator + 8) / $denominator, 8);
         } else {
@@ -1276,7 +1276,7 @@ function logistics($data) {
         $arr['freightage_insu'] = $arr['total_quote_price'] * 1.1 * $data['cargo_insurance_rate'];
         $arr['total_logi_fee'] = $data['inspection_fee'] + $arr['inland_marine_insu'] + $data['land_freight'] + $data['port_surcharge'] + $data['inter_shipping'] + $arr['freightage_insu'] + $data['dest_delivery_charge'];
         $arr['total_logi_fee'] = $arr['total_logi_fee'] + $arr['dest_tariff'] + $arr['dest_va_tax'] + $data['dest_clearance_fee'];
-        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 365, 8);
+        $arr['total_bank_fee'] = round($arr['total_quote_price'] * $data['bank_interest'] * $data['fund_occupation_rate'] * $data['payment_received_days'] / 360, 8);
         return $arr;
     }
 }
@@ -1389,8 +1389,8 @@ function jsonReturn($data, $code = 1, $message = '', $lang = 'zh') {
     $returnData = [];
     if (isset($data['data'])) {
         $returnData = $data;
-    }else{
-        $returnData['data'] =  $code == 1 ? $data : false;
+    } else {
+        $returnData['data'] = $code == 1 ? $data : false;
     }
     $returnData['code'] = $code;
     $returnData['message'] = ErrorMsg::getMessage($code, $message, $lang);
@@ -1759,32 +1759,32 @@ function C($name = null, $value = null, $default = null) {
  * @param mixed $value 语言值或者变量
  * @return mixed
  */
-function L($name=null, $value=null) {
+function L($name = null, $value = null) {
     static $_lang = array();
     // 空参数返回所有定义
     if (empty($name))
         return $_lang;
-        // 判断语言获取(或设置)
-        // 若不存在,直接返回全大写$name
-        if (is_string($name)) {
-            $name   =   strtoupper($name);
-            if (is_null($value)){
-                return isset($_lang[$name]) ? $_lang[$name] : $name;
-            }elseif(is_array($value)){
-                // 支持变量
-                $replace = array_keys($value);
-                foreach($replace as &$v){
-                    $v = '{$'.$v.'}';
-                }
-                return str_replace($replace,$value,isset($_lang[$name]) ? $_lang[$name] : $name);
+    // 判断语言获取(或设置)
+    // 若不存在,直接返回全大写$name
+    if (is_string($name)) {
+        $name = strtoupper($name);
+        if (is_null($value)) {
+            return isset($_lang[$name]) ? $_lang[$name] : $name;
+        } elseif (is_array($value)) {
+            // 支持变量
+            $replace = array_keys($value);
+            foreach ($replace as &$v) {
+                $v = '{$' . $v . '}';
             }
-            $_lang[$name] = $value; // 语言定义
-            return null;
+            return str_replace($replace, $value, isset($_lang[$name]) ? $_lang[$name] : $name);
         }
-        // 批量定义
-        if (is_array($name))
-            $_lang = array_merge($_lang, array_change_key_case($name, CASE_UPPER));
+        $_lang[$name] = $value; // 语言定义
         return null;
+    }
+    // 批量定义
+    if (is_array($name))
+        $_lang = array_merge($_lang, array_change_key_case($name, CASE_UPPER));
+    return null;
 }
 
 /**
@@ -1867,12 +1867,14 @@ function haveZh($str) {
 function searchDir($path, &$files) {
     if (is_dir($path)) {
         $dp = dir($path);
-        while($file = $dp->read()) {
-            if($file != '.' && $file != '..') searchDir(addSlash($path) . $file, $files);
+        while ($file = $dp->read()) {
+            if ($file != '.' && $file != '..')
+                searchDir(addSlash($path) . $file, $files);
         }
         $dp->close();
     }
-    if(is_file($path)) $files[] = $path;
+    if (is_file($path))
+        $files[] = $path;
 }
 
 /**
@@ -1884,7 +1886,8 @@ function searchDir($path, &$files) {
  * @time 2018-01-25
  */
 function addSlash($dir) {
-    if (!preg_match('/.*[\\\\\/]$/s', $dir)) $dir .= DS;
+    if (!preg_match('/.*[\\\\\/]$/s', $dir))
+        $dir .= DS;
     return $dir;
 }
 
@@ -1898,10 +1901,12 @@ function addSlash($dir) {
  */
 function dataTrim($data) {
     if (is_array($data)) {
-        foreach ($data as $k => $v) $data[$k] = dataTrim($v);
+        foreach ($data as $k => $v)
+            $data[$k] = dataTrim($v);
         return $data;
     } else if (is_object($data)) {
-        foreach ($data as $k => $v) $data->$k = dataTrim($v);
+        foreach ($data as $k => $v)
+            $data->$k = dataTrim($v);
         return $data;
     } else if (is_string($data)) {
         return trim($data);
@@ -1917,7 +1922,7 @@ function dataTrim($data) {
  * @return int
  * @author liujf
  * @time 2018-02-08
- */ 
+ */
 function strlenUtf8($str) {
     // 将字符串分解为单元
     preg_match_all('/./us', $str, $match);
@@ -1950,7 +1955,7 @@ function timeStampToDate($num, $format = 'Y-m-d H:i:s') {
  */
 function dateToTimeStamp($str) {
     $d = new DateTime($str);
-    return  $d->format('U');
+    return $d->format('U');
 }
 
 /**
@@ -1972,12 +1977,12 @@ function isDecimal($param) {
  * @param int $sort_order
  * @param int $sort_type
  */
-function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_type=SORT_NUMERIC){
-    if(is_array($data)){
-        foreach($data as $val){
-            $key_arrays[]=$val[$sort_order_field];
+function my_array_multisort($data, $sort_order_field, $sort_order = SORT_ASC, $sort_type = SORT_NUMERIC) {
+    if (is_array($data)) {
+        foreach ($data as $val) {
+            $key_arrays[] = $val[$sort_order_field];
         }
-        array_multisort($key_arrays,$sort_order,$sort_type,$data);
+        array_multisort($key_arrays, $sort_order, $sort_type, $data);
         return $data;
     }
     return [];
@@ -1989,9 +1994,9 @@ function my_array_multisort($data,$sort_order_field,$sort_order=SORT_ASC,$sort_t
  * @param $arr
  * @param string $field
  */
-function jsonDecode(&$arr, $field = ''){
-    if(!empty($field)){
-        $arr[$field] = json_decode($arr[$field],true);
+function jsonDecode(&$arr, $field = '') {
+    if (!empty($field)) {
+        $arr[$field] = json_decode($arr[$field], true);
     }
 }
 
@@ -2001,8 +2006,8 @@ function jsonDecode(&$arr, $field = ''){
  * @param $arr
  * @param string $field
  */
-function  ynTotruefalse(&$arr, $field = ''){
-    if(!empty($field)){
-        $arr[$field] = ( $arr[$field]=='1' || $arr[$field]=='Y') ? true : false;
+function ynTotruefalse(&$arr, $field = '') {
+    if (!empty($field)) {
+        $arr[$field] = ( $arr[$field] == '1' || $arr[$field] == 'Y') ? true : false;
     }
 }
