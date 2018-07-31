@@ -1746,9 +1746,11 @@ class InquiryController extends PublicController {
             }
             $inquiry_orders = $inquiry_order_model->where(['inquiry_id' => ['in', $inquiry_ids]])
                             ->field('inquiry_id,contract_no')->select();
+
+
             $contract_nos = [];
             foreach ($inquiry_orders as $inquiry_order) {
-                $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['logi_quote_flag'];
+                $contract_nos[$inquiry_order['inquiry_id']] = $inquiry_order['contract_no'];
             }
             foreach ($arr as $key => $val) {
                 if ($val['id'] && isset($contract_nos[$val['id']])) {
