@@ -143,7 +143,7 @@ class Rfq_InquiryModel extends PublicModel {
         $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
         $field = 'id,serial_no,country_bn,buyer_id,buyer_inquiry_no,buyer_code,buyer_name,buyer_oil,'
                 . 'agent_id,erui_id,org_id,quote_id,check_org_id,created_by,'
-                . 'created_at,updated_by,updated_at,checked_by,checked_at,logi_agent_id,'
+                . 'created_at,updated_by,updated_at,checked_by,checked_at,logi_agent_id,obtain_id,'
                 . 'to_country,from_country,destination,dispatch_place,project_basic_info,trade_terms_bn,trans_mode_bn';
 
         $where = $this->getCondition($condition);

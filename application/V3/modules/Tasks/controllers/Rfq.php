@@ -35,7 +35,7 @@ class RfqController extends PublicController {
 
         // (new Buyer_BuyerModel())->setBuyerNo($list);
         //(new Rfq_QuoteModel())->setLogiQuoteFlag($list);
-        // (new System_OrgModel())->setOrgName($list);
+        (new System_OrgModel())->setOrgName($list);
         //  (new Common_TransModeModel())->setTransModeName($list);
         //  (new Rfq_InquiryOrderModel())->setContractNo($list);
         if ($list) {
