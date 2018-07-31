@@ -30,6 +30,10 @@ class Rfq_QuoteModel extends PublicModel {
         parent::__construct();
     }
 
+    public function getQuoteIdByInQuiryId($inquiry_id) {
+        return $this->where(['inquiry_id' => $inquiry_id])->getField('id');
+    }
+
     public function info($where, $results) {
 
         $fields = 'total_purchase,quote_remarks,total_weight,package_volumn,package_mode,'
@@ -111,11 +115,7 @@ class Rfq_QuoteModel extends PublicModel {
         }
     }
 
-    public function Arithmetic($inquiry_id) {
-
-    }
-
-    public function Info($inquiry_id) {
+    public function Detail($inquiry_id) {
 
         return $this->where(['inquiry_id' => $inquiry_id, 'deleted_flag' => 'N'])->find();
     }
