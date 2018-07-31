@@ -664,7 +664,7 @@ class SupplierInquiryModel extends PublicModel {
             'V' => ['category', '产品分类',],
             'W' => ['keruiflag', '是否科瑞设备用配件',],
             'X' => ['bidflag', '是否投标',],
-            'Y' => ['created_at' => '新建询单日期',],
+            'Y' => ['created_at', '新建询单日期',],
             'Z' => ['inflow_time', '转入日期',],
             'AA' => ['quote_deadline', '需用日期',],
             'AB' => ['max_inflow_time_out', '最后一次流入事业部分单员时间',],
