@@ -271,6 +271,10 @@ class QuoteItemModel extends PublicModel {
                     }
                     return ['code' => '-104', 'message' => L('QUOTE_PUP_NUMBER')];
                 }
+
+                $value['period_of_validity'] = strtotime($value['period_of_validity']) ? $value['period_of_validity'] : null;
+                $value['package_size'] = is_numeric($value['package_size']) ? $value['package_size'] : null;
+                $value['gross_weight_kg'] = is_numeric($value['gross_weight_kg']) ? $value['gross_weight_kg'] : null;
 //                if (!is_numeric($value['gross_weight_kg'])) {
 //                    if ($i > 0) {
 //                        $this->rollback();
