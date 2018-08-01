@@ -467,7 +467,7 @@ class SupplierInquiryModel extends PublicModel {
         $this->_setquoted_time($list);
         $this->_setProductName($list);
 
-        $this->_setConstPrice($list);
+
 
         $this->_setMaterialCat($list, 'zh');
 
@@ -483,134 +483,6 @@ class SupplierInquiryModel extends PublicModel {
         $this->_resetListData($list);
 
         return $this->_createXls($list);
-    }
-
-    /**
-     * 导出询单列表
-     * @return mix
-     * @author zyg
-     */
-    public function InquiryToatolexport($where) {
-        $country_model = new CountryModel();
-        $country_table = $country_model->getTableName(); //国家表
-        $market_area_country_model = new MarketAreaCountryModel();
-        $market_area_country_table = $market_area_country_model->getTableName(); //国家区域关系表
-        $market_area_model = new MarketAreaModel();
-        $market_area_table = $market_area_model->getTableName();   //营销区域表
-        $employee_model = new EmployeeModel();
-        $employee_table = $employee_model->getTableName(); //管理员表
-        $org_model = new OrgModel(); //
-        $org_table = $org_model->getTableName(); //组织表
-
-        /*         * **报价单** */
-        $quote_model = new QuoteModel();
-        $quote_table = $quote_model->getTableName(); //最终报价单明细
-
-        /*         * **报价单** */
-        $field = 'i.serial_no,i.id as inquiry_id,i.project_name as name_zh,';
-        $field .= '(case i.buyer_oil WHEN \'Y\' THEN \'是\' '
-                . 'WHEN \'N\' THEN \'否\' '
-                . 'else  \'否\' END ) '
-                . ' as buyer_oil,';
-// oil_flag
-        $field .= '(select country.`name` from ' . $country_table . ' as country where country.bn=i.country_bn and country.lang=\'zh\' group by country.bn) as country_name ,'; //国家名称
-        $field .= '(select ma.`name` from ' . $country_table . ' c left join ' . $market_area_country_table . ' mac'
-                . ' on mac.country_bn=c.bn '
-                . ' left join ' . $market_area_table . ' ma on ma.bn=mac.market_area_bn '
-                . 'where c.bn=i.country_bn and ma.lang=\'zh\' group by ma.bn) as market_area_name ,'; //营销区域名称
-        $field .= '(select `name` from ' . $org_table . ' where i.org_id=id ) as org_name,'; //事业部
-        $field .= 'if((select id from ' . $org_table . ' where i.org_id=id and org_node = \'erui\' and deleted_flag = \'N\') > 0, \'Y\', \'N\') as org_is_erui,'; //事业部是否易瑞
-        $field .= 'i.proxy_no,i.buyer_code,i.project_basic_info,';
-        $field .= 'if(i.proxy_flag=\'Y\',\'是\',\'否\') as proxy_flag,';
-        $field .= 'if(i.kerui_flag=\'Y\',\'是\',\'否\') as keruiflag,';
-        $field .= 'if(i.bid_flag=\'Y\',\'是\',\'否\') as bidflag ,';
-        $field .= 'i.quote_deadline,i.obtain_id,';
-
-        $inquiry_item_model = new InquiryItemModel();
-        $inquiry_item_table = $inquiry_item_model->getTableName();
-        $field .= '1 as qty,\'批\' as unit,';
-
-        $field .= '(select q.gross_profit_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as gross_profit_rate,'; //毛利率
-        $field .= '(select q.exchange_rate from ' . $quote_table . ' q where q.inquiry_id=i.id) as exchange_rate,'; //汇率
-        /*         * *************-----------询单项明细开始------------------- */
-        $inquiry_check_log_model = new InquiryCheckLogModel();
-        $inquiry_check_log_table = $inquiry_check_log_model->getTableName(); //询单项明细表
-        $inquiry_check_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_minlog_sql = '(select min(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_in_log_sql = '(select min(into_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $inquiry_check_max_in_log_sql = '(select max(out_at) from ' . $inquiry_check_log_table . ' where inquiry_id=i.id';
-        $field .= $inquiry_check_in_log_sql . ' and in_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time,'; //转入日期
-        $field .= $inquiry_check_minlog_sql . ' and out_node=\'BIZ_DISPATCHING\' group by inquiry_id) as inflow_time_out,'; //转入日期
-        $field .= $inquiry_check_max_in_log_sql . ' and in_node=\'CLARIFY\' group by inquiry_id) as max_inflow_time,'; //澄清日期
-        $field .= $inquiry_check_log_sql . ' and out_node in(\'BIZ_DISPATCHING\',\'CC_DISPATCHING\' ) group by inquiry_id) as max_inflow_time_out,'; //最后一次流入事业部分单员时间
-        $field .= $inquiry_check_log_sql . ' and in_node=\'BIZ_QUOTING\' group by inquiry_id) as bq_time,'; //事业部报价日期
-        $field .= $inquiry_check_log_sql . ' and out_node=\'LOGI_DISPATCHING\' group by inquiry_id) as ld_time,'; //物流接收日期
-        $field .= $inquiry_check_log_sql . ' and in_node=\'LOGI_QUOTING\' group by inquiry_id) as la_time,'; //物流报出日期
-        $field .= $inquiry_check_log_sql . ' and in_node=\'MARKET_APPROVING\' group by inquiry_id) as qs_time,'; //报出日期
-        /*         * *************-----------询单项明细结束------------------- */
-        $field .= 'i.created_at,'; //报价用时 为qs_time-created_at 或当前时间-created_at;
-        $employee_sql = '(select `name` from ' . $employee_table . ' where deleted_flag=\'N\' ';
-        $field .= $employee_sql . ' AND id=i.agent_id)as agent_name,'; //市场负责人
-        $field .= $employee_sql . ' AND id=i.quote_id)as quote_name,'; //商务技术部报价人
-        $field .= $employee_sql . ' AND id=i.check_org_id)as check_org_name,'; //事业部负责人
-        $field .= $employee_sql . ' AND id=i.created_by)as created_by_name,'; //询单创建人
-
-        $field .= 'i.trade_terms_bn,';
-        $field .= '(case i.status WHEN \'BIZ_DISPATCHING\' THEN \'事业部分单员\' '
-                . 'WHEN \'CC_DISPATCHING\' THEN \'易瑞客户中心\' '
-                . 'WHEN \'CLARIFY\' THEN \'项目澄清\' '
-                . 'WHEN \'REJECT_MARKET\' THEN \'驳回市场\' '
-                . 'WHEN \'REJECT_CLOSE\' THEN \'驳回市场关闭\' '
-                . 'WHEN \'BIZ_QUOTING\' THEN \'事业部报价\' '
-                . 'WHEN \'LOGI_DISPATCHING\' THEN \'物流分单员\' '
-                . 'WHEN \'LOGI_QUOTING\' THEN \'物流报价\' '
-                . 'WHEN \'LOGI_APPROVING\' THEN \'物流审核\' '
-                . 'WHEN \'BIZ_APPROVING\' THEN \'事业部核算\' '
-                . 'WHEN \'MARKET_APPROVING\' THEN \'市场主管审核\' '
-                . 'WHEN \'MARKET_CONFIRMING\' THEN \'市场确认\' '
-                . 'WHEN \'QUOTE_SENT\' THEN \'报价单已发出\' '
-                . 'WHEN \'INQUIRY_CLOSED\' THEN \'报价关闭\' '
-                . ' END) as istatus,';
-        $field .= '(case i.quote_status WHEN \'NOT_QUOTED\' THEN \'未报价\' '
-                . 'WHEN \'ONGOING\' THEN \'报价中\' '
-                . 'WHEN \'QUOTED\' THEN \'已报价\' '
-                . 'WHEN \'COMPLETED\' THEN \'已完成\' '
-                . ' END) as iquote_status,i.quote_notes';
-
-
-        $where = ['i.deleted_flag' => 'N',
-            'i.status' => ['neq', 'DRAFT'],
-        ];
-        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-            $created_at_start = trim($condition['created_at_start']);
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
-        } elseif (!empty($condition['created_at_start'])) {
-            $created_at_start = trim($condition['created_at_start']);
-            $where['i.created_at'] = ['egt', $created_at_start];
-        } elseif (!empty($condition['created_at_end'])) {
-            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-            $where['i.created_at'] = ['elt', $created_at_end];
-        }
-        if (!empty($condition['country_bn'])) {
-            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
-        }
-        $inquiry_model = new InquiryModel();
-        $list = $inquiry_model->alias('i')
-                ->field($field)
-                ->where($where)
-                ->select();
-
-        $this->_setquoted_time($list);
-        $this->_setBizDespatching($list);
-        $this->_setTotalPrice($list);
-        $this->_setObtainInfo($list);
-        $this->_setTotalOilFlag($list);
-//$this->_setClarificationTime($list);
-        $this->_setClarifyTime($list);
-        $this->_setQuoteSpendTime($list);
-// $this->_setTotalCalculatePrice($list);
-        return $this->_createXls($list, '导出总行询单数据');
     }
 
     /*
@@ -698,94 +570,6 @@ class SupplierInquiryModel extends PublicModel {
             'BY' => ['iquote_status', '报价后状态',],
             'BZ' => ['quote_notes', '备注',],
             'CA' => ['reason_for_no_quote', '未报价分析',],
-        ];
-    }
-
-    /*
-     * 对应表
-     *
-     */
-
-    private function _getTotalKeys() {
-        return [
-            'B' => ['serial_no', '报价单号'],
-            'C' => ['country_name', '询价单位'],
-            'D' => ['market_area_name', '所属地区部'],
-            'E' => ['org_name', '事业部'],
-            'F' => ['ie_erui', '是否走易瑞'],
-            'G' => ['buyer_code', '客户名称或代码'],
-            'H' => ['proxy_flag', '是否代理商获取'],
-            'I' => ['proxy_no', '代理商代码'],
-            'J' => ['project_basic_info', '客户及项目背景描述'],
-            'K' => ['name_zh', '品名中文'],
-            'L' => ['name', '品名外文'],
-            'M' => ['product_name', '产品名称'],
-            'N' => ['supplier_name', '供应商'],
-            'O' => ['model', '规格'],
-            'P' => [null, '图号'],
-            'Q' => ['qty', '数量'],
-            'R' => ['unit', '单位'],
-            'S' => ['buyer_oil', '是否油气客户'],
-            'T' => ['oil_flag', '油气/非油气'],
-            'U' => [null, '平台产品分类'],
-            'V' => ['category', '产品分类'],
-            'W' => ['keruiflag', '是否科瑞设备用配件'],
-            'X' => ['bidflag', '是否投标'],
-            'Y' => ['inflow_time', '转入日期'],
-            'Z' => ['quote_deadline', '需用日期'],
-            'AA' => ['max_inflow_time_out', '最后一次流入事业部分单员时间'], //最后一次流入事业部分单员时间
-            'AB' => ['max_inflow_time', '澄清完成日期'],
-            'AC' => ['bq_time', '事业部报出日期'],
-            'AD' => ['ld_time', '物流接收日期'],
-            'AE' => ['la_time', '物流报出日期'],
-            'AF' => ['qs_time', '报出日期'],
-            'AG' => ['cc_dispatching_clarification_time', '易瑞分单员发起的澄清用时（小时）'], //易瑞分单员发起的澄清用时（小时）
-            'AH' => ['biz_dispatching_clarification_time', '事业部分单员发起的澄清用时（小时）'], //事业部分单员发起的澄清用时（小时）
-            'AI' => ['biz_quoting_clarification_time', '事业部报价人发起的澄清用时（小时）'], //事业部报价人发起的澄清用时（小时）
-            'AJ' => ['logi_dispatching_clarification_time', '物流分单员发起的澄清用时（小时）'], //物流分单员发起的澄清用时（小时）
-            'AK' => ['logi_quoting_clarification_time', '物流报价人发起的澄清用时（小时）'], //物流报价人发起的澄清用时（小时）
-            'AL' => ['logi_approving_clarification_time', '物流审核发起的澄清用时（小时）'], //物流审核发起的澄清用时（小时）
-            'AM' => ['biz_approving_clarification_time', '事业部核算发起的澄清用时（小时）'], //事业部核算发起的澄清用时（小时）
-            'AN' => ['market_approving_clarification_time', '事业部审核发起的澄清用时（小时）'], //事业部审核发起的澄清用时（小时）
-            'AO' => ['clarification_time', '项目澄清时间(小时)'],
-            //'AO' => ['quoted_time', '最终报价用时(小时)'],
-            'AP' => ['real_quoted_time', '真实报价用时(去处澄清时间)(小时)'],
-            'AQ' => ['whole_quoted_time', '整体报价时间(小时)'],
-            'AR' => ['cc_quoted_time', '易瑞商务技术报价用时(小时)'],
-            'AS' => ['biz_quoted_time', '事业部商务技术报价用时(小时)'],
-            'AT' => ['logi_quoted_time', '物流报价时间(小时)'],
-            'AU' => ['obtain_org_name', '获单主体单位)'],
-            'AV' => ['obtain_name', '获取人)'],
-            'AW' => ['created_by_name', '询单创建人'],
-            'AX' => ['agent_name', '市场负责人'],
-            'AY' => ['biz_despatching', '事业部分单人'],
-            'AZ' => ['quote_name', '商务技术部报价人'],
-            'BA' => ['check_org_name', '事业部负责人'],
-            'BB' => ['brand', '产品品牌'],
-            'BC' => ['supplier_name', '报价单位'],
-            'BD' => [null, '供应商报价人'],
-            'BE' => [null, '报价人联系方式'],
-            'BF' => ['purchase_unit_price', '厂家单价（元）'],
-            'BG' => ['purchase_price_cur_bn', '币种'],
-            'BH' => ['total', '厂家总价（元）'],
-            'BI' => ['purchase_price_cur_bn', '币种'],
-            'BJ' => ['gross_profit_rate', '利润率'],
-            'BK' => ['quote_unit_price', '报价单价（元）'],
-            'BL' => ['quote_price_cur_bn', '币种'],
-            'BM' => ['total_quote_price', '报价总价（元）'],
-            'BN' => ['quote_price_cur_bn', '币种'],
-            'BO' => ['total_quoted_price_usd', '报价总金额（美金）'],
-            'BP' => ['gross_weight_kg', '单重(kg)'],
-            'BQ' => ['total_kg', '总重(kg)'],
-            'BR' => ['package_size', '包装体积(mm)'],
-            'BS' => ['package_mode', '包装方式'],
-            'BT' => ['delivery_days', '交货期（天）'],
-            'BU' => ['period_of_validity', '有效期（天）'],
-            'BV' => ['trade_terms_bn', '贸易术语'],
-            'BW' => ['istatus', '最新进度及解决方案'],
-            'BX' => ['iquote_status', '报价后状态'],
-            'BY' => ['quote_notes', '备注'],
-            'BZ' => ['reason_for_no_quote', '未报价分析'],
         ];
     }
 
@@ -1309,9 +1093,7 @@ class SupplierInquiryModel extends PublicModel {
         $i = 0;
         $inquiry_ids = [];
         foreach ($list as &$item) {
-            if (!empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids)) {
-                $inquiry_ids[] = $item['inquiry_id'];
-            }
+            !empty($item['inquiry_id']) && !in_array($item['inquiry_id'], $inquiry_ids) ? $inquiry_ids[] = $item['inquiry_id'] : '';
         }
         if ($inquiry_ids) {
             $category_lists = $inquiryItemModel
@@ -1411,8 +1193,6 @@ class SupplierInquiryModel extends PublicModel {
 
             $newList[] = $item;
         }
-
-
         $list = $newList;
     }
 
@@ -1468,50 +1248,6 @@ class SupplierInquiryModel extends PublicModel {
             return $exchangeRate['rate'];
         } else {
             return 1;
-        }
-    }
-
-    /*
-     * Description of 获取价格属性
-     * @param array $arr
-     * @author  zhongyg
-     * @date    2017-8-2 13:07:21
-     * @version V2.0
-     * @desc
-     */
-
-    private function _setConstPrice(&$list) {
-        if ($list) {
-
-            $skus = [];
-            foreach ($list as $key => $val) {
-                $skus[] = $val['sku'];
-            }
-
-            $goods_cost_price_model = new GoodsCostPriceModel();
-            $stockcostprices = $goods_cost_price_model->getCostPricesBySkus($skus);
-
-            foreach ($list as $key => $val) {
-
-                if ($val['sku'] && isset($stockcostprices[$val['sku']])) {
-                    if (isset($stockcostprices[$val['sku']])) {
-                        $price = '';
-                        foreach ($stockcostprices[$val['sku']] as $stockcostprice) {
-                            if ($stockcostprice['price'] && $stockcostprice['max_price']) {
-                                $price = $stockcostprice['price'] . '-' . $stockcostprice['max_price'];
-                            } elseif ($stockcostprice['price']) {
-                                $price = $stockcostprice['price'];
-                            } else {
-                                $price = '';
-                            }
-                        }
-                        $val['costprices'] = $price;
-                    }
-                } else {
-                    $val['costprices'] = '';
-                }
-                $list[$key] = $val;
-            }
         }
     }
 
@@ -1585,81 +1321,11 @@ class SupplierInquiryModel extends PublicModel {
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
                     } elseif ($item['exchange_rate']) {
                         $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
+                    } elseif (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
+                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
                     } else {
-
-                        if (!empty($exchange_rates[$item['purchase_price_cur_bn']])) {
-                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
-                        } else {
-                            $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
-                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private function _setTotalCalculatePrice(&$list) {
-        $exchange_rate_model = new ExchangeRateModel();
-        foreach ($list as $key => $item) {
-            if (in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭']) && $item['purchase_price_cur_bn'] != 'USD' && !$item['exchange_rate']) {
-                $purchase_price_cur_bns[$item['purchase_price_cur_bn']] = $item['purchase_price_cur_bn'];
-            }
-        }
-        $exchange_rates = [];
-        if ($purchase_price_cur_bns) {
-            foreach ($purchase_price_cur_bns as $key => $purchase_price_cur_bn) {
-                $exchange_rate_1 = $exchange_rate_model
-                        ->where([
-                            'cur_bn1' => $purchase_price_cur_bn,
-                            'cur_bn2' => 'USD',
-                            'effective_date' => ['egt', date('Y-m')],
-                        ])
-                        ->field('rate,cur_bn1')
-                        ->order('created_at DESC')
-                        ->group('cur_bn1')
-                        ->select();
-                if (!$exchange_rates_1) {
-                    $exchange_rates[$purchase_price_cur_bn] = $exchange_rate_1;
-                } else {
-                    $exchange_rate_2 = $exchange_rate_model
-                            ->where([
-                                'cur_bn2' => $purchase_price_cur_bn,
-                                'cur_bn1' => 'USD',
-                                'effective_date' => ['egt', date('Y-m')],
-                            ])
-                            ->field('rate,cur_bn2')
-                            ->order('created_at DESC')
-                            ->group('cur_bn2')
-                            ->select();
-                    if (!$exchange_rate_2) {
-                        $exchange_rates[$purchase_price_cur_bn] = 1 / $exchange_rate_2;
-                    }
-                }
-            }
-        }
-
-        foreach ($list as $key => $item) {
-// 只在市场确认、报价单已发出、报价关闭环节显示报价金额
-            if (!in_array($item['istatus'], ['市场确认', '报价单已发出', '报价关闭'])) {
-                $list[$key]['quote_unit_price'] = $list[$key]['total_quote_price'] = $list[$key]['total_quoted_price_usd'] = '';
-            } else {
-                $list[$key]['quote_price_cur_bn'] = $item['purchase_price_cur_bn'];
-                if ($item['purchase_price_cur_bn'] && $item['total_quote_price']) {
-
-                    if ($item['purchase_price_cur_bn'] == 'USD') {
-                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'];
-                    } else {
-                        if ($item['exchange_rate'] && $item['exchange_rate'] > 1) {
-                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] / $item['exchange_rate'];
-                        } elseif ($item['exchange_rate']) {
-                            $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $item['exchange_rate'];
-                        } else {
-
-                            if ($exchange_rates[$item['purchase_price_cur_bn']]) {
-                                $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
-                            }
-                        }
+                        $exchange_rates[$item['purchase_price_cur_bn']] = $this->_getRateUSD($item['purchase_price_cur_bn']);
+                        $list[$key]['total_quoted_price_usd'] = $list[$key]['total_quote_price'] * $exchange_rates[$item['purchase_price_cur_bn']];
                     }
                 }
             }
@@ -1966,8 +1632,9 @@ class SupplierInquiryModel extends PublicModel {
     }
 
     public function setInquiryStatics(array $suppliers = null) {
-        if (is_null($suppliers))
+        if (is_null($suppliers)) {
             return null;
+        }
 
 //['Middle East', 'South America', 'North America', 'Africa', 'Pan Russian', 'Asia-Pacific', 'Europe']
         foreach ($suppliers as &$supplier) {
@@ -2017,8 +1684,8 @@ class SupplierInquiryModel extends PublicModel {
             'mac.market_area_bn' => !empty($condition['area_bn']) ? trim($condition['area_bn']) : ['IN', $this->areas]
         ];
 
-        $currentPage = empty($attributes['current_no']) ? 1 : $attributes['current_no'];
-        $pageSize = empty($attributes['pageSize']) ? 10 : $attributes['pageSize'];
+        $currentPage = empty($condition['current_no']) ? 1 : $condition['current_no'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $inquiry = new InquiryModel();
 
