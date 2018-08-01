@@ -437,7 +437,7 @@ class InquiryModel extends PublicModel {
             $start_time = date('Y-m-d H:i:s', $condition['submit_start_time']);
             $end_time = date('Y-m-d H:i:s', $condition['submit_end_time'] + 86399);
             $where[] = ' exists  (select inquiry_id from ' . $check_table
-                    . ' where inquiry_id=a.id and out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
+                    . ' where inquiry_id=inquiry.id and out_node=\'QUOTE_SENT\' and out_at between \'' . $start_time . '\' and \'' . $end_time . '\')';
         }
 
 
