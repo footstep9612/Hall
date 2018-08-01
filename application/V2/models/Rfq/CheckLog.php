@@ -16,17 +16,20 @@ class Rfq_CheckLogModel extends PublicModel {
         parent::__construct();
     }
 
-    public function addCheckLog($inquiry_id, $out_node, $user, $op_note = null) {
+    public function addCheckLog($inquiry_id, $out_node, $user, $action = 'CREATE', $op_note = null) {
 
         $log = $this->field('out_at,out_node')->where(['inquiry_id' => $inquiry_id])->order('created_at desc')->find();
 
-        if ($log) {
-            return false;
+        if (empty($log)) {
+            $inquiry_model = new Rfq_InquiryModel();
+            $log = ['out_node' => 'DRAFT'];
+            $log['out_at'] = $inquiry_model->where(['id' => $inquiry_id, 'deleted_flag' => 'N'])->getField('created_at');
         }
+
         $data = [
             'inquiry_id' => $inquiry_id,
-            'action' => $log['out_node'],
-            'in_node' => 'BIZ_QUOTING',
+            'action' => $action,
+            'in_node' => $log['out_node'],
             'out_node' => $out_node,
             'into_at' => !empty($log['out_at']) ? $log['out_at'] : date('Y-m-d H:i:s'),
             'out_at' => date('Y-m-d H:i:s'),
@@ -49,8 +52,8 @@ class Rfq_CheckLogModel extends PublicModel {
             'into_at' => !empty($log['out_at']) ? $log['out_at'] : date('Y-m-d H:i:s'),
             'out_at' => date('Y-m-d H:i:s'),
             'op_note' => '',
-            'agent_id' => $user['id'],
-            'created_by' => $user['id'],
+            'agent_id' => defined(UID) ? UID : 0,
+            'created_by' => defined(UID) ? UID : 0,
             'created_at' => date('Y-m-d H:i:s'),
         ];
         return $this->_addInquiryCheckLog($data, $user);
@@ -68,6 +71,10 @@ class Rfq_CheckLogModel extends PublicModel {
 
 
         $result = $this->addData($data);
+
+        if ($result !== true) {
+            return false;
+        }
 //发送短信
         $inquiryModel = new InquiryModel();
         $inquiryInfo = $inquiryModel->where(['id' => $data['inquiry_id']])->field('now_agent_id,serial_no,org_id')->find();
@@ -95,7 +102,7 @@ class Rfq_CheckLogModel extends PublicModel {
         if ($falg === false) {
             return false;
         }
-        return $result;
+        return true;
     }
 
     public function cleanInquiryRemind($inquiry_id) {
@@ -153,6 +160,7 @@ class Rfq_CheckLogModel extends PublicModel {
 
         try {
             $id = $this->add($data);
+
             $data['id'] = $id;
             if ($id) {
                 return true;
@@ -164,6 +172,68 @@ class Rfq_CheckLogModel extends PublicModel {
         }
 
         return false;
+    }
+
+    /**
+     * @param        $to            收信人手机号
+     * @param        $action        操作说明 SUBMIT(询报价提交) REJECT(询报价退回)
+     * @param        $receiver      收信人名称 如:买买提
+     * @param        $serial_no     询单流程编码
+     * @param        $from          发信人名称
+     * @param string $areaCode      手机所属区号 默认86
+     * @param int    $subType       短信发送方式  0普通文本 1模板
+     * @param int    $groupSending  类型：0为单独发送，1为批量发送
+     * @param string $useType       发送用途： 例如：Order、Customer、System等
+     * @author 买买提
+     * @return string
+     */
+    public function sendSms($to, $action, $receiver, $serial_no, $from, $in_node, $out_node, $areaCode = "86", $subType = 1, $groupSending = 0, $useType = "询报价系统") {
+
+        if (empty($receiver)) {
+            jsonReturn(['code' => -104, 'message' => '收信人名字不能为空']);
+        }
+
+        if (empty($serial_no)) {
+            jsonReturn(['code' => -104, 'message' => '询单流程编码不能为空']);
+        }
+
+        $data = [
+            'useType' => $useType,
+            'to' => '["' . $to . '"]',
+            'areaCode' => $areaCode,
+            'subType' => $subType,
+            'groupSending' => $groupSending,
+        ];
+
+        if ($action == "CREATE") {
+            $data['tplId'] = '55047';
+            $data['tplParas'] = '["' . $receiver . '","' . $from . '","' . $serial_no . '"]';
+        } elseif ($action == "REJECT") {
+            $data['tplId'] = '55048';
+            $data['tplParas'] = '["' . $receiver . '","' . $serial_no . '","' . $from . '"]';
+        }
+
+
+        $response = json_decode(MailHelper::sendSms($data), true);
+
+        //记录短信
+        if ($response['code'] == 200) {
+
+            $smsLog = new SmsLogModel();
+            $smsLog->add($smsLog->create([
+                        'serial_no' => $serial_no,
+                        'sms_id' => $response['message'],
+                        'mobile' => $to,
+                        'receiver' => $receiver,
+                        'from' => $from,
+                        'action' => $action,
+                        'in_node' => $in_node,
+                        'out_node' => $out_node,
+                        'send_at' => date('Y-m-d H:i:s')
+            ]));
+        }
+
+        return;
     }
 
 }
