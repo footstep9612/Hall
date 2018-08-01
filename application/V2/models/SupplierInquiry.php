@@ -490,7 +490,7 @@ class SupplierInquiryModel extends PublicModel {
      * @return mix
      * @author zyg
      */
-    public function InquiryToatolexport($condition) {
+    public function InquiryToatolexport($where) {
         $country_model = new CountryModel();
         $country_table = $country_model->getTableName(); //国家表
         $market_area_country_model = new MarketAreaCountryModel();
