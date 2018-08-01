@@ -140,6 +140,12 @@ class SupplierinquiryController extends PublicController {
         ini_set('memory_limit', '4G');
         set_time_limit(0);
         $condition = $this->getPut();
+
+        unset($condition['token']);
+
+        //  $redis_key = 'Inquiryexport_' . md5(http_build_query($condition));
+
+
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
 
