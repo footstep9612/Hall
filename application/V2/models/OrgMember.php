@@ -294,7 +294,7 @@ class OrgMemberModel extends PublicModel {
                     ->join($role_member_table . ' rm on rm.employee_id=om.employee_id')
                     ->join($role_table . ' r on r.id=rm.role_id')
                     ->join($emploee_table . ' e on e.id=om.employee_id')
-                    ->where(['om.org_id' => $org_id, 'r.deleted_flag' => 'N'])
+                    ->where(['om.org_id' => $org_id, 'r.deleted_flag' => 'N', 'r.role_no' => ['in', ['A011', 'A004', 'A003', 'A002']]])
                     ->find();
         }
         return !empty($user) ? $user : [];
