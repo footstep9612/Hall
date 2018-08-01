@@ -16,9 +16,31 @@ class Rfq_CheckLogModel extends PublicModel {
         parent::__construct();
     }
 
+    public function addCheckLog($inquiry_id, $out_node, $user, $op_note = null) {
+
+        $log = $this->field('out_at,out_node')->where(['inquiry_id' => $inquiry_id])->order('created_at desc')->find();
+
+        if ($log) {
+            return false;
+        }
+        $data = [
+            'inquiry_id' => $inquiry_id,
+            'action' => $log['out_node'],
+            'in_node' => 'BIZ_QUOTING',
+            'out_node' => $out_node,
+            'into_at' => !empty($log['out_at']) ? $log['out_at'] : date('Y-m-d H:i:s'),
+            'out_at' => date('Y-m-d H:i:s'),
+            'op_note' => $op_note,
+            'agent_id' => $user['id'],
+            'created_by' => $user['id'],
+            'created_at' => date('Y-m-d H:i:s'),
+        ];
+        return $this->_addInquiryCheckLog($data, $user);
+    }
+
     public function AddQuoteToSubmitLog($inquiry_id, $user) {
 
-        $log = $this->field('out_at')->where(['inquiry_id' => $inquiry_id])->order('created_at desc')->find();
+        $log = $this->field('out_at,out_node')->where(['inquiry_id' => $inquiry_id])->order('created_at desc')->find();
         $data = [
             'inquiry_id' => $inquiry_id,
             'action' => 'CREATE',
@@ -133,19 +155,15 @@ class Rfq_CheckLogModel extends PublicModel {
             $id = $this->add($data);
             $data['id'] = $id;
             if ($id) {
-                $results['code'] = '1';
-                $results['message'] = '成功！';
-                $results['data'] = $data;
+                return true;
             } else {
-                $results['code'] = '-101';
-                $results['message'] = '添加失败!';
+                return false;
             }
         } catch (Exception $e) {
-            $results['code'] = $e->getCode();
-            $results['message'] = $e->getMessage();
+            return false;
         }
 
-        return $results;
+        return false;
     }
 
 }
