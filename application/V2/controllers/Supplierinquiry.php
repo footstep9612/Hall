@@ -137,40 +137,23 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
-        ini_set('memory_limit', '4G');
+        ini_set('memory_limit', '1G');
         set_time_limit(0);
         $condition = $this->getPut();
+        unset($condition['token']);
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-//        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
-//            $days = intval($condition['last_days']) ?: 31;
-//            $condition['created_at_start'] = $this->_getLastDaysDate($days);
-//        }
         $inquiryModel = new InquiryModel();
         $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
         $where = ['i.deleted_flag' => 'N',
             'i.status' => ['neq', 'DRAFT'],
         ];
-//        if (!empty($condition['created_at_start']) && !empty($condition['created_at_end'])) {
-//            $created_at_start = trim($condition['created_at_start']);
-//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-//            $where['i.created_at'] = ['between', $created_at_start . ',' . $created_at_end];
-//        } elseif (!empty($condition['created_at_start'])) {
-//
-//            $created_at_start = trim($condition['created_at_start']);
-//            $where['i.created_at'] = ['egt', $created_at_start];
-//        } elseif (!empty($condition['created_at_end'])) {
-//            $created_at_end = date('Y-m-d H:i:s', strtotime(trim($condition['created_at_end'])) + 86399);
-//            $where['i.created_at'] = ['elt', $created_at_end];
-//        }
-//        if (!empty($condition['country_bn'])) {
-//            $where['i.country_bn'] = ['in', explode(',', $condition['country_bn']) ?: ['-1']];
-//        }
         if (!empty($inquiry_ids)) {
             $where['i.id'] = ['in', $inquiry_ids];
         } else {
             $where['i.id'] = -1;
         }
+
         $data = $supplier_inquiry_model->Inquiryexport($where);
 
         if ($data) {
