@@ -137,24 +137,16 @@ class SupplierinquiryController extends PublicController {
      */
 
     public function InquiryexportAction() {
-        ini_set('memory_limit', '1G');
+        ini_set('memory_limit', '4G');
         set_time_limit(0);
         $condition = $this->getPut();
-        unset($condition['token']);
         $supplier_inquiry_model = new SupplierInquiryModel();
         // 导出多少天以内的数据
-        $inquiryModel = new InquiryModel();
-        $inquiry_ids = $inquiryModel->getExportList($condition, $this->user['role_no'], $this->user['id'], $this->user['group_id']);
-        $where = ['i.deleted_flag' => 'N',
-            'i.status' => ['neq', 'DRAFT'],
-        ];
-        if (!empty($inquiry_ids)) {
-            $where['i.id'] = ['in', $inquiry_ids];
-        } else {
-            $where['i.id'] = -1;
+        if (empty($condition['created_at_start']) && !empty($condition['last_days'])) {
+            $days = intval($condition['last_days']) ?: 31;
+            $condition['created_at_start'] = $this->_getLastDaysDate($days);
         }
-
-        $data = $supplier_inquiry_model->Inquiryexport($where);
+        $data = $supplier_inquiry_model->Inquiryexport($condition);
 
         if ($data) {
             $this->jsonReturn($data);
