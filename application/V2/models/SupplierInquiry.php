@@ -2030,8 +2030,8 @@ class SupplierInquiryModel extends PublicModel {
             'mac.market_area_bn' => !empty($condition['area_bn']) ? trim($condition['area_bn']) : ['IN', $this->areas]
         ];
 
-        $currentPage = empty($attributes['current_no']) ? 1 : $attributes['current_no'];
-        $pageSize = empty($attributes['pageSize']) ? 10 : $attributes['pageSize'];
+        $currentPage = empty($condition['current_no']) ? 1 : $condition['current_no'];
+        $pageSize = empty($condition['pageSize']) ? 10 : $condition['pageSize'];
 
         $inquiry = new InquiryModel();
 
