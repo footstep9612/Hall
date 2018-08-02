@@ -47,7 +47,6 @@ class SupplierinquiryController extends PublicController {
             'data' => $suppliersStatics
         ]);
 
-        p($total);
     }
 
     /*
