@@ -958,47 +958,31 @@ class LogisticsController extends PublicController {
             }
 
             $this->inquiryModel->startTrans();
-
-            $where['inquiry_id'] = $condition['inquiry_id'];
-            $quote = $this->quoteModel->where($where)->find();
-            $data['premium_rate'] = $quote['premium_rate'];
-            $data['trade_terms_bn'] = $quote['trade_terms_bn'];
-            $data['payment_period'] = $quote['payment_period'];
-            $data['fund_occupation_rate'] = $quote['fund_occupation_rate'];
-            $data['bank_interest'] = $quote['bank_interest'];
-            $data['total_exw_price'] = $quote['total_exw_price'];
-            $data['certification_fee'] = $quote['certification_fee'];
-            $data['certification_fee_cur'] = $quote['certification_fee_cur'];
-            $data = $this->calcuTotalLogiFee($data);
-
             $inquiryData = [
                 'id' => $condition['inquiry_id'],
                 'now_agent_id' => $inquiry['check_org_id'],
                 'status' => 'MARKET_APPROVING',
                 'updated_by' => $this->user['id']
             ];
-            $res1 = $this->inquiryModel->updateData($inquiryData);
+            $res = $this->inquiryModel->updateData($inquiryData);
+            $this->rollback($this->inquiryModel, null, $res);
 
-            $quoteData = [
-                'total_logi_fee' => $data['total_logi_fee'],
-                'total_quote_price' => $data['total_quote_price'],
-                'total_bank_fee' => $data['total_logi_fee'],
-                'total_insu_fee' => $data['total_insu_fee'],
-                'updated_by' => $this->user['id'],
-                'updated_at' => $this->time
-            ];
-            $res2 = $this->quoteModel->where($where)->save($quoteData);
+            $result = $this->quoteModel->GeneralInfo(['inquiry_id' => $condition['inquiry_id']]);
 
-            $res3 = $this->_updateQuoteUnitPrice($condition['inquiry_id'], $data);
+            $this->rollback($this->inquiryModel, null, $result);
+            $flag = $this->quoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
+            $this->rollback($this->inquiryModel, $flag);
 
-            if ($res1['code'] == 1 && $res2 && $res3) {
-                $this->inquiryModel->commit();
-                $res = true;
-            } else {
-                $this->inquiryModel->rollback();
-                $res = false;
-            }
 
+            $quote_logi_fee_Model = new Rfq_QuoteLogiFeeModel();
+            $flag = $quote_logi_fee_Model->submit($condition['inquiry_id']);
+            $this->rollback($this->inquiryModel, $flag);
+
+            $FinalQuoteModel = new Rfq_FinalQuoteModel();
+            $res2 = $FinalQuoteModel->submit($condition['inquiry_id']);
+            $this->rollback($this->inquiryModel, $res2);
+
+            $this->inquiryModel->commit();
             $this->jsonReturn($res);
         } else {
             $this->jsonReturn(false);
@@ -1444,6 +1428,23 @@ class LogisticsController extends PublicController {
             $this->setCode('-101');
             $this->setMessage(L('FAIL'));
             parent::jsonReturn();
+        }
+    }
+
+    private function rollback(&$inquiry, $flag, $results = null, $error = null) {
+        if (!empty($results) && isset($results['code']) && $results['code'] != 1) {
+            $inquiry->rollback();
+            $this->jsonReturn($results);
+        } elseif ($results === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
+        } elseif ($flag === false) {
+            $inquiry->rollback();
+            $this->setCode('-101');
+            $this->setMessage(L('FAIL') . $error);
+            $this->jsonReturn();
         }
     }
 
