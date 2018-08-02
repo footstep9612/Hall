@@ -250,10 +250,10 @@ class QuoteItemModel extends PublicModel {
                 }
             } else {
 
-                if (empty($value['supplier_name'])) {
-                    $supplierFailList[] = $row;
-                    continue;
-                }
+//                if (empty($value['supplier_name'])) {
+//                    $supplierFailList[] = $row;
+//                    continue;
+//                }
                 $supplierId = $suppliersModel
                         ->where(['name' => $value['supplier_name'],
                             'deleted_flag' => 'N'])
