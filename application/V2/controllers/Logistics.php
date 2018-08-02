@@ -983,8 +983,6 @@ class LogisticsController extends PublicController {
             $this->rollback($this->inquiryModel, $res2);
             $flag = $FinalQuoteModel->where(['inquiry_id' => $condition['inquiry_id']])->save(['status' => 'MARKET_APPROVING']);
             $this->rollback($this->inquiryModel, $flag);
-
-
             $this->inquiryModel->commit();
             $this->jsonReturn($res);
         } else {
