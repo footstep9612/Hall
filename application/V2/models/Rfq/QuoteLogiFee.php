@@ -294,14 +294,15 @@ class Rfq_QuoteLogiFeeModel extends PublicModel {
 
         //计算并保存港杂费和国际运费数据
         if (!in_array($data['trade_terms_bn'], ['EXW', 'FCA', 'FAS'])) {
+            $data['port_surcharge_items'] = $quoteLogiCostModel
+                    ->getList(['inquiry_id' => $inquiry_id, 'type' => 'port_surcharge'], 'price,qty,cur_bn');
             if (empty($data['port_surcharge_items'])) {
                 return false;
             } else {
 
 
                 $data['port_surcharge'] = $data['inter_shipping'] = 0;
-                $data['port_surcharge_items'] = $quoteLogiCostModel
-                        ->getList(['inquiry_id' => $inquiry_id, 'type' => 'port_surcharge'], 'price,qty,cur_bn');
+
                 $data['inter_shipping_items'] = $quoteLogiCostModel
                         ->getList(['inquiry_id' => $inquiry_id, 'type' => 'inter_shipping'], 'price,qty,cur_bn');
                 foreach ($data['port_surcharge_items'] as $portSurchargeItem) {
