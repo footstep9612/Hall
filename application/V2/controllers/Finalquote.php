@@ -311,7 +311,7 @@ class FinalquoteController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('CNY', $cur);
+            return $this->_getRate($cur, 'CNY');
         }
     }
 
@@ -328,7 +328,7 @@ class FinalquoteController extends PublicController {
         if (empty($cur)) {
             return 1;
         } else {
-            return $this->_getRate('USD', $cur);
+            return $this->_getRate($cur, 'USD');
         }
     }
 
