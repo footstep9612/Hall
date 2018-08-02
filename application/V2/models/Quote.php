@@ -90,6 +90,22 @@ class QuoteModel extends PublicModel {
         }
     }
 
+    public function GeneralInfo(array $condition) {
+
+        try {
+            $error = '';
+            //处理计算相关逻辑
+            $flag = $this->calculate($condition, $error);
+            if ($flag === false) {
+                return false;
+            }
+
+            return true;
+        } catch (Exception $exception) {
+            return false;
+        }
+    }
+
     /**
      * 处理所有计算相关逻辑
      * @param $condition    条件
